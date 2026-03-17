@@ -77,7 +77,7 @@ export async function PUT(request: Request) {
         const shift = await prisma.shift.update({
             where: { id: parseInt(id) },
             data: {
-                endingCash: endCash !== undefined ? parseFloat(endCash) : undefined,
+                endingCashActual: endCash !== undefined ? parseFloat(endCash) : undefined,
                 notes: notes !== undefined ? notes : undefined,
                 status: status || 'closed',
                 endTime: status === 'closed' ? new Date() : undefined,

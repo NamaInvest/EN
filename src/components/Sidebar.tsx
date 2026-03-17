@@ -30,6 +30,7 @@ const menuItems = [
         sectionKey: 'sidebar.inventory', items: [
             { icon: '📦', labelKey: 'sidebar.products', href: '/products' },
             { icon: '🏭', labelKey: 'sidebar.stock', href: '/stock' },
+            { icon: '🏢', labelKey: 'sidebar.warehouses', href: '/warehouses' },
             { icon: '🔀', labelKey: 'sidebar.stock_transfers', href: '/stock-transfers' },
             { icon: '🏷️', labelKey: 'sidebar.barcode', href: '/barcode' },
             { icon: '⏱️', labelKey: 'sidebar.batches', href: '/batches' },

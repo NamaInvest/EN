@@ -9,18 +9,18 @@ datasource db {
 
 // ==================== 1. Users ====================
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  passwordHash String   @map("password_hash")
-  fullName     String   @map("full_name")
-  role         String   @default("cashier") // admin, cashier, accountant
-  phone        String?
-  active       Boolean  @default(true)
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String    @map("full_name")
+  role          String    @default("cashier") // admin, cashier, accountant
+  phone         String?
+  active        Boolean   @default(true)
   sessionToken  String?   @map("session_token")
   deviceToken   String?   @map("device_token")
   deviceName    String?   @map("device_name")
   deviceBoundAt DateTime? @map("device_bound_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   permissions      UserPermission[]
   salesInvoices    SalesInvoice[]
@@ -29,11 +29,11 @@ model User {
   treasuryEntries  Treasury[]
   auditLogs        AuditLog[]
   stockMovements   StockMovement[]
-
-  @@map("users")
   shifts           Shift[]
   branchId         Int?              @map("branch_id")
   branch           Branch?           @relation(fields: [branchId], references: [id])
+
+  @@map("users")
 }
 
 // ==================== 2. UserPermissions ====================
@@ -95,17 +95,17 @@ model Product {
   sellByWeight Boolean  @default(false) @map("sell_by_weight")
   expiryDate   String?  @map("expiry_date")
 
-  category       Category?            @relation(fields: [categoryId], references: [id])
-  unit           Unit?                @relation(fields: [unitId], references: [id])
-  salesDetails   SalesInvoiceDetail[]
+  category        Category?               @relation(fields: [categoryId], references: [id])
+  unit            Unit?                   @relation(fields: [unitId], references: [id])
+  salesDetails    SalesInvoiceDetail[]
   purchaseDetails PurchaseInvoiceDetail[]
-  stockMovements StockMovement[]
-  productStocks  ProductStock[]
+  stockMovements  StockMovement[]
+  productStocks   ProductStock[]
+  batches         ProductBatch[]
+  finishedRecipes Recipe[]                @relation("RecipeFinishedProduct")
+  rawRecipes      RecipeIngredient[]      @relation("RecipeRawProduct")
 
   @@map("products")
-  batches             ProductBatch[]
-  finishedRecipes Recipe[]             @relation("RecipeFinishedProduct")
-  rawRecipes      RecipeIngredient[]   @relation("RecipeRawProduct")
 }
 
 // ==================== 6. Customers ====================
@@ -138,19 +138,19 @@ model Customer {
 
 // ==================== 7. Stocks (Warehouses) ====================
 model Stock {
-  id     Int     @id @default(autoincrement())
-  name   String
+  id      Int     @id @default(autoincrement())
+  name    String
   address String?
-  active Boolean @default(true)
+  active  Boolean @default(true)
 
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
   stockMovements   StockMovement[]
   productStocks    ProductStock[]
+  branch           Branch?           @relation(fields: [branchId], references: [id])
+  branchId         Int?              @map("branch_id")
 
   @@map("stocks")
-  branch   Branch? @relation(fields: [branchId], references: [id])
-  branchId Int? @map("branch_id")
 }
 
 // ==================== 7.1 Product Stocks (Per-Warehouse Inventory) ====================
@@ -196,34 +196,34 @@ model SalesInvoice {
   stock    Stock?               @relation(fields: [stockId], references: [id])
   user     User?                @relation(fields: [userId], references: [id])
   details  SalesInvoiceDetail[]
-
-  @@map("sales_invoices")
   branchId Int?                 @map("branch_id")
   branch   Branch?              @relation(fields: [branchId], references: [id])
-  shift    Shift?   @relation(fields: [shiftId], references: [id])
-  shiftId Int? @map("shift_id")
+  shift    Shift?               @relation(fields: [shiftId], references: [id])
+  shiftId  Int?                 @map("shift_id")
+
+  @@map("sales_invoices")
 }
 
 // ==================== 9. SalesInvoiceDetails ====================
 model SalesInvoiceDetail {
-  id            Int    @id @default(autoincrement())
-  invoiceId     Int    @map("invoice_id")
-  productId     Int    @map("product_id")
+  id            Int     @id @default(autoincrement())
+  invoiceId     Int     @map("invoice_id")
+  productId     Int     @map("product_id")
   productName   String? @map("product_name")
-  quantity      Float  @default(1)
-  price         Float  @default(0)
-  discountRate  Float  @default(0) @map("discount_rate")
-  discountValue Float  @default(0) @map("discount_value")
-  taxRate       Float  @default(15) @map("tax_rate")
-  taxValue      Float  @default(0) @map("tax_value")
-  total         Float  @default(0)
+  quantity      Float   @default(1)
+  price         Float   @default(0)
+  discountRate  Float   @default(0) @map("discount_rate")
+  discountValue Float   @default(0) @map("discount_value")
+  taxRate       Float   @default(15) @map("tax_rate")
+  taxValue      Float   @default(0) @map("tax_value")
+  total         Float   @default(0)
 
-  invoice SalesInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product Product      @relation(fields: [productId], references: [id])
+  invoice SalesInvoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+  batch   ProductBatch? @relation(fields: [batchId], references: [id])
+  batchId Int?          @map("batch_id")
 
   @@map("sales_invoice_details")
-  batch   ProductBatch? @relation(fields: [batchId], references: [id])
-  batchId Int? @map("batch_id")
 }
 
 // ==================== 10. SalesReturns ====================
@@ -242,57 +242,57 @@ model SalesReturn {
   zatcaHash         String?  @map("zatca_hash")
   zatcaQr           String?  @map("zatca_qr")
   zatcaResponse     String?  @map("zatca_response")
+  branch            Branch?  @relation(fields: [branchId], references: [id])
+  shift             Shift?   @relation(fields: [shiftId], references: [id])
+  branchId          Int?     @map("branch_id")
+  shiftId           Int?     @map("shift_id")
 
   @@map("sales_returns")
-  branch   Branch? @relation(fields: [branchId], references: [id])
-  shift    Shift?  @relation(fields: [shiftId], references: [id])
-  branchId Int? @map("branch_id")
-  shiftId  Int? @map("shift_id")
 }
 
 // ==================== 11. PurchaseInvoices ====================
 model PurchaseInvoice {
-  id               Int      @id @default(autoincrement())
-  invoiceNo        Int      @map("invoice_no")
-  date             DateTime @default(now())
-  supplierId       Int?     @map("supplier_id")
-  stockId          Int      @default(1) @map("stock_id")
-  subtotal         Float    @default(0)
-  discountRate     Float    @default(0) @map("discount_rate")
-  discountValue    Float    @default(0) @map("discount_value")
-  taxValue         Float    @default(0) @map("tax_value")
-  total            Float    @default(0)
-  paid             Float    @default(0)
-  remaining        Float    @default(0)
-  supplierInvoiceNo String? @map("supplier_invoice_no")
-  paymentType      String   @default("cash") @map("payment_type")
-  status           String   @default("completed")
-  userId           Int?     @map("user_id")
-  notes            String?
+  id                Int      @id @default(autoincrement())
+  invoiceNo         Int      @map("invoice_no")
+  date              DateTime @default(now())
+  supplierId        Int?     @map("supplier_id")
+  stockId           Int      @default(1) @map("stock_id")
+  subtotal          Float    @default(0)
+  discountRate      Float    @default(0) @map("discount_rate")
+  discountValue     Float    @default(0) @map("discount_value")
+  taxValue          Float    @default(0) @map("tax_value")
+  total             Float    @default(0)
+  paid              Float    @default(0)
+  remaining         Float    @default(0)
+  supplierInvoiceNo String?  @map("supplier_invoice_no")
+  paymentType       String   @default("cash") @map("payment_type")
+  status            String   @default("completed")
+  userId            Int?     @map("user_id")
+  notes             String?
 
-  supplier Customer?              @relation(fields: [supplierId], references: [id])
-  stock    Stock?                 @relation(fields: [stockId], references: [id])
-  user     User?                  @relation(fields: [userId], references: [id])
+  supplier Customer?               @relation(fields: [supplierId], references: [id])
+  stock    Stock?                  @relation(fields: [stockId], references: [id])
+  user     User?                   @relation(fields: [userId], references: [id])
   details  PurchaseInvoiceDetail[]
-
-  @@map("purchase_invoices")
   branchId Int?                    @map("branch_id")
   branch   Branch?                 @relation(fields: [branchId], references: [id])
+
+  @@map("purchase_invoices")
 }
 
 // ==================== 12. PurchaseInvoiceDetails ====================
 model PurchaseInvoiceDetail {
-  id            Int    @id @default(autoincrement())
-  invoiceId     Int    @map("invoice_id")
-  productId     Int    @map("product_id")
+  id            Int     @id @default(autoincrement())
+  invoiceId     Int     @map("invoice_id")
+  productId     Int     @map("product_id")
   productName   String? @map("product_name")
-  quantity      Float  @default(1)
-  price         Float  @default(0)
-  discountRate  Float  @default(0) @map("discount_rate")
-  discountValue Float  @default(0) @map("discount_value")
-  taxRate       Float  @default(15) @map("tax_rate")
-  taxValue      Float  @default(0) @map("tax_value")
-  total         Float  @default(0)
+  quantity      Float   @default(1)
+  price         Float   @default(0)
+  discountRate  Float   @default(0) @map("discount_rate")
+  discountValue Float   @default(0) @map("discount_value")
+  taxRate       Float   @default(15) @map("tax_rate")
+  taxValue      Float   @default(0) @map("tax_value")
+  total         Float   @default(0)
 
   invoice PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product Product         @relation(fields: [productId], references: [id])
@@ -321,7 +321,7 @@ model StockMovement {
   id            Int      @id @default(autoincrement())
   productId     Int      @map("product_id")
   stockId       Int      @default(1) @map("stock_id")
-  type          String   // in, out, transfer, adjustment
+  type          String // in, out, transfer, adjustment
   quantity      Float    @default(0)
   referenceType String?  @map("reference_type")
   referenceId   Int?     @map("reference_id")
@@ -329,13 +329,13 @@ model StockMovement {
   userId        Int?     @map("user_id")
   notes         String?
 
-  product Product @relation(fields: [productId], references: [id])
-  stock   Stock   @relation(fields: [stockId], references: [id])
-  user    User?   @relation(fields: [userId], references: [id])
+  product Product       @relation(fields: [productId], references: [id])
+  stock   Stock         @relation(fields: [stockId], references: [id])
+  user    User?         @relation(fields: [userId], references: [id])
+  batch   ProductBatch? @relation(fields: [batchId], references: [id])
+  batchId Int?          @map("batch_id")
 
   @@map("stock_movements")
-  batch   ProductBatch? @relation(fields: [batchId], references: [id])
-  batchId Int? @map("batch_id")
 }
 
 // ==================== 15. Expenses ====================
@@ -348,35 +348,35 @@ model Expense {
   userId      Int?     @map("user_id")
   notes       String?
 
-  user User? @relation(fields: [userId], references: [id])
-
-  @@map("expenses")
+  user     User?   @relation(fields: [userId], references: [id])
   branchId Int?    @map("branch_id")
   branch   Branch? @relation(fields: [branchId], references: [id])
+
+  @@map("expenses")
 }
 
 // ==================== 16. Treasury ====================
 model Treasury {
   id            Int      @id @default(autoincrement())
   date          DateTime @default(now())
-  type          String   // in, out
+  type          String // in, out
   amount        Float    @default(0)
   description   String?
   referenceType String?  @map("reference_type")
   referenceId   Int?     @map("reference_id")
   userId        Int?     @map("user_id")
 
-  user User? @relation(fields: [userId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id])
+  branch   Branch? @relation(fields: [branchId], references: [id])
+  branchId Int?    @map("branch_id")
 
   @@map("treasury")
-  branch   Branch?  @relation(fields: [branchId], references: [id])
-  branchId Int? @map("branch_id")
 }
 
 // ==================== 17. Settings ====================
 model Setting {
-  id          Int    @id @default(autoincrement())
-  key         String @unique
+  id          Int     @id @default(autoincrement())
+  key         String  @unique
   value       String?
   description String?
 
@@ -420,8 +420,8 @@ model Employee {
 
 // ==================== 20. Attendance ====================
 model Attendance {
-  id         Int    @id @default(autoincrement())
-  employeeId Int    @map("employee_id")
+  id         Int     @id @default(autoincrement())
+  employeeId Int     @map("employee_id")
   date       String
   checkIn    String? @map("check_in")
   checkOut   String? @map("check_out")
@@ -452,12 +452,12 @@ model Salary {
 
 // ==================== 22. Vacations ====================
 model Vacation {
-  id         Int    @id @default(autoincrement())
-  employeeId Int    @map("employee_id")
-  type       String @default("annual")
-  dateFrom   String @map("date_from")
-  dateTo     String @map("date_to")
-  status     String @default("approved")
+  id         Int     @id @default(autoincrement())
+  employeeId Int     @map("employee_id")
+  type       String  @default("annual")
+  dateFrom   String  @map("date_from")
+  dateTo     String  @map("date_to")
+  status     String  @default("approved")
   notes      String?
 
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -483,13 +483,13 @@ model PriceQuote {
 
 // ==================== 24. PriceQuoteDetails ====================
 model PriceQuoteDetail {
-  id          Int    @id @default(autoincrement())
-  quoteId     Int    @map("quote_id")
-  productId   Int?   @map("product_id")
+  id          Int     @id @default(autoincrement())
+  quoteId     Int     @map("quote_id")
+  productId   Int?    @map("product_id")
   productName String? @map("product_name")
-  quantity    Float  @default(1)
-  price       Float  @default(0)
-  total       Float  @default(0)
+  quantity    Float   @default(1)
+  price       Float   @default(0)
+  total       Float   @default(0)
 
   quote PriceQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 
@@ -513,11 +513,11 @@ model StockTransfer {
 
 // ==================== 26. StockTransferDetails ====================
 model StockTransferDetail {
-  id          Int    @id @default(autoincrement())
-  transferId  Int    @map("transfer_id")
-  productId   Int?   @map("product_id")
+  id          Int     @id @default(autoincrement())
+  transferId  Int     @map("transfer_id")
+  productId   Int?    @map("product_id")
   productName String? @map("product_name")
-  quantity    Float  @default(0)
+  quantity    Float   @default(0)
 
   transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
 
@@ -563,7 +563,7 @@ model Account {
   code     String
   name     String
   nameEn   String  @default("") @map("name_en")
-  type     String  // asset, liability, equity, revenue, expense
+  type     String // asset, liability, equity, revenue, expense
   parentId Int     @default(0) @map("parent_id")
   level    Int     @default(1)
   isActive Boolean @default(true) @map("is_active")
@@ -587,21 +587,21 @@ model JournalEntry {
   createdBy   Int?     @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  lines JournalLine[]
+  lines    JournalLine[]
+  branch   Branch?       @relation(fields: [branchId], references: [id])
+  branchId Int?          @map("branch_id")
 
   @@map("journal_entries")
-  branch   Branch?  @relation(fields: [branchId], references: [id])
-  branchId Int? @map("branch_id")
 }
 
 // ==================== 31. JournalLines ====================
 model JournalLine {
-  id          Int    @id @default(autoincrement())
-  entryId     Int    @map("entry_id")
-  accountId   Int    @map("account_id")
+  id          Int     @id @default(autoincrement())
+  entryId     Int     @map("entry_id")
+  accountId   Int     @map("account_id")
   description String?
-  debit       Float  @default(0)
-  credit      Float  @default(0)
+  debit       Float   @default(0)
+  credit      Float   @default(0)
 
   entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
   account Account      @relation(fields: [accountId], references: [id])
@@ -631,14 +631,14 @@ model Quotation {
 
 // ==================== 33. QuotationItems ====================
 model QuotationItem {
-  id          Int    @id @default(autoincrement())
-  quotationId Int    @map("quotation_id")
-  productId   Int?   @map("product_id")
+  id          Int     @id @default(autoincrement())
+  quotationId Int     @map("quotation_id")
+  productId   Int?    @map("product_id")
   description String?
-  quantity    Float  @default(1)
-  unitPrice   Float  @default(0) @map("unit_price")
-  taxRate     Float  @default(15) @map("tax_rate")
-  total       Float  @default(0)
+  quantity    Float   @default(1)
+  unitPrice   Float   @default(0) @map("unit_price")
+  taxRate     Float   @default(15) @map("tax_rate")
+  total       Float   @default(0)
 
   quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
 
@@ -657,7 +657,7 @@ model Installment {
   status           String   @default("active")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  customer Customer              @relation(fields: [customerId], references: [id])
+  customer Customer             @relation(fields: [customerId], references: [id])
   payments InstallmentPayment[]
 
   @@map("installments")
@@ -698,7 +698,7 @@ model LoyaltyTransaction {
   customerId  Int      @map("customer_id")
   invoiceId   Int?     @map("invoice_id")
   points      Int
-  type        String   // earned, redeemed
+  type        String // earned, redeemed
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -709,7 +709,7 @@ model LoyaltyTransaction {
 model Promotion {
   id            Int      @id @default(autoincrement())
   name          String
-  type          String   // bogo, percentage, fixed, quantity, category, happy_hour
+  type          String // bogo, percentage, fixed, quantity, category, happy_hour
   discountType  String   @default("percentage") @map("discount_type")
   discountValue Float    @default(0) @map("discount_value")
   buyQty        Int      @default(0) @map("buy_qty")
@@ -842,7 +842,6 @@ model StocktakeItem {
 
   @@map("stocktake_items")
 }
-
 
 model Branch {
   id        Int      @id @default(autoincrement())

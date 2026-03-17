@@ -49,7 +49,7 @@ export async function POST(request: Request) {
             const { postExpense } = await import('@/lib/auto-journal');
             await postExpense({
                 id: expense.id,
-                category: expense.category,
+                category: expense.category || 'عام',
                 amount: expense.amount,
                 description: expense.description,
                 userId: userId || undefined,
