@@ -1,0 +1,65 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { code, cartTotal } = body;
+
+        if (!code) {
+            return NextResponse.json({ error: 'كود الكوبون مطلوب' }, { status: 400 });
+        }
+
+        const coupon = await prisma.coupon.findUnique({
+            where: { code: code.toUpperCase() }
+        });
+
+        if (!coupon) {
+            return NextResponse.json({ error: 'كوبون غير صالح أو غير موجود' }, { status: 404 });
+        }
+
+        if (!coupon.isActive) {
+            return NextResponse.json({ error: 'هذا الكوبون غير فعال' }, { status: 400 });
+        }
+
+        const now = new Date();
+        
+        // Check Start Date
+        if (coupon.startDate) {
+            const start = new Date(coupon.startDate);
+            if (now < start) {
+                return NextResponse.json({ error: 'تاريخ بداية الكوبون لم يحن بعد' }, { status: 400 });
+            }
+        }
+
+        // Check End Date
+        if (coupon.endDate) {
+            const end = new Date(coupon.endDate);
+            // End Date inclusive to the end of the day technically, but strict comparison here
+            if (now > end) {
+                return NextResponse.json({ error: 'هذا الكوبون منتهي الصلاحية' }, { status: 400 });
+            }
+        }
+
+        // Check Max Uses
+        if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
+            return NextResponse.json({ error: 'تم تجاوز الحد الأقصى لاستخدام الكوبون' }, { status: 400 });
+        }
+
+        // Check Minimum Order Value
+        if (cartTotal && coupon.minOrder > 0 && cartTotal < coupon.minOrder) {
+            return NextResponse.json({ error: `الحد الأدنى للطلب لاستخدام الكوبون هو ${coupon.minOrder}` }, { status: 400 });
+        }
+
+        return NextResponse.json({
+            id: coupon.id,
+            code: coupon.code,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue
+        });
+
+    } catch (error: any) {
+        console.error('Error validating coupon:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

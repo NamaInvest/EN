@@ -1,0 +1,12 @@
+﻿Client :: ready
+STDOUT: Archive:  staging_banks.zip
+STDOUT:   inflating: staging_banks/api_banks_id_route.ts  
+STDOUT:   inflating: staging_banks/api_banks_id_tx_route.ts  
+  inflating: staging_banks/api_banks_route.ts  
+STDOUT:   inflating: staging_banks/deploy_banking_vps.sh  
+  inflating: staging_banks/i18n.tsx  STDOUT: 
+  inflating: staging_banks/schema.prisma  STDOUT: 
+  inflating: staging_banks/schema_final_ready.prisma  STDOUT: 
+STDOUT:   inflating: staging_banks/Sidebar.tsx  
+  inflating: staging_banks/ui_banks_id_page.tsx  
+  inflating: staging_banks/ui_banks_page.tsx  

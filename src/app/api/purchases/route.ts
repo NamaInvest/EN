@@ -1,0 +1,186 @@
+import { NextResponse, NextRequest } from 'next/server';
+import prisma from '@/lib/prisma';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const from = searchParams.get('from');
+        const to = searchParams.get('to');
+        const status = searchParams.get('status');
+        const branchQuery = searchParams.get('branchId');
+
+        const auth = getUserFromRequest(request);
+        const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
+
+        const where: Record<string, unknown> = {};
+        if (from || to) { where.date = {}; if (from) (where.date as Record<string, unknown>).gte = new Date(from); if (to) (where.date as Record<string, unknown>).lte = new Date(to + 'T23:59:59'); }
+        if (status) where.status = status;
+
+        // Branch Isolation Logic
+        if (user && user.role !== 'admin' && user.branchId) {
+            where.branchId = user.branchId;
+        } else if (branchQuery) {
+            where.branchId = parseInt(branchQuery);
+        }
+
+        const invoices = await prisma.purchaseInvoice.findMany({ where, include: { supplier: true, user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { id: 'desc' } });
+        return NextResponse.json(invoices);
+    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const userId = body.userId ? parseInt(body.userId) : null;
+        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        if (!branchId && userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
+            branchId = user?.branchId || null;
+        }
+
+        const last = await prisma.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+        const invoiceNo = (last?.invoiceNo || 0) + 1;
+        const items = body.items || [];
+        let subtotal = 0;
+        for (const item of items) { const t = (item.quantity || 1) * (item.price || 0); subtotal += t - t * ((item.discountRate || 0) / 100); }
+        const taxValue = subtotal * 0.15;
+        const total = subtotal + taxValue;
+        const paymentType = body.paymentType || 'cash';
+        const paid = paymentType === 'credit' ? (parseFloat(body.paid) || 0) : (parseFloat(body.paid) || total);
+        const remaining = total - paid;
+        const status = remaining > 0 ? 'pending' : 'completed';
+
+        const invoice = await prisma.purchaseInvoice.create({
+            data: {
+                invoiceNo, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
+                stockId: body.stockId ? parseInt(body.stockId) : 1,
+                subtotal, taxValue, total, paid, remaining,
+                supplierInvoiceNo: body.supplierInvoiceNo || null,
+                paymentType,
+                status, userId, branchId, notes: body.notes || null,
+                details: {
+                    create: items.map((item: Record<string, unknown>) => {
+                        const qty = parseFloat(item.quantity as string) || 1;
+                        const price = parseFloat(item.price as string) || 0;
+                        const dRate = parseFloat(item.discountRate as string) || 0;
+                        const iSub = qty * price; const dVal = iSub * (dRate / 100);
+                        const afterD = iSub - dVal; const tax = afterD * 0.15;
+                        return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: 15, taxValue: tax, total: afterD + tax };
+                    }),
+                },
+            },
+            include: { details: true },
+        });
+
+        for (const item of items) {
+            await prisma.product.update({
+                where: { id: parseInt(item.productId) },
+                data: { currentStock: { increment: parseFloat(item.quantity) || 1 } },
+            });
+        }
+
+        if (paid > 0) {
+            await prisma.treasury.create({
+                data: { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: invoice.id, userId, branchId },
+            });
+        }
+
+        try {
+            const { postPurchaseInvoice } = await import('@/lib/auto-journal');
+            await postPurchaseInvoice({
+                invoiceNo,
+                subtotal,
+                taxValue,
+                total,
+                paymentType,
+                userId: userId || undefined,
+                branchId: branchId || undefined,
+                date: new Date().toISOString().split('T')[0],
+            });
+        } catch (journalErr) {
+            console.warn('Auto-journal for purchase skipped:', journalErr);
+        }
+
+        return NextResponse.json(invoice, { status: 201 });
+    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+}
+
+// تسديد دفعة على فاتورة مشتريات آجلة
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const { invoiceId, amount, userId } = body;
+        if (!invoiceId || !amount) return NextResponse.json({ error: 'invoiceId و amount مطلوبين' }, { status: 400 });
+
+        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: parseInt(invoiceId) } });
+        if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        const payAmount = Math.min(parseFloat(amount), invoice.remaining);
+        if (payAmount <= 0) return NextResponse.json({ error: 'لا يوجد رصيد مستحق' }, { status: 400 });
+
+        const newPaid = invoice.paid + payAmount;
+        const newRemaining = invoice.total - newPaid;
+
+        const updated = await prisma.purchaseInvoice.update({
+            where: { id: parseInt(invoiceId) },
+            data: {
+                paid: newPaid,
+                remaining: newRemaining,
+                status: newRemaining <= 0 ? 'completed' : 'pending',
+            },
+        });
+
+        const parsedUserId = userId ? parseInt(userId) : null;
+        let branchId = invoice.branchId; // use invoice's original branch
+
+        await prisma.treasury.create({
+            data: {
+                type: 'out',
+                amount: payAmount,
+                description: `تسديد دفعة - فاتورة مشتريات #${invoice.invoiceNo}`,
+                referenceType: 'purchase_payment',
+                referenceId: invoice.id,
+                userId: parsedUserId,
+                branchId,
+            },
+        });
+
+        return NextResponse.json(updated);
+    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل في تسديد الدفعة' }, { status: 500 }); }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const auth = getUserFromRequest(request);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const allowed = await hasPermission(auth.userId, 'delete_invoices');
+        if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف الفواتير' }, { status: 403 });
+
+        const { searchParams } = new URL(request.url);
+        const id = Number(searchParams.get('id'));
+        if (!id) return NextResponse.json({ error: 'معرف الفاتورة مطلوب' }, { status: 400 });
+
+        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id }, include: { details: true } });
+        if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        // Reverse stock (decrement what was added from purchase)
+        for (const detail of invoice.details) {
+            await prisma.product.update({
+                where: { id: detail.productId },
+                data: { currentStock: { decrement: detail.quantity } },
+            });
+        }
+
+        // Remove related treasury entries
+        await prisma.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id } });
+
+        // Delete invoice (cascade deletes details)
+        await prisma.purchaseInvoice.delete({ where: { id } });
+
+        return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
+    } catch (error) {
+        console.error('Purchases DELETE error:', error);
+        return NextResponse.json({ error: 'فشل في حذف الفاتورة' }, { status: 500 });
+    }
+}

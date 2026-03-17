@@ -1,0 +1,21 @@
+﻿node : D:\namasoft9-3-main\run_deploy.js:35
+At line:1 char:1
++ node run_deploy.js > deploy_final2.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\namaso    ft9-3-main\run_deploy.js:35:String) [], RemoteExce    ption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+      console.log(\`Stream :: close :: code: \${code}, signal: \${signal}\`);
+                  ^
+
+SyntaxError: Invalid or unexpected token
+    at wrapSafe (node:internal/modules/cjs/loader:1743:18)
+    at Module._compile (node:internal/modules/cjs/loader:1786:20)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.14.0

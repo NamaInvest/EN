@@ -1,0 +1,62 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function GET() {
+    try {
+        const stocktakes = await prisma.stocktake.findMany({
+            include: { items: true },
+            orderBy: { id: 'desc' },
+        });
+        return NextResponse.json(stocktakes);
+    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const products = await prisma.product.findMany({ where: { active: true }, select: { id: true, name: true, currentStock: true } });
+
+        const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
+            const product = products.find(p => p.id === item.productId);
+            const systemQty = product?.currentStock || 0;
+            const diff = item.actualQty - systemQty;
+            return {
+                productId: item.productId,
+                systemQty,
+                actualQty: item.actualQty,
+                difference: diff,
+                status: diff === 0 ? 'matched' : diff > 0 ? 'over' : 'short',
+            };
+        });
+
+        const matched = items.filter((i: { status: string }) => i.status === 'matched').length;
+        const over = items.filter((i: { status: string }) => i.status === 'over').length;
+        const short = items.filter((i: { status: string }) => i.status === 'short').length;
+
+        const stocktake = await prisma.stocktake.create({
+            data: {
+                stocktakeDate: new Date().toISOString().split('T')[0],
+                totalItems: items.length, matched, over, short,
+                status: body.applyAdjustment ? 'applied' : 'completed',
+                notes: body.notes || null,
+                createdBy: body.userId || null,
+                items: { create: items },
+            },
+            include: { items: true },
+        });
+
+        // Apply stock adjustment if requested
+        if (body.applyAdjustment) {
+            for (const item of items) {
+                if (item.difference !== 0) {
+                    await prisma.product.update({
+                        where: { id: item.productId },
+                        data: { currentStock: item.actualQty },
+                    });
+                }
+            }
+        }
+
+        return NextResponse.json(stocktake, { status: 201 });
+    } catch (e) { console.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
+}

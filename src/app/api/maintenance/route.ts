@@ -1,0 +1,41 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function GET() {
+    try {
+        const items = await prisma.maintenance.findMany({ orderBy: { id: 'desc' } });
+        return NextResponse.json(items);
+    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const item = await prisma.maintenance.create({
+            data: {
+                customerName: body.customerName || null, phone: body.phone || null,
+                deviceType: body.deviceType || null, problem: body.problem || null,
+                cost: parseFloat(body.cost) || 0, status: 'pending',
+                userId: body.userId || null, notes: body.notes || null,
+            },
+        });
+        return NextResponse.json(item, { status: 201 });
+    } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+}
+
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const item = await prisma.maintenance.update({
+            where: { id: body.id },
+            data: { status: body.status, cost: body.cost ? parseFloat(body.cost) : undefined, notes: body.notes },
+        });
+
+        // Treasury entry when completed
+        if (body.status === 'completed' && item.cost > 0) {
+            await prisma.treasury.create({ data: { type: 'in', amount: item.cost, description: `صيانة - ${item.deviceType || 'جهاز'}`, referenceType: 'maintenance', referenceId: item.id, userId: body.userId || null } });
+        }
+
+        return NextResponse.json(item);
+    } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+}

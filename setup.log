@@ -1,0 +1,4 @@
+=== 1. Creating new database ===
+CREATE DATABASE
+GRANT
+=== 2. Copying app files ===

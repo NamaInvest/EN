@@ -1,0 +1,9 @@
+﻿Client :: ready
+node : STDERR: mv: cannot stat 'staging_banks/api_banks_route.ts': No such file or directory
+At line:1 char:1
++ node run_deploy.js > deploy_final.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (STDERR: m    v: can...le or directory:String) [], RemoteExcepti    on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Stream :: close :: code: 1, signal: undefined

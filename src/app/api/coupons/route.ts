@@ -1,0 +1,50 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function GET() {
+    try {
+        const coupons = await prisma.coupon.findMany({
+            orderBy: { id: 'desc' },
+            include: { usages: true }
+        });
+        return NextResponse.json(coupons);
+    } catch (error) {
+        console.error('Error fetching coupons:', error);
+        return NextResponse.json({ error: 'Failed to fetch coupons' }, { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        
+        // Validate required fields
+        if (!body.code || body.discountValue === undefined) {
+            return NextResponse.json({ error: 'كود الكوبون وقيمة الخصم مطلوبة' }, { status: 400 });
+        }
+
+        // Check for duplicate code
+        const existing = await prisma.coupon.findUnique({ where: { code: body.code } });
+        if (existing) {
+            return NextResponse.json({ error: 'كود الكوبون موجود مسبقاً' }, { status: 400 });
+        }
+
+        const coupon = await prisma.coupon.create({
+            data: {
+                code: body.code.toUpperCase(),
+                discountType: body.discountType || 'percentage',
+                discountValue: parseFloat(body.discountValue),
+                minOrder: parseFloat(body.minOrder || '0'),
+                maxUses: parseInt(body.maxUses || '0'),
+                startDate: body.startDate || null,
+                endDate: body.endDate || null,
+                isActive: body.isActive !== false
+            }
+        });
+        
+        return NextResponse.json(coupon, { status: 201 });
+    } catch (error: any) {
+        console.error('Error creating coupon:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

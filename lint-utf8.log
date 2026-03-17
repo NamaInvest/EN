@@ -1,0 +1,7 @@
+﻿node.exe : Invalid project directory provided, no such directory: D:\namasoft9-3-main\lint
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Invalid project...ft9-3-main\lint:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

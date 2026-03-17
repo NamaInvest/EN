@@ -1,0 +1,41 @@
+﻿========== NAMASOFT SITE DIAGNOSTIC ==========
+Time: 2026-03-14T13:53:53.494Z
+
+--- 1. DATABASE ---
+Users: 3
+Admin found: id=1 active=true role=admin
+Password hash exists: true
+Device token: none
+Password O_O772040030 valid: true
+Admin permissions: 27
+
+--- 2. SETTINGS ---
+Settings count: 26
+
+--- 3. API TESTS (port 3000) ---
+Login API: 200 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzM0OTY0MzMsImV4cCI6MTc3MzU4Mjg
+Settings API: 200 [{"id":5,"key":"currency","value":"╪▒┘è╪د┘","description":"╪د┘╪╣┘à┘╪ر"},{"id":6,"key":"
+Products API: 200 [{"id":107,"name":"╪▓┘è╪ز ╪د┘ê╪ز┘ê ┘à┘è╪▒┘â╪د 0-40","barcode":null,"categoryId":1,"unitId":1
+Categories API: 200 [{"id":1,"name":"╪▓┘è┘ê╪ز","parentId":0,"description":null}]
+
+--- 4. API TESTS (port 3001) ---
+Login API: 500 {"error":"╪ص╪»╪س ╪«╪╖╪ث ┘┘è ╪د┘╪«╪د╪»┘à","debug":"\nInvalid `prisma.user.findUnique()` invocation:\n\n\nThe column `users.device_token` does not exist in the curr
+
+--- 5. ENV ---
+DATABASE_URL=postgresql://namasoft:Nama2024secure@localhost:5432/namadb
+JWT_SECRET=***
+NODE_ENV=production
+TELEGRAM_BOT_TOKEN=8469277343:AAGCWUh1NNIGrB4IwaUOOu-XFkWn1Sskio0
+
+
+--- 6. NGINX ---
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+
+--- 7. LOGIN FILES CHECK ---
+Login route has debug: true
+Login route has crypto.randomUUID: false
+Login page has crypto.randomUUID: true
+Login page has Math.random UUID: true
+
+========== DIAGNOSTIC COMPLETE ==========

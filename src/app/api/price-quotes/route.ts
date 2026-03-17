@@ -1,0 +1,34 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function GET() {
+    try {
+        const quotes = await prisma.priceQuote.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
+        return NextResponse.json(quotes);
+    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const last = await prisma.priceQuote.findFirst({ orderBy: { quoteNo: 'desc' } });
+        const quoteNo = (last?.quoteNo || 0) + 1;
+
+        let total = 0;
+        const items = (body.items || []).map((item: { productId?: number; productName: string; quantity: number; price: number }) => {
+            const t = (item.quantity || 1) * (item.price || 0);
+            total += t;
+            return { productId: item.productId || null, productName: item.productName || '', quantity: item.quantity || 1, price: item.price || 0, total: t };
+        });
+
+        const quote = await prisma.priceQuote.create({
+            data: {
+                quoteNo, customerId: body.customerId || null, total,
+                status: 'pending', userId: body.userId || null, notes: body.notes || null,
+                details: { create: items },
+            },
+            include: { details: true },
+        });
+        return NextResponse.json(quote, { status: 201 });
+    } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+}

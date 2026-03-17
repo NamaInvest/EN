@@ -1,0 +1,160 @@
+﻿Syncing Staged Bank Files to VPS...
+Running Deployment Script on Server...
+ssh : mv: cannot stat 'api_banks_route.ts': No such file or directory
+At D:\namasoft9-3-main\sync_banks.ps1:9 char:1
++ ssh -o StrictHostKeyChecking=no root@185.197.195.202 "sed -i 's/\r//' ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mv: cannot stat...le or directory:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+mv: cannot stat 'api_banks_id_route.ts': No such file or directory
+mv: cannot stat 'api_banks_id_tx_route.ts': No such file or directory
+mv: cannot stat 'ui_banks_page.tsx': No such file or directory
+mv: cannot stat 'ui_banks_id_page.tsx': No such file or directory
+mv: cannot stat 'Sidebar.tsx': No such file or directory
+mv: cannot stat 'i18n.tsx': No such file or directory
+mv: cannot stat 'schema.prisma': No such file or directory
+mv: 'schema_final_ready.prisma' and 'schema_final_ready.prisma' are the same file
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "namadb", schema "public" at "localhost:5432"
+
+≡اأ  Your database is now in sync with your Prisma schema. Done in 376ms
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[Gظ£¤ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 1.11s
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+ظ£¤ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 880ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+
+
+> namaweb@0.1.0 build
+> npx prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+ظ£¤ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 907ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/tip-1-pulse
+
+ظû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+ظ£ô Compiled successfully in 14.0s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/77) ...
+  Generating static pages using 11 workers (19/77) 
+  Generating static pages using 11 workers (38/77) 
+  Generating static pages using 11 workers (57/77) 
+ظ£ô Generating static pages using 11 workers (77/77) in 970.4ms
+  Finalizing page optimization ...
+
+Route (app)
+ظ¤î ظùï /
+ظ¤£ ظùï /_not-found
+ظ¤£ ظùï /accounting
+ظ¤£ ╞ْ /api/accounting/accounts
+ظ¤£ ╞ْ /api/accounting/balance-sheet
+ظ¤£ ╞ْ /api/accounting/income-statement
+ظ¤£ ╞ْ /api/accounting/journal
+ظ¤£ ╞ْ /api/accounting/ledger
+ظ¤£ ╞ْ /api/accounting/trial-balance
+ظ¤£ ╞ْ /api/attendance
+ظ¤£ ╞ْ /api/auth/login
+ظ¤£ ╞ْ /api/auth/session
+ظ¤£ ╞ْ /api/bookings
+ظ¤£ ╞ْ /api/branches
+ظ¤£ ╞ْ /api/categories
+ظ¤£ ╞ْ /api/customers
+ظ¤£ ╞ْ /api/customers/[id]
+ظ¤£ ╞ْ /api/dashboard
+ظ¤£ ╞ْ /api/employees
+ظ¤£ ╞ْ /api/employees/[id]
+ظ¤£ ╞ْ /api/expenses
+ظ¤£ ╞ْ /api/installments
+ظ¤£ ╞ْ /api/maintenance
+ظ¤£ ╞ْ /api/price-quotes
+ظ¤£ ╞ْ /api/products
+ظ¤£ ╞ْ /api/products/[id]
+ظ¤£ ╞ْ /api/promotions
+ظ¤£ ╞ْ /api/purchase-orders
+ظ¤£ ╞ْ /api/purchase-returns
+ظ¤£ ╞ْ /api/purchases
+ظ¤£ ╞ْ /api/purchases/ocr
+ظ¤£ ╞ْ /api/reports/[type]
+ظ¤£ ╞ْ /api/salaries
+ظ¤£ ╞ْ /api/sales
+ظ¤£ ╞ْ /api/sales-returns
+ظ¤£ ╞ْ /api/settings
+ظ¤£ ╞ْ /api/settings/[key]
+ظ¤£ ╞ْ /api/settings/generate-keys
+ظ¤£ ╞ْ /api/settings/upload-logo
+ظ¤£ ╞ْ /api/shifts
+ظ¤£ ╞ْ /api/stock-movements
+ظ¤£ ╞ْ /api/stock-transfers
+ظ¤£ ╞ْ /api/stocktake
+ظ¤£ ╞ْ /api/telegram/process
+ظ¤£ ╞ْ /api/telegram/webhook
+ظ¤£ ╞ْ /api/transliterate
+ظ¤£ ╞ْ /api/treasury
+ظ¤£ ╞ْ /api/treasury/balance
+ظ¤£ ╞ْ /api/users
+ظ¤£ ╞ْ /api/vacations
+ظ¤£ ╞ْ /api/zatca
+ظ¤£ ╞ْ /api/zatca/qr
+ظ¤£ ظùï /attendance
+ظ¤£ ظùï /barcode
+ظ¤£ ظùï /bookings
+ظ¤£ ظùï /branches
+ظ¤£ ظùï /customers
+ظ¤£ ظùï /dashboard
+ظ¤£ ظùï /employees
+ظ¤£ ظùï /expenses
+ظ¤£ ظùï /installments
+ظ¤£ ظùï /login
+ظ¤£ ظùï /maintenance
+ظ¤£ ظùï /price-quotes
+ظ¤£ ظùï /products
+ظ¤£ ظùï /promotions
+ظ¤£ ظùï /purchase-orders
+ظ¤£ ظùï /purchase-returns
+ظ¤£ ظùï /purchases
+ظ¤£ ظùï /reports
+ظ¤£ ظùï /salaries
+ظ¤£ ظùï /sales
+ظ¤£ ظùï /sales-returns
+ظ¤£ ظùï /settings
+ظ¤£ ظùï /shifts
+ظ¤£ ظùï /stock
+ظ¤£ ظùï /stock-transfers
+ظ¤£ ظùï /stocktake
+ظ¤£ ظùï /treasury
+ظ¤¤ ظùï /vacations
+
+
+╞ْ Proxy (Middleware)
+
+ظùï  (Static)   prerendered as static content
+╞ْ  (Dynamic)  server-rendered on demand
+
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [namasoft](ids: [ 0 ])
+[PM2] [namasoft](0) ظ£ô
+ظ¤îظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤شظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ¤é id ظ¤é name        ظ¤é namespace   ظ¤é version ظ¤é mode    ظ¤é pid      ظ¤é uptime ظ¤é ظ║    ظ¤é status    ظ¤é cpu      ظ¤é mem      ظ¤é user     ظ¤é watching ظ¤é
+ظ¤£ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤╝ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ج
+ظ¤é 0  ظ¤é namasoft    ظ¤é default     ظ¤é N/A     ظ¤é fork    ظ¤é 583289   ظ¤é 0s     ظ¤é 149ظخ ظ¤é online    ظ¤é 0%       ظ¤é 25.0mb   ظ¤é root     ظ¤é disabled ظ¤é
+ظ¤¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤┤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ء
+Done!

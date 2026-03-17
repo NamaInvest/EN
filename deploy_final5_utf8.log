@@ -1,0 +1,20 @@
+﻿Client :: ready
+Archive:  staging_banks.zip
+  inflating: api_banks_id_route.ts   
+  inflating: api_banks_id_tx_route.ts  
+  inflating: api_banks_route.ts      
+  inflating: deploy_banking_vps.sh   
+  inflating: i18n.tsx                
+  inflating: schema.prisma           
+  inflating: schema_final_ready.prisma  
+  inflating: Sidebar.tsx             
+  inflating: ui_banks_id_page.tsx    
+  inflating: ui_banks_page.tsx       
+node : mv: cannot stat 'staging_banks/api_banks_route.ts': No such file or directory
+At line:1 char:1
++ node run_deploy.js > deploy_final5.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mv: canno    t stat...le or directory:String) [], RemoteExcepti    on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Stream :: close :: code: 1, signal: undefined

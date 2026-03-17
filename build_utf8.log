@@ -1,0 +1,12 @@
+﻿
+> namaweb@0.1.0 build
+> npx prisma generate && next build
+
+Prisma schema loaded from prisma\schema.prisma
+
+ظ£¤ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 338ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+

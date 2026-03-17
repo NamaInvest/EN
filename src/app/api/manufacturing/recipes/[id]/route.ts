@@ -1,0 +1,65 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const body = await request.json();
+        const recipeId = parseInt(id);
+
+        // Delete old ingredients and recreate
+        if (body.ingredients) {
+            await prisma.recipeIngredient.deleteMany({ where: { recipeId } });
+            const ingredients = body.ingredients || [];
+            const totalCost = ingredients.reduce((sum: number, i: any) => sum + (parseFloat(i.estimatedCost) || 0), 0);
+
+            const recipe = await prisma.recipe.update({
+                where: { id: recipeId },
+                data: {
+                    name: body.name,
+                    finishedProductId: body.finishedProductId ? parseInt(body.finishedProductId) : undefined,
+                    totalCost,
+                    isActive: body.isActive !== undefined ? body.isActive : true,
+                    ingredients: {
+                        create: ingredients.map((i: any) => ({
+                            rawProductId: parseInt(i.rawProductId),
+                            quantity: parseFloat(i.quantity) || 1,
+                            estimatedCost: parseFloat(i.estimatedCost) || 0
+                        }))
+                    }
+                },
+                include: { ingredients: true, finishedProduct: true }
+            });
+            return NextResponse.json(recipe);
+        }
+
+        const recipe = await prisma.recipe.update({
+            where: { id: recipeId },
+            data: {
+                name: body.name,
+                isActive: body.isActive !== undefined ? body.isActive : undefined,
+            }
+        });
+        return NextResponse.json(recipe);
+    } catch (error: any) {
+        console.error(error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const recipeId = parseInt(id);
+        const orderCount = await prisma.manufacturingOrder.count({ where: { recipeId } });
+        if (orderCount > 0) {
+            return NextResponse.json({ error: 'لا يمكن حذف الوصفة لوجود أوامر تصنيع مرتبطة بها' }, { status: 400 });
+        }
+        await prisma.recipeIngredient.deleteMany({ where: { recipeId } });
+        await prisma.recipe.delete({ where: { id: recipeId } });
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        console.error(error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

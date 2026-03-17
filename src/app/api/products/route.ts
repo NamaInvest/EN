@@ -1,0 +1,123 @@
+import { NextResponse, NextRequest } from 'next/server';
+import prisma from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+
+async function hasPermission(userId: number, module: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    if (user.permissions.length > 0) return user.permissions.some((p: any) => p.module === module);
+    return false;
+}
+
+export async function GET(request: NextRequest) {
+    try {
+        const user = getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+        const { searchParams } = new URL(request.url);
+        const search = searchParams.get('search') || '';
+        const categoryId = searchParams.get('category_id');
+        const page = parseInt(searchParams.get('page') || '0');
+        const limit = parseInt(searchParams.get('limit') || '0');
+
+        const where: Record<string, unknown> = {};
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { barcode: { contains: search, mode: 'insensitive' } },
+                { nameEn: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+        if (categoryId) where.categoryId = parseInt(categoryId);
+
+        if (page > 0 && limit > 0) {
+            const [products, total] = await Promise.all([
+                prisma.product.findMany({
+                    where,
+                    include: { category: true, unit: true },
+                    orderBy: { id: 'desc' },
+                    skip: (page - 1) * limit,
+                    take: limit,
+                }),
+                prisma.product.count({ where }),
+            ]);
+            return NextResponse.json(products, {
+                headers: { 'X-Total-Count': String(total) },
+            });
+        }
+
+        const products = await prisma.product.findMany({
+            where,
+            include: { category: true, unit: true },
+            orderBy: { id: 'desc' },
+        });
+
+        return NextResponse.json(products);
+    } catch (error) {
+        console.error('Products GET error:', error);
+        return NextResponse.json([], { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+
+        // Auto-generate barcode if not provided
+        let barcode = body.barcode || null;
+        if (!barcode) {
+            // Use a dedicated counter in settings, starting from 1000
+            const setting = await prisma.setting.findUnique({ where: { key: 'next_barcode' } });
+            const nextBarcode = setting && setting.value ? parseInt(String(setting.value), 10) : 1000;
+            barcode = String(nextBarcode);
+            // Update counter for next time
+            await prisma.setting.upsert({
+                where: { key: 'next_barcode' },
+                update: { value: String(nextBarcode + 1) },
+                create: { key: 'next_barcode', value: String(nextBarcode + 1) },
+            });
+        }
+
+        const product = await prisma.product.create({
+            data: {
+                name: body.name,
+                barcode,
+                categoryId: body.categoryId ? parseInt(body.categoryId) : null,
+                unitId: body.unitId ? parseInt(body.unitId) : 1,
+                buyPrice: parseFloat(body.buyPrice) || 0,
+                sellPrice: parseFloat(body.sellPrice) || 0,
+                taxRate: parseFloat(body.taxRate) ?? 15,
+                minQuantity: parseFloat(body.minQuantity) || 0,
+                currentStock: parseFloat(body.currentStock) || 0,
+                description: body.description || null,
+                nameEn: body.nameEn || body.name || '',
+                brandAr: body.brandAr || '',
+                brandEn: body.brandEn || '',
+                sizeInfo: body.sizeInfo || '',
+                sellByWeight: body.sellByWeight || false,
+                expiryDate: body.expiryDate || null,
+            },
+        });
+        return NextResponse.json(product, { status: 201 });
+    } catch (error) {
+        console.error('Product create error:', error);
+        return NextResponse.json({ error: 'فشل في إنشاء المنتج' }, { status: 500 });
+    }
+}
+
+// Stock reset: set all products' currentStock to 0
+export async function DELETE(request: NextRequest) {
+    try {
+        const auth = getUserFromRequest(request);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const allowed = await hasPermission(auth.userId, 'reset_stock');
+        if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تصفير المخزون' }, { status: 403 });
+
+        const result = await prisma.product.updateMany({ data: { currentStock: 0 } });
+        return NextResponse.json({ success: true, message: `تم تصفير مخزون ${result.count} منتج` });
+    } catch (error) {
+        console.error('Products stock reset error:', error);
+        return NextResponse.json({ error: 'فشل في تصفير المخزون' }, { status: 500 });
+    }
+}

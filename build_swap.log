@@ -1,0 +1,111 @@
+
+> namaweb@0.1.0 build
+> npx prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 700ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Help us improve the Prisma ORM for everyone. Share your feedback in a short 2-min survey: https://pris.ly/orm/survey/release-5-22
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 13.4s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/73) ...
+  Generating static pages using 11 workers (18/73) 
+  Generating static pages using 11 workers (36/73) 
+  Generating static pages using 11 workers (54/73) 
+✓ Generating static pages using 11 workers (73/73) in 1114.5ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /accounting
+├ ƒ /api/accounting/accounts
+├ ƒ /api/accounting/balance-sheet
+├ ƒ /api/accounting/income-statement
+├ ƒ /api/accounting/journal
+├ ƒ /api/accounting/ledger
+├ ƒ /api/accounting/trial-balance
+├ ƒ /api/attendance
+├ ƒ /api/auth/login
+├ ƒ /api/auth/session
+├ ƒ /api/bookings
+├ ƒ /api/categories
+├ ƒ /api/customers
+├ ƒ /api/customers/[id]
+├ ƒ /api/dashboard
+├ ƒ /api/employees
+├ ƒ /api/employees/[id]
+├ ƒ /api/expenses
+├ ƒ /api/installments
+├ ƒ /api/maintenance
+├ ƒ /api/price-quotes
+├ ƒ /api/products
+├ ƒ /api/products/[id]
+├ ƒ /api/promotions
+├ ƒ /api/purchase-orders
+├ ƒ /api/purchase-returns
+├ ƒ /api/purchases
+├ ƒ /api/purchases/ocr
+├ ƒ /api/reports/[type]
+├ ƒ /api/salaries
+├ ƒ /api/sales
+├ ƒ /api/sales-returns
+├ ƒ /api/settings
+├ ƒ /api/settings/[key]
+├ ƒ /api/settings/generate-keys
+├ ƒ /api/settings/upload-logo
+├ ƒ /api/stock-movements
+├ ƒ /api/stock-transfers
+├ ƒ /api/stocktake
+├ ƒ /api/telegram/process
+├ ƒ /api/telegram/webhook
+├ ƒ /api/transliterate
+├ ƒ /api/treasury
+├ ƒ /api/treasury/balance
+├ ƒ /api/users
+├ ƒ /api/vacations
+├ ƒ /api/zatca
+├ ƒ /api/zatca/qr
+├ ○ /attendance
+├ ○ /barcode
+├ ○ /bookings
+├ ○ /customers
+├ ○ /dashboard
+├ ○ /employees
+├ ○ /expenses
+├ ○ /installments
+├ ○ /login
+├ ○ /maintenance
+├ ○ /price-quotes
+├ ○ /products
+├ ○ /promotions
+├ ○ /purchase-orders
+├ ○ /purchase-returns
+├ ○ /purchases
+├ ○ /reports
+├ ○ /salaries
+├ ○ /sales
+├ ○ /sales-returns
+├ ○ /settings
+├ ○ /stock
+├ ○ /stock-transfers
+├ ○ /stocktake
+├ ○ /treasury
+└ ○ /vacations
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

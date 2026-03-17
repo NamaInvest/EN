@@ -1,0 +1,787 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 1. Users ====================
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         String   @default("cashier") // admin, cashier, accountant
+  phone        String?
+  active       Boolean  @default(true)
+  sessionToken  String?   @map("session_token")
+  deviceToken   String?   @map("device_token")
+  deviceName    String?   @map("device_name")
+  deviceBoundAt DateTime? @map("device_bound_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  permissions      UserPermission[]
+  salesInvoices    SalesInvoice[]
+  purchaseInvoices PurchaseInvoice[]
+  expenses         Expense[]
+  treasuryEntries  Treasury[]
+  auditLogs        AuditLog[]
+  stockMovements   StockMovement[]
+
+  @@map("users")
+}
+
+// ==================== 2. UserPermissions ====================
+model UserPermission {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @map("user_id")
+  module    String
+  canView   Boolean @default(true) @map("can_view")
+  canAdd    Boolean @default(false) @map("can_add")
+  canEdit   Boolean @default(false) @map("can_edit")
+  canDelete Boolean @default(false) @map("can_delete")
+  canPrint  Boolean @default(false) @map("can_print")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_permissions")
+}
+
+// ==================== 3. Categories ====================
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  parentId    Int       @default(0) @map("parent_id")
+  description String?
+  products    Product[]
+
+  @@map("categories")
+}
+
+// ==================== 4. Units ====================
+model Unit {
+  id       Int       @id @default(autoincrement())
+  name     String
+  products Product[]
+
+  @@map("units")
+}
+
+// ==================== 5. Products ====================
+model Product {
+  id           Int      @id @default(autoincrement())
+  name         String
+  barcode      String?  @unique
+  categoryId   Int?     @map("category_id")
+  unitId       Int      @default(1) @map("unit_id")
+  buyPrice     Float    @default(0) @map("buy_price")
+  sellPrice    Float    @default(0) @map("sell_price")
+  taxRate      Float    @default(15) @map("tax_rate")
+  minQuantity  Float    @default(0) @map("min_quantity")
+  currentStock Float    @default(0) @map("current_stock")
+  description  String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  nameEn       String   @default("") @map("name_en")
+  brandAr      String   @default("") @map("brand_ar")
+  brandEn      String   @default("") @map("brand_en")
+  sizeInfo     String   @default("") @map("size_info")
+  imagePath    String   @default("") @map("image_path")
+  sellByWeight Boolean  @default(false) @map("sell_by_weight")
+
+  category       Category?            @relation(fields: [categoryId], references: [id])
+  unit           Unit?                @relation(fields: [unitId], references: [id])
+  salesDetails   SalesInvoiceDetail[]
+  purchaseDetails PurchaseInvoiceDetail[]
+  stockMovements StockMovement[]
+
+  @@map("products")
+}
+
+// ==================== 6. Customers ====================
+model Customer {
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String?
+  address        String?
+  street         String?
+  buildingNumber String?  @map("building_number")
+  district       String?
+  city           String?
+  postalCode     String?  @map("postal_code")
+  type           Int      @default(0) // 0=customer, 1=supplier, 2=both
+  balance        Float    @default(0)
+  creditLimit    Float    @default(0) @map("credit_limit")
+  taxNumber      String?  @map("tax_number")
+  notes          String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  salesInvoices    SalesInvoice[]
+  purchaseInvoices PurchaseInvoice[]
+  installments     Installment[]
+  loyaltyPoints    LoyaltyPoint[]
+  bookings         Booking[]
+
+  @@map("customers")
+}
+
+// ==================== 7. Stocks (Warehouses) ====================
+model Stock {
+  id     Int     @id @default(autoincrement())
+  name   String
+  address String?
+  active Boolean @default(true)
+
+  salesInvoices    SalesInvoice[]
+  purchaseInvoices PurchaseInvoice[]
+  stockMovements   StockMovement[]
+
+  @@map("stocks")
+}
+
+// ==================== 8. SalesInvoices ====================
+model SalesInvoice {
+  id            Int      @id @default(autoincrement())
+  invoiceNo     Int      @map("invoice_no")
+  date          DateTime @default(now())
+  customerId    Int?     @map("customer_id")
+  stockId       Int      @default(1) @map("stock_id")
+  subtotal      Float    @default(0)
+  discountRate  Float    @default(0) @map("discount_rate")
+  discountValue Float    @default(0) @map("discount_value")
+  taxValue      Float    @default(0) @map("tax_value")
+  total         Float    @default(0)
+  paid          Float    @default(0)
+  remaining     Float    @default(0)
+  paymentType   String   @default("cash") @map("payment_type")
+  status        String   @default("completed")
+  userId        Int?     @map("user_id")
+  notes         String?
+
+  customer Customer?            @relation(fields: [customerId], references: [id])
+  stock    Stock?               @relation(fields: [stockId], references: [id])
+  user     User?                @relation(fields: [userId], references: [id])
+  details  SalesInvoiceDetail[]
+
+  @@map("sales_invoices")
+}
+
+// ==================== 9. SalesInvoiceDetails ====================
+model SalesInvoiceDetail {
+  id            Int    @id @default(autoincrement())
+  invoiceId     Int    @map("invoice_id")
+  productId     Int    @map("product_id")
+  productName   String? @map("product_name")
+  quantity      Float  @default(1)
+  price         Float  @default(0)
+  discountRate  Float  @default(0) @map("discount_rate")
+  discountValue Float  @default(0) @map("discount_value")
+  taxRate       Float  @default(15) @map("tax_rate")
+  taxValue      Float  @default(0) @map("tax_value")
+  total         Float  @default(0)
+
+  invoice SalesInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id])
+
+  @@map("sales_invoice_details")
+}
+
+// ==================== 10. SalesReturns ====================
+model SalesReturn {
+  id                Int      @id @default(autoincrement())
+  returnNo          Int      @map("return_no")
+  originalInvoiceId Int?     @map("original_invoice_id")
+  date              DateTime @default(now())
+  customerId        Int?     @map("customer_id")
+  subtotal          Float    @default(0)
+  taxValue          Float    @default(0) @map("tax_value")
+  total             Float    @default(0)
+  userId            Int?     @map("user_id")
+  notes             String?
+
+  @@map("sales_returns")
+}
+
+// ==================== 11. PurchaseInvoices ====================
+model PurchaseInvoice {
+  id               Int      @id @default(autoincrement())
+  invoiceNo        Int      @map("invoice_no")
+  date             DateTime @default(now())
+  supplierId       Int?     @map("supplier_id")
+  stockId          Int      @default(1) @map("stock_id")
+  subtotal         Float    @default(0)
+  discountRate     Float    @default(0) @map("discount_rate")
+  discountValue    Float    @default(0) @map("discount_value")
+  taxValue         Float    @default(0) @map("tax_value")
+  total            Float    @default(0)
+  paid             Float    @default(0)
+  remaining        Float    @default(0)
+  supplierInvoiceNo String? @map("supplier_invoice_no")
+  paymentType      String   @default("cash") @map("payment_type")
+  status           String   @default("completed")
+  userId           Int?     @map("user_id")
+  notes            String?
+
+  supplier Customer?              @relation(fields: [supplierId], references: [id])
+  stock    Stock?                 @relation(fields: [stockId], references: [id])
+  user     User?                  @relation(fields: [userId], references: [id])
+  details  PurchaseInvoiceDetail[]
+
+  @@map("purchase_invoices")
+}
+
+// ==================== 12. PurchaseInvoiceDetails ====================
+model PurchaseInvoiceDetail {
+  id            Int    @id @default(autoincrement())
+  invoiceId     Int    @map("invoice_id")
+  productId     Int    @map("product_id")
+  productName   String? @map("product_name")
+  quantity      Float  @default(1)
+  price         Float  @default(0)
+  discountRate  Float  @default(0) @map("discount_rate")
+  discountValue Float  @default(0) @map("discount_value")
+  taxRate       Float  @default(15) @map("tax_rate")
+  taxValue      Float  @default(0) @map("tax_value")
+  total         Float  @default(0)
+
+  invoice PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+
+  @@map("purchase_invoice_details")
+}
+
+// ==================== 13. PurchaseReturns ====================
+model PurchaseReturn {
+  id                Int      @id @default(autoincrement())
+  returnNo          Int      @map("return_no")
+  originalInvoiceId Int?     @map("original_invoice_id")
+  date              DateTime @default(now())
+  supplierId        Int?     @map("supplier_id")
+  subtotal          Float    @default(0)
+  taxValue          Float    @default(0) @map("tax_value")
+  total             Float    @default(0)
+  userId            Int?     @map("user_id")
+  notes             String?
+
+  @@map("purchase_returns")
+}
+
+// ==================== 14. StockMovements ====================
+model StockMovement {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @map("product_id")
+  stockId       Int      @default(1) @map("stock_id")
+  type          String   // in, out, transfer, adjustment
+  quantity      Float    @default(0)
+  referenceType String?  @map("reference_type")
+  referenceId   Int?     @map("reference_id")
+  date          DateTime @default(now())
+  userId        Int?     @map("user_id")
+  notes         String?
+
+  product Product @relation(fields: [productId], references: [id])
+  stock   Stock   @relation(fields: [stockId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@map("stock_movements")
+}
+
+// ==================== 15. Expenses ====================
+model Expense {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  category    String?
+  description String
+  amount      Float    @default(0)
+  userId      Int?     @map("user_id")
+  notes       String?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("expenses")
+}
+
+// ==================== 16. Treasury ====================
+model Treasury {
+  id            Int      @id @default(autoincrement())
+  date          DateTime @default(now())
+  type          String   // in, out
+  amount        Float    @default(0)
+  description   String?
+  referenceType String?  @map("reference_type")
+  referenceId   Int?     @map("reference_id")
+  userId        Int?     @map("user_id")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("treasury")
+}
+
+// ==================== 17. Settings ====================
+model Setting {
+  id          Int    @id @default(autoincrement())
+  key         String @unique
+  value       String?
+  description String?
+
+  @@map("settings")
+}
+
+// ==================== 18. AuditLog ====================
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  action    String
+  tableName String?  @map("table_name")
+  recordId  Int?     @map("record_id")
+  details   String?
+  date      DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_log")
+}
+
+// ==================== 19. Employees ====================
+model Employee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  position  String?
+  salary    Float    @default(0)
+  startDate String?  @map("start_date")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  attendance Attendance[]
+  salaries   Salary[]
+  vacations  Vacation[]
+
+  @@map("employees")
+}
+
+// ==================== 20. Attendance ====================
+model Attendance {
+  id         Int    @id @default(autoincrement())
+  employeeId Int    @map("employee_id")
+  date       String
+  checkIn    String? @map("check_in")
+  checkOut   String? @map("check_out")
+  notes      String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("attendance")
+}
+
+// ==================== 21. Salaries ====================
+model Salary {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
+  month       Int
+  year        Int
+  basicSalary Float    @default(0) @map("basic_salary")
+  additions   Float    @default(0)
+  deductions  Float    @default(0)
+  netSalary   Float    @default(0) @map("net_salary")
+  paidDate    DateTime @default(now()) @map("paid_date")
+  notes       String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("salaries")
+}
+
+// ==================== 22. Vacations ====================
+model Vacation {
+  id         Int    @id @default(autoincrement())
+  employeeId Int    @map("employee_id")
+  type       String @default("annual")
+  dateFrom   String @map("date_from")
+  dateTo     String @map("date_to")
+  status     String @default("approved")
+  notes      String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("vacations")
+}
+
+// ==================== 23. PriceQuotes ====================
+model PriceQuote {
+  id         Int      @id @default(autoincrement())
+  quoteNo    Int      @map("quote_no")
+  date       DateTime @default(now())
+  customerId Int?     @map("customer_id")
+  total      Float    @default(0)
+  status     String   @default("pending")
+  userId     Int?     @map("user_id")
+  notes      String?
+
+  details PriceQuoteDetail[]
+
+  @@map("price_quotes")
+}
+
+// ==================== 24. PriceQuoteDetails ====================
+model PriceQuoteDetail {
+  id          Int    @id @default(autoincrement())
+  quoteId     Int    @map("quote_id")
+  productId   Int?   @map("product_id")
+  productName String? @map("product_name")
+  quantity    Float  @default(1)
+  price       Float  @default(0)
+  total       Float  @default(0)
+
+  quote PriceQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@map("price_quote_details")
+}
+
+// ==================== 25. StockTransfers ====================
+model StockTransfer {
+  id          Int      @id @default(autoincrement())
+  transferNo  Int      @map("transfer_no")
+  date        DateTime @default(now())
+  fromStockId Int?     @map("from_stock_id")
+  toStockId   Int?     @map("to_stock_id")
+  userId      Int?     @map("user_id")
+  notes       String?
+
+  details StockTransferDetail[]
+
+  @@map("stock_transfers")
+}
+
+// ==================== 26. StockTransferDetails ====================
+model StockTransferDetail {
+  id          Int    @id @default(autoincrement())
+  transferId  Int    @map("transfer_id")
+  productId   Int?   @map("product_id")
+  productName String? @map("product_name")
+  quantity    Float  @default(0)
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@map("stock_transfer_details")
+}
+
+// ==================== 27. Bookings ====================
+model Booking {
+  id         Int      @id @default(autoincrement())
+  bookingNo  Int      @map("booking_no")
+  date       DateTime @default(now())
+  customerId Int?     @map("customer_id")
+  total      Float    @default(0)
+  deposit    Float    @default(0)
+  status     String   @default("pending")
+  userId     Int?     @map("user_id")
+  notes      String?
+
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  @@map("bookings")
+}
+
+// ==================== 28. Maintenance ====================
+model Maintenance {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @default(now())
+  customerName String?  @map("customer_name")
+  phone        String?
+  deviceType   String?  @map("device_type")
+  problem      String?
+  cost         Float    @default(0)
+  status       String   @default("pending")
+  userId       Int?     @map("user_id")
+  notes        String?
+
+  @@map("maintenance")
+}
+
+// ==================== 29. Accounts ====================
+model Account {
+  id       Int     @id @default(autoincrement())
+  code     String
+  name     String
+  nameEn   String  @default("") @map("name_en")
+  type     String  // asset, liability, equity, revenue, expense
+  parentId Int     @default(0) @map("parent_id")
+  level    Int     @default(1)
+  isActive Boolean @default(true) @map("is_active")
+  balance  Float   @default(0)
+
+  journalLines JournalLine[]
+
+  @@map("accounts")
+}
+
+// ==================== 30. JournalEntries ====================
+model JournalEntry {
+  id          Int      @id @default(autoincrement())
+  entryNumber String   @map("entry_number")
+  entryDate   String   @map("entry_date")
+  description String?
+  reference   String?
+  totalDebit  Float    @default(0) @map("total_debit")
+  totalCredit Float    @default(0) @map("total_credit")
+  status      String   @default("posted")
+  createdBy   Int?     @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  lines JournalLine[]
+
+  @@map("journal_entries")
+}
+
+// ==================== 31. JournalLines ====================
+model JournalLine {
+  id          Int    @id @default(autoincrement())
+  entryId     Int    @map("entry_id")
+  accountId   Int    @map("account_id")
+  description String?
+  debit       Float  @default(0)
+  credit      Float  @default(0)
+
+  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account Account      @relation(fields: [accountId], references: [id])
+
+  @@map("journal_lines")
+}
+
+// ==================== 32. Quotations ====================
+model Quotation {
+  id              Int      @id @default(autoincrement())
+  quotationNumber String   @map("quotation_number")
+  customerId      Int?     @map("customer_id")
+  quotationDate   String   @map("quotation_date")
+  expiryDate      String?  @map("expiry_date")
+  total           Float    @default(0)
+  taxAmount       Float    @default(0) @map("tax_amount")
+  grandTotal      Float    @default(0) @map("grand_total")
+  status          String   @default("draft")
+  notes           String?
+  createdBy       Int?     @map("created_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  items QuotationItem[]
+
+  @@map("quotations")
+}
+
+// ==================== 33. QuotationItems ====================
+model QuotationItem {
+  id          Int    @id @default(autoincrement())
+  quotationId Int    @map("quotation_id")
+  productId   Int?   @map("product_id")
+  description String?
+  quantity    Float  @default(1)
+  unitPrice   Float  @default(0) @map("unit_price")
+  taxRate     Float  @default(15) @map("tax_rate")
+  total       Float  @default(0)
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@map("quotation_items")
+}
+
+// ==================== 34. Installments ====================
+model Installment {
+  id               Int      @id @default(autoincrement())
+  invoiceId        Int      @map("invoice_id")
+  customerId       Int      @map("customer_id")
+  totalAmount      Float    @map("total_amount")
+  paidAmount       Float    @default(0) @map("paid_amount")
+  remaining        Float
+  installmentCount Int      @default(1) @map("installment_count")
+  status           String   @default("active")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  customer Customer              @relation(fields: [customerId], references: [id])
+  payments InstallmentPayment[]
+
+  @@map("installments")
+}
+
+// ==================== 35. InstallmentPayments ====================
+model InstallmentPayment {
+  id            Int     @id @default(autoincrement())
+  installmentId Int     @map("installment_id")
+  paymentDate   String  @map("payment_date")
+  dueDate       String  @map("due_date")
+  amount        Float
+  paid          Boolean @default(false)
+  paidDate      String? @map("paid_date")
+
+  installment Installment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@map("installment_payments")
+}
+
+// ==================== 36. LoyaltyPoints ====================
+model LoyaltyPoint {
+  id            Int    @id @default(autoincrement())
+  customerId    Int    @map("customer_id")
+  points        Int    @default(0)
+  totalEarned   Int    @default(0) @map("total_earned")
+  totalRedeemed Int    @default(0) @map("total_redeemed")
+  tier          String @default("bronze")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("loyalty_points")
+}
+
+// ==================== 37. LoyaltyTransactions ====================
+model LoyaltyTransaction {
+  id          Int      @id @default(autoincrement())
+  customerId  Int      @map("customer_id")
+  invoiceId   Int?     @map("invoice_id")
+  points      Int
+  type        String   // earned, redeemed
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("loyalty_transactions")
+}
+
+// ==================== 38. Promotions ====================
+model Promotion {
+  id            Int      @id @default(autoincrement())
+  name          String
+  type          String   // bogo, percentage, fixed, quantity, category, happy_hour
+  discountType  String   @default("percentage") @map("discount_type")
+  discountValue Float    @default(0) @map("discount_value")
+  buyQty        Int      @default(0) @map("buy_qty")
+  getQty        Int      @default(0) @map("get_qty")
+  minQty        Int      @default(0) @map("min_qty")
+  categoryId    Int      @default(0) @map("category_id")
+  productId     Int      @default(0) @map("product_id")
+  startDate     String?  @map("start_date")
+  endDate       String?  @map("end_date")
+  startTime     String?  @map("start_time")
+  endTime       String?  @map("end_time")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("promotions")
+}
+
+// ==================== 39. Coupons ====================
+model Coupon {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique
+  discountType  String   @default("percentage") @map("discount_type")
+  discountValue Float    @default(0) @map("discount_value")
+  minOrder      Float    @default(0) @map("min_order")
+  maxUses       Int      @default(0) @map("max_uses")
+  usedCount     Int      @default(0) @map("used_count")
+  startDate     String?  @map("start_date")
+  endDate       String?  @map("end_date")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  usages CouponUsage[]
+
+  @@map("coupons")
+}
+
+// ==================== 40. CouponUsage ====================
+model CouponUsage {
+  id             Int      @id @default(autoincrement())
+  couponId       Int      @map("coupon_id")
+  invoiceId      Int?     @map("invoice_id")
+  customerId     Int?     @map("customer_id")
+  discountAmount Float    @default(0) @map("discount_amount")
+  usedAt         DateTime @default(now()) @map("used_at")
+
+  coupon Coupon @relation(fields: [couponId], references: [id])
+
+  @@map("coupon_usage")
+}
+
+// ==================== 41. GiftCards ====================
+model GiftCard {
+  id             Int      @id @default(autoincrement())
+  code           String   @unique
+  initialBalance Float    @map("initial_balance")
+  currentBalance Float    @map("current_balance")
+  customerId     Int?     @map("customer_id")
+  expiryDate     String?  @map("expiry_date")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("gift_cards")
+}
+
+// ==================== 42. PurchaseOrders ====================
+model PurchaseOrder {
+  id           Int      @id @default(autoincrement())
+  orderNumber  String   @map("order_number")
+  supplierId   Int?     @map("supplier_id")
+  orderDate    String   @map("order_date")
+  expectedDate String?  @map("expected_date")
+  total        Float    @default(0)
+  taxAmount    Float    @default(0) @map("tax_amount")
+  grandTotal   Float    @default(0) @map("grand_total")
+  status       String   @default("draft")
+  receivedDate String?  @map("received_date")
+  notes        String?
+  createdBy    Int?     @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  items PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+// ==================== 43. PurchaseOrderItems ====================
+model PurchaseOrderItem {
+  id          Int   @id @default(autoincrement())
+  orderId     Int   @map("order_id")
+  productId   Int   @map("product_id")
+  quantity    Float @default(0)
+  receivedQty Float @default(0) @map("received_qty")
+  unitPrice   Float @default(0) @map("unit_price")
+  total       Float @default(0)
+
+  order PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_order_items")
+}
+
+// ==================== 44. Stocktakes ====================
+model Stocktake {
+  id            Int      @id @default(autoincrement())
+  stocktakeDate String   @map("stocktake_date")
+  totalItems    Int      @default(0) @map("total_items")
+  matched       Int      @default(0)
+  over          Int      @default(0)
+  short         Int      @default(0)
+  status        String   @default("completed")
+  notes         String?
+  createdBy     Int?     @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  items StocktakeItem[]
+
+  @@map("stocktakes")
+}
+
+// ==================== 45. StocktakeItems ====================
+model StocktakeItem {
+  id          Int    @id @default(autoincrement())
+  stocktakeId Int    @map("stocktake_id")
+  productId   Int    @map("product_id")
+  systemQty   Float  @default(0) @map("system_qty")
+  actualQty   Float  @default(0) @map("actual_qty")
+  difference  Float  @default(0)
+  status      String @default("matched")
+
+  stocktake Stocktake @relation(fields: [stocktakeId], references: [id], onDelete: Cascade)
+
+  @@map("stocktake_items")
+}
