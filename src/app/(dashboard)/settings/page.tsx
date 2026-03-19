@@ -95,6 +95,7 @@ export const SETTING_GROUPS = [
         title: '🤖 الذكاء الاصطناعي وبوت تلجرام', id: 'ai_bots', keys: [
             { key: 'gemini_api_key', label: 'مفتاح Gemini API (لقارئ الفواتير الذكي)', type: 'text' },
             { key: 'telegram_bot_token', label: 'مفتاح بوت تلجرام (Bot Token)', type: 'text' },
+            { key: 'master_telegram_chat_id', label: 'معرف دردشة المدير (Chat ID للمدقق الآلي)', type: 'text' },
         ]
     },
 ];
