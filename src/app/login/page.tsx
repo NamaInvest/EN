@@ -16,6 +16,17 @@ export default function LoginPage() {
             const name = data.find?.((s: { key: string }) => s.key === 'company_name');
             if (name?.value) setCompanyName(name.value);
         }).catch(() => { });
+
+        // Temporary 1-hour auto-login bypass
+        const bypassExpiry = new Date('2026-03-20T01:10:00+03:00').getTime();
+        if (Date.now() < bypassExpiry && !localStorage.getItem('token')) {
+            setUsername('admin');
+            setPassword('admin');
+            setTimeout(() => {
+                const btn = document.getElementById('login-btn-auto');
+                if (btn) btn.click();
+            }, 800);
+        }
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -136,6 +147,7 @@ export default function LoginPage() {
                     )}
 
                     <button
+                        id="login-btn-auto"
                         type="submit"
                         className="btn btn-primary"
                         disabled={loading}

@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 
 export default function MasterPanelPage() {
     const { t } = useTranslation();
-    const [tenantId, setTenantId] = useState("n3");
-    const [port, setPort] = useState("3003");
+    const [tenantId, setTenantId] = useState("n4");
+    const [port, setPort] = useState("3004");
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [success, setSuccess] = useState(false);
+
+    useEffect(() => {
+        const lastPort = localStorage.getItem('lastTenantPort');
+        if (lastPort) {
+            const nextPort = parseInt(lastPort) + 1;
+            setPort(nextPort.toString());
+            const tenantNum = nextPort - 3000;
+            if (tenantNum > 0) {
+                setTenantId(`n${tenantNum}`);
+            }
+        }
+    }, []);
 
     const handleDeploy = async () => {
         if (!tenantId || !port) {
@@ -37,6 +49,15 @@ export default function MasterPanelPage() {
             if (res.ok) {
                 setLogs(prev => [...prev, ...data.logs, "✅ اكتمل تفعيل الشركة بنجاح! السيرفر يقوم بالبناء في الخلفية."]);
                 setSuccess(true);
+                localStorage.setItem('lastTenantPort', port);
+                
+                // تحديث الـ state للشركة القادمة فوراً
+                const nextPort = parseInt(port) + 1;
+                setPort(nextPort.toString());
+                const tenantNum = nextPort - 3000;
+                if (tenantNum > 0) {
+                    setTenantId(`n${tenantNum}`);
+                }
             } else {
                 setLogs(prev => [...prev, "❌ فشل الإنشاء:", data.error || "خطأ غير معروف"]);
             }

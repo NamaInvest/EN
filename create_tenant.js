@@ -37,7 +37,7 @@ let allFiles = [];
     allFiles = allFiles.concat(getFiles(dir));
 });
 
-['package.json', 'package-lock.json', 'tsconfig.json', 'next.config.ts', 'next.config.js', 'next.config.mjs', 'tailwind.config.ts', 'postcss.config.mjs'].forEach(file => {
+['package.json', 'package-lock.json', 'tsconfig.json', 'next.config.ts', 'next.config.js', 'next.config.mjs', 'tailwind.config.ts', 'postcss.config.mjs', 'create_tenant.js'].forEach(file => {
     if (fs.existsSync(file)) {
         allFiles.push(file);
     }
@@ -56,8 +56,9 @@ conn.on('ready', () => {
     sudo -u postgres psql -c "ALTER ROLE ${dbName} SET client_encoding TO 'utf8';"
     sudo -u postgres psql -c "ALTER ROLE ${dbName} SET default_transaction_isolation TO 'read committed';"
     sudo -u postgres psql -c "ALTER ROLE ${dbName} SET timezone TO 'UTC';"
+    sudo -u postgres psql -c "ALTER DATABASE ${dbName} OWNER TO ${dbName};"
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${dbName} TO ${dbName};"
-    sudo -u postgres psql -d ${dbName} -c "GRANT ALL ON SCHEMA public TO ${dbName};" || true
+    sudo -u postgres psql -d ${dbName} -c "ALTER SCHEMA public OWNER TO ${dbName};" || true
     `;
 
     console.log('1. Setting up PostgreSQL Database...');
@@ -135,8 +136,11 @@ conn.on('ready', () => {
     // 4. Create Env, build via PM2, and Nginx setup
     function createEnvAndDeploy() {
         console.log('4. Creating Environment, launching Build & Nginx setup...');
-        const envContent = `DATABASE_URL="postgresql://${dbName}:${dbPass}@localhost:5432/${dbName}?schema=public"\nNEXT_PUBLIC_API_URL="http://${domain}"\nPORT=${port}\n`;
-        const envCmd = `echo '${envContent}' > ${targetDir}/.env`;
+        const envCmd = `cat << 'EOF' > ${targetDir}/.env
+DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/${dbName}?schema=public"
+NEXT_PUBLIC_API_URL="http://${domain}"
+PORT=${port}
+EOF`;
         
         conn.exec(envCmd, (err, stream) => {
             if (err) throw err;
@@ -166,6 +170,8 @@ conn.on('ready', () => {
                     echo "Running prisma commands..."
                     npx prisma generate > prisma_generate.log 2>&1
                     npx prisma db push --accept-data-loss > prisma_push.log 2>&1
+                    echo "Running prisma seed..."
+                    npx tsx prisma/seed.ts > prisma_seed.log 2>&1
                     echo "Running next build..."
                     npm run build > build.log 2>&1
                     

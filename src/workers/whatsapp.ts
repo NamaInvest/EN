@@ -28,7 +28,7 @@ async function initSettings() {
 const client = new Client({
     authStrategy: new LocalAuth({ clientId: 'nama-invest' }),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
     }
 });
 

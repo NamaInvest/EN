@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/lib/SettingsContext';
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
 
-const SETTING_GROUPS = [
+export const SETTING_GROUPS = [
     {
         title: '🏢 معلومات الشركة', keys: [
             { key: 'company_name', label: 'اسم الشركة', type: 'text' },
@@ -846,6 +847,35 @@ export default function SettingsPage() {
                                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '8px 0 0' }}>
                                     يجب عليك إدخال المفتاح وحفظ الإعدادات أولاً، ثم الضغط على "تفعيل وارتباط البوت" لكي يبدأ باستقبال الأوامر.
                                 </p>
+                            </div>
+                        )}
+                        {group.id === 'whatsapp' && (
+                            <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>🤖 بوت الواتساب التفاعلي (الذكاء الاصطناعي)</h4>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                            <div style={{
+                                                width: '12px', height: '12px', borderRadius: '50%',
+                                                background: settings['whatsapp_status'] === 'connected' ? 'var(--success-light)' : (settings['whatsapp_status'] === 'scanning' ? '#facc15' : 'var(--danger)'),
+                                                boxShadow: settings['whatsapp_status'] === 'connected' ? '0 0 8px var(--success-light)' : 'none',
+                                            }} />
+                                            <span style={{ fontWeight: '600', fontSize: '14px' }}>
+                                                {settings['whatsapp_status'] === 'connected' ? '✅ متصل (يعمل الآن)' :
+                                                 settings['whatsapp_status'] === 'scanning' ? '⏳ بانتظار مسح الباركود' : '❌ مفصول أو متوقف'}
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                            للربط، افتح واتساب في هاتفك، اذهب إلى "الأجهزة المرتبطة"، وقم بمسح الباركود. 
+                                            إذا لم يظهر، تأكد من تشغيل خدمة الواتساب وإعادة تحميل الصفحة.
+                                        </p>
+                                    </div>
+                                    {settings['whatsapp_qr'] && settings['whatsapp_status'] !== 'connected' && (
+                                        <div style={{ background: '#fff', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                            <QRCodeCanvas value={settings['whatsapp_qr']} size={140} level="H" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
