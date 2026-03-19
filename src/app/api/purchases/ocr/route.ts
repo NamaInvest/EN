@@ -14,77 +14,83 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'لم يتم رفع ملف' }, { status: 400 });
         }
 
-        // Save to temp file (Tesseract needs file path in Node.js)
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = file.name.split('.').pop() || 'png';
-        tempPath = join(tmpdir(), `ocr-${randomUUID()}.${ext}`);
-        await writeFile(tempPath, buffer);
+        // Prioritize GEMINI_API_KEY from Database settings, fallback to ENV
+        const { PrismaClient } = await import('@prisma/client');
+        const prisma = new PrismaClient();
+        const setting = await prisma.setting.findUnique({ where: { key: 'gemini_api_key' } });
+        let apiKey = setting?.value || process.env.GEMINI_API_KEY || '';
+        if (apiKey) apiKey = apiKey.replace(/[\"\'\\]/g, '').trim();
 
-        // Run OCR with Tesseract
-        const Tesseract = await import('tesseract.js');
-        const result = await Tesseract.recognize(tempPath, 'ara+eng', {
-            logger: (m: { status: string }) => {
-                if (m.status) console.log('OCR:', m.status);
-            },
+        if (!apiKey) {
+            return NextResponse.json({ error: 'مفتاح Gemini API غير متوفر. الرجاء إضافته في الإعدادات.' }, { status: 400 });
+        }
+
+        const buffer = await file.arrayBuffer();
+        const base64Image = Buffer.from(buffer).toString('base64');
+        const mimeType = file.type || 'image/jpeg';
+
+        // Prompt Gemini to extract structured invoice data
+        const promptText = `
+أنت خبير في قراءة الفواتير الضريبية السعودية باللغتين العربية والإنجليزية.
+استخرج البيانات التالية من الفاتورة بدقة عالية جداً وأرجع النتيجة بصيغة JSON فقط (بدون أي نصوص إضافية أو علامات Markdown مثل \`\`\`json):
+{
+  "supplierName": "اسم المورد او الشركة",
+  "taxNumber": "الرقم الضريبي المكون من 15 رقم عادة",
+  "invoiceNo": "رقم الفاتورة",
+  "date": "تاريخ الفاتورة بصيغة YYYY-MM-DD",
+  "subtotal": 0.00,
+  "taxAmount": 0.00,
+  "grandTotal": 0.00,
+  "items": [
+    { "name": "اسم المنتج المنظف بدون ارقام او رموز غريبة", "quantity": 1, "price": 0.00, "total": 0.00 }
+  ]
+}
+إذا تعذر إيجاد أي حقل أو كان فارغاً اجعله null للمحتوى النصي و 0 للأرقام. استخدم السعر قبل الضريبة للـ price إذا أمكن.
+`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: promptText },
+                        { inline_data: { mime_type: mimeType, data: base64Image } }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    response_mime_type: "application/json"
+                }
+            })
         });
 
-        const rawText = result.data.text;
-        console.log('OCR Raw Text:', rawText);
+        if (!response.ok) {
+            const errBody = await response.text();
+            console.error('Gemini API Error:', errBody);
+            return NextResponse.json({ error: 'خطأ في معالجة الفاتورة مع الذكاء الاصطناعي' }, { status: 500 });
+        }
 
-        // Parse the text to extract items
-        const items: { name: string; price: number; quantity: number }[] = [];
-        const lines = rawText.split('\n').filter((l: string) => l.trim().length > 3);
-
-        for (const line of lines) {
-            const numRegex = /(\d[\d,]*\.?\d*)/g;
-            const numbers: number[] = [];
-            let m;
-            while ((m = numRegex.exec(line)) !== null) {
-                const num = parseFloat(m[1].replace(/,/g, ''));
-                if (num > 0) numbers.push(num);
-            }
-            if (numbers.length === 0) continue;
-
-            // Remove numbers to get product name
-            let name = line.replace(/[\d,]+\.?\d*/g, '').replace(/ر\.?س|ريال|SR|SAR|×|x|\*/gi, '').trim();
-            name = name.replace(/[\-\|\.\_\#\@\:\;]+/g, ' ').replace(/\s+/g, ' ').trim();
-            if (name.length < 2) continue;
-
-            let price = 0, quantity = 1;
-            if (numbers.length >= 3) {
-                quantity = numbers[0];
-                price = numbers[1];
-            } else if (numbers.length === 2) {
-                if (numbers[0] < 100 && numbers[1] > numbers[0]) {
-                    quantity = numbers[0];
-                    price = numbers[1];
-                } else {
-                    price = numbers[0];
-                }
-            } else {
-                price = numbers[0];
-            }
-
-            if (price > 0 && price < 1000000) {
-                items.push({ name, price, quantity: quantity || 1 });
-            }
+        const geminiData = await response.json();
+        const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        
+        let parsedData;
+        try {
+            parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim());
+        } catch (e) {
+            console.error('Failed to parse Gemini JSON:', extractedText);
+            return NextResponse.json({ error: 'عذراً، فشل في فهم نتيجة الذكاء الاصطناعي' }, { status: 500 });
         }
 
         return NextResponse.json({
             success: true,
-            rawText,
-            items,
-            message: items.length > 0
-                ? `تم استخراج ${items.length} صنف`
-                : 'لم يتم العثور على أصناف',
+            data: parsedData,
+            message: parsedData.items?.length > 0 
+                ? `تم استخراج بيانات الفاتورة بنجاح`
+                : 'تم استخراج بيانات الفاتورة لكن لم يتم التعرف على الأصناف بوضوح',
         });
     } catch (error) {
         console.error('OCR Error:', error);
         return NextResponse.json({ error: 'فشل في قراءة الملف' }, { status: 500 });
-    } finally {
-        // Cleanup temp file
-        if (tempPath) {
-            try { await unlink(tempPath); } catch { }
-        }
     }
 }

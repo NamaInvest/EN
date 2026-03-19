@@ -1306,10 +1306,6 @@ textarea.input {
     height: auto;
   }
 
-  .pos-products {
-    max-height: 250px;
-  }
-
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1465,14 +1461,8 @@ textarea.input {
     gap: 12px;
   }
 
-  .pos-products {
-    max-height: 180px;
-    padding: 10px;
-    order: 1;
-  }
-
   .pos-invoice {
-    order: 2;
+    order: 1;
   }
 
   .pos-product-item {

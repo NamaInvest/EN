@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
         const from = searchParams.get('from');
         const to = searchParams.get('to');
         const status = searchParams.get('status');
+        const receiptStatus = searchParams.get('receiptStatus');
         const branchQuery = searchParams.get('branchId');
 
         const auth = getUserFromRequest(request);
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest) {
         const where: Record<string, unknown> = {};
         if (from || to) { where.date = {}; if (from) (where.date as Record<string, unknown>).gte = new Date(from); if (to) (where.date as Record<string, unknown>).lte = new Date(to + 'T23:59:59'); }
         if (status) where.status = status;
+        if (receiptStatus) where.receiptStatus = receiptStatus;
 
         // Branch Isolation Logic
         if (user && user.role !== 'admin' && user.branchId) {
@@ -50,41 +52,59 @@ export async function POST(request: Request) {
         const paid = paymentType === 'credit' ? (parseFloat(body.paid) || 0) : (parseFloat(body.paid) || total);
         const remaining = total - paid;
         const status = remaining > 0 ? 'pending' : 'completed';
+        const receiptStatus = body.receiptStatus || 'received';
 
-        const invoice = await prisma.purchaseInvoice.create({
-            data: {
-                invoiceNo, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
-                stockId: body.stockId ? parseInt(body.stockId) : 1,
-                subtotal, taxValue, total, paid, remaining,
-                supplierInvoiceNo: body.supplierInvoiceNo || null,
-                paymentType,
-                status, userId, branchId, notes: body.notes || null,
-                details: {
-                    create: items.map((item: Record<string, unknown>) => {
-                        const qty = parseFloat(item.quantity as string) || 1;
-                        const price = parseFloat(item.price as string) || 0;
-                        const dRate = parseFloat(item.discountRate as string) || 0;
-                        const iSub = qty * price; const dVal = iSub * (dRate / 100);
-                        const afterD = iSub - dVal; const tax = afterD * 0.15;
-                        return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: 15, taxValue: tax, total: afterD + tax };
-                    }),
+        const invoice = await prisma.$transaction(async (tx) => {
+            const createdInvoice = await tx.purchaseInvoice.create({
+                data: {
+                    invoiceNo, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
+                    stockId: body.stockId ? parseInt(body.stockId) : 1,
+                    subtotal, taxValue, total, paid, remaining,
+                    supplierInvoiceNo: body.supplierInvoiceNo || null,
+                    paymentType,
+                    status, receiptStatus, userId, branchId, notes: body.notes || null,
+                    details: {
+                        create: items.map((item: Record<string, unknown>) => {
+                            const qty = parseFloat(item.quantity as string) || 1;
+                            const price = parseFloat(item.price as string) || 0;
+                            const dRate = parseFloat(item.discountRate as string) || 0;
+                            const iSub = qty * price; const dVal = iSub * (dRate / 100);
+                            const afterD = iSub - dVal; const tax = afterD * 0.15;
+                            return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: 15, taxValue: tax, total: afterD + tax };
+                        }),
+                    },
                 },
-            },
-            include: { details: true },
+                include: { details: true },
+            });
+
+            if (receiptStatus === 'received') {
+                for (const item of items) {
+                    const qty = parseFloat(item.quantity) || 1;
+                    await tx.product.update({
+                        where: { id: parseInt(item.productId) },
+                        data: { currentStock: { increment: qty } },
+                    });
+                    
+                    try {
+                        await tx.productStock.upsert({
+                            where: { productId_stockId: { productId: parseInt(item.productId), stockId: createdInvoice.stockId } },
+                            update: { quantity: { increment: qty } },
+                            create: { productId: parseInt(item.productId), stockId: createdInvoice.stockId, quantity: qty },
+                        });
+                    } catch (e) {
+                         console.error('Failed to update productStock for purchase inside tx:', e);
+                    }
+                }
+            }
+
+            if (paid > 0) {
+                await tx.treasury.create({
+                    data: { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id, userId, branchId },
+                });
+            }
+
+            return createdInvoice;
         });
-
-        for (const item of items) {
-            await prisma.product.update({
-                where: { id: parseInt(item.productId) },
-                data: { currentStock: { increment: parseFloat(item.quantity) || 1 } },
-            });
-        }
-
-        if (paid > 0) {
-            await prisma.treasury.create({
-                data: { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: invoice.id, userId, branchId },
-            });
-        }
 
         try {
             const { postPurchaseInvoice } = await import('@/lib/auto-journal');
@@ -122,28 +142,32 @@ export async function PUT(request: Request) {
         const newPaid = invoice.paid + payAmount;
         const newRemaining = invoice.total - newPaid;
 
-        const updated = await prisma.purchaseInvoice.update({
-            where: { id: parseInt(invoiceId) },
-            data: {
-                paid: newPaid,
-                remaining: newRemaining,
-                status: newRemaining <= 0 ? 'completed' : 'pending',
-            },
-        });
+        const updated = await prisma.$transaction(async (tx) => {
+            const updatedInvoice = await tx.purchaseInvoice.update({
+                where: { id: parseInt(invoiceId) },
+                data: {
+                    paid: newPaid,
+                    remaining: newRemaining,
+                    status: newRemaining <= 0 ? 'completed' : 'pending',
+                },
+            });
 
-        const parsedUserId = userId ? parseInt(userId) : null;
-        let branchId = invoice.branchId; // use invoice's original branch
+            const parsedUserId = userId ? parseInt(userId) : null;
+            let branchId = invoice.branchId; // use invoice's original branch
 
-        await prisma.treasury.create({
-            data: {
-                type: 'out',
-                amount: payAmount,
-                description: `تسديد دفعة - فاتورة مشتريات #${invoice.invoiceNo}`,
-                referenceType: 'purchase_payment',
-                referenceId: invoice.id,
-                userId: parsedUserId,
-                branchId,
-            },
+            await tx.treasury.create({
+                data: {
+                    type: 'out',
+                    amount: payAmount,
+                    description: `تسديد دفعة - فاتورة مشتريات #${invoice.invoiceNo}`,
+                    referenceType: 'purchase_payment',
+                    referenceId: invoice.id,
+                    userId: parsedUserId,
+                    branchId,
+                },
+            });
+
+            return updatedInvoice;
         });
 
         return NextResponse.json(updated);
@@ -164,19 +188,33 @@ export async function DELETE(request: NextRequest) {
         const invoice = await prisma.purchaseInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        // Reverse stock (decrement what was added from purchase)
-        for (const detail of invoice.details) {
-            await prisma.product.update({
-                where: { id: detail.productId },
-                data: { currentStock: { decrement: detail.quantity } },
-            });
-        }
+        await prisma.$transaction(async (tx) => {
+            // Reverse stock (decrement what was added from purchase) ONLY IF it was actually received
+            if (invoice.receiptStatus === 'received') {
+                for (const detail of invoice.details) {
+                    await tx.product.update({
+                        where: { id: detail.productId },
+                        data: { currentStock: { decrement: detail.quantity } },
+                    });
+                    
+                    try {
+                        await tx.productStock.upsert({
+                            where: { productId_stockId: { productId: detail.productId, stockId: invoice.stockId } },
+                            update: { quantity: { decrement: detail.quantity } },
+                            create: { productId: detail.productId, stockId: invoice.stockId, quantity: -detail.quantity },
+                        });
+                    } catch (e) {
+                         console.error('Failed to reverse productStock for purchase delete inside tx:', e);
+                    }
+                }
+            }
 
-        // Remove related treasury entries
-        await prisma.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id } });
+            // Remove related treasury entries
+            await tx.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id } });
 
-        // Delete invoice (cascade deletes details)
-        await prisma.purchaseInvoice.delete({ where: { id } });
+            // Delete invoice (cascade deletes details)
+            await tx.purchaseInvoice.delete({ where: { id } });
+        });
 
         return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
     } catch (error) {

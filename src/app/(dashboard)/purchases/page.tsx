@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 
 interface Product { id: number; name: string; barcode: string; buyPrice: number; currentStock: number; unit?: { name: string }; }
 interface CartItem { productId: number; productName: string; quantity: number; price: number; discountRate: number; }
-interface Customer { id: number; name: string; }
-interface PurchaseInvoice { id: number; invoiceNo: number; date: string; total: number; paid: number; remaining: number; status: string; paymentType: string; supplier?: { name: string } | null; }
+interface Customer { id: number; name: string; taxNumber?: string; }
+interface PurchaseInvoice { id: number; invoiceNo: number; date: string; total: number; paid: number; remaining: number; status: string; paymentType: string; receiptStatus?: string; supplier?: { name: string } | null; }
 
 export default function PurchasesPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -14,6 +14,8 @@ export default function PurchasesPage() {
     const [filtered, setFiltered] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [supplierId, setSupplierId] = useState('');
+    const [warehouses, setWarehouses] = useState<{ id: number; name: string }[]>([]);
+    const [stockId, setStockId] = useState('1');
     const [paymentType, setPaymentType] = useState('cash');
     const [paidAmount, setPaidAmount] = useState('');
     const [supplierInvoiceNo, setSupplierInvoiceNo] = useState('');
@@ -24,12 +26,14 @@ export default function PurchasesPage() {
     const searchRef = useRef<HTMLInputElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    // Payment tracking
-    const [activeTab, setActiveTab] = useState<'new' | 'pending'>('new');
+    // Payment & Receipts tracking
+    const [activeTab, setActiveTab] = useState<'new' | 'pending' | 'receipts'>('new');
     const [pendingInvoices, setPendingInvoices] = useState<PurchaseInvoice[]>([]);
+    const [pendingReceipts, setPendingReceipts] = useState<PurchaseInvoice[]>([]);
     const [payingId, setPayingId] = useState<number | null>(null);
     const [payValue, setPayValue] = useState('');
     const [payingSaving, setPayingSaving] = useState(false);
+    const [receivingId, setReceivingId] = useState<number | null>(null);
 
     // Quick Add Supplier
     const [showAddSupplier, setShowAddSupplier] = useState(false);
@@ -40,6 +44,11 @@ export default function PurchasesPage() {
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [newProd, setNewProd] = useState({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
     const [savingProd, setSavingProd] = useState(false);
+
+    // Smart OCR Modal
+    const [showOcrModal, setShowOcrModal] = useState(false);
+    const [ocrImagePreviewUrl, setOcrImagePreviewUrl] = useState('');
+    const [ocrData, setOcrData] = useState<any>(null);
 
     // Permission-based delete
     const [canDelete, setCanDelete] = useState(false);
@@ -55,12 +64,14 @@ export default function PurchasesPage() {
 
     const fetchAll = async () => {
         const token = localStorage.getItem('token');
-        const [pRes, sRes] = await Promise.all([
+        const [pRes, sRes, wRes] = await Promise.all([
             fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } }),
             fetch('/api/customers?type=1', { headers: { Authorization: `Bearer ${token}` } }),
+            fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         if (pRes.ok) { const d = await pRes.json(); setProducts(d); setFiltered(d.slice(0, 20)); }
         if (sRes.ok) setSuppliers(await sRes.json());
+        if (wRes.ok) setWarehouses(await wRes.json());
         fetchPending();
     };
 
@@ -68,6 +79,12 @@ export default function PurchasesPage() {
         const token = localStorage.getItem('token');
         const res = await fetch('/api/purchases?status=pending', { headers: { Authorization: `Bearer ${token}` } });
         if (res.ok) setPendingInvoices(await res.json());
+    };
+
+    const fetchReceipts = async () => {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/purchases?receiptStatus=pending', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) setPendingReceipts(await res.json());
     };
 
     const deletePurchaseInvoice = async (inv: PurchaseInvoice) => {
@@ -162,7 +179,7 @@ export default function PurchasesPage() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const res = await fetch('/api/purchases', {
                 method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ supplierId: supplierId || null, items: cart, paymentType, supplierInvoiceNo, paid: actualPaid, userId: user.id, notes }),
+                body: JSON.stringify({ supplierId: supplierId || null, stockId: stockId || '1', items: cart, paymentType, supplierInvoiceNo, paid: actualPaid, userId: user.id, notes }),
             });
             if (res.ok) {
                 const inv = await res.json();
@@ -197,12 +214,31 @@ export default function PurchasesPage() {
         } catch { setToast('❌ خطأ في التسديد'); }
         finally { setPayingSaving(false); setTimeout(() => setToast(''), 4000); }
     };
-
+    const handleReceiveGoods = async (invoiceId: number) => {
+        if (!confirm('تأكيد استلام بضاعة هذه الفاتورة وإدخالها للمخزون؟')) return;
+        setReceivingId(invoiceId);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/purchases/${invoiceId}/receive`, {
+                method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setToast('✅ تم استلام البضاعة وإضافتها للمخزون');
+                fetchReceipts();
+            } else {
+                const data = await res.json();
+                setToast(`❌ ${data.error || 'فشل في الاستلام'}`);
+            }
+        } catch { setToast('❌ خطأ في الاتصال'); }
+        finally { setReceivingId(null); setTimeout(() => setToast(''), 4000); }
+    };
     const handleOcrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setOcrLoading(true);
-        setToast('⏳ جاري قراءة الفاتورة...');
+        setToast('⏳ جاري قراءة الفاتورة الذكية عبر الذكاء الاصطناعي...');
+        const previewUrl = URL.createObjectURL(file);
+
         try {
             const token = localStorage.getItem('token');
             const formData = new FormData();
@@ -212,16 +248,14 @@ export default function PurchasesPage() {
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,
             });
-            const data = await res.json();
-            if (data.items && data.items.length > 0) {
-                const newItems: CartItem[] = data.items.map((item: { name: string; price: number; quantity: number }) => ({
-                    productId: 0, productName: item.name,
-                    quantity: item.quantity || 1, price: item.price, discountRate: 0,
-                }));
-                setCart(prev => [...prev, ...newItems]);
-                setToast(`✅ تم استخراج ${data.items.length} صنف - راجع الأسعار واحفظ`);
+            const result = await res.json();
+            if (result.success && result.data) {
+                setOcrImagePreviewUrl(previewUrl);
+                setOcrData(result.data);
+                setShowOcrModal(true);
+                setToast(result.message || '✅ تمت القراءة بنجاح');
             } else {
-                setToast('⚠️ لم يتم العثور على أصناف. تأكد من وضوح الصورة');
+                setToast(`⚠️ ${result.error || 'فشل في استخراج البيانات'}`);
             }
         } catch (err) {
             console.error('OCR error:', err);
@@ -231,6 +265,36 @@ export default function PurchasesPage() {
             if (fileRef.current) fileRef.current.value = '';
             setTimeout(() => setToast(''), 4000);
         }
+    };
+
+    const confirmOcrData = () => {
+        if (!ocrData) return;
+        
+        // Auto-match Supplier based on Tax Number or Name
+        if (ocrData.taxNumber || ocrData.supplierName) {
+            const foundSupplier = suppliers.find(s => 
+                (ocrData.taxNumber && s.taxNumber === ocrData.taxNumber) ||
+                (ocrData.supplierName && s.name.includes(ocrData.supplierName))
+            );
+            if (foundSupplier) {
+                setSupplierId(foundSupplier.id.toString());
+            } else if (ocrData.supplierName) {
+                setNewSupplier(prev => ({ ...prev, name: ocrData.supplierName || '', taxNumber: ocrData.taxNumber || '' }));
+                setToast('⚠️ المورد غير موجود، يمكنك إضافته من زر (+)');
+            }
+        }
+        
+        if (ocrData.invoiceNo) setSupplierInvoiceNo(ocrData.invoiceNo);
+        
+        if (ocrData.items && ocrData.items.length > 0) {
+             const newItems: CartItem[] = ocrData.items.map((item: { name: string; price: number; quantity: number }) => ({
+                 productId: 0, productName: String(item.name || 'بدون اسم'),
+                 quantity: Number(item.quantity) || 1, price: Number(item.price) || 0, discountRate: 0,
+             }));
+             setCart(prev => [...prev, ...newItems]);
+        }
+        
+        setShowOcrModal(false);
     };
 
     return (
@@ -244,6 +308,11 @@ export default function PurchasesPage() {
                         style={{ position: 'relative' }}>
                         💳 فواتير آجلة
                         {pendingInvoices.length > 0 && <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{pendingInvoices.length}</span>}
+                    </button>
+                    <button className={`btn ${activeTab === 'receipts' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setActiveTab('receipts'); fetchReceipts(); }}
+                        style={{ position: 'relative' }}>
+                        📦 استلام بضائع
+                        {pendingReceipts.length > 0 && <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#3b82f6', color: '#fff', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{pendingReceipts.length}</span>}
                     </button>
                     {activeTab === 'new' && <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={ocrLoading}>
                         {ocrLoading ? '⏳ جاري القراءة...' : '📷 رفع فاتورة'}
@@ -287,6 +356,10 @@ export default function PurchasesPage() {
                                     <button onClick={() => setShowAddSupplier(true)} title="إضافة مورد جديد"
                                         style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
                                 </div>
+                                <select className="input" style={{ width: '130px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
+                                    <option value="1">المستودع الرئيسي</option>
+                                    {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                                </select>
                                 <input className="input" style={{ width: '140px' }} placeholder="رقم فاتورة المورد" value={supplierInvoiceNo}
                                     onChange={e => setSupplierInvoiceNo(e.target.value)} dir="ltr" />
                                 <select className="input" style={{ width: '130px' }} value={paymentType} onChange={e => { setPaymentType(e.target.value); if (e.target.value !== 'credit') setPaidAmount(''); }}>
@@ -350,7 +423,7 @@ export default function PurchasesPage() {
                             </div>
                         </div>
                     </div>
-                ) : (
+                ) : activeTab === 'pending' ? (
                     /* Pending Invoices Tab */
                     <div className="card">
                         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -418,7 +491,54 @@ export default function PurchasesPage() {
                             </div>
                         )}
                     </div>
-                )}
+                ) : activeTab === 'receipts' ? (
+                    /* Pending Receipts Tab */
+                    <div className="card">
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ margin: 0, fontSize: '18px' }}>📦 بضائع بانتظار الاستلام المخزني ({pendingReceipts.length})</h2>
+                        </div>
+                        {pendingReceipts.length === 0 ? (
+                            <div className="empty-state" style={{ padding: '60px' }}>
+                                <div className="empty-state-icon">✅</div>
+                                <div className="empty-state-text">لا توجد بضائع بانتظار الاستلام</div>
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>رقم الفاتورة</th>
+                                            <th>التاريخ</th>
+                                            <th>المورد</th>
+                                            <th>الإجمالي</th>
+                                            <th>الدفع</th>
+                                            <th>حالة الاستلام</th>
+                                            <th style={{ width: '150px' }}>إجراء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pendingReceipts.map(inv => (
+                                            <tr key={inv.id}>
+                                                <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
+                                                <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
+                                                <td>{inv.supplier?.name || 'بدون مورد'}</td>
+                                                <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(inv.total)} ر.س</td>
+                                                <td>{inv.paymentType === 'cash' ? 'نقداً' : inv.paymentType === 'transfer' ? 'تحويل' : inv.paymentType === 'card' ? 'بطاقة' : 'آجل'}</td>
+                                                <td><span style={{ padding: '4px 8px', borderRadius: '6px', background: '#fef3c7', color: '#d97706', fontSize: '12px', fontWeight: 'bold' }}>⏳ بانتظار الاستلام</span></td>
+                                                <td>
+                                                    <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                                        onClick={() => handleReceiveGoods(inv.id)} disabled={receivingId === inv.id}>
+                                                        {receivingId === inv.id ? '⏳' : '📥 استلام البضاعة'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                ) : null}
             </div>
             {toast && <div className="toast-container"><div className={`toast ${toast.includes('✅') ? 'toast-success' : toast.includes('⚠️') ? 'toast-warning' : 'toast-error'}`}>{toast}</div></div>}
 
@@ -494,6 +614,89 @@ export default function PurchasesPage() {
                             <button className="btn btn-ghost" onClick={() => setShowAddProduct(false)}>إلغاء</button>
                             <button className="btn btn-primary" onClick={saveNewProduct} disabled={savingProd || !newProd.name.trim()}>
                                 {savingProd ? '⏳ جاري الحفظ...' : '💾 حفظ وإضافة للفاتورة'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Smart Invoice Reader Modal */}
+            {showOcrModal && ocrData && (
+                <div className="modal-overlay" onClick={() => setShowOcrModal(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', width: '95%' }}>
+                        <div className="modal-header">
+                            <h3>👁️ قارئ الفواتير الذكي (AI)</h3>
+                            <button className="modal-close" onClick={() => setShowOcrModal(false)}>✕</button>
+                        </div>
+                        <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxHeight: '75vh', overflowY: 'auto' }}>
+                            {/* Image Preview Left Side */}
+                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflow: 'auto', maxHeight: '70vh' }}>
+                                <img src={ocrImagePreviewUrl} alt="Invoice Preview" style={{ maxWidth: '100%', objectFit: 'contain' }} />
+                            </div>
+                            
+                            {/* Data Form Right Side */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                                    <h4 style={{ margin: '0 0 12px 0', color: '#1e40af', fontSize: '15px' }}>بيانات الفاتورة الأساسية</h4>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                                        <div>
+                                            <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>اسم المورد</label>
+                                            <input className="input" value={ocrData.supplierName || ''} onChange={e => setOcrData({ ...ocrData, supplierName: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>الرقم الضريبي</label>
+                                            <input className="input" value={ocrData.taxNumber || ''} onChange={e => setOcrData({ ...ocrData, taxNumber: e.target.value })} dir="ltr" />
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                            <div>
+                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>التاريخ</label>
+                                                <input className="input" type="date" value={ocrData.date || ''} onChange={e => setOcrData({ ...ocrData, date: e.target.value })} dir="ltr" />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>رقم الفاتورة</label>
+                                                <input className="input" value={ocrData.invoiceNo || ''} onChange={e => setOcrData({ ...ocrData, invoiceNo: e.target.value })} dir="ltr" />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                            <div>
+                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>مبلغ الضريبة</label>
+                                                <input className="input" type="number" value={ocrData.taxAmount || ''} onChange={e => setOcrData({ ...ocrData, taxAmount: e.target.value })} dir="ltr" />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>مبلغ الفاتورة (الإجمالي)</label>
+                                                <input className="input" type="number" value={ocrData.grandTotal || ''} onChange={e => setOcrData({ ...ocrData, grandTotal: e.target.value })} dir="ltr" style={{ fontWeight: 'bold' }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
+                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '15px' }}>الأصناف المستخرجة ({ocrData.items?.length || 0})</h4>
+                                    {ocrData.items && ocrData.items.length > 0 ? (
+                                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                                            <table className="table" style={{ fontSize: '12px' }}>
+                                                <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th></tr></thead>
+                                                <tbody>
+                                                    {ocrData.items.map((it: any, i: number) => (
+                                                        <tr key={i}>
+                                                            <td><input className="input" style={{ padding: '4px', fontSize: '12px' }} value={it.name || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].name = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
+                                                            <td><input className="input" style={{ width: '60px', padding: '4px', textAlign: 'center' }} type="number" dir="ltr" value={it.quantity || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].quantity = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
+                                                            <td><input className="input" style={{ width: '80px', padding: '4px', textAlign: 'center' }} type="number" dir="ltr" value={it.price || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].price = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="empty-state" style={{ padding: '20px', fontSize: '13px' }}>لم يتم التعرف على أصناف متطابقة</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer" style={{ borderTop: '1px solid #e2e8f0', marginTop: '10px', paddingTop: '15px', background: '#f8fafc' }}>
+                            <button className="btn btn-ghost" onClick={() => setShowOcrModal(false)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={confirmOcrData} style={{ background: '#10b981', display: 'flex', gap: '8px', alignItems: 'center', fontSize: '15px', padding: '10px 24px' }}>
+                                <span>📥</span> حفظ وإضافة للفاتورة
                             </button>
                         </div>
                     </div>

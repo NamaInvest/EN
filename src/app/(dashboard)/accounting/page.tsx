@@ -86,6 +86,20 @@ export default function AccountingPage() {
         else { const e = await res.json(); alert(e.error); }
     };
 
+    const handleInitAccounts = async () => {
+        if (!confirm('سيتم إضافة الدليل المحاسبي الافتراضي. هل تريد المتابعة؟')) return;
+        setLoading(true);
+        const res = await fetch('/api/accounting/accounts/init', { method: 'POST' });
+        if (res.ok) {
+            const data = await res.json();
+            alert(data.message);
+            loadAccounts();
+        } else {
+            alert('فشل تهيئة الحسابات');
+        }
+        setLoading(false);
+    };
+
     // Add journal entry
     const handleAddJournal = async () => {
         const totalD = journalLines.reduce((s, l) => s + l.debit, 0);
@@ -124,6 +138,11 @@ export default function AccountingPage() {
                     <div className="toolbar">
                         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{accounts.length} حساب</span>
                         <div className="toolbar-spacer" />
+                        {accounts.length === 0 && (
+                            <button className="btn btn-sm" style={{ background: '#3b82f620', color: '#3b82f6' }} onClick={handleInitAccounts} disabled={loading}>
+                                🔄 تهيئة الدليل الافتراضي
+                            </button>
+                        )}
                         <button className="btn btn-primary btn-sm" onClick={() => setShowAddAccount(true)}>➕ حساب جديد</button>
                     </div>
                     {showAddAccount && (

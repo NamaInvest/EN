@@ -45,6 +45,8 @@ export async function POST(request: Request) {
                 type: parseInt(body.type) || 0,
                 creditLimit: parseFloat(body.creditLimit) || 0,
                 taxNumber: body.taxNumber || null,
+                // @ts-ignore: VS Code cache issue
+                crNo: body.crNo || null,
                 notes: body.notes || null,
             },
         });

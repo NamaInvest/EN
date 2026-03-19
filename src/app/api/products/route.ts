@@ -18,10 +18,15 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
         const categoryId = searchParams.get('category_id');
+        const includeInactive = searchParams.get('include_inactive') === 'true';
         const page = parseInt(searchParams.get('page') || '0');
         const limit = parseInt(searchParams.get('limit') || '0');
 
         const where: Record<string, unknown> = {};
+        if (!includeInactive) {
+            where.active = true;
+        }
+
         if (search) {
             where.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
             const [products, total] = await Promise.all([
                 prisma.product.findMany({
                     where,
-                    include: { category: true, unit: true },
+                    include: { category: true, unit: true, productStocks: { include: { stock: true } } },
                     orderBy: { id: 'desc' },
                     skip: (page - 1) * limit,
                     take: limit,
@@ -49,7 +54,7 @@ export async function GET(request: NextRequest) {
 
         const products = await prisma.product.findMany({
             where,
-            include: { category: true, unit: true },
+            include: { category: true, unit: true, productStocks: { include: { stock: true } } },
             orderBy: { id: 'desc' },
         });
 
@@ -99,6 +104,27 @@ export async function POST(request: Request) {
                 expiryDate: body.expiryDate || null,
             },
         });
+
+        // Initialize stock in default warehouse (ID 1)
+        try {
+            const defaultStockId = 1;
+            const existingWarehouse = await prisma.stock.findUnique({ where: { id: defaultStockId } });
+            if (!existingWarehouse) {
+                await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
+            }
+            if (product.currentStock > 0) {
+                await prisma.productStock.create({
+                    data: {
+                        productId: product.id,
+                        stockId: defaultStockId,
+                        quantity: product.currentStock,
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Failed to initialize product stock:', e);
+        }
+
         return NextResponse.json(product, { status: 201 });
     } catch (error) {
         console.error('Product create error:', error);

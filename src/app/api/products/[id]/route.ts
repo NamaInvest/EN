@@ -6,7 +6,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const product = await prisma.product.findUnique({
             where: { id: parseInt(id) },
-            include: { category: true, unit: true },
+            include: { category: true, unit: true, productStocks: { include: { stock: true } } },
         });
         if (!product) {
             return NextResponse.json({ error: 'المنتج غير موجود' }, { status: 404 });
@@ -38,8 +38,28 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 nameEn: body.nameEn || '',
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
+                active: body.active !== undefined ? Boolean(body.active) : undefined,
             },
         });
+
+        // Sync legacy currentStock to default warehouse (ID 1)
+        try {
+            if (body.currentStock !== undefined) {
+                const defaultStockId = 1;
+                const existingWarehouse = await prisma.stock.findUnique({ where: { id: defaultStockId } });
+                if (!existingWarehouse) {
+                    await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
+                }
+                await prisma.productStock.upsert({
+                    where: { productId_stockId: { productId: product.id, stockId: defaultStockId } },
+                    update: { quantity: product.currentStock },
+                    create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock },
+                });
+            }
+        } catch (e) {
+            console.error('Failed to sync product stock:', e);
+        }
+
         return NextResponse.json(product);
     } catch (error) {
         console.error('Product update error:', error);
@@ -52,31 +72,30 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         const { id } = await params;
         const productId = parseInt(id);
 
-        // Delete related records first to avoid foreign key constraints
+        // STABLE ERP LOGIC: NEVER cascade delete financial records.
+        // Check if the product is used in any transactions.
+        const usedInSales = await prisma.salesInvoiceDetail.count({ where: { productId } });
+        const usedInPurchases = await prisma.purchaseInvoiceDetail.count({ where: { productId } });
+        const usedInStockMovements = await prisma.stockMovement.count({ where: { productId } });
+
+        if (usedInSales > 0 || usedInPurchases > 0 || usedInStockMovements > 0) {
+            // Soft delete: keep the product but mark it inactive so it doesn't appear in POS/Purchases
+            await prisma.product.update({
+                where: { id: productId },
+                data: { active: false },
+            });
+            return NextResponse.json({ message: 'تم أرشفة المنتج وإيقاف تفعيله (لوجود حركات مالية مرتبطة)' });
+        }
+
+        // Only hard delete if STRICTLY unused anywhere
         await prisma.$transaction(async (tx) => {
-            // Delete sale invoice items referencing this product
-            await tx.salesInvoiceDetail.deleteMany({ where: { productId } });
-            // Delete purchase invoice items referencing this product
-            await tx.purchaseInvoiceDetail.deleteMany({ where: { productId } });
-            // Delete stock movements referencing this product
-            await tx.stockMovement.deleteMany({ where: { productId } });
-            // Now delete the product
+            await tx.productStock.deleteMany({ where: { productId } });
             await tx.product.delete({ where: { id: productId } });
         });
 
-        return NextResponse.json({ message: 'تم حذف المنتج بنجاح' });
+        return NextResponse.json({ message: 'تم حذف المنتج نهائياً لعدم وجود حركات مرتبطة به' });
     } catch (error: any) {
         console.error('Product delete error:', error);
-        // If still fails (other constraints), deactivate instead
-        try {
-            const { id } = await params;
-            await prisma.product.update({
-                where: { id: parseInt(id) },
-                data: { active: false },
-            });
-            return NextResponse.json({ message: 'تم إلغاء تفعيل المنتج (مرتبط ببيانات أخرى)' });
-        } catch {
-            return NextResponse.json({ error: 'فشل في الحذف' }, { status: 500 });
-        }
+        return NextResponse.json({ error: 'فشل في عملية الحذف/الأرشفة' }, { status: 500 });
     }
 }

@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         const from = searchParams.get('from');
         const to = searchParams.get('to');
         const branchQuery = searchParams.get('branchId');
+        const invoiceNoQuery = searchParams.get('invoiceNo');
 
         const auth = getUserFromRequest(request);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
@@ -19,6 +20,10 @@ export async function GET(request: NextRequest) {
             where.date = {};
             if (from) (where.date as Record<string, unknown>).gte = new Date(from);
             if (to) (where.date as Record<string, unknown>).lte = new Date(to + 'T23:59:59');
+        }
+
+        if (invoiceNoQuery) {
+            where.invoiceNo = parseInt(invoiceNoQuery);
         }
 
         // Branch Isolation Logic
@@ -43,12 +48,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
+        console.log('Received sales payload:', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
 
         // Get next invoice number
         const lastInvoice = await prisma.salesInvoice.findFirst({
             orderBy: { invoiceNo: 'desc' },
         });
-        const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
+        const invoiceNo = body.manualInvoiceNo ? parseInt(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
+        const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
 
         // Calculate totals
         let subtotal = 0;
@@ -74,71 +81,105 @@ export async function POST(request: Request) {
             branchId = user?.branchId || null;
         }
 
-        const invoice = await prisma.salesInvoice.create({
-            data: {
-                branchId,
-                invoiceNo,
-                customerId: body.customerId ? parseInt(body.customerId) : null,
-                stockId: body.stockId ? parseInt(body.stockId) : 1,
-                subtotal,
-                discountRate,
-                discountValue,
-                taxValue,
-                total,
-                paid,
-                remaining,
-                paymentType: body.paymentType || 'cash',
-                status: remaining > 0 ? 'pending' : 'completed',
-                userId: body.userId || null,
-                notes: body.notes || null,
-                details: {
-                    create: items.map((item: Record<string, unknown>) => {
-                        const qty = parseFloat(item.quantity as string) || 1;
-                        const price = parseFloat(item.price as string) || 0;
-                        const dRate = parseFloat(item.discountRate as string) || 0;
-                        const itemSubtotal = qty * price;
-                        const dValue = itemSubtotal * (dRate / 100);
-                        const afterD = itemSubtotal - dValue;
-                        const tax = afterD * 0.15;
-                        return {
-                            productId: parseInt(item.productId as string),
-                            productName: item.productName as string || '',
-                            quantity: qty,
-                            price,
-                            discountRate: dRate,
-                            discountValue: dValue,
-                            taxRate: 15,
-                            taxValue: tax,
-                            total: afterD + tax,
-                        };
-                    }),
-                },
-            },
-            include: { details: true, customer: true },
-        });
-
-        // Update stock
-        for (const item of items) {
-            await prisma.product.update({
-                where: { id: parseInt(item.productId) },
-                data: { currentStock: { decrement: parseFloat(item.quantity) || 1 } },
-            });
-        }
-
-        // Treasury entry
-        if (paid > 0) {
-            await prisma.treasury.create({
+        const invoice = await prisma.$transaction(async (tx) => {
+            const createdInvoice = await tx.salesInvoice.create({
                 data: {
-                    type: 'in',
-                    amount: paid,
-                    description: `فاتورة مبيعات #${invoiceNo}`,
-                    referenceType: 'sale',
-                    referenceId: invoice.id,
-                    userId,
+                    date: invoiceDate,
                     branchId,
+                    invoiceNo,
+                    customerId: body.customerId ? parseInt(body.customerId) : null,
+                    stockId: body.stockId ? parseInt(body.stockId) : 1,
+                    subtotal,
+                    discountRate,
+                    discountValue,
+                    taxValue,
+                    total,
+                    paid,
+                    remaining,
+                    paymentType: body.paymentType || 'cash',
+                    splitCash: body.splitCash ? parseFloat(body.splitCash) : 0,
+                    splitCard: body.splitCard ? parseFloat(body.splitCard) : 0,
+                    status: remaining > 0 ? 'pending' : 'completed',
+                    userId: body.userId || null,
+                    notes: body.notes || null,
+                    details: {
+                        create: items.map((item: Record<string, unknown>) => {
+                            const qty = parseFloat(item.quantity as string) || 1;
+                            const price = parseFloat(item.price as string) || 0;
+                            const dRate = parseFloat(item.discountRate as string) || 0;
+                            const itemSubtotal = qty * price;
+                            const dValue = itemSubtotal * (dRate / 100);
+                            const afterD = itemSubtotal - dValue;
+                            const tax = afterD * 0.15;
+                            return {
+                                productId: parseInt(item.productId as string),
+                                productName: item.productName as string || '',
+                                quantity: qty,
+                                price,
+                                discountRate: dRate,
+                                discountValue: dValue,
+                                taxRate: 15,
+                                taxValue: tax,
+                                total: afterD + tax,
+                            };
+                        }),
+                    },
                 },
+                include: { details: true, customer: true },
             });
-        }
+
+            // Update stock (safely within transaction)
+            for (const item of items) {
+                const qty = parseFloat(item.quantity) || 1;
+                await tx.product.update({
+                    where: { id: parseInt(item.productId) },
+                    data: { currentStock: { decrement: qty } },
+                });
+                
+                // Also update ProductStock for the specific warehouse
+                try {
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId: parseInt(item.productId), stockId: createdInvoice.stockId } },
+                        update: { quantity: { decrement: qty } },
+                        create: { productId: parseInt(item.productId), stockId: createdInvoice.stockId, quantity: -qty },
+                    });
+                } catch (e) {
+                    console.error('Failed to update productStock for sale inside tx:', e);
+                }
+            }
+
+            // Treasury entry (safely within transaction)
+            if (paid > 0) {
+                if (body.paymentType === 'split') {
+                    const sCash = parseFloat(body.splitCash) || 0;
+                    const sCard = parseFloat(body.splitCard) || 0;
+                    if (sCash > 0) {
+                        await tx.treasury.create({
+                            data: { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id, userId, branchId },
+                        });
+                    }
+                    if (sCard > 0) {
+                        await tx.treasury.create({
+                            data: { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id, userId, branchId },
+                        });
+                    }
+                } else {
+                    await tx.treasury.create({
+                        data: {
+                            type: 'in',
+                            amount: paid,
+                            description: `فاتورة مبيعات #${invoiceNo}`,
+                            referenceType: 'sale',
+                            referenceId: createdInvoice.id,
+                            userId,
+                            branchId,
+                        },
+                    });
+                }
+            }
+
+            return createdInvoice;
+        });
 
         // Auto-journal entry (double-entry accounting)
         try {
@@ -148,6 +189,8 @@ export async function POST(request: Request) {
                 taxValue,
                 total,
                 paymentType: body.paymentType || 'cash',
+                splitCash: body.splitCash ? parseFloat(body.splitCash) : 0,
+                splitCard: body.splitCard ? parseFloat(body.splitCard) : 0,
                 userId: userId || undefined,
                 branchId: branchId || undefined,
                 discountValue,
@@ -307,10 +350,12 @@ export async function DELETE(request: NextRequest) {
             const allowed = await hasPermission(auth.userId, 'delete_all_sales');
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كل الفواتير' }, { status: 403 });
 
-            // Delete all details, treasury entries, then invoices
-            await prisma.salesInvoiceDetail.deleteMany({});
-            await prisma.treasury.deleteMany({ where: { referenceType: 'sale' } });
-            const result = await prisma.salesInvoice.deleteMany({});
+            // Delete all details, treasury entries, then invoices safely
+            const result = await prisma.$transaction(async (tx) => {
+                await tx.salesInvoiceDetail.deleteMany({});
+                await tx.treasury.deleteMany({ where: { referenceType: 'sale' } });
+                return await tx.salesInvoice.deleteMany({});
+            });
             return NextResponse.json({ success: true, message: `تم حذف ${result.count} فاتورة مبيعات` });
         }
 
@@ -323,19 +368,31 @@ export async function DELETE(request: NextRequest) {
         const invoice = await prisma.salesInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        // Reverse stock (re-increment what was sold)
-        for (const detail of invoice.details) {
-            await prisma.product.update({
-                where: { id: detail.productId },
-                data: { currentStock: { increment: detail.quantity } },
-            });
-        }
+        await prisma.$transaction(async (tx) => {
+            // Reverse stock (re-increment what was sold) safely for both global and warehouse stock
+            for (const detail of invoice.details) {
+                await tx.product.update({
+                    where: { id: detail.productId },
+                    data: { currentStock: { increment: detail.quantity } },
+                });
+                
+                try {
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId: detail.productId, stockId: invoice.stockId } },
+                        update: { quantity: { increment: detail.quantity } },
+                        create: { productId: detail.productId, stockId: invoice.stockId, quantity: detail.quantity },
+                    });
+                } catch (e) {
+                     console.error('Failed to reverse productStock for sales delete inside tx:', e);
+                }
+            }
 
-        // Remove related treasury entries
-        await prisma.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
+            // Remove related treasury entries
+            await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
 
-        // Delete invoice (cascade deletes details)
-        await prisma.salesInvoice.delete({ where: { id } });
+            // Delete invoice (cascade deletes details)
+            await tx.salesInvoice.delete({ where: { id } });
+        });
 
         return NextResponse.json({ success: true, message: 'تم حذف الفاتورة بنجاح' });
     } catch (error) {

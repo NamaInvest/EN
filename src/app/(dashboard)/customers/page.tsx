@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 
 interface Customer {
     id: number; name: string; phone: string; type: number; balance: number;
-    address: string; city: string; district: string; taxNumber: string;
+    address: string; city: string; district: string; taxNumber: string; crNo: string;
     creditLimit: number; notes: string; buildingNumber: string;
     postalCode: string; street: string; active: boolean;
 }
@@ -18,8 +18,9 @@ export default function CustomersPage() {
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({
         name: '', phone: '', type: '0', address: '', street: '', buildingNumber: '',
-        district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', notes: '',
+        district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: '',
     });
+    const [sendingReminderId, setSendingReminderId] = useState<number | null>(null);
 
     async function fetchData() {
         try {
@@ -43,7 +44,7 @@ export default function CustomersPage() {
         setEditItem(null);
         setForm({
             name: '', phone: '', type: '0', address: '', street: '', buildingNumber: '',
-            district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', notes: ''
+            district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: ''
         });
         setShowModal(true);
     };
@@ -54,7 +55,7 @@ export default function CustomersPage() {
             name: c.name, phone: c.phone || '', type: c.type.toString(), address: c.address || '',
             street: c.street || '', buildingNumber: c.buildingNumber || '', district: c.district || '',
             city: c.city || '', postalCode: c.postalCode || '', creditLimit: c.creditLimit?.toString() || '0',
-            taxNumber: c.taxNumber || '', notes: c.notes || '',
+            taxNumber: c.taxNumber || '', crNo: c.crNo || '', notes: c.notes || '',
         });
         setShowModal(true);
     };
@@ -79,6 +80,32 @@ export default function CustomersPage() {
             await fetch(`/api/customers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             fetchData();
         } catch (err) { console.error(err); }
+    };
+
+    const sendReminder = async (c: Customer) => {
+        if (!c.phone) {
+            alert('العميل لا يملك رقم هاتف مسجل');
+            return;
+        }
+        setSendingReminderId(c.id);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/crm/whatsapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ phone: c.phone, type: 'reminder', balance: fmt(c.balance) })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ تم إرسال رسالة التذكير بنجاح');
+            } else {
+                alert(`❌ فشل الإرسال: ${data.error}`);
+            }
+        } catch (err) {
+            alert('❌ خطأ في الاتصال بالخادم');
+        } finally {
+            setSendingReminderId(null);
+        }
     };
 
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
@@ -106,7 +133,7 @@ export default function CustomersPage() {
 
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>النوع</th><th>المدينة</th><th>الرصيد</th><th>الرقم الضريبي</th><th>إجراءات</th></tr></thead>
+                        <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>النوع</th><th>المدينة</th><th>الرصيد</th><th>الرقم الضريبي</th><th>السجل التجاري</th><th>إجراءات</th></tr></thead>
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
@@ -121,8 +148,18 @@ export default function CustomersPage() {
                                     <td>{c.city || '-'}</td>
                                     <td style={{ fontWeight: '600', color: c.balance > 0 ? 'var(--danger-light)' : 'var(--success-light)' }}>{fmt(c.balance)} ر.س</td>
                                     <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.taxNumber || '-'}</td>
+                                    <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.crNo || '-'}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '6px' }}>
+                                            {c.balance > 0 && (
+                                                <button className="btn btn-sm" 
+                                                    style={{ background: '#25D366', color: '#fff', padding: '4px 8px', border: 'none', borderRadius: '4px' }}
+                                                    onClick={() => sendReminder(c)}
+                                                    disabled={sendingReminderId === c.id}
+                                                    title="إرسال تذكير بالمديونية عبر الواتساب">
+                                                    {sendingReminderId === c.id ? '⏳' : '💬'}
+                                                </button>
+                                            )}
                                             <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
                                             <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(c.id)} style={{ color: 'var(--danger)' }}>🗑️</button>
                                         </div>
@@ -161,6 +198,8 @@ export default function CustomersPage() {
                                 <input className="input" value={form.postalCode} onChange={e => setForm({ ...form, postalCode: e.target.value })} dir="ltr" /></div>
                             <div className="input-group"><label className="input-label">الرقم الضريبي</label>
                                 <input className="input" value={form.taxNumber} onChange={e => setForm({ ...form, taxNumber: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">السجل التجاري</label>
+                                <input className="input" value={form.crNo} onChange={e => setForm({ ...form, crNo: e.target.value })} dir="ltr" /></div>
                             <div className="input-group"><label className="input-label">حد الائتمان</label>
                                 <input className="input" type="number" value={form.creditLimit} onChange={e => setForm({ ...form, creditLimit: e.target.value })} dir="ltr" /></div>
                         </div>

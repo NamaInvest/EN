@@ -6,9 +6,8 @@ const hostIp = '204.168.144.74';
 const conn = new Client();
 
 const remoteScript = `#!/bin/bash
+set -ex
 cd /var/www/namasoft || exit 1
-apt-get update
-apt-get install -y unzip
 unzip -q -o src.zip
 rm -f src.zip
 npx prisma generate

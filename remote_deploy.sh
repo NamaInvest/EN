@@ -8,4 +8,4 @@ npx prisma db push --schema=prisma/schema.prisma
 npx prisma generate
 rm -f /tmp/build_sync.log
 nohup bash -c "npm run build > /tmp/build_sync.log 2>&1 && pm2 restart namasoft" > /dev/null 2>&1 &
-echo "[3/3] Background Build successfully triggered on 95.217.187.44!"
+echo "[3/3] Background Build successfully triggered on 185.197.195.202!"

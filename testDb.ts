@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const p = new PrismaClient(); p.category.count().then(c => console.log('DB OK, Category Count:', c)).catch(e => console.error('DB ERROR', e)).finally(() => p.$disconnect());

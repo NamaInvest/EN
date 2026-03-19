@@ -2,14 +2,14 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
         const category = await prisma.category.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt((await params).id) },
             data: { 
                 name: body.name, 
                 parentId: body.parentId ? parseInt(body.parentId) : 0, 
@@ -23,14 +23,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         // Check if there are products using this category
         const productsCount = await prisma.product.count({
-            where: { categoryId: parseInt(params.id) }
+            where: { categoryId: parseInt((await params).id) }
         });
 
         if (productsCount > 0) {
@@ -38,7 +38,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         }
 
         await prisma.category.delete({
-            where: { id: parseInt(params.id) }
+            where: { id: parseInt((await params).id) }
         });
 
         return NextResponse.json({ message: 'تم الحذف بنجاح' });

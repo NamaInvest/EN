@@ -23,6 +23,7 @@ interface Product {
     expiryDate?: string | null;
     category?: { id: number; name: string };
     unit?: { id: number; name: string };
+    productStocks?: any[];
 }
 
 interface Category {
@@ -40,6 +41,7 @@ export default function ProductsPage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const PER_PAGE = 50;
+    const [showInactive, setShowInactive] = useState(false);
     const [showAddCategory, setShowAddCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [savingCategory, setSavingCategory] = useState(false);
@@ -90,6 +92,7 @@ export default function ProductsPage() {
             const params = new URLSearchParams();
             if (search) params.set('search', search);
             if (categoryFilter) params.set('category_id', categoryFilter);
+            if (showInactive) params.set('include_inactive', 'true');
             const res = await fetch(`/api/products?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -110,7 +113,7 @@ export default function ProductsPage() {
         setPage(1);
         const timer = setTimeout(fetchProducts, 300);
         return () => clearTimeout(timer);
-    }, [search, categoryFilter]);
+    }, [search, categoryFilter, showInactive]);
 
     const openAdd = () => {
         setEditProduct(null);
@@ -166,6 +169,24 @@ export default function ProductsPage() {
         } catch (err) { console.error(err); showToast('❌ خطأ في الاتصال بالسيرفر'); }
     };
 
+    const handleRestore = async (id: number) => {
+        if (!confirm('هل تريد استعادة وتفعيل هذا المنتج؟')) return;
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ active: true }),
+            });
+            if (res.ok) {
+                showToast('✅ تم استعادة وتفعيل المنتج بنجاح');
+                fetchProducts();
+            } else {
+                showToast('❌ فشل في الاستعادة');
+            }
+        } catch (err) { console.error(err); showToast('❌ خطأ في الاتصال بالسيرفر'); }
+    };
+
     const formatCurrency = (v: number) => new Intl.NumberFormat('ar-SA', {
         minimumFractionDigits: 2, maximumFractionDigits: 2
     }).format(v);
@@ -207,6 +228,10 @@ export default function ProductsPage() {
                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     <div className="toolbar-spacer" />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)', marginRight: '12px' }}>
+                        <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
+                        عرض المؤرشفة (المحذوفة)
+                    </label>
                     {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🔄 تصفير المخزون</button>}
                     <button className="btn btn-primary" onClick={openAdd}>➕ إضافة منتج</button>
                 </div>
@@ -239,7 +264,7 @@ export default function ProductsPage() {
                                     </div>
                                 </td></tr>
                             ) : paginatedProducts.map((p, i) => (
-                                <tr key={p.id}>
+                                <tr key={p.id} style={{ opacity: p.active ? 1 : 0.6, background: !p.active ? 'rgba(239,68,68,0.05)' : undefined }}>
                                     <td>{(page - 1) * PER_PAGE + i + 1}</td>
                                     <td>
                                         {p.imagePath ? (
@@ -266,7 +291,10 @@ export default function ProductsPage() {
                                         )}
                                     </td>
                                     <td>
-                                        <div style={{ fontWeight: '600' }}>{p.name}</div>
+                                        <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            {p.name}
+                                            {!p.active && <span className="badge badge-danger" style={{ fontSize: '10px', padding: '2px 6px' }}>مؤرشف</span>}
+                                        </div>
                                         {p.nameEn && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{p.nameEn}</div>}
                                         {p.brandAr && <div style={{ fontSize: '11px', color: 'var(--purple)' }}>{p.brandAr} {p.sizeInfo ? `• ${p.sizeInfo}` : ''}</div>}
                                     </td>
@@ -276,9 +304,18 @@ export default function ProductsPage() {
                                     <td style={{ fontWeight: '600', color: 'var(--warning, #f59e0b)' }}>{formatCurrency(p.buyPrice * 1.15)} ر.س</td>
                                     <td style={{ fontWeight: '600', color: 'var(--success-light)' }}>{formatCurrency(p.sellPrice)} ر.س</td>
                                     <td>
-                                        <span className={`badge ${p.currentStock <= p.minQuantity ? 'badge-danger' : 'badge-success'}`}>
-                                            {p.currentStock} {p.unit?.name || ''}
-                                        </span>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <span className={`badge ${p.currentStock <= p.minQuantity ? 'badge-danger' : 'badge-success'}`}>
+                                                الإجمالي: {p.currentStock} {p.unit?.name || ''}
+                                            </span>
+                                            {p.productStocks && p.productStocks.length > 0 && (
+                                                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                                                    {p.productStocks.map((ps: any) => (
+                                                        <div key={ps.stock?.id || Math.random()}>• {ps.stock?.name}: <span style={{fontWeight:'bold'}}>{ps.quantity}</span></div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td>
                                         {p.expiryDate ? <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{p.expiryDate}</span> : <span style={{ color: '#ccc' }}>-</span>}
@@ -286,7 +323,8 @@ export default function ProductsPage() {
                                     <td>
                                         <div style={{ display: 'flex', gap: '6px' }}>
                                             <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}>✏️</button>
-                                            {canDeleteProduct && <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id)} style={{ color: 'var(--danger)' }}>🗑️</button>}
+                                            {canDeleteProduct && p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id)} style={{ color: 'var(--danger)' }} title="حذف أو أرشفة">🗑️</button>}
+                                            {canDeleteProduct && !p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleRestore(p.id)} style={{ color: 'var(--success)' }} title="استعادة المنتج">♻️</button>}
                                         </div>
                                     </td>
                                 </tr>

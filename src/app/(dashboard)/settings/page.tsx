@@ -69,15 +69,31 @@ const SETTING_GROUPS = [
             { key: 'salla_enabled', label: 'تفعيل ربط سلة', type: 'toggle' },
             { key: 'salla_merchant_id', label: 'معرف المتجر (Merchant ID)', type: 'text' },
             { key: 'salla_client_id', label: 'Client ID', type: 'text' },
-            { key: 'salla_client_secret', label: 'Client Secret', type: 'text' },
+            { key: 'salla_client_secret', label: 'Client Secret (Webhook HMAC)', type: 'text' },
             { key: 'salla_access_token', label: 'Access Token', type: 'text' },
-            { key: 'salla_webhook_url', label: 'Webhook URL', type: 'text' },
+            { key: 'salla_webhook_url', label: 'Webhook URL (للقراءة فقط)', type: 'text' },
+        ]
+    },
+    {
+        title: '🛍️ زد API', id: 'zid', keys: [
+            { key: 'zid_enabled', label: 'تفعيل ربط زد', type: 'toggle' },
+            { key: 'zid_store_id', label: 'معرف المتجر (Store ID)', type: 'text' },
+            { key: 'zid_client_id', label: 'Client ID', type: 'text' },
+            { key: 'zid_webhook_secret', label: 'Webhook Secret (Authorization Token)', type: 'text' },
+            { key: 'zid_access_token', label: 'Access Token', type: 'text' },
+            { key: 'zid_webhook_url', label: 'Webhook URL (للقراءة فقط)', type: 'text' },
         ]
     },
     {
         title: '🌐 ربط منصة فاتورة (OTA)', keys: [
             { key: 'zatca_environment', label: 'البيئة', type: 'select' },
             { key: 'zatca_otp', label: 'OTP من بوابة فاتورة', type: 'text' },
+        ]
+    },
+    {
+        title: '🤖 الذكاء الاصطناعي وبوت تلجرام', id: 'ai_bots', keys: [
+            { key: 'gemini_api_key', label: 'مفتاح Gemini API (لقارئ الفواتير الذكي)', type: 'text' },
+            { key: 'telegram_bot_token', label: 'مفتاح بوت تلجرام (Bot Token)', type: 'text' },
         ]
     },
 ];
@@ -96,6 +112,7 @@ export default function SettingsPage() {
     const [fatooraStep, setFatooraStep] = useState(0);
     const [fatooraLoading, setFatooraLoading] = useState(false);
     const [fatooraMessage, setFatooraMessage] = useState('');
+    const [webhookLoading, setWebhookLoading] = useState(false);
 
     // Permission guard - redirect if no access
     // If user has permissions defined → use those (role ignored)
@@ -782,6 +799,48 @@ export default function SettingsPage() {
                                         {fatooraMessage}
                                     </div>
                                 )}
+                            </div>
+                        )}
+                        {group.title.includes('تلجرام') && (
+                            <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{
+                                            width: '12px', height: '12px', borderRadius: '50%',
+                                            background: settings['telegram_bot_token'] ? 'var(--success-light)' : 'var(--danger)',
+                                            boxShadow: settings['telegram_bot_token'] ? '0 0 8px var(--success-light)' : '0 0 8px var(--danger)',
+                                        }} />
+                                        <span style={{ fontWeight: '600', fontSize: '14px' }}>
+                                            {settings['telegram_bot_token']
+                                                ? '🤖 البوت مضاف — اضغط لتحديث الاتصال'
+                                                : '⚠️ مفتاح البوت غير موجود'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={async () => {
+                                            setWebhookLoading(true);
+                                            try {
+                                                const token = localStorage.getItem('token');
+                                                const res = await fetch('/api/telegram/webhook?action=set', { headers: { Authorization: `Bearer ${token}` } });
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    showToast(`✅ تم ربط البوت بنجاح! URL: ${data.webhookUrl}`);
+                                                } else {
+                                                    showToast('❌ فشل في ربط التلجرام');
+                                                }
+                                            } catch { showToast('❌ خطأ بالاتصال'); }
+                                            finally { setWebhookLoading(false); }
+                                        }}
+                                        disabled={webhookLoading || !settings['telegram_bot_token']}
+                                        style={{ whiteSpace: 'nowrap' }}
+                                    >
+                                        {webhookLoading ? '⏳ جاري الربط...' : '🔗 تفعيل وارتباط البوت'}
+                                    </button>
+                                </div>
+                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '8px 0 0' }}>
+                                    يجب عليك إدخال المفتاح وحفظ الإعدادات أولاً، ثم الضغط على "تفعيل وارتباط البوت" لكي يبدأ باستقبال الأوامر.
+                                </p>
                             </div>
                         )}
                     </div>

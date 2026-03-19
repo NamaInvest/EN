@@ -24,7 +24,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 street: body.street || null, buildingNumber: body.buildingNumber || null,
                 district: body.district || null, city: body.city || null, postalCode: body.postalCode || null,
                 type: parseInt(body.type) || 0, creditLimit: parseFloat(body.creditLimit) || 0,
-                taxNumber: body.taxNumber || null, notes: body.notes || null,
+                taxNumber: body.taxNumber || null, 
+                // @ts-ignore
+                crNo: body.crNo || null, notes: body.notes || null,
             },
         });
         return NextResponse.json(customer);

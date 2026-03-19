@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
+import VoucherReceipt from '../../../components/VoucherReceipt';
 
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
@@ -12,7 +13,7 @@ interface CartItem {
     price: number; discountRate: number; taxRate: number;
     stock: number; unitName: string;
 }
-interface Customer { id: number; name: string; }
+interface Customer { id: number; name: string; phone?: string; taxNumber?: string | null; crNo?: string | null; address?: string | null; }
 interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes: string; discountRate: number; paidAmount: string; paymentType: string; heldAt: string; label: string; }
 
 export default function SalesPage() {
@@ -22,7 +23,13 @@ export default function SalesPage() {
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [customerId, setCustomerId] = useState('');
+    const [stockId, setStockId] = useState('1');
+    const [warehouses, setWarehouses] = useState<{ id: number; name: string }[]>([]);
     const [paymentType, setPaymentType] = useState('card');
+    const [splitCash, setSplitCash] = useState('');
+    const [splitCard, setSplitCard] = useState('');
+    const [manualInvoiceNo, setManualInvoiceNo] = useState('');
+    const [manualDate, setManualDate] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [posPort, setPosPort] = useState<any>(null);
@@ -35,12 +42,19 @@ export default function SalesPage() {
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState('');
     const [showReceipt, setShowReceipt] = useState(false);
+    const [showVoucher, setShowVoucher] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [selectedVoucherData, setSelectedVoucherData] = useState<any>(null);
     const [lastInvoiceData, setLastInvoiceData] = useState<{
         invoiceId: number; invoiceNumber: string; date: string; customerName: string;
+        customerTaxNo?: string | null; customerCrNo?: string | null; customerAddress?: string | null;
         paymentMethod: string; items: { name: string; quantity: number; price: number; total: number }[];
         subtotal: number; discount: number; taxRate: number; taxAmount: number; grandTotal: number;
     } | null>(null);
     const searchRef = useRef<HTMLInputElement>(null);
+    const discountRef = useRef<HTMLInputElement>(null);
+    const [focusedProductIndex, setFocusedProductIndex] = useState(-1);
+    const [showTypeahead, setShowTypeahead] = useState(false);
 
     // Coupon logic
     const [couponCode, setCouponCode] = useState('');
@@ -162,9 +176,18 @@ export default function SalesPage() {
         }
     };
 
+    const fetchWarehouses = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) setWarehouses(await res.json());
+        } catch (err) { console.error('Error fetching warehouses:', err); }
+    };
+
     useEffect(() => {
         fetchProducts();
         fetchCustomers();
+        fetchWarehouses();
         searchRef.current?.focus();
         try {
             const u = JSON.parse(localStorage.getItem('user') || '{}');
@@ -175,6 +198,36 @@ export default function SalesPage() {
         detectPosTerminal();
         // Load held invoices from localStorage
         try { const held = JSON.parse(localStorage.getItem('heldInvoices') || '[]'); setHeldInvoices(held); } catch { }
+    }, []);
+
+    // Global POS Hotkeys
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['F1', 'F2', 'F3', 'F4', 'F9', 'F12', 'Escape'].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === 'F1') {
+                searchRef.current?.focus();
+            } else if (e.key === 'F2') {
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                if (qtyInputs.length > 0) (qtyInputs[qtyInputs.length - 1] as HTMLInputElement).select();
+            } else if (e.key === 'F4') {
+                document.getElementById('discount-input')?.focus();
+            } else if (e.key === 'F9') {
+                document.getElementById('save-btn')?.click();
+            } else if (e.key === 'F12') {
+                document.getElementById('hold-btn')?.click();
+            } else if (e.key === 'Escape') {
+                setSearch('');
+                setShowTypeahead(false);
+                setShowAddCustomer(false);
+                setShowAddProduct(false);
+                setShowHistory(false);
+                setShowHeldPanel(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const saveNewCustomer = async () => {
@@ -358,15 +411,20 @@ export default function SalesPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
                     customerId: customerId || null,
+                    stockId: stockId || '1',
                     items: cart.map(c => ({
                         productId: c.productId, productName: c.productName,
                         quantity: c.quantity, price: c.price, discountRate: c.discountRate,
                     })),
                     discountRate,
                     paymentType,
-                    paid: paidAmount ? parseFloat(paidAmount) : total,
+                    splitCash: paymentType === 'split' ? parseFloat(splitCash) || 0 : undefined,
+                    splitCard: paymentType === 'split' ? parseFloat(splitCard) || 0 : undefined,
+                    paid: paymentType === 'split' ? (parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0) : (paidAmount ? parseFloat(paidAmount) : total),
                     userId: user.id,
                     notes,
+                    manualInvoiceNo: manualInvoiceNo ? parseInt(manualInvoiceNo) : undefined,
+                    manualDate: manualDate || undefined,
                 }),
             });
             if (res.ok) {
@@ -378,12 +436,16 @@ export default function SalesPage() {
                 }
                 setRetryPosAmount(null); setRetryInvoiceNo('');
                 if (print) {
-                    const customerName = customers.find(c => c.id.toString() === customerId)?.name || 'عميل نقدي';
+                    const cust = customers.find(c => c.id.toString() === customerId);
+                    const customerName = cust?.name || 'عميل نقدي';
                     setLastInvoiceData({
                         invoiceId: invoice.id,
                         invoiceNumber: invoice.invoiceNo,
-                        date: new Date().toISOString(),
+                        date: invoice.date, // Use the server-generated date
                         customerName,
+                        customerTaxNo: cust?.taxNumber,
+                        customerCrNo: cust?.crNo,
+                        customerAddress: cust?.address,
                         paymentMethod: paymentType,
                         items: cart.map(c => ({
                             name: c.productName,
@@ -412,13 +474,15 @@ export default function SalesPage() {
                         setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 2000);
                     } catch (e) { console.warn('Cash drawer open skipped:', e); }
                 }
-                // Send to WhatsApp
-                if (whatsapp) {
+                // Send to WhatsApp via automated CRM bot
+                if (whatsapp && customers.find(c => c.id.toString() === customerId)?.phone) {
                     const customerName = customers.find(c => c.id.toString() === customerId)?.name || 'عميل نقدي';
-                    const customerPhone = '';
+                    const customerPhone = customers.find(c => c.id.toString() === customerId)?.phone || '';
+                    
                     const itemsText = cart.map((c, i) =>
                         `${i + 1}. ${c.productName} × ${c.quantity} = ${fmt(c.quantity * c.price * (1 - c.discountRate / 100))} ر.س`
                     ).join('\n');
+                    
                     const text = `🧾 *فاتورة مبيعات #${invoice.invoiceNo}*\n` +
                         `📅 ${new Date().toLocaleDateString('ar-SA')}\n` +
                         `👤 ${customerName}\n\n` +
@@ -427,10 +491,31 @@ export default function SalesPage() {
                         `📊 الضريبة: ${fmt(taxValue)} ر.س\n` +
                         `✅ *الإجمالي: ${fmt(total)} ر.س*\n\n` +
                         `شكراً لتعاملكم معنا 🙏`;
-                    const url = `https://wa.me/${customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
-                    window.open(url, '_blank');
+
+                    // إرسال عبر الـ CRM Bot بدلاً من فتح تطبيق واتساب للمستخدم
+                    fetch('/api/crm/whatsapp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({
+                            phone: customerPhone,
+                            message: text,
+                            invoiceId: invoice.id,
+                            type: 'invoice'
+                        })
+                    }).then(r => r.json()).then(res => {
+                        if (res.success) {
+                            showToast('🤖 تم إرسال الفاتورة عبر واتساب بنجاح');
+                        } else {
+                            // التراجع للطريقة اليدوية في حال فشل البوت
+                            console.warn('Bot Failed, falling back to manual whatsapp');
+                            const url = `https://wa.me/${customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
+                            window.open(url, '_blank');
+                        }
+                    }).catch(err => console.error('WhatsApp Bot Error', err));
                 }
                 setCart([]); setDiscountRate(0); setNotes(''); setPaidAmount(''); setCustomerId(''); setAppliedCoupon(null); setCouponCode('');
+                setSplitCash(''); setSplitCard(''); 
+                setManualInvoiceNo(''); setManualDate('');
                 fetchProducts();
             } else {
                 showToast('❌ فشل في حفظ الفاتورة');
@@ -450,6 +535,8 @@ export default function SalesPage() {
 
     const handleNewInvoice = () => {
         setCart([]); setDiscountRate(0); setNotes(''); setPaidAmount(''); setCustomerId(''); setAppliedCoupon(null); setCouponCode('');
+        setSplitCash(''); setSplitCard('');
+        setManualInvoiceNo(''); setManualDate('');
         setRetryPosAmount(null); setRetryInvoiceNo('');
         searchRef.current?.focus();
     };
@@ -526,6 +613,9 @@ export default function SalesPage() {
         setLastInvoiceData({
             invoiceId: inv.id, invoiceNumber: String(inv.invoiceNo),
             date: inv.date, customerName: inv.customer?.name || 'عميل نقدي',
+            customerTaxNo: inv.customer?.taxNumber,
+            customerCrNo: null,
+            customerAddress: inv.customer?.address,
             paymentMethod: inv.paymentType, items,
             subtotal: inv.subtotal, discount: inv.discountValue || 0,
             taxRate: 15, taxAmount: inv.taxValue, grandTotal: inv.total,
@@ -534,9 +624,32 @@ export default function SalesPage() {
         setSelectedInvoice(null);
     };
 
-    // WhatsApp Send
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendWhatsApp = (inv: any) => {
+    const printVoucher = (inv: any) => {
+        setSelectedVoucherData({
+            receiptNumber: String(Date.now()).slice(-6), // Optional or generated
+            invoiceNumber: String(inv.invoiceNo),
+            date: inv.date,
+            customerName: inv.customer?.name || 'عميل نقدي',
+            customerTaxNo: inv.customer?.taxNumber,
+            customerCrNo: inv.customer?.crNo,
+            customerAddress: inv.customer?.address,
+            amount: inv.total,
+            paymentMethod: inv.paymentType,
+        });
+        setShowVoucher(true);
+        setSelectedInvoice(null);
+    };
+
+    // WhatsApp Send (CRM Bot or Manual Fallback)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sendWhatsApp = async (inv: any) => {
+        const phone = inv.customer?.phone || '';
+        if (!phone) {
+            showToast('❌ العميل لا يملك رقم هاتف');
+            return;
+        }
+
         const items = (inv.details || []).map((d: { productName: string; quantity: number; price: number; total: number }, i: number) =>
             `${i + 1}. ${d.productName} × ${d.quantity} = ${fmt(d.total)} ر.س`
         ).join('\n');
@@ -548,9 +661,26 @@ export default function SalesPage() {
             `📊 الضريبة: ${fmt(inv.taxValue)} ر.س\n` +
             `✅ *الإجمالي: ${fmt(inv.total)} ر.س*\n\n` +
             `شكراً لتعاملكم معنا 🙏`;
-        const phone = inv.customer?.phone || '';
-        const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+        
+        showToast('⏳ جاري الإرسال عبر واتساب...');
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/crm/whatsapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ phone, message: text, invoiceId: inv.id, type: 'invoice' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('✅ تم إرسال رسالة الواتساب بنجاح (CRM Bot)');
+            } else {
+                throw new Error(data.error || 'فشل الإرسال الآلي');
+            }
+        } catch (err) {
+            console.warn('Falling back to manual WhatsApp link', err);
+            const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
     };
 
     const retryPosPayment = async () => {
@@ -590,7 +720,7 @@ export default function SalesPage() {
                 <h1 className="page-title">🧾 فاتورة مبيعات</h1>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice}>📄 جديدة</button>
-                    <button className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
+                    <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
                         style={{ color: 'var(--warning)' }}>⏸️ تعليق</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
                         style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined }}>
@@ -605,51 +735,11 @@ export default function SalesPage() {
             </div>
 
             <div className="page-content">
-                <div className="pos-layout">
-                    {/* Products Panel */}
-                    <div className="pos-products">
-                        <input
-                            ref={searchRef}
-                            className="input"
-                            placeholder="🔍 بحث بالاسم أو الباركود..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => {
-                                if (e.key === 'Enter' && filteredProducts.length > 0) {
-                                    addToCart(filteredProducts[0]);
-                                }
-                            }}
-                            style={{ marginBottom: '12px' }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {filteredProducts.length > 0 ? filteredProducts.map(p => (
-                                <div key={p.id} className="pos-product-item" onClick={() => addToCart(p)}>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{p.name}</div>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                            {fmt(p.sellPrice)} ر.س | مخزون: {p.currentStock}
-                                        </div>
-                                    </div>
-                                    <span style={{ fontSize: '18px', color: 'var(--primary)' }}>+</span>
-                                </div>
-                            )) : search.trim() ? (
-                                <div style={{ textAlign: 'center', padding: '24px 12px' }}>
-                                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                                        ❌ لا يوجد منتج بهذا الباركود أو الاسم
-                                    </div>
-                                    <button className="btn btn-primary btn-sm" onClick={openAddProduct}
-                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                        ➕ إضافة منتج جديد
-                                    </button>
-                                </div>
-                            ) : null}
-                        </div>
-                    </div>
-
+                <div className="pos-layout" style={{ gridTemplateColumns: '1fr' }}>
                     {/* Invoice Panel */}
-                    <div className="pos-invoice">
+                    <div className="pos-invoice" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         {/* Invoice Header */}
-                        <div className="pos-invoice-header">
+                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                 <select className="input" style={{ width: '180px' }}
                                     value={customerId} onChange={e => setCustomerId(e.target.value)}>
@@ -659,19 +749,111 @@ export default function SalesPage() {
                                 <button onClick={() => setShowAddCustomer(true)} title="إضافة عميل جديد"
                                     style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
                             </div>
+                            <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
+                                <option value="1">المستودع الرئيسي</option>
+                                {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                            </select>
                             <select className="input" style={{ width: '140px' }}
                                 value={paymentType} onChange={e => setPaymentType(e.target.value)}>
                                 <option value="cash">💵 نقداً</option>
                                 <option value="card">💳 بطاقة</option>
                                 <option value="transfer">🏦 تحويل</option>
+                                <option value="split">✂️ تقسيم (نقد/بطاقة)</option>
                                 {isAdmin && <option value="credit">📝 آجل</option>}
                                 {isAdmin && <option value="installment">💳 تقسيط</option>}
                             </select>
+                            <input className="input" type="number" placeholder="رقم الفاتورة (اختياري)" value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title="تعديل رقم الفاتورة (اختياري)" />
+                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title="تعديل تاريخ الفاتورة (اختياري)" />
                             <button onClick={connectPosManual} title={posStatus === 'connected' ? 'جهاز الدفع متصل' : posStatus === 'sending' ? 'جاري الإرسال...' : 'اضغط لربط جهاز الدفع'}
                                 style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
                                 {posStatus === 'connected' ? '🔗 مدى' : posStatus === 'sending' ? '⏳' : '📡 ربط مدى'}
                             </button>
+                        </div>
+
+                        {/* Smart Unified Search Bar */}
+                        <div style={{ position: 'relative', padding: '12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', zIndex: 10 }}>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    ref={searchRef}
+                                    className="input"
+                                    placeholder="🔍 بحث (F1)، أو تمرير الباركود..."
+                                    value={search}
+                                    onChange={e => {
+                                        setSearch(e.target.value);
+                                        setShowTypeahead(true);
+                                        setFocusedProductIndex(-1);
+                                    }}
+                                    onFocus={() => setShowTypeahead(true)}
+                                    // Delay blur so click events on typeahead can fire
+                                    onBlur={() => setTimeout(() => setShowTypeahead(false), 200)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            setFocusedProductIndex(prev => Math.min(prev + 1, filteredProducts.length - 1));
+                                            setShowTypeahead(true);
+                                        } else if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            setFocusedProductIndex(prev => Math.max(prev - 1, -1));
+                                        } else if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (filteredProducts.length > 0) {
+                                                const idxToSelect = focusedProductIndex >= 0 ? focusedProductIndex : 0;
+                                                addToCart(filteredProducts[idxToSelect]);
+                                                setShowTypeahead(false);
+                                                setFocusedProductIndex(-1);
+                                            }
+                                        }
+                                    }}
+                                    style={{ width: '100%', fontSize: '16px', padding: '12px 16px', fontWeight: 'bold' }}
+                                />
+                                {/* Typeahead Dropdown */}
+                                {showTypeahead && search.trim() && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        marginBottom: '8px',
+                                        background: 'var(--bg-card)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
+                                        maxHeight: '300px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {filteredProducts.length > 0 ? (
+                                            filteredProducts.map((p, index) => (
+                                                <div 
+                                                    key={p.id} 
+                                                    style={{ 
+                                                        padding: '12px 16px', 
+                                                        borderBottom: '1px solid var(--border)', 
+                                                        cursor: 'pointer',
+                                                        background: index === focusedProductIndex ? 'var(--bg-card-hover)' : 'transparent',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center'
+                                                    }}
+                                                    onClick={() => { addToCart(p); setShowTypeahead(false); }}
+                                                    onMouseEnter={() => setFocusedProductIndex(index)}
+                                                >
+                                                    <div>
+                                                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{p.name}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.barcode || 'بدون باركود'} | مخزون: {p.currentStock}</div>
+                                                    </div>
+                                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ر.س</div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div style={{ padding: '24px', textAlign: 'center' }}>
+                                                <div style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>❌ لا يوجد منتج بهذا الاسم أو الباركود</div>
+                                                <button className="btn btn-primary btn-sm" onClick={openAddProduct}>➕ إضافة منتج جديد</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Cart Table */}
@@ -711,7 +893,7 @@ export default function SalesPage() {
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <input className="input" type="number" min="0.01" step="0.01"
+                                                    <input className="input qty-input" type="number" min="0.01" step="0.01"
                                                         value={item.quantity} onChange={e => updateCartItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
                                                         style={{ textAlign: 'center', padding: '6px 8px' }} dir="ltr" />
                                                 </td>
@@ -734,6 +916,7 @@ export default function SalesPage() {
                                 </tbody>
                             </table>
                         </div>
+
 
                         {/* Totals & Actions */}
                         <div className="pos-invoice-footer">
@@ -811,6 +994,32 @@ export default function SalesPage() {
                                         )}
                                     </>
                                 )}
+                                {paymentType === 'split' && (
+                                    <>
+                                        <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span>المبلغ النقدي</span>
+                                            <input className="input" type="number" min="0" step="0.01"
+                                                value={splitCash} onChange={e => setSplitCash(e.target.value)}
+                                                style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
+                                        </div>
+                                        <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span>مبلغ البطاقة</span>
+                                            <input className="input" type="number" min="0" step="0.01"
+                                                value={splitCard} onChange={e => setSplitCard(e.target.value)}
+                                                style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
+                                        </div>
+                                        {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) < total && (
+                                            <div className="pos-total-row" style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 'bold' }}>
+                                                ⚠️ المجموع المدخل أقل من الإجمالي
+                                            </div>
+                                        )}
+                                        {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) > total && (
+                                            <div className="pos-total-row" style={{ color: '#22c55e', fontSize: '13px', fontWeight: 'bold' }}>
+                                                💰 الباقي للعميل: {fmt(((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) - total)} ر.س
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             <div className="pos-actions">
@@ -824,7 +1033,7 @@ export default function SalesPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <button className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0}>
+                                        <button id="save-btn" className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0}>
                                             {saving ? '⏳ جاري الحفظ...' : '💾 حفظ'}
                                         </button>
                                         <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
@@ -1027,7 +1236,7 @@ export default function SalesPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {historyInvoices.map(inv => (
+                                        {historyInvoices.map((inv: any) => (
                                             <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedInvoice(inv)}>
                                                 <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
                                                 <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
@@ -1081,14 +1290,32 @@ export default function SalesPage() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '16px', borderTop: '1px solid var(--border)', paddingTop: '8px', color: 'var(--primary)' }}><span>الإجمالي</span><span>{fmt(selectedInvoice.total)} ر.س</span></div>
                             </div>
                         </div>
-                        <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>🖨️ طباعة</button>
+                        <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>🖨️ طباعة الفاتورة</button>
+                            <button className="btn btn-primary" onClick={() => printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>🎫 سند قبض</button>
                             <button className="btn btn-success" onClick={() => sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>📤 واتساب</button>
                             {canDelete && <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🗑️ حذف</button>}
                             <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>إغلاق</button>
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Receipt Modal */}
+            {showReceipt && lastInvoiceData && (
+                <InvoiceReceipt
+                    invoiceData={lastInvoiceData}
+                    autoPrint={true}
+                    onClose={() => setShowReceipt(false)}
+                />
+            )}
+
+            {/* Voucher Modal */}
+            {showVoucher && selectedVoucherData && (
+                <VoucherReceipt
+                    voucherData={selectedVoucherData}
+                    autoPrint={true}
+                    onClose={() => setShowVoucher(false)}
+                />
             )}
         </>
 

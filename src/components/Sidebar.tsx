@@ -46,6 +46,7 @@ const menuItems = [
         sectionKey: 'sidebar.finance', items: [
             { icon: '💰', labelKey: 'sidebar.treasury', href: '/treasury' },
             { icon: '🏦', labelKey: 'sidebar.banks', href: '/accounting/banks' },
+            { icon: '🧾', labelKey: 'sidebar.receipt_vouchers', href: '/receipt-vouchers' },
             { icon: '💸', labelKey: 'sidebar.expenses', href: '/expenses' },
             { icon: '📊', labelKey: 'sidebar.reports', href: '/reports' },
             { icon: '📑', labelKey: 'sidebar.installments', href: '/installments' },
@@ -149,7 +150,7 @@ export default function Sidebar() {
         items: group.items.filter(item => {
             if (isLegacyAdmin) return true;
             const mod = item.href.split('/').filter(Boolean)[0] || '';
-            if (mod === 'dashboard' || mod === 'barcode') return true;
+            if (mod === 'dashboard' || mod === 'barcode' || mod === 'receipt-vouchers') return true;
             return hasPermRecords && userModules.includes(mod);
         }),
     })).filter(group => group.items.length > 0);

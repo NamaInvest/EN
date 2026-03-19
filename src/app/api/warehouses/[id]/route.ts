@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const warehouse = await prisma.stock.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt((await params).id) },
       include: { branch: true }
     });
     
@@ -18,12 +18,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const data = await request.json();
     
     const warehouse = await prisma.stock.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt((await params).id) },
       data: {
         name: data.name,
         address: data.address,
@@ -38,10 +38,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await prisma.stock.delete({
-      where: { id: parseInt(params.id) }
+      where: { id: parseInt((await params).id) }
     });
     
     return NextResponse.json({ success: true });

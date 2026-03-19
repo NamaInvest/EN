@@ -1,11 +1,19 @@
 import prisma from './prisma';
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+export async function getBotToken() {
+    const setting = await prisma.setting.findUnique({ where: { key: 'telegram_bot_token' } });
+    return setting?.value || process.env.TELEGRAM_BOT_TOKEN || '';
+}
+
+async function getAPI() {
+    const token = await getBotToken();
+    return `https://api.telegram.org/bot${token}`;
+}
 
 // ─── Send message to Telegram ───
 export async function sendMessage(chatId: number, text: string, parseMode = 'HTML') {
-    await fetch(`${API}/sendMessage`, {
+    const api = await getAPI();
+    await fetch(`${api}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chat_id: chatId, text, parse_mode: parseMode }),

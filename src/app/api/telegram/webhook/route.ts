@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processMessage, sendMessage } from '@/lib/telegram-bot';
+import { processMessage, sendMessage, getBotToken } from '@/lib/telegram-bot';
 
 // Telegram sends updates via POST
 export async function POST(req: NextRequest) {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
             if (fileId && openaiKey) {
                 try {
-                    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+                    const BOT_TOKEN = await getBotToken();
                     const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
                     const fileData = await fileRes.json();
                     const filePath = fileData.result?.file_path;
@@ -81,23 +81,24 @@ export async function GET(req: NextRequest) {
     const action = searchParams.get('action');
 
     if (action === 'set') {
-        const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const BOT_TOKEN = await getBotToken();
         const host = req.headers.get('host') || '204.168.144.74';
-        const webhookUrl = `http://${host}/api/telegram/webhook`;
+        const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
+        const webhookUrl = `${protocol}://${host}/api/telegram/webhook`;
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${webhookUrl}`);
         const data = await res.json();
         return NextResponse.json({ webhookUrl, telegram: data });
     }
 
     if (action === 'info') {
-        const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const BOT_TOKEN = await getBotToken();
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getWebhookInfo`);
         const data = await res.json();
         return NextResponse.json(data);
     }
 
     if (action === 'remove') {
-        const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const BOT_TOKEN = await getBotToken();
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook`);
         const data = await res.json();
         return NextResponse.json(data);

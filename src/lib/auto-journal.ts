@@ -142,23 +142,44 @@ export async function postSalesInvoice(invoice: {
     taxValue: number;
     total: number;
     paymentType: string;
+    splitCash?: number;
+    splitCard?: number;
     userId?: number;
     branchId?: number | null;
     date?: string;
     discountValue?: number;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
-    const cashAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
-        invoice.paymentType === 'bank' ? ACCOUNTS.BANK :
-            ACCOUNTS.RECEIVABLES;
 
-    // Debit: cash/bank/receivables
-    lines.push({
-        accountCode: cashAccount,
-        debit: invoice.total,
-        credit: 0,
-        description: `تحصيل فاتورة بيع #${invoice.invoiceNo}`,
-    });
+    // Debit: cash/bank/receivables (or split)
+    if (invoice.paymentType === 'split') {
+        if (invoice.splitCash && invoice.splitCash > 0) {
+            lines.push({
+                accountCode: ACCOUNTS.CASH,
+                debit: invoice.splitCash,
+                credit: 0,
+                description: `تحصيل نقدي - فاتورة بيع #${invoice.invoiceNo}`,
+            });
+        }
+        if (invoice.splitCard && invoice.splitCard > 0) {
+            lines.push({
+                accountCode: ACCOUNTS.BANK,
+                debit: invoice.splitCard,
+                credit: 0,
+                description: `تحصيل شبكة - فاتورة بيع #${invoice.invoiceNo}`,
+            });
+        }
+    } else {
+        const cashAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
+            invoice.paymentType === 'bank' ? ACCOUNTS.BANK :
+                ACCOUNTS.RECEIVABLES;
+        lines.push({
+            accountCode: cashAccount,
+            debit: invoice.total,
+            credit: 0,
+            description: `تحصيل فاتورة بيع #${invoice.invoiceNo}`,
+        });
+    }
 
     // Credit: Sales (subtotal - discount)
     const netSales = invoice.subtotal - (invoice.discountValue || 0);

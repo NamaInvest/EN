@@ -67,11 +67,19 @@ export async function GET(request: Request) {
 
         // Calculate retained earnings (net profit from revenue - expenses)
         const revenueExpenseAccounts = allAccounts.filter(a => ['revenue', 'expense'].includes(a.type));
-        let retainedEarnings = 0;
+        let revenue = 0;
+        let expenses = 0;
+
         for (const acc of revenueExpenseAccounts) {
-            retainedEarnings += getBalance(acc) * (acc.type === 'revenue' ? 1 : -1);
+            const raw = rawBalances[acc.id] || { debit: 0, credit: 0 };
+            if (acc.type === 'revenue') {
+                revenue += (raw.credit - raw.debit);
+            } else if (acc.type === 'expense') {
+                expenses += (raw.debit - raw.credit);
+            }
         }
-        retainedEarnings = Math.round(retainedEarnings * 100) / 100;
+        
+        let retainedEarnings = Math.round((revenue - expenses) * 100) / 100;
         totalEquity += retainedEarnings;
 
         totalAssets = Math.round(totalAssets * 100) / 100;

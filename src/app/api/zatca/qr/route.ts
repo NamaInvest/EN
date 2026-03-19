@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
         // Settings
         const s = await loadZatcaSettings();
-        const sellerName = s['company_name'] || 'نما سوفت';
+        const sellerName = s['company_name'] || 'الشركة غير مسجلة';
         const vatNumber = s['tax_number'] || '';
         const taxRate = parseFloat(s['tax_rate'] || '15') / 100;
 
@@ -208,14 +208,16 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const s = await loadZatcaSettings();
-        const sellerName = searchParams.get('seller') || s['company_name'] || 'نما سوفت';
+        const sellerName = searchParams.get('seller') || s['company_name'] || 'الشركة غير مسجلة';
         const vatNumber = searchParams.get('vat') || s['tax_number'] || '';
         const total = parseFloat(searchParams.get('total') || '0');
         const tax = parseFloat(searchParams.get('tax') || '0');
+        const dateParam = searchParams.get('date');
+        const timestamp = dateParam ? new Date(dateParam).toISOString() : new Date().toISOString();
 
         const qrContent = generateZatcaQRContent({
             sellerName, vatNumber,
-            timestamp: new Date().toISOString(),
+            timestamp,
             totalWithVat: total, vatAmount: tax,
         });
 

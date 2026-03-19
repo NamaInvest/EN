@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-interface Product { id: number; name: string; currentStock: number; minQuantity: number; buyPrice: number; unit?: { name: string }; category?: { name: string }; }
+interface Product { id: number; name: string; currentStock: number; minQuantity: number; buyPrice: number; unit?: { name: string }; category?: { name: string }; productStocks?: { quantity: number; stock: { name: string } }[]; }
 interface Movement { id: number; date: string; type: string; quantity: number; notes: string; product?: { name: string }; }
 
 export default function StockPage() {
@@ -44,7 +44,19 @@ export default function StockPage() {
                                         <tr key={p.id}>
                                             <td style={{ fontWeight: '600' }}>{p.name}</td>
                                             <td>{p.category?.name || '-'}</td>
-                                            <td style={{ fontWeight: '700' }}>{p.currentStock} {p.unit?.name || ''}</td>
+                                            <td style={{ fontWeight: '700' }}>
+                                                <div>{p.currentStock} {p.unit?.name || ''}</div>
+                                                {p.productStocks && p.productStocks.length > 0 && (
+                                                    <div style={{ fontSize: '11px', fontWeight: 'normal', color: 'var(--text-muted)', marginTop: '4px', background: 'var(--bg-card-hover)', padding: '4px', borderRadius: '4px' }}>
+                                                        {p.productStocks.filter(ps => ps.quantity > 0).map((ps, idx) => (
+                                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                                                                <span>{ps.stock?.name}:</span>
+                                                                <span style={{ fontWeight: 'bold' }}>{ps.quantity}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td>{p.minQuantity}</td>
                                             <td>{fmt(p.buyPrice)}</td>
                                             <td>{fmt(p.currentStock * p.buyPrice)}</td>

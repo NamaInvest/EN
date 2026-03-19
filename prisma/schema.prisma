@@ -25,6 +25,8 @@ model User {
   permissions      UserPermission[]
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
+  purchaseOrders   PurchaseOrder[]  @relation("PurchaseOrderCreator")
+  approvals        PurchaseOrder[]  @relation("PurchaseOrderApprover")
   expenses         Expense[]
   treasuryEntries  Treasury[]
   auditLogs        AuditLog[]
@@ -99,11 +101,13 @@ model Product {
   unit            Unit?                   @relation(fields: [unitId], references: [id])
   salesDetails    SalesInvoiceDetail[]
   purchaseDetails PurchaseInvoiceDetail[]
+  purchaseOrderDetails PurchaseOrderDetail[]
   stockMovements  StockMovement[]
   productStocks   ProductStock[]
   batches         ProductBatch[]
   finishedRecipes Recipe[]                @relation("RecipeFinishedProduct")
   rawRecipes      RecipeIngredient[]      @relation("RecipeRawProduct")
+  salesReturnDetails SalesReturnDetail[]
 
   @@map("products")
 }
@@ -123,12 +127,14 @@ model Customer {
   balance        Float    @default(0)
   creditLimit    Float    @default(0) @map("credit_limit")
   taxNumber      String?  @map("tax_number")
+  crNo           String?  @map("cr_no")
   notes          String?
   active         Boolean  @default(true)
   createdAt      DateTime @default(now()) @map("created_at")
 
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
+  purchaseOrders   PurchaseOrder[]
   installments     Installment[]
   loyaltyPoints    LoyaltyPoint[]
   bookings         Booking[]
@@ -145,6 +151,7 @@ model Stock {
 
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
+  purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
   productStocks    ProductStock[]
   branch           Branch?           @relation(fields: [branchId], references: [id])
@@ -184,6 +191,8 @@ model SalesInvoice {
   paid          Float    @default(0)
   remaining     Float    @default(0)
   paymentType   String   @default("cash") @map("payment_type")
+  splitCash     Float?   @default(0) @map("split_cash")
+  splitCard     Float?   @default(0) @map("split_card")
   status        String   @default("completed")
   userId        Int?     @map("user_id")
   notes         String?
@@ -242,12 +251,78 @@ model SalesReturn {
   zatcaHash         String?  @map("zatca_hash")
   zatcaQr           String?  @map("zatca_qr")
   zatcaResponse     String?  @map("zatca_response")
-  branch            Branch?  @relation(fields: [branchId], references: [id])
-  shift             Shift?   @relation(fields: [shiftId], references: [id])
-  branchId          Int?     @map("branch_id")
-  shiftId           Int?     @map("shift_id")
+  branch            Branch?          @relation(fields: [branchId], references: [id])
+  shift             Shift?           @relation(fields: [shiftId], references: [id])
+  branchId          Int?             @map("branch_id")
+  shiftId           Int?             @map("shift_id")
+  details           SalesReturnDetail[]
 
   @@map("sales_returns")
+}
+
+// ==================== 10.1 SalesReturnDetails ====================
+model SalesReturnDetail {
+  id            Int     @id @default(autoincrement())
+  returnId      Int     @map("return_id")
+  productId     Int     @map("product_id")
+  productName   String? @map("product_name")
+  quantity      Float   @default(1)
+  price         Float   @default(0)
+  discountRate  Float   @default(0) @map("discount_rate")
+  discountValue Float   @default(0) @map("discount_value")
+  taxRate       Float   @default(15) @map("tax_rate")
+  taxValue      Float   @default(0) @map("tax_value")
+  total         Float   @default(0)
+
+  return  SalesReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  product Product     @relation(fields: [productId], references: [id])
+
+  @@map("sales_return_details")
+}
+
+// ==================== 11.2 Purchase Orders ====================
+model PurchaseOrder {
+  id                Int      @id @default(autoincrement())
+  orderNo           Int      @map("order_no")
+  date              DateTime @default(now())
+  supplierId        Int?     @map("supplier_id")
+  stockId           Int      @default(1) @map("stock_id")
+  subtotal          Float    @default(0)
+  taxValue          Float    @default(0) @map("tax_value")
+  total             Float    @default(0)
+  status            String   @default("pending") // pending, approved, rejected, completed
+  approvedBy        Int?     @map("approved_by")
+  userId            Int?     @map("user_id")
+  branchId          Int?     @map("branch_id")
+  notes             String?
+
+  supplier Customer?             @relation(fields: [supplierId], references: [id])
+  stock    Stock?                @relation(fields: [stockId], references: [id])
+  user     User?                 @relation(name: "PurchaseOrderCreator", fields: [userId], references: [id])
+  approver User?                 @relation(name: "PurchaseOrderApprover", fields: [approvedBy], references: [id])
+  branch   Branch?               @relation(fields: [branchId], references: [id])
+  details  PurchaseOrderDetail[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderDetail {
+  id            Int     @id @default(autoincrement())
+  orderId       Int     @map("order_id")
+  productId     Int     @map("product_id")
+  productName   String? @map("product_name")
+  quantity      Float   @default(1)
+  price         Float   @default(0)
+  discountRate  Float   @default(0) @map("discount_rate")
+  discountValue Float   @default(0) @map("discount_value")
+  taxRate       Float   @default(15) @map("tax_rate")
+  taxValue      Float   @default(0) @map("tax_value")
+  total         Float   @default(0)
+
+  order   PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_details")
 }
 
 // ==================== 11. PurchaseInvoices ====================
@@ -267,6 +342,7 @@ model PurchaseInvoice {
   supplierInvoiceNo String?  @map("supplier_invoice_no")
   paymentType       String   @default("cash") @map("payment_type")
   status            String   @default("completed")
+  receiptStatus     String   @default("received") @map("receipt_status")
   userId            Int?     @map("user_id")
   notes             String?
 
@@ -774,42 +850,6 @@ model GiftCard {
   @@map("gift_cards")
 }
 
-// ==================== 42. PurchaseOrders ====================
-model PurchaseOrder {
-  id           Int      @id @default(autoincrement())
-  orderNumber  String   @map("order_number")
-  supplierId   Int?     @map("supplier_id")
-  orderDate    String   @map("order_date")
-  expectedDate String?  @map("expected_date")
-  total        Float    @default(0)
-  taxAmount    Float    @default(0) @map("tax_amount")
-  grandTotal   Float    @default(0) @map("grand_total")
-  status       String   @default("draft")
-  receivedDate String?  @map("received_date")
-  notes        String?
-  createdBy    Int?     @map("created_by")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  items PurchaseOrderItem[]
-
-  @@map("purchase_orders")
-}
-
-// ==================== 43. PurchaseOrderItems ====================
-model PurchaseOrderItem {
-  id          Int   @id @default(autoincrement())
-  orderId     Int   @map("order_id")
-  productId   Int   @map("product_id")
-  quantity    Float @default(0)
-  receivedQty Float @default(0) @map("received_qty")
-  unitPrice   Float @default(0) @map("unit_price")
-  total       Float @default(0)
-
-  order PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@map("purchase_order_items")
-}
-
 // ==================== 44. Stocktakes ====================
 model Stocktake {
   id            Int      @id @default(autoincrement())
@@ -859,6 +899,7 @@ model Branch {
   salesInvoices SalesInvoice[]
   salesReturns  SalesReturn[]
   purchases     PurchaseInvoice[]
+  purchaseOrders PurchaseOrder[]
   expenses      Expense[]
   treasury      Treasury[]
   journals      JournalEntry[]

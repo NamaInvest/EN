@@ -8,6 +8,9 @@ interface ReceiptProps {
         invoiceNumber: string;
         date: string;
         customerName: string;
+        customerTaxNo?: string | null;
+        customerCrNo?: string | null;
+        customerAddress?: string | null;
         paymentMethod: string;
         items: { name: string; quantity: number; price: number; total: number }[];
         subtotal: number;
@@ -23,7 +26,7 @@ interface ReceiptProps {
 
 export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = false, isQuote = false, onClose }: ReceiptProps) {
     const [qrDataUrl, setQrDataUrl] = useState('');
-    const [companyName, setCompanyName] = useState('نما انفست');
+    const [companyName, setCompanyName] = useState('');
     const [vatNumber, setVatNumber] = useState('');
     const [loading, setLoading] = useState(true);
     const [printed, setPrinted] = useState(false);
@@ -31,16 +34,19 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     const receiptRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        loadSettings();
-        if (!isQuote) {
-            if (invoiceId) {
-                generateQR();
-            } else if (invoiceData) {
-                generatePreviewQR();
+        const init = async () => {
+            await loadSettings();
+            if (!isQuote) {
+                if (invoiceId) {
+                    await generateQR();
+                } else if (invoiceData) {
+                    await generatePreviewQR();
+                }
+            } else {
+                setLoading(false);
             }
-        } else {
-            setLoading(false);
-        }
+        };
+        init();
     }, [invoiceId, invoiceData, isQuote]);
 
     // Auto-print when loaded (and if not quote, when QR is loaded)
@@ -62,7 +68,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 const settings = await res.json();
                 const map: Record<string, string> = {};
                 settings.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
-                setCompanyName(map['company_name'] || 'نما انفست');
+                setCompanyName(map['company_name'] || 'إعدادات الشركة مفقودة');
                 setVatNumber(map['tax_number'] || '');
                 setPrinterType(map['printer_type'] || '80mm');
             }
@@ -88,10 +94,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         if (!invoiceData) return;
         try {
             const params = new URLSearchParams({
-                seller: companyName || 'نما انفست',
-                vat: vatNumber,
                 total: invoiceData.grandTotal.toString(),
                 tax: invoiceData.taxAmount.toString(),
+                date: invoiceData.date || new Date().toISOString()
             });
             const res = await fetch(`/api/zatca/qr?${params}`);
             if (res.ok) {
@@ -113,6 +118,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
 
     const handlePrint = useCallback(() => {
         const ps = paperSizes[printerType] || paperSizes['80mm'];
+        const windowTitle = isQuote ? 'عرض سعر' : (['A4', 'A5'].includes(printerType) ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة');
         const printWindow = window.open('', '_blank', `width=${ps.windowWidth},height=600`);
         if (!printWindow || !receiptRef.current) {
             window.print();
@@ -124,7 +130,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>فاتورة</title>
+        <title>${windowTitle}</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -137,7 +143,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
             direction: rtl;
             color: #000;
           }
-          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
           .company-name { font-size: ${ps.companySize}; font-weight: 800; }
           .vat-num { font-size: 10px; color: #666; }
           .invoice-type { font-size: 10px; color: #999; margin-top: 2px; }
@@ -155,7 +161,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
           .qr-section img { width: ${ps.qrSize}; height: ${ps.qrSize}; }
           .qr-label { font-size: 8px; color: #666; margin-top: 2px; }
           ` : ''}
-          .footer { text-align: center; margin-top: 8px; font-size: 10px; color: #999; }
+          .footer { text-align: center; margin-top: 8px; font-size: 10px; color: #999; border-top: 1px solid #000; padding-top: 8px; }
           @media print {
             body { width: ${ps.width}; margin: 0; padding: ${ps.padding}; }
             @page { margin: 0; size: ${ps.width} auto; }
@@ -201,7 +207,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
                         {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>الرقم الضريبي: {vatNumber}</div>}
                         <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-                            {isQuote ? 'عـــرض سـعــر' : 'فاتورة ضريبية مبسطة'}
+                            {isQuote ? 'عـــرض سـعــر' : (['A4', 'A5'].includes(printerType) ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة')}
                         </div>
                     </div>
 
@@ -214,6 +220,16 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <span>العميل: {data.customerName}</span>
                         <span>الدفع: {paymentLabel(data.paymentMethod)}</span>
                     </div>
+
+                    {/* Additional Customer Info (ZATCA Requirements for B2B) */}
+                    {(data.customerTaxNo || data.customerCrNo || data.customerAddress) && (
+                        <div style={{ fontSize: '10px', marginBottom: '8px', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', background: '#fafafa' }}>
+                            {data.customerTaxNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>الضريبي للعميل:</span> <span>{data.customerTaxNo}</span></div>}
+                            {data.customerCrNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>س.ت للعميل:</span> <span>{data.customerCrNo}</span></div>}
+                            {data.customerAddress && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>العنوان:</span> <span>{data.customerAddress}</span></div>}
+                        </div>
+                    )}
+
                     <div style={{ fontSize: '10px', marginBottom: '8px', color: '#666' }}>
                         الوقت: {new Date(data.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </div>
@@ -277,7 +293,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                     )}
 
                     {/* Footer */}
-                    <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: '#999', borderTop: '1px dashed #ccc', paddingTop: '8px' }}>
+                    <div className="footer" style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: '#999', borderTop: '1px solid #000', paddingTop: '8px' }}>
                         شكراً لتعاملكم معنا
                     </div>
                 </div>
