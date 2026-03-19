@@ -63,7 +63,7 @@ const menuItems = [
     },
     {
         sectionKey: 'sidebar.integrations', items: [
-            { icon: '📨', labelKey: 'sidebar.whatsapp', href: '/settings#whatsapp' },
+            { icon: '📨', labelKey: 'sidebar.whatsapp', href: '/settings/whatsapp' },
             { icon: '🛒', labelKey: 'sidebar.salla', href: '/settings#salla' },
         ]
     },
@@ -73,6 +73,8 @@ const menuItems = [
             { icon: '🎯', labelKey: 'sidebar.promotions', href: '/promotions' },
             { icon: '📋', labelKey: 'sidebar.purchase_orders', href: '/purchase-orders' },
             { icon: '📦', labelKey: 'sidebar.stocktake', href: '/stocktake' },
+            { icon: '📸', labelKey: 'الجرد بالذكاء الاصطناعي', href: '/stocktake/vision' },
+            { icon: '🌐', labelKey: 'محرك الشركات (SaaS)', href: '/master-panel' },
             { icon: '📊', labelKey: 'sidebar.accounting', href: '/accounting' },
             { icon: '🏭', labelKey: 'sidebar.manufacturing', href: '/manufacturing' },
             { icon: '🏢', labelKey: 'sidebar.fixed_assets', href: '/fixed-assets' },
@@ -138,20 +140,25 @@ export default function Sidebar() {
         setPermLoaded(true);
     }, []);
 
-    // Filter menu items based on permissions
-    // Legacy Admin (admin role + ZERO permission records) → sees everything
-    // Admin with explicit permissions → sees ONLY assigned modules
-    // Non-admin with permissions → sees ONLY assigned modules
-    // Non-admin with ZERO permissions → sees only dashboard
-    const isLegacyAdmin = loggedUser.role === 'admin' && userModules.length === 0;
-    const hasPermRecords = userModules.length > 0;
+    // Strict Permissions: Admin does not bypass if they have been explicitly restricted.
+    // If an admin has absolutely 0 permissions, we give them a fallback to Settings so they aren't locked out.
+    const isLockedOutAdmin = loggedUser.role === 'admin' && userModules.length === 0;
     const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({
         ...group,
         items: group.items.filter(item => {
-            if (isLegacyAdmin) return true;
-            const mod = item.href.split('/').filter(Boolean)[0] || '';
-            if (mod === 'dashboard' || mod === 'barcode' || mod === 'receipt-vouchers') return true;
-            return hasPermRecords && userModules.includes(mod);
+            let mod = item.href.split('/').filter(Boolean)[0] || '';
+            
+            // Granular sub-module overrides:
+            if (item.href === '/stocktake/vision') mod = 'vision_inventory';
+            if (item.href === '/settings/whatsapp') mod = 'whatsapp';
+            if (item.href === '/master-panel') mod = 'master-panel';
+
+            if (mod === 'dashboard' || mod === 'login') return true;
+            
+            // Fallback for empty admins to be able to manage permissions
+            if (isLockedOutAdmin && mod === 'settings') return true;
+
+            return userModules.includes(mod);
         }),
     })).filter(group => group.items.length > 0);
 

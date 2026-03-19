@@ -29,9 +29,13 @@ console.log('Packaging src folder...');
 addDirToZip(__dirname, 'src');
 console.log('Packaging prisma folder...');
 addDirToZip(__dirname, 'prisma');
+console.log('Packaging public folder...');
+addDirToZip(__dirname, 'public');
 
 zip.file('package.json', fs.readFileSync(path.join(__dirname, 'package.json')));
 zip.file('tsconfig.json', fs.readFileSync(path.join(__dirname, 'tsconfig.json')));
+if (fs.existsSync(path.join(__dirname, 'next.config.ts'))) zip.file('next.config.ts', fs.readFileSync(path.join(__dirname, 'next.config.ts')));
+if (fs.existsSync(path.join(__dirname, 'postcss.config.mjs'))) zip.file('postcss.config.mjs', fs.readFileSync(path.join(__dirname, 'postcss.config.mjs')));
 
 console.log('Generating ZIP...');
 zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }).then((content) => {

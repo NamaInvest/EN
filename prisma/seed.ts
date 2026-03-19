@@ -108,7 +108,15 @@ async function main() {
     // 6. Admin Permissions (all modules)
     const adminUser = await prisma.user.findUnique({ where: { username: 'admin' } });
     if (adminUser) {
-        const modules = ['sales', 'purchases', 'products', 'customers', 'stock', 'treasury', 'expenses', 'reports', 'employees', 'settings', 'accounting', 'promotions'];
+        const modules = [
+            'dashboard', 'sales', 'purchases', 'sales-returns', 'purchase-returns', 
+            'products', 'stock', 'customers', 'treasury', 'expenses', 'reports', 
+            'employees', 'settings', 'bookings', 'promotions', 'accounting', 
+            'manufacturing', 'fixed-assets', 'coupons', 'loyalty', 'gift-cards', 
+            'batches', 'audit-logs', 'branches', 'manage_users', 'manage_permissions', 
+            'delete_invoices', 'delete_expense', 'delete_all_expenses', 'edit_expense', 
+            'delete_products', 'reset_stock', 'delete_all_sales', 'reset_password', 'clear_zatca'
+        ];
         for (const module of modules) {
             const existing = await prisma.userPermission.findFirst({ where: { userId: adminUser.id, module } });
             if (!existing) {
@@ -117,7 +125,7 @@ async function main() {
                 });
             }
         }
-        console.log('✅ تم إنشاء صلاحيات المدير');
+        console.log('✅ تم إنشاء وتوسيع كافة صلاحيات المدير');
     }
 
     console.log('\n🎉 تم إعداد قاعدة البيانات بنجاح!');

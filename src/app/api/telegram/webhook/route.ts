@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processMessage, sendMessage, getBotToken } from '@/lib/telegram-bot';
+import { processMessage, sendMessage, getBotToken, processPhoto, processVoice } from '@/lib/telegram-bot';
+import prisma from '@/lib/prisma';
 
 // Telegram sends updates via POST
 export async function POST(req: NextRequest) {
@@ -12,6 +13,19 @@ export async function POST(req: NextRequest) {
         const chatId = message.chat?.id;
         if (!chatId) return NextResponse.json({ ok: true });
 
+        // Auto-save the master chat ID for the cron auditor
+        try {
+            const chatIdStr = String(chatId);
+            const existing = await prisma.setting.findUnique({ where: { key: 'master_telegram_chat_id' } });
+            if (!existing || existing.value !== chatIdStr) {
+                await prisma.setting.upsert({
+                    where: { key: 'master_telegram_chat_id' },
+                    update: { value: chatIdStr },
+                    create: { key: 'master_telegram_chat_id', value: chatIdStr }
+                });
+            }
+        } catch(e) {}
+
         let text = '';
 
         // Handle text messages
@@ -19,53 +33,27 @@ export async function POST(req: NextRequest) {
             text = message.text;
         }
 
-        // Handle voice messages (convert to text using Telegram's file API + OpenAI Whisper)
+        // Handle voice messages (process via Gemini in the background)
         if (message.voice || message.audio) {
             const fileId = message.voice?.file_id || message.audio?.file_id;
-            const openaiKey = process.env.OPENAI_API_KEY;
-
-            if (fileId && openaiKey) {
-                try {
-                    const BOT_TOKEN = await getBotToken();
-                    const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
-                    const fileData = await fileRes.json();
-                    const filePath = fileData.result?.file_path;
-
-                    if (filePath) {
-                        const audioRes = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
-                        const audioBuffer = await audioRes.arrayBuffer();
-
-                        const formData = new FormData();
-                        formData.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'voice.ogg');
-                        formData.append('model', 'whisper-1');
-                        formData.append('language', 'ar');
-
-                        const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${openaiKey}` },
-                            body: formData,
-                        });
-
-                        if (whisperRes.ok) {
-                            const whisperData = await whisperRes.json();
-                            text = whisperData.text || '';
-                            await sendMessage(chatId, `🎙️ <i>${text}</i>`);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Voice transcription error:', e);
-                    await sendMessage(chatId, '❌ فشل تحويل الرسالة الصوتية.');
-                    return NextResponse.json({ ok: true });
-                }
-            } else if (fileId && !openaiKey) {
-                await sendMessage(chatId, '🎙️ لتفعيل الرسائل الصوتية، أضف مفتاح OpenAI.\n\nحالياً يمكنك إرسال أوامر نصية.');
-                return NextResponse.json({ ok: true });
+            if (fileId) {
+                processVoice(fileId, chatId).catch((e: any) => console.error('Background Voice Failed:', e));
             }
+            return NextResponse.json({ ok: true });
         }
 
         if (text) {
             const response = await processMessage(text);
             await sendMessage(chatId, response);
+        }
+
+        // Handle Photos
+        if (message.photo && message.photo.length > 0) {
+            // Telegram sends an array of photo sizes. The last item is the largest/highest quality.
+            const largestPhoto = message.photo[message.photo.length - 1];
+            const fileId = largestPhoto.file_id;
+            // Process OCR in the background so we don't return an error to Telegram
+            processPhoto(fileId, chatId).catch(e => console.error('Background OCR Failed:', e));
         }
 
         return NextResponse.json({ ok: true });

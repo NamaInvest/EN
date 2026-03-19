@@ -5,6 +5,11 @@ export async function getBotToken() {
     return setting?.value || process.env.TELEGRAM_BOT_TOKEN || '';
 }
 
+export async function getGeminiKey() {
+    const setting = await prisma.setting.findUnique({ where: { key: 'gemini_api_key' } });
+    return setting?.value || process.env.GEMINI_API_KEY || '';
+}
+
 async function getAPI() {
     const token = await getBotToken();
     return `https://api.telegram.org/bot${token}`;
@@ -191,12 +196,124 @@ async function getDailyReport(): Promise<string> {
         `⚠️ أصناف ناقصة: <b>${lowStock}</b>`;
 }
 
+// ─── Photo Processing for Smart Invoices ───
+export async function processPhoto(fileId: string, chatId: number): Promise<void> {
+    await sendMessage(chatId, '⚙️ جاري قراءة الفاتورة بالذكاء الاصطناعي... لحظات من فضلك.');
+    try {
+        const botToken = await getBotToken();
+        const geminiKey = await getGeminiKey();
+        if (!geminiKey) {
+            await sendMessage(chatId, '❌ مفتاح Gemini API غير متوفر في الإعدادات.'); return;
+        }
+
+        const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+        const fileData = await fileRes.json();
+        const filePath = fileData.result?.file_path;
+        if (!filePath) { await sendMessage(chatId, '❌ فشل في جلب مسار الصورة من السيرفر.'); return; }
+
+        const imgRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${filePath}`);
+        const buffer = await imgRes.arrayBuffer();
+        const base64Image = Buffer.from(buffer).toString('base64');
+
+        const promptText = `
+أنت خبير في قراءة الفواتير الضريبية السعودية باللغتين العربية والإنجليزية.
+استخرج البيانات التالية من الفاتورة بدقة عالية جداً وأرجع النتيجة بصيغة JSON فقط (بدون أي نصوص إضافية أو علامات Markdown مثل \`\`\`json):
+{
+  "supplierName": "اسم المورد او الشركة",
+  "taxNumber": "الرقم الضريبي المكون من 15 رقم عادة",
+  "invoiceNo": "رقم الفاتورة",
+  "date": "تاريخ الفاتورة بصيغة YYYY-MM-DD",
+  "subtotal": 0.00,
+  "taxAmount": 0.00,
+  "grandTotal": 0.00,
+  "items": [
+    { "name": "اسم المنتج المنظف بدون ارقام او رموز غريبة", "quantity": 1, "price": 0.00, "total": 0.00 }
+  ]
+}
+إذا تعذر إيجاد أي حقل أو كان فارغاً اجعله null للمحتوى النصي و 0 للأرقام. استخدم السعر قبل الضريبة للـ price إذا أمكن.
+`;
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: 'image/jpeg', data: base64Image } }] }],
+                generationConfig: { temperature: 0.1, response_mime_type: "application/json" }
+            })
+        });
+
+        if (!aiRes.ok) { await sendMessage(chatId, '❌ فشل في الاتصال بالذكاء الاصطناعي.'); return; }
+        const geminiData = await aiRes.json();
+        const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        let parsedData;
+        try { parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim()); } 
+        catch (e) { await sendMessage(chatId, '❌ فشل في فهم صيغة البيانات من الذكاء الاصطناعي.'); return; }
+
+        if (!parsedData.grandTotal) { await sendMessage(chatId, '❌ لم يتم استخراج الإجمالي من الفاتورة بوضوح.'); return; }
+
+        // Database Insertion via Transaction
+        const savedInvoice = await prisma.$transaction(async (tx) => {
+            let supplierId = null;
+            if (parsedData.supplierName) {
+                let supplier = await tx.customer.findFirst({ where: { name: parsedData.supplierName, type: 1 } });
+                if (!supplier) supplier = await tx.customer.create({ data: { name: parsedData.supplierName, type: 1, taxNumber: parsedData.taxNumber || null } });
+                supplierId = supplier.id;
+            }
+
+            const last = await tx.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+            const invoiceNo = (last?.invoiceNo || 0) + 1;
+            const grandTotal = parseFloat(parsedData.grandTotal) || 0;
+            
+            const dbItems = [];
+            for (const item of (parsedData.items || [])) {
+                if (!item.name) continue;
+                let product = await tx.product.findFirst({ where: { name: item.name } });
+                if (!product) {
+                    product = await tx.product.create({ data: { name: item.name, barcode: Math.floor(100000000 + Math.random() * 900000000).toString(), sellPrice: (parseFloat(item.price) || 0) * 1.5, buyPrice: parseFloat(item.price) || 0 } });
+                } else if ((parseFloat(item.price) || 0) > 0) {
+                    await tx.product.update({ where: { id: product.id }, data: { buyPrice: parseFloat(item.price) } });
+                }
+                const qty = parseFloat(item.quantity) || 1;
+                dbItems.push({ productId: product.id, productName: product.name, quantity: qty, price: parseFloat(item.price) || 0, taxRate: 15, taxValue: ((parseFloat(item.price)||0)*qty)*0.15, total: parseFloat(item.total) || ((parseFloat(item.price)||0)*qty)*1.15, discountRate: 0, discountValue: 0 });
+            }
+
+            if (dbItems.length === 0) throw new Error('لا توجد أصناف');
+
+            const subtotal = dbItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+            const taxValue = subtotal * 0.15;
+            const verifiedTotal = subtotal + taxValue; // use calculated total to be safe
+
+            const invoice = await tx.purchaseInvoice.create({
+                data: {
+                    invoiceNo, supplierId, stockId: 1, subtotal, taxValue, total: verifiedTotal, paid: verifiedTotal, remaining: 0,
+                    supplierInvoiceNo: parsedData.invoiceNo || null, paymentType: 'cash', status: 'completed', receiptStatus: 'received', notes: 'إضافة آلية بذكاء تلجرام',
+                    details: { create: dbItems },
+                }, include: { details: true, supplier: true }
+            });
+
+            for (const detail of invoice.details) {
+                await tx.product.update({ where: { id: detail.productId }, data: { currentStock: { increment: detail.quantity } } });
+                await tx.productStock.upsert({
+                    where: { productId_stockId: { productId: detail.productId, stockId: 1 } },
+                    update: { quantity: { increment: detail.quantity } }, create: { productId: detail.productId, stockId: 1, quantity: detail.quantity },
+                });
+            }
+
+            await tx.treasury.create({ data: { type: 'out', amount: verifiedTotal, description: `مشتريات آلي #${invoiceNo} (${invoice.supplier?.name || 'عام'})`, referenceType: 'purchase', referenceId: invoice.id, date: new Date() } });
+            return invoice;
+        });
+
+        await sendMessage(chatId, `✅ <b>تم استخراج الفاتورة وإضافتها بنجاح!</b>\n━━━━━━━━━━━━━━━━━━\n\n📄 فاتورة رقم: <b>#${savedInvoice.invoiceNo}</b>\n🏢 المورد: <b>${savedInvoice.supplier?.name || 'غير محدد'}</b>\n📦 عدد الأصناف: <b>${savedInvoice.details.length}</b>\n\n💵 الإجمالي (مع الضريبة): <b>${savedInvoice.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س</b>`);
+    } catch (err: any) {
+        console.error('Telegram AI Invoice Error:', err);
+        await sendMessage(chatId, `❌ عذراً، لم نتمكن من تسجيل الفاتورة.\n${err.message || ''}`);
+    }
+}
+
 // ─── Main Command Router ───
 export async function processMessage(text: string): Promise<string> {
     const t = text.trim().toLowerCase();
 
     if (t === '/start' || t === '/help' || t.includes('مساعد') || t.includes('الأوامر') || t.includes('اوامر')) {
-        return `🤖 <b>مرحباً بك في بوت نما سوفت!</b>\n\n📊 <b>الاستفسارات:</b>\n• مبيعات اليوم\n• مبيعات الشهر\n• مصروفات اليوم\n• رصيد الخزينة\n• المخزون الناقص\n• أعلى المنتجات مبيعاً\n• عدد المنتجات\n• عدد العملاء\n• عدد الموظفين\n• تقرير يومي\n\n👥 <b>المستخدمين:</b>\n• المستخدمين\n• مبيعات [اسم]\n\n✍️ <b>العمليات:</b>\n• مشتريات 10000\n• مصروف 500 إيجار`;
+        return `🤖 <b>مرحباً بك في بوت نما سوفت!</b>\n\n📊 <b>الاستفسارات:</b>\n• مبيعات اليوم\n• مبيعات الشهر\n• مصروفات اليوم\n• رصيد الخزينة\n• المخزون الناقص\n• أعلى المنتجات مبيعاً\n• عدد المنتجات\n• عدد العملاء\n• عدد الموظفين\n• تقرير يومي\n\n👥 <b>المستخدمين:</b>\n• المستخدمين\n• مبيعات [اسم]\n\n✍️ <b>العمليات:</b>\n• مشتريات 10000\n• مصروف 500 إيجار\n\n📸 <b>الذكاء الاصطناعي:</b>\n• أرسل صورة لفاتورة مشتريات، وسيقوم البوت بقراءتها وإضافتها آلياً!`;
     }
     if ((t.includes('مبيعات') || t.includes('بيع')) && (t.includes('اليوم') || t.includes('يوم'))) return await getSalesToday();
     if ((t.includes('مبيعات') || t.includes('بيع')) && (t.includes('شهر') || t.includes('الشهر'))) return await getSalesMonth();
@@ -227,3 +344,75 @@ export async function processMessage(text: string): Promise<string> {
     if (t.includes('مخزون') || t.includes('بضاعة') || t.includes('ستوك')) return await getLowStock();
     return `❓ لم أفهم الأمر.\n\nأرسل <b>/help</b> لعرض الأوامر المتاحة.`;
 }
+
+// ─── Voice Processing for Smart Audio Commands ───
+export async function processVoice(fileId: string, chatId: number): Promise<void> {
+    await sendMessage(chatId, '⚙️ جاري الاستماع وتحليل المقطع الصوتي بالذكاء الاصطناعي...');
+    try {
+        const botToken = await getBotToken();
+        const geminiKey = await getGeminiKey();
+        if (!geminiKey) {
+            await sendMessage(chatId, '❌ مفتاح Gemini API غير متوفر في الإعدادات لتفعيل الأوامر الصوتية.'); return;
+        }
+
+        const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+        const fileData = await fileRes.json();
+        const filePath = fileData.result?.file_path;
+        if (!filePath) { await sendMessage(chatId, '❌ فشل في جلب المسار الصوتي من السيرفر.'); return; }
+
+        const audioRes = await fetch(`https://api.telegram.org/file/bot${botToken}/${filePath}`);
+        const buffer = await audioRes.arrayBuffer();
+        const base64Audio = Buffer.from(buffer).toString('base64');
+
+        const promptText = `
+أنت خبير أنظمة ERP والذكاء الاصطناعي. استمع بعناية فائقة للمقطع الصوتي المرسل لك باللغة العربية (وقد يحتوي على لهجة عامية سعودية).
+المقطع قد يكون أمراً بإضافة مصروف، أو إضافة فاتورة مشتريات سريعة، أو استعلاماً عن النظام (مثل: كم المبيعات، أو كم الخزينة).
+
+استخرج النية (intent) وأرجع النتيجة بصيغة JSON فقط:
+{
+  "transcript": "النص الكامل للمقطع الصوتي الذي قاله المستخدم بدقة",
+  "intent": "expense" | "purchase" | "inquiry" | "unknown",
+  "amount": 0,
+  "description": "وصف المصروف إذا كان expense"
+}
+
+الإرشادات:
+- إذا قال "صرفنا 500 حق صيانة"، النية expense، المبلغ 500، الوصف "صيانة".
+- إذا قال "اشترينا بضاعة بـ 1000"، النية purchase، المبلغ 1000.
+- إذا كان المقطع عبارة عن سؤال (مثلاً: عطني مبيعات اليوم، كم رصيد الخزنة، كم عدد العملاء)، اجعل النية inquiry.
+- لا تضع أي نصوص إضافية خارج الـ JSON. تأكد من أن الـ JSON صالح تماماً.
+`;
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: 'audio/ogg', data: base64Audio } }] }],
+                generationConfig: { temperature: 0.1, response_mime_type: "application/json" }
+            })
+        });
+
+        if (!aiRes.ok) { await sendMessage(chatId, '❌ فشل في الاتصال بالذكاء الاصطناعي (Gemini).'); return; }
+        const geminiData = await aiRes.json();
+        const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        
+        let parsedData;
+        try { parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim()); } 
+        catch (e) { await sendMessage(chatId, '❌ فشل في فهم المقطع הצوتي بشكل صحيح.'); return; }
+
+        const { transcript, intent, amount, description } = parsedData;
+        let responseText = '';
+
+        if (intent === 'expense' && amount > 0) {
+            responseText = await addExpense(amount, description || 'مصروف صوتي');
+        } else if (intent === 'purchase' && amount > 0) {
+            responseText = await addPurchase(amount);
+        } else {
+            responseText = await processMessage(transcript || 'غير مفهوم');
+        }
+
+        await sendMessage(chatId, `🎙️ <i>${transcript || '...'}</i>\n\n${responseText}`);
+    } catch (err: any) {
+        console.error('Telegram AI Voice Error:', err);
+        await sendMessage(chatId, `❌ عذراً، لم نتمكن من معالجة الصوت.\n${err.message || ''}`);
+    }
+}
+

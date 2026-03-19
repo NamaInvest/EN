@@ -17,10 +17,21 @@ interface DashboardData {
     recentInvoices: { invoiceNo: number; date: string; total: number; paymentType: string; customerName: string }[];
 }
 
+interface AiAlert {
+    type: string;
+    title: string;
+    message: string;
+}
+
 export default function DashboardPage() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    
+    // AI CFO State
+    const [aiAlerts, setAiAlerts] = useState<AiAlert[] | null>(null);
+    const [loadingAi, setLoadingAi] = useState(false);
+
     const { t, lang } = useTranslation();
 
     const fetchDashboard = useCallback(async (isRefresh = false) => {
@@ -46,6 +57,30 @@ export default function DashboardPage() {
         const interval = setInterval(() => fetchDashboard(true), 5 * 60 * 1000);
         return () => clearInterval(interval);
     }, [fetchDashboard]);
+
+    const fetchAiCfo = async () => {
+        if (!data || loadingAi) return;
+        setLoadingAi(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/ai-cfo', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ metrics: data })
+            });
+            if (res.ok) {
+                const result = await res.json();
+                if (result.alerts) setAiAlerts(result.alerts);
+            }
+        } catch (err) {
+            console.error('AI CFO fetch error:', err);
+        } finally {
+            setLoadingAi(false);
+        }
+    };
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-US', {
@@ -161,6 +196,51 @@ export default function DashboardPage() {
                         <div className="kpi-value">{d.totalCustomers}</div>
                         <div className="kpi-label">{t('dashboard.total_customers')}</div>
                     </div>
+                </div>
+
+                {/* AI CFO Widget */}
+                <div className="chart-container" style={{ marginBottom: '24px', background: 'linear-gradient(to right, #f8fafc, #eff6ff)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                            <span>🤖</span> المستشار المالي (AI CFO)
+                        </div>
+                        <button 
+                            className="btn btn-primary btn-sm" 
+                            onClick={fetchAiCfo} 
+                            disabled={loadingAi || !data}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            {loadingAi ? 'جاري التحليل...' : '✨ تحليل مباشر بمساعدة AI'}
+                        </button>
+                    </div>
+                    
+                    {aiAlerts && aiAlerts.length > 0 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }} className="animate-fade-in">
+                            {aiAlerts.map((aiCfoAlert, idx) => {
+                                const isDanger = aiCfoAlert.type === 'danger';
+                                const isWarning = aiCfoAlert.type === 'warning';
+                                const bg = isDanger ? '#fef2f2' : isWarning ? '#fffbeb' : '#f0fdf4';
+                                const borderColor = isDanger ? '#fecaca' : isWarning ? '#fde68a' : '#bbf7d0';
+                                const color = isDanger ? '#991b1b' : isWarning ? '#92400e' : '#166534';
+                                const icon = isDanger ? '⚠️' : isWarning ? '⚡' : '✅';
+                                
+                                return (
+                                    <div key={idx} style={{ padding: '16px', borderRadius: '8px', border: '1px solid ' + borderColor, backgroundColor: bg, color }}>
+                                        <h4 style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', fontSize: '14px' }}>
+                                            {icon} {aiCfoAlert.title}
+                                        </h4>
+                                        <p style={{ fontSize: '13px', opacity: 0.9, margin: 0 }}>{aiCfoAlert.message}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    
+                    {!aiAlerts && !loadingAi && (
+                        <div style={{ textAlign: 'center', padding: '24px', border: '2px dashed #bfdbfe', borderRadius: '8px', color: '#60a5fa', fontSize: '14px' }}>
+                            احصل على نصائح وتوقعات مخصصة لمتجرك مدعومة بالذكاء الاصطناعي (Gemini) لتحسين المبيعات وتقليل المصروفات.
+                        </div>
+                    )}
                 </div>
 
                 {/* Charts Row */}

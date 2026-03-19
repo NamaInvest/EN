@@ -48,6 +48,7 @@ export default function PurchasesPage() {
     // Smart OCR Modal
     const [showOcrModal, setShowOcrModal] = useState(false);
     const [ocrImagePreviewUrl, setOcrImagePreviewUrl] = useState('');
+    const [ocrFileType, setOcrFileType] = useState('');
     const [ocrData, setOcrData] = useState<any>(null);
 
     // Permission-based delete
@@ -250,6 +251,7 @@ export default function PurchasesPage() {
             });
             const result = await res.json();
             if (result.success && result.data) {
+                setOcrFileType(file.type);
                 setOcrImagePreviewUrl(previewUrl);
                 setOcrData(result.data);
                 setShowOcrModal(true);
@@ -630,8 +632,12 @@ export default function PurchasesPage() {
                         </div>
                         <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxHeight: '75vh', overflowY: 'auto' }}>
                             {/* Image Preview Left Side */}
-                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflow: 'auto', maxHeight: '70vh' }}>
-                                <img src={ocrImagePreviewUrl} alt="Invoice Preview" style={{ maxWidth: '100%', objectFit: 'contain' }} />
+                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflow: 'auto', maxHeight: '70vh', minHeight: '400px' }}>
+                                {ocrFileType.includes('pdf') ? (
+                                    <iframe src={ocrImagePreviewUrl} style={{ width: '100%', height: '70vh', border: 'none' }} title="PDF Preview" />
+                                ) : (
+                                    <img src={ocrImagePreviewUrl} alt="Invoice Preview" style={{ maxWidth: '100%', objectFit: 'contain' }} />
+                                )}
                             </div>
                             
                             {/* Data Form Right Side */}

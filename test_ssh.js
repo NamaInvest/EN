@@ -1,11 +1,11 @@
 const { Client } = require('ssh2');
 
-const hostIp = '185.197.195.202';
+const hostIp = '46.4.188.170';
 const conn = new Client();
 
 conn.on('ready', () => {
     console.log('Connected');
-    conn.exec('cd /var/www/namasoft && npx prisma db push --schema=prisma/schema.prisma --accept-data-loss', (err, stream) => {
+    conn.exec('pwd', (err, stream) => {
         if (err) throw err;
         stream.on('data', d => console.log('OUT:', d.toString()));
         stream.stderr.on('data', d => console.error('ERR:', d.toString()));

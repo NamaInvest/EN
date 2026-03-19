@@ -1,8 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    const cmd = 'export PATH=$PATH:/www/server/nvm/versions/node/v24.14.0/bin && cd /www/wwwroot/n1.namainvist.com && npm run build';
-    conn.exec(cmd, (err, stream) => {
+    conn.exec('bash -lc "pm2 restart n1"', (err, stream) => {
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => conn.end());

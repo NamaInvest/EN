@@ -123,9 +123,10 @@ export default function SettingsPage() {
             const perms: string[] = (u.permissions || []).map((p: { module: string }) => p.module);
             const hasPerms = perms.length > 0;
             const isAdmin = u.role === 'admin';
-            const isLegacyAdmin = !hasPerms && isAdmin;
+            const isLockedOutAdmin = !hasPerms && isAdmin;
 
-            if (isLegacyAdmin || isAdmin || perms.includes('settings')) {
+            // Enforce strict module checking
+            if (isLockedOutAdmin || perms.includes('settings')) {
                 setAuthorized(true);
                 setCanManageUsers(isAdmin || perms.includes('manage_users'));
                 setCanManagePerms(isAdmin || perms.includes('manage_permissions'));
@@ -178,6 +179,10 @@ export default function SettingsPage() {
         { key: 'loyalty', label: '🎁 الولاء والنقاط' },
         { key: 'gift-cards', label: '💳 بطاقات الهدايا' },
         { key: 'batches', label: '📦 التشغيلات والصلاحية' },
+        { key: 'stocktake', label: '📦 عمليات الجرد' },
+        { key: 'vision_inventory', label: '📸 الجرد بالذكاء الاصطناعي' },
+        { key: 'whatsapp', label: '📨 واتساب الذكي API' },
+        { key: 'master-panel', label: '🌐 محرك الشركات SaaS' },
         { key: 'audit-logs', label: '🛡️ سجل الحركات' },
         { key: 'branches', label: '🏢 الفروع' },
         { key: 'manage_users', label: '👤 إدارة المستخدمين' },
