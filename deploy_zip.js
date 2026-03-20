@@ -19,6 +19,7 @@ do
   cp -r /root/patch_dir/* /www/wwwroot/n$i.namainvist.com/
   (
     cd /www/wwwroot/n$i.namainvist.com
+    npm i --legacy-peer-deps > npm_install.log 2>&1
     npm run build > build_api.log 2>&1
     pm2 restart n$i --update-env
     pm2 restart n$i-whatsapp --update-env

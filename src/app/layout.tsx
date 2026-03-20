@@ -4,6 +4,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "نما انفست - نظام نقاط البيع والمحاسبة",
   description: "نظام نقاط بيع متكامل مع محاسبة وإدارة موارد بشرية - Nama Invest POS",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "NamaVest",
+  },
 };
 
 export default function RootLayout({
