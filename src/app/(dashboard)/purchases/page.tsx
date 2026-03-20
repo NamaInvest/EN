@@ -622,88 +622,174 @@ export default function PurchasesPage() {
                 </div>
             )}
 
-            {/* Smart Invoice Reader Modal */}
+            {/* Smart Invoice Reader Workspace (Matches Screenshot) */}
             {showOcrModal && ocrData && (
-                <div className="modal-overlay" onClick={() => setShowOcrModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', width: '95%' }}>
-                        <div className="modal-header">
-                            <h3>👁️ قارئ الفواتير الذكي (AI)</h3>
-                            <button className="modal-close" onClick={() => setShowOcrModal(false)}>✕</button>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#f0f2f5', zIndex: 9999, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    
+                    {/* Top Toolbar */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', gap: '24px', color: '#64748b', fontSize: '15px', fontWeight: '500' }}>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}><span>📋</span> Queue</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}><span>🔌</span> التكاملات</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#3b82f6', fontWeight: '600' }}><span>🤖</span> إعدادات الذكاء الاصطناعي</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}><span>🧠</span> وضع المعالجة</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}><span>🕒</span> السجل</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}><span>📥</span> استيراد الفواتير</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', borderRight: '1px solid #e2e8f0', paddingRight: '24px' }}>عينة جديدة</div>
                         </div>
-                        <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxHeight: '75vh', overflowY: 'auto' }}>
-                            {/* Image Preview Left Side */}
-                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflow: 'auto', maxHeight: '70vh', minHeight: '400px' }}>
-                                {ocrFileType.includes('pdf') ? (
-                                    <iframe src={ocrImagePreviewUrl} style={{ width: '100%', height: '70vh', border: 'none' }} title="PDF Preview" />
-                                ) : (
-                                    <img src={ocrImagePreviewUrl} alt="Invoice Preview" style={{ maxWidth: '100%', objectFit: 'contain' }} />
-                                )}
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 16px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', color: '#64748b', border: '1px solid #e2e8f0' }}>
+                                0%
+                                <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div style={{ width: '0%', height: '100%', background: '#10b981' }}></div>
+                                </div>
+                            </div>
+                            <button style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}>
+                                ابدأ المعالجة ▶
+                            </button>
+                            <button onClick={() => setShowOcrModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', color: '#ef4444', cursor: 'pointer', marginLeft: '12px' }}>✕</button>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div style={{ display: 'flex', flex: 1, overflow: 'hidden', padding: '20px', gap: '24px' }}>
+                        
+                        {/* Left Side: Image Viewer */}
+                        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* Toolbar for image */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↻</button>
+                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↺</button>
+                                    <div style={{ width: '1px', background: '#cbd5e1', margin: '0 4px' }}></div>
+                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>⛶</button>
+                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍+</button>
+                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍-</button>
+                                </div>
+                                <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '4px' }}>
+                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏭</button>
+                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>▶</button>
+                                    <span style={{ fontSize: '14px', padding: '0 16px', color: '#475569', fontWeight: '500', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>صورة 1 من 1</span>
+                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>◀</button>
+                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏮</button>
+                                </div>
                             </div>
                             
-                            {/* Data Form Right Side */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-                                    <h4 style={{ margin: '0 0 12px 0', color: '#1e40af', fontSize: '15px' }}>بيانات الفاتورة الأساسية</h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                                        <div>
-                                            <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>اسم المورد</label>
-                                            <input className="input" value={ocrData.supplierName || ''} onChange={e => setOcrData({ ...ocrData, supplierName: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>الرقم الضريبي</label>
-                                            <input className="input" value={ocrData.taxNumber || ''} onChange={e => setOcrData({ ...ocrData, taxNumber: e.target.value })} dir="ltr" />
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>التاريخ</label>
-                                                <input className="input" type="date" value={ocrData.date || ''} onChange={e => setOcrData({ ...ocrData, date: e.target.value })} dir="ltr" />
-                                            </div>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>رقم الفاتورة</label>
-                                                <input className="input" value={ocrData.invoiceNo || ''} onChange={e => setOcrData({ ...ocrData, invoiceNo: e.target.value })} dir="ltr" />
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>مبلغ الضريبة</label>
-                                                <input className="input" type="number" value={ocrData.taxAmount || ''} onChange={e => setOcrData({ ...ocrData, taxAmount: e.target.value })} dir="ltr" />
-                                            </div>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: '#475569', display: 'block', marginBottom: '4px' }}>مبلغ الفاتورة (الإجمالي)</label>
-                                                <input className="input" type="number" value={ocrData.grandTotal || ''} onChange={e => setOcrData({ ...ocrData, grandTotal: e.target.value })} dir="ltr" style={{ fontWeight: 'bold' }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
-                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '15px' }}>الأصناف المستخرجة ({ocrData.items?.length || 0})</h4>
-                                    {ocrData.items && ocrData.items.length > 0 ? (
-                                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                            <table className="table" style={{ fontSize: '12px' }}>
-                                                <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th></tr></thead>
-                                                <tbody>
-                                                    {ocrData.items.map((it: any, i: number) => (
-                                                        <tr key={i}>
-                                                            <td><input className="input" style={{ padding: '4px', fontSize: '12px' }} value={it.name || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].name = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
-                                                            <td><input className="input" style={{ width: '60px', padding: '4px', textAlign: 'center' }} type="number" dir="ltr" value={it.quantity || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].quantity = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
-                                                            <td><input className="input" style={{ width: '80px', padding: '4px', textAlign: 'center' }} type="number" dir="ltr" value={it.price || ''} onChange={e => { const newItems = [...ocrData.items]; newItems[i].price = e.target.value; setOcrData({ ...ocrData, items: newItems }); }} /></td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ) : (
-                                        <div className="empty-state" style={{ padding: '20px', fontSize: '13px' }}>لم يتم التعرف على أصناف متطابقة</div>
-                                    )}
-                                </div>
+                            {/* Image Canvas */}
+                            <div style={{ flex: 1, background: '#e2e8f0', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                {ocrFileType.includes('pdf') ? (
+                                    <iframe src={ocrImagePreviewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Preview" />
+                                ) : (
+                                    <img src={ocrImagePreviewUrl} alt="Invoice" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                )}
                             </div>
                         </div>
-                        <div className="modal-footer" style={{ borderTop: '1px solid #e2e8f0', marginTop: '10px', paddingTop: '15px', background: '#f8fafc' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowOcrModal(false)}>إلغاء</button>
-                            <button className="btn btn-primary" onClick={confirmOcrData} style={{ background: '#10b981', display: 'flex', gap: '8px', alignItems: 'center', fontSize: '15px', padding: '10px 24px' }}>
-                                <span>📥</span> حفظ وإضافة للفاتورة
-                            </button>
+
+                        {/* Right Side: Data Form */}
+                        <div style={{ width: '450px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+                                <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', background: '#e2e8f0', padding: '6px 12px', borderRadius: '20px' }}>
+                                    ✨ 0% مكتمل (0/19)
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button style={{ border: 'none', background: '#fef2f2', color: '#ef4444', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🗑</button>
+                                    <button style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>📄</button>
+                                    <button style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🔄</button>
+                                </div>
+                            </div>
+
+                            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+                                <h2 style={{ textAlign: 'center', color: '#3b82f6', marginBottom: '24px', fontSize: '24px', fontWeight: 'bold' }}>تفاصيل الفاتورة</h2>
+                                
+                                <div style={{ background: '#f1f5f9', padding: '12px 16px', borderRadius: '8px', fontWeight: 'bold', color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                    <span>▼</span>
+                                    <span>المعلومات الأساسية</span>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    
+                                    {/* اسم المورد */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <input className="input" defaultValue={ocrData.supplierName || ''} onChange={e => setOcrData({ ...ocrData, supplierName: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }} />
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           <span style={{ color: '#ef4444' }}>*</span> اسم المورد <span style={{ fontSize: '16px' }}>🏢</span>
+                                        </div>
+                                    </div>
+
+                                    {/* الرقم الضريبي */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <input className="input" defaultValue={ocrData.taxNumber || ''} onChange={e => setOcrData({ ...ocrData, taxNumber: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }} dir="ltr" />
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           <span style={{ color: '#ef4444' }}>*</span> الرقم الضريبي <span style={{ fontSize: '16px', color: '#0ea5e9' }}>🧾</span>
+                                        </div>
+                                    </div>
+
+                                    {/* رقم الفاتورة */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <input className="input" defaultValue={ocrData.invoiceNo || ''} onChange={e => setOcrData({ ...ocrData, invoiceNo: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }} dir="ltr" />
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           <span style={{ color: '#ef4444' }}>*</span> رقم الفاتورة <span style={{ fontSize: '16px' }}>📑</span>
+                                        </div>
+                                    </div>
+
+                                    {/* تاريخ الفاتورة */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <input className="input" type="date" defaultValue={ocrData.date || ''} onChange={e => setOcrData({ ...ocrData, date: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }} dir="ltr" />
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           <span style={{ color: '#ef4444' }}>*</span> تاريخ الفاتورة <span style={{ fontSize: '16px', color: '#3b82f6' }}>📅</span>
+                                        </div>
+                                    </div>
+
+                                    {/* تاريخ الاستحقاق */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <input className="input" type="date" defaultValue={ocrData.dueDate || ''} onChange={e => setOcrData({ ...ocrData, dueDate: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }} dir="ltr" />
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           تاريخ الاستحقاق <span style={{ fontSize: '16px', color: '#ef4444' }}>⏰</span>
+                                        </div>
+                                    </div>
+
+                                    {/* العملة */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                           <select className="input" defaultValue={ocrData.currency || 'SAR'} onChange={e => setOcrData({ ...ocrData, currency: e.target.value })} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'right', width: '100%', padding: '10px' }}>
+                                              <option value="SAR">ريال سعودي (SAR)</option>
+                                              <option value="USD">دولار أمريكي (USD)</option>
+                                           </select>
+                                        </div>
+                                        <div style={{ width: '150px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', fontSize: '14px', color: '#475569' }}>
+                                           العملة <span style={{ fontSize: '16px', color: '#0ea5e9' }}>💵</span>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', borderTop: '1px solid #e2e8f0', background: '#fff' }}>
+                                <button style={{ width: '100%', background: '#3b82f6', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)' }}>
+                                    عرض بنود الفاتورة ({ocrData.items?.length || 0}) <span>📄</span>
+                                </button>
+                                
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px' }}>
+                                    <button onClick={() => setShowOcrModal(false)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)' }}>
+                                        حذف الفاتورة <span>🗑</span>
+                                    </button>
+                                    <button onClick={confirmOcrData} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}>
+                                        حفظ التغييرات <span>💾</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance';
 
-interface Account { id: number; code: string; name: string; nameEn: string; type: string; level: number; balance: number; isActive: boolean; }
+interface Account { id: number; code: string; name: string; nameEn: string; type: string; level: number; balance: number; isActive: boolean; parentId: number; }
 interface JournalLine { id: number; accountId: number; description: string; debit: number; credit: number; account: { code: string; name: string; type: string } }
 interface JournalEntry { id: number; entryNumber: string; entryDate: string; description: string; reference: string; totalDebit: number; totalCredit: number; status: string; lines: JournalLine[] }
 interface LedgerLine { id: number; date: string; entryNumber: string; description: string; debit: number; credit: number; balance: number }
@@ -26,12 +26,19 @@ export default function AccountingPage() {
     const [loading, setLoading] = useState(false);
     const [showAddAccount, setShowAddAccount] = useState(false);
     const [showAddJournal, setShowAddJournal] = useState(false);
-    const [newAccount, setNewAccount] = useState({ code: '', name: '', type: 'asset', level: 1 });
+    const [newAccount, setNewAccount] = useState({ code: '', name: '', type: 'asset', level: 1, parentId: 0 });
+    const [expandedTreeNodes, setExpandedTreeNodes] = useState<Set<number>>(new Set());
+    
     const [journalLines, setJournalLines] = useState([{ accountCode: '', debit: 0, credit: 0, description: '' }, { accountCode: '', debit: 0, credit: 0, description: '' }]);
     const [journalDesc, setJournalDesc] = useState('');
     const [expandedEntry, setExpandedEntry] = useState<number | null>(null);
 
-    // Load accounts
+    const toggleTreeNode = (id: number) => {
+        const newSet = new Set(expandedTreeNodes);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setExpandedTreeNodes(newSet);
+    };
     const loadAccounts = useCallback(async () => {
         try {
             const res = await fetch('/api/accounting/accounts');
@@ -99,11 +106,27 @@ export default function AccountingPage() {
         setLoading(false);
     };
 
-    // Add account
     const handleAddAccount = async () => {
         const res = await fetch('/api/accounting/accounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newAccount) });
-        if (res.ok) { setShowAddAccount(false); setNewAccount({ code: '', name: '', type: 'asset', level: 1 }); loadAccounts(); }
+        if (res.ok) { 
+            setShowAddAccount(false); 
+            setNewAccount({ code: '', name: '', type: 'asset', level: 1, parentId: 0 }); 
+            loadAccounts(); 
+        }
         else { const e = await res.json(); alert(e.error); }
+    };
+
+    const openAddSubAccount = (parentAcc: Account) => {
+        const childrenCount = accounts.filter(a => a.parentId === parentAcc.id).length;
+        const potentialCode = `${parentAcc.code}${(childrenCount + 1).toString().padStart(2, '0')}`;
+        setNewAccount({
+            code: potentialCode, name: '', type: parentAcc.type, 
+            level: parentAcc.level + 1, parentId: parentAcc.id
+        });
+        setShowAddAccount(true);
+        const newSet = new Set(expandedTreeNodes);
+        newSet.add(parentAcc.id);
+        setExpandedTreeNodes(newSet);
     };
 
     const handleInitAccounts = async () => {
@@ -167,28 +190,70 @@ export default function AccountingPage() {
                     </div>
                     {showAddAccount && (
                         <div style={{ padding: '16px', background: 'rgba(108,99,255,0.05)', borderRadius: '8px', marginBottom: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>حساب الأب</label><input disabled value={accounts.find(a => a.id === newAccount.parentId)?.name || 'رئيسي'} style={{ width: '120px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: '#eee' }} /></div>
                             <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>الكود</label><input value={newAccount.code} onChange={e => setNewAccount({ ...newAccount, code: e.target.value })} placeholder="1110" style={{ width: '80px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
                             <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>الاسم</label><input value={newAccount.name} onChange={e => setNewAccount({ ...newAccount, name: e.target.value })} placeholder="اسم الحساب" style={{ width: '180px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
                             <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>النوع</label>
-                                <select value={newAccount.type} onChange={e => setNewAccount({ ...newAccount, type: e.target.value })} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                                <select disabled={newAccount.parentId > 0} value={newAccount.type} onChange={e => setNewAccount({ ...newAccount, type: e.target.value })} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: newAccount.parentId > 0 ? '#eee' : '#fff' }}>
                                     <option value="asset">أصول</option><option value="liability">خصوم</option><option value="equity">ملكية</option><option value="revenue">إيرادات</option><option value="expense">مصروفات</option>
                                 </select>
                             </div>
-                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>المستوى</label><input type="number" value={newAccount.level} onChange={e => setNewAccount({ ...newAccount, level: parseInt(e.target.value) })} min={0} max={3} style={{ width: '60px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
                             <button className="btn btn-primary btn-sm" onClick={handleAddAccount}>حفظ</button>
-                            <button className="btn btn-sm" onClick={() => setShowAddAccount(false)}>إلغاء</button>
+                            <button className="btn btn-sm" onClick={() => {setShowAddAccount(false); setNewAccount({ code: '', name: '', type: 'asset', level: 1, parentId: 0 });}}>إلغاء</button>
                         </div>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                        {accounts.map(a => (
-                            <div key={a.id} onClick={() => { setSelectedAccount(a.id); setTab('ledger'); loadLedger(a.id); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', paddingRight: `${14 + a.level * 28}px`, background: a.level === 0 ? 'rgba(108,99,255,0.06)' : 'transparent', borderRadius: '6px', fontWeight: a.level === 0 ? '700' : '400', fontSize: a.level === 0 ? '15px' : '13px', cursor: a.level > 0 ? 'pointer' : 'default', transition: 'background 0.2s' }}>
-                                <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'monospace', minWidth: '50px' }}>{a.code}</span>
-                                <span style={{ flex: 1 }}>{a.level > 0 ? '└─ ' : ''}{a.name}</span>
-                                <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: TYPE_COLORS[a.type] + '20', color: TYPE_COLORS[a.type] }}>{TYPE_LABELS[a.type]}</span>
-                                {a.balance !== 0 && <span style={{ fontSize: '12px', fontFamily: 'monospace', color: a.balance >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(a.balance)}</span>}
-                            </div>
-                        ))}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+                        {accounts.filter(a => a.parentId === 0).map(rootAcc => {
+                            const renderNode = (acc: Account, indentStart: number) => {
+                                const children = accounts.filter(child => child.parentId === acc.id);
+                                const hasChildren = children.length > 0;
+                                const isExpanded = expandedTreeNodes.has(acc.id);
+
+                                const calculateRecursiveBalance = (nodeId: number): number => {
+                                    const nAcc = accounts.find(a => a.id === nodeId);
+                                    const nChilds = accounts.filter(a => a.parentId === nodeId);
+                                    let bal = nAcc?.balance || 0;
+                                    for (const c of nChilds) bal += calculateRecursiveBalance(c.id);
+                                    return bal;
+                                };
+                                const rollup = calculateRecursiveBalance(acc.id);
+
+                                return (
+                                    <div key={acc.id} style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ 
+                                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', 
+                                            paddingRight: `${14 + indentStart * 24}px`, 
+                                            background: acc.level === 1 ? 'rgba(108,99,255,0.06)' : (hasChildren ? 'rgba(0,0,0,0.02)' : '#fff'),
+                                            borderBottom: '1px solid var(--border)', cursor: 'pointer',
+                                            transition: 'background 0.2s'
+                                        }} onClick={() => { if(hasChildren) toggleTreeNode(acc.id); else { setSelectedAccount(acc.id); setTab('ledger'); loadLedger(acc.id); } }}>
+                                            <span style={{ width: '24px', textAlign: 'center', color: 'var(--primary)', fontSize: '14px' }} onClick={(e) => { e.stopPropagation(); toggleTreeNode(acc.id); }}>
+                                                {hasChildren ? (isExpanded ? '▼' : '▶') : '•'}
+                                            </span>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'monospace', minWidth: '60px' }}>{acc.code}</span>
+                                            <span style={{ flex: 1, fontWeight: hasChildren ? '700' : '500', fontSize: hasChildren ? '14px' : '13px' }}>
+                                                {acc.name}
+                                            </span>
+                                            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: TYPE_COLORS[acc.type] + '20', color: TYPE_COLORS[acc.type] }}>
+                                                {TYPE_LABELS[acc.type]}
+                                            </span>
+                                            <span style={{ fontSize: '13px', fontFamily: 'monospace', color: rollup >= 0 ? '#22c55e' : '#ef4444', minWidth: '80px', textAlign: 'left', fontWeight: hasChildren ? 'bold' : 'normal' }}>
+                                                {rollup !== 0 ? fmt(rollup) : '-'}
+                                            </span>
+                                            <button className="btn btn-sm" style={{ padding: '4px 8px', fontSize: '11px', background: '#eef2ff', color: '#4f46e5' }} onClick={(e) => { e.stopPropagation(); openAddSubAccount(acc); }}>
+                                                ➕ تفريغ
+                                            </button>
+                                        </div>
+                                        {isExpanded && hasChildren && (
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                {children.map(c => renderNode(c, indentStart + 1))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            };
+                            return renderNode(rootAcc, 0);
+                        })}
                     </div>
                 </div>
             )}
