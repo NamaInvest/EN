@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { syncProductToSalla } from '@/lib/salla';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -59,6 +60,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         } catch (e) {
             console.error('Failed to sync product stock:', e);
         }
+
+        // Output to Salla Network
+        await syncProductToSalla(product);
 
         return NextResponse.json(product);
     } catch (error) {

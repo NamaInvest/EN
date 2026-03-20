@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { syncStockToSalla } from '@/lib/salla';
 
 export async function GET(request: Request) {
     try {
@@ -19,7 +20,12 @@ export async function POST(request: Request) {
             data: { productId: parseInt(body.productId), stockId: parseInt(body.stockId) || 1, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId || null },
         });
         const increment = (body.type === 'in' || body.type === 'adjustment') ? parseFloat(body.quantity) : -parseFloat(body.quantity);
-        await prisma.product.update({ where: { id: parseInt(body.productId) }, data: { currentStock: { increment } } });
+        const updatedProduct = await prisma.product.update({ where: { id: parseInt(body.productId) }, data: { currentStock: { increment } } });
+        
+        if (updatedProduct.barcode) {
+            await syncStockToSalla(updatedProduct.barcode, updatedProduct.currentStock);
+        }
+
         return NextResponse.json(movement, { status: 201 });
     } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }

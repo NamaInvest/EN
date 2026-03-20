@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Product {
     id: number;
@@ -54,6 +54,8 @@ export default function ProductsPage() {
     const [canResetStock, setCanResetStock] = useState(false);
     const [canDeleteProduct, setCanDeleteProduct] = useState(false);
     const [toast, setToast] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isImporting, setIsImporting] = useState(false);
 
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) return;
@@ -191,6 +193,58 @@ export default function ProductsPage() {
         minimumFractionDigits: 2, maximumFractionDigits: 2
     }).format(v);
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+    
+    const handleExport = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/products/export', { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `products_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                showToast('✅ تم التصدير بنجاح');
+            } else {
+                showToast('❌ فشل تصدير البيانات');
+            }
+        } catch (err) {
+            console.error('Export error:', err);
+            showToast('❌ حدث خطأ أثناء التصدير');
+        }
+    };
+
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsImporting(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/products/import', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ ${data.message || 'تم الاستيراد بنجاح'}`);
+                fetchProducts();
+            } else {
+                showToast(`❌ ${data.error || 'فشل الاستيراد'}`);
+            }
+        } catch (err) {
+            console.error('Import error:', err);
+            showToast('❌ حدث خطأ أثناء الاستيراد');
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const handleResetStock = async () => {
         if (!confirm('⚠️ هل أنت متأكد من تصفير مخزون جميع المنتجات؟')) return;
@@ -232,6 +286,11 @@ export default function ProductsPage() {
                         <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
                         عرض المؤرشفة (المحذوفة)
                     </label>
+                    <input type="file" ref={fileInputRef} hidden accept=".xlsx, .xls" onChange={handleImport} />
+                    <button className="btn" onClick={handleExport} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>📤 تصدير لإكسيل</button>
+                    <button className="btn" onClick={() => fileInputRef.current?.click()} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }} disabled={isImporting}>
+                        {isImporting ? '⏳ جاري الاستيراد...' : '📥 استيراد منتجات'}
+                    </button>
                     {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🔄 تصفير المخزون</button>}
                     <button className="btn btn-primary" onClick={openAdd}>➕ إضافة منتج</button>
                 </div>

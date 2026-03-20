@@ -66,6 +66,17 @@ export const SETTING_GROUPS = [
         ]
     },
     {
+        title: '✉️ بوابات الـ SMS (رسائل نصية)', id: 'sms_gateways', keys: [
+            { key: 'sms_enabled', label: 'تفعيل إرسال الفواتير عبر رقم الجوال', type: 'toggle' },
+            { key: 'sms_provider', label: 'مزود الخدمة (Taqnyat أو Unifonic)', type: 'select', options: [
+                { value: 'taqnyat', label: 'Taqnyat (تقنيات)' },
+                { value: 'unifonic', label: 'Unifonic (يونيفونك)' }
+            ]},
+            { key: 'sms_api_key', label: 'مفتاح الـ API (Access Token)', type: 'text' },
+            { key: 'sms_sender_id', label: 'اسم المرسل (Sender ID)', type: 'text' },
+        ]
+    },
+    {
         title: '🛒 سلة API', id: 'salla', keys: [
             { key: 'salla_enabled', label: 'تفعيل ربط سلة', type: 'toggle' },
             { key: 'salla_merchant_id', label: 'معرف المتجر (Merchant ID)', type: 'text' },

@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { sendSMS } from '@/lib/sms';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent } from '@/lib/zatca';
 
 export async function GET(request: NextRequest) {
@@ -327,6 +328,20 @@ export async function POST(request: Request) {
             }
         } catch (zatcaErr) {
             console.warn('ZATCA process skipped/failed:', zatcaErr);
+        }
+
+        // 📱 Dispatch Digital Invoice via SMS
+        if (invoice.customer?.phone) {
+            try {
+                const protocol = request.headers.get('x-forwarded-proto') || 'http';
+                const host = request.headers.get('host') || 'localhost:3000';
+                const url = `${protocol}://${host}/invoice/${invoice.id}`;
+                const msg = `عزيزي العميل، شكراً لتسوقك معنا!\nيمكنك استعراض فاتورتك رقم #${invoice.invoiceNo} عبر الرابط:\n${url}`;
+                
+                sendSMS(invoice.customer.phone, msg).catch(e => console.error('SMS Send Async Error:', e));
+            } catch (smsErr) {
+                console.warn('SMS dispatch failed:', smsErr);
+            }
         }
 
         return NextResponse.json({ ...invoice, zatcaQR }, { status: 201 });

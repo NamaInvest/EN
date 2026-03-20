@@ -27,11 +27,21 @@ done
 wait
 echo "ALL DEPLOYS COMPLETE!"
             `;
-            conn.exec(`echo "${bash.replace(/\n/g, '\\n')}" > /root/deploy.sh && chmod +x /root/deploy.sh && nohup /root/deploy.sh > /root/deploy.log 2>&1 &`, (err, stream) => {
-                if (err) throw err;
+            const bashContent = bash.replace(/\n/g, '\\n');
+            const cmd = `echo "${bashContent}" > /root/deploy.sh && chmod +x /root/deploy.sh && nohup /root/deploy.sh > /root/deploy.log 2>&1 &`;
+            conn.exec(cmd, (err, stream) => {
+                if (err) {
+                    console.error("SSH Exec Error:", err);
+                    conn.end();
+                    return;
+                }
                 stream.on('close', () => {
                     console.log("Deploy script triggered successfully on background!");
                     conn.end();
+                }).on('data', (data) => {
+                    console.log('STDOUT: ' + data);
+                }).stderr.on('data', (data) => {
+                    console.error('STDERR: ' + data);
                 });
             });
         });

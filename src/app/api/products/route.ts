@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { syncProductToSalla } from '@/lib/salla';
 
 async function hasPermission(userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
@@ -124,6 +125,9 @@ export async function POST(request: Request) {
         } catch (e) {
             console.error('Failed to initialize product stock:', e);
         }
+
+        // Push to Salla if configured
+        await syncProductToSalla(product);
 
         return NextResponse.json(product, { status: 201 });
     } catch (error) {

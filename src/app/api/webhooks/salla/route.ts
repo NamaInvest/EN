@@ -1,184 +1,187 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
-// سلة ويب هوك - استقبال الطلبات الجديدة
-// الرابط المفترض تسجيله في سلة: https://yourdomain.com/api/webhooks/salla
-export async function POST(request: Request) {
-    try {
-        const bodyText = await request.text();
-        const signature = request.headers.get('x-salla-signature');
+function verifySallaSignature(bodyStr: string, secret: string, signature: string) {
+    const hash = crypto.createHmac('sha256', secret).update(bodyStr).digest('hex');
+    return hash === signature;
+}
 
-        // 1. التحقق من التوقيع (الأمان)
+export async function POST(request: NextRequest) {
+    try {
+        const signature = request.headers.get('x-salla-signature');
+        if (!signature) {
+            return NextResponse.json({ error: 'Missing Signature' }, { status: 401 });
+        }
+
+        const rawBody = await request.text();
+
+        // Fetch Salla config directly from database to get the secret
         const settings = await prisma.setting.findMany({
             where: { key: { in: ['salla_enabled', 'salla_client_secret'] } }
         });
-        const sallaEnabled = settings.find(s => s.key === 'salla_enabled')?.value === '1';
-        const clientSecret = settings.find(s => s.key === 'salla_client_secret')?.value || '';
+        const config: Record<string, string> = {};
+        settings.forEach(s => config[s.key] = s.value || '');
 
-        if (!sallaEnabled) {
-            return NextResponse.json({ message: 'الربط غير مفعل' }, { status: 400 });
+        if (config['salla_enabled'] !== '1' || !config['salla_client_secret']) {
+            return NextResponse.json({ error: 'Salla integration disabled' }, { status: 403 });
         }
 
-        if (signature && clientSecret) {
-            const hmac = crypto.createHmac('sha256', clientSecret);
-            hmac.update(bodyText);
-            const expectedSignature = hmac.digest('hex');
-            
-            if (signature !== expectedSignature) {
-                console.error('Salla Webhook: Invalid Signature');
-                // في وضع التطوير قد نتجاهل الخطأ، لكن في الإنتاج يجب منعه
-                // return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 });
-            }
+        const isValid = verifySallaSignature(rawBody, config['salla_client_secret'], signature);
+        if (!isValid) {
+            return NextResponse.json({ error: 'Invalid Signature' }, { status: 401 });
         }
 
-        const payload = JSON.parse(bodyText);
+        const payload = JSON.parse(rawBody);
+        const { event, event_id, data } = payload;
         
-        // 2. معالجة الحدث بناءً على نوعه
-        if (payload.event === 'order.created' || payload.event === 'order.updated') {
-            const order = payload.data;
-            
-            if (order.status?.id === 'completed' || order.status?.id === 'paid') {
-                await processOrder(order);
-            }
+        console.log(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
+
+        if (event === 'order.created') {
+            await handleSallaOrderCreated(data);
+        } else if (event === 'app.store.authorize') {
+            // Store authorized our app
+            console.log('✅ Salla App Authorized:', data);
         }
 
-        return NextResponse.json({ success: true, message: 'تم الاستلام بنجاح' });
+        return NextResponse.json({ success: true, message: 'Webhook Processed' });
     } catch (error) {
         console.error('Salla Webhook Error:', error);
-        return NextResponse.json({ error: 'فشل في معالجة الطلب' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-// دالة معالجة الطلب وتحويله إلى فاتورة مبيعات
-async function processOrder(order: Record<string, any>) {
-    // التحقق مما إذا كان الطلب مسجل مسبقاً لتجنب التكرار
-    const existingInvoice = await prisma.salesInvoice.findFirst({
-        where: { notes: { contains: `SALLA_ORDER_ID:${order.id}` } }
-    });
+async function handleSallaOrderCreated(order: any) {
+    // Determine total and tax based on Salla payload
+    const total = order.amounts?.total?.amount || 0;
+    const subtotal = order.amounts?.sub_total?.amount || 0;
+    const taxValue = order.amounts?.tax?.amount || 0;
 
-    if (existingInvoice) {
-        console.log(`Order ${order.id} already processed.`);
-        return;
-    }
+    // We assume an online order is fully paid. Create a generic customer if not present.
+    const customerPhone = order.customer?.mobile || order.customer?.phone || '0000000000';
+    const customerName = (order.customer?.first_name || '') + ' ' + (order.customer?.last_name || '');
 
-    // جلب المنتجات من الطلب وربطها بالـ SKU أو الباركود في النظام المحلي
-    const invoiceItems = [];
-    let subtotal = 0;
-    let taxValue = 0;
-
-    for (const item of order.items) {
-        // البحث عن المنتج محلياً
-        const localProduct = await prisma.product.findFirst({
-            where: {
-                OR: [
-                    { barcode: item.sku }, // سلة تستخدم SKU كمعرف، نربطه بالباركود 
-                    { name: item.name } // محاولة أخيرة بالاسم
-                ]
-            }
-        });
-
-        const qty = item.quantity;
-        const price = item.amounts.price.amount;
-        const itemTax = item.amounts.tax.amount * qty;
-        
-        subtotal += (price * qty);
-        taxValue += itemTax;
-
-        if (localProduct) {
-             invoiceItems.push({
-                 productId: localProduct.id,
-                 productName: localProduct.name,
-                 quantity: qty,
-                 price: price,
-                 discountRate: 0,
-                 discountValue: 0,
-                 taxRate: 15,
-                 taxValue: itemTax,
-                 total: (price * qty) + itemTax
-             });
-
-             // تحديث كمية المخزون
-             await prisma.product.update({
-                 where: { id: localProduct.id },
-                 data: { currentStock: { decrement: qty } }
-             });
-        }
-    }
-
-    if (invoiceItems.length === 0) {
-        console.warn(`لم يتم العثور على أي منتجات مطابقة لطلب سلة رقم ${order.id}`);
-        return; // لا نستطيع إنشاء الفاتورة بدون منتجات معروفة
-    }
-
-    // استخراج رقم عميل عام أو إنشائه
-    let customerId = null;
-    if (order.customer) {
-        const customerPhone = order.customer.mobile?.toString() || '';
-        let customer = await prisma.customer.findFirst({ where: { phone: customerPhone }});
-        if (!customer && customerPhone) {
-            customer = await prisma.customer.create({
-                data: {
-                    name: `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() || 'عميل سلة',
-                    phone: customerPhone,
-                }
-            });
-        }
-        customerId = customer?.id;
-    }
-
-    // إنشاء فاتورة المبيعات
+    // Get next invoice number
     const lastInvoice = await prisma.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
     const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
-    const total = subtotal + taxValue; // أو نستخدم order.amounts.total.amount مباشرة
 
-    const invoice = await prisma.salesInvoice.create({
-        data: {
+    // Find main stock (warehouse 1)
+    const mainStock = await prisma.stock.findFirst({ orderBy: { id: 'asc' } });
+    const stockId = mainStock?.id || 1;
+
+    await prisma.$transaction(async (tx) => {
+        // Find Customer by phone or create
+        let customer = await tx.customer.findFirst({ where: { phone: customerPhone } });
+        if (customer) {
+            customer = await tx.customer.update({
+                where: { id: customer.id },
+                data: { name: customerName }
+            });
+        } else {
+            customer = await tx.customer.create({
+                data: { name: customerName || 'Salla Customer', phone: customerPhone }
+            });
+        }
+
+        const createdInvoice = await tx.salesInvoice.create({
+            data: {
+                date: new Date(),
+                invoiceNo,
+                customerId: customer.id,
+                stockId,
+                subtotal,
+                discountRate: 0,
+                discountValue: 0,
+                taxValue,
+                total,
+                paid: total,
+                remaining: 0,
+                paymentType: 'online', // Salla Order
+                status: 'completed',
+                notes: `Salla Order #${order.reference_id}`,
+                details: {
+                    create: order.items.map((item: any) => {
+                        const qty = item.quantity || 1;
+                        const price = item.amounts?.price_without_tax?.amount || item.price?.amount || 0;
+                        const itemTax = item.amounts?.tax?.amount || 0;
+                        const itemTotal = item.amounts?.total?.amount || price;
+
+                        return {
+                            productId: 1, // Fallback product ID
+                            productName: item.name,
+                            quantity: qty,
+                            price: price,
+                            discountRate: 0,
+                            discountValue: 0,
+                            taxRate: 15, // Defaulting assuming KSA VAT
+                            taxValue: itemTax,
+                            total: itemTotal,
+                        };
+                    })
+                }
+            },
+            include: { details: true }
+        });
+
+        // Loop items to match by SKU/Barcode and deduct real local stock
+        for (const item of order.items) {
+            const sku = item.sku;
+            const qty = item.quantity || 1;
+            
+            if (sku) {
+                const localProd = await tx.product.findUnique({ where: { barcode: sku } });
+                if (localProd) {
+                    // Update actual product ID on the invoice line
+                    await tx.salesInvoiceDetail.updateMany({
+                        where: { invoiceId: createdInvoice.id, productName: item.name },
+                        data: { productId: localProd.id }
+                    });
+
+                    // Deduct Global Stock
+                    await tx.product.update({
+                        where: { id: localProd.id },
+                        data: { currentStock: { decrement: qty } }
+                    });
+
+                    // Deduct Warehouse specific Stock
+                    try {
+                        await tx.productStock.upsert({
+                            where: { productId_stockId: { productId: localProd.id, stockId } },
+                            update: { quantity: { decrement: qty } },
+                            create: { productId: localProd.id, stockId, quantity: -qty },
+                        });
+                    } catch (e) {
+                        console.error('Failed to update productStock for Salla webhook inside tx:', e);
+                    }
+                }
+            }
+        }
+
+        // Add to Treasury
+        await tx.treasury.create({
+            data: { 
+                type: 'in', amount: total, 
+                description: `مبيعات سلة أونلاين - فاتورة #${invoiceNo}`, 
+                referenceType: 'sale', referenceId: createdInvoice.id 
+            }
+        });
+    });
+
+    // Accounting Journal creation (done outside transaction to avoid blocking it if journal fails)
+    try {
+        await postSalesInvoice({
             invoiceNo,
-            customerId: customerId,
-            stockId: 1, // المتجر الرئيسي افتراضياً
             subtotal,
             taxValue,
             total,
-            paid: total,
-            remaining: 0,
-            paymentType: 'bank', // عادة تحويل بنكي أو إلكتروني
-            status: 'completed',
-            userId: 1, // مسؤول النظام
-            notes: `طلب سلة رقم: ${order.reference_id} | SALLA_ORDER_ID:${order.id}`,
-            details: {
-                create: invoiceItems
-            }
-        }
-    });
-
-    // تسجيل الدفعة في الخزينة/البنك
-    await prisma.treasury.create({
-        data: {
-            type: 'in',
-            amount: total,
-            description: `تحصيل طلب سلة رقم ${order.reference_id}`,
-            referenceType: 'sale',
-            referenceId: invoice.id,
-            userId: 1,
-            branchId: 1
-        }
-    });
-
-    // إنشاء القيد المحاسبي المزدوج الآلي
-    try {
-        await postSalesInvoice({
-            invoiceNo: invoice.invoiceNo,
-            subtotal: invoice.subtotal,
-            taxValue: invoice.taxValue,
-            total: invoice.total,
-            paymentType: invoice.paymentType,
+            paymentType: 'online',
+            splitCash: 0,
+            splitCard: total,
+            discountValue: 0,
             date: new Date().toISOString().split('T')[0],
         });
-    } catch (journalErr) {
-        console.warn('Auto-journal for Salla order skipped:', journalErr);
+    } catch (jErr) {
+        console.error('Auto-journal for Salla webhook failed:', jErr);
     }
-
-    console.log(`تم استيراد طلب سلة رقم ${order.reference_id} بنجاح كفاتورة #${invoice.invoiceNo}`);
 }
