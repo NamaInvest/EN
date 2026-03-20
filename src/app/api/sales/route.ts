@@ -2,7 +2,6 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
-import { sendSMS } from '@/lib/sms';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent } from '@/lib/zatca';
 
 export async function GET(request: NextRequest) {
@@ -147,6 +146,36 @@ export async function POST(request: Request) {
                 } catch (e) {
                     console.error('Failed to update productStock for sale inside tx:', e);
                 }
+
+                // --- PHASE 1 AUTOMATION: RECIPE & MANUFACTURING AUTO-DEDUCTION ---
+                try {
+                    const activeRecipe = await tx.recipe.findFirst({
+                        where: { finishedProductId: parseInt(item.productId), isActive: true },
+                        include: { ingredients: true }
+                    });
+
+                    if (activeRecipe && activeRecipe.ingredients.length > 0) {
+                        for (const ing of activeRecipe.ingredients) {
+                            const requiredQty = ing.quantity * qty;
+                            
+                            // Deduct Raw Material Globally
+                            await tx.product.update({
+                                where: { id: ing.rawProductId },
+                                data: { currentStock: { decrement: requiredQty } }
+                            });
+
+                            // Deduct Raw Material Locally (From active warehouse)
+                            await tx.productStock.upsert({
+                                where: { productId_stockId: { productId: ing.rawProductId, stockId: createdInvoice.stockId } },
+                                update: { quantity: { decrement: requiredQty } },
+                                create: { productId: ing.rawProductId, stockId: createdInvoice.stockId, quantity: -requiredQty }
+                            });
+                        }
+                    }
+                } catch (recipeErr) {
+                    console.error('Failed to auto-deduct recipe ingredients:', recipeErr);
+                }
+                // -------------------------------------------------------------
             }
 
             // Treasury entry (safely within transaction)
@@ -329,21 +358,6 @@ export async function POST(request: Request) {
         } catch (zatcaErr) {
             console.warn('ZATCA process skipped/failed:', zatcaErr);
         }
-
-        // 📱 Dispatch Digital Invoice via SMS
-        if (invoice.customer?.phone) {
-            try {
-                const protocol = request.headers.get('x-forwarded-proto') || 'http';
-                const host = request.headers.get('host') || 'localhost:3000';
-                const url = `${protocol}://${host}/invoice/${invoice.id}`;
-                const msg = `عزيزي العميل، شكراً لتسوقك معنا!\nيمكنك استعراض فاتورتك رقم #${invoice.invoiceNo} عبر الرابط:\n${url}`;
-                
-                sendSMS(invoice.customer.phone, msg).catch(e => console.error('SMS Send Async Error:', e));
-            } catch (smsErr) {
-                console.warn('SMS dispatch failed:', smsErr);
-            }
-        }
-
         return NextResponse.json({ ...invoice, zatcaQR }, { status: 201 });
     } catch (error) {
         console.error('Sales create error:', error);

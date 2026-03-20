@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Building, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Building, AlertCircle, DollarSign, TrendingUp, AlertTriangle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 export default function WarehousesPage() {
@@ -11,6 +11,7 @@ export default function WarehousesPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentWarehouse, setCurrentWarehouse] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
 
   // Form states
   const [name, setName] = useState("");
@@ -28,13 +29,15 @@ export default function WarehousesPage() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const [wRes, bRes] = await Promise.all([
+      const [wRes, bRes, aRes] = await Promise.all([
         fetch("/api/warehouses", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/branches", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/warehouses/analytics", { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
       if (wRes.ok) setWarehouses(await wRes.json());
       if (bRes.ok) setBranches(await bRes.json());
+      if (aRes.ok) setAnalytics(await aRes.json());
     } catch (e) {
       console.error(e);
     } finally {
@@ -126,6 +129,39 @@ export default function WarehousesPage() {
           {t("add_warehouse")}
         </button>
       </div>
+
+      {/* Analytics Banner */}
+      {analytics && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div className="p-4 bg-emerald-100 text-emerald-600 rounded-full">
+              <DollarSign className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-500 font-semibold">إجمالي التكلفة للمخزون</p>
+              <h3 className="text-2xl font-bold text-slate-800">{analytics.totalValuationBuy?.toLocaleString()} ر.س</h3>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div className="p-4 bg-blue-100 text-blue-600 rounded-full">
+              <TrendingUp className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-500 font-semibold">الربح المتوقع (بعد البيع)</p>
+              <h3 className="text-2xl font-bold text-slate-800">{analytics.expectedProfit?.toLocaleString()} ر.س</h3>
+            </div>
+          </div>
+          <a href="/warehouses/alerts" className="bg-white p-6 rounded-xl border border-red-200 shadow-sm flex items-center gap-4 hover:border-red-300 hover:shadow transition cursor-pointer group">
+            <div className="p-4 bg-red-100 text-red-600 rounded-full group-hover:bg-red-500 group-hover:text-white transition-colors">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-500 font-semibold">نواقص المخزون (تنبيهات)</p>
+              <h3 className="text-2xl font-bold text-red-600">{analytics.lowStockCount} نفاد وشيك</h3>
+            </div>
+          </a>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (

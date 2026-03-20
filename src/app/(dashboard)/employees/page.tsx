@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface Employee { id: number; name: string; phone: string; position: string; salary: number; startDate: string; active: boolean; branchId?: number; branch?: { id: number; name: string } | null; }
+interface Employee { id: number; name: string; phone: string; position: string; salary: number; startDate: string; active: boolean; branchId?: number; branch?: { id: number; name: string } | null; housingAllowance?: number; transportAllowance?: number; otherAllowance?: number; bankName?: string; iban?: string; }
 
 export default function EmployeesPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -11,7 +11,7 @@ export default function EmployeesPage() {
     const [editItem, setEditItem] = useState<Employee | null>(null);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
-    const [form, setForm] = useState({ name: '', phone: '', position: '', salary: '', startDate: '', branchId: '' });
+    const [form, setForm] = useState({ name: '', phone: '', position: '', salary: '', startDate: '', branchId: '', housingAllowance: '', transportAllowance: '', otherAllowance: '', bankName: '', iban: '' });
 
     async function fetchData() {
         const token = localStorage.getItem('token');
@@ -30,8 +30,8 @@ export default function EmployeesPage() {
     useEffect(() => { fetchData(); }, []);
     useEffect(() => { const t = setTimeout(fetchData, 300); return () => clearTimeout(t); }, [search]);
 
-    const openAdd = () => { setEditItem(null); setForm({ name: '', phone: '', position: '', salary: '', startDate: '', branchId: '' }); setShowModal(true); };
-    const openEdit = (e: Employee) => { setEditItem(e); setForm({ name: e.name, phone: e.phone || '', position: e.position || '', salary: e.salary?.toString() || '', startDate: e.startDate || '', branchId: e.branchId?.toString() || '' }); setShowModal(true); };
+    const openAdd = () => { setEditItem(null); setForm({ name: '', phone: '', position: '', salary: '', startDate: '', branchId: '', housingAllowance: '', transportAllowance: '', otherAllowance: '', bankName: '', iban: '' }); setShowModal(true); };
+    const openEdit = (e: Employee) => { setEditItem(e); setForm({ name: e.name, phone: e.phone || '', position: e.position || '', salary: e.salary?.toString() || '', startDate: e.startDate || '', branchId: e.branchId?.toString() || '', housingAllowance: e.housingAllowance?.toString() || '', transportAllowance: e.transportAllowance?.toString() || '', otherAllowance: e.otherAllowance?.toString() || '', bankName: e.bankName || '', iban: e.iban || '' }); setShowModal(true); };
 
     const handleSave = async () => {
         const token = localStorage.getItem('token');
@@ -99,7 +99,12 @@ export default function EmployeesPage() {
                                 </select>
                             </div>
                             <div className="input-group"><label className="input-label">الوظيفة</label><input className="input" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} /></div>
-                            <div className="input-group"><label className="input-label">الراتب</label><input className="input" type="number" value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">الراتب الأساسي</label><input className="input" type="number" value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">بدل السكن</label><input className="input" type="number" value={form.housingAllowance} onChange={e => setForm({ ...form, housingAllowance: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">بدل المواصلات</label><input className="input" type="number" value={form.transportAllowance} onChange={e => setForm({ ...form, transportAllowance: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">بدلات أخرى</label><input className="input" type="number" value={form.otherAllowance} onChange={e => setForm({ ...form, otherAllowance: e.target.value })} dir="ltr" /></div>
+                            <div className="input-group"><label className="input-label">اسم البنك</label><input className="input" value={form.bankName} onChange={e => setForm({ ...form, bankName: e.target.value })} /></div>
+                            <div className="input-group"><label className="input-label">رقم الآيبان (IBAN)</label><input className="input" value={form.iban} onChange={e => setForm({ ...form, iban: e.target.value })} dir="ltr" /></div>
                             <div className="input-group"><label className="input-label">تاريخ البداية</label><input className="input" type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} dir="ltr" /></div>
                         </div>
                         <div className="modal-footer"><button className="btn btn-primary" onClick={handleSave}>💾 حفظ</button><button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button></div>

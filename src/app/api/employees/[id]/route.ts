@@ -12,7 +12,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 name: body.name, 
                 phone: body.phone || null, 
                 position: body.position || null, 
-                salary: parseFloat(body.salary) || 0, 
+                salary: parseFloat(body.salary) || 0,
+                housingAllowance: parseFloat(body.housingAllowance) || 0,
+                transportAllowance: parseFloat(body.transportAllowance) || 0,
+                otherAllowance: parseFloat(body.otherAllowance) || 0,
+                bankName: body.bankName || null,
+                iban: body.iban || null,
                 startDate: body.startDate || null,
                 branchId: body.branchId ? parseInt(body.branchId) : null
             },

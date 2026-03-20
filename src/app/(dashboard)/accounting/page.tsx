@@ -63,7 +63,27 @@ export default function AccountingPage() {
 
     async function loadTrialBalance() {
         setLoading(true);
-        try { const r = await fetch('/api/accounting/trial-balance'); if (r.ok) setTrialData(await r.json()); } catch (e) { console.error(e); }
+        try { 
+            const r = await fetch('/api/accounting/trial-balance'); 
+            if (r.ok) {
+                const data = await r.json();
+                if (data.accounts) {
+                    const rows = data.accounts.map((acc: any) => ({
+                        id: acc.id, code: acc.code, name: acc.name, type: acc.type, level: acc.level,
+                        totalDebit: acc.periodDebit, totalCredit: acc.periodCredit,
+                        debitBalance: acc.netBalance > 0 ? acc.netBalance : 0,
+                        creditBalance: acc.netBalance < 0 ? Math.abs(acc.netBalance) : 0
+                    })).filter((r: any) => r.debitBalance > 0 || r.creditBalance > 0);
+                    
+                    const grandTotalDebit = rows.reduce((s: number, r: any) => s + r.debitBalance, 0);
+                    const grandTotalCredit = rows.reduce((s: number, r: any) => s + r.creditBalance, 0);
+                    
+                    setTrialData({ rows, grandTotalDebit, grandTotalCredit, isBalanced: Math.abs(grandTotalDebit - grandTotalCredit) < 0.01 });
+                } else {
+                    setTrialData(data);
+                }
+            } 
+        } catch (e) { console.error(e); }
         setLoading(false);
     };
 

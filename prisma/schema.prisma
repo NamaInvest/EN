@@ -107,6 +107,7 @@ model Product {
   batches         ProductBatch[]
   finishedRecipes Recipe[]                @relation("RecipeFinishedProduct")
   rawRecipes      RecipeIngredient[]      @relation("RecipeRawProduct")
+  wastages        ManufacturingWastage[]
   salesReturnDetails SalesReturnDetail[]
 
   @@map("products")
@@ -138,6 +139,7 @@ model Customer {
   installments     Installment[]
   loyaltyPoints    LoyaltyPoint[]
   bookings         Booking[]
+  lettersOfCredit  LetterOfCredit[]
 
   @@map("customers")
 }
@@ -166,6 +168,7 @@ model ProductStock {
   productId Int      @map("product_id")
   stockId   Int      @map("stock_id")
   quantity  Float    @default(0)
+  location  String?  @map("location") 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -481,6 +484,11 @@ model Employee {
   phone     String?
   position  String?
   salary    Float    @default(0)
+  housingAllowance Float @default(0) @map("housing_allowance")
+  transportAllowance Float @default(0) @map("transport_allowance")
+  otherAllowance Float @default(0) @map("other_allowance")
+  bankName  String?  @map("bank_name")
+  iban      String?
   startDate String?  @map("start_date")
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
@@ -1010,6 +1018,7 @@ model ManufacturingOrder {
   id                Int       @id @default(autoincrement())
   orderNumber       String    @map("order_number")
   recipeId          Int       @map("recipe_id")
+  machineId         Int?      @map("machine_id")
   quantityToProduce Float     @map("quantity_to_produce")
   startDate         DateTime  @default(now()) @map("start_date")
   endDate           DateTime? @map("end_date")
@@ -1019,9 +1028,64 @@ model ManufacturingOrder {
   userId            Int?      @map("user_id")
   notes             String?
 
-  recipe Recipe @relation(fields: [recipeId], references: [id])
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  machine  Machine? @relation(fields: [machineId], references: [id])
+  wastages ManufacturingWastage[]
 
   @@map("manufacturing_orders")
+}
+
+model Machine {
+  id              Int      @id @default(autoincrement())
+  name            String
+  code            String?  @unique
+  hourlyCost      Float    @default(0) @map("hourly_cost")
+  status          String   @default("active") // active, maintenance, offline
+  branchId        Int?     @map("branch_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  orders ManufacturingOrder[]
+
+  @@map("machines")
+}
+
+model ManufacturingWastage {
+  id                   Int      @id @default(autoincrement())
+  manufacturingOrderId Int      @map("manufacturing_order_id")
+  rawProductId         Int      @map("raw_product_id")
+  lostQuantity         Float    @map("lost_quantity")
+  wastedCost           Float    @default(0) @map("wasted_cost")
+  reason               String?
+  reportedAt           DateTime @default(now()) @map("reported_at")
+
+  order      ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
+  rawProduct Product            @relation(fields: [rawProductId], references: [id])
+
+  @@map("manufacturing_wastage")
+}
+
+model LetterOfCredit {
+  id              Int       @id @default(autoincrement())
+  lcNumber        String    @unique @map("lc_number")
+  bankId          Int       @map("bank_id")
+  supplierId      Int       @map("supplier_id")
+  amount          Float
+  currency        String    @default("USD")
+  exchangeRate    Float     @default(1.0) @map("exchange_rate")
+  openDate        DateTime  @default(now()) @map("open_date")
+  expiryDate      DateTime  @map("expiry_date")
+  status          String    @default("draft") // draft, open, shipped, closed
+  marginPercent   Float     @default(0) @map("margin_percent")
+  marginPaid      Float     @default(0) @map("margin_paid")
+  portOfLoading   String?   @map("port_of_loading")
+  portOfDischarge String?   @map("port_of_discharge")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  bank     BankAccount @relation(fields: [bankId], references: [id])
+  supplier Customer    @relation(fields: [supplierId], references: [id])
+
+  @@map("letters_of_credit")
 }
 
 model BankAccount {
@@ -1037,6 +1101,7 @@ model BankAccount {
 
   branch       Branch?           @relation(fields: [branchId], references: [id])
   transactions BankTransaction[]
+  lcs          LetterOfCredit[]
 
   @@map("bank_accounts")
 }

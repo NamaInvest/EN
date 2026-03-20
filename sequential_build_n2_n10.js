@@ -1,0 +1,28 @@
+const { Client } = require('ssh2');
+const conn = new Client();
+const bashScript = `
+#!/bin/bash
+echo "Starting Sequential Rebuilds to prevent OOM..."
+for i in {2..10}
+do
+  echo "Force rebuilding n$i..."
+  cd /www/wwwroot/n$i.namainvist.com
+  rm -rf .next
+  npm run build
+  pm2 reload n$i --update-env
+  pm2 reload n$i-whatsapp --update-env
+  echo "n$i DONE."
+done
+echo "ALL SEQUENTIAL BUILDS COMPLETE!"
+`;
+conn.on('ready', () => {
+    conn.exec('cat << "EOF" > /root/sequential_build.sh\n' + bashScript + '\nEOF\nbash /root/sequential_build.sh', (err, stream) => {
+        if (err) throw err;
+        stream.on('close', () => conn.end())
+        .on('data', (d) => process.stdout.write(d.toString()))
+        .stderr.on('data', (d) => process.stderr.write(d.toString()));
+    });
+}).connect({
+    host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b',
+    readyTimeout: 30000
+});

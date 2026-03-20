@@ -1,0 +1,58 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const stockId = searchParams.get('stockId');
+
+    const productStocks = await prisma.productStock.findMany({
+      where: stockId ? { stockId: parseInt(stockId) } : { stock: { active: true } },
+      include: { 
+        product: true,
+        stock: true 
+      }
+    });
+
+    let totalValuationBuy = 0;
+    let totalValuationSell = 0;
+    let lowStockCount = 0;
+    const lowStockAlerts = [];
+
+    for (const ps of productStocks) {
+      if (ps.quantity > 0) {
+        const buyValue = ps.quantity * (ps.product.buyPrice || 0);
+        const sellValue = ps.quantity * (ps.product.sellPrice || 0);
+        totalValuationBuy += buyValue;
+        totalValuationSell += sellValue;
+      }
+
+      if (ps.quantity <= ps.product.minQuantity && ps.product.active) {
+        lowStockCount++;
+        lowStockAlerts.push({
+          id: ps.product.id,
+          name: ps.product.name,
+          currentStock: ps.quantity,
+          minQuantity: ps.product.minQuantity,
+          warehouseName: ps.stock.name,
+          stockId: ps.stock.id,
+          barcode: ps.product.barcode || '-',
+        });
+      }
+    }
+
+    return NextResponse.json({
+      totalValuationBuy,
+      totalValuationSell,
+      expectedProfit: totalValuationSell - totalValuationBuy,
+      lowStockCount,
+      lowStockAlerts
+    });
+
+  } catch (error: any) {
+    console.error('Analytics Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

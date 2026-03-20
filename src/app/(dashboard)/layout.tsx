@@ -3,6 +3,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SessionGuard from '@/components/SessionGuard';
 import InactivityGuard from '@/components/InactivityGuard';
+import StockNotificationBell from '@/components/StockNotificationBell';
 import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
 
@@ -23,6 +24,7 @@ export default function DashboardLayout({
                     <div className="top-bar">
                         <div className="top-bar-spacer" />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <StockNotificationBell />
                             <LanguageSwitcher />
                             <ThemeSwitcher />
                         </div>

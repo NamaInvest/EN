@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-interface Product { id: number; name: string; currentStock: number; minQuantity: number; buyPrice: number; unit?: { name: string }; category?: { name: string }; productStocks?: { quantity: number; stock: { name: string } }[]; }
+interface Product { id: number; name: string; currentStock: number; minQuantity: number; buyPrice: number; unit?: { name: string }; category?: { name: string }; productStocks?: { id: number; quantity: number; location: string; stock: { name: string } }[]; }
 interface Movement { id: number; date: string; type: string; quantity: number; notes: string; product?: { name: string }; }
 
 export default function StockPage() {
@@ -20,6 +20,19 @@ export default function StockPage() {
 
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
     const totalValue = products.reduce((s, p) => s + p.currentStock * p.buyPrice, 0);
+
+    const handleLocationUpdate = async (productStockId: number, location: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            await fetch('/api/product-stocks/location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ productStockId, location })
+            });
+        } catch (e) {
+            console.error('Failed to update location');
+        }
+    };
 
     return (
         <>
@@ -47,10 +60,20 @@ export default function StockPage() {
                                             <td style={{ fontWeight: '700' }}>
                                                 <div>{p.currentStock} {p.unit?.name || ''}</div>
                                                 {p.productStocks && p.productStocks.length > 0 && (
-                                                    <div style={{ fontSize: '11px', fontWeight: 'normal', color: 'var(--text-muted)', marginTop: '4px', background: 'var(--bg-card-hover)', padding: '4px', borderRadius: '4px' }}>
+                                                    <div style={{ fontSize: '11px', fontWeight: 'normal', color: 'var(--text-muted)', marginTop: '4px', background: 'var(--bg-card-hover)', padding: '6px', borderRadius: '4px' }}>
                                                         {p.productStocks.filter(ps => ps.quantity > 0).map((ps, idx) => (
-                                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                                                                <span>{ps.stock?.name}:</span>
+                                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                                    <span>{ps.stock?.name}</span>
+                                                                    <input 
+                                                                        type="text" 
+                                                                        defaultValue={ps.location || ''} 
+                                                                        placeholder="الرف/الموقع"
+                                                                        onBlur={(e) => handleLocationUpdate(ps.id, e.target.value)}
+                                                                        title="تسجيل مكان الرف (Bin) بالمخزن"
+                                                                        style={{ fontSize: '10px', padding: '2px 4px', width: '70px', border: '1px solid #ccc', borderRadius: '3px' }}
+                                                                    />
+                                                                </div>
                                                                 <span style={{ fontWeight: 'bold' }}>{ps.quantity}</span>
                                                             </div>
                                                         ))}
