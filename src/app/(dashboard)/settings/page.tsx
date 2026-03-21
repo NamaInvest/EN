@@ -103,6 +103,13 @@ export const SETTING_GROUPS = [
         ]
     },
     {
+        title: '💳 بوابات الدفع والتقسيط (BNPL)', id: 'bnpl', keys: [
+            { key: 'tabby_api_key', label: 'مفتاح Tabby Secret Key', type: 'text' },
+            { key: 'tabby_merchant_code', label: 'كود التاجر (Merchant Code) لتابي', type: 'text' },
+            { key: 'tamara_bearer_token', label: 'مفتاح Tamara Bearer Token', type: 'text' },
+        ]
+    },
+    {
         title: '🤖 الذكاء الاصطناعي وبوت تلجرام', id: 'ai_bots', keys: [
             { key: 'gemini_api_key', label: 'مفتاح Gemini API (لقارئ الفواتير الذكي)', type: 'text' },
             { key: 'telegram_bot_token', label: 'مفتاح بوت تلجرام (Bot Token)', type: 'text' },
@@ -168,48 +175,73 @@ export default function SettingsPage() {
     const [canResetPassword, setCanResetPassword] = useState(false);
     const [canDeleteAllSales, setCanDeleteAllSales] = useState(false);
     const [canClearZatca, setCanClearZatca] = useState(false);
-    const roleLabels: Record<string, string> = { admin: 'مدير', cashier: 'كاشير', accountant: 'محاسب', data_entry: 'مدخل بيانات' };
+    const roleLabels: Record<string, string> = { owner: 'المالك', admin: 'مدير النظام', manager: 'مدير عام', auditor: 'مُراجع / مدقق', accountant: 'محاسب', cashier: 'كاشير', data_entry: 'مدخل بيانات', hr: 'موارد بشرية', sales_rep: 'مندوب مبيعات' };
     const ALL_MODULES = [
-        { key: 'dashboard', label: '📊 لوحة التحكم' },
-        { key: 'sales', label: '🧾 المبيعات' },
-        { key: 'purchases', label: '🛒 المشتريات' },
-        { key: 'sales-returns', label: '↩️ مرتجع مبيعات' },
-        { key: 'purchase-returns', label: '↩️ مرتجع مشتريات' },
-        { key: 'products', label: '📦 المنتجات' },
-        { key: 'stock', label: '🏭 المخزون' },
-        { key: 'customers', label: '👥 العملاء' },
-        { key: 'treasury', label: '💰 الخزينة' },
-        { key: 'expenses', label: '💸 المصروفات' },
-        { key: 'reports', label: '📊 التقارير' },
-        { key: 'employees', label: '👨‍💼 الموظفين' },
-        { key: 'settings', label: '⚙️ الإعدادات' },
-        { key: 'bookings', label: '📋 الحجز' },
-        { key: 'promotions', label: '🎯 العروض' },
-        { key: 'accounting', label: '📊 المحاسبة' },
-        { key: 'manufacturing', label: '🏭 التصنيع' },
+        { key: 'dashboard', label: '📊 لوحة التحكم الرئيسية' },
+        { key: 'pos', label: '💻 شاشة نقطة البيع (POS)' },
+        { key: 'restaurant_pos', label: '🍔 نقطة بيع المطاعم' },
         { key: 'shifts', label: '🕒 ورديات الكاشير' },
-        { key: 'fixed-assets', label: '🏢 الأصول الثابتة' },
+        { key: 'sales_orders', label: '📦 أوامر البيع' },
+        { key: 'sales', label: '🧾 المبيعات' },
+        { key: 'sales_routes', label: '🗺️ خطوط السير' },
+        { key: 'sales_targets', label: '🎯 مستهدفات المبيعات' },
+        { key: 'purchases', label: '🛒 المشتريات' },
+        { key: 'purchase_orders', label: '📋 أوامر الشراء' },
+        { key: 'letters_of_credit', label: '🌍 الاعتمادات (الاستيراد)' },
+        { key: 'sales_returns', label: '↩️ مرتجع مبيعات' },
+        { key: 'purchase_returns', label: '↩️ مرتجع مشتريات' },
+        { key: 'bookings', label: '📋 الحجوزات' },
+        { key: 'price_quotes', label: '📄 عروض الأسعار' },
         { key: 'coupons', label: '🎟️ الكوبونات' },
-        { key: 'loyalty', label: '🎁 الولاء والنقاط' },
-        { key: 'gift-cards', label: '💳 بطاقات الهدايا' },
-        { key: 'batches', label: '📦 التشغيلات والصلاحية' },
-        { key: 'stocktake', label: '📦 عمليات الجرد' },
+        { key: 'products', label: '📦 المنتجات والأصناف' },
+        { key: 'stock', label: '🏭 حركة المخزون' },
+        { key: 'manufacturing', label: '🛠️ إدارة التصنيع والتجميع' },
+        { key: 'warehouses', label: '🏢 المستودعات' },
+        { key: 'stock_transfers', label: '🔀 التحويلات المخزنية' },
+        { key: 'barcode', label: '🏷️ طباعة الباركود' },
+        { key: 'batches', label: '⏱️ التشغيلات والصلاحيات' },
+        { key: 'customers', label: '👥 العملاء والموردين' },
+        { key: 'loyalty', label: '🎁 نقاط الولاء' },
+        { key: 'treasury', label: '💰 الخزينة' },
+        { key: 'treasury_checks', label: '🏦 الشيكات وأوراق الدفع' },
+        { key: 'bank_reconciliation', label: '⚖️ التسويات البنكية' },
+        { key: 'petty_cash', label: '💸 العهد والمصاريف النثرية' },
+        { key: 'banks', label: '🏦 البنوك' },
+        { key: 'receipt_vouchers', label: '🧾 سندات القبض والصرف' },
+        { key: 'expenses', label: '💸 المصروفات' },
+        { key: 'reports', label: '📊 التقارير الشاملة' },
+        { key: 'installments', label: '📑 أقساط العملاء' },
+        { key: 'gift_cards', label: '💳 بطاقات الهدايا' },
+        { key: 'employees', label: '👨‍💼 شؤون الموظفين' },
+        { key: 'attendance', label: '🕐 الحضور والانصراف' },
+        { key: 'hr_loans', label: '💼 سلف الموظفين' },
+        { key: 'salaries', label: '💵 مسير الرواتب' },
+        { key: 'vacations', label: '🏖️ الإجازات والطلبات' },
+        { key: 'whatsapp', label: '📨 واتساب API' },
+        { key: 'salla', label: '🛒 ربط منصة سلة' },
+        { key: 'maintenance', label: '🔧 الصيانة والأعطال' },
+        { key: 'promotions', label: '🎯 العروض الترويجية' },
+        { key: 'stocktake', label: '📦 عمليات الجرد المخزني' },
         { key: 'vision_inventory', label: '📸 الجرد بالذكاء الاصطناعي' },
-        { key: 'whatsapp', label: '📨 واتساب الذكي API' },
-        { key: 'master-panel', label: '🌐 محرك الشركات SaaS' },
-        { key: 'audit-logs', label: '🛡️ سجل الحركات' },
-        { key: 'branches', label: '🏢 الفروع' },
+        { key: 'master-panel', label: '🌐 محرك الإدارة (SaaS)' },
+        { key: 'accounting', label: '📊 المحاسبة العامة والقيود' },
+        { key: 'fixed_assets', label: '🏢 الأصول الثابتة والإهلاك' },
+        { key: 'branches', label: '🏢 إدارة الفروع' },
+        { key: 'currencies', label: '💱 العملات وسعر الصرف' },
+        { key: 'approvals', label: '✅ نظام الرقابة والموافقات' },
+        { key: 'settings', label: '⚙️ إعدادات النظام' },
+        { key: 'audit_logs', label: '🛡️ سجل التدقيق والمراقبة' },
         { key: 'manage_users', label: '👤 إدارة المستخدمين' },
         { key: 'manage_permissions', label: '🔐 تعديل الصلاحيات' },
         { key: 'delete_invoices', label: '🗑️ حذف الفواتير والمشتريات' },
-        { key: 'delete_expense', label: '🗑️ حذف مصروف واحد' },
-        { key: 'delete_all_expenses', label: '⚠️ حذف كافة المصروفات' },
-        { key: 'edit_expense', label: '✏️ تعديل المصروفات' },
-        { key: 'delete_products', label: '🗑️ حذف الأصناف' },
-        { key: 'reset_stock', label: '🔄 تصفير المخزون' },
-        { key: 'delete_all_sales', label: '⚠️ حذف كل فواتير المبيعات' },
-        { key: 'reset_password', label: '🔑 إعادة تعيين كلمة السر' },
-        { key: 'clear_zatca', label: '🧹 حذف بيانات ربط الزكاة والدخل' },
+        { key: 'delete_expense', label: '🗑️ حذف مصاريف إفرادية' },
+        { key: 'delete_all_expenses', label: '⚠️ تصفير وحذف كل المصاريف' },
+        { key: 'edit_expense', label: '✏️ تعديل مبالغ المصروفات' },
+        { key: 'delete_products', label: '🗑️ مسح بطاقات الأصناف' },
+        { key: 'reset_stock', label: '🔄 تصفير المخزون كاملاً' },
+        { key: 'delete_all_sales', label: '⚠️ حذف وحرق كل المبيعات' },
+        { key: 'reset_password', label: '🔑 إعادة تعيين كلمات السر' },
+        { key: 'clear_zatca', label: '🧹 قطع وحذف ربط الزكاة' },
     ];
 
     const fetchUsers = async () => {
@@ -492,20 +524,12 @@ export default function SettingsPage() {
         setFatooraMessage('');
         try {
             const token = localStorage.getItem('token');
-            // Map UI actions to new ZATCA Kit actions
-            const actionMap: Record<string, string> = {
-                'compliance-csid': 'onboard',
-                'compliance-invoice': 'compliance-check',
-                'production-csid': 'production-csid',
-            };
-            const apiAction = actionMap[action] || action;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const bodyData: Record<string, any> = { action: apiAction };
+            const bodyData: Record<string, any> = { action };
 
-            // For onboard, pass OTP
-            if (apiAction === 'onboard') {
+            // For compliance-csid, pass OTP
+            if (action === 'compliance-csid') {
                 const otp = settings['zatca_otp'] || '';
-                if (!otp) { showToast('❌ أدخل OTP من بوابة فاتورة أولاً'); setFatooraLoading(false); return; }
+                if (!otp) { showToast('❌ أدخل OTP من بوابة فاتورة أولاً واحفظ الإعدادات'); setFatooraLoading(false); return; }
                 bodyData.otp = otp;
             }
 
@@ -929,9 +953,14 @@ export default function SettingsPage() {
                                 <input className="input" placeholder="الاسم الكامل *" value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} />
                                 <input className="input" placeholder="رقم الجوال" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} dir="ltr" />
                                 <select className="input" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
-                                    <option value="admin">👑 مدير</option>
-                                    <option value="cashier">💰 كاشير</option>
+                                    <option value="owner">🏢 المالك</option>
+                                    <option value="manager">👔 مدير عام</option>
+                                    <option value="admin">👑 مدير النظام</option>
+                                    <option value="auditor">🧐 مُراجع / مدقق</option>
                                     <option value="accountant">📊 محاسب</option>
+                                    <option value="hr">👥 موارد بشرية</option>
+                                    <option value="sales_rep">💼 مندوب مبيعات</option>
+                                    <option value="cashier">💰 كاشير</option>
                                     <option value="data_entry">📝 مدخل بيانات</option>
                                 </select>
                                 <select className="input" value={newUser.branchId || ''} onChange={e => setNewUser({ ...newUser, branchId: e.target.value })}>
@@ -971,9 +1000,14 @@ export default function SettingsPage() {
                                         <td dir="ltr">{u.username}</td>
                                         <td>
                                             <select className="input" value={u.role} onChange={e => updateUserRole(u, e.target.value)} style={{ padding: '4px 8px', fontSize: '12px', width: '120px' }}>
-                                                <option value="admin">👑 مدير</option>
-                                                <option value="cashier">💰 كاشير</option>
+                                                <option value="owner">🏢 المالك</option>
+                                                <option value="manager">👔 مدير عام</option>
+                                                <option value="admin">👑 مدير النظام</option>
+                                                <option value="auditor">🧐 مُراجع / مدقق</option>
                                                 <option value="accountant">📊 محاسب</option>
+                                                <option value="hr">👥 موارد بشرية</option>
+                                                <option value="sales_rep">💼 مندوب مبيعات</option>
+                                                <option value="cashier">💰 كاشير</option>
                                                 <option value="data_entry">📝 مدخل بيانات</option>
                                             </select>
                                         </td>

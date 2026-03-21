@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 `;
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const result = await model.generateContent([
             promptText,
@@ -76,6 +76,8 @@ export async function POST(req: NextRequest) {
             msg = 'المفتاح محظور من جوجل (Generative Language API غير مفعل).';
         } else if (error?.message?.includes('API key not valid')) {
             msg = 'المفتاح غير صحيح أو تم حذفه.';
+        } else if (error?.message?.includes('Too Many Requests') || error?.message?.includes('exhausted') || error?.message?.includes('quota')) {
+            msg = '⚠️ عذراً، وصلت للحد الأقصى المسموح من جوجل (مؤقتاً). يرجى الانتظار لمدة دقيقة والمحاولة مرة أخرى.';
         }
         
         return NextResponse.json({ error: msg }, { status: 500 });

@@ -1,0 +1,180 @@
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+
+export async function GET(req: NextRequest) {
+    try {
+        const user = getUserFromRequest(req);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        // Retrieve specifically 'transit_out' movements meaning items sent out but maybe not received
+        const transits = await prisma.stockMovement.findMany({
+            where: { type: 'transit_out' },
+            include: { 
+                product: { select: { name: true } }, 
+                stock: { select: { name: true } },
+                user: { select: { fullName: true } }
+            },
+            orderBy: { id: 'desc' }
+        });
+
+        const activeTransits = [];
+        const completedTransits = [];
+
+        // Parsing notes safely
+        for (const tr of transits) {
+            let meta = { status: 'unknown', receiverStockId: 0, transferRef: '' };
+            try { if (tr.notes) meta = JSON.parse(tr.notes); } catch (e) {}
+            
+            // To get receiver name without N+1 problem, ideally fetch all stocks once, but let's query gracefully
+            const receiverStock = await prisma.stock.findUnique({ where: { id: meta.receiverStockId || 0 }, select: { name: true } });
+
+            const formatted = {
+                id: tr.id,
+                reference: meta.transferRef || `TRX-${tr.id}`,
+                productName: tr.product?.name || 'Unknown',
+                quantity: Math.abs(tr.quantity),
+                senderStock: tr.stock?.name || 'Unknown',
+                receiverStock: receiverStock?.name || 'Unknown',
+                receiverStockId: meta.receiverStockId,
+                status: meta.status,
+                date: tr.date,
+                senderName: tr.user?.fullName || 'System'
+            };
+
+            if (meta.status === 'pending') {
+                activeTransits.push(formatted);
+            } else {
+                completedTransits.push(formatted);
+            }
+        }
+
+        return NextResponse.json({ activeTransits, completedTransits });
+
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const user = getUserFromRequest(req);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const body = await req.json();
+        const { productId, senderStockId, receiverStockId, quantity } = body;
+
+        if (!productId || !senderStockId || !receiverStockId || quantity <= 0) {
+            return NextResponse.json({ error: 'بيانات غير مكتملة' }, { status: 400 });
+        }
+
+        // Validate sender stock availability
+        const currentStock = await prisma.productStock.findFirst({
+            where: { productId: Number(productId), stockId: Number(senderStockId) }
+        });
+
+        if (!currentStock || currentStock.quantity < quantity) {
+            return NextResponse.json({ error: 'الكمية غير متوفرة في المستودع المرسل' }, { status: 400 });
+        }
+
+        const transferRef = `TRX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+        // Phase 1: Dispatch (Transit Out) using Prisma Transaction
+        const dispatchAction = await prisma.$transaction([
+            // Deduct from sender natively
+            prisma.productStock.update({
+                where: { id: currentStock.id },
+                data: { quantity: { decrement: Number(quantity) } }
+            }),
+            // Create the transit log
+            prisma.stockMovement.create({
+                data: {
+                    productId: Number(productId),
+                    stockId: Number(senderStockId), // Origin
+                    type: 'transit_out',
+                    quantity: -Math.abs(Number(quantity)),
+                    date: new Date(),
+                    userId: (user as any).id || 1,
+                    notes: JSON.stringify({
+                        status: 'pending',
+                        receiverStockId: Number(receiverStockId),
+                        transferRef: transferRef
+                    })
+                }
+            })
+        ]);
+
+        return NextResponse.json({ success: true, message: 'تم إرسال الإرسالية بنجاح، البضاعة الآن في الطريق.', dispatchCheck: dispatchAction[1].id });
+
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+export async function PUT(req: NextRequest) {
+    try {
+        const user = getUserFromRequest(req);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const body = await req.json();
+        const { movementId } = body;
+
+        if (!movementId) return NextResponse.json({ error: 'No ID provided' }, { status: 400 });
+
+        const tr = await prisma.stockMovement.findUnique({ where: { id: parseInt(movementId) } });
+        if (!tr || tr.type !== 'transit_out') return NextResponse.json({ error: 'Invalid Movement' }, { status: 400 });
+
+        let meta = JSON.parse(tr.notes || '{}');
+        if (meta.status === 'completed') {
+            return NextResponse.json({ error: 'تم الاستلام مسبقاً' }, { status: 400 });
+        }
+
+        meta.status = 'completed';
+        const receivingStockId = Number(meta.receiverStockId);
+        const qty = Math.abs(tr.quantity);
+
+        // Receive the goods natively via Prisma Transaction
+        await prisma.$transaction(async (tx) => {
+            // 1. Mark sender transit complete
+            await tx.stockMovement.update({
+                where: { id: tr.id },
+                data: { notes: JSON.stringify(meta) }
+            });
+
+            // 2. Add to receiver ProductStock
+            const receiverPS = await tx.productStock.findFirst({
+                where: { productId: tr.productId, stockId: receivingStockId }
+            });
+
+            if (receiverPS) {
+                await tx.productStock.update({
+                    where: { id: receiverPS.id },
+                    data: { quantity: { increment: qty } }
+                });
+            } else {
+                await tx.productStock.create({
+                    data: { productId: tr.productId, stockId: receivingStockId, quantity: qty }
+                });
+            }
+
+            // 3. Log the transit_in
+            await tx.stockMovement.create({
+                data: {
+                    productId: tr.productId,
+                    stockId: receivingStockId,
+                    type: 'transit_in',
+                    quantity: qty,
+                    referenceId: tr.id,
+                    date: new Date(),
+                    userId: (user as any).id || 1,
+                    notes: `استلام الشحنة #${meta.transferRef || 'N/A'}`
+                }
+            });
+        });
+
+        return NextResponse.json({ success: true, message: 'تم ادخال البضاعة بنجاح إلى المستودع الهدف!' });
+
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

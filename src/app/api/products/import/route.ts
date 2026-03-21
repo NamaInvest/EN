@@ -34,75 +34,119 @@ export async function POST(request: NextRequest) {
         let added = 0;
         let updated = 0;
         let failed = 0;
+        let firstError = '';
 
-        await prisma.$transaction(async (tx) => {
-            for (const row of data) {
-                try {
-                    const id = row['المعرف (لا تقم بتعديله)'];
-                    const name = row['اسم المنتج'] || row['name'] || row['Name'];
-                    if (!name) { failed++; continue; }
+        // Removed $transaction to prevent 30-second timeouts on 10,000+ rows
+        for (const row of data) {
+            try {
+                let id, name, nameEn, barcode, buyPrice, sellPrice, taxRate, currentStock, minQuantity, categoryId, categoryName, description, activeVal, imagePath, brandAr, brandEn, sizeInfo;
+                
+                // Dynamic resilient key mapping
+                for (const key of Object.keys(row)) {
+                    const k = key.trim().toLowerCase();
+                    const val = row[key];
+                    if (k === 'المعرف (لا تقم بتعديله)' || k === 'id') id = val;
+                    else if (k === 'اسم المنتج' || k === 'name' || k === 'name_ar') name = val;
+                    else if (k === 'الاسم الإنجليزي' || k === 'nameen' || k === 'name_en') nameEn = val;
+                    else if (k === 'الباركود' || k === 'barcode' || k === 'barcodes') barcode = val;
+                    else if (k === 'سعر الشراء' || k === 'buyprice') buyPrice = val;
+                    else if (k === 'سعر البيع' || k === 'sellprice' || k === 'price (sar)' || k === 'price') sellPrice = val;
+                    else if (k === 'نسبة الضريبة' || k === 'taxrate') taxRate = val;
+                    else if (k === 'المخزون الحالي' || k === 'currentstock') currentStock = val;
+                    else if (k === 'الحد الأدنى' || k === 'minquantity') minQuantity = val;
+                    else if (k === 'معرف التصنيف' || k === 'categoryid') categoryId = val;
+                    else if (k === 'category1_ar' || k === 'category' || k === 'تصنيف') categoryName = val;
+                    else if (k === 'الوصف' || k === 'description') description = val;
+                    else if (k === 'نشط (1/0)' || k === 'active') activeVal = val;
+                    else if (k === 'صورة' || k === 'imagelink1' || k === 'imagepath') imagePath = val;
+                    else if (k === 'brand_ar') brandAr = val;
+                    else if (k === 'brand_en') brandEn = val;
+                    else if (k === 'size_ar' || k === 'الحجم') sizeInfo = val;
+                }
 
-                    const barcode = (row['الباركود'] || row['barcode'] || row['Barcode'] || '').toString();
-                    const nameEn = (row['الاسم الإنجليزي'] || row['nameEn'] || '').toString();
-                    const buyPrice = parseFloat(row['سعر الشراء'] || row['buyPrice'] || 0);
-                    const sellPrice = parseFloat(row['سعر البيع'] || row['sellPrice'] || 0);
-                    const taxRate = parseFloat(row['نسبة الضريبة'] || row['taxRate'] || 15);
-                    const currentStock = parseFloat(row['المخزون الحالي'] || row['currentStock'] || 0);
-                    const minQuantity = parseFloat(row['الحد الأدنى'] || row['minQuantity'] || 0);
-                    const categoryId = parseInt(row['معرف التصنيف'] || row['categoryId'] || 0);
-                    const description = (row['الوصف'] || row['description'] || '').toString();
-                    const activeVal = row['نشط (1/0)'] || row['active'];
-                    const active = activeVal === 0 || activeVal === '0' || activeVal === false ? false : true;
+                if (!name) { 
+                    failed++; 
+                    if (!firstError) firstError = 'يوجد صفوف لا تحتوي على اسم منتج';
+                    continue; 
+                }
 
-                    const productData = {
-                        name,
-                        nameEn,
-                        barcode: barcode ? barcode : undefined, // If empty, undefined allows Prisma to drop it if unique is needed
-                        buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
-                        sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
-                        taxRate: isNaN(taxRate) ? 15 : taxRate,
-                        currentStock: isNaN(currentStock) ? 0 : currentStock,
-                        minQuantity: isNaN(minQuantity) ? 0 : minQuantity,
-                        categoryId: isNaN(categoryId) || categoryId === 0 ? null : categoryId,
-                        description,
-                        active
-                    };
+                barcode = (barcode || '').toString();
+                nameEn = (nameEn || '').toString();
+                buyPrice = parseFloat(buyPrice || 0);
+                sellPrice = parseFloat(sellPrice || 0);
+                taxRate = parseFloat(taxRate || 15);
+                currentStock = parseFloat(currentStock || 0);
+                minQuantity = parseFloat(minQuantity || 0);
+                categoryId = parseInt(categoryId || 0);
+                categoryName = (categoryName || '').toString();
+                description = (description || '').toString();
+                const active = activeVal === 0 || activeVal === '0' || activeVal === false ? false : true;
+                
+                imagePath = (imagePath || '').toString();
+                brandAr = (brandAr || '').toString();
+                brandEn = (brandEn || '').toString();
+                sizeInfo = (sizeInfo || '').toString();
 
-                    if (id) {
-                        // Update existing product
-                        await tx.product.update({
-                            where: { id: parseInt(id) },
-                            data: productData
-                        });
+                if ((!categoryId || isNaN(categoryId)) && categoryName) {
+                    let existingCat = await prisma.category.findFirst({ where: { name: categoryName } });
+                    if (!existingCat) {
+                        existingCat = await prisma.category.create({ data: { name: categoryName } });
+                    }
+                    categoryId = existingCat.id;
+                }
+
+                const productData = {
+                    name,
+                    nameEn,
+                    brandAr,
+                    brandEn,
+                    sizeInfo,
+                    imagePath,
+                    barcode: barcode ? barcode : undefined,
+                    buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
+                    sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
+                    taxRate: isNaN(taxRate) ? 15 : taxRate,
+                    currentStock: isNaN(currentStock) ? 0 : currentStock,
+                    minQuantity: isNaN(minQuantity) ? 0 : minQuantity,
+                    categoryId: isNaN(categoryId) || categoryId === 0 ? null : categoryId,
+                    description,
+                    active
+                };
+
+                if (id) {
+                    await prisma.product.update({
+                        where: { id: parseInt(id) },
+                        data: productData
+                    });
+                    updated++;
+                } else if (barcode) {
+                    const existing = await prisma.product.findUnique({ where: { barcode } });
+                    if (existing) {
+                        await prisma.product.update({ where: { barcode }, data: productData });
                         updated++;
-                    } else if (barcode) {
-                        // Upsert by barcode if ID is missing
-                        const existing = await tx.product.findUnique({ where: { barcode } });
-                        if (existing) {
-                            await tx.product.update({ where: { barcode }, data: productData });
-                            updated++;
-                        } else {
-                            await tx.product.create({ data: productData });
-                            added++;
-                        }
                     } else {
-                        // Create completely new without barcode constraints
-                        await tx.product.create({ data: productData });
+                        await prisma.product.create({ data: productData });
                         added++;
                     }
-                } catch (e) {
-                    console.error('Row import failed:', e);
-                    failed++;
+                } else {
+                    await prisma.product.create({ data: productData });
+                    added++;
                 }
+            } catch (e: any) {
+                console.error('Row import failed:', e);
+                failed++;
+                if (!firstError) firstError = (e && e.message) ? e.message : String(e);
             }
-        }, {
-            maxWait: 10000,
-            timeout: 30000
-        });
+        }
+
+        let rMsg = `تم المعالجة: تمت إضافة ${added}، وتم تحديث ${updated}، وفشل ${failed} صف.`;
+        if (failed > 0 && firstError) {
+            rMsg += ` (الخطأ الشائع: ${firstError.substring(0, 80)}...)`;
+        }
 
         return NextResponse.json({ 
             success: true, 
-            message: `تم المعالجة: تمت إضافة ${added}، وتم تحديث ${updated}، وفشل ${failed} صف.`
+            message: rMsg
         });
 
     } catch (error) {

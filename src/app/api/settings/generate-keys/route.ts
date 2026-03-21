@@ -1,179 +1,115 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import prisma from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import * as fs from 'fs';
+import * as path from 'path';
 
-async function saveSetting(key: string, value: string, description?: string) {
-    await prisma.setting.upsert({
-        where: { key },
-        update: { value },
-        create: { key, value, description: description || key },
-    });
-}
-
-export async function POST() {
-    const tmpDir = os.tmpdir();
-    const ts = Date.now();
-    const keyFile = path.join(tmpDir, `zatca_key_${ts}.pem`);
-    const csrFile = path.join(tmpDir, `zatca_csr_${ts}.pem`);
-    const confFile = path.join(tmpDir, `zatca_conf_${ts}.cnf`);
-
-    const cleanup = () => {
-        try { fs.unlinkSync(keyFile); } catch { }
-        try { fs.unlinkSync(csrFile); } catch { }
-        try { fs.unlinkSync(confFile); } catch { }
-    };
-
+export async function POST(req: NextRequest) {
     try {
-        // Read ALL company data from settings
-        const settings = await prisma.setting.findMany({
-            where: {
-                key: {
-                    in: [
-                        'company_name', 'company_name_en', 'tax_number',
-                        'zatca_crn', 'zatca_city', 'zatca_city_en', 'zatca_industry',
-                        'zatca_street', 'zatca_building', 'zatca_district',
-                    ]
-                }
-            }
-        });
-        const s: Record<string, string> = {};
-        settings.forEach(st => { s[st.key] = st.value ?? ''; });
-
-        // === AUTO-TRANSLATION: Arabic → English ===
-        // ZATCA CSR requires ALL values in ASCII/English only
-
-        // Saudi cities Arabic → English mapping
-        const cityMap: Record<string, string> = {
-            'الرياض': 'Riyadh', 'جدة': 'Jeddah', 'مكة': 'Makkah', 'مكة المكرمة': 'Makkah',
-            'المدينة': 'Madinah', 'المدينة المنورة': 'Madinah', 'الدمام': 'Dammam',
-            'الخبر': 'Khobar', 'الظهران': 'Dhahran', 'تبوك': 'Tabuk', 'أبها': 'Abha',
-            'خميس مشيط': 'Khamis Mushait', 'نجران': 'Najran', 'جازان': 'Jazan', 'جيزان': 'Jazan',
-            'حائل': 'Hail', 'الطائف': 'Taif', 'ينبع': 'Yanbu', 'بريدة': 'Buraydah',
-            'عنيزة': 'Unayzah', 'الجبيل': 'Jubail', 'القطيف': 'Qatif', 'الأحساء': 'Al Ahsa',
-            'سكاكا': 'Sakaka', 'عرعر': 'Arar', 'الباحة': 'Al Baha', 'بيشة': 'Bisha',
-        };
-
-        // Industry types Arabic → English mapping
-        const industryMap: Record<string, string> = {
-            'تقنية': 'Technology', 'تكنولوجيا': 'Technology', 'تجارة': 'Retail',
-            'تجارة التجزئة': 'Retail', 'مقاولات': 'Construction', 'بناء': 'Construction',
-            'صحة': 'Healthcare', 'طب': 'Healthcare', 'مستشفى': 'Healthcare',
-            'تعليم': 'Education', 'مطاعم': 'Food Services', 'أغذية': 'Food Services',
-            'نقل': 'Transportation', 'عقارات': 'Real Estate', 'سياحة': 'Tourism',
-            'صناعة': 'Manufacturing', 'زراعة': 'Agriculture', 'استثمار': 'Investment',
-            'خدمات': 'Services', 'اتصالات': 'Telecommunications', 'بنوك': 'Banking',
-        };
-
-        // Strip non-ASCII, return fallback if empty
-        const toAscii = (v: string, fallback: string) => {
-            const ascii = v.replace(/[^\x20-\x7E]/g, '').trim();
-            return ascii || fallback;
-        };
-
-        // Translate Arabic value using map, or strip to ASCII
-        const translate = (value: string, map: Record<string, string>, fallback: string) => {
-            const trimmed = value.trim();
-            if (!trimmed) return fallback;
-            // Check exact match in map
-            if (map[trimmed]) return map[trimmed];
-            // Check partial match
-            for (const [ar, en] of Object.entries(map)) {
-                if (trimmed.includes(ar)) return en;
-            }
-            // If already English/ASCII, use as-is
-            const ascii = trimmed.replace(/[^\x20-\x7E]/g, '').trim();
-            return ascii || fallback;
-        };
-
-        const orgName = toAscii(s['company_name_en'] || s['company_name'], 'Company');
-        const vatNumber = toAscii(s['tax_number'], '300000000000003');
-        const crn = toAscii(s['zatca_crn'], '1000000000');
-        const city = s['zatca_city_en']
-            ? toAscii(s['zatca_city_en'], 'Riyadh')
-            : translate(s['zatca_city'], cityMap, 'Riyadh');
-        const industry = translate(s['zatca_industry'], industryMap, 'Technology');
-        const egsUuid = crypto.randomUUID();
-        // SN format: 1-SolutionName|2-Model|3-SerialNumber (matching SDK format)
-        const serialNumber = `1-NamaInvest|2-1.0|3-${egsUuid}`;
-        const street = toAscii(s['zatca_street'], 'Main');
-        const building = toAscii(s['zatca_building'], '0000');
-        // registeredAddress = full branch location (matching SDK: "building street, city")
-        const branchLocation = `${building} ${street}, ${city}`;
-
-        console.log(`ZATCA CSR fields: O=${orgName}, VAT=${vatNumber}, city=${city}, ind=${industry}, loc=${branchLocation}`);
-
-        // Build OpenSSL config — EXACT copy of zatca-xml-js SDK csr_template
-        // NO basicConstraints, NO keyUsage (SDK comments them out)
-        // NO oid_section (SDK uses raw OID 1.3.6.1.4.1.311.20.2 directly)
-        const lines = [
-            '[req]',
-            'prompt = no',
-            'utf8 = no',
-            'distinguished_name = my_req_dn_prompt',
-            'req_extensions = v3_req',
-            '',
-            '[ v3_req ]',
-            '1.3.6.1.4.1.311.20.2 = ASN1:UTF8String:ZATCA-Code-Signing',
-            'subjectAltName = dirName:dir_sect',
-            '',
-            '[ dir_sect ]',
-            `SN = ${serialNumber}`,
-            `UID = ${vatNumber}`,
-            'title = 0100',
-            `registeredAddress = ${branchLocation}`,
-            `businessCategory = ${industry}`,
-            '',
-            '[my_req_dn_prompt]',
-            `commonName = EGS1-886431145`,
-            `organizationalUnitName = ${orgName}`,
-            `organizationName = ${orgName}`,
-            'countryName = SA',
-            '',
-        ];
-
-        fs.writeFileSync(confFile, lines.join('\n'), 'utf-8');
-
-        // Step 1: Generate ECDSA private key (secp256k1 = ZATCA requirement)
-        execSync(`openssl ecparam -name secp256k1 -genkey -noout -out "${keyFile}" 2>&1`, { encoding: 'utf-8' });
-
-        // Step 2: Generate PKCS#10 CSR (using -sha256 flag, same as SDK)
-        const csrOutput = execSync(`openssl req -new -sha256 -key "${keyFile}" -config "${confFile}" -out "${csrFile}" 2>&1`, { encoding: 'utf-8' });
-        if (csrOutput) console.log('CSR output:', csrOutput);
-
-        // Verify CSR file exists
-        if (!fs.existsSync(csrFile)) {
-            throw new Error('CSR file was not created - OpenSSL config may have errors');
+        const user = getUserFromRequest(req);
+        if (!user || user.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Read generated files
-        const privateKeyPem = fs.readFileSync(keyFile, 'utf-8');
-        const csrPem = fs.readFileSync(csrFile, 'utf-8').trim();
+        const settingsDict: Record<string, string> = {};
+        const allSettings = await prisma.setting.findMany();
+        allSettings.forEach((s: any) => settingsDict[s.key] = s.value);
 
-        // Store private key as base64 (stripped PEM headers)
-        const privateKeyBase64 = privateKeyPem
-            .replace(/-----BEGIN[^-]+-----/g, '')
-            .replace(/-----END[^-]+-----/g, '')
-            .replace(/[\r\n\s]/g, '');
+        const companyName = settingsDict['company_name_en'] || 'Unknown Company';
+        const taxNumber = settingsDict['tax_number'];
+        const crn = settingsDict['zatca_crn'] || '1010010000';
+        const street = settingsDict['zatca_street'] || 'Main Street';
+        const building = settingsDict['zatca_building'] || '1234';
+        const district = settingsDict['zatca_district'] || 'Al Olaya';
+        const city = settingsDict['zatca_city_en'] || 'Riyadh';
+        const postalCode = settingsDict['zatca_postal_code'] || '12211';
+        const industry = settingsDict['zatca_industry'] || 'Retail';
 
-        // CRITICAL: Store CSR as FULL PEM text (with headers)
-        // ZATCA API expects: base64(PEM text) — the SDK does Buffer.from(csr).toString("base64")
-        // So we store the full PEM and base64-encode it when sending
-        await saveSetting('zatca_private_key', privateKeyBase64, 'ZATCA Private Key (auto)');
-        await saveSetting('zatca_certificate', csrPem, 'ZATCA CSR PEM (auto)');
+        if (!taxNumber || taxNumber.length !== 15 || !taxNumber.startsWith('3') || !taxNumber.endsWith('3')) {
+            return NextResponse.json({ error: 'الرقم الضريبي غير صالح. يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3' }, { status: 400 });
+        }
 
-        cleanup();
+        // Generate OpenSSL Keys
+        // Temporary paths
+        const tmpDir = path.join(process.cwd(), 'tmp');
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+        
+        const keyPath = path.join(tmpDir, 'private.key');
+        const csrPath = path.join(tmpDir, 'cert.csr');
+        const confPath = path.join(tmpDir, 'zatca.conf');
 
-        return NextResponse.json({
-            success: true,
-            message: `✅ تم توليد المفاتيح والـ CSR تلقائياً — ${orgName} (${vatNumber})`,
+        const egsSerialNumber = `1-${companyName.replace(/[^A-Za-z0-9]/g, '')}|2-1.0|3-1122334455`;
+
+        const confContent = `
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = ${companyName}
+O = ${companyName}
+OU = ${district}
+C = SA
+
+[v3_req]
+subjectAltName = critical,@zatca_ext
+
+[zatca_ext]
+otherName.1 = 1.3.6.1.4.1.311.20.2;UTF8:ZATCA-Code-Signing
+otherName.2 = 2.5.4.97;UTF8:${taxNumber}
+otherName.3 = 2.5.4.11;UTF8:${egsSerialNumber}
+otherName.4 = 2.5.4.17;UTF8:${postalCode}
+otherName.5 = 2.5.4.12;UTF8:${building}
+otherName.6 = 2.5.4.26;UTF8:${industry}
+otherName.7 = 2.5.4.9;UTF8:${street}
+`;
+
+        fs.writeFileSync(confPath, confContent);
+
+        try {
+            // Generate ECDSA secp256k1 Key and CSR
+            execSync(`openssl ecparam -name secp256k1 -genkey -noout -out "${keyPath}"`);
+            execSync(`openssl req -new -key "${keyPath}" -out "${csrPath}" -config "${confPath}"`);
+        } catch (e: any) {
+            console.error('OpenSSL failure:', e?.stdout?.toString(), e?.stderr?.toString());
+            return NextResponse.json({ error: 'OpenSSL is not installed or failed to execute.' }, { status: 500 });
+        }
+
+        const privateKeyRaw = fs.readFileSync(keyPath, 'utf-8');
+        const csrFull = fs.readFileSync(csrPath, 'utf-8');
+        
+        // ZATCA's API actually requires the Base64 of the pure PEM contents of the CSR
+        const csrBase64 = Buffer.from(csrFull).toString('base64');
+
+        // Clean up PEM headers for DB storage if needed
+        const privateKeyClean = privateKeyRaw
+            .replace('-----BEGIN EC PRIVATE KEY-----', '')
+            .replace('-----END EC PRIVATE KEY-----', '')
+            .replace(/\n/g, '')
+            .replace(/\r/g, '')
+            .trim();
+
+        // Upsert into DB
+        const updateTasks = [
+            prisma.setting.upsert({ where: { key: 'zatca_private_key' }, update: { value: privateKeyClean }, create: { key: 'zatca_private_key', value: privateKeyClean } }),
+            prisma.setting.upsert({ where: { key: 'zatca_certificate' }, update: { value: csrFull }, create: { key: 'zatca_certificate', value: csrFull } }), // Store the literal CSR string with PEM here
+            prisma.setting.upsert({ where: { key: 'zatca_csr_base64' }, update: { value: csrBase64 }, create: { key: 'zatca_csr_base64', value: csrBase64 } }),
+        ];
+        
+        await Promise.all(updateTasks);
+
+        // Cleanup
+        try { fs.unlinkSync(keyPath); fs.unlinkSync(csrPath); fs.unlinkSync(confPath); } catch (e) {}
+
+        return NextResponse.json({ 
+            success: true, 
+            message: 'تم توليد مفاتيح ZATCA و CSR بنجاح.'
         });
-    } catch (error) {
-        cleanup();
-        console.error('ZATCA key generation error:', error);
-        const msg = error instanceof Error ? error.message : 'خطأ';
-        return NextResponse.json({ error: `فشل في توليد المفاتيح: ${msg}` }, { status: 500 });
+
+    } catch (e: any) {
+        console.error('ZATCA Generate Keys Error:', e);
+        return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
 }

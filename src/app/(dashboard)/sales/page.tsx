@@ -56,6 +56,49 @@ export default function SalesPage() {
     const [focusedProductIndex, setFocusedProductIndex] = useState(-1);
     const [showTypeahead, setShowTypeahead] = useState(false);
 
+    // BNPL (Tabby/Tamara) Polling State
+    const [bnplProvider, setBnplProvider] = useState<'TABBY' | 'TAMARA' | null>(null);
+    const [bnplUrl, setBnplUrl] = useState('');
+    const [bnplOrderId, setBnplOrderId] = useState('');
+    const [bnplPolling, setBnplPolling] = useState(false);
+    const [checkingStatus, setCheckingStatus] = useState(false);
+
+    // Dynamic Watcher for BNPL Status
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (bnplPolling && bnplOrderId && bnplProvider) {
+            interval = setInterval(async () => {
+                try {
+                    setCheckingStatus(true);
+                    const token = localStorage.getItem('token');
+                    const res = await fetch('/api/bnpl/status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ provider: bnplProvider, orderId: bnplOrderId })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.status === 'PAID' || data.status === 'AUTHORIZED') {
+                        clearInterval(interval);
+                        setBnplPolling(false);
+                        // Trigger final save using the manual override trick
+                        document.getElementById('bnpl-force-save')?.click();
+                    } else if (data.status === 'REJECTED' || data.status === 'EXPIRED') {
+                        clearInterval(interval);
+                        setBnplPolling(false);
+                        alert('❌ تم رفض الدفعة التقسيط من قبل المزود.');
+                        setBnplProvider(null); setBnplUrl(''); setBnplOrderId('');
+                    }
+                } catch (e) {
+                    console.error('Polling Error', e);
+                } finally {
+                    setCheckingStatus(false);
+                }
+            }, 6000); // Poll every 6 seconds
+        }
+        return () => { if (interval) clearInterval(interval); };
+    }, [bnplPolling, bnplOrderId, bnplProvider]);
+
     // Coupon logic
     const [couponCode, setCouponCode] = useState('');
     const [couponApplying, setCouponApplying] = useState(false);
@@ -381,6 +424,36 @@ export default function SalesPage() {
 
     const handleSave = async (print = false, whatsapp = false) => {
         if (cart.length === 0) return;
+
+        // --- BNPL INTERCEPTION STAGE ---
+        if ((paymentType === 'TABBY' || paymentType === 'TAMARA') && !bnplOrderId) {
+            setSaving(true);
+            try {
+                const token = localStorage.getItem('token');
+                // Create BNPL Payment Session before saving invoice locally
+                const res = await fetch(`/api/bnpl/${paymentType.toLowerCase()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ cart: cart, totalDiscount: totalDiscountValue })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setBnplUrl(data.webUrl);
+                    setBnplOrderId(data.orderId || data.paymentId);
+                    setBnplProvider(paymentType === 'TABBY' ? 'TABBY' : 'TAMARA');
+                    setBnplPolling(true); // Begin auto polling!
+                } else {
+                    showToast('❌ فشل توليد رابط التقسيط: ' + (data.error || ''));
+                }
+            } catch (e) {
+                showToast('❌ انقطع الاتصال بمخدم التقسيط');
+            } finally {
+                setSaving(false);
+            }
+            return; // stop standard saving process until BNPL is cleared
+        }
+        // -------------------------------
+
         setSaving(true);
         try {
             const token = localStorage.getItem('token');
@@ -420,7 +493,7 @@ export default function SalesPage() {
                     splitCard: paymentType === 'split' ? parseFloat(splitCard) || 0 : undefined,
                     paid: paymentType === 'split' ? (parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0) : (paidAmount ? parseFloat(paidAmount) : total),
                     userId: user.id,
-                    notes,
+                    notes: bnplOrderId ? notes + `\nBNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
                     manualInvoiceNo: manualInvoiceNo ? parseInt(manualInvoiceNo) : undefined,
                     manualDate: manualDate || undefined,
                 }),
@@ -429,9 +502,12 @@ export default function SalesPage() {
                 const invoice = await res.json();
                 if (paymentType === 'card' && posPort) {
                     showToast(`✅ تم الدفع وحفظ الفاتورة #${invoice.invoiceNo}`);
+                } else if (bnplOrderId) {
+                    showToast(`✅ تم تأكيد الدفعة المجزأة وحفظ الفاتورة #${invoice.invoiceNo}`);
                 } else {
                     showToast(`✅ تم حفظ الفاتورة #${invoice.invoiceNo}`);
                 }
+                setBnplOrderId(''); setBnplUrl(''); setBnplProvider(null); setBnplPolling(false);
                 setRetryPosAmount(null); setRetryInvoiceNo('');
                 if (print) {
                     const cust = customers.find(c => c.id.toString() === customerId);
@@ -732,6 +808,53 @@ export default function SalesPage() {
                 </div>
             </div>
 
+            {/* ---------- BNPL POLLING MODAL ---------- */}
+            {bnplProvider && bnplUrl && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ background: '#111', padding: '30px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', border: `2px solid ${bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e'}` }}>
+                        <h2 style={{ color: bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e', marginBottom: '10px' }}>
+                            {bnplProvider === 'TABBY' ? 'تقسيط عبر تابي' : 'تقسيط عبر تمارا'}
+                        </h2>
+                        <p style={{ color: '#aaa', marginBottom: '20px' }}>استخدم هاتف العميل لمسح الرمز الكودي واستكمال عملية الدفع من جهازه.</p>
+                        
+                        <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px' }}>
+                            {/* Dummy QR placeholder, real QR requires qrcode.react */}
+                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bnplUrl)}`} alt="QR Code" style={{ width: 200, height: 200 }} />
+                        </div>
+                        
+                        <div style={{ marginBottom: '20px' }}>
+                            {bnplPolling ? (
+                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>⏳ النظام ينتظر تأكيد الدفع من {bnplProvider} بشكل آلي...</p>
+                            ) : (
+                                <p style={{ color: '#ef4444', fontSize: '14px' }}>⚠️ توقف البحث الآلي</p>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                            <button 
+                                onClick={() => { setBnplPolling(false); setBnplProvider(null); setBnplUrl(''); setBnplOrderId(''); }}
+                                style={{ padding: '10px 15px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
+                            >
+                                إلغاء وإغلاق
+                            </button>
+                            <button 
+                                id="bnpl-force-save"
+                                onClick={async () => {
+                                    if(confirm('تأكيد يدوي: هل أنت متأكد أن العميل أتم الدفع بنجاح؟ تأكد أولاً!')) {
+                                        setBnplPolling(false);
+                                        await handleSave();
+                                    }
+                                }}
+                                style={{ padding: '10px 15px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
+                            >
+                                توثيق فوري (تخطي / أو تلقائي)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* -------------------------------------- */}
+
             <div className="page-content">
                 <div className="pos-layout" style={{ gridTemplateColumns: '1fr' }}>
                     {/* Invoice Panel */}
@@ -757,6 +880,8 @@ export default function SalesPage() {
                                 <option value="card">💳 بطاقة</option>
                                 <option value="transfer">🏦 تحويل</option>
                                 <option value="split">✂️ تقسيم (نقد/بطاقة)</option>
+                                <option value="TABBY">🛍️ تابي (Tabby)</option>
+                                <option value="TAMARA">🛍️ تمارا (Tamara)</option>
                                 {isAdmin && <option value="credit">📝 آجل</option>}
                                 {isAdmin && <option value="installment">💳 تقسيط</option>}
                             </select>

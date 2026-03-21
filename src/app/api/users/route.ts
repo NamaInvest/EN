@@ -28,20 +28,31 @@ export async function POST(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية إدارة المستخدمين' }, { status: 403 });
 
         const body = await request.json();
-        if (!body.username || !body.password || !body.fullName) {
+        const username = String(body.username || '').trim();
+        const password = String(body.password || '').trim();
+        const fullName = String(body.fullName || '').trim();
+
+        if (!username || !password || !fullName) {
             return NextResponse.json({ error: 'اسم المستخدم وكلمة المرور والاسم الكامل مطلوبة' }, { status: 400 });
         }
-        const existing = await prisma.user.findUnique({ where: { username: body.username } });
+        const existing = await prisma.user.findFirst({ 
+            where: { 
+                username: {
+                    equals: username,
+                    mode: 'insensitive'
+                }
+            } 
+        });
         if (existing) {
             return NextResponse.json({ error: 'اسم المستخدم موجود مسبقاً' }, { status: 409 });
         }
         const user = await prisma.user.create({
             data: {
-                username: body.username,
-                passwordHash: hashPassword(body.password),
-                fullName: body.fullName,
+                username: username,
+                passwordHash: hashPassword(password),
+                fullName: fullName,
                 role: body.role || 'cashier',
-                phone: body.phone || null,
+                phone: body.phone?.trim() || null,
                 active: true,
                 branchId: body.branchId ? parseInt(body.branchId) : null,
             },
@@ -83,11 +94,11 @@ export async function PUT(request: NextRequest) {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: any = {};
-        if (body.fullName) data.fullName = body.fullName;
-        if (body.role) data.role = body.role;
-        if (body.phone !== undefined) data.phone = body.phone || null;
-        if (body.active !== undefined) data.active = body.active;
-        if (body.password) data.passwordHash = hashPassword(body.password);
+        if (body.fullName) data.fullName = String(body.fullName).trim();
+        if (body.role) data.role = String(body.role);
+        if (body.phone !== undefined) data.phone = body.phone ? String(body.phone).trim() : null;
+        if (body.active !== undefined) data.active = Boolean(body.active);
+        if (body.password) data.passwordHash = hashPassword(String(body.password).trim());
         if (body.branchId !== undefined) data.branchId = body.branchId ? parseInt(body.branchId) : null;
 
         const user = await prisma.user.update({

@@ -4,7 +4,11 @@ import { comparePassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
     try {
-        const { username, password, deviceToken, deviceName } = await request.json();
+        const body = await request.json();
+        const username = String(body.username || '').trim();
+        const password = String(body.password || '').trim();
+        const deviceToken = body.deviceToken;
+        const deviceName = body.deviceName;
 
         if (!username || !password) {
             return NextResponse.json(
@@ -13,8 +17,13 @@ export async function POST(request: Request) {
             );
         }
 
-        const user = await prisma.user.findUnique({
-            where: { username },
+        const user = await prisma.user.findFirst({
+            where: { 
+                username: {
+                    equals: username,
+                    mode: 'insensitive'
+                }
+            },
             include: { permissions: true },
         });
 

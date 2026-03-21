@@ -15,6 +15,13 @@ export default function LoyaltyPage() {
     const [transactions, setTransactions] = useState<LoyaltyTransaction[]>([]);
     const [loadingTx, setLoadingTx] = useState(false);
 
+    // Settings Modal
+    const [showSettings, setShowSettings] = useState(false);
+    const [earnRate, setEarnRate] = useState('10'); // Spend X SAR = 1 Point
+    const [redeemRate, setRedeemRate] = useState('100'); // X Points = 1 SAR Discount
+    const [savingSettings, setSavingSettings] = useState(false);
+
+
     const token = () => localStorage.getItem('token') || '';
     const headers = () => ({ Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' });
 
@@ -26,7 +33,23 @@ export default function LoyaltyPage() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings', { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                const eRate = data.find((s: any) => s.key === 'loyalty_earn_rate');
+                const rRate = data.find((s: any) => s.key === 'loyalty_redeem_rate');
+                if (eRate && eRate.value) setEarnRate(eRate.value);
+                if (rRate && rRate.value) setRedeemRate(rRate.value);
+            }
+        } catch (e) { console.error('Error fetching settings', e); }
+    };
+
+    useEffect(() => { 
+        fetchData(); 
+        fetchSettings();
+    }, []);
 
     const openTransactions = async (l: LoyaltyPoint) => {
         setShowModal(l);
@@ -37,6 +60,20 @@ export default function LoyaltyPage() {
             else setTransactions([]);
         } catch { setTransactions([]); }
         finally { setLoadingTx(false); }
+    };
+
+    const saveSettings = async () => {
+        setSavingSettings(true);
+        try {
+            const promises = [
+                fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify({ key: 'loyalty_earn_rate', value: earnRate }) }),
+                fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify({ key: 'loyalty_redeem_rate', value: redeemRate }) })
+            ];
+            await Promise.all(promises);
+            alert('تم حفظ إعدادات الولاء بنجاح');
+            setShowSettings(false);
+        } catch (e) { alert('حدث خطأ أثناء الحفظ'); }
+        finally { setSavingSettings(false); }
     };
 
     const tierLabels: Record<string, { label: string; cls: string }> = {
@@ -50,6 +87,7 @@ export default function LoyaltyPage() {
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>🎁 برنامج الولاء</h1>
+                <button className="btn btn-primary" onClick={() => setShowSettings(true)}>⚙️ إعدادات الاحتساب</button>
             </div>
 
             <div className="card">
@@ -112,6 +150,45 @@ export default function LoyaltyPage() {
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowModal(null)}>إغلاق</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Settings Modal */}
+            {showSettings && (
+                <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div className="modal-header">
+                            <h3>⚙️ إعدادات احتساب النقاط</h3>
+                            <button className="modal-close" onClick={() => setShowSettings(false)}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-control" style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>معادلة الاكتساب (كم ريال = نقطة واحدة؟)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>إنفاق</span>
+                                    <input type="number" className="input" style={{ width: '80px', textAlign: 'center' }} value={earnRate} onChange={e => setEarnRate(e.target.value)} min="1" />
+                                    <span>ريال = (1) نقطة واحدة</span>
+                                </div>
+                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>مثال: إنفاق 10 ريال يعطي العميل نقطة واحدة.</small>
+                            </div>
+                            
+                            <div className="form-control">
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>معادلة الاستبدال (كم نقطة = خصم ريال واحد؟)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>كل</span>
+                                    <input type="number" className="input" style={{ width: '80px', textAlign: 'center' }} value={redeemRate} onChange={e => setRedeemRate(e.target.value)} min="1" />
+                                    <span>نقطة = (1) ريال سعودي كخصم</span>
+                                </div>
+                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>مثال: كل 100 نقطة تساوي خصم 1 ريال.</small>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-ghost" onClick={() => setShowSettings(false)} disabled={savingSettings}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={saveSettings} disabled={savingSettings}>
+                                {savingSettings ? 'جاري الحفظ...' : 'حفظ التحديثات'}
+                            </button>
                         </div>
                     </div>
                 </div>

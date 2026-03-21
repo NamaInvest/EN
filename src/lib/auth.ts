@@ -53,8 +53,8 @@ export function generateSessionToken(): string {
 }
 
 // Centralized permission check — used by ALL API routes
-// Logic: if user has explicit permission records → use ONLY those (role is ignored)
-//        if user has ZERO permission records AND role is admin → grant access (legacy admin)
+// Logic: if user role is admin → grant full access
+//        if user has explicit permission records → use those
 //        otherwise → deny
 export async function hasPermission(userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
@@ -63,13 +63,15 @@ export async function hasPermission(userId: number, module: string): Promise<boo
     });
     if (!user) return false;
 
+    // Admin always has full access
+    if (user.role === 'admin') return true;
+
     // Explicit permissions override role
     if (user.permissions.length > 0) {
         return user.permissions.some(p => p.module === module);
     }
 
-    // Legacy fallback: admin with zero records gets full access
-    return user.role === 'admin';
+    return false;
 }
 
 // Check if user is a legacy admin (admin role with zero permission records)

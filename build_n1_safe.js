@@ -1,9 +1,21 @@
 const { Client } = require('ssh2');
-const conn = new Client();
-conn.on('ready', () => {
-    conn.exec('cd /www/wwwroot/n1.namainvist.com && npm run build && pm2 reload n1 --update-env', (err, stream) => {
-        if (err) throw err;
-        stream.on('data', d => process.stdout.write(d.toString()));
-        stream.on('close', () => conn.end());
-    });
-}).connect({host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b'});
+
+function buildN1() {
+    const conn = new Client();
+    console.log('[n1] Initiating SAFE build...');
+    conn.on('ready', () => {
+        // Free up RAM by stopping PM2 before building Next.js
+        const cmd = `cd /www/wwwroot/n1.namainvist.com && pm2 stop all && npm run build && pm2 restart all`;
+        conn.exec(cmd, (err, stream) => {
+            if (err) throw err;
+            stream.on('data', d => console.log('STDOUT:', d.toString()));
+            stream.stderr.on('data', d => console.error('STDERR:', d.toString()));
+            stream.on('close', code => {
+                console.log(`[n1] SAFE Build complete. Exit code: ${code}`);
+                conn.end();
+            });
+        });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}
+
+buildN1();
