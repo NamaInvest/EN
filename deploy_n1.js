@@ -70,7 +70,7 @@ conn.on('ready', () => {
                         }
                         if (done + failed === allFiles.length) {
                             console.log(`Done uploads. Success: ${done}, Failed: ${failed}. Building...`);
-                            const buildCmd = `rm -f /tmp/build_n1.log && cd ${targetDir} && nohup bash -c "npx prisma generate && npm run build > /tmp/build_n1.log 2>&1 && pm2 restart n1" > /dev/null 2>&1 &`;
+                            const buildCmd = `rm -f /tmp/build_n1.log && cd ${targetDir} && nohup bash -c "npx prisma db push --accept-data-loss && npx prisma generate && npm run build > /tmp/build_n1.log 2>&1 && pm2 restart n1" > /dev/null 2>&1 &`;
                             conn.exec(buildCmd, (e2, s2) => {
                                 if (e2) throw e2;
                                 s2.on('close', () => { console.log('Build launched in background on ' + hostIp); conn.end(); });

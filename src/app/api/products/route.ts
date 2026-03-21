@@ -103,6 +103,7 @@ export async function POST(request: Request) {
                 sizeInfo: body.sizeInfo || '',
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
+                binLocation: body.binLocation || null,
             },
         });
 

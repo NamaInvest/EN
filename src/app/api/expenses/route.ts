@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const expenses = await prisma.expense.findMany({ where, include: { user: true }, orderBy: { date: 'desc' } });
+        const expenses = await prisma.expense.findMany({ where, include: { user: true, costCenter: true }, orderBy: { date: 'desc' } });
         return NextResponse.json(expenses);
     } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
 }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         }
 
         const expense = await prisma.expense.create({
-            data: { category: body.category, description: body.description, amount: parseFloat(body.amount) || 0, userId, branchId, notes: body.notes || undefined },
+            data: { category: body.category, description: body.description, amount: parseFloat(body.amount) || 0, userId, branchId, notes: body.notes || undefined, costCenterId: body.costCenterId ? parseInt(body.costCenterId) : null },
         });
         await prisma.treasury.create({
             data: { type: 'out', amount: expense.amount, description: `مصروف: ${body.description}`, referenceType: 'expense', referenceId: expense.id, userId, branchId },
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
                 description: expense.description,
                 userId: userId || undefined,
                 branchId: branchId || undefined,
+                costCenterId: expense.costCenterId || undefined,
                 date: new Date().toISOString().split('T')[0],
             });
         } catch (journalErr) {
@@ -84,6 +85,7 @@ export async function PUT(request: NextRequest) {
                 description: body.description || oldExpense.description,
                 amount: body.amount ? parseFloat(body.amount) : oldExpense.amount,
                 notes: body.notes !== undefined ? body.notes : oldExpense.notes,
+                costCenterId: body.costCenterId !== undefined ? (body.costCenterId ? parseInt(body.costCenterId) : null) : oldExpense.costCenterId,
             },
         });
 

@@ -39,6 +39,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 nameEn: body.nameEn || '',
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
+                binLocation: body.binLocation || null,
                 active: body.active !== undefined ? Boolean(body.active) : undefined,
             },
         });

@@ -187,6 +187,7 @@ export default function SettingsPage() {
         { key: 'promotions', label: '🎯 العروض' },
         { key: 'accounting', label: '📊 المحاسبة' },
         { key: 'manufacturing', label: '🏭 التصنيع' },
+        { key: 'shifts', label: '🕒 ورديات الكاشير' },
         { key: 'fixed-assets', label: '🏢 الأصول الثابتة' },
         { key: 'coupons', label: '🎟️ الكوبونات' },
         { key: 'loyalty', label: '🎁 الولاء والنقاط' },
@@ -883,7 +884,7 @@ export default function SettingsPage() {
                                         </p>
                                     </div>
                                     {settings['whatsapp_qr'] && settings['whatsapp_status'] !== 'connected' && (
-                                        <div style={{ background: '#fff', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                        <div style={{ background: 'var(--bg-card-hover)', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                             <QRCodeCanvas value={settings['whatsapp_qr']} size={140} level="H" />
                                         </div>
                                     )}

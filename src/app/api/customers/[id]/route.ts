@@ -27,6 +27,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 taxNumber: body.taxNumber || null, 
                 // @ts-ignore
                 crNo: body.crNo || null, notes: body.notes || null,
+                routeId: body.routeId ? parseInt(body.routeId) : null,
             },
         });
         return NextResponse.json(customer);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface Expense { id: number; date: string; category: string; description: string; amount: number; notes: string; }
+interface Expense { id: number; date: string; category: string; description: string; amount: number; notes: string; costCenterId?: number; costCenter?: { name: string } }
 
 const CATEGORIES = ['إيجار', 'كهرباء', 'ماء', 'صيانة', 'رواتب', 'مواصلات', 'إعلانات', 'مشتريات متنوعة', 'أخرى'];
 
@@ -12,12 +12,13 @@ export default function ExpensesPage() {
     const [loading, setLoading] = useState(true);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-    const [form, setForm] = useState({ category: 'أخرى', description: '', amount: '', notes: '' });
+    const [form, setForm] = useState({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' });
     const [editId, setEditId] = useState<number | null>(null);
     const [canDelete, setCanDelete] = useState(false);
     const [canDeleteAll, setCanDeleteAll] = useState(false);
     const [canEdit, setCanEdit] = useState(false);
     const [toast, setToast] = useState('');
+    const [costCenters, setCostCenters] = useState<{id:number, name:string, isActive:boolean}[]>([]);
 
     async function fetchData() {
         const token = localStorage.getItem('token');
@@ -33,6 +34,7 @@ export default function ExpensesPage() {
 
     useEffect(() => {
         fetchData();
+        fetch('/api/accounting/cost-centers').then(r => r.json()).then(d => setCostCenters(Array.isArray(d) ? d : [])).catch(() => {});
         try {
             const u = JSON.parse(localStorage.getItem('user') || '{}');
             const perms: string[] = (u.permissions || []).map((p: { module: string }) => p.module);
@@ -53,7 +55,7 @@ export default function ExpensesPage() {
                     method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ id: editId, ...form, amount: parseFloat(form.amount), userId: user.id }),
                 });
-                if (res.ok) { showToast('✅ تم تعديل المصروف'); setShowModal(false); setEditId(null); setForm({ category: 'أخرى', description: '', amount: '', notes: '' }); fetchData(); }
+                if (res.ok) { showToast('✅ تم تعديل المصروف'); setShowModal(false); setEditId(null); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
                 else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل التعديل'}`); }
             } else {
                 // Add new expense
@@ -61,7 +63,7 @@ export default function ExpensesPage() {
                     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ ...form, amount: parseFloat(form.amount), userId: user.id }),
                 });
-                if (res.ok) { showToast('✅ تم إضافة المصروف'); setShowModal(false); setForm({ category: 'أخرى', description: '', amount: '', notes: '' }); fetchData(); }
+                if (res.ok) { showToast('✅ تم إضافة المصروف'); setShowModal(false); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
             }
         } catch (err) { console.error(err); }
     };
@@ -92,13 +94,13 @@ export default function ExpensesPage() {
 
     const editExpense = (e: Expense) => {
         setEditId(e.id);
-        setForm({ category: e.category, description: e.description, amount: String(e.amount), notes: e.notes || '' });
+        setForm({ category: e.category, description: e.description, amount: String(e.amount), notes: e.notes || '', costCenterId: String(e.costCenterId || '') });
         setShowModal(true);
     };
 
     const openAddModal = () => {
         setEditId(null);
-        setForm({ category: 'أخرى', description: '', amount: '', notes: '' });
+        setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' });
         setShowModal(true);
     };
 
@@ -126,14 +128,15 @@ export default function ExpensesPage() {
                 </div>
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>#</th><th>التاريخ</th><th>الفئة</th><th>الوصف</th><th>المبلغ</th><th>ملاحظات</th>{(canDelete || canEdit) && <th>إجراءات</th>}</tr></thead>
+                        <thead><tr><th>#</th><th>التاريخ</th><th>الفئة</th><th>الوصف</th><th>المبلغ</th><th>مركز تسجيل</th><th>ملاحظات</th>{(canDelete || canEdit) && <th>إجراءات</th>}</tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={(canDelete || canEdit) ? 7 : 6} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : expenses.length === 0 ? <tr><td colSpan={(canDelete || canEdit) ? 7 : 6}><div className="empty-state"><div className="empty-state-icon">💸</div><div className="empty-state-text">لا توجد مصروفات</div></div></td></tr>
+                            {loading ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
+                                : expenses.length === 0 ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7}><div className="empty-state"><div className="empty-state-icon">💸</div><div className="empty-state-text">لا توجد مصروفات</div></div></td></tr>
                                     : expenses.map((e, i) => (
                                         <tr key={e.id}><td>{i + 1}</td><td>{new Date(e.date).toLocaleDateString('ar-SA')}</td>
                                             <td><span className="badge badge-warning">{e.category}</span></td>
                                             <td>{e.description}</td><td style={{ fontWeight: '700', color: 'var(--danger-light)' }}>{fmt(e.amount)} ر.س</td>
+                                            <td><span className="badge" style={{background:'#eef2ff', color:'#4f46e5'}}>{e.costCenter?.name || '-'}</span></td>
                                             <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{e.notes || '-'}</td>
                                             {(canDelete || canEdit) && <td style={{ display: 'flex', gap: '4px' }}>
                                                 {canEdit && <button className="btn btn-ghost btn-sm" onClick={() => editExpense(e)} style={{ color: 'var(--primary)', fontSize: '12px' }}>✏️</button>}
@@ -152,6 +155,11 @@ export default function ExpensesPage() {
                         <div className="input-group"><label className="input-label">الفئة</label>
                             <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                        <div className="input-group"><label className="input-label">مركز التكلفة (اختياري)</label>
+                            <select className="input" value={form.costCenterId} onChange={e => setForm({ ...form, costCenterId: e.target.value })}>
+                                <option value="">بدون مركز (عام)</option>
+                                {costCenters.filter(c => c.isActive || String(c.id) === form.costCenterId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select></div>
                         <div className="input-group"><label className="input-label">الوصف *</label>
                             <textarea className="input" value={form.description} onInput={e => setForm({ ...form, description: (e.target as HTMLTextAreaElement).value })} placeholder="وصف المصروف" rows={2} dir="rtl" /></div>
                         <div className="input-group"><label className="input-label">المبلغ *</label>

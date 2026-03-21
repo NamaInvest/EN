@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const limitStr = searchParams.get('limit') || '100';
-        const limit = parseInt(limitStr);
-
+        const user = getUserFromRequest(request);
+        if (!user || user.role !== 'admin') {
+            return NextResponse.json({ error: 'غير مصرح للوصول للسجل' }, { status: 403 });
+        }
+        
         const logs = await prisma.auditLog.findMany({
-            take: limit,
+            include: { user: { select: { id: true, fullName: true, role: true } } },
             orderBy: { date: 'desc' },
-            include: {
-                user: { select: { fullName: true, username: true } }
-            }
+            take: 500
         });
         
         return NextResponse.json(logs);
     } catch (error) {
-        console.error('Error fetching audit logs:', error);
-        return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 });
+        console.error("GET audit logs error:", error);
+        return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
     }
 }

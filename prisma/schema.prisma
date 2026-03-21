@@ -25,8 +25,8 @@ model User {
   permissions      UserPermission[]
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
-  purchaseOrders   PurchaseOrder[]  @relation("PurchaseOrderCreator")
-  approvals        PurchaseOrder[]  @relation("PurchaseOrderApprover")
+  purchaseOrders   PurchaseOrder[]   @relation("PurchaseOrderCreator")
+  approvals        PurchaseOrder[]   @relation("PurchaseOrderApprover")
   expenses         Expense[]
   treasuryEntries  Treasury[]
   auditLogs        AuditLog[]
@@ -34,6 +34,10 @@ model User {
   shifts           Shift[]
   branchId         Int?              @map("branch_id")
   branch           Branch?           @relation(fields: [branchId], references: [id])
+  approvalRules    ApprovalRule[]    @relation("RuleApprover")
+  approvalRequests ApprovalRequest[] @relation("ApprovalRequester")
+  approvalSteps    ApprovalStep[]    @relation("StepApprover")
+  archives         DocumentArchive[]
 
   @@map("users")
 }
@@ -96,19 +100,22 @@ model Product {
   imagePath    String   @default("") @map("image_path")
   sellByWeight Boolean  @default(false) @map("sell_by_weight")
   expiryDate   String?  @map("expiry_date")
+  binLocation  String?  @map("bin_location")
 
-  category        Category?               @relation(fields: [categoryId], references: [id])
-  unit            Unit?                   @relation(fields: [unitId], references: [id])
-  salesDetails    SalesInvoiceDetail[]
-  purchaseDetails PurchaseInvoiceDetail[]
+  category             Category?               @relation(fields: [categoryId], references: [id])
+  unit                 Unit?                   @relation(fields: [unitId], references: [id])
+  salesDetails         SalesInvoiceDetail[]
+  purchaseDetails      PurchaseInvoiceDetail[]
   purchaseOrderDetails PurchaseOrderDetail[]
-  stockMovements  StockMovement[]
-  productStocks   ProductStock[]
-  batches         ProductBatch[]
-  finishedRecipes Recipe[]                @relation("RecipeFinishedProduct")
-  rawRecipes      RecipeIngredient[]      @relation("RecipeRawProduct")
-  wastages        ManufacturingWastage[]
-  salesReturnDetails SalesReturnDetail[]
+  stockMovements       StockMovement[]
+  productStocks        ProductStock[]
+  batches              ProductBatch[]
+  finishedRecipes      Recipe[]                @relation("RecipeFinishedProduct")
+  rawRecipes           RecipeIngredient[]      @relation("RecipeRawProduct")
+  wastages             ManufacturingWastage[]
+  salesReturnDetails   SalesReturnDetail[]
+  SalesOrderDetail     SalesOrderDetail[]
+  DeliveryNoteDetail   DeliveryNoteDetail[]
 
   @@map("products")
 }
@@ -140,6 +147,12 @@ model Customer {
   loyaltyPoints    LoyaltyPoint[]
   bookings         Booking[]
   lettersOfCredit  LetterOfCredit[]
+  customerChecks   CheckTransaction[] @relation("CheckCustomer")
+  supplierChecks   CheckTransaction[] @relation("CheckSupplier")
+  routeId          Int?               @map("route_id")
+  route            Route?             @relation(fields: [routeId], references: [id])
+  salesOrders      SalesOrder[]
+  deliveryNotes    DeliveryNote[]
 
   @@map("customers")
 }
@@ -168,7 +181,7 @@ model ProductStock {
   productId Int      @map("product_id")
   stockId   Int      @map("stock_id")
   quantity  Float    @default(0)
-  location  String?  @map("location") 
+  location  String?  @map("location")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -203,15 +216,19 @@ model SalesInvoice {
   zatcaHash     String?  @map("zatca_hash")
   zatcaQr       String?  @map("zatca_qr")
   zatcaResponse String?  @map("zatca_response")
+  salesRepId    Int?     @map("sales_rep_id")
 
-  customer Customer?            @relation(fields: [customerId], references: [id])
-  stock    Stock?               @relation(fields: [stockId], references: [id])
-  user     User?                @relation(fields: [userId], references: [id])
-  details  SalesInvoiceDetail[]
-  branchId Int?                 @map("branch_id")
-  branch   Branch?              @relation(fields: [branchId], references: [id])
-  shift    Shift?               @relation(fields: [shiftId], references: [id])
-  shiftId  Int?                 @map("shift_id")
+  customer     Customer?            @relation(fields: [customerId], references: [id])
+  stock        Stock?               @relation(fields: [stockId], references: [id])
+  salesRep     Employee?            @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
+  user         User?                @relation(fields: [userId], references: [id])
+  details      SalesInvoiceDetail[]
+  branchId     Int?                 @map("branch_id")
+  branch       Branch?              @relation(fields: [branchId], references: [id])
+  shift        Shift?               @relation(fields: [shiftId], references: [id])
+  shiftId      Int?                 @map("shift_id")
+  costCenterId Int?                 @map("cost_center_id")
+  costCenter   CostCenter?          @relation(fields: [costCenterId], references: [id])
 
   @@map("sales_invoices")
 }
@@ -240,24 +257,24 @@ model SalesInvoiceDetail {
 
 // ==================== 10. SalesReturns ====================
 model SalesReturn {
-  id                Int      @id @default(autoincrement())
-  returnNo          Int      @map("return_no")
-  originalInvoiceId Int?     @map("original_invoice_id")
-  date              DateTime @default(now())
-  customerId        Int?     @map("customer_id")
-  subtotal          Float    @default(0)
-  taxValue          Float    @default(0) @map("tax_value")
-  total             Float    @default(0)
-  userId            Int?     @map("user_id")
+  id                Int                 @id @default(autoincrement())
+  returnNo          Int                 @map("return_no")
+  originalInvoiceId Int?                @map("original_invoice_id")
+  date              DateTime            @default(now())
+  customerId        Int?                @map("customer_id")
+  subtotal          Float               @default(0)
+  taxValue          Float               @default(0) @map("tax_value")
+  total             Float               @default(0)
+  userId            Int?                @map("user_id")
   notes             String?
-  zatcaStatus       String?  @default("pending") @map("zatca_status")
-  zatcaHash         String?  @map("zatca_hash")
-  zatcaQr           String?  @map("zatca_qr")
-  zatcaResponse     String?  @map("zatca_response")
-  branch            Branch?          @relation(fields: [branchId], references: [id])
-  shift             Shift?           @relation(fields: [shiftId], references: [id])
-  branchId          Int?             @map("branch_id")
-  shiftId           Int?             @map("shift_id")
+  zatcaStatus       String?             @default("pending") @map("zatca_status")
+  zatcaHash         String?             @map("zatca_hash")
+  zatcaQr           String?             @map("zatca_qr")
+  zatcaResponse     String?             @map("zatca_response")
+  branch            Branch?             @relation(fields: [branchId], references: [id])
+  shift             Shift?              @relation(fields: [shiftId], references: [id])
+  branchId          Int?                @map("branch_id")
+  shiftId           Int?                @map("shift_id")
   details           SalesReturnDetail[]
 
   @@map("sales_returns")
@@ -285,26 +302,30 @@ model SalesReturnDetail {
 
 // ==================== 11.2 Purchase Orders ====================
 model PurchaseOrder {
-  id                Int      @id @default(autoincrement())
-  orderNo           Int      @map("order_no")
-  date              DateTime @default(now())
-  supplierId        Int?     @map("supplier_id")
-  stockId           Int      @default(1) @map("stock_id")
-  subtotal          Float    @default(0)
-  taxValue          Float    @default(0) @map("tax_value")
-  total             Float    @default(0)
-  status            String   @default("pending") // pending, approved, rejected, completed
-  approvedBy        Int?     @map("approved_by")
-  userId            Int?     @map("user_id")
-  branchId          Int?     @map("branch_id")
-  notes             String?
+  id               Int      @id @default(autoincrement())
+  orderNo          Int      @map("order_no")
+  date             DateTime @default(now())
+  supplierId       Int?     @map("supplier_id")
+  stockId          Int      @default(1) @map("stock_id")
+  subtotal         Float    @default(0)
+  taxValue         Float    @default(0) @map("tax_value")
+  total            Float    @default(0)
+  status           String   @default("pending") // pending, approved, rejected, completed
+  approvedBy       Int?     @map("approved_by")
+  userId           Int?     @map("user_id")
+  branchId         Int?     @map("branch_id")
+  notes            String?
+  isForeign        Boolean  @default(false) @map("is_foreign")
+  letterOfCreditId Int?     @map("letter_of_credit_id")
 
-  supplier Customer?             @relation(fields: [supplierId], references: [id])
-  stock    Stock?                @relation(fields: [stockId], references: [id])
-  user     User?                 @relation(name: "PurchaseOrderCreator", fields: [userId], references: [id])
-  approver User?                 @relation(name: "PurchaseOrderApprover", fields: [approvedBy], references: [id])
-  branch   Branch?               @relation(fields: [branchId], references: [id])
-  details  PurchaseOrderDetail[]
+  supplier       Customer?             @relation(fields: [supplierId], references: [id])
+  stock          Stock?                @relation(fields: [stockId], references: [id])
+  user           User?                 @relation(name: "PurchaseOrderCreator", fields: [userId], references: [id])
+  approver       User?                 @relation(name: "PurchaseOrderApprover", fields: [approvedBy], references: [id])
+  branch         Branch?               @relation(fields: [branchId], references: [id])
+  details        PurchaseOrderDetail[]
+  letterOfCredit LetterOfCredit?       @relation(fields: [letterOfCreditId], references: [id])
+  landedCosts    LandedCost[]
 
   @@map("purchase_orders")
 }
@@ -419,17 +440,19 @@ model StockMovement {
 
 // ==================== 15. Expenses ====================
 model Expense {
-  id          Int      @id @default(autoincrement())
-  date        DateTime @default(now())
-  category    String?
-  description String
-  amount      Float    @default(0)
-  userId      Int?     @map("user_id")
-  notes       String?
+  id           Int      @id @default(autoincrement())
+  date         DateTime @default(now())
+  category     String?
+  description  String
+  amount       Float    @default(0)
+  userId       Int?     @map("user_id")
+  costCenterId Int?     @map("cost_center_id")
+  notes        String?
 
-  user     User?   @relation(fields: [userId], references: [id])
-  branchId Int?    @map("branch_id")
-  branch   Branch? @relation(fields: [branchId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id])
+  branchId   Int?        @map("branch_id")
+  branch     Branch?     @relation(fields: [branchId], references: [id])
+  costCenter CostCenter? @relation(fields: [costCenterId], references: [id])
 
   @@map("expenses")
 }
@@ -479,25 +502,31 @@ model AuditLog {
 
 // ==================== 19. Employees ====================
 model Employee {
-  id        Int      @id @default(autoincrement())
-  name      String
-  phone     String?
-  position  String?
-  salary    Float    @default(0)
-  housingAllowance Float @default(0) @map("housing_allowance")
-  transportAllowance Float @default(0) @map("transport_allowance")
-  otherAllowance Float @default(0) @map("other_allowance")
-  bankName  String?  @map("bank_name")
-  iban      String?
-  startDate String?  @map("start_date")
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  branchId  Int?     @map("branch_id")
-  branch    Branch?  @relation(fields: [branchId], references: [id])
+  id                 Int      @id @default(autoincrement())
+  name               String
+  phone              String?
+  position           String?
+  salary             Float    @default(0)
+  housingAllowance   Float    @default(0) @map("housing_allowance")
+  transportAllowance Float    @default(0) @map("transport_allowance")
+  otherAllowance     Float    @default(0) @map("other_allowance")
+  bankName           String?  @map("bank_name")
+  iban               String?
+  startDate          String?  @map("start_date")
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now()) @map("created_at")
+  branchId           Int?     @map("branch_id")
+  branch             Branch?  @relation(fields: [branchId], references: [id])
 
-  attendance Attendance[]
-  salaries   Salary[]
-  vacations  Vacation[]
+  attendance    Attendance[]
+  salaries      Salary[]
+  vacations     Vacation[]
+  loans         EmployeeLoan[]
+  pettyCashes   PettyCashTransaction[]
+  salesTargets  SalesTarget[]
+  salesOrders   SalesOrder[]
+  salesInvoices SalesInvoice[]         @relation("SalesInvoiceRep")
+  routes        Route[]                @relation("RouteSalesRep")
 
   @@map("employees")
 }
@@ -518,16 +547,18 @@ model Attendance {
 
 // ==================== 21. Salaries ====================
 model Salary {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int      @map("employee_id")
-  month       Int
-  year        Int
-  basicSalary Float    @default(0) @map("basic_salary")
-  additions   Float    @default(0)
-  deductions  Float    @default(0)
-  netSalary   Float    @default(0) @map("net_salary")
-  paidDate    DateTime @default(now()) @map("paid_date")
-  notes       String?
+  id            Int      @id @default(autoincrement())
+  employeeId    Int      @map("employee_id")
+  month         Int
+  year          Int
+  basicSalary   Float    @default(0) @map("basic_salary")
+  additions     Float    @default(0)
+  deductions    Float    @default(0)
+  gosiDeduction Float    @default(0) @map("gosi_deduction")
+  loanDeduction Float    @default(0) @map("loan_deduction")
+  netSalary     Float    @default(0) @map("net_salary")
+  paidDate      DateTime @default(now()) @map("paid_date")
+  notes         String?
 
   employee Employee @relation(fields: [employeeId], references: [id])
 
@@ -654,22 +685,27 @@ model Account {
   balance  Float   @default(0)
 
   journalLines JournalLine[]
+  LandedCost   LandedCost[]
+  bankChecks   CheckTransaction[]   @relation("CheckBankAccount")
+  bankRecons   BankReconciliation[]
 
   @@map("accounts")
 }
 
 // ==================== 30. JournalEntries ====================
 model JournalEntry {
-  id          Int      @id @default(autoincrement())
-  entryNumber String   @map("entry_number")
-  entryDate   String   @map("entry_date")
-  description String?
-  reference   String?
-  totalDebit  Float    @default(0) @map("total_debit")
-  totalCredit Float    @default(0) @map("total_credit")
-  status      String   @default("posted")
-  createdBy   Int?     @map("created_by")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  entryNumber  String   @map("entry_number")
+  entryDate    String   @map("entry_date")
+  description  String?
+  reference    String?
+  totalDebit   Float    @default(0) @map("total_debit")
+  totalCredit  Float    @default(0) @map("total_credit")
+  status       String   @default("posted")
+  createdBy    Int?     @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  currencyId   Int?     @map("currency_id")
+  exchangeRate Float    @default(1.0) @map("exchange_rate")
 
   lines    JournalLine[]
   branch   Branch?       @relation(fields: [branchId], references: [id])
@@ -680,15 +716,22 @@ model JournalEntry {
 
 // ==================== 31. JournalLines ====================
 model JournalLine {
-  id          Int     @id @default(autoincrement())
-  entryId     Int     @map("entry_id")
-  accountId   Int     @map("account_id")
-  description String?
-  debit       Float   @default(0)
-  credit      Float   @default(0)
+  id               Int     @id @default(autoincrement())
+  entryId          Int     @map("entry_id")
+  accountId        Int     @map("account_id")
+  costCenterId     Int?    @map("cost_center_id")
+  description      String?
+  debit            Float   @default(0)
+  credit           Float   @default(0)
+  foreignDebit     Float   @default(0) @map("foreign_debit")
+  foreignCredit    Float   @default(0) @map("foreign_credit")
+  isReconciled     Boolean @default(false) @map("is_reconciled")
+  reconciliationId Int?    @map("reconciliation_id")
 
-  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  account Account      @relation(fields: [accountId], references: [id])
+  entry      JournalEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account    Account             @relation(fields: [accountId], references: [id])
+  costCenter CostCenter?         @relation(fields: [costCenterId], references: [id])
+  bankRecon  BankReconciliation? @relation(fields: [reconciliationId], references: [id])
 
   @@map("journal_lines")
 }
@@ -901,19 +944,20 @@ model Branch {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
-  company       Company           @relation(fields: [companyId], references: [id])
-  users         User[]
-  stocks        Stock[]
-  salesInvoices SalesInvoice[]
-  salesReturns  SalesReturn[]
-  purchases     PurchaseInvoice[]
+  company        Company           @relation(fields: [companyId], references: [id])
+  users          User[]
+  stocks         Stock[]
+  salesInvoices  SalesInvoice[]
+  salesReturns   SalesReturn[]
+  purchases      PurchaseInvoice[]
   purchaseOrders PurchaseOrder[]
-  expenses      Expense[]
-  treasury      Treasury[]
-  journals      JournalEntry[]
-  shifts        Shift[]
-  bankAccounts  BankAccount[]
-  employees     Employee[]
+  expenses       Expense[]
+  treasury       Treasury[]
+  journals       JournalEntry[]
+  shifts         Shift[]
+  bankAccounts   BankAccount[]
+  employees      Employee[]
+  costCenters    CostCenter[]
 
   @@map("branches")
 }
@@ -1028,21 +1072,21 @@ model ManufacturingOrder {
   userId            Int?      @map("user_id")
   notes             String?
 
-  recipe   Recipe @relation(fields: [recipeId], references: [id])
-  machine  Machine? @relation(fields: [machineId], references: [id])
+  recipe   Recipe                 @relation(fields: [recipeId], references: [id])
+  machine  Machine?               @relation(fields: [machineId], references: [id])
   wastages ManufacturingWastage[]
 
   @@map("manufacturing_orders")
 }
 
 model Machine {
-  id              Int      @id @default(autoincrement())
-  name            String
-  code            String?  @unique
-  hourlyCost      Float    @default(0) @map("hourly_cost")
-  status          String   @default("active") // active, maintenance, offline
-  branchId        Int?     @map("branch_id")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id         Int      @id @default(autoincrement())
+  name       String
+  code       String?  @unique
+  hourlyCost Float    @default(0) @map("hourly_cost")
+  status     String   @default("active") // active, maintenance, offline
+  branchId   Int?     @map("branch_id")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   orders ManufacturingOrder[]
 
@@ -1065,25 +1109,28 @@ model ManufacturingWastage {
 }
 
 model LetterOfCredit {
-  id              Int       @id @default(autoincrement())
-  lcNumber        String    @unique @map("lc_number")
-  bankId          Int       @map("bank_id")
-  supplierId      Int       @map("supplier_id")
+  id              Int      @id @default(autoincrement())
+  lcNumber        String   @unique @map("lc_number")
+  bankId          Int      @map("bank_id")
+  supplierId      Int      @map("supplier_id")
   amount          Float
-  currency        String    @default("USD")
-  exchangeRate    Float     @default(1.0) @map("exchange_rate")
-  openDate        DateTime  @default(now()) @map("open_date")
-  expiryDate      DateTime  @map("expiry_date")
-  status          String    @default("draft") // draft, open, shipped, closed
-  marginPercent   Float     @default(0) @map("margin_percent")
-  marginPaid      Float     @default(0) @map("margin_paid")
-  portOfLoading   String?   @map("port_of_loading")
-  portOfDischarge String?   @map("port_of_discharge")
+  currencyId      Int      @map("currency_id")
+  exchangeRate    Float    @default(1.0) @map("exchange_rate")
+  openDate        DateTime @default(now()) @map("open_date")
+  expiryDate      DateTime @map("expiry_date")
+  status          String   @default("draft") // draft, open, shipped, closed
+  marginPercent   Float    @default(0) @map("margin_percent")
+  marginPaid      Float    @default(0) @map("margin_paid")
+  portOfLoading   String?  @map("port_of_loading")
+  portOfDischarge String?  @map("port_of_discharge")
   notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
+  createdAt       DateTime @default(now()) @map("created_at")
 
-  bank     BankAccount @relation(fields: [bankId], references: [id])
-  supplier Customer    @relation(fields: [supplierId], references: [id])
+  bank           BankAccount     @relation(fields: [bankId], references: [id])
+  supplier       Customer        @relation(fields: [supplierId], references: [id])
+  currency       Currency        @relation(fields: [currencyId], references: [id])
+  purchaseOrders PurchaseOrder[]
+  landedCosts    LandedCost[]
 
   @@map("letters_of_credit")
 }
@@ -1139,4 +1186,307 @@ model ProductBatch {
   stockMovements StockMovement[]
 
   @@map("product_batches")
+}
+
+// ==================== 46. Cost Centers ====================
+model CostCenter {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  nameEn    String?  @map("name_en")
+  isActive  Boolean  @default(true) @map("is_active")
+  branchId  Int?     @map("branch_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  branch        Branch?        @relation(fields: [branchId], references: [id])
+  journalLines  JournalLine[]
+  expenses      Expense[]
+  salesInvoices SalesInvoice[]
+
+  @@map("cost_centers")
+}
+
+// ==================== 47. Employee Loans ====================
+model EmployeeLoan {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int      @map("employee_id")
+  amount           Float
+  monthlyDeduction Float    @map("monthly_deduction")
+  remainingAmount  Float    @map("remaining_amount")
+  reason           String?
+  startDate        DateTime @map("start_date")
+  status           String   @default("active") // active, paid, suspended
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("employee_loans")
+}
+
+// ==================== 48. Currencies ====================
+model Currency {
+  id           Int      @id @default(autoincrement())
+  code         String   @unique
+  nameAr       String   @map("name_ar")
+  nameEn       String?  @map("name_en")
+  symbol       String?
+  exchangeRate Float    @default(1.0) @map("exchange_rate")
+  isDefault    Boolean  @default(false) @map("is_default")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  exchangeRates  ExchangeRate[]
+  LetterOfCredit LetterOfCredit[]
+  LandedCost     LandedCost[]
+
+  @@map("currencies")
+}
+
+model ExchangeRate {
+  id         Int      @id @default(autoincrement())
+  currencyId Int      @map("currency_id")
+  rate       Float
+  date       DateTime @default(now())
+
+  currency Currency @relation(fields: [currencyId], references: [id])
+
+  @@map("exchange_rates")
+}
+
+// ==================== 49. Approval Workflows ====================
+model ApprovalRule {
+  id           Int      @id @default(autoincrement())
+  documentType String   @map("document_type") // e.g. 'PURCHASE_ORDER', 'JOURNAL_ENTRY'
+  minAmount    Float    @default(0) @map("min_amount")
+  maxAmount    Float?   @map("max_amount") // Null means unlimited
+  approverRole String   @map("approver_role") // 'manager', 'admin' etc. Or use approverId
+  approverId   Int?     @map("approver_id")
+  level        Int      @default(1) // To support multi-step approvals
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  approver User? @relation("RuleApprover", fields: [approverId], references: [id])
+
+  @@map("approval_rules")
+}
+
+model ApprovalRequest {
+  id           Int      @id @default(autoincrement())
+  documentType String   @map("document_type")
+  documentId   Int      @map("document_id")
+  status       String   @default("pending") // pending, approved, rejected
+  requestedBy  Int      @map("requested_by")
+  requestedAt  DateTime @default(now()) @map("requested_at")
+
+  steps ApprovalStep[]
+
+  requester User @relation("ApprovalRequester", fields: [requestedBy], references: [id])
+
+  @@map("approval_requests")
+}
+
+model ApprovalStep {
+  id         Int       @id @default(autoincrement())
+  requestId  Int       @map("request_id")
+  approverId Int?      @map("approver_id")
+  status     String    @default("pending") // pending, approved, rejected
+  notes      String?
+  actionDate DateTime? @map("action_date")
+  level      Int       @default(1)
+
+  request  ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approver User?           @relation("StepApprover", fields: [approverId], references: [id])
+
+  @@map("approval_steps")
+}
+
+// ==================== 50. Document Archiving ====================
+model DocumentArchive {
+  id           Int       @id @default(autoincrement())
+  documentType String    @map("document_type") // e.g. EMPLOYEE, CUSTOMER, PURCHASE_INVOICE
+  documentId   Int       @map("document_id")
+  docName      String    @map("doc_name")
+  fileUrl      String    @map("file_url")
+  expiryDate   DateTime? @map("expiry_date")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  createdBy    Int?      @map("created_by")
+
+  creator User? @relation(fields: [createdBy], references: [id])
+
+  @@map("document_archives")
+}
+
+// ==================== 52. Landed Costs ====================
+model LandedCost {
+  id               Int      @id @default(autoincrement())
+  purchaseOrderId  Int?     @map("purchase_order_id")
+  letterOfCreditId Int?     @map("letter_of_credit_id")
+  expenseAccountId Int      @map("expense_account_id") // Account where cost is posted (e.g. Customs, Freight)
+  description      String
+  amount           Float
+  currencyId       Int?     @map("currency_id")
+  exchangeRate     Float    @default(1.0) @map("exchange_rate")
+  allocationMethod String   @default("value") // value, quantity, weight
+  isAllocated      Boolean  @default(false) @map("is_allocated")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  purchaseOrder  PurchaseOrder?  @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  letterOfCredit LetterOfCredit? @relation(fields: [letterOfCreditId], references: [id], onDelete: Cascade)
+  expenseAccount Account         @relation(fields: [expenseAccountId], references: [id])
+  currency       Currency?       @relation(fields: [currencyId], references: [id])
+
+  @@map("landed_costs")
+}
+
+// ==================== 55. Post-dated Checks & Notes ====================
+model CheckTransaction {
+  id            Int      @id @default(autoincrement())
+  type          String // PAYABLE (أوراق دفع), RECEIVABLE (أوراق قبض)
+  checkNumber   String   @map("check_number")
+  bankName      String   @map("bank_name")
+  dueDate       DateTime @map("due_date")
+  amount        Float
+  status        String   @default("PENDING") // PENDING, UNDER_COLLECTION, CLEARED, BOUNCED
+  notes         String?
+  customerId    Int?     @map("customer_id")
+  supplierId    Int?     @map("supplier_id")
+  bankAccountId Int?     @map("bank_account_id") // GL Account for the bank
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  customer    Customer? @relation("CheckCustomer", fields: [customerId], references: [id])
+  supplier    Customer? @relation("CheckSupplier", fields: [supplierId], references: [id])
+  bankAccount Account?  @relation("CheckBankAccount", fields: [bankAccountId], references: [id])
+
+  @@map("check_transactions")
+}
+
+// ==================== 56. Bank Reconciliations ====================
+model BankReconciliation {
+  id               Int      @id @default(autoincrement())
+  bankAccountId    Int      @map("bank_account_id")
+  statementDate    DateTime @map("statement_date")
+  statementBalance Float    @map("statement_balance")
+  systemBalance    Float    @map("system_balance")
+  difference       Float
+  status           String   @default("DRAFT") // DRAFT, RECONCILED
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  bankAccount  Account       @relation(fields: [bankAccountId], references: [id])
+  journalLines JournalLine[]
+
+  @@map("bank_reconciliations")
+}
+
+// ==================== 57. Petty Cash Transactions ====================
+model PettyCashTransaction {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int      @map("employee_id")
+  amount           Float
+  requestDate      DateTime @default(now()) @map("request_date")
+  status           String   @default("PENDING") // PENDING, APPROVED, DISBURSED, SETTLED
+  purpose          String?
+  settlementAmount Float    @default(0) @map("settlement_amount")
+  difference       Float    @default(0)
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("petty_cash_transactions")
+}
+
+// ==================== 60. Sales & Distribution (Phase 4) ====================
+model Route {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  salesRepId  Int?     @map("sales_rep_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  customers Customer[]
+  salesRep  Employee?  @relation("RouteSalesRep", fields: [salesRepId], references: [id])
+
+  @@map("routes")
+}
+
+model SalesTarget {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int      @map("employee_id")
+  year         Int
+  month        Int
+  targetAmount Float    @map("target_amount")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("sales_targets")
+}
+
+model SalesOrder {
+  id         Int      @id @default(autoincrement())
+  orderNo    Int      @map("order_no")
+  date       DateTime @default(now())
+  customerId Int?     @map("customer_id")
+  stockId    Int      @default(1)
+  salesRepId Int?     @map("sales_rep_id")
+  subtotal   Float    @default(0)
+  taxValue   Float    @default(0)
+  total      Float    @default(0)
+  status     String   @default("pending") // pending, approved, delivered, invoiced, cancelled
+  userId     Int?
+  notes      String?
+
+  customer      Customer?          @relation(fields: [customerId], references: [id])
+  salesRep      Employee?          @relation(fields: [salesRepId], references: [id])
+  details       SalesOrderDetail[]
+  deliveryNotes DeliveryNote[]
+
+  @@map("sales_orders")
+}
+
+model SalesOrderDetail {
+  id          Int     @id @default(autoincrement())
+  orderId     Int     @map("order_id")
+  productId   Int     @map("product_id")
+  productName String?
+  quantity    Float   @default(1)
+  price       Float   @default(0)
+  total       Float   @default(0)
+
+  order   SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product    @relation(fields: [productId], references: [id])
+
+  @@map("sales_order_details")
+}
+
+model DeliveryNote {
+  id           Int      @id @default(autoincrement())
+  noteNo       Int      @map("note_no")
+  date         DateTime @default(now())
+  salesOrderId Int?     @map("sales_order_id")
+  customerId   Int?     @map("customer_id")
+  status       String   @default("pending") // pending, delivered
+  userId       Int?
+
+  salesOrder SalesOrder?          @relation(fields: [salesOrderId], references: [id])
+  customer   Customer?            @relation(fields: [customerId], references: [id])
+  details    DeliveryNoteDetail[]
+
+  @@map("delivery_notes")
+}
+
+model DeliveryNoteDetail {
+  id          Int     @id @default(autoincrement())
+  noteId      Int     @map("note_id")
+  productId   Int     @map("product_id")
+  productName String?
+  quantity    Float   @default(1)
+
+  note    DeliveryNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id])
+
+  @@map("delivery_note_details")
 }

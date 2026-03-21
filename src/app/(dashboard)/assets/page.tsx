@@ -112,11 +112,11 @@ export default function FixedAssetsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
+                <div className="card-glass p-6 rounded-xl border border-white/10 flex flex-col items-center justify-center text-center shadow-sm">
                     <p className="text-sm font-bold text-slate-500 mb-1">إجمالي الأصول النشطة</p>
                     <p className="text-3xl font-extrabold text-blue-600">{assets.length}</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm">
+                <div className="card-glass p-6 rounded-xl border border-white/10 flex flex-col items-center justify-center text-center shadow-sm">
                     <p className="text-sm font-bold text-slate-500 mb-1">تكلفة الشراء التاريخية (Portfolio)</p>
                     <p className="text-3xl font-extrabold text-slate-700" dir="ltr">{totalPortfolioValue.toLocaleString()} <span className="text-sm text-slate-400">SAR</span></p>
                 </div>
@@ -126,7 +126,7 @@ export default function FixedAssetsPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="card-glass border border-white/10 rounded-xl overflow-hidden shadow-sm">
                 {loading ? (
                     <div className="p-12 text-center text-slate-400">جاري تحميل سجل الأصول...</div>
                 ) : (

@@ -1,15 +1,16 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 
-type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance';
+type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance' | 'cost_centers';
 
 interface Account { id: number; code: string; name: string; nameEn: string; type: string; level: number; balance: number; isActive: boolean; parentId: number; }
-interface JournalLine { id: number; accountId: number; description: string; debit: number; credit: number; account: { code: string; name: string; type: string } }
+interface JournalLine { id: number; accountId: number; costCenterId?: number; description: string; debit: number; credit: number; account: { code: string; name: string; type: string }; costCenter?: { name: string } }
 interface JournalEntry { id: number; entryNumber: string; entryDate: string; description: string; reference: string; totalDebit: number; totalCredit: number; status: string; lines: JournalLine[] }
 interface LedgerLine { id: number; date: string; entryNumber: string; description: string; debit: number; credit: number; balance: number }
 interface TrialRow { id: number; code: string; name: string; type: string; level: number; totalDebit: number; totalCredit: number; debitBalance: number; creditBalance: number }
 interface StatementItem { code: string; name: string; amount: number }
 interface BSItem { code: string; name: string; level: number; balance: number }
+interface CostCenter { id: number; code: string; name: string; isActive: boolean; }
 
 const TYPE_LABELS: Record<string, string> = { asset: 'أصول', liability: 'خصوم', equity: 'ملكية', revenue: 'إيرادات', expense: 'مصروفات' };
 const TYPE_COLORS: Record<string, string> = { asset: '#22c55e', liability: '#ef4444', equity: '#8b5cf6', revenue: '#3b82f6', expense: '#f59e0b' };
@@ -18,6 +19,8 @@ export default function AccountingPage() {
     const [tab, setTab] = useState<Tab>('tree');
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [journals, setJournals] = useState<JournalEntry[]>([]);
+    const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
+    const [newCostCenter, setNewCostCenter] = useState({ code: '', name: '', isActive: true });
     const [selectedAccount, setSelectedAccount] = useState<number>(0);
     const [ledgerData, setLedgerData] = useState<{ account: Account; lines: LedgerLine[]; totalDebit: number; totalCredit: number; closingBalance: number } | null>(null);
     const [trialData, setTrialData] = useState<{ rows: TrialRow[]; grandTotalDebit: number; grandTotalCredit: number; isBalanced: boolean } | null>(null);
@@ -29,7 +32,7 @@ export default function AccountingPage() {
     const [newAccount, setNewAccount] = useState({ code: '', name: '', type: 'asset', level: 1, parentId: 0 });
     const [expandedTreeNodes, setExpandedTreeNodes] = useState<Set<number>>(new Set());
     
-    const [journalLines, setJournalLines] = useState([{ accountCode: '', debit: 0, credit: 0, description: '' }, { accountCode: '', debit: 0, credit: 0, description: '' }]);
+    const [journalLines, setJournalLines] = useState([{ accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }]);
     const [journalDesc, setJournalDesc] = useState('');
     const [expandedEntry, setExpandedEntry] = useState<number | null>(null);
 
@@ -46,14 +49,19 @@ export default function AccountingPage() {
         } catch (e) { console.error(e); }
     }, []);
 
+    const loadCostCenters = useCallback(async () => {
+        try { const res = await fetch('/api/accounting/cost-centers'); if (res.ok) setCostCenters(await res.json()); } catch (e) { console.error(e); }
+    }, []);
+
     // Load data based on tab
     useEffect(() => {
+        loadCostCenters();
         if (tab === 'tree') loadAccounts();
         if (tab === 'journal') loadJournals();
         if (tab === 'trial') loadTrialBalance();
         if (tab === 'income') loadIncomeStatement();
         if (tab === 'balance') loadBalanceSheet();
-    }, [tab, loadAccounts]);
+    }, [tab, loadAccounts, loadCostCenters]);
 
     async function loadJournals() {
         setLoading(true);
@@ -143,13 +151,19 @@ export default function AccountingPage() {
         setLoading(false);
     };
 
+    const handleAddCostCenter = async () => {
+        const res = await fetch('/api/accounting/cost-centers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newCostCenter) });
+        if (res.ok) { setNewCostCenter({ code: '', name: '', isActive: true }); loadCostCenters(); }
+        else { const e = await res.json(); alert(e.error || 'Failed'); }
+    };
+
     // Add journal entry
     const handleAddJournal = async () => {
         const totalD = journalLines.reduce((s, l) => s + l.debit, 0);
         const totalC = journalLines.reduce((s, l) => s + l.credit, 0);
         if (Math.abs(totalD - totalC) > 0.01) { alert(`القيد غير متوازن: مدين ${totalD} ≠ دائن ${totalC}`); return; }
         const res = await fetch('/api/accounting/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: journalDesc, lines: journalLines.filter(l => l.debit > 0 || l.credit > 0) }) });
-        if (res.ok) { setShowAddJournal(false); setJournalDesc(''); setJournalLines([{ accountCode: '', debit: 0, credit: 0, description: '' }, { accountCode: '', debit: 0, credit: 0, description: '' }]); loadJournals(); }
+        if (res.ok) { setShowAddJournal(false); setJournalDesc(''); setJournalLines([{ accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }]); loadJournals(); }
         else { const e = await res.json(); alert(e.error); }
     };
 
@@ -162,6 +176,7 @@ export default function AccountingPage() {
         { key: 'trial', label: 'ميزان المراجعة', icon: '⚖️' },
         { key: 'income', label: 'قائمة الدخل', icon: '📊' },
         { key: 'balance', label: 'الميزانية', icon: '🏦' },
+        { key: 'cost_centers', label: 'مراكز التكلفة', icon: '🏢' },
     ];
 
     return (<><div className="page-header"><h1 className="page-title">📊 المحاسبة</h1></div>
@@ -223,7 +238,7 @@ export default function AccountingPage() {
                                         <div style={{ 
                                             display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', 
                                             paddingRight: `${14 + indentStart * 24}px`, 
-                                            background: acc.level === 1 ? 'rgba(108,99,255,0.06)' : (hasChildren ? 'rgba(0,0,0,0.02)' : '#fff'),
+                                            background: acc.level === 1 ? 'rgba(108,99,255,0.06)' : (hasChildren ? 'var(--bg-card-hover)' : 'var(--bg-card)'),
                                             borderBottom: '1px solid var(--border)', cursor: 'pointer',
                                             transition: 'background 0.2s'
                                         }} onClick={() => { if(hasChildren) toggleTreeNode(acc.id); else { setSelectedAccount(acc.id); setTab('ledger'); loadLedger(acc.id); } }}>
@@ -272,27 +287,33 @@ export default function AccountingPage() {
                             <input value={journalDesc} onChange={e => setJournalDesc(e.target.value)} placeholder="وصف القيد" style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', marginBottom: '12px' }} />
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                                    <th style={{ padding: '8px', textAlign: 'right' }}>كود الحساب</th><th style={{ padding: '8px', textAlign: 'right' }}>الوصف</th>
+                                    <th style={{ padding: '8px', textAlign: 'right' }}>كود الحساب</th><th style={{ padding: '8px', textAlign: 'right' }}>الوصف</th><th style={{ padding: '8px', textAlign: 'right' }}>مركز التكلفة</th>
                                     <th style={{ padding: '8px', textAlign: 'right' }}>مدين</th><th style={{ padding: '8px', textAlign: 'right' }}>دائن</th><th></th>
                                 </tr></thead>
                                 <tbody>{journalLines.map((l, i) => (
                                     <tr key={i}>
                                         <td style={{ padding: '4px' }}><input value={l.accountCode} onChange={e => { const nl = [...journalLines]; nl[i].accountCode = e.target.value; setJournalLines(nl); }} placeholder="1110" style={{ width: '80px', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
                                         <td style={{ padding: '4px' }}><input value={l.description} onChange={e => { const nl = [...journalLines]; nl[i].description = e.target.value; setJournalLines(nl); }} placeholder="بيان" style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
+                                        <td style={{ padding: '4px' }}>
+                                            <select value={l.costCenterId || 0} onChange={e => { const nl = [...journalLines]; nl[i].costCenterId = parseInt(e.target.value); setJournalLines(nl); }} style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                                                <option value={0}>بدون</option>
+                                                {costCenters.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                        </td>
                                         <td style={{ padding: '4px' }}><input type="number" value={l.debit || ''} onChange={e => { const nl = [...journalLines]; nl[i].debit = parseFloat(e.target.value) || 0; setJournalLines(nl); }} style={{ width: '100px', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
                                         <td style={{ padding: '4px' }}><input type="number" value={l.credit || ''} onChange={e => { const nl = [...journalLines]; nl[i].credit = parseFloat(e.target.value) || 0; setJournalLines(nl); }} style={{ width: '100px', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
                                         <td style={{ padding: '4px' }}><button onClick={() => setJournalLines(journalLines.filter((_, j) => j !== i))} style={{ color: '#ef4444', cursor: 'pointer', background: 'none', border: 'none' }}>✕</button></td>
                                     </tr>
                                 ))}
                                     <tr style={{ background: 'rgba(108,99,255,0.05)', fontWeight: 'bold' }}>
-                                        <td colSpan={2} style={{ padding: '8px', textAlign: 'right' }}>الإجمالي</td>
+                                        <td colSpan={3} style={{ padding: '8px', textAlign: 'right' }}>الإجمالي</td>
                                         <td style={{ padding: '8px' }}>{fmt(journalLines.reduce((s, l) => s + l.debit, 0))}</td>
                                         <td style={{ padding: '8px' }}>{fmt(journalLines.reduce((s, l) => s + l.credit, 0))}</td>
                                         <td></td>
                                     </tr></tbody>
                             </table>
                             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                                <button className="btn btn-sm" onClick={() => setJournalLines([...journalLines, { accountCode: '', debit: 0, credit: 0, description: '' }])}>➕ سطر</button>
+                                <button className="btn btn-sm" onClick={() => setJournalLines([...journalLines, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }])}>➕ سطر</button>
                                 <div className="toolbar-spacer" />
                                 <button className="btn btn-sm" onClick={() => setShowAddJournal(false)}>إلغاء</button>
                                 <button className="btn btn-primary btn-sm" onClick={handleAddJournal}>✅ حفظ القيد</button>
@@ -313,11 +334,12 @@ export default function AccountingPage() {
                                         </div>
                                         {expandedEntry === j.id && (
                                             <table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
-                                                <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>الحساب</th><th style={{ padding: '6px', textAlign: 'right' }}>البيان</th><th style={{ padding: '6px', textAlign: 'right' }}>مدين</th><th style={{ padding: '6px', textAlign: 'right' }}>دائن</th></tr></thead>
+                                                <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>الحساب</th><th style={{ padding: '6px', textAlign: 'right' }}>البيان</th><th style={{ padding: '6px', textAlign: 'right' }}>مركز تسجيل</th><th style={{ padding: '6px', textAlign: 'right' }}>مدين</th><th style={{ padding: '6px', textAlign: 'right' }}>دائن</th></tr></thead>
                                                 <tbody>{j.lines.map(l => (
                                                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                                         <td style={{ padding: '6px', fontSize: '12px' }}><span style={{ fontFamily: 'monospace' }}>{l.account.code}</span> {l.account.name}</td>
                                                         <td style={{ padding: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>{l.description}</td>
+                                                        <td style={{ padding: '6px', fontSize: '12px', color: '#8b5cf6' }}>{l.costCenter ? l.costCenter.name : '-'}</td>
                                                         <td style={{ padding: '6px', fontFamily: 'monospace', color: l.debit > 0 ? '#22c55e' : 'var(--text-muted)' }}>{l.debit > 0 ? fmt(l.debit) : '-'}</td>
                                                         <td style={{ padding: '6px', fontFamily: 'monospace', color: l.credit > 0 ? '#ef4444' : 'var(--text-muted)' }}>{l.credit > 0 ? fmt(l.credit) : '-'}</td>
                                                     </tr>
@@ -328,6 +350,39 @@ export default function AccountingPage() {
                                 ))}
                             </div>
                     }
+                </div>
+            )}
+
+            {/* ===== مراكز التكلفة ===== */}
+            {tab === 'cost_centers' && (
+                <div className="card">
+                    <h3 style={{ marginBottom: '16px' }}>🏢 مراكز التكلفة (المشاريع والأقسام)</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 2fr', gap: '24px' }}>
+                        <div style={{ background: 'rgba(108,99,255,0.03)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <h4 style={{ marginBottom: '12px' }}>➕ إضافة مركز جديد</h4>
+                            <input value={newCostCenter.code} onChange={e => setNewCostCenter({ ...newCostCenter, code: e.target.value })} placeholder="رقم المركز (مثال: 101)" style={{ width: '100%', padding: '8px 12px', marginBottom: '8px', borderRadius: '6px', border: '1px solid var(--border)' }} />
+                            <input value={newCostCenter.name} onChange={e => setNewCostCenter({ ...newCostCenter, name: e.target.value })} placeholder="اسم المركز (مثال: فرع الرياض)" style={{ width: '100%', padding: '8px 12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid var(--border)' }} />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '16px', fontSize: '14px' }}>
+                                <input type="checkbox" checked={newCostCenter.isActive} onChange={e => setNewCostCenter({ ...newCostCenter, isActive: e.target.checked })} />
+                                نشط
+                            </label>
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleAddCostCenter}>حفظ المركز</button>
+                        </div>
+                        <div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead><tr style={{ background: 'rgba(0,0,0,0.03)' }}><th style={{ padding: '10px', textAlign: 'right' }}>الكود</th><th style={{ padding: '10px', textAlign: 'right' }}>الاسم</th><th style={{ padding: '10px', textAlign: 'right' }}>الحالة</th></tr></thead>
+                                <tbody>{costCenters.map(c => (
+                                    <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '10px', fontFamily: 'monospace' }}>{c.code}</td>
+                                        <td style={{ padding: '10px', fontWeight: 'bold' }}>{c.name}</td>
+                                        <td style={{ padding: '10px' }}><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: c.isActive ? '#22c55e20' : '#ef444420', color: c.isActive ? '#22c55e' : '#ef4444' }}>{c.isActive ? 'نشط' : 'إيقاف'}</span></td>
+                                    </tr>
+                                ))}
+                                {costCenters.length === 0 && <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>لا توجد مراكز تكلفة مسجلة</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
 

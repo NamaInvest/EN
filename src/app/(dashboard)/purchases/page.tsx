@@ -70,22 +70,22 @@ export default function PurchasesPage() {
             fetch('/api/customers?type=1', { headers: { Authorization: `Bearer ${token}` } }),
             fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        if (pRes.ok) { const d = await pRes.json(); setProducts(d); setFiltered(d.slice(0, 20)); }
-        if (sRes.ok) setSuppliers(await sRes.json());
-        if (wRes.ok) setWarehouses(await wRes.json());
+        if (pRes.ok) { const d = await pRes.json(); const arr = Array.isArray(d) ? d : []; setProducts(arr); setFiltered(arr.slice(0, 20)); }
+        if (sRes.ok) { const d = await sRes.json(); setSuppliers(Array.isArray(d) ? d : []); }
+        if (wRes.ok) { const d = await wRes.json(); setWarehouses(Array.isArray(d) ? d : []); }
         fetchPending();
     };
 
     const fetchPending = async () => {
         const token = localStorage.getItem('token');
         const res = await fetch('/api/purchases?status=pending', { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setPendingInvoices(await res.json());
+        if (res.ok) { const d = await res.json(); setPendingInvoices(Array.isArray(d) ? d : []); }
     };
 
     const fetchReceipts = async () => {
         const token = localStorage.getItem('token');
         const res = await fetch('/api/purchases?receiptStatus=pending', { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setPendingReceipts(await res.json());
+        if (res.ok) { const d = await res.json(); setPendingReceipts(Array.isArray(d) ? d : []); }
     };
 
     const deletePurchaseInvoice = async (inv: PurchaseInvoice) => {
@@ -170,7 +170,7 @@ export default function PurchasesPage() {
     const total = subtotal + taxValue;
     const actualPaid = paymentType === 'credit' ? (parseFloat(paidAmount) || 0) : total;
     const remaining = total - actualPaid;
-    const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+    const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const handleSave = async () => {
         if (cart.length === 0) return;

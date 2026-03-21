@@ -30,6 +30,10 @@ export async function POST(request: Request) {
             }
         });
 
+        const activeLoans = await prisma.employeeLoan.findMany({
+            where: { status: 'active', remainingAmount: { gt: 0 } }
+        });
+
         let totalGrossSalaries = 0;
         let generatedRecords = 0;
 
@@ -58,13 +62,29 @@ export async function POST(request: Request) {
                 const dailyRate = baseSalary / 30;
                 const absencePenalty = absentDays > 0 ? (dailyRate * absentDays) : 0;
                 
-                // Standard GOSI (Social Insurance) deduction demo (e.g. 9% of Base+Housing)
-                const gosiDeduction = (baseSalary + (emp.housingAllowance || 0)) * 0.09;
+                // Standard GOSI (Social Insurance) deduction demo (e.g. 9% of Base)
+                const gosiDeduction = baseSalary * 0.09;
 
-                const totalDeductions = absencePenalty + gosiDeduction;
+                let loanDeduction = 0;
+                const empLoans = activeLoans.filter((l: any) => l.employeeId === emp.id);
+                for (const loan of empLoans) {
+                    const toDeduct = Math.min(loan.monthlyDeduction, loan.remainingAmount);
+                    loanDeduction += toDeduct;
+                    
+                    // Update the loan balance
+                    await tx.employeeLoan.update({
+                        where: { id: loan.id },
+                        data: {
+                            remainingAmount: { decrement: toDeduct },
+                            status: (loan.remainingAmount - toDeduct) <= 0 ? 'paid' : 'active'
+                        }
+                    });
+                }
 
-                // Additions from Allowances
-                const totalAdditions = (emp.housingAllowance || 0) + (emp.transportAllowance || 0) + (emp.otherAllowance || 0);
+                const totalDeductions = absencePenalty + gosiDeduction + loanDeduction;
+
+                // Additions
+                const totalAdditions = 0;
 
                 const netSalary = baseSalary + totalAdditions - totalDeductions;
 
@@ -79,9 +99,11 @@ export async function POST(request: Request) {
                         basicSalary: baseSalary,
                         additions: totalAdditions,
                         deductions: totalDeductions,
+                        gosiDeduction,
+                        loanDeduction,
                         netSalary,
                         paidDate: new Date(),
-                        notes: `خصومات غياب: ${absencePenalty.toFixed(2)}, تأمينات: ${gosiDeduction.toFixed(2)}`
+                        notes: `غياب: ${absencePenalty.toFixed(2)}, تأمينات: ${gosiDeduction.toFixed(2)}, سلف: ${loanDeduction.toFixed(2)}`
                     }
                 });
 

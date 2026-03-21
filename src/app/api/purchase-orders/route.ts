@@ -56,6 +56,23 @@ export async function POST(request: Request) {
         const taxValue = subtotal * 0.15;
         const total = subtotal + taxValue;
 
+        // Check Maker-Checker Approval Rules
+        const rules = await prisma.approvalRule.findMany({
+            where: {
+                documentType: 'PURCHASE_ORDER',
+                isActive: true,
+                minAmount: { lte: total }
+            },
+            orderBy: { level: 'asc' }
+        });
+
+        const applicableRules = rules.filter(r => r.maxAmount === null || r.maxAmount >= total);
+        
+        let initialStatus = 'pending';
+        if (applicableRules.length > 0) {
+            initialStatus = 'pending_approval';
+        }
+
         const order = await prisma.purchaseOrder.create({
             data: {
                 orderNo, 
@@ -63,12 +80,35 @@ export async function POST(request: Request) {
                 stockId: body.stockId ? parseInt(body.stockId) : 1,
                 date: new Date(),
                 subtotal, taxValue, total,
-                status: 'pending', notes: body.notes || null, 
+                status: initialStatus, notes: body.notes || null, 
                 userId, branchId,
                 details: { create: details },
             },
             include: { details: true },
         });
+
+        // Generate Approval Request and Steps if needed
+        if (applicableRules.length > 0 && userId) {
+            await prisma.approvalRequest.create({
+                data: {
+                    documentType: 'PURCHASE_ORDER',
+                    documentId: order.id,
+                    status: 'pending',
+                    requestedBy: userId,
+                    steps: {
+                        create: applicableRules.map(r => ({
+                            approverId: r.approverId,
+                            level: r.level,
+                            status: 'pending'
+                        }))
+                    }
+                }
+            });
+        }
+
         return NextResponse.json(order, { status: 201 });
-    } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (e) { 
+        console.error(e); 
+        return NextResponse.json({ error: 'فشل في الحفظ' }, { status: 500 }); 
+    }
 }

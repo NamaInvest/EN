@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface OrderDetail { 
     productId: number; 
@@ -28,8 +29,28 @@ export default function PurchaseOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
-    useEffect(() => { load(); }, []);
+    // Create Modal State
+    const [showModal, setShowModal] = useState(false);
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [saving, setSaving] = useState(false);
+    const [newOrder, setNewOrder] = useState({ supplierId: '', notes: '' });
+    const [newItems, setNewItems] = useState<{ productId: string, productName: string, quantity: number, price: number }[]>([
+        { productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }
+    ]);
+
+    useEffect(() => { 
+        load(); 
+        fetchSuppliers();
+    }, []);
+
+    async function fetchSuppliers() {
+        try {
+            const res = await fetch('/api/parties/suppliers');
+            if (res.ok) setSuppliers(await res.json());
+        } catch(e){}
+    }
     async function load() { 
         setLoading(true); 
         try { 
@@ -75,13 +96,41 @@ export default function PurchaseOrdersPage() {
         }
     };
 
+    const handleCreateOrder = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('token') || '';
+            const res = await fetch('/api/purchase-orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    supplierId: newOrder.supplierId,
+                    notes: newOrder.notes,
+                    items: newItems
+                })
+            });
+            if (res.ok) {
+                setShowModal(false);
+                setNewOrder({ supplierId: '', notes: '' });
+                setNewItems([{ productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }]);
+                load();
+            } else {
+                alert('فشل إنشاء الطلب');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        setSaving(false);
+    };
+
     return (<>
         <div className="page-header"><h1 className="page-title">📝 أوامر الشراء (طلبات)</h1></div>
         <div className="page-content animate-fade-in">
             <div className="toolbar">
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{orders.length} أمر شراء</span>
                 <div className="toolbar-spacer" />
-                <button className="primary-btn">➕ إنشاء أمر شراء جديد</button>
+                <button onClick={() => setShowModal(true)} className="primary-btn">➕ إنشاء أمر شراء جديد</button>
             </div>
             <div className="card">
                 {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
@@ -131,7 +180,10 @@ export default function PurchaseOrdersPage() {
                                                 </>
                                             )}
                                             {o.status === 'approved' && (
-                                                <button onClick={() => updateStatus(o.id, 'completed')} className="primary-btn">📥 تحويل إلى فاتورة مشتريات</button>
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <button onClick={() => router.push(`/purchase-orders/${o.id}/landed-costs`)} className="btn btn-outline" style={{ border: '1px solid var(--primary)', color: 'var(--primary)' }}>🚢 توزيع مصاريف الاستيراد (Landed Costs)</button>
+                                                    <button onClick={() => updateStatus(o.id, 'completed')} className="primary-btn">📥 تحويل إلى فاتورة مشتريات واستلام</button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -140,5 +192,62 @@ export default function PurchaseOrdersPage() {
                         ))}</div>}
             </div>
         </div>
+
+        {/* Create Order Modal */}
+        {showModal && (
+            <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
+                <div className="modal" style={{ maxWidth: '1000px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto', margin: 0 }}>
+                    <div className="modal-header" style={{ position: 'sticky', top: 0, backgroundColor: 'var(--card-bg, white)', zIndex: 10, padding: '20px', borderBottom: '1px solid var(--border)' }}>
+                        <h2>إنشاء أمر شراء جديد</h2>
+                        <button onClick={() => setShowModal(false)} className="close-btn">×</button>
+                    </div>
+                    <form onSubmit={handleCreateOrder} style={{ padding: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                            <div className="input-group" style={{ margin: 0 }}>
+                                <label className="input-label">المورد</label>
+                                <select className="input" required value={newOrder.supplierId} onChange={e => setNewOrder({...newOrder, supplierId: e.target.value})}>
+                                    <option value="">اختر المورد...</option>
+                                    {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="input-group" style={{ margin: 0 }}>
+                                <label className="input-label">ملاحظات (اختياري)</label>
+                                <input type="text" className="input" value={newOrder.notes} onChange={e => setNewOrder({...newOrder, notes: e.target.value})} />
+                            </div>
+                        </div>
+
+                        <h3 style={{ borderBottom: '1px solid #ccc', paddingBottom: '10px', marginBottom: '15px' }}>الأصناف</h3>
+                        <table className="table" style={{ marginBottom: '15px' }}>
+                            <thead>
+                                <tr>
+                                    <th>اسم الصنف</th>
+                                    <th>الكمية</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {newItems.map((item, idx) => (
+                                    <tr key={idx}>
+                                        <td><input className="input" required value={item.productName} onChange={e => { const items = [...newItems]; items[idx].productName = e.target.value; setNewItems(items); }} /></td>
+                                        <td><input type="number" step="0.01" className="input" required value={item.quantity} onChange={e => { const items = [...newItems]; items[idx].quantity = parseFloat(e.target.value) || 0; setNewItems(items); }} /></td>
+                                        <td><input type="number" step="0.01" className="input" required value={item.price} onChange={e => { const items = [...newItems]; items[idx].price = parseFloat(e.target.value) || 0; setNewItems(items); }} /></td>
+                                        <td>
+                                            <button type="button" onClick={() => setNewItems(newItems.filter((_, i) => i !== idx))} className="btn btn-ghost" style={{ color: 'red' }}>🗑️</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <button type="button" onClick={() => setNewItems([...newItems, { productId: '1', productName: '', quantity: 1, price: 0 }])} className="btn btn-outline" style={{ marginBottom: '20px' }}>➕ إضافة صنف آخر</button>
+
+                        <div className="modal-footer" style={{ borderTop: '1px solid #eee', paddingTop: '15px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">إلغاء</button>
+                            <button type="submit" disabled={saving} className="btn btn-primary">{saving ? 'جاري الحفظ...' : '💾 حفظ الطلب'}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
     </>);
 }

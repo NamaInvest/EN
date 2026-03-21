@@ -17,8 +17,15 @@ const menuItems = [
     },
     {
         sectionKey: 'sidebar.sales_purchases', items: [
+            { icon: '💻', labelKey: 'شاشة نقطة البيع (POS)', href: '/pos' },
+            { icon: '🕒', labelKey: 'ورديات الكاشير', href: '/shifts' },
+            { icon: '📦', labelKey: 'أوامر البيع (Sales Orders)', href: '/sales/orders' },
             { icon: '🧾', labelKey: 'sidebar.sales', href: '/sales' },
+            { icon: '🗺️', labelKey: 'خطوط السير', href: '/sales/routes' },
+            { icon: '🎯', labelKey: 'مستهدفات المبيعات', href: '/sales/targets' },
             { icon: '🛒', labelKey: 'sidebar.purchases', href: '/purchases' },
+            { icon: '📋', labelKey: 'أوامر الشراء (طلبات)', href: '/purchase-orders' },
+            { icon: '🌍', labelKey: 'الاعتمادات المستندية', href: '/purchases/letters-of-credit' },
             { icon: '↩️', labelKey: 'sidebar.sales_returns', href: '/sales-returns' },
             { icon: '↩️', labelKey: 'sidebar.purchase_returns', href: '/purchase-returns' },
             { icon: '📋', labelKey: 'sidebar.bookings', href: '/bookings' },
@@ -30,6 +37,7 @@ const menuItems = [
         sectionKey: 'sidebar.inventory', items: [
             { icon: '📦', labelKey: 'sidebar.products', href: '/products' },
             { icon: '🏭', labelKey: 'sidebar.stock', href: '/stock' },
+            { icon: '🛠️', labelKey: 'إدارة التصنيع (BOM)', href: '/manufacturing' },
             { icon: '🏢', labelKey: 'sidebar.warehouses', href: '/warehouses' },
             { icon: '🔀', labelKey: 'sidebar.stock_transfers', href: '/stock-transfers' },
             { icon: '🏷️', labelKey: 'sidebar.barcode', href: '/barcode' },
@@ -45,6 +53,9 @@ const menuItems = [
     {
         sectionKey: 'sidebar.finance', items: [
             { icon: '💰', labelKey: 'sidebar.treasury', href: '/treasury' },
+            { icon: '🏦', labelKey: 'أوراق القبض والدفع', href: '/treasury/checks' },
+            { icon: '⚖️', labelKey: 'التسويات البنكية', href: '/treasury/bank-reconciliation' },
+            { icon: '💸', labelKey: 'العهد والمصروفات النثرية', href: '/treasury/petty-cash' },
             { icon: '🏦', labelKey: 'sidebar.banks', href: '/accounting/banks' },
             { icon: '🧾', labelKey: 'sidebar.receipt_vouchers', href: '/receipt-vouchers' },
             { icon: '💸', labelKey: 'sidebar.expenses', href: '/expenses' },
@@ -57,6 +68,7 @@ const menuItems = [
         sectionKey: 'sidebar.hr', items: [
             { icon: '👨‍💼', labelKey: 'sidebar.employees', href: '/employees' },
             { icon: '🕐', labelKey: 'sidebar.attendance', href: '/attendance' },
+            { icon: '💼', labelKey: 'سلف الموظفين', href: '/hr/loans' },
             { icon: '💵', labelKey: 'sidebar.salaries', href: '/salaries' },
             { icon: '🏖️', labelKey: 'sidebar.vacations', href: '/vacations' },
         ]
@@ -71,7 +83,6 @@ const menuItems = [
         sectionKey: 'sidebar.extras', items: [
             { icon: '🔧', labelKey: 'sidebar.maintenance', href: '/maintenance' },
             { icon: '🎯', labelKey: 'sidebar.promotions', href: '/promotions' },
-            { icon: '📋', labelKey: 'sidebar.purchase_orders', href: '/purchase-orders' },
             { icon: '📦', labelKey: 'sidebar.stocktake', href: '/stocktake' },
             { icon: '📸', labelKey: 'الجرد بالذكاء الاصطناعي', href: '/stocktake/vision' },
             { icon: '🌐', labelKey: 'محرك الشركات (SaaS)', href: '/master-panel' },
@@ -80,6 +91,8 @@ const menuItems = [
             { icon: '🏢', labelKey: 'sidebar.fixed_assets', href: '/fixed-assets' },
             { icon: '🕒', labelKey: 'sidebar.shifts', href: '/shifts' },
             { icon: '🏢', labelKey: 'sidebar.branches', href: '/branches' },
+            { icon: '💱', labelKey: 'إدارة العملات', href: '/settings/currencies' },
+            { icon: '✅', labelKey: 'نظام الموافقات', href: '/settings/approvals' },
             { icon: '⚙️', labelKey: 'sidebar.settings', href: '/settings' },
             { icon: '🛡️', labelKey: 'sidebar.audit_logs', href: '/audit-logs' },
         ]
@@ -152,11 +165,12 @@ export default function Sidebar() {
             if (item.href === '/stocktake/vision') mod = 'vision_inventory';
             if (item.href === '/settings/whatsapp') mod = 'whatsapp';
             if (item.href === '/master-panel') mod = 'master-panel';
+            if (item.href === '/hr/loans') mod = 'salaries';
+            if (item.href === '/purchase-orders') mod = 'purchases';
 
             if (mod === 'dashboard' || mod === 'login') return true;
             
-            // Fallback for empty admins to be able to manage permissions
-            if (isLockedOutAdmin && mod === 'settings') return true;
+            if (loggedUser.role === 'admin') return true;
 
             return userModules.includes(mod);
         }),

@@ -46,10 +46,12 @@ async function getNextEntryNumber(): Promise<string> {
 async function createJournalEntry(params: {
     description: string;
     reference?: string;
-    lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }>;
+    lines: Array<{ accountCode: string; costCenterId?: number; debit: number; credit: number; foreignDebit?: number; foreignCredit?: number; description?: string }>;
     userId?: number;
     branchId?: number | null;
     date?: string;
+    currencyId?: number | null;
+    exchangeRate?: number;
 }): Promise<{ success: boolean; entryId?: number; error?: string }> {
     try {
         // Validate: total debit must equal total credit
@@ -61,17 +63,20 @@ async function createJournalEntry(params: {
         }
 
         // Resolve account IDs
-        const resolvedLines: Array<{ accountId: number; debit: number; credit: number; description?: string }> = [];
+        const resolvedLines: Array<{ accountId: number; costCenterId?: number; debit: number; credit: number; foreignDebit: number; foreignCredit: number; description?: string }> = [];
         for (const line of params.lines) {
-            if (line.debit === 0 && line.credit === 0) continue; // skip zero lines
+            if (line.debit === 0 && line.credit === 0 && (line.foreignDebit || 0) === 0 && (line.foreignCredit || 0) === 0) continue; // skip zero lines
             const accountId = await getAccountId(line.accountCode);
             if (!accountId) {
                 return { success: false, error: `حساب غير موجود: ${line.accountCode}` };
             }
             resolvedLines.push({
                 accountId,
+                costCenterId: line.costCenterId,
                 debit: line.debit,
                 credit: line.credit,
+                foreignDebit: line.foreignDebit || line.debit,
+                foreignCredit: line.foreignCredit || line.credit,
                 description: line.description,
             });
         }
@@ -91,11 +96,17 @@ async function createJournalEntry(params: {
                 status: 'posted',
                 createdBy: params.userId,
                 branchId: params.branchId,
+                // @ts-ignore - Local VSCode lock bypass
+                currencyId: params.currencyId || null,
+                exchangeRate: params.exchangeRate || 1.0,
                 lines: {
                     create: resolvedLines.map(l => ({
                         accountId: l.accountId,
+                        costCenterId: l.costCenterId || null,
                         debit: Math.round(l.debit * 100) / 100,
                         credit: Math.round(l.credit * 100) / 100,
+                        foreignDebit: Math.round(l.foreignDebit * 100) / 100,
+                        foreignCredit: Math.round(l.foreignCredit * 100) / 100,
                         description: l.description,
                     })),
                 },
@@ -235,18 +246,33 @@ export async function postPurchaseInvoice(invoice: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    landedCosts?: Array<{ accountCode: string; amountValue: number; description: string }>;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
         invoice.paymentType === 'bank' ? ACCOUNTS.BANK :
             ACCOUNTS.PAYABLES;
 
-    // Debit: COGS
+    let totalLandedCost = 0;
+    if (invoice.landedCosts && invoice.landedCosts.length > 0) {
+        for (const lc of invoice.landedCosts) {
+            totalLandedCost += lc.amountValue;
+            // Credit: The clearing account (e.g. Customs Accrual, Transit account)
+            lines.push({
+                accountCode: lc.accountCode,
+                debit: 0,
+                credit: lc.amountValue,
+                description: `توزيع تكلفة: ${lc.description} لفاتورة #${invoice.invoiceNo}`,
+            });
+        }
+    }
+
+    // Debit: COGS (or Inventory) - Base Cost + Landed Costs
     lines.push({
         accountCode: ACCOUNTS.COGS,
-        debit: invoice.subtotal,
+        debit: invoice.subtotal + totalLandedCost,
         credit: 0,
-        description: `مشتريات فاتورة #${invoice.invoiceNo}`,
+        description: `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''}`,
     });
 
     // Debit: VAT Input
@@ -289,6 +315,7 @@ export async function postExpense(expense: {
     description: string;
     userId?: number;
     branchId?: number | null;
+    costCenterId?: number | null;
     date?: string;
 }) {
     // Map expense category to account code
@@ -308,7 +335,7 @@ export async function postExpense(expense: {
         description: `مصروف: ${expense.description}`,
         reference: `EXP-${expense.id}`,
         lines: [
-            { accountCode: expenseAccount, debit: expense.amount, credit: 0, description: expense.description },
+            { accountCode: expenseAccount, costCenterId: expense.costCenterId || undefined, debit: expense.amount, credit: 0, description: expense.description },
             { accountCode: ACCOUNTS.CASH, debit: 0, credit: expense.amount, description: `سداد مصروف #${expense.id}` },
         ],
         userId: expense.userId,

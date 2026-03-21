@@ -6,7 +6,7 @@ interface Customer {
     id: number; name: string; phone: string; type: number; balance: number;
     address: string; city: string; district: string; taxNumber: string; crNo: string;
     creditLimit: number; notes: string; buildingNumber: string;
-    postalCode: string; street: string; active: boolean;
+    postalCode: string; street: string; active: boolean; routeId: number | null;
 }
 
 export default function CustomersPage() {
@@ -16,9 +16,10 @@ export default function CustomersPage() {
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState<Customer | null>(null);
     const [loading, setLoading] = useState(true);
+    const [routes, setRoutes] = useState<any[]>([]);
     const [form, setForm] = useState({
         name: '', phone: '', type: '0', address: '', street: '', buildingNumber: '',
-        district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: '',
+        district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: '', routeId: ''
     });
     const [sendingReminderId, setSendingReminderId] = useState<number | null>(null);
 
@@ -28,8 +29,12 @@ export default function CustomersPage() {
             const params = new URLSearchParams();
             if (search) params.set('search', search);
             if (typeFilter) params.set('type', typeFilter);
-            const res = await fetch(`/api/customers?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) setCustomers(await res.json());
+            const [cRes, rRes] = await Promise.all([
+                fetch(`/api/customers?${params}`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`/api/sales/routes`, { headers: { Authorization: `Bearer ${token}` } })
+            ]);
+            if (cRes.ok) setCustomers(await cRes.json());
+            if (rRes.ok) setRoutes(await rRes.json());
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
     };
@@ -44,7 +49,7 @@ export default function CustomersPage() {
         setEditItem(null);
         setForm({
             name: '', phone: '', type: '0', address: '', street: '', buildingNumber: '',
-            district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: ''
+            district: '', city: '', postalCode: '', creditLimit: '0', taxNumber: '', crNo: '', notes: '', routeId: ''
         });
         setShowModal(true);
     };
@@ -55,7 +60,7 @@ export default function CustomersPage() {
             name: c.name, phone: c.phone || '', type: c.type.toString(), address: c.address || '',
             street: c.street || '', buildingNumber: c.buildingNumber || '', district: c.district || '',
             city: c.city || '', postalCode: c.postalCode || '', creditLimit: c.creditLimit?.toString() || '0',
-            taxNumber: c.taxNumber || '', crNo: c.crNo || '', notes: c.notes || '',
+            taxNumber: c.taxNumber || '', crNo: c.crNo || '', notes: c.notes || '', routeId: c.routeId?.toString() || ''
         });
         setShowModal(true);
     };
@@ -186,6 +191,12 @@ export default function CustomersPage() {
                             <div className="input-group"><label className="input-label">النوع</label>
                                 <select className="input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
                                     <option value="0">عميل</option><option value="1">مورد</option><option value="2">كلاهما</option></select></div>
+                            <div className="input-group"><label className="input-label">خط السير (توزيع المبيعات)</label>
+                                <select className="input" value={form.routeId} onChange={e => setForm({ ...form, routeId: e.target.value })}>
+                                    <option value="">غير معين لخط سير</option>
+                                    {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                </select>
+                            </div>
                             <div className="input-group"><label className="input-label">المدينة</label>
                                 <input className="input" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} /></div>
                             <div className="input-group"><label className="input-label">الحي</label>

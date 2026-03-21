@@ -56,6 +56,7 @@
 html {
   direction: rtl;
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
@@ -66,6 +67,11 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global legibility fail-safe for hardcoded light backgrounds */
+.bg-white, .bg-slate-50, .bg-slate-100 {
+  color: #0f172a !important;
 }
 
 /* Premium Background Pattern */
@@ -560,6 +566,12 @@ select.input {
   background-repeat: no-repeat;
   background-position: left 12px center;
   padding-left: 32px;
+  color: #F8FAFC !important; /* Chosen text is white */
+}
+
+select.input option {
+  background-color: #ffffff !important;
+  color: #000000 !important; /* Dropdown list options are black */
 }
 
 textarea.input {

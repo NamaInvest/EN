@@ -19,7 +19,10 @@ export async function GET(request: Request) {
             where,
             include: {
                 lines: {
-                    include: { account: { select: { code: true, name: true, type: true } } },
+                    include: { 
+                        account: { select: { code: true, name: true, type: true } },
+                        costCenter: { select: { name: true } }
+                    },
                 },
             },
             orderBy: { id: 'desc' },
@@ -54,8 +57,9 @@ export async function POST(request: Request) {
             description,
             reference,
             date,
-            lines: lines.map((l: { accountCode: string; debit: number; credit: number; description?: string }) => ({
+            lines: lines.map((l: { accountCode: string; costCenterId?: number; debit: number; credit: number; description?: string }) => ({
                 accountCode: l.accountCode,
+                costCenterId: l.costCenterId,
                 debit: l.debit || 0,
                 credit: l.credit || 0,
                 description: l.description,

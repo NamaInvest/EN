@@ -180,7 +180,7 @@ export default function SalesPage() {
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) setWarehouses(await res.json());
+            if (res.ok) { const d = await res.json(); setWarehouses(Array.isArray(d) ? d : []); }
         } catch (err) { console.error('Error fetching warehouses:', err); }
     };
 
@@ -285,7 +285,7 @@ export default function SalesPage() {
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { const data = await res.json(); setProducts(data); setFilteredProducts(data.slice(0, 20)); }
+            if (res.ok) { const data = await res.json(); const arr = Array.isArray(data) ? data : []; setProducts(arr); setFilteredProducts(arr.slice(0, 20)); }
         } catch (err) { console.error(err); }
     };
 
@@ -293,7 +293,7 @@ export default function SalesPage() {
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/customers?type=0', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) setCustomers(await res.json());
+            if (res.ok) { const d = await res.json(); setCustomers(Array.isArray(d) ? d : []); }
         } catch (err) { console.error(err); }
     };
 
@@ -377,9 +377,7 @@ export default function SalesPage() {
         }
     };
 
-    const fmt = (v: number) => new Intl.NumberFormat('ar-SA', {
-        minimumFractionDigits: 2, maximumFractionDigits: 2
-    }).format(v);
+    const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const handleSave = async (print = false, whatsapp = false) => {
         if (cart.length === 0) return;
@@ -597,7 +595,7 @@ export default function SalesPage() {
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/sales', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) setHistoryInvoices(await res.json());
+            if (res.ok) { const d = await res.json(); setHistoryInvoices(Array.isArray(d) ? d : []); }
         } catch (err) { console.error(err); }
         finally { setHistoryLoading(false); }
     };

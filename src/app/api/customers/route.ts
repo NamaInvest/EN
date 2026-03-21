@@ -48,6 +48,7 @@ export async function POST(request: Request) {
                 // @ts-ignore: VS Code cache issue
                 crNo: body.crNo || null,
                 notes: body.notes || null,
+                routeId: body.routeId ? parseInt(body.routeId) : null,
             },
         });
         return NextResponse.json(customer, { status: 201 });

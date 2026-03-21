@@ -21,6 +21,7 @@ interface Product {
     active: boolean;
     sellByWeight: boolean;
     expiryDate?: string | null;
+    binLocation?: string | null;
     category?: { id: number; name: string };
     unit?: { id: number; name: string };
     productStocks?: any[];
@@ -49,7 +50,7 @@ export default function ProductsPage() {
         name: '', barcode: '', categoryId: '', unitId: '1',
         buyPrice: '', sellPrice: '', taxRate: '15', minQuantity: '0',
         currentStock: '0', description: '', nameEn: '', sellByWeight: false,
-        addVat: true, expiryDate: '',
+        addVat: true, expiryDate: '', binLocation: ''
     });
     const [canResetStock, setCanResetStock] = useState(false);
     const [canDeleteProduct, setCanDeleteProduct] = useState(false);
@@ -123,7 +124,7 @@ export default function ProductsPage() {
             name: '', barcode: '', categoryId: '', unitId: '1',
             buyPrice: '', sellPrice: '', taxRate: '15', minQuantity: '0',
             currentStock: '0', description: '', nameEn: '', sellByWeight: false,
-            addVat: true, expiryDate: '',
+            addVat: true, expiryDate: '', binLocation: ''
         });
         setShowModal(true);
     };
@@ -136,7 +137,7 @@ export default function ProductsPage() {
             sellPrice: p.sellPrice?.toString() || '', taxRate: p.taxRate?.toString() || '15',
             minQuantity: p.minQuantity?.toString() || '0', currentStock: p.currentStock?.toString() || '0',
             description: p.description || '', nameEn: p.nameEn || '', sellByWeight: p.sellByWeight || false,
-            addVat: true, expiryDate: p.expiryDate || '',
+            addVat: true, expiryDate: p.expiryDate || '', binLocation: p.binLocation || ''
         });
         setShowModal(true);
     };
@@ -308,6 +309,7 @@ export default function ProductsPage() {
                                 <th>سعر الشراء + الضريبة</th>
                                 <th>سعر البيع</th>
                                 <th>المخزون</th>
+                                <th>الموقع/الرف</th>
                                 <th>انتهاء الصلاحية</th>
                                 <th>إجراءات</th>
                             </tr>
@@ -376,6 +378,7 @@ export default function ProductsPage() {
                                             )}
                                         </div>
                                     </td>
+                                    <td><span style={{ fontSize: '12px', fontWeight: 'bold' }}>{p.binLocation || '-'}</span></td>
                                     <td>
                                         {p.expiryDate ? <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{p.expiryDate}</span> : <span style={{ color: '#ccc' }}>-</span>}
                                     </td>
@@ -536,6 +539,10 @@ export default function ProductsPage() {
                             <div className="input-group">
                                 <label className="input-label">المخزون الحالي</label>
                                 <input className="input" type="number" value={form.currentStock} onChange={e => setForm({ ...form, currentStock: e.target.value })} dir="ltr" />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">موقع الرف المخزني (Bin/Shelf)</label>
+                                <input className="input" value={form.binLocation} onChange={e => setForm({ ...form, binLocation: e.target.value })} placeholder="مثال: A1-05" dir="ltr" />
                             </div>
                             <div className="input-group">
                                 <label className="input-label">تاريخ الانتهاء</label>
