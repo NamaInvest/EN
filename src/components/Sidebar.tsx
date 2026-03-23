@@ -20,28 +20,37 @@ const menuItems = [
             { icon: '💻', labelKey: 'شاشة نقطة البيع (POS)', href: '/pos', module: 'pos' },
             { icon: '🍔', labelKey: 'نقطة بيع المطاعم والمقاهي', href: '/restaurant-pos', module: 'restaurant_pos' },
             { icon: '🕒', labelKey: 'ورديات الكاشير', href: '/shifts', module: 'shifts' },
+            // Sales Cycle
+            { icon: '📄', labelKey: 'عروض أسعار المبيعات', href: '/price-quotes', module: 'price_quotes' },
             { icon: '📦', labelKey: 'أوامر البيع (Sales Orders)', href: '/sales/orders', module: 'sales_orders' },
+            { icon: '🚚', labelKey: 'مذكرات التسليم (Delivery Notes)', href: '/sales/delivery-notes', module: 'sales_orders' },
+            { icon: '🧾', labelKey: 'فواتير المبيعات الضريبية', href: '/sales', module: 'sales' },
+            { icon: '↩️', labelKey: 'مرتجعات المبيعات', href: '/sales-returns', module: 'sales_returns' },
             { icon: '🔄', labelKey: 'العقود والفواتير الدورية', href: '/recurring-invoices', module: 'sales_orders' },
-            { icon: '🧾', labelKey: 'sidebar.sales', href: '/sales', module: 'sales' },
-            { icon: '🗺️', labelKey: 'خطوط السير', href: '/sales/routes', module: 'sales_routes' },
-            { icon: '🎯', labelKey: 'مستهدفات المبيعات', href: '/sales/targets', module: 'sales_targets' },
-            { icon: '🛒', labelKey: 'sidebar.purchases', href: '/purchases', module: 'purchases' },
-            { icon: '📋', labelKey: 'أوامر الشراء (طلبات)', href: '/purchase-orders', module: 'purchase_orders' },
-            { icon: '🌍', labelKey: 'الاعتمادات المستندية', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
-            { icon: '↩️', labelKey: 'sidebar.sales_returns', href: '/sales-returns', module: 'sales_returns' },
-            { icon: '↩️', labelKey: 'sidebar.purchase_returns', href: '/purchase-returns', module: 'purchase_returns' },
-            { icon: '📋', labelKey: 'sidebar.bookings', href: '/bookings', module: 'bookings' },
-            { icon: '📄', labelKey: 'sidebar.price_quotes', href: '/price-quotes', module: 'price_quotes' },
+            { icon: '🗺️', labelKey: 'خطوط السير للمناديب', href: '/sales/routes', module: 'sales_routes' },
+            { icon: '🎯', labelKey: 'مستهدفات البيع والعمولات', href: '/sales/targets', module: 'sales_targets' },
+            
+            // Purchasing Cycle
+            { icon: '📝', labelKey: 'طلبات الشراء الداخلية (PR)', href: '/purchases/requisitions', module: 'purchase_orders' },
+            { icon: '📩', labelKey: 'عروض أسعار الموردين (RFQ)', href: '/purchases/rfq', module: 'purchase_orders' },
+            { icon: '📋', labelKey: 'أوامر الشراء المعتمدة (PO)', href: '/purchase-orders', module: 'purchase_orders' },
+            { icon: '📥', labelKey: 'سندات الاستلام المخزني (GRN)', href: '/purchases/grn', module: 'purchases' },
+            { icon: '🛒', labelKey: 'فواتير المشتريات المستحقة', href: '/purchases', module: 'purchases' },
+            { icon: '↩️', labelKey: 'مرتجعات المشتريات', href: '/purchase-returns', module: 'purchase_returns' },
+            { icon: '🌍', labelKey: 'الاعتمادات المستندية (LC)', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
+
             { icon: '🎟️', labelKey: 'sidebar.coupons', href: '/coupons', module: 'coupons' },
         ]
     },
     {
         sectionKey: 'sidebar.inventory', items: [
-            { icon: '📦', labelKey: 'sidebar.products', href: '/products', module: 'products' },
-            { icon: '🏭', labelKey: 'sidebar.stock', href: '/stock', module: 'stock' },
-            { icon: '🛠️', labelKey: 'إدارة التصنيع (BOM)', href: '/manufacturing', module: 'manufacturing' },
-            { icon: '🏢', labelKey: 'sidebar.warehouses', href: '/warehouses', module: 'warehouses' },
-            { icon: '🔀', labelKey: 'sidebar.stock_transfers', href: '/stock-transfers', module: 'stock_transfers' },
+            { icon: '📦', labelKey: 'بطاقات الأصناف والخدمات', href: '/products', module: 'products' },
+            { icon: '🏭', labelKey: 'الأرصدة المخزنية الحالية', href: '/stock', module: 'stock' },
+            { icon: '⌚', labelKey: 'حركة الصنف التاريخية (Ledger)', href: '/stock/movements', module: 'stock_transfers' },
+            { icon: '🔀', labelKey: 'نقل المخزون بين المستودعات', href: '/stock-transfers', module: 'stock_transfers' },
+            { icon: '⚖️', labelKey: 'تسويات الجرد التعديلية', href: '/stock/adjustments', module: 'stock_transfers' },
+            { icon: '🛠️', labelKey: 'إدارة التصنيع ومعادلات (BOM)', href: '/manufacturing', module: 'manufacturing' },
+            { icon: '🏢', labelKey: 'تكويد المستودعات', href: '/warehouses', module: 'warehouses' },
             { icon: '🚚', labelKey: 'التحويلات الذكية (في الطريق)', href: '/smart-transfers', module: 'stock_transfers' },
             { icon: '🏷️', labelKey: 'sidebar.barcode', href: '/barcode', module: 'barcode' },
             { icon: '⏱️', labelKey: 'sidebar.batches', href: '/batches', module: 'batches' },
@@ -50,12 +59,14 @@ const menuItems = [
     {
         sectionKey: 'sidebar.parties', items: [
             { icon: '👥', labelKey: 'sidebar.customers', href: '/customers', module: 'customers' },
+            { icon: '📊', labelKey: 'الفرص البيعية والمحتملين (CRM)', href: '/crm/leads', module: 'customers' },
             { icon: '🎁', labelKey: 'sidebar.loyalty', href: '/loyalty', module: 'loyalty' },
         ]
     },
     {
         sectionKey: 'sidebar.finance', items: [
             { icon: '💰', labelKey: 'sidebar.treasury', href: '/treasury', module: 'treasury' },
+            { icon: '🏢', labelKey: 'الأصول الثابتة والإهلاكات', href: '/finance/assets', module: 'treasury' },
             { icon: '🏦', labelKey: 'أوراق القبض والدفع', href: '/treasury/checks', module: 'treasury_checks' },
             { icon: '⚖️', labelKey: 'التسويات البنكية', href: '/treasury/bank-reconciliation', module: 'bank_reconciliation' },
             { icon: '💸', labelKey: 'العهد والمصروفات النثرية', href: '/treasury/petty-cash', module: 'petty_cash' },
@@ -78,8 +89,26 @@ const menuItems = [
         ]
     },
     {
+        sectionKey: 'أنظمة إنتربرايز (Enterprise)', items: [
+            { icon: '🏭', labelKey: 'إدارة المصانع المتقدمة (MRP)', href: '/enterprise/mrp', module: 'mrp' },
+            { icon: '🔎', labelKey: 'الفحص المخزني ومراقبة الجودة (QC)', href: '/enterprise/quality', module: 'mrp' },
+            { icon: '🏗️', labelKey: 'المشاريع والمقاولات (Job Costing)', href: '/enterprise/projects', module: 'projects' },
+            { icon: '📐', labelKey: 'توجيه المستودع الذكي (WMS)', href: '/enterprise/wms', module: 'wms' },
+            { icon: '⚖️', labelKey: 'الضمانات والرقابة الائتمانية', href: '/enterprise/legal', module: 'legal' },
+            { icon: '🚚', labelKey: 'أسطول النقل والحركة (Fleet)', href: '/enterprise/fleet', module: 'legal' },
+            { icon: '🏢', labelKey: 'إدارة الأملاك والعقارات (Property)', href: '/enterprise/property', module: 'legal' },
+        ]
+    },
+    {
+        sectionKey: 'الذكاء الاصطناعي (AI)', items: [
+            { icon: '🤖', labelKey: 'الوكيل المساعد (Copilot)', href: '/ai-copilot', module: 'ai_copilot' },
+            { icon: '📦', labelKey: 'المخزون السحابي الذكي', href: '/ai-scm', module: 'ai_scm' },
+            { icon: '🏦', labelKey: 'التسويات البنكية المستقلة', href: '/ai-bank', module: 'ai_bank' },
+            { icon: '💬', labelKey: 'بائع الواتساب الآلي', href: '/whatsapp-hub', module: 'whatsapp' },
+        ]
+    },
+    {
         sectionKey: 'sidebar.integrations', items: [
-            { icon: '🤖', labelKey: 'لوحة المبيعات الذكية (AI)', href: '/whatsapp-hub', module: 'whatsapp' },
             { icon: '📨', labelKey: 'sidebar.whatsapp', href: '/settings/whatsapp', module: 'whatsapp' },
             { icon: '🛒', labelKey: 'sidebar.salla', href: '/settings#salla', module: 'salla' },
         ]
@@ -166,8 +195,10 @@ export default function Sidebar() {
 
             if (mod === 'dashboard' || mod === 'login') return true;
             
-            // Allow ONLY Admin full access automatically. All other roles rely on explicit modules.
-            if (['admin'].includes(loggedUser.role)) return true;
+            if (mod === 'master-panel') return loggedUser.role === 'owner';
+            
+            // Allow ONLY Admin and Owner full access automatically. All other roles rely on explicit modules.
+            if (['admin', 'owner'].includes(loggedUser.role)) return true;
 
             return userModules.includes(mod);
         }),

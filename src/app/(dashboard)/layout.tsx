@@ -3,7 +3,10 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SessionGuard from '@/components/SessionGuard';
 import InactivityGuard from '@/components/InactivityGuard';
+import SubscriptionGuard from '@/components/SubscriptionGuard';
 import StockNotificationBell from '@/components/StockNotificationBell';
+import AICopilotButton from '@/components/AICopilotButton';
+import GlobalErrorBoundary from '@/components/GlobalErrorBoundary';
 import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
 
@@ -15,10 +18,13 @@ export default function DashboardLayout({
     return (
         <I18nProvider>
             <SettingsProvider>
-                <div className="app-layout">
-                    <SessionGuard />
-                    <InactivityGuard />
-                    <Sidebar />
+                <GlobalErrorBoundary>
+                    <div className="app-layout">
+                        <SessionGuard />
+                        <InactivityGuard />
+                        <SubscriptionGuard />
+                        <AICopilotButton />
+                        <Sidebar />
                 <main className="main-content">
                     {/* Top bar with theme and language switchers */}
                     <div className="top-bar">
@@ -32,6 +38,7 @@ export default function DashboardLayout({
                     {children}
                 </main>
             </div>
+            </GlobalErrorBoundary>
             </SettingsProvider>
         </I18nProvider>
     );

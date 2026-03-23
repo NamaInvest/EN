@@ -1,0 +1,61 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET() {
+  try {
+    const properties = await prisma.property.findMany({
+      include: {
+        units: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return NextResponse.json(properties);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const property = await prisma.property.create({
+      data: {
+        name: data.name,
+        type: data.type || 'COMMERCIAL_BUILDING',
+        address: data.address || '',
+        totalUnits: parseInt(data.totalUnits || 1),
+        status: data.status || 'ACTIVE',
+      }
+    });
+
+    // Auto-generate units based on totalUnits count
+    const unitSqm = parseFloat(data.areaSqm || 100);
+    const unitRent = parseFloat(data.rentYearly || 0);
+    
+    const unitsData = Array.from({ length: property.totalUnits }).map((_, i) => ({
+      propertyId: property.id,
+      unitNumber: `${data.name.substring(0,3).toUpperCase()}-${(i+1).toString().padStart(3, '0')}`,
+      type: data.unitType || 'OFFICE',
+      floor: Math.ceil((i+1) / 4) || 1, // Rough estimate of 4 units per floor
+      areaSqm: unitSqm,
+      rentYearly: unitRent,
+      status: 'VACANT'
+    }));
+
+    if(unitsData.length > 0) {
+        await prisma.propertyUnit.createMany({
+            data: unitsData
+        });
+    }
+
+    const createdProperty = await prisma.property.findUnique({
+        where: { id: property.id },
+        include: { units: true }
+    });
+
+    return NextResponse.json(createdProperty);
+  } catch (error) {
+    console.error("Property Creation Error:", error);
+    return NextResponse.json({ error: 'Failed to create property' }, { status: 500 });
+  }
+}

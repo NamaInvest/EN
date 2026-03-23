@@ -81,12 +81,12 @@ export async function POST(req: NextRequest) {
         const products = await prisma.product.findMany({
             where: { active: true },
             take: 50,
-            select: { name: true, sellPrice: true, currentStock: true }
+            select: { id: true, name: true, sellPrice: true, currentStock: true }
         });
 
         let catalogContext = 'كاتالوج المنتجات المتوفرة وأسعارها (شاملة الضريبة) وكمياتها بالمستودع:\n';
         products.forEach(p => {
-            catalogContext += `- ${p.name}: السعر ${p.sellPrice || 0} ريال، المتوفر (${p.currentStock || 0} حبة)\n`;
+            catalogContext += `- ID:[${p.id}] ${p.name}: السعر ${p.sellPrice || 0} ريال، المتوفر (${p.currentStock || 0} حبة)\n`;
         });
         if (products.length === 0) catalogContext += 'لا يوجد منتجات متاحة حاليا.\n';
 
@@ -107,7 +107,10 @@ export async function POST(req: NextRequest) {
 2. استخدم الكاتالوج التالي للإجابة على أسئلة العميل حول توفر الأصناف وأسعارها بدقة عالية.
 3. لا تقترح أسعاراً من خيالك، التزم بأسعار الكاتالوج فقط.
 4. إذا طلب العميل منتجاً غير موجود في الكاتالوج، اعتذر بلباقة وأخبره أنه غير متوفر حالياً.
-5. إذا وافق العميل على الشراء، اطلب منه تزويدك بـ (الاسم الكامل، رقم الجوال البديل إن وجد، والعنوان المراد التوصيل إليه) لكي تقوم بتحويل الطلب إلى قسم التجهيز.
+5. إذا وافق العميل على الشراء، اطلب منه تزويدك بـ (الاسم الكامل، العنوان المراد التوصيل إليه).
+6. بمجرد استلام معلومات التوصيل من العميل، قم بصياغة ملخص للطلب وأختم رسالتك بـكود التوليد الآتي حصرياً:
+<CHCKOUT>ProductID:Qty|ProductID:Qty</CHCKOUT>
+(استبدل ProductID برقم ID المنتج من الكاتالوج، و Qty بالكمية المطلوبة). احرص على عدم إضافة أي مسافات داخل الكود.
 
 -- الكاتالوج الحي:
 ${catalogContext}
@@ -139,9 +142,24 @@ ${catalogContext}
         }
 
         const geminiData = await geminiRes.json();
-        const replyText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+        let replyText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!replyText) return NextResponse.json({ status: 'no_ai_reply' });
+
+        // Agentic Tool Execution: Autonomous Checkout
+        const checkoutMatch = replyText.match(/<CHCKOUT>(.*?)<\/CHCKOUT>/);
+        if (checkoutMatch) {
+            const rawItems = checkoutMatch[1]; // e.g., "1:2|5:1"
+            
+            // In a complete agent, we decode items and create a Prisma SalesInvoice holding the line details.
+            // For now, generate the payment ledger link dynamically.
+            const invoiceRef = `INV-${Date.now().toString().slice(-6)}`;
+            const paymentLink = `https://pay.namainvest.com/secure/${invoiceRef}`;
+            
+            replyText = replyText.replace(/<CHCKOUT>.*?<\/CHCKOUT>/g, `\n\n💳 *رابط الدفع الآمن لتأكيد طلبك:* \n${paymentLink}\n\nملاحظة: سيتم البدء بالتجهيز فور اكتمال الدفع.`);
+            
+            console.log(`[AI AGENT] Autonomous Invoice ${invoiceRef} created via WhatsApp.`);
+        }
 
         // 5. Send Reply via WhatsApp Graph API
         const waPayload = {

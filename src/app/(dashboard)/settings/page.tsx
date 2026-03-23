@@ -142,11 +142,10 @@ export default function SettingsPage() {
             const u = JSON.parse(localStorage.getItem('user') || '{}');
             const perms: string[] = (u.permissions || []).map((p: { module: string }) => p.module);
             const hasPerms = perms.length > 0;
-            const isAdmin = u.role === 'admin';
-            const isLockedOutAdmin = !hasPerms && isAdmin;
+            const isAdmin = u.role === 'admin' || u.role === 'owner';
 
-            // Enforce strict module checking
-            if (isLockedOutAdmin || perms.includes('settings')) {
+            // Admin always has universal access
+            if (isAdmin || perms.includes('settings')) {
                 setAuthorized(true);
                 setCanManageUsers(isAdmin || perms.includes('manage_users'));
                 setCanManagePerms(isAdmin || perms.includes('manage_permissions'));
@@ -224,8 +223,16 @@ export default function SettingsPage() {
         { key: 'stocktake', label: '📦 عمليات الجرد المخزني' },
         { key: 'vision_inventory', label: '📸 الجرد بالذكاء الاصطناعي' },
         { key: 'master-panel', label: '🌐 محرك الإدارة (SaaS)' },
+        { key: 'mrp', label: '🏭 إدارة المصانع المتقدمة (MRP)' },
+        { key: 'projects', label: '🏗️ المشاريع والمقاولات (Job Costing)' },
+        { key: 'wms', label: '📐 توجيه المستودع الذكي (WMS)' },
+        { key: 'legal', label: '⚖️ الضمانات والرقابة الائتمانية' },
         { key: 'accounting', label: '📊 المحاسبة العامة والقيود' },
         { key: 'fixed_assets', label: '🏢 الأصول الثابتة والإهلاك' },
+        { key: 'crm_leads', label: '💼 إدارة الفرص البيعية (CRM)' },
+        { key: 'fleet', label: '🚚 حركة أسطول النقل والتوزيع' },
+        { key: 'property', label: '🏠 إدارة الأملاك والعقارات' },
+        { key: 'quality', label: '🔎 الفحص ومراقبة الجودة' },
         { key: 'branches', label: '🏢 إدارة الفروع' },
         { key: 'currencies', label: '💱 العملات وسعر الصرف' },
         { key: 'approvals', label: '✅ نظام الرقابة والموافقات' },

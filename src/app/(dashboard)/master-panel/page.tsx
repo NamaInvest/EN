@@ -1,173 +1,90 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/i18n";
+'use client';
+import { useState, useEffect } from 'react';
 
 export default function MasterPanelPage() {
-    const { t } = useTranslation();
-    const [tenantId, setTenantId] = useState("n4");
-    const [port, setPort] = useState("3004");
-    const [loading, setLoading] = useState(false);
-    const [logs, setLogs] = useState<string[]>([]);
-    const [success, setSuccess] = useState(false);
+    const [companies, setCompanies] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const lastPort = localStorage.getItem('lastTenantPort');
-        if (lastPort) {
-            const nextPort = parseInt(lastPort) + 1;
-            setPort(nextPort.toString());
-            const tenantNum = nextPort - 3000;
-            if (tenantNum > 0) {
-                setTenantId(`n${tenantNum}`);
-            }
-        }
-    }, []);
-
-    const handleDeploy = async () => {
-        if (!tenantId || !port) {
-            alert("يرجى إدخال اسم الشركة ورقم المنفذ (Port)");
-            return;
-        }
-
-        setLoading(true);
-        setLogs(prev => [...prev, `🚀 بدء إنشاء البيئة للشركة: ${tenantId}.namainvist.com على المنفذ ${port}...`]);
-        setSuccess(false);
-
+    const fetchCompanies = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/master-panel/deploy', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ tenantId, port })
-            });
-
-            const data = await res.json();
-            
+            const res = await fetch('/api/master-panel-data');
             if (res.ok) {
-                setLogs(prev => [...prev, ...data.logs, "✅ اكتمل تفعيل الشركة بنجاح! السيرفر يقوم بالبناء في الخلفية."]);
-                setSuccess(true);
-                localStorage.setItem('lastTenantPort', port);
-                
-                // تحديث الـ state للشركة القادمة فوراً
-                const nextPort = parseInt(port) + 1;
-                setPort(nextPort.toString());
-                const tenantNum = nextPort - 3000;
-                if (tenantNum > 0) {
-                    setTenantId(`n${tenantNum}`);
-                }
-            } else {
-                setLogs(prev => [...prev, "❌ فشل الإنشاء:", data.error || "خطأ غير معروف"]);
+                const data = await res.json();
+                setCompanies(data.companies);
             }
-        } catch (error: any) {
-            setLogs(prev => [...prev, "❌ خطأ في الاتصال بالخادم: " + error.message]);
+        } catch (e) {
+            console.error(e);
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => { fetchCompanies(); }, []);
+
+    const handleAction = async (companyId: number, action: string, days: number = 0) => {
+        if (!confirm('هل أنت متأكد من تنفيذ هذا الإجراء؟')) return;
+        const res = await fetch('/api/subscriptions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyId, action, days, planLabel: 'PRO' })
+        });
+        if (res.ok) {
+            fetchCompanies();
+        } else {
+            const data = await res.json();
+            alert(data.error || 'فشل تنفيذ الإجراء');
+        }
+    };
+
+    if (loading) return <div className="p-8 text-center text-white">جاري التحميل...</div>;
+
     return (
-        <div className="space-y-6 animate-fade-in p-4" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div className="page-header text-center md:text-right">
-                <h1 className="page-title flex items-center justify-center md:justify-start gap-2">
-                    <span className="text-primary text-2xl">🌐</span> 
-                    محرك الشركات (SaaS Master Panel)
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">
-                    لوحة تحكم (Super Admin) لإنشاء نسخ معزولة من النظام للشركات الجديدة بضغطة زر.
-                </p>
-            </div>
-
-            <div className="bg-card border rounded-xl shadow-sm p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="form-control">
-                        <label className="label">اختار معرّف الشركة (مثال: n3)</label>
-                        <input 
-                            type="text" 
-                            className="input" 
-                            value={tenantId}
-                            onChange={e => setTenantId(e.target.value)}
-                            placeholder="n3"
-                        />
-                        <span className="text-xs text-slate-500 mt-1">النطاق سيكون: {tenantId || 'xxx'}.namainvist.com</span>
-                    </div>
-
-                    <div className="form-control">
-                        <label className="label">رقم المنفذ (Port)</label>
-                        <input 
-                            type="number" 
-                            className="input" 
-                            value={port}
-                            onChange={e => setPort(e.target.value)}
-                            placeholder="3003"
-                        />
-                        <span className="text-xs text-slate-500 mt-1">يجب أن يكون منفذاً غير مستخدم في السيرفر</span>
-                    </div>
+        <div className="p-6 max-w-7xl mx-auto space-y-6" dir="rtl">
+            <div className="flex justify-between items-center bg-[#1a1c23] p-6 rounded-xl border border-white/10">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">لوحة الإدارة المركزية (Master Panel)</h1>
+                    <p className="text-neutral-400">إدارة اشتراكات المتاجر والشركات (SaaS Billing)</p>
                 </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 text-blue-800 text-sm">
-                    <span className="text-xl">ℹ️</span>
-                    <div>
-                        <strong>ماذا سيحدث عند الضغط؟</strong>
-                        <ul className="list-disc list-inside mt-1 opacity-90 space-y-1">
-                            <li>بناء قاعدة بيانات جديدة اسمها <code className="bg-white px-1 rounded">{tenantId}_db</code>.</li>
-                            <li>نسخ ملفات النظام الحالية وإنشاء ملف <code className="bg-white px-1 rounded">.env</code> مستقل.</li>
-                            <li>تهيئة سيرفر (Nginx) لربط النطاق الجديد.</li>
-                            <li>تشغيل بيئة العمل عبر PM2.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t">
-                    <button 
-                        className="btn btn-primary btn-lg shadow-lg flex items-center gap-2"
-                        onClick={handleDeploy}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <span className="animate-spin inline-block w-4 h-4 border-2 border-white/20 border-t-white rounded-full"></span>
-                                جاري بناء الشركة...
-                            </>
-                        ) : (
-                            <>🚀 إنشاء وتشغيل الشركة الجديدة الآن</>
-                        )}
-                    </button>
+                <div className="bg-[#ebf5ff] text-[#0066cc] px-6 py-3 rounded-lg font-bold shadow-[0_0_20px_rgba(0,102,204,0.3)] border border-[#0066cc]/30">
+                    العدد الكلي للشركات: {companies.length}
                 </div>
             </div>
 
-            {/* Terminal Logs */}
-            {logs.length > 0 && (
-                <div className="bg-[#1e1e1e] rounded-xl overflow-hidden border border-slate-700 shadow-xl">
-                    <div className="bg-[#2d2d2d] px-4 py-2 flex items-center gap-2 border-b border-slate-700">
-                        <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                        <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span className="text-xs text-slate-400 font-mono ml-2">Terminal / SaaS Engine</span>
-                    </div>
-                    <div className="p-4 font-mono text-sm space-y-1 max-h-[300px] overflow-y-auto">
-                        {logs.map((log, i) => (
-                            <div key={i} className={
-                                log.includes('✅') ? 'text-green-400' :
-                                log.includes('❌') ? 'text-red-400' : 'text-slate-300'
-                            }>
-                                {log}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {companies.map((company, index) => {
+                    const latestSub = company.subscriptions?.[0];
+                    const isActive = latestSub?.status === 'ACTIVE';
+                    const isValidDate = latestSub?.endDate && !isNaN(new Date(latestSub.endDate).getTime());
+                    const endDate = isValidDate ? new Date(latestSub.endDate).toLocaleDateString('ar-SA') : (latestSub?.status || 'غير محدد');
+                    
+                    return (
+                        <div key={index} className="bg-[#1a1c23] rounded-xl border border-white/10 p-6 flex flex-col justify-between hover:border-[#0066cc]/50 transition-colors">
+                            <div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <h3 className="text-xl font-bold text-white">{company.name}</h3>
+                                    <span className={`px-3 py-1 text-sm rounded-full font-bold ${isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {isActive ? 'نشط' : (latestSub?.status || 'منتهي/معلق')}
+                                    </span>
+                                </div>
+                                <div className="text-neutral-400 text-sm space-y-2 mb-6">
+                                    <p>🏢 عدد الفروع: {company.branches?.length || 0}</p>
+                                    <p>📅 صالح حتى: <span className="text-white">{endDate}</span></p>
+                                    <p>🏷️ الباقة: <span className="text-[#0066cc] font-bold">{latestSub?.planLabel || 'لا يوجد'}</span></p>
+                                </div>
                             </div>
-                        ))}
-                        {success && (
-                            <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded text-green-400">
-                                النظام قيد التشغيل! الرابط متاح عبر: 
-                                <br/>
-                                <a href={`http://${tenantId}.namainvist.com`} target="_blank" rel="noreferrer" className="underline font-bold">
-                                    http://{tenantId}.namainvist.com
-                                </a>
+                            
+                            <div className="flex gap-2 border-t border-white/5 pt-4">
+                                <button onClick={() => handleAction(company.id, 'extend', 30)} className="flex-1 bg-gradient-to-r from-[#0066cc] to-[#0052a3] hover:from-[#0052a3] hover:to-[#004080] text-white py-2 rounded-lg font-medium transition-all shadow-lg active:scale-95 text-sm">
+                                    + تجديد 30 يوم
+                                </button>
+                                <button onClick={() => handleAction(company.id, 'suspend')} className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 py-2 rounded-lg font-medium transition-all shadow-lg active:scale-95 text-sm border border-red-500/30">
+                                    إيقاف فوري
+                                </button>
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }

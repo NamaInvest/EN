@@ -2,13 +2,11 @@ const { Client } = require('ssh2');
 const fs = require('fs');
 
 const files = [
+    'src/components/GlobalErrorBoundary.tsx',
+    'src/app/(dashboard)/layout.tsx',
+    'src/app/(dashboard)/master-panel/page.tsx',
     'src/app/(dashboard)/settings/page.tsx',
-    'src/app/api/ai-auditor/route.ts',
-    'src/app/api/ai-cfo/route.ts',
-    'src/app/api/purchases/ocr/route.ts',
-    'src/app/api/stocktake/vision/route.ts',
-    'src/lib/telegram-bot.ts',
-    'src/workers/whatsapp.ts'
+    'src/app/(dashboard)/crm/leads/page.tsx'
 ];
 
 async function push() {
@@ -37,8 +35,7 @@ async function push() {
                     }
                     console.log("Uploads finished. Triggering background builds on server...");
                     
-                    const shellScript = `
-#!/bin/bash
+                    const shellScript = `#!/bin/bash
 for i in {1..10}
 do
   (
@@ -50,9 +47,17 @@ do
 done
 wait
 echo "ALL BUILDS COMPLETED"
-                    `;
+`;
+                    fs.writeFileSync('d:/namasoft9-3-main/build_all_temp.sh', shellScript);
                     
-                    conn.exec(`echo "${shellScript.replace(/\n/g, '\\n')}" > /root/build_all.sh && chmod +x /root/build_all.sh && nohup /root/build_all.sh > /root/build_output.log 2>&1 &`, (err, stream) => {
+                    await new Promise((res, rej) => {
+                        sftp.fastPut('d:/namasoft9-3-main/build_all_temp.sh', '/root/build_all.sh', (err) => {
+                            if (err) return rej(err);
+                            res();
+                        });
+                    });
+                    
+                    conn.exec(`chmod +x /root/build_all.sh && nohup /root/build_all.sh > /root/build_output.log 2>&1 &`, (err, stream) => {
                         if (err) return reject(err);
                         console.log("Commands triggered!");
                         stream.on('close', () => {

@@ -1,9 +1,30 @@
 const { Client } = require('ssh2');
-const conn = new Client();
-conn.on('ready', () => {
-    conn.exec('bash -lc "pm2 restart n1"', (err, stream) => {
-        stream.on('data', d => process.stdout.write(d.toString()));
-        stream.stderr.on('data', d => process.stderr.write(d.toString()));
-        stream.on('close', () => conn.end());
+
+const servers = [
+    { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', name: 'N1' }
+];
+
+async function restartServer(server) {
+    return new Promise((resolve) => {
+        const conn = new Client();
+        conn.on('ready', () => {
+            console.log(`[${server.name}] Connected, restarting PM2...`);
+            conn.exec('pm2 restart all', (err, stream) => {
+                if (err) return resolve();
+                stream.on('close', () => {
+                    console.log(`[${server.name}] PM2 Restarted Successfully! Next.js will now serve the public file.`);
+                    conn.end();
+                    resolve();
+                }).on('data', (data) => {
+                    // console.log(data.toString());
+                });
+            });
+        }).on('error', () => resolve()).connect(server);
     });
-}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});
+}
+
+(async () => {
+    console.log("Forcing PM2 Cache Reload...");
+    await Promise.allSettled(servers.map(restartServer));
+    console.log("Done.");
+})();

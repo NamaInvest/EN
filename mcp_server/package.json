@@ -1,0 +1,14 @@
+{
+  "name": "nama-invest-mcp",
+  "version": "1.0.0",
+  "description": "MCP Bridge for Nama Invest ERP Database",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "@prisma/client": "^5.22.0"
+  }
+}

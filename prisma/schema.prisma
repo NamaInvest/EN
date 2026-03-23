@@ -25,19 +25,23 @@ model User {
   permissions      UserPermission[]
   salesInvoices    SalesInvoice[]
   purchaseInvoices PurchaseInvoice[]
-  purchaseOrders   PurchaseOrder[]   @relation("PurchaseOrderCreator")
-  approvals        PurchaseOrder[]   @relation("PurchaseOrderApprover")
+  purchaseOrders   PurchaseOrder[]       @relation("PurchaseOrderCreator")
+  approvals        PurchaseOrder[]       @relation("PurchaseOrderApprover")
   expenses         Expense[]
   treasuryEntries  Treasury[]
   auditLogs        AuditLog[]
   stockMovements   StockMovement[]
   shifts           Shift[]
-  branchId         Int?              @map("branch_id")
-  branch           Branch?           @relation(fields: [branchId], references: [id])
-  approvalRules    ApprovalRule[]    @relation("RuleApprover")
-  approvalRequests ApprovalRequest[] @relation("ApprovalRequester")
-  approvalSteps    ApprovalStep[]    @relation("StepApprover")
+  branchId         Int?                  @map("branch_id")
+  branch           Branch?               @relation(fields: [branchId], references: [id])
+  approvalRules    ApprovalRule[]        @relation("RuleApprover")
+  approvalRequests ApprovalRequest[]     @relation("ApprovalRequester")
+  approvalSteps    ApprovalStep[]        @relation("StepApprover")
   archives         DocumentArchive[]
+  prRequisitions   PurchaseRequisition[] @relation("PRRequester")
+  prApprovals      PurchaseRequisition[] @relation("PRApprover")
+  rfqs             RequestForQuotation[]
+  goodsReceipts    GoodsReceiptNote[]
 
   @@map("users")
 }
@@ -102,20 +106,23 @@ model Product {
   expiryDate   String?  @map("expiry_date")
   binLocation  String?  @map("bin_location")
 
-  category             Category?               @relation(fields: [categoryId], references: [id])
-  unit                 Unit?                   @relation(fields: [unitId], references: [id])
+  category             Category?                   @relation(fields: [categoryId], references: [id])
+  unit                 Unit?                       @relation(fields: [unitId], references: [id])
   salesDetails         SalesInvoiceDetail[]
   purchaseDetails      PurchaseInvoiceDetail[]
   purchaseOrderDetails PurchaseOrderDetail[]
   stockMovements       StockMovement[]
   productStocks        ProductStock[]
   batches              ProductBatch[]
-  finishedRecipes      Recipe[]                @relation("RecipeFinishedProduct")
-  rawRecipes           RecipeIngredient[]      @relation("RecipeRawProduct")
+  finishedRecipes      Recipe[]                    @relation("RecipeFinishedProduct")
+  rawRecipes           RecipeIngredient[]          @relation("RecipeRawProduct")
   wastages             ManufacturingWastage[]
   salesReturnDetails   SalesReturnDetail[]
   SalesOrderDetail     SalesOrderDetail[]
   DeliveryNoteDetail   DeliveryNoteDetail[]
+  prDetails            PurchaseRequisitionDetail[]
+  rfqDetails           RequestForQuotationDetail[]
+  grnDetails           GoodsReceiptNoteDetail[]
 
   @@map("products")
 }
@@ -147,12 +154,16 @@ model Customer {
   loyaltyPoints    LoyaltyPoint[]
   bookings         Booking[]
   lettersOfCredit  LetterOfCredit[]
-  customerChecks   CheckTransaction[] @relation("CheckCustomer")
-  supplierChecks   CheckTransaction[] @relation("CheckSupplier")
-  routeId          Int?               @map("route_id")
-  route            Route?             @relation(fields: [routeId], references: [id])
+  customerChecks   CheckTransaction[]    @relation("CheckCustomer")
+  supplierChecks   CheckTransaction[]    @relation("CheckSupplier")
+  routeId          Int?                  @map("route_id")
+  route            Route?                @relation(fields: [routeId], references: [id])
   salesOrders      SalesOrder[]
   deliveryNotes    DeliveryNote[]
+  projects         Project[]
+  promissoryNotes  PromissoryNote[]
+  rfqs             RequestForQuotation[]
+  goodsReceipts    GoodsReceiptNote[]
 
   @@map("customers")
 }
@@ -169,8 +180,10 @@ model Stock {
   purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
   productStocks    ProductStock[]
-  branch           Branch?           @relation(fields: [branchId], references: [id])
-  branchId         Int?              @map("branch_id")
+  warehouseZones   WarehouseZone[]
+  branch           Branch?            @relation(fields: [branchId], references: [id])
+  branchId         Int?               @map("branch_id")
+  goodsReceipts    GoodsReceiptNote[]
 
   @@map("stocks")
 }
@@ -326,6 +339,7 @@ model PurchaseOrder {
   details        PurchaseOrderDetail[]
   letterOfCredit LetterOfCredit?       @relation(fields: [letterOfCreditId], references: [id])
   landedCosts    LandedCost[]
+  goodsReceipts  GoodsReceiptNote[]
 
   @@map("purchase_orders")
 }
@@ -994,9 +1008,40 @@ model Company {
   logoPath         String?  @map("logo_path")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  branches Branch[]
+  branches      Branch[]
+  subscriptions Subscription[]
 
   @@map("companies")
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  companyId Int      @map("company_id")
+  planLabel String   @default("BASIC") @map("plan_label") // BASIC, PRO, ENTERPRISE
+  status    String   @default("ACTIVE") // TRIAL, ACTIVE, EXPIRED, SUSPENDED
+  startDate DateTime @default(now()) @map("start_date")
+  endDate   DateTime @map("end_date")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  company  Company               @relation(fields: [companyId], references: [id])
+  payments SubscriptionPayment[]
+
+  @@map("subscriptions")
+}
+
+model SubscriptionPayment {
+  id             Int      @id @default(autoincrement())
+  subscriptionId Int      @map("subscription_id")
+  amount         Float    @default(0)
+  paymentMethod  String   @default("bank_transfer") @map("payment_method") // bank_transfer, online
+  reference      String?
+  paidAt         DateTime @default(now()) @map("paid_at")
+  isConfirmed    Boolean  @default(true) @map("is_confirmed")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_payments")
 }
 
 model FixedAsset {
@@ -1146,9 +1191,10 @@ model BankAccount {
   currentBalance Float   @default(0) @map("current_balance")
   isActive       Boolean @default(true) @map("is_active")
 
-  branch       Branch?           @relation(fields: [branchId], references: [id])
+  branch       Branch?             @relation(fields: [branchId], references: [id])
   transactions BankTransaction[]
   lcs          LetterOfCredit[]
+  lgs          LetterOfGuarantee[]
 
   @@map("bank_accounts")
 }
@@ -1489,4 +1535,316 @@ model DeliveryNoteDetail {
   product Product      @relation(fields: [productId], references: [id])
 
   @@map("delivery_note_details")
+}
+
+// ==================== 61. Projects & Job Costing ====================
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  customerId  Int?      @map("customer_id")
+  budget      Float     @default(0)
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  customer Customer?     @relation(fields: [customerId], references: [id])
+  tasks    ProjectTask[]
+
+  @@map("projects")
+}
+
+model ProjectTask {
+  id          Int     @id @default(autoincrement())
+  projectId   Int     @map("project_id")
+  name        String
+  description String?
+  cost        Float   @default(0)
+  status      String  @default("PENDING")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_tasks")
+}
+
+// ==================== 62. Advanced WMS ====================
+model WarehouseZone {
+  id          Int     @id @default(autoincrement())
+  stockId     Int     @map("stock_id")
+  name        String
+  description String?
+
+  stock Stock           @relation(fields: [stockId], references: [id])
+  racks WarehouseRack[]
+
+  @@map("warehouse_zones")
+}
+
+model WarehouseRack {
+  id     Int    @id @default(autoincrement())
+  zoneId Int    @map("zone_id")
+  name   String
+
+  zone WarehouseZone  @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  bins WarehouseBin[]
+
+  @@map("warehouse_racks")
+}
+
+model WarehouseBin {
+  id        Int     @id @default(autoincrement())
+  rackId    Int     @map("rack_id")
+  name      String
+  barcode   String?
+  maxWeight Float   @default(0) @map("max_weight")
+
+  rack WarehouseRack @relation(fields: [rackId], references: [id], onDelete: Cascade)
+
+  @@map("warehouse_bins")
+}
+
+// ==================== 63. Credit Control & Legal ====================
+model PromissoryNote {
+  id         Int      @id @default(autoincrement())
+  noteNumber String   @unique @map("note_number")
+  customerId Int      @map("customer_id")
+  amount     Float
+  dueDate    DateTime @map("due_date")
+  status     String   @default("PENDING")
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("promissory_notes")
+}
+
+model LetterOfGuarantee {
+  id         Int      @id @default(autoincrement())
+  lgNumber   String   @unique @map("lg_number")
+  bankId     Int      @map("bank_id")
+  customerId Int?     @map("customer_id")
+  type       String
+  amount     Float
+  issueDate  DateTime @map("issue_date")
+  expiryDate DateTime @map("expiry_date")
+  status     String   @default("ACTIVE")
+  notes      String?
+
+  bank BankAccount @relation(fields: [bankId], references: [id])
+
+  @@map("letters_of_guarantee")
+}
+
+// ==================== PHASE 14: ULTIMATE ERP EXPANSION ====================
+
+// --- 1. Fixed Assets (الأصول الثابتة)
+model Asset {
+  id               Int      @id @default(autoincrement())
+  barcode          String   @unique
+  name             String
+  category         String // e.g., 'Vehicles', 'IT Equipment', 'Furniture'
+  purchasePrice    Float    @default(0) @map("purchase_price")
+  currentValue     Float    @default(0) @map("current_value")
+  salvageValue     Float    @default(0) @map("salvage_value")
+  usefulLifeYears  Int      @default(5) @map("useful_life_years")
+  depreciationType String   @default("STRAIGHT_LINE") // STRAIGHT_LINE, DECLINING_BALANCE
+  purchaseDate     DateTime @default(now()) @map("purchase_date")
+  status           String   @default("ACTIVE") // ACTIVE, DEPRECIATED, DISPOSED, SOLD
+  location         String?
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("assets")
+}
+
+// --- 2. CRM Leads & Opportunities (فرص البيع والعملاء المحتملين)
+model Lead {
+  id              Int      @id @default(autoincrement())
+  companyName     String   @map("company_name")
+  contactPerson   String   @map("contact_person")
+  email           String?
+  phone           String?
+  source          String? // e.g., 'Website', 'Cold Call', 'Referral'
+  industry        String?
+  status          String   @default("NEW") // NEW, CONTACTED, QUALIFIED, LOST, CONVERTED
+  assignedToId    Int?     @map("assigned_to_id")
+  expectedRevenue Float    @default(0) @map("expected_revenue")
+  probability     Int      @default(10) // 10% to 100%
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("crm_leads")
+}
+
+// --- 3. Fleet Management (إدارة الحركة وأسطول السيارات)
+model Vehicle {
+  id              Int       @id @default(autoincrement())
+  plateNumber     String    @unique @map("plate_number")
+  make            String
+  model           String
+  year            Int
+  vinCode         String?   @map("vin_code")
+  type            String // 'TRUCK', 'VAN', 'SEDAN'
+  status          String    @default("AVAILABLE") // AVAILABLE, IN_MAINTENANCE, ON_TRIP, RETIRED
+  insuranceExpiry DateTime? @map("insurance_expiry")
+  licenseExpiry   DateTime? @map("license_expiry")
+  driverId        Int?      @map("driver_id")
+  currentOdometer Int       @default(0) @map("current_odometer")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("fleet_vehicles")
+}
+
+// --- 4. Property Management (إدارة الأملاك والعقارات)
+model Property {
+  id         Int      @id @default(autoincrement())
+  name       String
+  type       String // 'COMMERCIAL_BUILDING', 'RESIDENTIAL_COMPLEX', 'LAND'
+  address    String?
+  totalUnits Int      @default(1) @map("total_units")
+  status     String   @default("ACTIVE")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  units PropertyUnit[]
+
+  @@map("properties")
+}
+
+model PropertyUnit {
+  id         Int      @id @default(autoincrement())
+  propertyId Int      @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unitNumber String   @map("unit_number")
+  type       String // 'OFFICE', 'APARTMENT', 'SHOP'
+  floor      Int      @default(1)
+  areaSqm    Float    @default(0) @map("area_sqm")
+  rentYearly Float    @default(0) @map("rent_yearly")
+  status     String   @default("VACANT") // VACANT, OCCUPIED, MAINTENANCE
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("property_units")
+}
+
+// --- 5. Quality Control (مراقبة الجودة والفحص المخزني)
+model QualityInspection {
+  id              Int      @id @default(autoincrement())
+  referenceNumber String   @unique @map("reference_number") // Link to GRN or MO
+  inspectorId     Int      @map("inspector_id")
+  status          String   @default("PENDING") // PENDING, PASSED, FAILED, REWORK
+  notes           String?
+  inspectionDate  DateTime @default(now()) @map("inspection_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("quality_inspections")
+}
+
+// ==================== 13.1 Purchase Requisitions ====================
+model PurchaseRequisition {
+  id          Int      @id @default(autoincrement())
+  reqNo       Int      @map("req_no")
+  date        DateTime @default(now())
+  department  String?
+  status      String   @default("pending") // pending, approved, rejected
+  requestedBy Int?     @map("requested_by")
+  approvedBy  Int?     @map("approved_by")
+  notes       String?
+
+  requester User? @relation("PRRequester", fields: [requestedBy], references: [id])
+  approver  User? @relation("PRApprover", fields: [approvedBy], references: [id])
+
+  details PurchaseRequisitionDetail[]
+
+  @@map("purchase_requisitions")
+}
+
+model PurchaseRequisitionDetail {
+  id          Int     @id @default(autoincrement())
+  reqId       Int     @map("req_id")
+  productId   Int     @map("product_id")
+  productName String? @map("product_name")
+  quantity    Float   @default(1)
+  notes       String?
+
+  requisition PurchaseRequisition @relation(fields: [reqId], references: [id], onDelete: Cascade)
+  product     Product             @relation(fields: [productId], references: [id])
+
+  @@map("purchase_requisition_details")
+}
+
+// ==================== 13.2 Request For Quotations ====================
+model RequestForQuotation {
+  id         Int       @id @default(autoincrement())
+  rfqNo      Int       @map("rfq_no")
+  date       DateTime  @default(now())
+  dueDate    DateTime? @map("due_date")
+  supplierId Int?      @map("supplier_id")
+  status     String    @default("draft") // draft, sent, received, closed
+  userId     Int?      @map("user_id")
+  notes      String?
+
+  supplier Customer? @relation(fields: [supplierId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
+
+  details RequestForQuotationDetail[]
+
+  @@map("request_for_quotations")
+}
+
+model RequestForQuotationDetail {
+  id          Int     @id @default(autoincrement())
+  rfqId       Int     @map("rfq_id")
+  productId   Int     @map("product_id")
+  productName String? @map("product_name")
+  quantity    Float   @default(1)
+  targetPrice Float?  @map("target_price")
+
+  rfq     RequestForQuotation @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  product Product             @relation(fields: [productId], references: [id])
+
+  @@map("request_for_quotation_details")
+}
+
+// ==================== 13.3 Goods Receipt Notes ====================
+model GoodsReceiptNote {
+  id         Int      @id @default(autoincrement())
+  grnNo      Int      @map("grn_no")
+  date       DateTime @default(now())
+  supplierId Int?     @map("supplier_id")
+  orderId    Int?     @map("order_id")
+  stockId    Int      @default(1) @map("stock_id")
+  status     String   @default("received") // received, partial, inspected
+  receivedBy Int?     @map("received_by")
+  notes      String?
+
+  supplier Customer?      @relation(fields: [supplierId], references: [id])
+  order    PurchaseOrder? @relation(fields: [orderId], references: [id])
+  stock    Stock?         @relation(fields: [stockId], references: [id])
+  receiver User?          @relation(fields: [receivedBy], references: [id])
+
+  details GoodsReceiptNoteDetail[]
+
+  @@map("goods_receipt_notes")
+}
+
+model GoodsReceiptNoteDetail {
+  id          Int     @id @default(autoincrement())
+  grnId       Int     @map("grn_id")
+  productId   Int     @map("product_id")
+  productName String? @map("product_name")
+  quantity    Float   @default(1)
+  acceptedQty Float   @default(1) @map("accepted_qty")
+  rejectedQty Float   @default(0) @map("rejected_qty")
+
+  grn     GoodsReceiptNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  product Product          @relation(fields: [productId], references: [id])
+
+  @@map("goods_receipt_note_details")
 }
