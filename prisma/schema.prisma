@@ -42,6 +42,7 @@ model User {
   prApprovals      PurchaseRequisition[] @relation("PRApprover")
   rfqs             RequestForQuotation[]
   goodsReceipts    GoodsReceiptNote[]
+  alerts           SystemAlert[]
 
   @@map("users")
 }
@@ -123,6 +124,7 @@ model Product {
   prDetails            PurchaseRequisitionDetail[]
   rfqDetails           RequestForQuotationDetail[]
   grnDetails           GoodsReceiptNoteDetail[]
+  serialNumbers        ProductSerialNumber[]
 
   @@map("products")
 }
@@ -164,6 +166,7 @@ model Customer {
   promissoryNotes  PromissoryNote[]
   rfqs             RequestForQuotation[]
   goodsReceipts    GoodsReceiptNote[]
+  leaseContracts   LeaseContract[]
 
   @@map("customers")
 }
@@ -175,15 +178,16 @@ model Stock {
   address String?
   active  Boolean @default(true)
 
-  salesInvoices    SalesInvoice[]
-  purchaseInvoices PurchaseInvoice[]
-  purchaseOrders   PurchaseOrder[]
-  stockMovements   StockMovement[]
-  productStocks    ProductStock[]
-  warehouseZones   WarehouseZone[]
-  branch           Branch?            @relation(fields: [branchId], references: [id])
-  branchId         Int?               @map("branch_id")
-  goodsReceipts    GoodsReceiptNote[]
+  salesInvoices       SalesInvoice[]
+  purchaseInvoices    PurchaseInvoice[]
+  purchaseOrders      PurchaseOrder[]
+  stockMovements      StockMovement[]
+  productStocks       ProductStock[]
+  warehouseZones      WarehouseZone[]
+  branch              Branch?               @relation(fields: [branchId], references: [id])
+  branchId            Int?                  @map("branch_id")
+  goodsReceipts       GoodsReceiptNote[]
+  ProductSerialNumber ProductSerialNumber[]
 
   @@map("stocks")
 }
@@ -532,15 +536,23 @@ model Employee {
   branchId           Int?     @map("branch_id")
   branch             Branch?  @relation(fields: [branchId], references: [id])
 
-  attendance    Attendance[]
-  salaries      Salary[]
-  vacations     Vacation[]
-  loans         EmployeeLoan[]
-  pettyCashes   PettyCashTransaction[]
-  salesTargets  SalesTarget[]
-  salesOrders   SalesOrder[]
-  salesInvoices SalesInvoice[]         @relation("SalesInvoiceRep")
-  routes        Route[]                @relation("RouteSalesRep")
+  attendance          Attendance[]
+  salaries            Salary[]
+  pettyCashes         PettyCashTransaction[]
+  salesTargets        SalesTarget[]
+  salesOrders         SalesOrder[]
+  salesInvoices       SalesInvoice[]         @relation("SalesInvoiceRep")
+  routes              Route[]                @relation("RouteSalesRep")
+  evaluationsReceived EmployeeEvaluation[]   @relation("Evaluatee")
+  evaluationsGiven    EmployeeEvaluation[]   @relation("Evaluator")
+  trainings           TrainingEnrollment[]
+  fleetTrips          FleetTrip[]
+  fuelLogs            FuelLog[]
+  classesTaught       AcademicClass[]
+  commissions         SalesmanCommission[]
+  pettyCashFunds      PettyCashFund[]
+  Vacation            Vacation[]
+  EmployeeLoan        EmployeeLoan[]
 
   @@map("employees")
 }
@@ -702,6 +714,7 @@ model Account {
   LandedCost   LandedCost[]
   bankChecks   CheckTransaction[]   @relation("CheckBankAccount")
   bankRecons   BankReconciliation[]
+  BudgetLine   BudgetLine[]
 
   @@map("accounts")
 }
@@ -1248,6 +1261,7 @@ model CostCenter {
   journalLines  JournalLine[]
   expenses      Expense[]
   salesInvoices SalesInvoice[]
+  BudgetLine    BudgetLine[]
 
   @@map("cost_centers")
 }
@@ -1682,20 +1696,22 @@ model Lead {
 
 // --- 3. Fleet Management (إدارة الحركة وأسطول السيارات)
 model Vehicle {
-  id              Int       @id @default(autoincrement())
-  plateNumber     String    @unique @map("plate_number")
+  id              Int         @id @default(autoincrement())
+  plateNumber     String      @unique @map("plate_number")
   make            String
   model           String
   year            Int
-  vinCode         String?   @map("vin_code")
+  vinCode         String?     @map("vin_code")
   type            String // 'TRUCK', 'VAN', 'SEDAN'
-  status          String    @default("AVAILABLE") // AVAILABLE, IN_MAINTENANCE, ON_TRIP, RETIRED
-  insuranceExpiry DateTime? @map("insurance_expiry")
-  licenseExpiry   DateTime? @map("license_expiry")
-  driverId        Int?      @map("driver_id")
-  currentOdometer Int       @default(0) @map("current_odometer")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  status          String      @default("AVAILABLE") // AVAILABLE, IN_MAINTENANCE, ON_TRIP, RETIRED
+  insuranceExpiry DateTime?   @map("insurance_expiry")
+  licenseExpiry   DateTime?   @map("license_expiry")
+  driverId        Int?        @map("driver_id")
+  currentOdometer Int         @default(0) @map("current_odometer")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  trips           FleetTrip[]
+  fuelLogs        FuelLog[]
 
   @@map("fleet_vehicles")
 }
@@ -1717,17 +1733,18 @@ model Property {
 }
 
 model PropertyUnit {
-  id         Int      @id @default(autoincrement())
-  propertyId Int      @map("property_id")
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  unitNumber String   @map("unit_number")
-  type       String // 'OFFICE', 'APARTMENT', 'SHOP'
-  floor      Int      @default(1)
-  areaSqm    Float    @default(0) @map("area_sqm")
-  rentYearly Float    @default(0) @map("rent_yearly")
-  status     String   @default("VACANT") // VACANT, OCCUPIED, MAINTENANCE
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id             Int             @id @default(autoincrement())
+  propertyId     Int             @map("property_id")
+  property       Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unitNumber     String          @map("unit_number")
+  type           String // 'OFFICE', 'APARTMENT', 'SHOP'
+  floor          Int             @default(1)
+  areaSqm        Float           @default(0) @map("area_sqm")
+  rentYearly     Float           @default(0) @map("rent_yearly")
+  status         String          @default("VACANT") // VACANT, OCCUPIED, MAINTENANCE
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  leaseContracts LeaseContract[]
 
   @@map("property_units")
 }
@@ -1847,4 +1864,308 @@ model GoodsReceiptNoteDetail {
   product Product          @relation(fields: [productId], references: [id])
 
   @@map("goods_receipt_note_details")
+}
+
+// ==================== PHASE 15: LEGACY YS_ERP MISSING MODULES ====================
+
+// --- 1. Advanced HR (Recruitment, Training, Evaluations)
+model JobPosting {
+  id           Int      @id @default(autoincrement())
+  title        String
+  department   String?
+  description  String?
+  requirements String?
+  status       String   @default("OPEN") // OPEN, CLOSED, DRAFT
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  applicants JobApplicant[]
+
+  @@map("hr_job_postings")
+}
+
+model JobApplicant {
+  id           Int      @id @default(autoincrement())
+  jobPostingId Int      @map("job_posting_id")
+  name         String
+  email        String?
+  phone        String?
+  resumeUrl    String?  @map("resume_url")
+  status       String   @default("APPLIED") // APPLIED, INTERVIEWED, HIRED, REJECTED
+  appliedAt    DateTime @default(now()) @map("applied_at")
+
+  jobPosting JobPosting @relation(fields: [jobPostingId], references: [id])
+
+  @@map("hr_job_applicants")
+}
+
+model EmployeeEvaluation {
+  id              Int      @id @default(autoincrement())
+  employeeId      Int      @map("employee_id")
+  evaluatorId     Int      @map("evaluator_id")
+  evaluationDate  DateTime @map("evaluation_date")
+  period          String   @default("ANNUAL") // Q1, Q2, ANNUAL
+  score           Float    @default(0)
+  strengths       String?
+  weaknesses      String?
+  recommendations String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  employee  Employee @relation(name: "Evaluatee", fields: [employeeId], references: [id])
+  evaluator Employee @relation(name: "Evaluator", fields: [evaluatorId], references: [id])
+
+  @@map("hr_employee_evaluations")
+}
+
+model TrainingCourse {
+  id        Int      @id @default(autoincrement())
+  title     String
+  provider  String?
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  cost      Float    @default(0)
+  status    String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  createdAt DateTime @default(now()) @map("created_at")
+
+  enrollments TrainingEnrollment[]
+
+  @@map("hr_training_courses")
+}
+
+model TrainingEnrollment {
+  id         Int    @id @default(autoincrement())
+  courseId   Int    @map("course_id")
+  employeeId Int    @map("employee_id")
+  status     String @default("ENROLLED") // ENROLLED, COMPLETED, DROPPED
+  score      Float?
+
+  course   TrainingCourse @relation(fields: [courseId], references: [id])
+  employee Employee       @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_training_enrollments")
+}
+
+// --- 2. Advanced Real Estate (Lease Contracts & Rent)
+model LeaseContract {
+  id               Int      @id @default(autoincrement())
+  contractNumber   String   @unique @map("contract_number")
+  unitId           Int      @map("unit_id")
+  tenantId         Int      @map("tenant_id") // Links to Customer
+  startDate        DateTime @map("start_date")
+  endDate          DateTime @map("end_date")
+  rentAmount       Float    @map("rent_amount")
+  paymentFrequency String   @default("MONTHLY") // MONTHLY, QUARTERLY, YEARLY
+  status           String   @default("ACTIVE") // ACTIVE, EXPIRED, TERMINATED
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  unit         PropertyUnit      @relation(fields: [unitId], references: [id])
+  tenant       Customer          @relation(fields: [tenantId], references: [id])
+  installments RentInstallment[]
+
+  @@map("rem_lease_contracts")
+}
+
+model RentInstallment {
+  id            Int       @id @default(autoincrement())
+  contractId    Int       @map("contract_id")
+  dueDate       DateTime  @map("due_date")
+  amount        Float
+  isPaid        Boolean   @default(false) @map("is_paid")
+  paidDate      DateTime? @map("paid_date")
+  receiptNumber String?   @map("receipt_number")
+
+  contract LeaseContract @relation(fields: [contractId], references: [id])
+
+  @@map("rem_rent_installments")
+}
+
+// --- 3. Advanced Fleet Management (Trips & Fuel)
+model FleetTrip {
+  id            Int       @id @default(autoincrement())
+  vehicleId     Int       @map("vehicle_id")
+  driverId      Int       @map("driver_id")
+  departureTime DateTime  @map("departure_time")
+  arrivalTime   DateTime? @map("arrival_time")
+  startLocation String    @map("start_location")
+  endLocation   String    @map("end_location")
+  distanceKm    Float     @default(0) @map("distance_km")
+  notes         String?
+  status        String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, CANCELLED
+
+  vehicle Vehicle  @relation(fields: [vehicleId], references: [id])
+  driver  Employee @relation(fields: [driverId], references: [id])
+
+  @@map("fms_trips")
+}
+
+model FuelLog {
+  id              Int      @id @default(autoincrement())
+  vehicleId       Int      @map("vehicle_id")
+  driverId        Int      @map("driver_id")
+  date            DateTime @default(now())
+  liters          Float
+  cost            Float
+  odometerReading Int      @map("odometer_reading")
+  receiptUrl      String?  @map("receipt_url")
+
+  vehicle Vehicle  @relation(fields: [vehicleId], references: [id])
+  driver  Employee @relation(fields: [driverId], references: [id])
+
+  @@map("fms_fuel_logs")
+}
+
+// --- 4. Educational / School Management (SHL)
+model Student {
+  id            Int      @id @default(autoincrement())
+  studentCode   String   @unique @map("student_code")
+  name          String
+  dateOfBirth   DateTime @map("date_of_birth")
+  guardianName  String?  @map("guardian_name")
+  guardianPhone String?  @map("guardian_phone")
+  status        String   @default("ENROLLED") // ENROLLED, GRADUATED, DROPPED
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  enrollments ClassEnrollment[]
+
+  @@map("shl_students")
+}
+
+model AcademicClass {
+  id           Int    @id @default(autoincrement())
+  className    String @map("class_name")
+  gradeLevel   String @map("grade_level")
+  academicYear String @map("academic_year")
+  capacity     Int    @default(30)
+  teacherId    Int?   @map("teacher_id")
+
+  teacher     Employee?         @relation(fields: [teacherId], references: [id])
+  enrollments ClassEnrollment[]
+
+  @@map("shl_academic_classes")
+}
+
+model ClassEnrollment {
+  id             Int      @id @default(autoincrement())
+  studentId      Int      @map("student_id")
+  classId        Int      @map("class_id")
+  enrollmentDate DateTime @default(now()) @map("enrollment_date")
+  tuitionFee     Float    @default(0) @map("tuition_fee")
+
+  student       Student       @relation(fields: [studentId], references: [id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
+
+  @@map("shl_class_enrollments")
+}
+
+// ==================== PHASE 16: ABSOLUTE PARITY (FINAL DEEP MODULES) ====================
+
+// --- 1. Financial Budgeting (BGT)
+model Budget {
+  id          Int      @id @default(autoincrement())
+  name        String
+  fiscalYear  Int      @map("fiscal_year")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  totalAmount Float    @default(0) @map("total_amount")
+  status      String   @default("DRAFT") // DRAFT, APPROVED, CLOSED
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  lines BudgetLine[]
+
+  @@map("fng_budgets")
+}
+
+model BudgetLine {
+  id              Int     @id @default(autoincrement())
+  budgetId        Int     @map("budget_id")
+  accountId       Int     @map("account_id") // General Ledger Account
+  costCenterId    Int?    @map("cost_center_id")
+  allocatedAmount Float   @map("allocated_amount")
+  spentAmount     Float   @default(0) @map("spent_amount")
+  variance        Float   @default(0) // Computed practically
+  notes           String?
+
+  budget     Budget      @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  account    Account     @relation(fields: [accountId], references: [id])
+  costCenter CostCenter? @relation(fields: [costCenterId], references: [id])
+
+  @@map("fng_budget_lines")
+}
+
+// --- 2. Sales Commissions & Targets (COM)
+model CommissionRule {
+  id           Int      @id @default(autoincrement())
+  name         String
+  targetAmount Float    @map("target_amount")
+  rewardType   String   @default("PERCENTAGE") // PERCENTAGE or FIXED
+  rewardValue  Float    @map("reward_value")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  payments SalesmanCommission[]
+
+  @@map("com_commission_rules")
+}
+
+model SalesmanCommission {
+  id               Int       @id @default(autoincrement())
+  employeeId       Int       @map("employee_id")
+  ruleId           Int       @map("rule_id")
+  calculatedAmount Float     @map("calculated_amount")
+  periodMonth      Int       @map("period_month")
+  periodYear       Int       @map("period_year")
+  isPaid           Boolean   @default(false) @map("is_paid")
+  paymentDate      DateTime? @map("payment_date")
+
+  employee Employee       @relation(fields: [employeeId], references: [id])
+  rule     CommissionRule @relation(fields: [ruleId], references: [id])
+
+  @@map("com_salesman_commissions")
+}
+
+// --- 3. Advanced Inventory: Serial Numbers (INV)
+model ProductSerialNumber {
+  id                Int      @id @default(autoincrement())
+  productId         Int      @map("product_id")
+  serialNumber      String   @unique @map("serial_number")
+  stockId           Int      @map("stock_id")
+  status            String   @default("IN_STOCK") // IN_STOCK, SOLD, RETURNED, DEFECTIVE
+  purchaseInvoiceId Int?     @map("purchase_invoice_id")
+  salesInvoiceId    Int?     @map("sales_invoice_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id])
+  stock   Stock   @relation(fields: [stockId], references: [id])
+
+  @@map("inv_serial_numbers")
+}
+
+// --- 4. Petty Cash Funds (Custodians)
+model PettyCashFund {
+  id             Int      @id @default(autoincrement())
+  custodianId    Int      @map("custodian_id") // Employee
+  fundName       String   @map("fund_name")
+  maxLimit       Float    @map("max_limit")
+  currentBalance Float    @map("current_balance")
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  custodian Employee @relation(fields: [custodianId], references: [id])
+
+  @@map("fng_petty_cash_funds")
+}
+
+// --- 5. System Alerts & Workflows (ALRT)
+model SystemAlert {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  alertType String   @default("INFO") // INFO, WARNING, URGENT, WORKFLOW
+  linkUrl   String?  @map("link_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("sys_alerts")
 }

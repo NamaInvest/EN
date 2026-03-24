@@ -40,6 +40,7 @@ const menuItems = [
             { icon: '🌍', labelKey: 'الاعتمادات المستندية (LC)', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
 
             { icon: '🎟️', labelKey: 'sidebar.coupons', href: '/coupons', module: 'coupons' },
+            { icon: '🎯', labelKey: 'قواعد وعمولات البيع', href: '/com/rules', module: 'sales_targets' },
         ]
     },
     {
@@ -54,6 +55,7 @@ const menuItems = [
             { icon: '🚚', labelKey: 'التحويلات الذكية (في الطريق)', href: '/smart-transfers', module: 'stock_transfers' },
             { icon: '🏷️', labelKey: 'sidebar.barcode', href: '/barcode', module: 'barcode' },
             { icon: '⏱️', labelKey: 'sidebar.batches', href: '/batches', module: 'batches' },
+            { icon: '📦', labelKey: 'الأرقام التسلسلية (Serial Numbers)', href: '/inv/serials', module: 'stock' },
         ]
     },
     {
@@ -70,6 +72,8 @@ const menuItems = [
             { icon: '🏦', labelKey: 'أوراق القبض والدفع', href: '/treasury/checks', module: 'treasury_checks' },
             { icon: '⚖️', labelKey: 'التسويات البنكية', href: '/treasury/bank-reconciliation', module: 'bank_reconciliation' },
             { icon: '💸', labelKey: 'العهد والمصروفات النثرية', href: '/treasury/petty-cash', module: 'petty_cash' },
+            { icon: '💼', labelKey: 'صناديق السلف النثرية', href: '/fng/petty-cash-funds', module: 'petty_cash' },
+            { icon: '⚖️', labelKey: 'الموازنات والاعتمادات', href: '/fng/budgets', module: 'accounting' },
             { icon: '🏦', labelKey: 'sidebar.banks', href: '/accounting/banks', module: 'banks' },
             { icon: '🧾', labelKey: 'sidebar.receipt_vouchers', href: '/receipt-vouchers', module: 'receipt_vouchers' },
             { icon: '💸', labelKey: 'sidebar.expenses', href: '/expenses', module: 'expenses' },
@@ -86,6 +90,9 @@ const menuItems = [
             { icon: '💼', labelKey: 'سلف الموظفين', href: '/hr/loans', module: 'hr_loans' },
             { icon: '💵', labelKey: 'sidebar.salaries', href: '/salaries', module: 'salaries' },
             { icon: '🏖️', labelKey: 'sidebar.vacations', href: '/vacations', module: 'vacations' },
+            { icon: '👔', labelKey: 'التوظيف (Recruitment)', href: '/hr/jobs', module: 'employees' },
+            { icon: '📊', labelKey: 'تقييم الأداء (Appraisals)', href: '/hr/evaluations', module: 'employees' },
+            { icon: '🎯', labelKey: 'الدورات التدريبية', href: '/hr/training', module: 'employees' },
         ]
     },
     {
@@ -95,8 +102,18 @@ const menuItems = [
             { icon: '🏗️', labelKey: 'المشاريع والمقاولات (Job Costing)', href: '/enterprise/projects', module: 'projects' },
             { icon: '📐', labelKey: 'توجيه المستودع الذكي (WMS)', href: '/enterprise/wms', module: 'wms' },
             { icon: '⚖️', labelKey: 'الضمانات والرقابة الائتمانية', href: '/enterprise/legal', module: 'legal' },
-            { icon: '🚚', labelKey: 'أسطول النقل والحركة (Fleet)', href: '/enterprise/fleet', module: 'legal' },
+            { icon: '🚚', labelKey: 'أسطول النقل والمعدات (Fleet)', href: '/enterprise/fleet', module: 'legal' },
+            { icon: '🛣️', labelKey: 'رحلات الأسطول', href: '/fleet/trips', module: 'legal' },
+            { icon: '⛽', labelKey: 'سجلات وقود المعدات', href: '/fleet/fuel', module: 'legal' },
             { icon: '🏢', labelKey: 'إدارة الأملاك والعقارات (Property)', href: '/enterprise/property', module: 'legal' },
+            { icon: '📝', labelKey: 'العقود الإيجارية للمباتي', href: '/rem/leases', module: 'legal' },
+            { icon: '💵', labelKey: 'دفعات الإيجار المستحقة', href: '/rem/installments', module: 'legal' },
+        ]
+    },
+    {
+        sectionKey: 'نظام المدارس والجامعات', items: [
+            { icon: '🏫', labelKey: 'سجل الطلاب الأكاديمي', href: '/shl/students', module: 'schools' },
+            { icon: '📚', labelKey: 'الفصول الدراسية والتسجيل', href: '/shl/classes', module: 'schools' },
         ]
     },
     {
@@ -125,6 +142,7 @@ const menuItems = [
             { icon: '🏢', labelKey: 'sidebar.branches', href: '/branches', module: 'branches' },
             { icon: '💱', labelKey: 'إدارة العملات', href: '/settings/currencies', module: 'currencies' },
             { icon: '✅', labelKey: 'نظام الموافقات', href: '/settings/approvals', module: 'approvals' },
+            { icon: '🔔', labelKey: 'التنبيهات العاجلة (Inbox)', href: '/sys/alerts', module: 'dashboard' },
             { icon: '⚙️', labelKey: 'sidebar.settings', href: '/settings', module: 'settings' },
             { icon: '🛡️', labelKey: 'sidebar.audit_logs', href: '/audit-logs', module: 'audit_logs' },
         ]
