@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { postSalesInvoice } from '@/lib/auto-journal';
 
 export async function POST(req: NextRequest) {
     try {
@@ -131,6 +132,25 @@ export async function POST(req: NextRequest) {
 
             return newInvoice;
         });
+
+        // 5. Automated Global Dual-Entry Accounting (POS to Master Journal)
+        try {
+            await postSalesInvoice({
+                invoiceNo: invoice.invoiceNo,
+                subtotal: total,
+                taxValue: tax,
+                total: finalTotal,
+                paymentType: paymentMethod || 'cash',
+                splitCash: 0,
+                splitCard: 0,
+                userId: auth.userId,
+                branchId: undefined, 
+                discountValue: discount || 0,
+                date: new Date().toISOString().split('T')[0],
+            });
+        } catch (journalErr) {
+            console.warn('Auto-journal for POS sale skipped/failed:', journalErr);
+        }
 
         // Return a Stringified invoice number for the frontend alert
         return NextResponse.json({ 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
-import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2 } from 'lucide-react';
+import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2, Clock, History } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 
@@ -25,6 +25,63 @@ export default function POSPage() {
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [customerSearch, setCustomerSearch] = useState('');
     const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
+
+    // Hold & History State
+    const [heldOrders, setHeldOrders] = useState<any[]>([]);
+    const [showHeldOrdersModal, setShowHeldOrdersModal] = useState(false);
+    const [recentOrders, setRecentOrders] = useState<any[]>([]);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('pos_held_orders');
+        if (saved) {
+            try { setHeldOrders(JSON.parse(saved)); } catch (e) {}
+        }
+    }, []);
+
+    const saveHeldOrders = (orders: any[]) => {
+        setHeldOrders(orders);
+        localStorage.setItem('pos_held_orders', JSON.stringify(orders));
+    };
+
+    const handleHoldOrder = () => {
+        if (cart.length === 0) return;
+        const newOrder = {
+            id: Date.now().toString(),
+            cart: [...cart],
+            total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
+            customer: selectedCustomer,
+            time: new Date().toLocaleTimeString('ar-SA')
+        };
+        saveHeldOrders([...heldOrders, newOrder]);
+        setCart([]);
+        setSelectedCustomer(null);
+        removeCoupon();
+        alert('تم تعليق الفاتورة بنجاح في المسودات');
+    };
+
+    const handleRestoreOrder = (order: any) => {
+        setCart(order.cart);
+        setSelectedCustomer(order.customer);
+        const newOrders = heldOrders.filter(o => o.id !== order.id);
+        saveHeldOrders(newOrders);
+        setShowHeldOrdersModal(false);
+    };
+
+    const fetchRecentOrders = async () => {
+        setShowHistoryModal(true);
+        setHistoryLoading(true);
+        try {
+            const res = await fetch('/api/sales?limit=15'); 
+            const data = await res.json();
+            setRecentOrders(Array.isArray(data) ? data.slice(0, 15) : []);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
     // BNPL State
     const [showBnplModal, setShowBnplModal] = useState(false);
@@ -558,8 +615,14 @@ export default function POSPage() {
                     <div className="nav-buttons">
                         <Link href="/dashboard" className="btn-back">
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
-                            عودة للوحة التحكم
+                            عودة للرئيسية
                         </Link>
+                        <button className="btn-back" onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? 'rgba(245, 158, 11, 0.2)' : '', color: heldOrders.length > 0 ? '#fcd34d' : '' }}>
+                            <Clock size={18} /> المعلقة ({heldOrders.length})
+                        </button>
+                        <button className="btn-back" onClick={fetchRecentOrders}>
+                            <History size={18} /> السابقة
+                        </button>
                     </div>
 
                     <div className="search-bar">
@@ -704,8 +767,8 @@ export default function POSPage() {
                     <button className="pay-btn" style={{ background: '#ffb5a3', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tamara')}>
                         <strong>تمارا</strong> Tamara
                     </button>
-                    <button className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing}>
-                        <Save size={20} /> حفظ مسودة
+                    <button className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
+                        <Save size={20} /> حفظ مسودة (تعليق الطلب)
                     </button>
                 </div>
             </div>
