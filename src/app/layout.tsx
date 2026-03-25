@@ -32,6 +32,11 @@ export default function RootLayout({
             __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }`
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('namainvest-theme-premium');if(t&&t!=='default')document.documentElement.classList.add(t);}catch(e){}`
+          }}
+        />
       </head>
       <body>
         {children}

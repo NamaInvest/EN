@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import VoucherReceipt from '../../../components/VoucherReceipt';
-
+import { QRCodeCanvas } from 'qrcode.react';
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
     currentStock: number; taxRate: number; unit?: { name: string };
@@ -70,20 +70,15 @@ export default function SalesPage() {
             interval = setInterval(async () => {
                 try {
                     setCheckingStatus(true);
-                    const token = localStorage.getItem('token');
-                    const res = await fetch('/api/bnpl/status', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ provider: bnplProvider, orderId: bnplOrderId })
-                    });
+                    const res = await fetch(`/api/pos/bnpl/status?provider=${bnplProvider.toLowerCase()}&sessionId=${bnplOrderId}`);
                     const data = await res.json();
                     
-                    if (data.status === 'PAID' || data.status === 'AUTHORIZED') {
+                    if (data.isSuccess) {
                         clearInterval(interval);
                         setBnplPolling(false);
                         // Trigger final save using the manual override trick
                         document.getElementById('bnpl-force-save')?.click();
-                    } else if (data.status === 'REJECTED' || data.status === 'EXPIRED') {
+                    } else if (data.status === 'REJECTED' || data.status === 'EXPIRED' || data.status === 'DECLINED') {
                         clearInterval(interval);
                         setBnplPolling(false);
                         alert('❌ تم رفض الدفعة التقسيط من قبل المزود.');
@@ -94,7 +89,7 @@ export default function SalesPage() {
                 } finally {
                     setCheckingStatus(false);
                 }
-            }, 6000); // Poll every 6 seconds
+            }, 3000); 
         }
         return () => { if (interval) clearInterval(interval); };
     }, [bnplPolling, bnplOrderId, bnplProvider]);
@@ -430,16 +425,23 @@ export default function SalesPage() {
             setSaving(true);
             try {
                 const token = localStorage.getItem('token');
+                const reqBody = {
+                    provider: paymentType.toLowerCase(),
+                    amount: total,
+                    phone: customers.find(c => c.id.toString() === customerId)?.phone || '0500000000',
+                    customerName: customers.find(c => c.id.toString() === customerId)?.name || 'عميل مبيعات الجملة',
+                    items: cart.map(c => ({ name: c.productName, quantity: c.quantity, price: c.price, id: c.productId }))
+                };
                 // Create BNPL Payment Session before saving invoice locally
-                const res = await fetch(`/api/bnpl/${paymentType.toLowerCase()}`, {
+                const res = await fetch(`/api/pos/bnpl`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                    body: JSON.stringify({ cart: cart, totalDiscount: totalDiscountValue })
+                    body: JSON.stringify(reqBody)
                 });
                 const data = await res.json();
                 if (data.success) {
                     setBnplUrl(data.webUrl);
-                    setBnplOrderId(data.orderId || data.paymentId);
+                    setBnplOrderId(data.sessionId);
                     setBnplProvider(paymentType === 'TABBY' ? 'TABBY' : 'TAMARA');
                     setBnplPolling(true); // Begin auto polling!
                 } else {
@@ -818,13 +820,12 @@ export default function SalesPage() {
                         <p style={{ color: '#aaa', marginBottom: '20px' }}>استخدم هاتف العميل لمسح الرمز الكودي واستكمال عملية الدفع من جهازه.</p>
                         
                         <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px' }}>
-                            {/* Dummy QR placeholder, real QR requires qrcode.react */}
-                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bnplUrl)}`} alt="QR Code" style={{ width: 200, height: 200 }} />
+                            <QRCodeCanvas value={bnplUrl} size={250} level="H" includeMargin />
                         </div>
                         
                         <div style={{ marginBottom: '20px' }}>
                             {bnplPolling ? (
-                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>⏳ النظام ينتظر تأكيد الدفع من {bnplProvider} بشكل آلي...</p>
+                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>⏳ النظام ينتظر تأكيد الدفع التلقائي من {bnplProvider}...</p>
                             ) : (
                                 <p style={{ color: '#ef4444', fontSize: '14px' }}>⚠️ توقف البحث الآلي</p>
                             )}

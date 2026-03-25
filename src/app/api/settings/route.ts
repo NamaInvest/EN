@@ -44,3 +44,30 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في حذف بيانات الزكاة' }, { status: 500 });
     }
 }
+
+// Save or Update Configuration Settings
+export async function POST(request: NextRequest) {
+    try {
+        const auth = getUserFromRequest(request);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const allowed = await hasPermission(auth.userId, 'settings');
+        if (!allowed && auth.role !== 'admin' && auth.role !== 'owner') {
+            return NextResponse.json({ error: 'غير مصرح - ليس لديك صلاحية التعديل' }, { status: 403 });
+        }
+
+        const data = await request.json();
+        const updatePromises = Object.entries(data).map(([key, value]) => {
+            return prisma.setting.upsert({
+                where: { key },
+                update: { value: String(value) },
+                create: { key, value: String(value), description: '' }
+            });
+        });
+
+        await prisma.$transaction(updatePromises);
+        return NextResponse.json({ success: true, message: 'تم حفظ الإعدادات' });
+    } catch (error: any) {
+        console.error('Settings POST error:', error);
+        return NextResponse.json({ error: error.message || 'فشل في حفظ الإعدادات' }, { status: 500 });
+    }
+}

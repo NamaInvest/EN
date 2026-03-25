@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
+import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 
 const ZATCA_API_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
 
@@ -98,14 +100,108 @@ export async function POST(req: NextRequest) {
         if (action === 'compliance-invoice') {
             const tokenSet = await prisma.setting.findFirst({ where: { key: 'zatca_compliance_token' } });
             const secretSet = await prisma.setting.findFirst({ where: { key: 'zatca_compliance_secret' } });
+            const pkSet = await prisma.setting.findFirst({ where: { key: 'zatca_private_key' } });
+            const settings = await prisma.setting.findMany();
             
-            if (!tokenSet || !secretSet) {
-                return NextResponse.json({ error: 'الرجاء سحب شهادة المطابقة Compliance CSID أولاً' }, { status: 400 });
+            if (!tokenSet || !secretSet || !pkSet) {
+                return NextResponse.json({ error: 'الرجاء سحب شهادة المطابقة Compliance CSID والمفتاح الخاص أولاً' }, { status: 400 });
             }
 
-            // In a full production scenario, we extract 3 local invoices with Base XML, sign them via zatca-xml-js, and post to /compliance/invoices.
-            // For now, if the environment is Simulation or we want to fast-track the pipeline to Production CSID minting:
-            return NextResponse.json({ success: true, message: 'اجتازت الفواتير الاختبارية المطابقة بنجاح (Simulation). يمكنك الآن سحب الشهادة الإنتاجية.' });
+            const basicAuth = Buffer.from(`${tokenSet.value}:${secretSet.value}`).toString('base64');
+            const adapter = new ZatcaJavaAdapter();
+            
+            const sMap: Record<string, string> = {};
+            settings.forEach((s: any) => sMap[s.key] = s.value);
+            
+            const buildDummyInvoice = (typeCode: string, typeName: string, amount: string): InvoiceData => ({
+                profileID: 'reporting:1.0',
+                id: `INV-${Date.now()}-${typeCode}`,
+                uuid: '123e4567-e89b-12d3-a456-426614174000',
+                issueDate: new Date().toISOString().split('T')[0],
+                issueTime: new Date().toISOString().split('T')[1].substring(0, 8),
+                invoiceTypeCode: typeCode,
+                invoiceTypeName: typeName,
+                note: 'Test Compliance Invoice',
+                currencyCode: 'SAR',
+                taxCurrencyCode: 'SAR',
+                supplier: {
+                    companyID: sMap['zatca_crn'] || '1010010000',
+                    registrationName: sMap['tax_number'] || '300000000000003',
+                    address: {
+                        streetName: sMap['zatca_street'] || 'Main',
+                        buildingNumber: sMap['zatca_building'] || '1234',
+                        citySubdivisionName: sMap['zatca_district'] || 'District',
+                        cityName: sMap['zatca_city_en'] || 'Riyadh',
+                        postalZone: sMap['zatca_postal_code'] || '12345',
+                        countryCode: 'SA'
+                    }
+                },
+                customer: {
+                    companyID: '300000000000003',
+                    registrationName: 'Customer Name',
+                    address: {
+                        streetName: 'Test',
+                        buildingNumber: '1111',
+                        citySubdivisionName: 'Test',
+                        cityName: 'Riyadh',
+                        postalZone: '11111',
+                        countryCode: 'SA'
+                    }
+                },
+                invoiceLines: [{ id: '1', quantity: '1', unitCode: 'PCE', lineExtensionAmount: amount, itemName: 'Test Item', taxPercent: '15.00' }],
+                taxAmount: (parseFloat(amount) * 0.15).toFixed(2),
+                totalAmount: (parseFloat(amount) * 1.15).toFixed(2)
+            });
+
+            // Standard, Credit, Debit Dummies
+            const stdInvoice = buildDummyInvoice('388', '0100000', '100.00');
+            const crnInvoice = buildDummyInvoice('381', '0100000', '50.00');
+            const drnInvoice = buildDummyInvoice('383', '0100000', '20.00');
+
+            // Generate XML
+            const stdXml = generateZATCAXml(stdInvoice);
+            const crnXml = generateZATCAXml(crnInvoice);
+            const drnXml = generateZATCAXml(drnInvoice);
+
+            // ZATCA Certificate Token needs decoding for the SDK PEM writer
+            const certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('ascii');
+            const pkParsed = (pkSet?.value as string) || '';
+
+            // Sign XML using Official Java CLI Pipeline
+            const stdSigned = await adapter.signInvoice(stdXml, certParsed, pkParsed);
+            const crnSigned = await adapter.signInvoice(crnXml, certParsed, pkParsed);
+            const drnSigned = await adapter.signInvoice(drnXml, certParsed, pkParsed);
+
+            // Post to ZATCA (Base64 Encoded Signed XML)
+            const postToZatca = async (signedXml: string, hash: string) => {
+                const b64xml = Buffer.from(signedXml).toString('base64');
+                return fetch(`${ZATCA_API_URL}/compliance/invoices`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept-Version': 'V2',
+                        'Authorization': `Basic ${basicAuth}`,
+                        'Content-Language': 'en',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        invoiceHash: hash,
+                        uuid: '123e4567-e89b-12d3-a456-426614174000',
+                        invoice: b64xml
+                    })
+                }).then(r => r.json());
+            };
+
+            const [stdRes, crnRes, drnRes] = await Promise.all([
+                postToZatca(stdSigned.signedXml, stdSigned.hash),
+                postToZatca(crnSigned.signedXml, crnSigned.hash),
+                postToZatca(drnSigned.signedXml, drnSigned.hash)
+            ]);
+
+            return NextResponse.json({ 
+                success: true, 
+                message: 'تم إرسال فواتير الاختبار للمطابقة (Compliance Invoices).',
+                results: { standard: stdRes, credit: crnRes, debit: drnRes }
+            });
         }
 
         return NextResponse.json({ error: 'Invalid Action' }, { status: 400 });

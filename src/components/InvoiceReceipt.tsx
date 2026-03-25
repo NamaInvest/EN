@@ -35,12 +35,12 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
 
     useEffect(() => {
         const init = async () => {
-            await loadSettings();
+            const settings = await loadSettings();
             if (!isQuote) {
                 if (invoiceId) {
-                    await generateQR();
+                    await generateQR(settings?.companyName, settings?.vatNumber);
                 } else if (invoiceData) {
-                    await generatePreviewQR();
+                    await generatePreviewQR(settings?.companyName, settings?.vatNumber);
                 }
             } else {
                 setLoading(false);
@@ -68,19 +68,23 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 const settings = await res.json();
                 const map: Record<string, string> = {};
                 settings.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
-                setCompanyName(map['company_name'] || 'إعدادات الشركة مفقودة');
-                setVatNumber(map['tax_number'] || '');
+                const cName = map['company_name'] || map['company_name_ar'] || 'إعدادات الشركة مفقودة';
+                const vNum = map['tax_number'] || '';
+                setCompanyName(cName);
+                setVatNumber(vNum);
                 setPrinterType(map['printer_type'] || '80mm');
+                return { companyName: cName, vatNumber: vNum };
             }
         } catch (err) { console.error(err); }
+        return null;
     };
 
-    const generateQR = async () => {
+    const generateQR = async (cName?: string, vNum?: string) => {
         try {
             const res = await fetch('/api/zatca/qr', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ invoiceId }),
+                body: JSON.stringify({ invoiceId, companyName: cName, taxNumber: vNum }),
             });
             if (res.ok) {
                 const data = await res.json();
@@ -90,15 +94,20 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         finally { setLoading(false); }
     };
 
-    const generatePreviewQR = async () => {
+    const generatePreviewQR = async (cName?: string, vNum?: string) => {
         if (!invoiceData) return;
         try {
-            const params = new URLSearchParams({
-                total: invoiceData.grandTotal.toString(),
-                tax: invoiceData.taxAmount.toString(),
-                date: invoiceData.date || new Date().toISOString()
+            const res = await fetch('/api/zatca/qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    companyName: cName,
+                    taxNumber: vNum,
+                    total: invoiceData.grandTotal,
+                    tax: invoiceData.taxAmount,
+                    date: invoiceData.date || new Date().toISOString()
+                }),
             });
-            const res = await fetch(`/api/zatca/qr?${params}`);
             if (res.ok) {
                 const data = await res.json();
                 setQrDataUrl(data.qrDataUrl);

@@ -3,172 +3,21 @@
 import { useState, useEffect, useRef } from 'react';
 
 export const themes = [
-    {
-        id: 'classic-dark',
-        name: '🌑 الداكن الكلاسيكي',
-        colors: {
-            '--bg-darker': '#0B0E14',
-            '--bg-dark': '#0F1218',
-            '--bg-card': 'rgba(22, 27, 38, 0.95)',
-            '--bg-card-hover': 'rgba(30, 37, 52, 0.9)',
-            '--border': 'rgba(255, 255, 255, 0.06)',
-            '--border-light': 'rgba(255, 255, 255, 0.1)',
-            '--glass-border': 'rgba(255, 255, 255, 0.08)',
-            '--text': '#F1F5F9',
-            '--text-secondary': '#94A3B8',
-            '--text-muted': '#64748B',
-            '--primary': '#6C63FF',
-            '--primary-light': '#8B85FF',
-            '--primary-dark': '#5A52E0',
-            '--gradient-primary': 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
-            '--success': '#10B981',
-            '--success-light': '#34D399',
-            '--warning': '#F59E0B',
-            '--danger': '#EF4444',
-            '--purple': '#8B5CF6',
-            '--sidebar-bg': 'rgba(15, 18, 24, 0.98)',
-        },
-    },
-    {
-        id: 'royal-blue',
-        name: '💎 الأزرق الملكي',
-        colors: {
-            '--bg-darker': '#080C18',
-            '--bg-dark': '#0C1224',
-            '--bg-card': 'rgba(16, 25, 50, 0.95)',
-            '--bg-card-hover': 'rgba(24, 38, 70, 0.9)',
-            '--border': 'rgba(59, 130, 246, 0.12)',
-            '--border-light': 'rgba(59, 130, 246, 0.18)',
-            '--glass-border': 'rgba(59, 130, 246, 0.1)',
-            '--text': '#E8F0FE',
-            '--text-secondary': '#93B4E8',
-            '--text-muted': '#5B7FB5',
-            '--primary': '#3B82F6',
-            '--primary-light': '#60A5FA',
-            '--primary-dark': '#2563EB',
-            '--gradient-primary': 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
-            '--success': '#10B981',
-            '--success-light': '#34D399',
-            '--warning': '#F59E0B',
-            '--danger': '#EF4444',
-            '--purple': '#6366F1',
-            '--sidebar-bg': 'rgba(12, 18, 36, 0.98)',
-        },
-    },
-    {
-        id: 'emerald-nature',
-        name: '🌿 الأخضر الطبيعي',
-        colors: {
-            '--bg-darker': '#081210',
-            '--bg-dark': '#0C1A16',
-            '--bg-card': 'rgba(16, 36, 30, 0.95)',
-            '--bg-card-hover': 'rgba(24, 50, 42, 0.9)',
-            '--border': 'rgba(16, 185, 129, 0.12)',
-            '--border-light': 'rgba(16, 185, 129, 0.18)',
-            '--glass-border': 'rgba(16, 185, 129, 0.1)',
-            '--text': '#E8FAF4',
-            '--text-secondary': '#86CEAE',
-            '--text-muted': '#4D9A7E',
-            '--primary': '#10B981',
-            '--primary-light': '#34D399',
-            '--primary-dark': '#059669',
-            '--gradient-primary': 'linear-gradient(135deg, #10B981, #047857)',
-            '--success': '#10B981',
-            '--success-light': '#34D399',
-            '--warning': '#F59E0B',
-            '--danger': '#EF4444',
-            '--purple': '#8B5CF6',
-            '--sidebar-bg': 'rgba(12, 26, 22, 0.98)',
-        },
-    },
-    {
-        id: 'golden-luxury',
-        name: '✨ الذهبي الفاخر',
-        colors: {
-            '--bg-darker': '#12100A',
-            '--bg-dark': '#1A1610',
-            '--bg-card': 'rgba(36, 30, 18, 0.95)',
-            '--bg-card-hover': 'rgba(50, 42, 24, 0.9)',
-            '--border': 'rgba(245, 158, 11, 0.12)',
-            '--border-light': 'rgba(245, 158, 11, 0.18)',
-            '--glass-border': 'rgba(245, 158, 11, 0.1)',
-            '--text': '#FEF3E2',
-            '--text-secondary': '#D4A96A',
-            '--text-muted': '#9A7A48',
-            '--primary': '#F59E0B',
-            '--primary-light': '#FBBF24',
-            '--primary-dark': '#D97706',
-            '--gradient-primary': 'linear-gradient(135deg, #F59E0B, #B45309)',
-            '--success': '#10B981',
-            '--success-light': '#34D399',
-            '--warning': '#F59E0B',
-            '--danger': '#EF4444',
-            '--purple': '#A78BFA',
-            '--sidebar-bg': 'rgba(26, 22, 16, 0.98)',
-        },
-    },
-    {
-        id: 'crimson-bold',
-        name: '🔥 الأحمر الجريء',
-        colors: {
-            '--bg-darker': '#140A0A',
-            '--bg-dark': '#1C1010',
-            '--bg-card': 'rgba(40, 18, 18, 0.95)',
-            '--bg-card-hover': 'rgba(56, 26, 26, 0.9)',
-            '--border': 'rgba(239, 68, 68, 0.12)',
-            '--border-light': 'rgba(239, 68, 68, 0.18)',
-            '--glass-border': 'rgba(239, 68, 68, 0.1)',
-            '--text': '#FEE8E8',
-            '--text-secondary': '#E09090',
-            '--text-muted': '#A85C5C',
-            '--primary': '#EF4444',
-            '--primary-light': '#F87171',
-            '--primary-dark': '#DC2626',
-            '--gradient-primary': 'linear-gradient(135deg, #EF4444, #B91C1C)',
-            '--success': '#10B981',
-            '--success-light': '#34D399',
-            '--warning': '#F59E0B',
-            '--danger': '#EF4444',
-            '--purple': '#F472B6',
-            '--sidebar-bg': 'rgba(28, 16, 16, 0.98)',
-        },
-    },
-    {
-        id: 'modern-light',
-        name: '☀️ الفاتح العصري',
-        colors: {
-            '--bg-darker': '#F0F2F5',
-            '--bg-dark': '#F8F9FB',
-            '--bg-card': 'rgba(255, 255, 255, 0.98)',
-            '--bg-card-hover': 'rgba(241, 245, 249, 0.95)',
-            '--border': 'rgba(0, 0, 0, 0.08)',
-            '--border-light': 'rgba(0, 0, 0, 0.12)',
-            '--glass-border': 'rgba(0, 0, 0, 0.06)',
-            '--text': '#1E293B',
-            '--text-secondary': '#475569',
-            '--text-muted': '#94A3B8',
-            '--primary': '#6C63FF',
-            '--primary-light': '#8B85FF',
-            '--primary-dark': '#5A52E0',
-            '--gradient-primary': 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
-            '--success': '#059669',
-            '--success-light': '#10B981',
-            '--warning': '#D97706',
-            '--danger': '#DC2626',
-            '--purple': '#7C3AED',
-            '--sidebar-bg': 'rgba(255, 255, 255, 0.98)',
-        },
-    },
+    { id: 'default', name: '🌑 الداكن الكلاسيكي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
+    { id: 'theme-light', name: '💼 الفاتح النظيف', preview: { p: '#4F46E5', b: '#FFFFFF', t: '#0F172A'} },
+    { id: 'theme-luxury', name: '👑 الملكي الفاخر', preview: { p: '#D4AF37', b: '#04060F', t: '#FDFBF7'} },
+    { id: 'theme-cyber', name: '🔥 النيون السيبراني', preview: { p: '#00FFCC', b: '#050505', t: '#E0FFFF'} },
+    { id: 'theme-soft', name: '☁️ النعومة الفائقة', preview: { p: '#8DA9C4', b: '#E0E7ED', t: '#4A5A6A'} },
 ];
 
 export default function ThemeSwitcher() {
-    const [currentTheme, setCurrentTheme] = useState('classic-dark');
+    const [currentTheme, setCurrentTheme] = useState('default');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Load saved theme on mount
     useEffect(() => {
-        const saved = localStorage.getItem('namainvest-theme') || 'classic-dark';
+        const saved = localStorage.getItem('namainvest-theme-premium') || 'default';
         setCurrentTheme(saved);
         applyTheme(saved);
     }, []);
@@ -185,63 +34,103 @@ export default function ThemeSwitcher() {
     }, []);
 
     const applyTheme = (themeId: string) => {
-        const theme = themes.find(t => t.id === themeId);
-        if (!theme) return;
-
         const root = document.documentElement;
-        Object.entries(theme.colors).forEach(([key, value]) => {
-            root.style.setProperty(key, value);
-        });
-
-        // Special handling for light theme
-        if (themeId === 'modern-light') {
-            root.style.setProperty('--shadow', '0 2px 8px rgba(0, 0, 0, 0.08)');
-            root.style.setProperty('--shadow-lg', '0 8px 24px rgba(0, 0, 0, 0.12)');
-        } else {
-            root.style.setProperty('--shadow', '0 2px 8px rgba(0, 0, 0, 0.3)');
-            root.style.setProperty('--shadow-lg', '0 8px 24px rgba(0, 0, 0, 0.4)');
+        // Clean up old themes
+        themes.forEach(t => root.classList.remove(t.id));
+        // Apply new theme class to <html> tag
+        if (themeId !== 'default') {
+            root.classList.add(themeId);
         }
     };
 
     const switchTheme = (themeId: string) => {
         setCurrentTheme(themeId);
-        localStorage.setItem('namainvest-theme', themeId);
+        localStorage.setItem('namainvest-theme-premium', themeId);
         applyTheme(themeId);
         setIsOpen(false);
     };
-
-    const current = themes.find(t => t.id === currentTheme);
 
     return (
         <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="theme-switcher-btn"
-                title="تغيير الشكل"
+                title="تغيير المظهر (Theme)"
             >
                 🎨
             </button>
 
             {isOpen && (
-                <div className="theme-dropdown">
-                    <div className="theme-dropdown-title">اختر الشكل</div>
+                <div className="theme-dropdown" style={{ minWidth: '220px' }}>
+                    <div className="theme-dropdown-title" style={{ fontSize: '13px', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid var(--border)'}}>اختر القالب (Theme)</div>
                     {themes.map(theme => (
                         <button
                             key={theme.id}
                             className={`theme-option ${currentTheme === theme.id ? 'active' : ''}`}
                             onClick={() => switchTheme(theme.id)}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                padding: '10px 12px',
+                                background: currentTheme === theme.id ? 'var(--bg-card-hover)' : 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                borderRadius: '8px',
+                                textAlign: 'right',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                transition: 'all 0.2s',
+                                marginBottom: '4px'
+                            }}
                         >
-                            <span className="theme-option-name">{theme.name}</span>
-                            <div className="theme-preview">
-                                <span style={{ background: theme.colors['--primary'], width: '12px', height: '12px', borderRadius: '50%', display: 'inline-block' }} />
-                                <span style={{ background: theme.colors['--bg-card'], width: '12px', height: '12px', borderRadius: '50%', display: 'inline-block', border: '1px solid ' + theme.colors['--border-light'] }} />
-                                <span style={{ background: theme.colors['--text'], width: '12px', height: '12px', borderRadius: '50%', display: 'inline-block' }} />
+                            <span className="theme-option-name" style={{ fontWeight: currentTheme === theme.id ? 'bold' : 'normal' }}>
+                                {theme.name}
+                            </span>
+                            <div className="theme-preview" style={{ display: 'flex', gap: '4px' }}>
+                                <span style={{ background: theme.preview.p, width: '14px', height: '14px', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 4px rgba(0,0,0,0.2)' }} />
+                                <span style={{ background: theme.preview.b, width: '14px', height: '14px', borderRadius: '50%', display: 'inline-block', border: '1px solid rgba(128,128,128,0.3)' }} />
+                                <span style={{ background: theme.preview.t, width: '14px', height: '14px', borderRadius: '50%', display: 'inline-block' }} />
                             </div>
-                            {currentTheme === theme.id && <span className="theme-check">✓</span>}
                         </button>
                     ))}
                 </div>
             )}
+            
+            <style jsx>{`
+                .theme-switcher-btn {
+                    background: var(--bg-card);
+                    border: 1px solid var(--border);
+                    color: var(--text);
+                    width: 40px;
+                    height: 40px;
+                    border-radius: var(--radius-sm);
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    transition: all 0.3s ease;
+                }
+                .theme-switcher-btn:hover {
+                    background: var(--bg-card-hover);
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow);
+                }
+                .theme-dropdown {
+                    position: absolute;
+                    top: 50px;
+                    left: 0;
+                    background: var(--bg-dark);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius);
+                    padding: 12px;
+                    box-shadow: var(--shadow-lg);
+                    z-index: 1000;
+                    backdrop-filter: blur(10px);
+                }
+            `}</style>
         </div>
     );
 }

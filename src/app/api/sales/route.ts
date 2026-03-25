@@ -2,7 +2,8 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
-import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent } from '@/lib/zatca';
+import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
+import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 
 export async function GET(request: NextRequest) {
     try {
@@ -241,17 +242,9 @@ export async function POST(request: Request) {
 
             if (s['zatca_enabled'] === '1' && s['company_name'] && s['tax_number']) {
                 if (s['zatca_production_token'] && s['zatca_private_key']) {
-                    // Phase 2: Cryptographic Stamp
-                    const { execSync } = require('child_process');
-                    const fs = require('fs');
-                    const path = require('path');
-                    const os = require('os');
+                    // Phase 2: Cryptographic Stamp Using Official Java SDK
                     const crypto = require('crypto');
-                    
-                    const wrapBase64 = (b64: string) => b64.replace(/(.{64})/g, '$1\n').trim();
-                    const certPemBody = Buffer.from(s['zatca_production_token'], 'base64').toString('ascii');
-                    const certificate = `-----BEGIN CERTIFICATE-----\n${wrapBase64(certPemBody)}\n-----END CERTIFICATE-----`;
-                    const privateKey = `-----BEGIN EC PRIVATE KEY-----\n${wrapBase64(s['zatca_private_key'])}\n-----END EC PRIVATE KEY-----`;
+                    const certParsed = Buffer.from(s['zatca_production_token'], 'base64').toString('ascii');
                     
                     const counterKey = 'zatca_invoice_counter';
                     const currentCounter = parseInt(s[counterKey] || '0') + 1;
@@ -262,60 +255,75 @@ export async function POST(request: Request) {
                     const invoiceUuid = crypto.randomUUID();
                     const taxRate = parseFloat(s['tax_rate'] || '15') / 100;
                     
-                    const lineItems = items.map((item: any, idx: number) => ({
-                        id: (idx + 1).toString(),
-                        name: item.productName || `Product ${item.productId}`,
-                        quantity: parseFloat(item.quantity) || 1,
-                        tax_exclusive_price: parseFloat(item.price) || 0,
-                        VAT_percent: taxRate,
-                        other_taxes: [],
-                        discounts: [],
-                    }));
+                    const mappedLines: InvoiceLine[] = items.map((item: any, idx: number) => {
+                        const taxAmp = ((parseFloat(item.price) * (parseFloat(item.quantity) || 1)) * taxRate).toFixed(2);
+                        return {
+                            id: (idx + 1).toString(),
+                            itemName: item.productName || `Product ${item.productId}`,
+                            quantity: (parseFloat(item.quantity) || 1).toString(),
+                            unitCode: 'PCE',
+                            lineExtensionAmount: (parseFloat(item.price) * (parseFloat(item.quantity) || 1)).toFixed(2),
+                            taxPercent: taxAmp
+                        };
+                    });
                     
-                    const signInput = {
-                        certificate, privateKey,
-                        egsInfo: {
-                            uuid: invoiceUuid,
-                            CRN_number: s['zatca_crn'] || '',
-                            VAT_name: s['company_name_en'] || s['company_name'] || 'Company',
-                            VAT_number: s['tax_number'],
-                            location: {
-                                city: s['zatca_city_en'] || s['zatca_city'] || 'Riyadh',
-                                city_subdivision: s['zatca_district'] || 'District',
-                                street: s['zatca_street'] || 'Main',
-                                plot_identification: '0000',
-                                building: s['zatca_building'] || '0000',
-                                postal_zone: s['zatca_postal_code'] || '00000',
-                            },
-                            branch_name: 'Main',
-                            branch_industry: s['zatca_industry'] || 'Technology',
+                    const invoiceData: InvoiceData = {
+                        profileID: 'reporting:1.0',
+                        id: `INV${invoice.invoiceNo.toString().padStart(6, '0')}`,
+                        uuid: invoiceUuid,
+                        issueDate,
+                        issueTime,
+                        invoiceTypeCode: '388',
+                        invoiceTypeName: '0200000',
+                        note: body.notes || 'B2C Sales Invoice',
+                        currencyCode: 'SAR',
+                        taxCurrencyCode: 'SAR',
+                        supplier: {
+                            companyID: s['zatca_crn'] || '1010010000',
+                            registrationName: s['tax_number'] || '300000000000003',
+                            address: {
+                                streetName: s['zatca_street'] || 'Main',
+                                buildingNumber: s['zatca_building'] || '1234',
+                                citySubdivisionName: s['zatca_district'] || 'District',
+                                cityName: s['zatca_city_en'] || s['zatca_city'] || 'Riyadh',
+                                postalZone: s['zatca_postal_code'] || '12345',
+                                countryCode: 'SA'
+                            }
                         },
-                        invoiceCounterNumber: currentCounter,
-                        invoiceSerialNumber: `INV${invoice.invoiceNo.toString().padStart(6, '0')}`,
-                        issueDate, issueTime, previousInvoiceHash: prevHash, lineItems,
+                        customer: {
+                            companyID: '300000000000003',
+                            registrationName: 'Customer Name',
+                            address: {
+                                streetName: 'Test',
+                                buildingNumber: '1111',
+                                citySubdivisionName: 'Test',
+                                cityName: 'Riyadh',
+                                postalZone: '11111',
+                                countryCode: 'SA'
+                            }
+                        },
+                        invoiceLines: mappedLines,
+                        taxAmount: taxValue.toFixed(2),
+                        totalAmount: total.toFixed(2)
                     };
                     
-                    const ts = Date.now();
-                    const inputFile = path.join(os.tmpdir(), `zatca_qr_input_sales_${ts}.json`);
-                    const outputFile = path.join(os.tmpdir(), `zatca_qr_output_sales_${ts}.json`);
-                    const scriptFile = path.join(process.cwd(), 'src/scripts/zatca-sign-invoice.js');
+                    const xmlDoc = generateZATCAXml(invoiceData);
+                    const adapter = new ZatcaJavaAdapter();
                     
                     try {
-                        fs.writeFileSync(inputFile, JSON.stringify(signInput));
-                        execSync(`node "${scriptFile}" "${inputFile}" "${outputFile}"`, { encoding: 'utf-8', timeout: 30000 });
-                        const signOutput = JSON.parse(fs.readFileSync(outputFile, 'utf-8'));
-
+                        const signOutput = await adapter.signInvoice(xmlDoc, certParsed, s['zatca_private_key'], prevHash);
                         
                         zatcaQR = signOutput.qr;
-                        const xmlString = signOutput.signed_invoice_string;
+                        const xmlString = signOutput.signedXml;
+                        const hashFinal = signOutput.hash;
                         
                         // Save Phase 2 Database Updates
-                        await prisma.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: signOutput.invoice_hash }, create: { key: 'zatca_last_pih', value: signOutput.invoice_hash, description: 'ZATCA Last PIH' } });
+                        await prisma.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: hashFinal }, create: { key: 'zatca_last_pih', value: hashFinal, description: 'ZATCA Last PIH' } });
                         await prisma.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
                         
                         await prisma.salesInvoice.update({
                             where: { id: invoice.id },
-                            data: { zatcaStatus: 'signed', zatcaHash: signOutput.invoice_hash, zatcaQr: zatcaQR }
+                            data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR }
                         });
                         
                         // Fatoora Reporting
@@ -326,7 +334,7 @@ export async function POST(request: Request) {
                                 await fatooraReport({
                                     binarySecurityToken: s['zatca_production_token'],
                                     secret: s['zatca_production_secret'],
-                                    invoiceHash: signOutput.invoice_hash,
+                                    invoiceHash: hashFinal,
                                     uuid: invoiceUuid,
                                     invoiceBase64: Buffer.from(xmlString).toString('base64'),
                                     environment: env,
@@ -338,9 +346,8 @@ export async function POST(request: Request) {
                                 console.warn('Fatoora Phase 2 reporting failed:', fatooraErr.message);
                             }
                         }
-                    } finally {
-                        try { fs.unlinkSync(inputFile); } catch { }
-                        try { fs.unlinkSync(outputFile); } catch { }
+                    } catch (adaptErr) {
+                         console.error('ZATCA Desktop SDK Crash during Sale Signing:', adaptErr);
                     }
                 } else {
                     // Phase 1 QR

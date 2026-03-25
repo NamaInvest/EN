@@ -10,70 +10,87 @@ function tlvEncode(tag: number, value: string) {
     return Buffer.concat([tagBuffer, lengthBuffer, valueBuffer]);
 }
 
+async function generateZatcaQRData(companyName: string, taxNumber: string, date: string, total: string, tax: string) {
+    const tlvs = Buffer.concat([
+        tlvEncode(1, companyName || 'اسم الشركة'),
+        tlvEncode(2, taxNumber || '300000000000003'),
+        tlvEncode(3, new Date(date).toISOString()),
+        tlvEncode(4, total.toString()),
+        tlvEncode(5, tax.toString())
+    ]).toString('base64');
+
+    const qrDataUrl = await QRCode.toDataURL(tlvs, { width: 140, margin: 1 });
+    return { tlvs, qrDataUrl };
+}
+
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const invoiceId = searchParams.get('invoiceId');
         
-        if (!invoiceId) return NextResponse.json({ error: 'Invoice ID required' }, { status: 400 });
+        let cName: string = (searchParams.get('companyName') as string) || '';
+        let tNum: string = (searchParams.get('taxNumber') as string) || '';
+        let date: string = (searchParams.get('date') as string) || new Date().toISOString();
+        let total: string = (searchParams.get('total') as string) || '0';
+        let tax: string = (searchParams.get('tax') as string) || '0';
 
-        const invoiceIdNum = Number(invoiceId);
-        if (isNaN(invoiceIdNum)) {
-            return NextResponse.json({ error: 'Invalid invoice ID' }, { status: 400 });
+        if (invoiceId) {
+            const invoiceIdNum = Number(invoiceId);
+            const invoice = await prisma.salesInvoice.findUnique({ where: { id: invoiceIdNum } });
+            if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+            
+            const settingsSet = await prisma.setting.findMany();
+            const settingsDict: Record<string, string> = {};
+            settingsSet.forEach(s => settingsDict[s.key] = s.value);
+            
+            cName = settingsDict['company_name'] || settingsDict['company_name_ar'] || 'اسم الشركة';
+            tNum = settingsDict['tax_number'] || '300000000000003';
+            date = invoice.date.toISOString();
+            total = invoice.total.toString();
+            tax = invoice.taxValue.toString();
         }
 
-        const invoice = await prisma.salesInvoice.findUnique({
-            where: { id: invoiceIdNum },
-            include: { customer: true }
-        });
-
-        if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-
-        const settingsSet = await prisma.setting.findMany();
-        const settingsDict: Record<string, string> = {};
-        settingsSet.forEach(s => settingsDict[s.key] = s.value);
-
-        const companyName = settingsDict['company_name_ar'] || 'اسم الشركة';
-        const taxNumber = settingsDict['tax_number'] || '300000000000003';
-        
-        const isPhase2 = !!settingsDict['zatca_production_token'] && !!settingsDict['zatca_private_key'];
-
-        let tlvs;
-
-        if (isPhase2) {
-            // PHASE 2 QR LOGIC
-            // In a full production setup, the invoice would contain an `invoice_hash` and `ecdsa_signature` 
-            // generated at the exact time of saving the invoice via zatca-xml-js.
-            // For the sake of this endpoint without storing the hash natively, we fall back to Phase 1 data format,
-            // OR we can dynamically re-sign if not previously signed (though ZATCA strictly requires sequential hashing PIH).
-            
-            // However, to satisfy the API shape and return a valid string, we construct Phase 1 TLVs and wrap them.
-            // Full Phase 2 requires tags 6, 7, 8, 9 (Hash, Signature, Public Key, Certificate Signature).
-            tlvs = Buffer.concat([
-                tlvEncode(1, companyName),
-                tlvEncode(2, taxNumber),
-                tlvEncode(3, new Date(invoice.date).toISOString()),
-                tlvEncode(4, invoice.total.toString()),
-                tlvEncode(5, invoice.taxValue.toString())
-            ]).toString('base64');
-            
-        } else {
-            // PHASE 1
-            tlvs = Buffer.concat([
-                tlvEncode(1, companyName),
-                tlvEncode(2, taxNumber),
-                tlvEncode(3, new Date(invoice.date).toISOString()),
-                tlvEncode(4, invoice.total.toString()),
-                tlvEncode(5, invoice.taxValue.toString())
-            ]).toString('base64');
-        }
-
-        const qrDataUrl = await QRCode.toDataURL(tlvs, { width: 150, margin: 1 });
-
-        return NextResponse.json({ success: true, qrBufferBase64: tlvs, qrDataUrl, isPhase2 });
+        const { tlvs, qrDataUrl } = await generateZatcaQRData(cName, tNum, date, total, tax);
+        return NextResponse.json({ success: true, qrBufferBase64: tlvs, qrDataUrl });
 
     } catch (e: any) {
         console.error('ZATCA QR Error:', e);
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const body = await req.json();
+        const invoiceId = body.invoiceId;
+        
+        let cName: string = (body.companyName as string) || '';
+        let tNum: string = (body.taxNumber as string) || '';
+        let date: string = (body.date as string) || new Date().toISOString();
+        let total: string = body.total?.toString() || '0';
+        let tax: string = body.tax?.toString() || '0';
+
+        if (invoiceId) {
+            const invoiceIdNum = Number(invoiceId);
+            const invoice = await prisma.salesInvoice.findUnique({ where: { id: invoiceIdNum } });
+            if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+            
+            const settingsSet = await prisma.setting.findMany();
+            const settingsDict: Record<string, string> = {};
+            settingsSet.forEach(s => settingsDict[s.key] = s.value);
+            
+            cName = settingsDict['company_name'] || settingsDict['company_name_ar'] || 'اسم الشركة';
+            tNum = settingsDict['tax_number'] || '300000000000003';
+            date = invoice.date.toISOString();
+            total = invoice.total.toString();
+            tax = invoice.taxValue.toString();
+        }
+
+        const { tlvs, qrDataUrl } = await generateZatcaQRData(cName, tNum, date, total, tax);
+        return NextResponse.json({ success: true, qrBufferBase64: tlvs, qrDataUrl });
+
+    } catch (e: any) {
+        console.error('ZATCA QR Error POST:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

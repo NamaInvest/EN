@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import InvoiceReceipt from '@/components/InvoiceReceipt';
 
 export default function POSPage() {
     const { t, lang } = useTranslation();
@@ -23,6 +24,7 @@ export default function POSPage() {
     const [customers, setCustomers] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [customerSearch, setCustomerSearch] = useState('');
+    const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
 
     // BNPL State
     const [showBnplModal, setShowBnplModal] = useState(false);
@@ -31,6 +33,31 @@ export default function POSPage() {
     const [bnplUrl, setBnplUrl] = useState('');
     const [bnplOrderId, setBnplOrderId] = useState('');
     const [bnplLoading, setBnplLoading] = useState(false);
+    const [bnplStatusMessage, setBnplStatusMessage] = useState('');
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (showBnplModal && bnplOrderId && bnplUrl) {
+            setBnplStatusMessage('بانتظار العميل لإتمام الدفع من هاتفه...');
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/pos/bnpl/status?provider=${bnplProvider}&sessionId=${bnplOrderId}`);
+                    const data = await res.json();
+                    if (data.isSuccess) {
+                        setBnplStatusMessage('✅ تمت الموافقة بنجاح! جاري إصدار الفاتورة...');
+                        clearInterval(interval);
+                        handleCheckout(bnplProvider.toUpperCase() as any);
+                    } else if (data.status === 'REJECTED' || data.status === 'DECLINED') {
+                        setBnplStatusMessage('❌ تم رفض العملية من قبل ' + bnplProvider);
+                        clearInterval(interval);
+                    }
+                } catch (e) {
+                    console.error("Polling error", e);
+                }
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [showBnplModal, bnplOrderId, bnplProvider, bnplUrl]);
 
     
     const [products, setProducts] = useState<any[]>([]);
@@ -205,7 +232,7 @@ export default function POSPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`تم دفع الفاتورة بنجاح: ${data.invoice.invoiceNumber}`);
+                setCompletedInvoiceId(data.invoice.id);
                 setCart([]); 
                 removeCoupon(); 
                 setSelectedCustomer(null); 
@@ -751,9 +778,12 @@ export default function POSPage() {
                                 <div style={{ background: 'white', padding: '1rem', borderRadius: '12px' }}>
                                     <QRCodeCanvas value={bnplUrl} size={250} level="H" includeMargin />
                                 </div>
-                                <p style={{ color: '#fff', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    اطلب من العميل مسح الرمز أعلاه بكاميرا هاتفه لإكمال التقسيط.<br/>سيبقى الطلب معلقاً حتى يؤكد العميل الدفع.
-                                </p>
+                                <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.2)', width: '100%' }}>
+                                    <p style={{ color: '#fff', fontSize: '1rem', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                        {bnplStatusMessage.includes('✅') || bnplStatusMessage.includes('❌') ? null : <span className="spinner" style={{ animation: 'spin 1s linear infinite' }}>⏳</span>}
+                                        {bnplStatusMessage}
+                                    </p>
+                                </div>
                                 <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                                     <button 
                                         onClick={() => setShowBnplModal(false)}
@@ -773,6 +803,15 @@ export default function POSPage() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Auto Print ZATCA Receipt */}
+            {completedInvoiceId && (
+                <InvoiceReceipt 
+                    invoiceId={completedInvoiceId} 
+                    autoPrint={true} 
+                    onClose={() => setCompletedInvoiceId(null)} 
+                />
             )}
         </div>
     );
