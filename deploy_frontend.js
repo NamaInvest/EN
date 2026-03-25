@@ -4,7 +4,8 @@ const path = require('path');
 const filesToDeploy = [
     'src/app/page.tsx',
     'src/app/onboarding/zatca/page.tsx',
-    'src/app/onboarding/provisioning/page.tsx'
+    'src/app/onboarding/provisioning/page.tsx',
+    'src/app/restaurant-pos/page.tsx'
 ];
 
 const servers = [
