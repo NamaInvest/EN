@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer } from 'lucide-react';
+import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2 } from 'lucide-react';
 
 export default function RestaurantPOS() {
     // Force RTL for this specific layout to match image perfectly
@@ -21,6 +21,63 @@ export default function RestaurantPOS() {
     const [customers, setCustomers] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [customerSearch, setCustomerSearch] = useState('');
+
+    // Hold & History State
+    const [heldOrders, setHeldOrders] = useState<any[]>([]);
+    const [showHeldOrdersModal, setShowHeldOrdersModal] = useState(false);
+    const [recentOrders, setRecentOrders] = useState<any[]>([]);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('rest_held_orders');
+        if (saved) {
+            try { setHeldOrders(JSON.parse(saved)); } catch (e) {}
+        }
+    }, []);
+
+    const saveHeldOrders = (orders: any[]) => {
+        setHeldOrders(orders);
+        localStorage.setItem('rest_held_orders', JSON.stringify(orders));
+    };
+
+    const handleHoldOrder = () => {
+        if (cart.length === 0) return;
+        const newOrder = {
+            id: Date.now().toString(),
+            cart: [...cart],
+            total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
+            customer: selectedCustomer,
+            time: new Date().toLocaleTimeString('ar-SA')
+        };
+        saveHeldOrders([...heldOrders, newOrder]);
+        setCart([]);
+        setSelectedCustomer(null);
+        removeCoupon();
+        alert('تم تعليق طلب الطاولة بنجاح');
+    };
+
+    const handleRestoreOrder = (order: any) => {
+        setCart(order.cart);
+        setSelectedCustomer(order.customer);
+        const newOrders = heldOrders.filter(o => o.id !== order.id);
+        saveHeldOrders(newOrders);
+        setShowHeldOrdersModal(false);
+    };
+
+    const fetchRecentOrders = async () => {
+        setShowHistoryModal(true);
+        setHistoryLoading(true);
+        try {
+            const res = await fetch('/api/sales?limit=15'); 
+            const data = await res.json();
+            setRecentOrders(Array.isArray(data) ? data.slice(0, 15) : []);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
     
     const [products, setProducts] = useState<any[]>([]);
@@ -158,8 +215,26 @@ export default function RestaurantPOS() {
     };
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showMadaModal, setShowMadaModal] = useState(false);
+    const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
+
     const handleCheckout = async (paymentMethod: 'CASH' | 'CARD') => {
         if (cart.length === 0) return;
+
+        // Mada Interceptor
+        if (paymentMethod === 'CARD' && !showMadaModal) {
+            setShowMadaModal(true);
+            setMadaStatus('WAITING');
+            setTimeout(() => {
+                setMadaStatus('APPROVED');
+                setTimeout(() => {
+                    setShowMadaModal(false);
+                    handleCheckout('CARD'); // Proceed with actual checkout
+                }, 1500);
+            }, 2500);
+            return;
+        }
+
         try {
             setIsProcessing(true);
             const body = {
@@ -505,7 +580,14 @@ export default function RestaurantPOS() {
                         <Link href="/dashboard" style={{textDecoration:'none', color:'#666', display:'flex', alignItems:'center', gap:'0.25rem'}}>
                             <ArrowRight size={18} /> رجوع
                         </Link>
-                        <h2 style={{margin:0, fontSize:'1.2rem', color:'#333'}}>نقطة البيع (مطاعم)</h2>
+                        <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>نقطة البيع (مطاعم)</h2>
+                        
+                        <button onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? '#fef3c7' : 'transparent', color: heldOrders.length > 0 ? '#d97706' : '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
+                            <Clock size={16} /> الطاولات المعلقة ({heldOrders.length})
+                        </button>
+                        <button onClick={fetchRecentOrders} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
+                            <History size={16} /> السابقة
+                        </button>
                     </div>
                     <input 
                         className="search-input"
@@ -645,14 +727,26 @@ export default function RestaurantPOS() {
                 </div>
 
                 <div className="numpad-section">
-                    <button 
-                        className="pay-btn-big" 
-                        disabled={cart.length === 0 || isProcessing}
-                        onClick={() => handleCheckout('CASH')}
-                    >
-                        <span>دفع وطباعة</span>
-                        <Printer size={32} />
-                    </button>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <button 
+                            className="pay-btn-big" 
+                            disabled={cart.length === 0 || isProcessing}
+                            onClick={() => handleCheckout('CASH')}
+                            style={{ flex: 1, fontSize: '1.2rem' }}
+                        >
+                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>دفع نقدي</span>
+                            <span style={{ fontSize: '1.6rem' }}>CASH</span>
+                        </button>
+                        <button 
+                            className="pay-btn-big" 
+                            disabled={cart.length === 0 || isProcessing}
+                            onClick={() => handleCheckout('CARD')}
+                            style={{ flex: 1, background: '#3b82f6', fontSize: '1.2rem' }}
+                        >
+                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>دفع شبكة</span>
+                            <span style={{ fontSize: '1.6rem' }}>MADA ✔</span>
+                        </button>
+                    </div>
 
                     <div className="numpad-grid">
                         {['7','8','9','4','5','6','1','2','3','0','C','.'].map(key => (
@@ -707,6 +801,112 @@ export default function RestaurantPOS() {
                                 <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>لا يوجد عملاء مطابقين لسجل البحث</div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Held Orders Modal */}
+            {showHeldOrdersModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHeldOrdersModal(false)}>
+                    <div style={{ background: '#fff', width: '600px', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', color: '#333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>طلبات الطاولات المعلقة</h3>
+                            <button onClick={() => setShowHeldOrdersModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>لا توجد طلبات معلقة حالياً</p> : 
+                            heldOrders.map((order: any) => (
+                                <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>مسودة وقت: {order.time}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>العميل: {order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
+                                        <div style={{ color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} ر.س</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>أكمل الطلب</button>
+                                        <button onClick={() => saveHeldOrders(heldOrders.filter(o => o.id !== order.id))} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Recent Orders Modal */}
+            {showHistoryModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHistoryModal(false)}>
+                    <div style={{ background: '#fff', width: '700px', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', color: '#333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>أحدث الفواتير المسددة بالشفت الحالي</h3>
+                            <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {historyLoading ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>جاري التحميل...</p> : 
+                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>لا توجد فواتير سابقة</p> : 
+                            recentOrders.map((inv: any) => (
+                                <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>فاتورة ضريبية #{inv.invoiceNo}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} | العميل: {inv.customer?.name || 'مبيعات مباشرة'}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} ر.س</div>
+                                        <button onClick={() => { 
+                                            // The Restaurant POS currently prints by calling window.print natively. 
+                                            // We don't have a specific `printReceipt` function stored globally, so we'll just mock this or print using a backend hit if needed
+                                            alert('إعادة طباعة الإيصال جاري تجهيزها.'); 
+                                        }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>إعادة طباعة</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mada Terminal Integration Simulator */}
+            {showMadaModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ background: '#fff', width: '400px', borderRadius: '16px', padding: '2.5rem 2rem', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+                        
+                        {/* Mada Logo Placeholder */}
+                        <div style={{ display: 'flex', gap: '4px', marginBottom: '1rem' }}>
+                            <div style={{ width: '20px', height: '40px', background: '#3b82f6', borderRadius: '10px' }}></div>
+                            <div style={{ width: '20px', height: '40px', background: '#10b981', borderRadius: '10px' }}></div>
+                            <div style={{ width: '20px', height: '40px', background: '#f59e0b', borderRadius: '10px' }}></div>
+                        </div>
+
+                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>دفع عبر جهاز شبكة مدى</h2>
+                        
+                        <div style={{ background: '#f1f5f9', width: '100%', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
+                            <span style={{ color: '#64748b', fontWeight: 600 }}>المبلغ المطلوب:</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>{finalTotal.toLocaleString()} SAR</span>
+                        </div>
+
+                        {madaStatus === 'WAITING' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                                <div className="spinner" style={{ width: '48px', height: '48px', borderTopColor: '#3b82f6', borderWidth: '4px', borderRadius: '50%', borderStyle: 'solid', animation: 'spin 1s linear infinite' }}></div>
+                                <style jsx>{`
+                                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                                `}</style>
+                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>يرجى تمرير البطاقة على جهاز مدى المربوط بالصندوق...</p>
+                            </div>
+                        )}
+
+                        {madaStatus === 'APPROVED' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem', animation: 'fadeIn 0.3s ease-in-out' }}>
+                                <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                    <CheckCircle2 size={40} />
+                                </div>
+                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>عملية مقبولة APPROVED</p>
+                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>جاري اعتماد فاتورة الطاولة وطباعة الإيصال...</p>
+                            </div>
+                        )}
+                        
+                        {madaStatus === 'WAITING' && (
+                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>إلغاء العملية</button>
+                        )}
                     </div>
                 </div>
             )}

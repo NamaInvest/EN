@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
-import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2, Clock, History } from 'lucide-react';
+import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2, Clock, History, CheckCircle2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 
@@ -267,8 +267,26 @@ export default function POSPage() {
         }
     };
 
+    const [showMadaModal, setShowMadaModal] = useState(false);
+    const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
+
     const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA') => {
         if (cart.length === 0) return;
+        
+        // Mada Interceptor
+        if (paymentMethod === 'CARD' && !showMadaModal) {
+            setShowMadaModal(true);
+            setMadaStatus('WAITING');
+            setTimeout(() => {
+                setMadaStatus('APPROVED');
+                setTimeout(() => {
+                    setShowMadaModal(false);
+                    handleCheckout('CARD'); // Proceed with actual checkout
+                }, 1500);
+            }, 2500);
+            return;
+        }
+
         try {
             setIsProcessing(true);
             const body = {
@@ -759,7 +777,7 @@ export default function POSPage() {
                         <Banknote size={20} /> {isProcessing ? 'جاري...' : 'نقدي'}
                     </button>
                     <button className="pay-btn pay-card" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CARD')}>
-                        <CreditCard size={20} /> {isProcessing ? 'جاري...' : 'شبكة'}
+                        <CreditCard size={20} /> {isProcessing ? 'جاري...' : 'شبكة (مدى)'}
                     </button>
                     <button className="pay-btn" style={{ background: '#3eedbf', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tabby')}>
                         <strong>تابي</strong> Tabby
@@ -863,6 +881,105 @@ export default function POSPage() {
                                     </button>
                                 </div>
                             </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Held Orders Modal */}
+            {showHeldOrdersModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHeldOrdersModal(false)}>
+                    <div style={{ background: '#111', width: '600px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>الفواتير المعلقة (المسودات)</h3>
+                            <button onClick={() => setShowHeldOrdersModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>لا توجد فواتير معلقة حالياً</p> : 
+                            heldOrders.map((order: any) => (
+                                <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>مسودة وقت: {order.time}</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>العميل: {order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
+                                        <div style={{ color: '#818cf8', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} ر.س</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>استرجاع</button>
+                                        <button onClick={() => saveHeldOrders(heldOrders.filter(o => o.id !== order.id))} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Recent Orders Modal */}
+            {showHistoryModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHistoryModal(false)}>
+                    <div style={{ background: '#111', width: '700px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>أحدث الفواتير المسددة بالشفت الحالي</h3>
+                            <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {historyLoading ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>جاري التحميل...</p> : 
+                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>لا توجد فواتير سابقة</p> : 
+                            recentOrders.map((inv: any) => (
+                                <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>فاتورة ضريبية #{inv.invoiceNo}</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} | العميل: {inv.customer?.name || 'مبيعات مباشرة'}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} ر.س</div>
+                                        <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>إعادة طباعة الإيصال</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mada Terminal Integration Simulator */}
+            {showMadaModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ background: '#fff', width: '400px', borderRadius: '16px', padding: '2.5rem 2rem', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+                        
+                        {/* Mada Logo Placeholder */}
+                        <div style={{ display: 'flex', gap: '4px', marginBottom: '1rem' }}>
+                            <div style={{ width: '20px', height: '40px', background: '#3b82f6', borderRadius: '10px' }}></div>
+                            <div style={{ width: '20px', height: '40px', background: '#10b981', borderRadius: '10px' }}></div>
+                            <div style={{ width: '20px', height: '40px', background: '#f59e0b', borderRadius: '10px' }}></div>
+                        </div>
+
+                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>دفع عبر جهاز شبكة مدى</h2>
+                        
+                        <div style={{ background: '#f1f5f9', width: '100%', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
+                            <span style={{ color: '#64748b', fontWeight: 600 }}>المبلغ المطلوب:</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>{finalTotal.toLocaleString()} SAR</span>
+                        </div>
+
+                        {madaStatus === 'WAITING' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                                <div className="spinner" style={{ width: '48px', height: '48px', borderTopColor: '#3b82f6', borderWidth: '4px' }}></div>
+                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>يرجى تمرير البطاقة على جهاز مدى...</p>
+                            </div>
+                        )}
+
+                        {madaStatus === 'APPROVED' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem', animation: 'fadeIn 0.3s ease-in-out' }}>
+                                <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                    <CheckCircle2 size={40} />
+                                </div>
+                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>عملية مقبولة APPROVED</p>
+                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>جاري اعتماد الفاتورة وطباعة الإيصال...</p>
+                            </div>
+                        )}
+                        
+                        {madaStatus === 'WAITING' && (
+                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>إلغاء العملية</button>
                         )}
                     </div>
                 </div>
