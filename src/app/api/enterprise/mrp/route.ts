@@ -25,7 +25,7 @@ export async function GET(request: Request) {
                 machine: { select: { name: true, status: true } },
                 stock: { select: { name: true } }
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { id: 'desc' },
         });
 
         // Metrics Summary
