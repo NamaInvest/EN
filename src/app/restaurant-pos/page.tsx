@@ -886,10 +886,7 @@ export default function RestaurantPOS() {
 
                         {madaStatus === 'WAITING' && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                                <div className="spinner" style={{ width: '48px', height: '48px', borderTopColor: '#3b82f6', borderWidth: '4px', borderRadius: '50%', borderStyle: 'solid', animation: 'spin 1s linear infinite' }}></div>
-                                <style jsx>{`
-                                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                                `}</style>
+                                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                                 <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>يرجى تمرير البطاقة على جهاز مدى المربوط بالصندوق...</p>
                             </div>
                         )}
