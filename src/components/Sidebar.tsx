@@ -25,6 +25,7 @@ const menuItems = [
             { icon: '🍔', labelKey: 'نقطة بيع المطاعم والمقاهي', href: '/restaurant-pos', module: 'restaurant_pos' },
             { icon: '🕒', labelKey: 'ورديات الكاشير', href: '/shifts', module: 'shifts' },
             { icon: '🧾', labelKey: 'فواتير المبيعات الضريبية', href: '/sales', module: 'sales' },
+            { icon: '🗂️', labelKey: 'سجل الفواتير السابقة', href: '/sales/history', module: 'sales' },
             { icon: '📄', labelKey: 'عروض أسعار المبيعات', href: '/price-quotes', module: 'price_quotes' },
             { icon: '📦', labelKey: 'أوامر البيع (Sales Orders)', href: '/sales/orders', module: 'sales_orders' },
             { icon: '🚚', labelKey: 'مذكرات التسليم (Delivery Notes)', href: '/sales/delivery-notes', module: 'sales_orders' },
