@@ -45,6 +45,7 @@ const translations: Record<Language, Record<string, string>> = {
         'sidebar.products': 'المنتجات',
         'sidebar.stock': 'المخزون',
         'sidebar.warehouses': 'المستودعات',
+        'manage_warehouses': 'إدارة المستودعات',
         'sidebar.stock_transfers': 'تحويل أصناف',
         'sidebar.barcode': 'إنشاء باركود',
         'sidebar.customers': 'العملاء والموردين',

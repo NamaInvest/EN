@@ -91,6 +91,72 @@ export default function RestaurantPOS() {
         }).filter(Boolean));
     };
 
+    const printReceipt = (invoice: any, printCart: any[], printTotal: number, printTax: number, printDiscount: number) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) return;
+        
+        const html = `
+            <html dir="rtl">
+            <head>
+                <title>طباعة الإيصال</title>
+                <style>
+                    body { font-family: 'Courier New', Courier, monospace; padding: 10px; font-size: 13px; margin: 0 auto; max-width: 300px; text-align: center; color: #000; }
+                    .header { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+                    .subheader { font-size: 11px; margin-bottom: 10px; }
+                    .divider { border-top: 1px dashed #000; margin: 10px 0; }
+                    table { width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px; }
+                    .qty-col { width: 30px; text-align: center; }
+                    .price-col { width: 60px; text-align: left; }
+                    th, td { padding: 4px 0; vertical-align: top; }
+                    .center { text-align: center; }
+                    .left { text-align: left; }
+                    .footer { font-size: 11px; margin-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">نمـا إنفست للأنظمـة</div>
+                <div class="subheader">طلب نقاط البيع - مطاعم</div>
+                <div style="font-size: 12px">رقم الإيصال: ${invoice?.invoiceNumber || '-'}</div>
+                <div style="font-size: 12px">التاريخ: ${new Date().toLocaleString('ar-SA')}</div>
+                <div class="divider"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الصنف</th>
+                            <th class="qty-col">الكمية</th>
+                            <th class="price-col">القيمة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${printCart.map((item: any) => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td class="qty-col">${item.qty}</td>
+                                <td class="price-col">${(item.price * item.qty).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+                <table style="font-weight: bold;">
+                    <tr><td>الإجمالي:</td><td class="left">${printTotal.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td>الخصم:</td><td class="left">${printDiscount.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td>ضريبة (15%):</td><td class="left">${printTax.toLocaleString()}</td></tr>
+                    <tr style="font-size: 16px;"><th>الصافي (SAR):</th><th class="left">${Math.max(0, printTotal + printTax - printDiscount).toLocaleString()}</th></tr>
+                </table>
+                <div class="divider"></div>
+                ${invoice?.zatcaQr ? `<img src="${invoice.zatcaQr}" style="width: 120px; height: 120px; margin-top: 10px;" />` : ''}
+                <div class="footer">شكراً لزيارتكم!</div>
+                <script>
+                    window.onload = function() { window.print(); window.close(); }
+                </script>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(html);
+        printWindow.document.close();
+    };
+
     const [isProcessing, setIsProcessing] = useState(false);
     const handleCheckout = async (paymentMethod: 'CASH' | 'CARD') => {
         if (cart.length === 0) return;
@@ -113,7 +179,9 @@ export default function RestaurantPOS() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`تم دفع الفاتورة واعتماد الطلب بنجاح: ${data.invoice.invoiceNumber}`);
+                // Trigger localized thermal receipt printing engine immediately
+                printReceipt(data.invoice, cart, total, tax, finalDiscountValue);
+                
                 setCart([]); // clear cart
                 removeCoupon(); // clear active coupon
                 setSelectedCustomer(null); // clear linked customer

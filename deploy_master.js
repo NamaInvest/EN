@@ -1,15 +1,20 @@
 const { Client } = require('ssh2');
-const { execSync } = require('child_process');
+const archiver = require('archiver');
 const fs = require('fs');
 
-const PS_PATH = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
-
 async function orchestrate() {
-    console.log("Packaging local source code to update_payload.zip...");
+    console.log("Packaging local source code to update_payload.zip using archiver...");
     try {
         if (fs.existsSync('update_payload.zip')) fs.unlinkSync('update_payload.zip');
-        // Compress src folder using absolute PowerShell path to avoid PATH issues
-        execSync(`"${PS_PATH}" -Command "Compress-Archive -Path src -DestinationPath update_payload.zip -Force"`, { stdio: 'inherit' });
+        await new Promise((resolve, reject) => {
+            const output = fs.createWriteStream('update_payload.zip');
+            const archive = archiver('zip');
+            output.on('close', resolve);
+            archive.on('error', reject);
+            archive.pipe(output);
+            archive.directory('src/', 'src');
+            archive.finalize();
+        });
         console.log("Successfully created update_payload.zip!");
     } catch (e) {
         console.error("Failed to compress source files:", e.message);
