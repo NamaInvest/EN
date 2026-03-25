@@ -83,6 +83,7 @@ export default function LoginPage() {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             localStorage.setItem('lastActivity', Date.now().toString());
+            
             document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
             window.location.href = '/dashboard';
         } catch (err) {

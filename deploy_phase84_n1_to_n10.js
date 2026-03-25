@@ -8,6 +8,8 @@ const filesToDeploy = [
     'src/app/restaurant-pos/page.tsx',
     'src/app/login/page.tsx',
     'src/app/onboarding/provisioning/page.tsx',
+    'src/app/onboarding/zatca/page.tsx',
+    'src/app/page.tsx',
     'src/app/(dashboard)/sales/history/page.tsx',
     'src/components/Sidebar.tsx'
 ];

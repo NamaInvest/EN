@@ -28,10 +28,12 @@ function triggerCron(path) {
 triggerCron('/api/cron/debts');
 triggerCron('/api/cron/hr');
 triggerCron('/api/cron/shifts');
+triggerCron('/api/cron/trigger-invoices');
 
 // Ping sequentially every 6 hours (21,600,000 milliseconds)
 setInterval(() => {
     triggerCron('/api/cron/debts');
     triggerCron('/api/cron/hr');
     triggerCron('/api/cron/shifts');
+    triggerCron('/api/cron/trigger-invoices');
 }, 6 * 60 * 60 * 1000);

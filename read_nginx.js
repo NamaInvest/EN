@@ -1,14 +1,12 @@
 const { Client } = require('ssh2');
 const conn = new Client();
-
 conn.on('ready', () => {
     const cmd = `
-        echo "=== N1 NGINX PROXY ==="
-        cat /www/server/panel/vhost/nginx/n1.namainvist.com.conf || cat /www/server/panel/vhost/nginx/node_n1.conf
-        echo "\n=== PM2 PROCESS LIST ==="
-        pm2 jlist | jq '.[] | {name: .name, port: .pm2_env.env.PORT, pwd: .pm2_env.pm_cwd}'
+        echo "=== NGINX CONF ==="
+        cat /www/server/panel/vhost/nginx/namainvist.com.conf
+        echo "\n=== NGINX ERROR LOG ==="
+        tail -n 15 /www/wwwlogs/namainvist.com.error.log 2>/dev/null
     `;
-
     conn.exec(cmd, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())

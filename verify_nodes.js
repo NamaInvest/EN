@@ -1,15 +1,8 @@
 const { Client } = require('ssh2');
 const conn = new Client();
-
 conn.on('ready', () => {
-    const cmd = `
-        echo "=== N1 NGINX PROXY ==="
-        cat /www/server/panel/vhost/nginx/n1.namainvist.com.conf || cat /www/server/panel/vhost/nginx/node_n1.conf
-        echo "\n=== PM2 PROCESS LIST ==="
-        pm2 jlist | jq '.[] | {name: .name, port: .pm2_env.env.PORT, pwd: .pm2_env.pm_cwd}'
-    `;
-
-    conn.exec(cmd, (err, stream) => {
+    console.log('--- VERIFYING ALL CLUSTER NODES ---');
+    conn.exec('pm2 jlist | jq "\\"[PM2 STATUS]\\" + (.[] | \\"Node: \\" + .name + \\" | Status: \\" + .pm2_env.status + \\" | Port: \\" + (.pm2_env.env.PORT | tostring))"', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', data => console.log(data.toString()))

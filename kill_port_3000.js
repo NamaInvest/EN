@@ -2,11 +2,16 @@ const { Client } = require('ssh2');
 const conn = new Client();
 
 conn.on('ready', () => {
+    console.log('Sending TCP assassination protocol...');
     const cmd = `
-        echo "=== N1 NGINX PROXY ==="
-        cat /www/server/panel/vhost/nginx/n1.namainvist.com.conf || cat /www/server/panel/vhost/nginx/node_n1.conf
-        echo "\n=== PM2 PROCESS LIST ==="
-        pm2 jlist | jq '.[] | {name: .name, port: .pm2_env.env.PORT, pwd: .pm2_env.pm_cwd}'
+        echo "Identifying phantom process on Port 3000..."
+        fuser -k 3000/tcp || echo "No process found on 3000"
+        
+        echo "Restarting root gateway safely..."
+        pm2 restart namainvist_root --update-env
+        
+        echo "Double checking PM2 health..."
+        pm2 jlist | jq '.[] | select(.name == "namainvist_root") | {status: .pm2_env.status, restarts: .pm2_env.restart_time}'
     `;
 
     conn.exec(cmd, (err, stream) => {
