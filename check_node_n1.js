@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 list', (err, stream) => {
+    conn.exec('cat /www/server/panel/vhost/nginx/node_n1.conf', (err, stream) => {
         if (err) throw err;
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));

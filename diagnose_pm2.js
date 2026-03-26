@@ -1,8 +1,10 @@
 const { Client } = require('ssh2');
 
 const conn = new Client();
+
 conn.on('ready', () => {
-    conn.exec('pm2 list', (err, stream) => {
+    console.log('--- FETCHING PM2 LOGS ---');
+    conn.exec('pm2 logs nama-main --lines 30 --nostream', (err, stream) => {
         if (err) throw err;
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));

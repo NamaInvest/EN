@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 list', (err, stream) => {
+    conn.exec('cat /www/wwwroot/n1.namainvist.com/.env | grep DATABASE_URL', (err, stream) => {
         if (err) throw err;
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));

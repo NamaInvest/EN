@@ -31,16 +31,27 @@ export default function ZatcaOnboardingWizard() {
     setStep((prev) => prev + 1);
   };
 
-  const submitToProvisioning = () => {
+  const submitToProvisioning = async () => {
     setLoading(true);
-    // Simulate saving ZATCA settings to master DB then forwarding to Provisioner
-    setTimeout(() => {
-      // Pass data via localStorage or Context in real app, here we just redirect
-      if (typeof window !== "undefined") {
-        localStorage.setItem("zatca_pending_org", formData.orgName);
-      }
+    try {
+      const res = await fetch("/api/tenant/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fallbackEmail: "admin@namainvest.com", // Fallback for local testing if Google Auth lacks session
+          orgName: formData.orgName,
+          vatNumber: formData.vatNumber,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to allocate node.");
+      
       router.push("/onboarding/provisioning");
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة لاحقاً.");
+      setLoading(false);
+    }
   };
 
   return (

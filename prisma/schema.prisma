@@ -2169,3 +2169,17 @@ model SystemAlert {
 
   @@map("sys_alerts")
 }
+
+// ==================== 101. Master SaaS Routing (Tenant Tracking) ====================
+model TenantAccount {
+  id          Int      @id @default(autoincrement())
+  userEmail   String   @unique @map("user_email")
+  orgName     String   @map("org_name")
+  vatNumber   String   @map("vat_number")
+  subdomain   String   @unique // e.g., 'n11', 'n12'
+  status      String   @default("pending") // pending, active, suspended
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("tenant_accounts")
+}

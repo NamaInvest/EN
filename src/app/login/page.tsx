@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -174,8 +175,7 @@ export default function LoginPage() {
                     <button
                         type="button"
                         onClick={() => {
-                            // In a real environment, this calls signIn('google', { callbackUrl: '/onboarding/zatca' })
-                            router.push('/onboarding/zatca');
+                            signIn('google', { callbackUrl: '/auth/routing' })
                         }}
                         style={{
                             width: '100%',
