@@ -3,10 +3,12 @@ const { Client } = require('ssh2');
 const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
 
 const fileTasks = [
-    { local: 'd:/namasoft9-3-main/src/scripts/zatca-sign-invoice.js', remote: '/src/scripts/zatca-sign-invoice.js' },
+    { local: 'd:/namasoft9-3-main/src/lib/zatca-java.ts', remote: '/src/lib/zatca-java.ts' },
     { local: 'd:/namasoft9-3-main/src/app/api/settings/generate-keys/route.ts', remote: '/src/app/api/settings/generate-keys/route.ts' },
+    { local: 'd:/namasoft9-3-main/src/app/api/settings/zatca-onboard/route.ts', remote: '/src/app/api/settings/zatca-onboard/route.ts' },
     { local: 'd:/namasoft9-3-main/src/app/api/zatca/route.ts', remote: '/src/app/api/zatca/route.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/api/zatca/qr/route.ts', remote: '/src/app/api/zatca/qr/route.ts' }
+    { local: 'd:/namasoft9-3-main/src/app/api/zatca/qr/route.ts', remote: '/src/app/api/zatca/qr/route.ts' },
+    { local: 'd:/namasoft9-3-main/src/app/onboarding/zatca/page.tsx', remote: '/src/app/onboarding/zatca/page.tsx' }
 ];
 
 function execute(conn, cmd) {
@@ -42,7 +44,7 @@ async function rebuildServer(i) {
             
             try {
                 process.stdout.write(`[N${i}] Creating remote directories if missing... `);
-                await execute(conn, `mkdir -p "${basePath}/src/scripts" && mkdir -p "${basePath}/src/app/api/settings/generate-keys" && mkdir -p "${basePath}/src/app/api/zatca/qr"`);
+                await execute(conn, `mkdir -p "${basePath}/src/lib" && mkdir -p "${basePath}/src/app/api/settings/generate-keys" && mkdir -p "${basePath}/src/app/api/settings/zatca-onboard" && mkdir -p "${basePath}/src/app/api/zatca/qr" && mkdir -p "${basePath}/src/app/onboarding/zatca"`);
                 console.log(`[Dir OK]`);
             } catch (e) {
                 console.warn(`[N${i}] Mkdir warning:`, e);
@@ -66,7 +68,7 @@ async function rebuildServer(i) {
                     }
                     console.log(`[N${i}] Files Synced. Generating ECDSA Crypto Environment...`);
                     
-                    const cmd = `cd ${basePath} && npm install zatca-xml-js qrcode --legacy-peer-deps && npm run build && pm2 restart n${i} || true`;
+                    const cmd = `cd ${basePath} && npm install next-auth zatca-xml-js qrcode --legacy-peer-deps && npm run build && pm2 restart n${i} || true`;
                     await execute(conn, cmd);
                     
                     console.log(`[N${i}] DONE! ZATCA Phase 2 Compliance Logic Online on N${i}.`);

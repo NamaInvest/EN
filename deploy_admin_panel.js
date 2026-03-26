@@ -15,7 +15,9 @@ const filesToUpload = [
     'src/app/api/admin/nodes/route.ts',
     'src/app/api/admin/nodes/sync/route.ts',
     'src/components/Providers.tsx',
-    'src/app/layout.tsx'
+    'src/app/layout.tsx',
+    'src/app/api/settings/zatca-onboard/route.ts',
+    'src/lib/i18n.tsx'
 ];
 
 conn.on('ready', () => {

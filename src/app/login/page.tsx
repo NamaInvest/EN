@@ -1,17 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [companyName, setCompanyName] = useState('نما انفست');
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '/auth/routing';
 
     useEffect(() => {
         fetch('/api/settings').then(r => r.ok ? r.json() : []).then(data => {
@@ -175,7 +178,7 @@ export default function LoginPage() {
                     <button
                         type="button"
                         onClick={() => {
-                            signIn('google', { callbackUrl: '/auth/routing' })
+                            signIn('google', { callbackUrl: callbackUrl })
                         }}
                         style={{
                             width: '100%',
@@ -216,5 +219,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#02040a] text-white flex items-center justify-center font-bold text-xl">جاري تهيئة بيئة الدخول...</div>}>
+            <LoginForm />
+        </Suspense>
     );
 }

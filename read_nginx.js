@@ -1,16 +1,8 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    const cmd = `
-        echo "=== NGINX CONF ==="
-        cat /www/server/panel/vhost/nginx/namainvist.com.conf
-        echo "\n=== NGINX ERROR LOG ==="
-        tail -n 15 /www/wwwlogs/namainvist.com.error.log 2>/dev/null
-    `;
-    conn.exec(cmd, (err, stream) => {
-        if (err) throw err;
-        stream.on('close', () => conn.end())
-              .on('data', data => console.log(data.toString()))
-              .stderr.on('data', data => console.error(data.toString()));
+    conn.exec('cat /www/server/panel/vhost/nginx/namainvist.com.conf', (err, stream) => {
+        stream.on('data', d => process.stdout.write(d));
+        stream.on('close', () => conn.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 15000 });

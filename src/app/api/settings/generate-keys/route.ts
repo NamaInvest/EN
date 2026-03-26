@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ZatcaJavaAdapter } from '@/lib/zatca-java';
+import * as crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
     try {
@@ -31,28 +31,60 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'الرقم الضريبي غير صالح. يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3' }, { status: 400 });
         }
 
-        // Generate Keys using ZATCA Official Java SDK!
-        const adapter = new ZatcaJavaAdapter();
-        const { csr, privateKey } = await adapter.generateCsr({
-            companyName,
-            taxNumber,
-            branchName: 'HeadOffice',
-            businessCategory: industry,
-            uuid: '1122334455',
-            city,
-            district,
-            street
-        });
-
-        // The adapter returns base64 content
-        const csrFull = Buffer.from(csr, 'base64').toString('ascii'); // Decode or store base64 directly? 
-        // Wait, ZATCA SDK returns the ACTUAL PEM CONTENT inside the `cert.pem` file which I stripped headers from in ZatcaJavaAdapter to return `csrBase64`.
-        // Let's store the pure base64 for private_key and csr_base64.
-        const csrBase64 = csr;
-        const privateKeyClean = privateKey;
+        // Generate Keys using built-in system OpenSSL (No Java Required!)
+        const tmpDir = '/tmp/zatca_' + Date.now();
+        execSync(`mkdir -p ${tmpDir}`);
         
-        // ZATCA Certificate field expects PEM formatted CSR historically
-        const csrPem = `-----BEGIN CERTIFICATE REQUEST-----\n${csrBase64}\n-----END CERTIFICATE REQUEST-----`;
+        let privateKeyClean = '';
+        let csrBase64 = '';
+        let csrPem = '';
+
+        try {
+            // 1. Generate secp256k1 Private Key
+            execSync(`openssl ecparam -name secp256k1 -genkey -noout -out ${tmpDir}/private.key`);
+            privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
+
+            // 2. OpenSSL Configuration mapping to ZATCA OIDs
+            const uuid = '1122334455';
+            const cnName = `TST-${crn}-${taxNumber}`;
+            const serialNumber = `1-${companyName}|2-HeadOffice|3-${uuid}`;
+
+            const opensslConf = `[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = v3_req
+distinguished_name = dn
+
+[dn]
+CN = ${cnName}
+C = SA
+O = ${companyName}
+OU = HeadOffice
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, nonRepudiation
+1.3.6.1.4.1.311.20.2 = ASN1:UTF8String:ZATCA-Code-Signing
+subjectAltName = dirName:alt_names
+
+[alt_names]
+SN = ${serialNumber}
+UID = ${taxNumber}
+title = 1100
+registeredAddress = RRRD2929
+businessCategory = ${industry}
+`;
+            fs.writeFileSync(`${tmpDir}/zatca.cnf`, opensslConf);
+
+            // 3. Generate CSR
+            execSync(`openssl req -new -key ${tmpDir}/private.key -out ${tmpDir}/csr.pem -config ${tmpDir}/zatca.cnf -extensions v3_req`);
+            csrPem = fs.readFileSync(`${tmpDir}/csr.pem`, 'utf-8');
+            csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\\r\\n\\s]/g, '');
+
+        } finally {
+            try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
+        }
 
         // Upsert into DB
         const updateTasks = [
