@@ -17,16 +17,18 @@ export async function POST(req: NextRequest) {
 
         // 1. COMPLIANCE CSID
         if (action === 'compliance-csid') {
-            const { otp } = body;
+            const otpClean = (body.otp || '').replace(/\s/g, '');
             const settingCsr = await prisma.setting.findFirst({ where: { key: 'zatca_csr_base64' } });
             if (!settingCsr) return NextResponse.json({ error: 'لم يتم توليد CSR مسبقاً.' }, { status: 400 });
 
-            console.log('Requesting Compliance CSID with OTP:', otp);
+            console.log('Requesting Compliance CSID with OTP:', otpClean);
             const response = await fetch(`${ZATCA_API_URL}/compliance`, {
                 method: 'POST',
                 headers: {
+                    'Accept': 'application/json',
                     'Accept-Version': 'V2',
-                    'OTP': otp,
+                    'Accept-Language': 'en',
+                    'OTP': otpClean,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ csr: settingCsr.value })
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
 
             if (!response.ok) {
                 const text = await response.text();
-                return NextResponse.json({ error: 'ZATCA Compliance API Failed', details: text }, { status: response.status });
+                return NextResponse.json({ error: `تم الرفض من زكاة: ${text}`, details: text }, { status: 400 });
             }
 
             const data = await response.json();
@@ -215,5 +217,32 @@ export async function POST(req: NextRequest) {
     } catch (e: any) {
         console.error('ZATCA API Gateway Error:', e);
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
+    }
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const type = searchParams.get('type');
+
+        if (type === 'status') {
+            const settingsSet = await prisma.setting.findMany();
+            const s: Record<string, string> = {};
+            settingsSet.forEach((item: any) => s[item.key] = item.value);
+
+            if (s['zatca_production_token']) {
+                return NextResponse.json({ status: 'connected', has_production_csid: true });
+            } else if (s['zatca_compliance_token'] && s['zatca_compliance_request_id']) {
+                return NextResponse.json({ status: 'compliance_csid' });
+            } else if (s['zatca_private_key'] && s['zatca_certificate']) {
+                return NextResponse.json({ status: 'keys_generated' });
+            }
+
+            return NextResponse.json({ status: 'disconnected' });
+        }
+
+        return NextResponse.json({ error: 'Invalid type requesting ZATCA GET API' }, { status: 400 });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

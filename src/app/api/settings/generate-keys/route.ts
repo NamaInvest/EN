@@ -97,7 +97,7 @@ businessCategory = ${industry}
             fs.writeFileSync(`${tmpDir}/zatca.cnf`, opensslConf);
             execSync(`openssl req -new -key ${tmpDir}/private.key -out ${tmpDir}/csr.pem -config ${tmpDir}/zatca.cnf -extensions v3_req`);
             csrPem = fs.readFileSync(`${tmpDir}/csr.pem`, 'utf-8');
-            csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\\r\\n\\s]/g, '');
+            csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\r\n\s]/g, '');
         } finally {
             try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
         }

@@ -1,0 +1,25 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = v3_req
+distinguished_name = dn
+
+[dn]
+CN = TST-1010010000-300000000000003
+C = SA
+O = NamaMedical
+OU = HeadOffice
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, nonRepudiation
+1.3.6.1.4.1.311.20.2 = ASN1:UTF8String:ZATCA-Code-Signing
+subjectAltName = dirName:alt_names
+
+[alt_names]
+SN = 1-NamaMedical|2-HeadOffice|3-ed011041-22c3-443c-ac49-a16b0b5ff776
+UID = 300000000000003
+title = 1100
+registeredAddress = RRRD2929
+businessCategory = Medical
