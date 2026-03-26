@@ -17,7 +17,10 @@ const filesToUpload = [
     'src/components/Providers.tsx',
     'src/app/layout.tsx',
     'src/app/api/settings/zatca-onboard/route.ts',
-    'src/lib/i18n.tsx'
+    'src/lib/i18n.tsx',
+    'src/app/api/settings/generate-keys/route.ts',
+    'src/app/api/zatca/route.ts',
+    'src/app/api/zatca/qr/route.ts'
 ];
 
 conn.on('ready', () => {
@@ -33,7 +36,7 @@ conn.on('ready', () => {
                 console.log('✅ ALL SFTP UPLOADS COMPLETE! TRIGGERING BUILD...');
                 const bashScript = `
 cd /www/wwwroot/namainvist.com
-npm install next-auth
+npm install next-auth zatca-xml-js qrcode --legacy-peer-deps
 npm run build
 pm2 restart nama-main
                 `;

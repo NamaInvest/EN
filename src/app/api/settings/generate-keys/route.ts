@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
     try {
@@ -31,23 +30,43 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'الرقم الضريبي غير صالح. يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3' }, { status: 400 });
         }
 
-        // Generate Keys using built-in system OpenSSL (No Java Required!)
+        // ====================================================================
+        //  Arabic to English Transliteration (for CSR)
+        // ====================================================================
+        const arToEnMap: Record<string, string> = { 'ا': 'a', 'أ': 'a', 'إ': 'e', 'آ': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'th', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'h', 'ء': '', 'ئ': 'e', 'ؤ': 'w', 'لا': 'la', ' ': ' ', 'ـ': '' };
+        const arabicToEnglish = (text: string) => {
+            if (!text) return '';
+            const engPart = text.replace(/[^\x00-\x7F]/g, '').trim();
+            if (engPart.length > 3) return engPart;
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (/[\x00-\x7F]/.test(ch)) { result += ch; }
+                else if (arToEnMap[ch]) { result += arToEnMap[ch]; }
+            }
+            return result.replace(/\s+/g, ' ').trim().replace(/\b\w/g, l => l.toUpperCase()) || 'NamaMedical';
+        };
+
+        // ====================================================================
+        //  Generate ZATCA-compliant CSR using OpenSSL EXACTLY as Guide
+        // ====================================================================
         const tmpDir = '/tmp/zatca_' + Date.now();
-        execSync(`mkdir -p ${tmpDir}`);
-        
-        let privateKeyClean = '';
         let csrBase64 = '';
+        let privateKeyClean = '';
         let csrPem = '';
 
         try {
-            // 1. Generate secp256k1 Private Key
+            execSync(`mkdir -p ${tmpDir}`);
             execSync(`openssl ecparam -name secp256k1 -genkey -noout -out ${tmpDir}/private.key`);
             privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
 
-            // 2. OpenSSL Configuration mapping to ZATCA OIDs
-            const uuid = '1122334455';
+            const uuid = typeof crypto !== 'undefined' ? crypto.randomUUID() : '11223344-5566-7788-9900-aabbccddeeff';
+            const orgName = arabicToEnglish(companyName);
+            const cityEn = arabicToEnglish(city);
+            const branchName = 'HeadOffice';
+            
             const cnName = `TST-${crn}-${taxNumber}`;
-            const serialNumber = `1-${companyName}|2-HeadOffice|3-${uuid}`;
+            const serialNumber = `1-${orgName}|2-${branchName}|3-${uuid}`;
 
             const opensslConf = `[req]
 default_bits = 2048
@@ -59,8 +78,8 @@ distinguished_name = dn
 [dn]
 CN = ${cnName}
 C = SA
-O = ${companyName}
-OU = HeadOffice
+O = ${orgName}
+OU = ${branchName}
 
 [v3_req]
 basicConstraints = CA:FALSE
@@ -76,12 +95,9 @@ registeredAddress = RRRD2929
 businessCategory = ${industry}
 `;
             fs.writeFileSync(`${tmpDir}/zatca.cnf`, opensslConf);
-
-            // 3. Generate CSR
             execSync(`openssl req -new -key ${tmpDir}/private.key -out ${tmpDir}/csr.pem -config ${tmpDir}/zatca.cnf -extensions v3_req`);
             csrPem = fs.readFileSync(`${tmpDir}/csr.pem`, 'utf-8');
             csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\\r\\n\\s]/g, '');
-
         } finally {
             try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
         }
@@ -101,7 +117,7 @@ businessCategory = ${industry}
         });
 
     } catch (e: any) {
-        console.error('ZATCA Generate Keys Error:', e);
-        return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
+        console.error('CSR Generation Error:', e.stderr ? e.stderr.toString() : e.message);
+        return NextResponse.json({ error: e.stderr ? `خطأ OpenSSL: ${e.stderr.toString()}` : (e.message || 'Server error') }, { status: 500 });
     }
 }

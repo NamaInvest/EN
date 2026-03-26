@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
-import { ZatcaJavaAdapter } from '@/lib/zatca-java';
-
+import { generateSignedXMLString } from 'zatca-xml-js/lib/zatca/signing';
 const ZATCA_API_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
 
 export async function POST(req: NextRequest) {
@@ -108,8 +107,6 @@ export async function POST(req: NextRequest) {
             }
 
             const basicAuth = Buffer.from(`${tokenSet.value}:${secretSet.value}`).toString('base64');
-            const adapter = new ZatcaJavaAdapter();
-            
             const sMap: Record<string, string> = {};
             settings.forEach((s: any) => sMap[s.key] = s.value);
             
@@ -163,14 +160,23 @@ export async function POST(req: NextRequest) {
             const crnXml = generateZATCAXml(crnInvoice);
             const drnXml = generateZATCAXml(drnInvoice);
 
-            // ZATCA Certificate Token needs decoding for the SDK PEM writer
-            const certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('ascii');
+            const certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('utf8');
             const pkParsed = (pkSet?.value as string) || '';
+            const certPem = '-----BEGIN CERTIFICATE-----\n' + certParsed + '\n-----END CERTIFICATE-----';
 
-            // Sign XML using Official Java CLI Pipeline
-            const stdSigned = await adapter.signInvoice(stdXml, certParsed, pkParsed);
-            const crnSigned = await adapter.signInvoice(crnXml, certParsed, pkParsed);
-            const drnSigned = await adapter.signInvoice(drnXml, certParsed, pkParsed);
+            const signNode = (xml: string) => {
+                const res = generateSignedXMLString({
+                    invoice_xml: xml as any,
+                    certificate_string: certPem,
+                    private_key_string: pkParsed
+                } as any);
+                return { signedXml: (res as any).signed_invoice_string, hash: (res as any).invoice_hash };
+            };
+
+            // Sign XML using Native JS Library
+            const stdSigned = signNode(stdXml);
+            const crnSigned = signNode(crnXml);
+            const drnSigned = signNode(drnXml);
 
             // Post to ZATCA (Base64 Encoded Signed XML)
             const postToZatca = async (signedXml: string, hash: string) => {

@@ -48,7 +48,10 @@ export default function ZatcaOnboardingWizard() {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
-      if(!resKeys.ok) throw new Error("مفاتيح التشفير رُفضت بسبب البيانات المدخلة");
+      if(!resKeys.ok) {
+        const keyErr = await resKeys.json();
+        throw new Error(keyErr.error || "مفاتيح التشفير رُفضت بسبب البيانات المدخلة");
+      }
 
       // 3. Request Compliance CSID using OTP
       setStatusMsg("جاري استخراج شهادة المطابقة CSID من بوابة الفاتورة...");
