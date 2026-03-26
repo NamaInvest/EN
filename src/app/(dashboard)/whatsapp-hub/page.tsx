@@ -132,11 +132,67 @@ export default function WhatsAppHubPage() {
                         </div>
                     </>
                 ) : (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
-                            <h2>اختر محادثة لعرض التفاصيل</h2>
-                            <p>يتم إدارة هذه المحادثات تلقائياً بواسطة المبيعات الذكية.</p>
+                    <div style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
+                        <div style={{ maxWidth: '600px', margin: '0 auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📢</div>
+                                <div>
+                                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: 'var(--text-main)' }}>منصة بث التسويق (CRM)</h2>
+                                    <p style={{ margin: '4px 0 0', color: 'var(--text-muted)' }}>إرسال عروض ترويجية ورسائل جماعية لجميع العملاء.</p>
+                                </div>
+                            </div>
+                            
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text-secondary)' }}>محتوى الحملة التسويقية:</label>
+                                <textarea 
+                                    id="broadcastMessage"
+                                    placeholder="اكتب رسالتك التسويقية هنا... (مثال: خصم 20% بمناسبة نهاية العام!)"
+                                    style={{ width: '100%', minHeight: '150px', padding: '16px', borderRadius: '12px', border: '2px solid var(--border)', fontSize: '15px', resize: 'vertical', fontFamily: 'inherit' }}
+                                />
+                            </div>
+                            
+                            <div style={{ background: 'var(--bg-app)', padding: '16px', borderRadius: '12px', marginBottom: '24px', fontSize: '13px', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
+                                <span>ℹ️</span>
+                                <div>سيقوم النظام الذكي بسحب أرقام الهواتف النشطة من قاعدة البيانات وتوجيه الرسائل عبر (Meta Cloud API) لتجنب حظر الرقم. سيتم إضافة اسم العميل تلقائياً في بداية الرسالة.</div>
+                            </div>
+
+                            <button 
+                                onClick={async (e) => {
+                                    const btn = e.currentTarget;
+                                    const msg = (document.getElementById('broadcastMessage') as HTMLTextAreaElement).value;
+                                    if(!msg) return alert('يرجى كتابة محتوى الرسالة أولاً!');
+                                    
+                                    btn.innerText = '⏳ جاري إرسال الحملة...';
+                                    btn.style.opacity = '0.7';
+                                    btn.disabled = true;
+
+                                    try {
+                                        const res = await fetch('/api/crm/whatsapp/broadcast', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ message: msg })
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            alert(`✅ اكتملت الحملة!\nتم الإرسال بنجاح إلى: ${data.stats.success} عميل\nفشل الإرسال إلى: ${data.stats.failed} عميل`);
+                                            (document.getElementById('broadcastMessage') as HTMLTextAreaElement).value = '';
+                                        } else {
+                                            alert('❌ خطأ: ' + (data.error || 'فشل الاتصال'));
+                                        }
+                                    } catch (err) {
+                                        alert('حدث خطأ غير متوقع');
+                                    } finally {
+                                        btn.innerText = '🚀 إطلاق الحملة التسويقية';
+                                        btn.style.opacity = '1';
+                                        btn.disabled = false;
+                                    }
+                                }}
+                                style={{ width: '100%', padding: '16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', transition: 'transform 0.1s' }}
+                                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                🚀 إطلاق الحملة التسويقية
+                            </button>
                         </div>
                     </div>
                 )}
