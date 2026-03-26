@@ -10,7 +10,7 @@ for i in {2..10}; do
     echo "Processing N$i..." >> /www/wwwroot/sync_all_log.txt
     
     # Force copy the entire src directory from N1 to replica
-    rsync -av /www/wwwroot/namainvist.com/src/ /www/wwwroot/n$i.namainvist.com/src/
+    rsync -av /www/wwwroot/n1.namainvist.com/src/ /www/wwwroot/n$i.namainvist.com/src/
     
     # Rebuild and Restart
     cd /www/wwwroot/n$i.namainvist.com

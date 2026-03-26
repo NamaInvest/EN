@@ -57,45 +57,37 @@ export async function POST(req: NextRequest) {
 
         try {
             execSync(`mkdir -p ${tmpDir}`);
-            execSync(`openssl ecparam -name secp256k1 -genkey -noout -out ${tmpDir}/private.key`);
-            privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
-
             const uuid = typeof crypto !== 'undefined' ? crypto.randomUUID() : '11223344-5566-7788-9900-aabbccddeeff';
             const orgName = arabicToEnglish(companyName);
-            const cityEn = arabicToEnglish(city);
-            const branchName = 'HeadOffice';
+            const cityEn = settingsDict.zatca_city_en || arabicToEnglish(city) || 'Riyadh';
+            const branchName = settingsDict.branch_name_en || 'HeadOffice';
             
             const cnName = `TST-${crn}-${taxNumber}`;
             const serialNumber = `1-${orgName}|2-${branchName}|3-${uuid}`;
+            const locationAddress = settingsDict.zatca_street || settingsDict.company_address || 'RRRD2929';
+            const industryCategory = settingsDict.zatca_industry || industry || 'Medical';
 
-            const opensslConf = `[req]
-default_bits = 2048
-prompt = no
-default_md = sha256
-req_extensions = v3_req
-distinguished_name = dn
+            const csrConfig = `csr.common.name=${cnName}
+csr.serial.number=${serialNumber}
+csr.organization.identifier=${taxNumber}
+csr.organization.unit.name=${branchName}
+csr.organization.name=${orgName}
+csr.country.name=SA
+csr.invoice.type=1100
+csr.location.address=${locationAddress}
+csr.industry.business.category=${industryCategory}`;
 
-[dn]
-CN = ${cnName}
-C = SA
-O = ${orgName}
-OU = ${branchName}
+            fs.writeFileSync(`${tmpDir}/csr-config.properties`, csrConfig);
+            
+            // Execute Official ZATCA Java SDK
+            try {
+                execSync(`fatoora -csr -csrConfig ${tmpDir}/csr-config.properties -privateKey ${tmpDir}/private.key -generatedCsr ${tmpDir}/csr.pem -pem`);
+            } catch (fatooraErr: any) {
+                console.error("Fatoora execution failed:", fatooraErr?.output?.toString() || fatooraErr.message);
+                throw new Error("فشل تشغيل أداة fatoora. تأكد من توفرها في PATH بصلاحيات التنفيذ.");
+            }
 
-[v3_req]
-basicConstraints = CA:FALSE
-keyUsage = digitalSignature, nonRepudiation
-1.3.6.1.4.1.311.20.2 = ASN1:UTF8String:ZATCA-Code-Signing
-subjectAltName = dirName:alt_names
-
-[alt_names]
-SN = ${serialNumber}
-UID = ${taxNumber}
-title = 1100
-registeredAddress = RRRD2929
-businessCategory = ${industry}
-`;
-            fs.writeFileSync(`${tmpDir}/zatca.cnf`, opensslConf);
-            execSync(`openssl req -new -key ${tmpDir}/private.key -out ${tmpDir}/csr.pem -config ${tmpDir}/zatca.cnf -extensions v3_req`);
+            privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
             csrPem = fs.readFileSync(`${tmpDir}/csr.pem`, 'utf-8');
             csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\r\n\s]/g, '');
         } finally {
