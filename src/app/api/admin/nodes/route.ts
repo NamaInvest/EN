@@ -21,7 +21,8 @@ export async function GET() {
 
     const enrichedNodes = tenants.map((tenant) => {
         // Find matching PM2 process (e.g., 'nama_n12')
-        const proc = pm2Data.find((p: any) => p.name === `nama_${tenant.subdomain}`);
+        // Backwards compatibility with Hetzner legacy processes
+        const proc = pm2Data.find((p: any) => p.name === `nama_${tenant.subdomain}` || p.name === tenant.subdomain);
         
         return {
             id: tenant.id,
@@ -29,11 +30,13 @@ export async function GET() {
             email: tenant.userEmail,
             orgName: tenant.orgName,
             status: tenant.status,
+            paymentStatus: tenant.paymentStatus,
+            subscriptionDuration: tenant.subscriptionDuration,
             createdAt: tenant.createdAt,
-            pm2Status: proc ? proc.pm2_env.status : "offline",
+            pm2Status: proc ? (proc.pm2_env.status || "offline") : "offline",
             memoryMb: proc ? Math.round(proc.monit.memory / 1024 / 1024) : 0,
             cpuPercent: proc ? proc.monit.cpu : 0,
-            uptimeSec: proc ? Math.round((Date.now() - proc.pm2_env.pm_uptime) / 1000) : 0,
+            uptimeSec: proc && proc.pm2_env.pm_uptime ? Math.round((Date.now() - proc.pm2_env.pm_uptime) / 1000) : 0,
         };
     });
 
@@ -53,7 +56,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid Action" }, { status: 400 });
         }
 
-        const processName = `nama_${subdomain}`;
+        const { stdout: jlist } = await execAsync("pm2 jlist");
+        const pm2List = JSON.parse(jlist);
+        
+        // Find which format it is using
+        const legacyName = subdomain;
+        const modernName = `nama_${subdomain}`;
+        
+        let processName = modernName;
+        if (pm2List.some((p: any) => p.name === legacyName)) {
+            processName = legacyName;
+        }
         
         // Execute the physical PM2 command on the server
         console.log(`[ADMIN_RPC] Executing: pm2 ${action} ${processName}`);

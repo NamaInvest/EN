@@ -13,6 +13,8 @@ type NodeData = {
     memoryMb: number;
     cpuPercent: number;
     uptimeSec: number;
+    paymentStatus: string;
+    subscriptionDuration: string;
 };
 
 export default function SaaSAdminDashboard() {
@@ -139,6 +141,42 @@ export default function SaaSAdminDashboard() {
         }
     }, [isAuthenticated, loading, nodes.length, actionLoading]);
 
+    const updateBilling = async (subdomain: string, field: string, value: string) => {
+        try {
+            await fetch("/api/admin/nodes/billing", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subdomain, [field]: value })
+            });
+            await fetchNodes();
+        } catch(e) {
+            alert("فشل تحديث بيانات الدفع. الرجاء المحاولة مجدداً.");
+        }
+    };
+
+    const triggerBackup = async (subdomain: string) => {
+        if (!window.confirm(`تنبيه: سيتم ضغط وتصوير ملفات وقواعد بيانات ${subdomain} بالكامل وحفظها في سيرفر Hetzner الرئيسي. هل ترغب في المتابعة؟`)) return;
+        
+        setActionLoading(`${subdomain}-backup`);
+        try {
+            const res = await fetch("/api/admin/nodes/backup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subdomain })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ تم أخذ النسخة الاحتياطية بنجاح:\n${data.message}`);
+            } else {
+                alert("❌ خطأ: " + data.error);
+            }
+        } catch (e) {
+            alert("حدث خطأ غير متوقع أثناء تكوين النسخة الاحتياطية.");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     return (
         <div className="app-layout" dir="rtl">
             <div className="main-content" style={{ maxWidth: '100%', margin: 0 }}>
@@ -239,11 +277,51 @@ export default function SaaSAdminDashboard() {
                                         </div>
                                         <div>
                                             <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>UPTIME</div>
-                                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{formatUptime(node.uptimeSec)}</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '14px', direction: 'ltr' }}>{formatUptime(node.uptimeSec)}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Billing Control */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>حالة السداد</label>
+                                            <select 
+                                                className="input" 
+                                                style={{ padding: '6px 10px', fontSize: '13px', background: node.paymentStatus === 'paid' ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-card)', borderColor: node.paymentStatus === 'paid' ? 'var(--success)' : 'var(--border)' }}
+                                                value={node.paymentStatus || "pending"}
+                                                onChange={(e) => updateBilling(node.subdomain, "paymentStatus", e.target.value)}
+                                            >
+                                                <option value="pending">⏳ بانتظار السداد</option>
+                                                <option value="paid">✅ تم السداد</option>
+                                                <option value="cancelled">🚫 ملغى</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>مدة الاشتراك</label>
+                                            <select 
+                                                className="input" 
+                                                style={{ padding: '6px 10px', fontSize: '13px' }}
+                                                value={node.subscriptionDuration || "1_year"}
+                                                onChange={(e) => updateBilling(node.subdomain, "subscriptionDuration", e.target.value)}
+                                            >
+                                                <option value="1_year">سنة كاملة</option>
+                                                <option value="6_months">6 أشهر</option>
+                                                <option value="3_months">3 أشهر</option>
+                                                <option value="1_month">شهر واحد</option>
+                                            </select>
                                         </div>
                                     </div>
 
+                                    {/* Actions */}
                                     <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button 
+                                            onClick={() => triggerBackup(node.subdomain)}
+                                            disabled={actionLoading !== null}
+                                            className="btn btn-primary" style={{ flex: 1, padding: '8px', background: 'var(--gradient-purple)' }}
+                                            title="أخذ نسخة احتياطية"
+                                        >
+                                            <Database className="w-4 h-4" />
+                                        </button>
                                         <button 
                                             onClick={() => performAction(node.subdomain, "start")}
                                             disabled={node.pm2Status === "online" || actionLoading !== null}
@@ -256,7 +334,7 @@ export default function SaaSAdminDashboard() {
                                             disabled={node.pm2Status !== "online" || actionLoading !== null}
                                             className="btn btn-warning" style={{ flex: 1, padding: '8px' }}
                                         >
-                                            <RotateCw className="w-4 h-4" /> ريستارت
+                                            <RotateCw className="w-4 h-4" />
                                         </button>
                                         <button 
                                             onClick={() => performAction(node.subdomain, "stop")}
