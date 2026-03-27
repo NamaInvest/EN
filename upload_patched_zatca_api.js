@@ -2,11 +2,11 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-    console.log('Connected! Uploading diagnostic zatca/test/route.ts to N2...');
+    console.log('Connected! Uploading patched ZATCA API Route to N2...');
     conn.sftp((err, sftp) => {
         if (err) throw err;
-        const lPath = 'd:/namasoft9-3-main/src/app/api/zatca/test/route.ts';
-        const rPath = '/www/wwwroot/n2.namainvist.com/src/app/api/zatca/test/route.ts';
+        const lPath = 'd:/namasoft9-3-main/src/app/api/zatca/route.ts';
+        const rPath = '/www/wwwroot/n2.namainvist.com/src/app/api/zatca/route.ts';
         
         sftp.fastPut(lPath, rPath, (err) => {
             if (err) throw err;

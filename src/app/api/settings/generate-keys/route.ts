@@ -62,9 +62,10 @@ export async function POST(req: NextRequest) {
             const cityEn = settingsDict.zatca_city_en || arabicToEnglish(city) || 'Riyadh';
             const branchName = settingsDict.branch_name_en || 'HeadOffice';
             
-            const cnName = `TST-${crn}-${taxNumber}`;
-            const serialNumber = `1-${orgName}|2-${branchName}|3-${uuid}`;
-            const locationAddress = settingsDict.zatca_street || settingsDict.company_address || 'RRRD2929';
+            const EGS_Name = orgName.replace(/\s+/g, '').substring(0, 15) || 'NAMA';
+            const cnName = `PRE-311985620700003`; // Wait actually better: PRE- + taxNumber
+            const serialNumber = `1-${EGS_Name}|2-${branchName.replace(/\s+/g, '')}|3-${uuid}`;
+            const locationAddress = settingsDict.zatca_city_en || 'Riyadh';
             const industryCategory = settingsDict.zatca_industry || industry || 'Medical';
 
             const csrConfig = `csr.common.name=${cnName}

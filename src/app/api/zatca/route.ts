@@ -3,7 +3,8 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
 import { generateSignedXMLString } from 'zatca-xml-js/lib/zatca/signing';
-const ZATCA_API_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
+const ZATCA_SIMULATION_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation';
+const ZATCA_CORE_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core';
 
 export async function POST(req: NextRequest) {
     try {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
             if (!settingCsr) return NextResponse.json({ error: 'لم يتم توليد CSR مسبقاً.' }, { status: 400 });
 
             console.log('Requesting Compliance CSID with OTP:', otpClean);
-            const response = await fetch(`${ZATCA_API_URL}/compliance`, {
+            const response = await fetch(`${ZATCA_SIMULATION_URL}/compliance`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
                     'OTP': otpClean,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ csr: settingCsr.value })
+                body: JSON.stringify({ csr: settingCsr.value.replace(/[\r\n\s]/g, '') })
             });
 
             if (!response.ok) {
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
             const basicAuth = Buffer.from(`${tokenSet.value}:${secretSet.value}`).toString('base64');
 
             console.log('Requesting Production CSID...');
-            const response = await fetch(`${ZATCA_API_URL}/production/csids`, {
+            const response = await fetch(`${ZATCA_CORE_URL}/production/csids`, {
                 method: 'POST',
                 headers: {
                     'Accept-Version': 'V2',
@@ -183,7 +184,7 @@ export async function POST(req: NextRequest) {
             // Post to ZATCA (Base64 Encoded Signed XML)
             const postToZatca = async (signedXml: string, hash: string) => {
                 const b64xml = Buffer.from(signedXml).toString('base64');
-                return fetch(`${ZATCA_API_URL}/compliance/invoices`, {
+                return fetch(`${ZATCA_SIMULATION_URL}/compliance/invoices`, {
                     method: 'POST',
                     headers: {
                         'Accept-Version': 'V2',
