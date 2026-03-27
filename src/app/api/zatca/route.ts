@@ -20,10 +20,20 @@ export async function POST(req: NextRequest) {
         if (action === 'compliance-csid') {
             const otpClean = (body.otp || '').replace(/\s/g, '');
             const settingCsr = await prisma.setting.findFirst({ where: { key: 'zatca_csr_base64' } });
+            const settingEnv = await prisma.setting.findFirst({ where: { key: 'zatca_environment' } });
+            
             if (!settingCsr) return NextResponse.json({ error: 'لم يتم توليد CSR مسبقاً.' }, { status: 400 });
 
-            console.log('Requesting Compliance CSID with OTP:', otpClean);
-            const response = await fetch(`${ZATCA_SIMULATION_URL}/compliance`, {
+            // Dynamically resolve target URL
+            let targetUrl = `${ZATCA_SIMULATION_URL}/compliance`;
+            if (settingEnv?.value === 'production') {
+                targetUrl = `${ZATCA_CORE_URL}/compliance`;
+            } else if (settingEnv?.value === 'sandbox') {
+                targetUrl = `https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/compliance`;
+            }
+
+            console.log(`Requesting Compliance CSID with OTP: ${otpClean} to TRUTH URL: ${targetUrl}`);
+            const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -62,16 +72,21 @@ export async function POST(req: NextRequest) {
             const requestIdSet = await prisma.setting.findFirst({ where: { key: 'zatca_compliance_request_id' } });
             const tokenSet = await prisma.setting.findFirst({ where: { key: 'zatca_compliance_token' } });
             const secretSet = await prisma.setting.findFirst({ where: { key: 'zatca_compliance_secret' } });
+            const settingEnv = await prisma.setting.findFirst({ where: { key: 'zatca_environment' } });
             
             if (!requestIdSet || !tokenSet || !secretSet) {
                 return NextResponse.json({ error: 'معلومات الـ Compliance غير مكتملة، يرجى استخراجها أولاً' }, { status: 400 });
             }
 
-            // The credentials for Production CSID endpoint are the Compliance Token + Compliance Secret using Basic Auth
+            // Dynamically resolve target URL
+            let targetUrl = `${ZATCA_SIMULATION_URL}/production/csids`;
+            if (settingEnv?.value === 'production') targetUrl = `${ZATCA_CORE_URL}/production/csids`;
+            else if (settingEnv?.value === 'sandbox') targetUrl = `https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/production/csids`;
+
             const basicAuth = Buffer.from(`${tokenSet.value}:${secretSet.value}`).toString('base64');
 
-            console.log('Requesting Production CSID...');
-            const response = await fetch(`${ZATCA_CORE_URL}/production/csids`, {
+            console.log('Requesting Production CSID to:', targetUrl);
+            const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers: {
                     'Accept-Version': 'V2',
@@ -168,8 +183,10 @@ export async function POST(req: NextRequest) {
             const certPem = '-----BEGIN CERTIFICATE-----\n' + certParsed + '\n-----END CERTIFICATE-----';
 
             const signNode = (xml: string) => {
+                const { XMLDocument } = require('zatca-xml-js/lib/parser');
+                const xmlDoc = new XMLDocument(xml);
                 const res = generateSignedXMLString({
-                    invoice_xml: xml as any,
+                    invoice_xml: xmlDoc as any,
                     certificate_string: certPem,
                     private_key_string: pkParsed
                 } as any);
@@ -184,7 +201,13 @@ export async function POST(req: NextRequest) {
             // Post to ZATCA (Base64 Encoded Signed XML)
             const postToZatca = async (signedXml: string, hash: string) => {
                 const b64xml = Buffer.from(signedXml).toString('base64');
-                return fetch(`${ZATCA_SIMULATION_URL}/compliance/invoices`, {
+                
+                const settingEnv = sMap['zatca_environment'];
+                let targetUrl = `${ZATCA_SIMULATION_URL}/compliance/invoices`;
+                if (settingEnv === 'production') targetUrl = `${ZATCA_CORE_URL}/compliance/invoices`;
+                else if (settingEnv === 'sandbox') targetUrl = `https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/compliance/invoices`;
+
+                return fetch(targetUrl, {
                     method: 'POST',
                     headers: {
                         'Accept-Version': 'V2',
@@ -197,7 +220,10 @@ export async function POST(req: NextRequest) {
                         uuid: '123e4567-e89b-12d3-a456-426614174000',
                         invoice: b64xml
                     })
-                }).then(r => r.json());
+                }).then(async r => {
+                    const text = await r.text();
+                    try { return JSON.parse(text); } catch { return { error_code: r.status, text }; }
+                });
             };
 
             const [stdRes, crnRes, drnRes] = await Promise.all([

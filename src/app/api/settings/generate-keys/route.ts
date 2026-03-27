@@ -80,17 +80,26 @@ csr.industry.business.category=${industryCategory}`;
 
             fs.writeFileSync(`${tmpDir}/csr-config.properties`, csrConfig);
             
-            // Execute Official ZATCA Java SDK
+            // Native secure ECDSA key generation
+            const cryptoInstance = require('crypto');
+            const { privateKey } = cryptoInstance.generateKeyPairSync('ec', {
+                namedCurve: 'secp256k1',
+                publicKeyEncoding:  { type: 'spki', format: 'pem' },
+                privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+            });
+            fs.writeFileSync(`${tmpDir}/private.key`, privateKey);
+            
+            // Execute Official ZATCA Java SDK without -pem to generate pure base64 (Solves Invalid-CSR!)
             try {
-                execSync(`fatoora -csr -csrConfig ${tmpDir}/csr-config.properties -privateKey ${tmpDir}/private.key -generatedCsr ${tmpDir}/csr.pem -pem`);
+                execSync(`fatoora -csr -csrConfig ${tmpDir}/csr-config.properties -privateKey ${tmpDir}/private.key -generatedCsr ${tmpDir}/csr.txt`);
             } catch (fatooraErr: any) {
-                console.error("Fatoora execution failed:", fatooraErr?.output?.toString() || fatooraErr.message);
-                throw new Error("فشل تشغيل أداة fatoora. تأكد من توفرها في PATH بصلاحيات التنفيذ.");
+                console.error("ZATCA Fatoora CSR Gen Error:", fatooraErr.message);
+                throw new Error("فشل توليد الشهادة باستخدام أداة الزكاة الرسمية: " + fatooraErr.message);
             }
 
             privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
-            csrPem = fs.readFileSync(`${tmpDir}/csr.pem`, 'utf-8');
-            csrBase64 = csrPem.replace(/-----[^-]+-----/g, '').replace(/[\r\n\s]/g, '');
+            // Read the clean Base64 string exported directly by Fatoora Java Module
+            csrBase64 = fs.readFileSync(`${tmpDir}/csr.txt`, 'utf-8').trim();
         } finally {
             try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
         }
@@ -98,7 +107,6 @@ csr.industry.business.category=${industryCategory}`;
         // Upsert into DB
         const updateTasks = [
             prisma.setting.upsert({ where: { key: 'zatca_private_key' }, update: { value: privateKeyClean }, create: { key: 'zatca_private_key', value: privateKeyClean } }),
-            prisma.setting.upsert({ where: { key: 'zatca_certificate' }, update: { value: csrPem }, create: { key: 'zatca_certificate', value: csrPem } }),
             prisma.setting.upsert({ where: { key: 'zatca_csr_base64' }, update: { value: csrBase64 }, create: { key: 'zatca_csr_base64', value: csrBase64 } }),
         ];
         

@@ -1,100 +1,62 @@
-const { Client } = require('ssh2');
+const { Client } = require('ssh2'); 
 
-const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
-
-const fileTasks = [
-    { local: 'd:/namasoft9-3-main/src/lib/zatca-java.ts', remote: '/src/lib/zatca-java.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/api/settings/generate-keys/route.ts', remote: '/src/app/api/settings/generate-keys/route.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/api/settings/zatca-onboard/route.ts', remote: '/src/app/api/settings/zatca-onboard/route.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/api/zatca/route.ts', remote: '/src/app/api/zatca/route.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/api/zatca/qr/route.ts', remote: '/src/app/api/zatca/qr/route.ts' },
-    { local: 'd:/namasoft9-3-main/src/app/onboarding/zatca/page.tsx', remote: '/src/app/onboarding/zatca/page.tsx' }
+const nodes = [
+    { dir: 'namainvist.com', pm2: 'nama-main' },
+    { dir: 'n1.namainvist.com', pm2: 'n1' },
+    { dir: 'n3.namainvist.com', pm2: 'n3' },
+    { dir: 'n4.namainvist.com', pm2: 'n4' },
+    { dir: 'n5.namainvist.com', pm2: 'n5' },
+    { dir: 'n6.namainvist.com', pm2: 'n6' },
+    { dir: 'n7.namainvist.com', pm2: 'n7' },
+    { dir: 'n8.namainvist.com', pm2: 'n8' },
+    { dir: 'n9.namainvist.com', pm2: 'n9' },
+    { dir: 'n10.namainvist.com', pm2: 'n10' },
 ];
 
-function execute(conn, cmd) {
-    return new Promise((resolve, reject) => {
-        conn.exec(cmd, (err, stream) => {
-            if (err) return reject(err);
-            stream.on('data', d => process.stdout.write(d.toString()));
-            stream.stderr.on('data', d => process.stderr.write(d.toString()));
-            stream.on('close', (code) => {
-                resolve();
-            });
-        });
-    });
-}
+const conn = new Client(); 
+conn.on('ready', () => { 
+    console.log('Connected! Starting fleet deployment...');
+    conn.sftp(async (err, sftp) => {
+        if (err) throw err;
+        
+        const file1 = 'd:/namasoft9-3-main/src/app/api/zatca/route.ts';
+        const file2 = 'd:/namasoft9-3-main/src/app/api/settings/generate-keys/route.ts';
 
-function fastPut(sftp, local, remote) {
-    return new Promise((resolve, reject) => {
-        sftp.fastPut(local, remote, (err) => {
-            if (err) reject(err);
-            else resolve();
-        });
-    });
-}
+        const fs = require('fs');
+        const c1 = fs.readFileSync(file1);
+        const c2 = fs.readFileSync(file2);
 
-async function rebuildServer(i) {
-    return new Promise((resolve) => {
-        const conn = new Client();
-        conn.on('ready', async () => {
-            console.log(`\n============================`);
-            console.log(`[N${i}] Syncing ZATCA Phase 2 Infrastructure to Node N${i}...`);
+        for (const node of nodes) {
+            console.log(`\n================================`);
+            console.log(`>>> Deploying to ${node.pm2} (/www/wwwroot/${node.dir})`);
+            console.log(`================================`);
             
-            const basePath = `/www/wwwroot/n${i}.namainvist.com`;
-            
+            const r1 = `/www/wwwroot/${node.dir}/src/app/api/zatca/route.ts`;
+            const r2 = `/www/wwwroot/${node.dir}/src/app/api/settings/generate-keys/route.ts`;
+
             try {
-                process.stdout.write(`[N${i}] Creating remote directories if missing... `);
-                await execute(conn, `mkdir -p "${basePath}/src/lib" && mkdir -p "${basePath}/src/app/api/settings/generate-keys" && mkdir -p "${basePath}/src/app/api/settings/zatca-onboard" && mkdir -p "${basePath}/src/app/api/zatca/qr" && mkdir -p "${basePath}/src/app/onboarding/zatca"`);
-                console.log(`[Dir OK]`);
-            } catch (e) {
-                console.warn(`[N${i}] Mkdir warning:`, e);
+                // Write files
+                await new Promise((resolve, reject) => sftp.writeFile(r1, c1, e => e ? reject(e) : resolve()));
+                await new Promise((resolve, reject) => sftp.writeFile(r2, c2, e => e ? reject(e) : resolve()));
+                console.log(`Files uploaded to ${node.pm2}. Starting Build...`);
+
+                // Rebuild
+                await new Promise((resolve) => {
+                    const cmd = `cd /www/wwwroot/${node.dir} && npm run build && pm2 restart ${node.pm2}`;
+                    conn.exec(cmd, (errExec, stream) => {
+                        if (errExec) return resolve();
+                        stream.on('data', d => process.stdout.write(`[${node.pm2}] ` + d.toString()));
+                        stream.stderr.on('data', d => process.stdout.write(`[${node.pm2} ERR] ` + d.toString()));
+                        stream.on('close', () => resolve());
+                    });
+                });
+                console.log(`✅ ${node.pm2} Completed successfully.`);
+            } catch (ex) {
+                console.log(`❌ Skipped ${node.pm2}: ${ex.message}`);
             }
-
-            conn.sftp(async (err, sftp) => {
-                if (err) {
-                    console.error(`[N${i}] SFTP Error`, err);
-                    conn.end();
-                    return resolve();
-                }
-                
-                try {
-                    console.log(`[N${i}] Uploading ZATCA Crypto Handlers...`);
-                    for (const f of fileTasks) {
-                        try {
-                            await fastPut(sftp, f.local, basePath + f.remote);
-                        } catch (sftpErr) {
-                            console.error(`[N${i}] Failed to upload ${f.local}`, sftpErr);
-                        }
-                    }
-                    console.log(`[N${i}] Files Synced. Generating ECDSA Crypto Environment...`);
-                    
-                    const cmd = `cd ${basePath} && npm install next-auth zatca-xml-js qrcode --legacy-peer-deps && npm run build && pm2 restart n${i} || true`;
-                    await execute(conn, cmd);
-                    
-                    console.log(`[N${i}] DONE! ZATCA Phase 2 Compliance Logic Online on N${i}.`);
-                } catch (e) {
-                    console.error(`[N${i}] Fatal Exception:`, e.message || e);
-                } finally {
-                    conn.end();
-                    resolve();
-                }
-            });
-        }).on('error', (e) => {
-            console.error(`[N${i}] Connection Error:`, e);
-            resolve();
-        }).connect(SSH_CONFIG);
+        }
+        
+        console.log('\n🎉 ALL SERVERS UPDATED AND REBUILT!');
+        conn.end();
     });
-}
-
-async function run() {
-    console.log('Starting Phase 9.4 ZATCA Cryptographic Upgrade across N2-N10 cluster...');
-    
-    // N1 is already compiled!
-    for (let i = 2; i <= 10; i++) {
-        await rebuildServer(i);
-    }
-    
-    console.log('\n✅ Phase 9.4 ZATCA Phase 2 successfully integrated and rebuilt across the entire cluster.');
-}
-
-run();
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});
