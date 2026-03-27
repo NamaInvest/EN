@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
             
             const buildDummyInvoice = (typeCode: string, typeName: string, amount: string): InvoiceData => ({
                 profileID: 'reporting:1.0',
-                id: `INV-${Date.now()}-${typeCode}`,
+                id: `INV-${Date.now()}-${crypto.randomUUID().substring(0,5)}-${typeCode}`,
                 uuid: crypto.randomUUID(),
                 issueDate: new Date().toISOString().split('T')[0],
                 issueTime: new Date().toISOString().split('T')[1].substring(0, 8),
@@ -175,10 +175,19 @@ export async function POST(req: NextRequest) {
             const crnInvoice = buildDummyInvoice('381', '0100000', '50.00');
             const drnInvoice = buildDummyInvoice('383', '0100000', '20.00');
 
+            // Simplified Dummies
+            const simplInvoice = buildDummyInvoice('388', '0200000', '100.00');
+            const simplCrnInvoice = buildDummyInvoice('381', '0200000', '50.00');
+            const simplDrnInvoice = buildDummyInvoice('383', '0200000', '20.00');
+
             // Generate XML
             const stdXml = generateZATCAXml(stdInvoice);
             const crnXml = generateZATCAXml(crnInvoice);
             const drnXml = generateZATCAXml(drnInvoice);
+            
+            const simplXml = generateZATCAXml(simplInvoice);
+            const simplCrnXml = generateZATCAXml(simplCrnInvoice);
+            const simplDrnXml = generateZATCAXml(simplDrnInvoice);
 
             const certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('utf8');
             const pkParsed = (pkSet?.value as string) || '';
@@ -199,6 +208,10 @@ export async function POST(req: NextRequest) {
             const stdSigned = signNode(stdXml);
             const crnSigned = signNode(crnXml);
             const drnSigned = signNode(drnXml);
+
+            const simplSigned = signNode(simplXml);
+            const simplCrnSigned = signNode(simplCrnXml);
+            const simplDrnSigned = signNode(simplDrnXml);
 
             // Post to ZATCA (Base64 Encoded Signed XML)
             const postToZatca = async (signedXml: string, hash: string, realUuid: string) => {
@@ -228,11 +241,13 @@ export async function POST(req: NextRequest) {
                 });
             };
 
-            const [stdRes, crnRes, drnRes] = await Promise.all([
-                postToZatca(stdSigned.signedXml, stdSigned.hash, stdInvoice.uuid),
-                postToZatca(crnSigned.signedXml, crnSigned.hash, crnInvoice.uuid),
-                postToZatca(drnSigned.signedXml, drnSigned.hash, drnInvoice.uuid)
-            ]);
+            // Submit sequentially to avoid ZATCA gateway 429 rate limits or silent payload drops
+            const stdRes = await postToZatca(stdSigned.signedXml, stdSigned.hash, stdInvoice.uuid);
+            const crnRes = await postToZatca(crnSigned.signedXml, crnSigned.hash, crnInvoice.uuid);
+            const drnRes = await postToZatca(drnSigned.signedXml, drnSigned.hash, drnInvoice.uuid);
+            const simplRes = await postToZatca(simplSigned.signedXml, simplSigned.hash, simplInvoice.uuid);
+            const simplCrnRes = await postToZatca(simplCrnSigned.signedXml, simplCrnSigned.hash, simplCrnInvoice.uuid);
+            const simplDrnRes = await postToZatca(simplDrnSigned.signedXml, simplDrnSigned.hash, simplDrnInvoice.uuid);
 
             const hasErr = (r: any) => {
                 if (r.error_code && !r.validationResults) return true;
@@ -252,19 +267,19 @@ export async function POST(req: NextRequest) {
                 }
                 return false;
             };
-            if (hasErr(stdRes) || hasErr(crnRes) || hasErr(drnRes)) {
-                console.error("ZATCA Compliance Reject Full:", JSON.stringify({ standard: stdRes, credit: crnRes, debit: drnRes }, null, 2));
+            if (hasErr(stdRes) || hasErr(crnRes) || hasErr(drnRes) || hasErr(simplRes) || hasErr(simplCrnRes) || hasErr(simplDrnRes)) {
+                console.error("ZATCA Compliance Reject Full:", JSON.stringify({ standard: stdRes, credit: crnRes, debit: drnRes, simpl: simplRes, simplCrn: simplCrnRes, simplDrn: simplDrnRes }, null, 2));
                 return NextResponse.json({ 
                     success: false, 
                     error: 'رفضت هيئة الزكاة إحدى الفواتير! راجع السجلات أو تواصل مع الدعم الفني.',
-                    results: { standard: stdRes, credit: crnRes, debit: drnRes }
+                    results: { standard: stdRes, credit: crnRes, debit: drnRes, simpl: simplRes, simplCrn: simplCrnRes, simplDrn: simplDrnRes }
                 }, { status: 400 });
             }
 
             return NextResponse.json({ 
                 success: true, 
                 message: 'تم اجتياز اختبار المطابقة بنجاح (Compliance Invoices PASS).',
-                results: { standard: stdRes, credit: crnRes, debit: drnRes }
+                results: { standard: stdRes, credit: crnRes, debit: drnRes, simpl: simplRes, simplCrn: simplCrnRes, simplDrn: simplDrnRes }
             });
         }
 

@@ -25,6 +25,11 @@ conn.on('ready', () => {
         const fileContent1 = fs.readFileSync(localFile1);
         const localFile2 = 'd:/namasoft9-3-main/node_modules/zatca-xml-js/lib/zatca/signing/index.js';
         const fileContent2 = fs.readFileSync(localFile2);
+        
+        const localFile3 = 'd:/namasoft9-3-main/src/app/api/zatca/route.ts';
+        const fileContent3 = fs.readFileSync(localFile3);
+        const localFile4 = 'd:/namasoft9-3-main/src/lib/zatca.ts';
+        const fileContent4 = fs.readFileSync(localFile4);
 
         for (const node of nodes) {
             console.log(`\n======================================================`);
@@ -33,12 +38,16 @@ conn.on('ready', () => {
             
             const r1 = `/www/wwwroot/${node.dir}/node_modules/zatca-xml-js/lib/zatca/qr/index.js`;
             const r2 = `/www/wwwroot/${node.dir}/node_modules/zatca-xml-js/lib/zatca/signing/index.js`;
+            const r3 = `/www/wwwroot/${node.dir}/src/app/api/zatca/route.ts`;
+            const r4 = `/www/wwwroot/${node.dir}/src/lib/zatca.ts`;
 
             try {
-                // Upload patched node_module files
+                // Upload patched node_module files and api routes
                 await new Promise((resolve, reject) => sftp.writeFile(r1, fileContent1, e => e ? reject(e) : resolve()));
                 await new Promise((resolve, reject) => sftp.writeFile(r2, fileContent2, e => e ? reject(e) : resolve()));
-                console.log(`✅ Files zatca-xml-js updated on ${node.pm2}. Starting ZERO-CACHE Build...`);
+                await new Promise((resolve, reject) => sftp.writeFile(r3, fileContent3, e => e ? reject(e) : resolve()));
+                await new Promise((resolve, reject) => sftp.writeFile(r4, fileContent4, e => e ? reject(e) : resolve()));
+                console.log(`✅ Files updated on ${node.pm2}. Starting ZERO-CACHE Build...`);
 
                 // MUST remove .next to force Next.js Turbopack caching to rebuild node_modules!
                 await new Promise((resolve) => {
