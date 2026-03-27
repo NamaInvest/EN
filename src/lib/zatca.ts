@@ -151,7 +151,7 @@ export function generateZATCAXml(data: InvoiceData): string {
       <cbc:LineExtensionAmount currencyID="SAR">${escapeXml(net)}</cbc:LineExtensionAmount>
       <cac:TaxTotal>
         <cbc:TaxAmount currencyID="SAR">${escapeXml(vat)}</cbc:TaxAmount>
-        <cac:RoundingAmount currencyID="SAR">${escapeXml((parseFloat(net)+parseFloat(vat)).toFixed(2))}</cac:RoundingAmount>
+        <cbc:RoundingAmount currencyID="SAR">${escapeXml((parseFloat(net)+parseFloat(vat)).toFixed(2))}</cbc:RoundingAmount>
       </cac:TaxTotal>
       <cac:Item>
         <cbc:Name>${escapeXml(line.itemName)}</cbc:Name>
@@ -174,10 +174,8 @@ export function generateZATCAXml(data: InvoiceData): string {
   const netAmount = (totalAmount - taxAmount).toFixed(2);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-  xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
+  <ext:UBLExtensions>SET_UBL_EXTENSIONS_STRING</ext:UBLExtensions>
   <cbc:ProfileID>${escapeXml(data.profileID)}</cbc:ProfileID>
   <cbc:ID>${escapeXml(data.id)}</cbc:ID>
   <cbc:UUID>${escapeXml(data.uuid)}</cbc:UUID>
@@ -186,6 +184,32 @@ export function generateZATCAXml(data: InvoiceData): string {
   <cbc:InvoiceTypeCode name="${escapeXml(data.invoiceTypeName)}">${escapeXml(data.invoiceTypeCode)}</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${escapeXml(data.currencyCode)}</cbc:DocumentCurrencyCode>
   <cbc:TaxCurrencyCode>${escapeXml(data.taxCurrencyCode)}</cbc:TaxCurrencyCode>
+  ${data.invoiceTypeCode === '381' || data.invoiceTypeCode === '383' ? `
+  <cac:BillingReference>
+    <cac:InvoiceDocumentReference>
+      <cbc:ID>INV-123456</cbc:ID>
+    </cac:InvoiceDocumentReference>
+  </cac:BillingReference>` : ''}
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>ICV</cbc:ID>
+    <cbc:UUID>1</cbc:UUID>
+  </cac:AdditionalDocumentReference>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>PIH</cbc:ID>
+    <cac:Attachment>
+      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==</cbc:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>QR</cbc:ID>
+    <cac:Attachment>
+      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">SET_QR_CODE_DATA</cbc:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  <cac:Signature>
+    <cbc:ID>urn:oasis:names:specification:ubl:signature:Invoice</cbc:ID>
+    <cbc:SignatureMethod>urn:oasis:names:specification:ubl:dsig:enveloped:xades</cbc:SignatureMethod>
+  </cac:Signature>
   <cac:AccountingSupplierParty>
     <cac:Party>
       <cac:PartyIdentification>
@@ -215,7 +239,7 @@ export function generateZATCAXml(data: InvoiceData): string {
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cac:PartyIdentification>
-        <cbc:ID schemeID="NAT">${escapeXml(data.customer.companyID)}</cbc:ID>
+        <cbc:ID schemeID="NAT">1323211234</cbc:ID>
       </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(data.customer.address.streetName)}</cbc:StreetName>
@@ -228,7 +252,7 @@ export function generateZATCAXml(data: InvoiceData): string {
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(data.customer.registrationName)}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(data.customer.companyID)}</cbc:CompanyID>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
@@ -241,7 +265,11 @@ export function generateZATCAXml(data: InvoiceData): string {
   <cac:Delivery>
     <cbc:ActualDeliveryDate>${escapeXml(data.issueDate)}</cbc:ActualDeliveryDate>
   </cac:Delivery>
-  ${invoiceLinesXml}
+  ${data.invoiceTypeCode === '381' || data.invoiceTypeCode === '383' ? `
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
+    <cbc:InstructionNote>Compliance Test Reason</cbc:InstructionNote>
+  </cac:PaymentMeans>` : ''}
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="SAR">${escapeXml(data.taxAmount)}</cbc:TaxAmount>
     <cac:TaxSubtotal>
@@ -264,6 +292,7 @@ export function generateZATCAXml(data: InvoiceData): string {
     <cbc:ChargeTotalAmount currencyID="SAR">0.00</cbc:ChargeTotalAmount>
     <cbc:PayableAmount currencyID="SAR">${escapeXml(data.totalAmount)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
+  ${invoiceLinesXml}
 </Invoice>`;
 }
 

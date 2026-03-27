@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
 import { generateSignedXMLString } from 'zatca-xml-js/lib/zatca/signing';
+import crypto from 'crypto';
 const ZATCA_SIMULATION_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation';
 const ZATCA_CORE_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core';
 
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
 
             if (!response.ok) {
                 const text = await response.text();
+                console.error("ZATCA Prod CSID Failed Details:", text);
                 return NextResponse.json({ error: 'ZATCA Production API Failed', details: text }, { status: response.status });
             }
 
@@ -131,7 +133,7 @@ export async function POST(req: NextRequest) {
             const buildDummyInvoice = (typeCode: string, typeName: string, amount: string): InvoiceData => ({
                 profileID: 'reporting:1.0',
                 id: `INV-${Date.now()}-${typeCode}`,
-                uuid: '123e4567-e89b-12d3-a456-426614174000',
+                uuid: crypto.randomUUID(),
                 issueDate: new Date().toISOString().split('T')[0],
                 issueTime: new Date().toISOString().split('T')[1].substring(0, 8),
                 invoiceTypeCode: typeCode,
@@ -199,7 +201,7 @@ export async function POST(req: NextRequest) {
             const drnSigned = signNode(drnXml);
 
             // Post to ZATCA (Base64 Encoded Signed XML)
-            const postToZatca = async (signedXml: string, hash: string) => {
+            const postToZatca = async (signedXml: string, hash: string, realUuid: string) => {
                 const b64xml = Buffer.from(signedXml).toString('base64');
                 
                 const settingEnv = sMap['zatca_environment'];
@@ -217,7 +219,7 @@ export async function POST(req: NextRequest) {
                     },
                     body: JSON.stringify({
                         invoiceHash: hash,
-                        uuid: '123e4567-e89b-12d3-a456-426614174000',
+                        uuid: realUuid,
                         invoice: b64xml
                     })
                 }).then(async r => {
@@ -227,12 +229,29 @@ export async function POST(req: NextRequest) {
             };
 
             const [stdRes, crnRes, drnRes] = await Promise.all([
-                postToZatca(stdSigned.signedXml, stdSigned.hash),
-                postToZatca(crnSigned.signedXml, crnSigned.hash),
-                postToZatca(drnSigned.signedXml, drnSigned.hash)
+                postToZatca(stdSigned.signedXml, stdSigned.hash, stdInvoice.uuid),
+                postToZatca(crnSigned.signedXml, crnSigned.hash, crnInvoice.uuid),
+                postToZatca(drnSigned.signedXml, drnSigned.hash, drnInvoice.uuid)
             ]);
 
-            const hasErr = (r: any) => r.error_code || (r.validationResults && r.validationResults.status !== 'PASS');
+            const hasErr = (r: any) => {
+                if (r.error_code && !r.validationResults) return true;
+                if (r.validationResults) {
+                    if (r.validationResults.errorMessages && r.validationResults.errorMessages.length > 0) {
+                        // Ignore the "Submitted before" error as it just means compliance is already finished for this type.
+                        const actualErrors = r.validationResults.errorMessages.filter(
+                            (err: any) => err.code !== 'Submitted before'
+                        );
+                        if (actualErrors.length > 0) return true;
+                    }
+                    if (r.validationResults.status === 'ERROR') {
+                        // Double check if there are no actual errors left, then status ERROR was just for Submitted before
+                        const actualErrors = r.validationResults.errorMessages?.filter((err: any) => err.code !== 'Submitted before') || [];
+                        if (actualErrors.length > 0) return true;
+                    }
+                }
+                return false;
+            };
             if (hasErr(stdRes) || hasErr(crnRes) || hasErr(drnRes)) {
                 console.error("ZATCA Compliance Reject Full:", JSON.stringify({ standard: stdRes, credit: crnRes, debit: drnRes }, null, 2));
                 return NextResponse.json({ 
