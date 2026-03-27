@@ -232,9 +232,19 @@ export async function POST(req: NextRequest) {
                 postToZatca(drnSigned.signedXml, drnSigned.hash)
             ]);
 
+            const hasErr = (r: any) => r.error_code || (r.validationResults && r.validationResults.status !== 'PASS');
+            if (hasErr(stdRes) || hasErr(crnRes) || hasErr(drnRes)) {
+                console.error("ZATCA Compliance Reject Full:", JSON.stringify({ standard: stdRes, credit: crnRes, debit: drnRes }, null, 2));
+                return NextResponse.json({ 
+                    success: false, 
+                    error: 'رفضت هيئة الزكاة إحدى الفواتير! راجع السجلات أو تواصل مع الدعم الفني.',
+                    results: { standard: stdRes, credit: crnRes, debit: drnRes }
+                }, { status: 400 });
+            }
+
             return NextResponse.json({ 
                 success: true, 
-                message: 'تم إرسال فواتير الاختبار للمطابقة (Compliance Invoices).',
+                message: 'تم اجتياز اختبار المطابقة بنجاح (Compliance Invoices PASS).',
                 results: { standard: stdRes, credit: crnRes, debit: drnRes }
             });
         }

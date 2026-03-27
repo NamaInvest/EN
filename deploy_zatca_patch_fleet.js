@@ -42,7 +42,7 @@ conn.on('ready', () => {
 
                 // MUST remove .next to force Next.js Turbopack caching to rebuild node_modules!
                 await new Promise((resolve) => {
-                    const cmd = `cd /www/wwwroot/${node.dir} && rm -rf .next && npm run build && pm2 restart ${node.pm2}`;
+                    const cmd = `cd /www/wwwroot/${node.dir} && rm -rf .next && NODE_OPTIONS="--max-old-space-size=4096" npm run build && pm2 restart ${node.pm2}`;
                     conn.exec(cmd, (errExec, stream) => {
                         if (errExec) return resolve();
                         stream.on('data', d => process.stdout.write(`[${node.pm2}] ` + d.toString()));

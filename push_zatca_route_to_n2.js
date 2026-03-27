@@ -6,22 +6,28 @@ conn.on('ready', () => {
     conn.sftp((err, sftp) => {
         if (err) throw err;
         
-        const localPath = 'd:/namasoft9-3-main/src/app/api/zatca/route.ts';
-        const remotePath = '/www/wwwroot/n2.namainvist.com/src/app/api/zatca/route.ts';
+        const localPath1 = 'd:/namasoft9-3-main/src/app/api/zatca/route.ts';
+        const remotePath1 = '/www/wwwroot/n2.namainvist.com/src/app/api/zatca/route.ts';
         
-        sftp.fastPut(localPath, remotePath, (errPut) => {
-            if (errPut) throw errPut;
-            console.log('Upload complete! Rebuilding N2...');
-            
-            const recompileCmd = `cd /www/wwwroot/n2.namainvist.com && npm run build && pm2 restart n2`;
-            
-            conn.exec(recompileCmd, (errExec, stream) => {
-                if (errExec) throw errExec;
-                stream.on('close', () => {
-                    console.log('\\n✅ REBUILD COMPLETE. N2 IS NOW POINTING TO ZATCA SIMULATION AND CORE APIs!');
-                    conn.end();
-                }).on('data', d => process.stdout.write(d.toString()))
-                  .stderr.on('data', d => process.stdout.write('ERR: ' + d.toString()));
+        const localPath2 = 'd:/namasoft9-3-main/src/lib/zatca.ts';
+        const remotePath2 = '/www/wwwroot/n2.namainvist.com/src/lib/zatca.ts';
+        
+        sftp.fastPut(localPath1, remotePath1, (errPut1) => {
+            if (errPut1) throw errPut1;
+            sftp.fastPut(localPath2, remotePath2, (errPut2) => {
+                if (errPut2) throw errPut2;
+                console.log('Upload complete! Rebuilding N2...');
+                
+                const recompileCmd = `cd /www/wwwroot/n2.namainvist.com && npm run build && pm2 restart n2`;
+                
+                conn.exec(recompileCmd, (errExec, stream) => {
+                    if (errExec) throw errExec;
+                    stream.on('close', () => {
+                        console.log('\\n✅ REBUILD COMPLETE. N2 IS NOW POINTING TO ZATCA SIMULATION AND CORE APIs!');
+                        conn.end();
+                    }).on('data', d => process.stdout.write(d.toString()))
+                      .stderr.on('data', d => process.stdout.write('ERR: ' + d.toString()));
+                });
             });
         });
     });

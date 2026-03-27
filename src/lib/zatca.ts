@@ -141,18 +141,37 @@ export function generateZATCAXml(data: InvoiceData): string {
   const custCountryCode = data.customer.address.countryCode || 'SA';
 
   // Generate invoice lines XML
-  const invoiceLinesXml = data.invoiceLines.map(line => `
+  const invoiceLinesXml = data.invoiceLines.map(line => {
+    const net = parseFloat(line.lineExtensionAmount).toFixed(2);
+    const vat = (parseFloat(line.lineExtensionAmount) * (parseFloat(line.taxPercent) / 100)).toFixed(2);
+    return `
     <cac:InvoiceLine>
       <cbc:ID>${escapeXml(line.id)}</cbc:ID>
       <cbc:InvoicedQuantity unitCode="${escapeXml(line.unitCode)}">${escapeXml(line.quantity)}</cbc:InvoicedQuantity>
-      <cbc:LineExtensionAmount>${escapeXml(line.lineExtensionAmount)}</cbc:LineExtensionAmount>
+      <cbc:LineExtensionAmount currencyID="SAR">${escapeXml(net)}</cbc:LineExtensionAmount>
+      <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="SAR">${escapeXml(vat)}</cbc:TaxAmount>
+        <cac:RoundingAmount currencyID="SAR">${escapeXml((parseFloat(net)+parseFloat(vat)).toFixed(2))}</cac:RoundingAmount>
+      </cac:TaxTotal>
       <cac:Item>
         <cbc:Name>${escapeXml(line.itemName)}</cbc:Name>
+        <cac:ClassifiedTaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>${escapeXml(line.taxPercent)}</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:ClassifiedTaxCategory>
       </cac:Item>
-      <cac:TaxTotal>
-        <cbc:TaxAmount>${escapeXml(line.taxPercent)}</cbc:TaxAmount>
-      </cac:TaxTotal>
-    </cac:InvoiceLine>`).join('');
+      <cac:Price>
+        <cbc:PriceAmount currencyID="SAR">${escapeXml(net)}</cbc:PriceAmount>
+      </cac:Price>
+    </cac:InvoiceLine>`;
+  }).join('');
+
+  const taxAmount = parseFloat(data.taxAmount);
+  const totalAmount = parseFloat(data.totalAmount);
+  const netAmount = (totalAmount - taxAmount).toFixed(2);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -165,7 +184,6 @@ export function generateZATCAXml(data: InvoiceData): string {
   <cbc:IssueDate>${escapeXml(data.issueDate)}</cbc:IssueDate>
   <cbc:IssueTime>${escapeXml(data.issueTime)}</cbc:IssueTime>
   <cbc:InvoiceTypeCode name="${escapeXml(data.invoiceTypeName)}">${escapeXml(data.invoiceTypeCode)}</cbc:InvoiceTypeCode>
-  <cbc:Note languageID="ar">${escapeXml(data.note)}</cbc:Note>
   <cbc:DocumentCurrencyCode>${escapeXml(data.currencyCode)}</cbc:DocumentCurrencyCode>
   <cbc:TaxCurrencyCode>${escapeXml(data.taxCurrencyCode)}</cbc:TaxCurrencyCode>
   <cac:AccountingSupplierParty>
@@ -184,15 +202,21 @@ export function generateZATCAXml(data: InvoiceData): string {
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(data.supplier.companyID)}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(data.supplier.registrationName)}</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
-        <cbc:RegistrationName>${escapeXml(data.supplier.registrationName)}</cbc:RegistrationName>
+        <cbc:RegistrationName>${escapeXml(data.supplier.registrationName || "Seller")}</cbc:RegistrationName>
       </cac:PartyLegalEntity>
     </cac:Party>
   </cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty>
     <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="NAT">${escapeXml(data.customer.companyID)}</cbc:ID>
+      </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(data.customer.address.streetName)}</cbc:StreetName>
         <cbc:BuildingNumber>${escapeXml(data.customer.address.buildingNumber)}</cbc:BuildingNumber>
@@ -204,18 +228,41 @@ export function generateZATCAXml(data: InvoiceData): string {
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(data.customer.companyID)}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(data.customer.registrationName)}</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
-        <cbc:RegistrationName>${escapeXml(data.customer.registrationName)}</cbc:RegistrationName>
+        <cbc:RegistrationName>${escapeXml(data.customer.registrationName || "Customer")}</cbc:RegistrationName>
       </cac:PartyLegalEntity>
     </cac:Party>
-  </cac:AccountingCustomerParty>${invoiceLinesXml}
+  </cac:AccountingCustomerParty>
+  <cac:Delivery>
+    <cbc:ActualDeliveryDate>${escapeXml(data.issueDate)}</cbc:ActualDeliveryDate>
+  </cac:Delivery>
+  ${invoiceLinesXml}
   <cac:TaxTotal>
-    <cbc:TaxAmount>${escapeXml(data.taxAmount)}</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="SAR">${escapeXml(data.taxAmount)}</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">${escapeXml(netAmount)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">${escapeXml(data.taxAmount)}</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15.00</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
   </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
-    <cbc:PayableAmount>${escapeXml(data.totalAmount)}</cbc:PayableAmount>
+    <cbc:LineExtensionAmount currencyID="SAR">${escapeXml(netAmount)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">${escapeXml(netAmount)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">${escapeXml(data.totalAmount)}</cbc:TaxInclusiveAmount>
+    <cbc:AllowanceTotalAmount currencyID="SAR">0.00</cbc:AllowanceTotalAmount>
+    <cbc:ChargeTotalAmount currencyID="SAR">0.00</cbc:ChargeTotalAmount>
+    <cbc:PayableAmount currencyID="SAR">${escapeXml(data.totalAmount)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
 </Invoice>`;
 }
