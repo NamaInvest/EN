@@ -28,6 +28,7 @@ export const SETTING_GROUPS = [
         title: '🔐 ربط الزكاة - المرحلة الثانية', keys: [
             { key: 'zatca_crn', label: 'رقم السجل التجاري (CRN)', type: 'text' },
             { key: 'zatca_industry', label: 'نوع النشاط (مثل: Technology, Retail)', type: 'text' },
+            { key: 'branch_name_en', label: 'اسم الفرع بالإنجليزي (Organization Unit)', type: 'text' },
             { key: 'zatca_street', label: 'اسم الشارع', type: 'text' },
             { key: 'zatca_building', label: 'رقم المبنى', type: 'text' },
             { key: 'zatca_district', label: 'الحي', type: 'text' },
@@ -401,7 +402,6 @@ export default function SettingsPage() {
         setSaving(true);
         const token = localStorage.getItem('token');
         try {
-            // Find changed settings — also include keys the user typed that weren't in originalSettings
             const allKeys = new Set([...Object.keys(settings), ...Object.keys(originalSettings)]);
             const changedKeys = Array.from(allKeys).filter(key => (settings[key] || '') !== (originalSettings[key] || ''));
 
@@ -411,44 +411,28 @@ export default function SettingsPage() {
                 return;
             }
 
-            // Save all changed settings and CHECK response status
-            const results = await Promise.all(changedKeys.map(async (key) => {
-                try {
-                    const res = await fetch(`/api/settings/${key}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ value: settings[key] || '' }),
-                    });
-                    if (!res.ok) {
-                        console.error(`Failed to save setting "${key}": ${res.status}`);
-                        return { key, ok: false };
-                    }
-                    return { key, ok: true };
-                } catch (err) {
-                    console.error(`Network error saving setting "${key}":`, err);
-                    return { key, ok: false };
-                }
-            }));
+            const payload: Record<string, string> = {};
+            changedKeys.forEach(key => {
+                payload[key] = settings[key] || '';
+            });
 
-            const failed = results.filter(r => !r.ok);
-            const succeeded = results.filter(r => r.ok);
+            const res = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload),
+            });
 
-            if (failed.length === 0) {
+            if (res.ok) {
                 setOriginalSettings({ ...settings });
                 showToast(`✅ تم حفظ ${changedKeys.length} إعداد بنجاح`);
                 refreshSettings();
-            } else if (succeeded.length > 0) {
-                // Partial success — update originalSettings only for succeeded keys
-                const newOriginal = { ...originalSettings };
-                succeeded.forEach(r => { newOriginal[r.key] = settings[r.key]; });
-                setOriginalSettings(newOriginal);
-                showToast(`⚠️ تم حفظ ${succeeded.length} إعداد، فشل ${failed.length}: ${failed.map(f => f.key).join(', ')}`);
             } else {
-                showToast(`❌ فشل في حفظ جميع الإعدادات (${failed.length})`);
+                const errorData = await res.json().catch(() => ({}));
+                showToast(`❌ فشل في الحفظ: ${errorData.error || 'خطأ في الخادم'}`);
             }
         } catch (err) {
             console.error(err);
-            showToast('❌ فشل في الحفظ');
+            showToast('❌ فشل في الاتصال بالخادم');
         } finally {
             setSaving(false);
         }

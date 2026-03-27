@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('for i in {1..10}; do echo -n "N$i: "; pm2 jlist | grep -o "\\"name\\":\\"n$i\\".*\\"status\\":\\"[^\"]*\\"" | grep -o "\\"status\\":\\"[^\"]*\\"" || echo "missing"; done', (err, stream) => {
+    conn.exec('tail -n 50 /www/wwwlogs/n1.log | grep -i "POST /api/settings"', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end()).on('data', data => console.log(data.toString()));
     });

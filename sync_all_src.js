@@ -12,9 +12,12 @@ for i in {2..10}; do
     # Force copy the entire src directory from N1 to replica
     rsync -av /www/wwwroot/n1.namainvist.com/src/ /www/wwwroot/n$i.namainvist.com/src/
     
-    # Rebuild and Restart
+    # Clean cache and Rebuild
     cd /www/wwwroot/n$i.namainvist.com
+    rm -rf .next
+    
     npm install next-auth zatca-xml-js qrcode --legacy-peer-deps >> /www/wwwroot/sync_all_log.txt 2>&1
+    npx prisma generate >> /www/wwwroot/sync_all_log.txt 2>&1
     npm run build >> /www/wwwroot/sync_all_log.txt 2>&1
     pm2 restart n$i >> /www/wwwroot/sync_all_log.txt 2>&1
     
