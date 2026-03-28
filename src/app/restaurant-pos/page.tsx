@@ -148,70 +148,96 @@ export default function RestaurantPOS() {
         }).filter(Boolean));
     };
 
-    const printReceipt = (invoice: any, printCart: any[], printTotal: number, printTax: number, printDiscount: number) => {
-        const printWindow = window.open('', '_blank', 'width=400,height=600');
-        if (!printWindow) return;
-        
-        const html = `
-            <html dir="rtl">
-            <head>
-                <title>طباعة الإيصال</title>
-                <style>
-                    body { font-family: 'Courier New', Courier, monospace; padding: 10px; font-size: 13px; margin: 0 auto; max-width: 300px; text-align: center; color: #000; }
-                    .header { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-                    .subheader { font-size: 11px; margin-bottom: 10px; }
-                    .divider { border-top: 1px dashed #000; margin: 10px 0; }
-                    table { width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px; }
-                    .qty-col { width: 30px; text-align: center; }
-                    .price-col { width: 60px; text-align: left; }
-                    th, td { padding: 4px 0; vertical-align: top; }
-                    .center { text-align: center; }
-                    .left { text-align: left; }
-                    .footer { font-size: 11px; margin-top: 15px; }
-                </style>
-            </head>
-            <body>
-                <div class="header">نمـا إنفست للأنظمـة</div>
-                <div class="subheader">طلب نقاط البيع - مطاعم</div>
+    const generateReceiptContent = (invoice: any, renderCart: any[], renderTotal: number, renderTax: number, renderDiscount: number) => {
+        return `
+            <div dir="rtl" style="font-family: 'Courier New', Courier, monospace; padding: 10px; font-size: 13px; margin: 0 auto; max-width: 300px; text-align: center; color: #000; background: #fff;">
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">نمـا إنفست للأنظمـة</div>
+                <div style="font-size: 11px; margin-bottom: 10px;">طلب نقاط البيع - مطاعم</div>
                 <div style="font-size: 12px">رقم الإيصال: ${invoice?.invoiceNumber || '-'}</div>
                 <div style="font-size: 12px">التاريخ: ${new Date().toLocaleString('ar-SA')}</div>
-                <div class="divider"></div>
-                <table>
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+                <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px;">
                     <thead>
                         <tr>
-                            <th>الصنف</th>
-                            <th class="qty-col">الكمية</th>
-                            <th class="price-col">القيمة</th>
+                            <th style="padding: 4px 0;">الصنف</th>
+                            <th style="width: 30px; text-align: center; padding: 4px 0;">الكمية</th>
+                            <th style="width: 60px; text-align: left; padding: 4px 0;">القيمة</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${printCart.map((item: any) => `
+                        ${renderCart.map((item: any) => `
                             <tr>
-                                <td>${item.name}</td>
-                                <td class="qty-col">${item.qty}</td>
-                                <td class="price-col">${(item.price * item.qty).toLocaleString()}</td>
+                                <td style="padding: 4px 0;">${item.name}</td>
+                                <td style="width: 30px; text-align: center; padding: 4px 0;">${item.qty}</td>
+                                <td style="width: 60px; text-align: left; padding: 4px 0;">${(item.price * item.qty).toLocaleString()}</td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
-                <div class="divider"></div>
-                <table style="font-weight: bold;">
-                    <tr><td>الإجمالي:</td><td class="left">${printTotal.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td>الخصم:</td><td class="left">${printDiscount.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td>ضريبة (15%):</td><td class="left">${printTax.toLocaleString()}</td></tr>
-                    <tr style="font-size: 16px;"><th>الصافي (SAR):</th><th class="left">${Math.max(0, printTotal + printTax - printDiscount).toLocaleString()}</th></tr>
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+                <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px; font-weight: bold;">
+                    <tr><td style="padding: 4px 0;">الإجمالي:</td><td style="text-align: left; padding: 4px 0;">${renderTotal.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td style="padding: 4px 0;">الخصم:</td><td style="text-align: left; padding: 4px 0;">${renderDiscount.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td style="padding: 4px 0;">ضريبة (15%):</td><td style="text-align: left; padding: 4px 0;">${renderTax.toLocaleString()}</td></tr>
+                    <tr style="font-size: 16px;"><th style="padding: 4px 0;">الصافي (SAR):</th><th style="text-align: left; padding: 4px 0;">${Math.max(0, renderTotal + renderTax - renderDiscount).toLocaleString()}</th></tr>
                 </table>
-                <div class="divider"></div>
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 ${invoice?.zatcaQr ? `<img src="${invoice.zatcaQr}" style="width: 120px; height: 120px; margin-top: 10px;" />` : ''}
-                <div class="footer">شكراً لزيارتكم!</div>
-                <script>
-                    window.onload = function() { window.print(); window.close(); }
-                </script>
-            </body>
-            </html>
+                <div style="font-size: 11px; margin-top: 15px;">شكراً لزيارتكم!</div>
+            </div>
         `;
-        printWindow.document.write(html);
-        printWindow.document.close();
+    };
+
+    const printReceipt = (invoice: any, printCart: any[], printTotal: number, printTax: number, printDiscount: number) => {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '-9999px';
+        iframe.style.bottom = '-9999px';
+        iframe.style.width = '400px';
+        iframe.style.height = '600px';
+        document.body.appendChild(iframe);
+        
+        const content = generateReceiptContent(invoice, printCart, printTotal, printTax, printDiscount);
+        
+        const doc = iframe.contentWindow?.document;
+        if (doc) {
+            doc.open();
+            doc.write('<html><head><title>طباعة الإيصال</title></head><body style="margin:0;">' + content + '</body></html>');
+            doc.close();
+        }
+
+        setTimeout(() => {
+            if (iframe.contentWindow) {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
+            setTimeout(() => { document.body.removeChild(iframe); }, 5000);
+        }, 800);
+    };
+
+    const exportToPDF = (invoice: any, exportCart: any[], exportTotal: number, exportTax: number, exportDiscount: number) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = () => {
+            const content = generateReceiptContent(invoice, exportCart, exportTotal, exportTax, exportDiscount);
+            const element = document.createElement('div');
+            element.innerHTML = content;
+            element.style.position = 'absolute';
+            element.style.left = '-9999px';
+            document.body.appendChild(element);
+            
+            // @ts-ignore
+            window.html2pdf().from(element.firstElementChild).set({
+                margin: 5,
+                filename: `Invoice_${invoice?.invoiceNumber || Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: [80, 250], orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(element);
+            });
+        };
+        document.body.appendChild(script);
     };
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -583,10 +609,10 @@ export default function RestaurantPOS() {
                         <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>نقطة البيع (مطاعم)</h2>
                         
                         <button onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? '#fef3c7' : 'transparent', color: heldOrders.length > 0 ? '#d97706' : '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
-                            <Clock size={16} /> الطاولات المعلقة ({heldOrders.length})
+                            <Clock size={16} /> الفواتير المعلقة ({heldOrders.length})
                         </button>
                         <button onClick={fetchRecentOrders} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
-                            <History size={16} /> السابقة
+                            <History size={16} /> الفواتير السابقة
                         </button>
                     </div>
                     <input 
@@ -729,6 +755,13 @@ export default function RestaurantPOS() {
                 <div className="numpad-section">
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <button 
+                            onClick={handleHoldOrder}
+                            disabled={cart.length === 0}
+                            style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
+                        >
+                            <Clock size={18} /> تعليق الفاتورة
+                        </button>
+                        <button 
                             className="pay-btn-big" 
                             disabled={cart.length === 0 || isProcessing}
                             onClick={() => handleCheckout('CASH')}
@@ -853,10 +886,34 @@ export default function RestaurantPOS() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} ر.س</div>
                                         <button onClick={() => { 
-                                            // The Restaurant POS currently prints by calling window.print natively. 
-                                            // We don't have a specific `printReceipt` function stored globally, so we'll just mock this or print using a backend hit if needed
-                                            alert('إعادة طباعة الإيصال جاري تجهيزها.'); 
-                                        }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>إعادة طباعة</button>
+                                            const printCart = (inv.details || []).map((d: any) => ({
+                                                name: d.productName,
+                                                qty: d.quantity,
+                                                price: d.price
+                                            }));
+                                            printReceipt(
+                                                { invoiceNumber: `INV-${inv.invoiceNo}`, zatcaQr: inv.zatcaQr },
+                                                printCart,
+                                                inv.subtotal,
+                                                inv.taxValue,
+                                                inv.discountValue
+                                            );
+                                        }} style={{ background: '#22c55e', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>إعادة طباعة</button>
+                                        
+                                        <button onClick={() => { 
+                                            const printCart = (inv.details || []).map((d: any) => ({
+                                                name: d.productName,
+                                                qty: d.quantity,
+                                                price: d.price
+                                            }));
+                                            exportToPDF(
+                                                { invoiceNumber: `INV-${inv.invoiceNo}`, zatcaQr: inv.zatcaQr },
+                                                printCart,
+                                                inv.subtotal,
+                                                inv.taxValue,
+                                                inv.discountValue
+                                            );
+                                        }} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>تصدير PDF</button>
                                     </div>
                                 </div>
                             ))}

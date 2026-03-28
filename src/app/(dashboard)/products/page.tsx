@@ -258,6 +258,17 @@ export default function ProductsPage() {
         } catch { showToast('❌ خطأ في الاتصال'); }
     };
 
+    const handleDeleteAllProducts = async () => {
+        if (!confirm('⚠️ هل أنت متأكد من حذف أو أرشفة جميع المنتجات؟')) return;
+        if (!confirm('تأكيد نهائي: سيتم حذف جميع المنتجات التي ليس لها حركات مالية، وسيتم أرشفة الباقي. استمر؟')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/products?action=delete_all', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); fetchProducts(); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل الحذف'}`); }
+        } catch { showToast('❌ خطأ في الاتصال'); }
+    };
+
     const paginatedProducts = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
     const totalPages = Math.ceil(products.length / PER_PAGE);
 
@@ -293,6 +304,7 @@ export default function ProductsPage() {
                         {isImporting ? '⏳ جاري الاستيراد...' : '📥 استيراد منتجات'}
                     </button>
                     {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🔄 تصفير المخزون</button>}
+                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🗑️ حذف كل المنتجات</button>}
                     <button className="btn btn-primary" onClick={openAdd}>➕ إضافة منتج</button>
                 </div>
 

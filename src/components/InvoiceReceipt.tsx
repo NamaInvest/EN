@@ -194,6 +194,76 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         printWindow.document.close();
     }, [printerType]);
 
+    const handleExportPDF = useCallback(() => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = () => {
+            const ps = paperSizes[printerType] || paperSizes['80mm'];
+            const content = receiptRef.current?.innerHTML || '';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Cairo', sans-serif;
+                            width: ${ps.width};
+                            padding: ${ps.padding};
+                            font-size: ${ps.fontSize};
+                            line-height: 1.4;
+                            direction: rtl;
+                            color: #000;
+                            background: white;
+                        }
+                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
+                        .company-name { font-size: ${ps.companySize}; font-weight: 800; }
+                        .vat-num { font-size: 10px; color: #666; }
+                        .invoice-type { font-size: 10px; color: #999; margin-top: 2px; }
+                        .info-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+                        .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: ${ps.fontSize}; border: 1px solid #000; }
+                        .items-table th, .items-table td { border: 1px solid #000 !important; padding: 4px; text-align: center; }
+                        .items-table th { font-weight: 600; background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .items-table td:first-child, .items-table th:first-child { text-align: right; }
+                        .totals { padding-top: 8px; }
+                        .total-row { display: flex; justify-content: space-between; font-size: ${ps.fontSize}; margin-bottom: 2px; }
+                        .grand-total { font-size: 16px; font-weight: 800; border-top: 1px solid #000; padding-top: 6px; margin-top: 4px; }
+                        .discount { color: #e11d48; }
+                        ${!isQuote ? `
+                        .qr-section { text-align: center; margin-top: 12px; padding-top: 8px; }
+                        .qr-section img { width: ${ps.qrSize}; height: ${ps.qrSize}; }
+                        .qr-label { font-size: 8px; color: #666; margin-top: 2px; }
+                        ` : ''}
+                        .footer { text-align: center; margin-top: 8px; font-size: 10px; color: #999; border-top: 1px solid #000; padding-top: 8px; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `;
+            element.style.position = 'absolute';
+            element.style.left = '-9999px';
+            document.body.appendChild(element);
+
+            const isA4 = printerType.includes('A');
+            const format = isA4 ? (printerType === 'A4' ? 'a4' : 'a5') : [parseInt(ps.width.replace('mm', '')), 250];
+
+            // @ts-ignore
+            window.html2pdf().from(element.firstElementChild || element).set({
+                margin: 5,
+                filename: `Invoice_${invoiceData?.invoiceNumber || invoiceId || Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: format, orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(element);
+            });
+        };
+        document.body.appendChild(script);
+    }, [invoiceData, invoiceId, printerType, isQuote]);
+
     const data = invoiceData;
     if (!data) return null;
 
@@ -308,7 +378,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 </div>
 
                 {/* Action buttons (screen only) */}
-                <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid #eee' }} className="no-print">
+                <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid #eee', flexWrap: 'wrap' }} className="no-print">
                     <button
                         onClick={handlePrint}
                         style={{
@@ -317,7 +387,17 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                             cursor: 'pointer', fontFamily: 'Cairo',
                         }}
                     >
-                        🖨️ طباعة مرة أخرى
+                        🖨️ طباعة
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        style={{
+                            flex: 1, padding: '12px', background: '#ef4444', color: '#fff',
+                            border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
+                            cursor: 'pointer', fontFamily: 'Cairo',
+                        }}
+                    >
+                        📄 تصدير PDF
                     </button>
                     <button
                         onClick={onClose}

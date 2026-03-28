@@ -142,6 +142,25 @@ export async function DELETE(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
+        const { searchParams } = new URL(request.url);
+        const action = searchParams.get('action');
+
+        if (action === 'delete_all') {
+            const allowed = await hasPermission(auth.userId, 'delete_products');
+            if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف المنتجات' }, { status: 403 });
+
+            await prisma.productStock.deleteMany({});
+            try {
+                const result = await prisma.product.deleteMany({});
+                return NextResponse.json({ success: true, message: `تم حذف ${result.count} منتج نهائياً` });
+            } catch (e) {
+                // Fallback to soft delete
+                const result = await prisma.product.updateMany({ data: { active: false } });
+                return NextResponse.json({ success: true, message: `تم أرشفة ${result.count} منتج لوجود حركات مالية` });
+            }
+        }
+
         const allowed = await hasPermission(auth.userId, 'reset_stock');
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تصفير المخزون' }, { status: 403 });
 

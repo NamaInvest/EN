@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { generateZatcaQRContent } from '@/lib/zatca';
 
 export async function POST(req: NextRequest) {
     try {
@@ -152,10 +153,41 @@ export async function POST(req: NextRequest) {
             console.warn('Auto-journal for POS sale skipped/failed:', journalErr);
         }
 
-        // Return a Stringified invoice number for the frontend alert
+        // Generate ZATCA Barcode for Receipt
+        let zatcaQr = '';
+        try {
+            const zatcaSettings = await prisma.setting.findMany({
+                where: { key: { in: ['company_name', 'tax_number'] } }
+            });
+            const s: Record<string, string> = {};
+            zatcaSettings.forEach((st: any) => { s[st.key] = st.value ?? ''; });
+            
+            if (s['company_name'] && s['tax_number']) {
+                zatcaQr = generateZatcaQRContent({
+                    sellerName: s['company_name'],
+                    vatNumber: s['tax_number'],
+                    timestamp: invoice.date.toISOString(),
+                    totalWithVat: finalTotal,
+                    vatAmount: tax,
+                });
+                
+                // Save it to the database so it's persisted for Phase 1 display
+                await prisma.salesInvoice.update({
+                    where: { id: invoice.id },
+                    data: { zatcaQr }
+                });
+            }
+        } catch (qrErr) {
+            console.warn('Zatca QR generation failed in POS:', qrErr);
+        }
+
+        // Return a Stringified invoice number and the QR for the frontend
         return NextResponse.json({ 
             success: true, 
-            invoice: { invoiceNumber: `INV-${invoice.invoiceNo}` } 
+            invoice: { 
+                invoiceNumber: `INV-${invoice.invoiceNo}`,
+                zatcaQr 
+            } 
         });
 
     } catch (error: any) {
