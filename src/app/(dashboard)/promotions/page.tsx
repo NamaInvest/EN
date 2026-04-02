@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Promo { id: number; name: string; type: string; discountType: string; discountValue: number; startDate: string; endDate: string; isActive: boolean }
 
 export default function PromotionsPage() {
+    const { t } = useTranslation();
     const [promos, setPromos] = useState<Promo[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [form, setForm] = useState({ name: '', type: 'percentage', discountType: 'percentage', discountValue: '', startDate: '', endDate: '' });
@@ -16,25 +18,25 @@ export default function PromotionsPage() {
 
     const typeLabels: Record<string, string> = { percentage: '📊 نسبة مئوية', fixed: '💰 مبلغ ثابت', bogo: '🎁 اشتر واحصل', quantity: '📦 كمية', happy_hour: '⏰ ساعة سعيدة' };
 
-    return (<><div className="page-header"><h1 className="page-title">🎯 العروض والترويج</h1></div>
+    return (<><div className="page-header"><h1 className="page-title">{t('sys.str_926')}</h1></div>
         <div className="page-content animate-fade-in">
-            <div className="toolbar"><span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{promos.length} عرض</span><div className="toolbar-spacer" /><button className="btn btn-primary" onClick={() => setShowAdd(true)}>➕ عرض جديد</button></div>
+            <div className="toolbar"><span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{promos.length} {t('sys.str_927')}</span><div className="toolbar-spacer" /><button className="btn btn-primary" onClick={() => setShowAdd(true)}>{t('sys.str_928')}</button></div>
             {showAdd && <div className="card" style={{ marginBottom: '16px', padding: '16px' }}>
-                <h3 style={{ marginBottom: '12px' }}>🎯 عرض جديد</h3>
+                <h3 style={{ marginBottom: '12px' }}>{t('sys.str_929')}</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
-                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>اسم العرض</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
-                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>النوع</label><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}><option value="percentage">نسبة مئوية</option><option value="fixed">مبلغ ثابت</option><option value="bogo">اشتر واحصل</option><option value="quantity">كمية</option><option value="happy_hour">ساعة سعيدة</option></select></div>
-                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>قيمة الخصم</label><input type="number" value={form.discountValue} onChange={e => setForm({ ...form, discountValue: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
-                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>تاريخ البداية</label><input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
-                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>تاريخ النهاية</label><input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sys.str_930')}</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('fin.str_199')}</label><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}><option value="percentage">{t('sys.str_931')}</option><option value="fixed">{t('sys.str_932')}</option><option value="bogo">{t('sys.str_933')}</option><option value="quantity">{t('sys.str_934')}</option><option value="happy_hour">{t('sys.str_935')}</option></select></div>
+                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sys.str_511')}</label><input type="number" value={form.discountValue} onChange={e => setForm({ ...form, discountValue: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sys.str_506')}</label><input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                    <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sys.str_507')}</label><input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}><button className="btn btn-sm" onClick={() => setShowAdd(false)}>إلغاء</button><button className="btn btn-primary btn-sm" onClick={handleSave}>حفظ</button></div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}><button className="btn btn-sm" onClick={() => setShowAdd(false)}>{t('fin.str_206')}</button><button className="btn btn-primary btn-sm" onClick={handleSave}>{t('fin.str_205')}</button></div>
             </div>}
             <div className="card">
-                {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                    promos.length === 0 ? <div className="empty-state"><div className="empty-state-icon">🎯</div><div className="empty-state-text">لا توجد عروض</div></div> :
+                {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                    promos.length === 0 ? <div className="empty-state"><div className="empty-state-icon">🎯</div><div className="empty-state-text">{t('sys.str_936')}</div></div> :
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}><th style={{ padding: '8px', textAlign: 'right' }}>العرض</th><th style={{ padding: '8px', textAlign: 'right' }}>النوع</th><th style={{ padding: '8px', textAlign: 'right' }}>القيمة</th><th style={{ padding: '8px', textAlign: 'right' }}>الفترة</th><th style={{ padding: '8px', textAlign: 'center' }}>الحالة</th></tr></thead>
+                            <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}><th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_937')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_199')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_938')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_939')}</th><th style={{ padding: '8px', textAlign: 'center' }}>{t('fin.str_227')}</th></tr></thead>
                             <tbody>{promos.map(p => (
                                 <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '8px', fontWeight: '600' }}>{p.name}</td>

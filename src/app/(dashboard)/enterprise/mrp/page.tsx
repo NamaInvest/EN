@@ -49,8 +49,8 @@ export default function EnterpriseMRP() {
                 body: JSON.stringify({ ...formData, type: 'order' })
             });
             if (res.ok) { setShowOrderModal(false); fetchData(); } 
-            else { alert('فشل في التخطيط'); }
-        } catch (error) { alert('خطأ'); } 
+            else { alert(t('sys.str_1862')); }
+        } catch (error) { alert(t('sys.str_631')); } 
         finally { setSaving(false); }
     };
 
@@ -62,7 +62,7 @@ export default function EnterpriseMRP() {
                 body: JSON.stringify({ id, action })
             });
             fetchData();
-        } catch (error) { alert('خطأ'); }
+        } catch (error) { alert(t('sys.str_631')); }
     };
 
     const getMachineStatusColor = (status: string) => {
@@ -77,11 +77,9 @@ export default function EnterpriseMRP() {
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Factory size={28} color="var(--primary)" />
-                        إدارة المصانع المتقدمة (MRP)
-                    </h1>
+                        {t('sys.str_1834')}</h1>
                     <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>
-                        تخطيط موارد التصنيع، مراقبة محطات العمل الآلية، وإصدار أوامر الإنتاج الموجّهة.
-                    </p>
+                        {t('sys.str_1835')}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button 
@@ -89,20 +87,18 @@ export default function EnterpriseMRP() {
                         onClick={() => window.location.href = '/enterprise/mrp/recipes'}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                        📜 إدارة التركيبات (BOM)
-                    </button>
+                        {t('sys.str_1836')}</button>
                     <button 
                         className="btn btn-primary"
                         onClick={() => setShowOrderModal(true)}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                        <Plus size={20} /> أمر تصنيع جديد
-                    </button>
+                        <Plus size={20} /> {t('sys.str_1837')}</button>
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري تحميل المؤشرات...</div>
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{t('sys.str_1838')}</div>
             ) : (
                 <>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -110,21 +106,21 @@ export default function EnterpriseMRP() {
                             <div style={{ padding: '16px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', borderRadius: '50%' }}><Settings size={28} /></div>
                             <div>
                                 <div style={{ fontSize: '32px', fontWeight: '900' }}>{data.machines.length}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>محطات العمل / الآلات</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1839')}</div>
                             </div>
                         </div>
                         <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <div style={{ padding: '16px', background: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', borderRadius: '50%' }}><Activity size={28} /></div>
                             <div>
                                 <div style={{ fontSize: '32px', fontWeight: '900' }}>{data.orders.filter((o: any) => o.status === 'IN_PROGRESS').length}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>أوامر قيد التشغيل (Running)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1840')}</div>
                             </div>
                         </div>
                         <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <div style={{ padding: '16px', background: 'rgba(234, 179, 8, 0.1)', color: '#EAB308', borderRadius: '50%' }}><Clock size={28} /></div>
                             <div>
                                 <div style={{ fontSize: '32px', fontWeight: '900' }}>{data.orders.filter((o: any) => o.status === 'PLANNED').length}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>مجدولة بالانتظار (Planned)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1841')}</div>
                             </div>
                         </div>
                     </div>
@@ -133,8 +129,7 @@ export default function EnterpriseMRP() {
                         {/* Manufacturing Orders */}
                         <div className="card" style={{ padding: '20px' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                📋 توجيه أوامر التشغيل والانتاج
-                            </h3>
+                                {t('sys.str_1842')}</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {data.orders.map((order: any) => (
                                     <div key={order.id} style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', background: order.status === 'IN_PROGRESS' ? 'var(--primary-light)' : 'var(--bg-body)' }}>
@@ -149,36 +144,33 @@ export default function EnterpriseMRP() {
                                             </span>
                                         </div>
                                         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                                            المنتج الهدف: <strong style={{color: 'var(--text)'}}>{order.recipe?.product?.name}</strong> <br/>
-                                            الكمية المطلوبة: <strong style={{color: 'var(--text)'}}>{order.quantity}</strong> 
+                                            {t('sys.str_1843')}<strong style={{color: 'var(--text)'}}>{order.recipe?.product?.name}</strong> <br/>
+                                            {t('sys.str_1844')}<strong style={{color: 'var(--text)'}}>{order.quantity}</strong> 
                                         </div>
                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Settings size={14} /> محطة: {order.machine?.name}
+                                            <Settings size={14} /> {t('sys.str_1845')}{order.machine?.name}
                                         </div>
 
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             {order.status === 'PLANNED' && (
                                                 <button className="btn btn-primary btn-sm" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '6px' }} onClick={() => updateOrderStatus(order.id, 'START')}>
-                                                    <PlayCircle size={16} /> بدء التشغيل
-                                                </button>
+                                                    <PlayCircle size={16} /> {t('sys.str_1846')}</button>
                                             )}
                                             {order.status === 'IN_PROGRESS' && (
                                                 <button className="btn btn-success btn-sm" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '6px' }} onClick={() => updateOrderStatus(order.id, 'COMPLETE')}>
-                                                    <CheckCircle size={16} /> إعلان الانتهاء
-                                                </button>
+                                                    <CheckCircle size={16} /> {t('sys.str_1847')}</button>
                                             )}
                                         </div>
                                     </div>
                                 ))}
-                                {data.orders.length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>لا توجد أوامر إنتاج فعالة</div>}
+                                {data.orders.length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>{t('sys.str_1848')}</div>}
                             </div>
                         </div>
 
                         {/* Machine Control Board */}
                         <div className="card" style={{ padding: '20px' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                ⚙️ حالة الآلات ومحطات العمل
-                            </h3>
+                                {t('sys.str_1849')}</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr)', gap: '16px' }}>
                                 {data.machines.map((machine: any) => (
                                     <div key={machine.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -190,10 +182,10 @@ export default function EnterpriseMRP() {
                                             }} />
                                             <div>
                                                 <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{machine.name}</div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>القدرة: {machine.capacity} /ساعة</div>
+                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('sys.str_1850')}{machine.capacity} {t('sys.str_1851')}</div>
                                             </div>
                                         </div>
-                                        {machine.status === 'MAINTENANCE' && <span title="في الصيانة"><Wrench size={20} color="var(--danger)" /></span>}
+                                        {machine.status === 'MAINTENANCE' && <span title={t('sys.str_1799')}><Wrench size={20} color="var(--danger)" /></span>}
                                     </div>
                                 ))}
                             </div>
@@ -207,49 +199,49 @@ export default function EnterpriseMRP() {
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>إصدار أمر تشغيل (MO)</h2>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>{t('sys.str_1852')}</h2>
                             <button className="btn btn-ghost" onClick={() => setShowOrderModal(false)}>✕</button>
                         </div>
                         <div className="modal-body">
                             <form onSubmit={handleCreateOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div className="input-group">
-                                    <label className="input-label">المنتج المراد تصنيعه (Recipe) *</label>
+                                    <label className="input-label">{t('sys.str_1853')}</label>
                                     <select className="input" required value={formData.recipeId} onChange={e => setFormData({...formData, recipeId: e.target.value})}>
-                                        <option value="">اختر التوليفة/الوصفة...</option>
+                                        <option value="">{t('sys.str_1854')}</option>
                                         {recipes.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">الكمية المستهدف إنتاجها *</label>
+                                    <label className="input-label">{t('sys.str_1855')}</label>
                                     <input className="input" type="number" required dir="ltr" value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">محطة العمل / الآلة *</label>
+                                    <label className="input-label">{t('sys.str_1856')}</label>
                                     <select className="input" required value={formData.machineId} onChange={e => setFormData({...formData, machineId: e.target.value})}>
-                                        <option value="">توجيه للآلة...</option>
+                                        <option value="">{t('sys.str_1857')}</option>
                                         {data.machines.map((m: any) => <option key={m.id} value={m.id}>{m.name} ({m.status})</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">توجيه المنتجات الجاهزة لمستودع *</label>
+                                    <label className="input-label">{t('sys.str_1858')}</label>
                                     <select className="input" required value={formData.stockId} onChange={e => setFormData({...formData, stockId: e.target.value})}>
-                                        <option value="">اختر المستودع...</option>
+                                        <option value="">{t('sys.str_1859')}</option>
                                         {warehouses.map((w: any) => <option key={w.id} value={w.id}>{w.name}</option>)}
                                     </select>
                                 </div>
                                 <div style={{ display: 'flex', gap: '16px' }}>
                                     <div className="input-group" style={{ flex: 1 }}>
-                                        <label className="input-label">تاريخ البدء</label>
+                                        <label className="input-label">{t('sys.str_1860')}</label>
                                         <input className="input" type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                                     </div>
                                     <div className="input-group" style={{ flex: 1 }}>
-                                        <label className="input-label">تاريخ الانتهاء</label>
+                                        <label className="input-label">{t('sys.str_432')}</label>
                                         <input className="input" type="date" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-                                    <button type="button" className="btn btn-ghost" onClick={() => setShowOrderModal(false)}>إلغاء</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>تأكيد وحفظ الطلب القطعي</button>
+                                    <button type="button" className="btn btn-ghost" onClick={() => setShowOrderModal(false)}>{t('fin.str_206')}</button>
+                                    <button type="submit" className="btn btn-primary" disabled={saving}>{t('sys.str_1861')}</button>
                                 </div>
                             </form>
                         </div>

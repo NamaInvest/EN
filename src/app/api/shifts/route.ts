@@ -3,6 +3,16 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const parseAmount = (val: any) => {
+    if (val === undefined || val === null || val === '') return 0;
+    const str = String(val)
+        .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString())
+        .replace(/,/g, '.');
+    const parsed = parseFloat(str);
+    if (isNaN(parsed)) throw new Error('المبلغ ليس رقماً صحيحاً');
+    return parsed;
+};
+
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -48,10 +58,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'User already has an open shift' }, { status: 400 });
         }
 
+        let parsedStartCash = 0;
+        try {
+            parsedStartCash = parseAmount(startCash);
+        } catch (e: any) {
+            return NextResponse.json({ error: e.message }, { status: 400 });
+        }
+
         const shift = await prisma.shift.create({
             data: {
                 userId: parseInt(userId),
-                startingCash: parseFloat(startCash || 0),
+                startingCash: parsedStartCash,
                 branchId: branchId ? parseInt(branchId) : null,
                 notes: notes || '',
                 status: 'open',
@@ -74,10 +91,19 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Shift ID is required' }, { status: 400 });
         }
 
+        let parsedEndCash: number | undefined = undefined;
+        if (endCash !== undefined && endCash !== '') {
+            try {
+                parsedEndCash = parseAmount(endCash);
+            } catch (e: any) {
+                return NextResponse.json({ error: e.message }, { status: 400 });
+            }
+        }
+
         const shift = await prisma.shift.update({
             where: { id: parseInt(id) },
             data: {
-                endingCashActual: endCash !== undefined ? parseFloat(endCash) : undefined,
+                endingCashActual: parsedEndCash !== undefined ? parsedEndCash : undefined,
                 notes: notes !== undefined ? notes : undefined,
                 status: status || 'closed',
                 endTime: status === 'closed' ? new Date() : undefined,

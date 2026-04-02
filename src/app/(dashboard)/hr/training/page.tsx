@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function TrainingCoursesPage() {
+    const { t } = useTranslation();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +38,7 @@ export default function TrainingCoursesPage() {
                 <th className="p-4 font-semibold">عنوان الدورة</th>
                 <th className="p-4 font-semibold">مقدم الدورة</th>
                 <th className="p-4 font-semibold">المدة الزمنية</th>
-                <th className="p-4 font-semibold">الحالة</th>
+                <th className="p-4 font-semibold">{t('fin.str_227')}</th>
                 <th className="p-4 font-semibold">المسجلون</th>
               </tr>
             </thead>

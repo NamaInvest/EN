@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface ApprovalRule {
     id: number;
@@ -19,6 +20,7 @@ interface ApprovalRule {
 }
 
 export default function ApprovalsPage() {
+    const { t } = useTranslation();
     const [rules, setRules] = useState<ApprovalRule[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -43,7 +45,7 @@ export default function ApprovalsPage() {
 
     const handleSave = async () => {
         if (!form.documentType || !form.approverRole) { 
-            showToast('❌ يرجى اختيار نوع المستند ودور المعتمِد'); 
+            showToast(t('sys.str_2505')); 
             return; 
         }
         
@@ -55,27 +57,27 @@ export default function ApprovalsPage() {
                     method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body,
                 });
-                if (res.ok) { showToast('✅ تم تحديث القاعدة'); setShowModal(false); fetchData(); }
+                if (res.ok) { showToast(t('sys.str_2506')); setShowModal(false); fetchData(); }
                 else { const d = await res.json(); showToast(`❌ ${d.error}`); }
             } else {
                 const res = await fetch('/api/settings/approvals', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body,
                 });
-                if (res.ok) { showToast('✅ تمت إضافة القاعدة'); setShowModal(false); fetchData(); }
+                if (res.ok) { showToast(t('sys.str_2507')); setShowModal(false); fetchData(); }
                 else { const d = await res.json(); showToast(`❌ ${d.error}`); }
             }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const deleteRule = async (r: ApprovalRule) => {
-        if (!confirm(`هل أنت متأكد من حذف هذه القاعدة؟`)) return;
+        if (!confirm(t('sys.str_2512'))) return;
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/settings/approvals/${r.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { showToast('✅ تم الحذف'); fetchData(); }
+            if (res.ok) { showToast(t('sys.str_488')); fetchData(); }
             else { const d = await res.json(); showToast(`❌ ${d.error}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const openEdit = (r: ApprovalRule) => {
@@ -112,8 +114,8 @@ export default function ApprovalsPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">✅ نظام الرقابة والموافقات</h1>
-                <button className="btn btn-primary" onClick={openAdd}>➕ إضافة قاعدة موافقة</button>
+                <h1 className="page-title">{t('sys.str_1307')}</h1>
+                <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_2484')}</button>
             </div>
 
             <div className="page-content animate-fade-in">
@@ -122,18 +124,18 @@ export default function ApprovalsPage() {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>نوع المستند</th>
-                                <th>الحد الأدنى للمبلغ</th>
-                                <th>الحد الأعلى للمبلغ</th>
-                                <th>المستوى</th>
-                                <th>دور المعتمِد</th>
-                                <th>الحالة</th>
-                                <th>إجراءات</th>
+                                <th>{t('sys.str_2485')}</th>
+                                <th>{t('sys.str_2486')}</th>
+                                <th>{t('sys.str_2487')}</th>
+                                <th>{t('sys.str_2488')}</th>
+                                <th>{t('sys.str_2489')}</th>
+                                <th>{t('fin.str_227')}</th>
+                                <th>{t('sys.str_435')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : rules.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-text">لا توجد قواعد موافقة مسجلة</div></div></td></tr>
+                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                                : rules.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-text">{t('sys.str_2490')}</div></div></td></tr>
                                     : rules.map((r, i) => (
                                         <tr key={r.id}>
                                             <td>{i + 1}</td>
@@ -168,51 +170,51 @@ export default function ApprovalsPage() {
                         </div>
                         
                         <div className="input-group">
-                            <label className="input-label">نوع المستند *</label>
+                            <label className="input-label">{t('sys.str_2491')}</label>
                             <select className="input" value={form.documentType} onChange={e => setForm({ ...form, documentType: e.target.value })}>
-                                <option value="PURCHASE_ORDER">طلب / أمر شراء</option>
-                                <option value="JOURNAL_ENTRY">قيد يومية (سند)</option>
-                                <option value="EXPENSE">مصروفات وعهد</option>
-                                <option value="MANUFACTURING_ORDER">أمر تصنيع مخزني</option>
-                                <option value="SALES_INVOICE">فاتورة مبيعات</option>
+                                <option value="PURCHASE_ORDER">{t('sys.str_2492')}</option>
+                                <option value="JOURNAL_ENTRY">{t('sys.str_2493')}</option>
+                                <option value="EXPENSE">{t('sys.str_2494')}</option>
+                                <option value="MANUFACTURING_ORDER">{t('sys.str_2495')}</option>
+                                <option value="SALES_INVOICE">{t('sys.str_2496')}</option>
                             </select>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div className="input-group">
-                                <label className="input-label">الحد الأدنى للقيمة (0 = أي مبلغ)</label>
+                                <label className="input-label">{t('sys.str_2497')}</label>
                                 <input className="input" type="number" value={form.minAmount} onChange={e => setForm({ ...form, minAmount: parseFloat(e.target.value) || 0 })} dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">الحد الأعلى (اتركه فارغاً = بدون حد)</label>
-                                <input className="input" type="number" value={form.maxAmount || ''} onChange={e => setForm({ ...form, maxAmount: e.target.value ? parseFloat(e.target.value) : null })} dir="ltr" placeholder="مفتوح" />
+                                <label className="input-label">{t('sys.str_2498')}</label>
+                                <input className="input" type="number" value={form.maxAmount || ''} onChange={e => setForm({ ...form, maxAmount: e.target.value ? parseFloat(e.target.value) : null })} dir="ltr" placeholder={t('sys.str_514')} />
                             </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div className="input-group">
-                                <label className="input-label">دور المعتمِد المطلوب *</label>
+                                <label className="input-label">{t('sys.str_2499')}</label>
                                 <select className="input" value={form.approverRole} onChange={e => setForm({ ...form, approverRole: e.target.value })}>
-                                    <option value="admin">المدير العام (admin)</option>
-                                    <option value="manager">مدير القسم (manager)</option>
-                                    <option value="accountant">محاسب (accountant)</option>
+                                    <option value="admin">{t('sys.str_2500')}</option>
+                                    <option value="manager">{t('sys.str_2501')}</option>
+                                    <option value="accountant">{t('sys.str_2502')}</option>
                                 </select>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">مستوى الموافقة (للعمليات المعقدة)</label>
+                                <label className="input-label">{t('sys.str_2503')}</label>
                                 <input className="input" type="number" value={form.level} onChange={e => setForm({ ...form, level: parseInt(e.target.value) || 1 })} dir="ltr" min="1" />
                             </div>
                         </div>
 
                         <div className="input-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px' }}>
                             <input type="checkbox" id="isActive" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} />
-                            <label htmlFor="isActive" style={{ margin: 0, cursor: 'pointer' }}>تفعيل القاعدة ضمن دورة العمل</label>
+                            <label htmlFor="isActive" style={{ margin: 0, cursor: 'pointer' }}>{t('sys.str_2504')}</label>
                         </div>
 
 
                         <div className="modal-footer" style={{ marginTop: '20px' }}>
-                            <button className="btn btn-primary" onClick={handleSave}>💾 احفظ التغييرات</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={handleSave}>{t('sys.str_484')}</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

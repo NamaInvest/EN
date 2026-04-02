@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function SerialNumbersPage() {
+    const { t } = useTranslation();
   const [serials, setSerials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,9 +35,9 @@ export default function SerialNumbersPage() {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="p-4 font-semibold">الرقم التسلسلي (SN)</th>
-                <th className="p-4 font-semibold">اسم الصنف</th>
-                <th className="p-4 font-semibold">المستودع</th>
+                <th className="p-4 font-semibold">{t('sys.str_2226')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_957')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_2227')}</th>
                 <th className="p-4 font-semibold">حالة الصنف</th>
                 <th className="p-4 font-semibold">تاريخ التسجيل</th>
               </tr>
@@ -45,7 +47,7 @@ export default function SerialNumbersPage() {
                 <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition">
                   <td className="p-4 font-mono font-bold text-slate-800 tracking-wider text-left" dir="ltr">{sn.serialNumber}</td>
                   <td className="p-4 text-slate-700">{sn.product?.name || 'صنف غير معروف'}</td>
-                  <td className="p-4 text-slate-600">{sn.stock?.name || 'المستودع الرئيسي'}</td>
+                  <td className="p-4 text-slate-600">{sn.stock?.name || t('sys.str_753')}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       sn.status === 'IN_STOCK' ? 'bg-green-100 text-green-700' : 

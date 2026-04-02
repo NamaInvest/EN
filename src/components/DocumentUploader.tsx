@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface DocumentUploaderProps {
     documentType: string;
@@ -9,6 +10,7 @@ interface DocumentUploaderProps {
 }
 
 export default function DocumentUploader({ documentType, documentId, title = 'المستندات المرفقة' }: DocumentUploaderProps) {
+    const { t } = useTranslation();
     const [docs, setDocs] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -38,7 +40,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!fileInputRef.current?.files?.[0]) return alert('الرجاء اختيار ملف');
+        if (!fileInputRef.current?.files?.[0]) return alert(t('sys.str_49'));
 
         setUploading(true);
         try {
@@ -63,7 +65,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
                 if (fileInputRef.current) fileInputRef.current.value = '';
                 fetchDocs();
             } else {
-                alert('فشل الرفع');
+                alert(t('sys.str_50'));
             }
         } catch (err) {
             console.error(err);
@@ -72,7 +74,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('الرجاء التأكيد على حذف المستند بشكل نهائي؟')) return;
+        if (!confirm(t('sys.str_51'))) return;
         try {
             const token = localStorage.getItem('token') || '';
             const res = await fetch(`/api/documents/${id}`, {
@@ -92,27 +94,26 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
             </h3>
 
             {/* List Attached Documents */}
-            {loading ? <p>جاري تحميل المرفقات...</p> : (
+            {loading ? <p>{t('sys.str_39')}</p> : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-                    {docs.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>لا توجد مستندات مرفقة.</p> : docs.map(doc => (
+                    {docs.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>{t('sys.str_40')}</p> : docs.map(doc => (
                         <div key={doc.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px', position: 'relative', background: 'var(--bg-lighter)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>{doc.docName}</h4>
-                                <button onClick={() => handleDelete(doc.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '18px' }} title="حذف المستند">✕</button>
+                                <button onClick={() => handleDelete(doc.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '18px' }} title={t('sys.str_52')}>✕</button>
                             </div>
                             
                             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px' }}>
-                                <p style={{ margin: '2px 0' }}>تاريخ الرفع: {new Date(doc.createdAt).toLocaleDateString()}</p>
+                                <p style={{ margin: '2px 0' }}>{t('sys.str_41')}{new Date(doc.createdAt).toLocaleDateString()}</p>
                                 {doc.expiryDate && (
                                     <p style={{ margin: '2px 0', color: new Date(doc.expiryDate) < new Date() ? 'red' : 'inherit' }}>
-                                        تاريخ الانتهاء: {new Date(doc.expiryDate).toLocaleDateString()}
+                                        {t('sys.str_42')}{new Date(doc.expiryDate).toLocaleDateString()}
                                     </p>
                                 )}
                             </div>
 
                             <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', width: '100%', padding: '5px' }}>
-                                👁️ عرض / تحميل
-                            </a>
+                                {t('sys.str_43')}</a>
                         </div>
                     ))}
                 </div>
@@ -120,21 +121,21 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
 
             {/* Upload Form */}
             <form onSubmit={handleUpload} style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-                <h4 style={{ margin: '0 0 15px 0' }}>إرفاق مستند جديد</h4>
+                <h4 style={{ margin: '0 0 15px 0' }}>{t('sys.str_44')}</h4>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                     <div className="input-group" style={{ margin: 0 }}>
-                        <label className="input-label">اسم المستند (وصف قصير)</label>
-                        <input type="text" className="input" value={docName} onChange={e => setDocName(e.target.value)} placeholder="مثال: فاتورة المورد، بوليصة التأمين..." />
+                        <label className="input-label">{t('sys.str_45')}</label>
+                        <input type="text" className="input" value={docName} onChange={e => setDocName(e.target.value)} placeholder={t('sys.str_53')} />
                     </div>
                     <div className="input-group" style={{ margin: 0 }}>
-                        <label className="input-label">تاريخ الانتهاء (إن وجد)</label>
+                        <label className="input-label">{t('sys.str_46')}</label>
                         <input type="date" className="input" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="input-group" style={{ margin: '0 0 15px 0' }}>
-                    <label className="input-label">الملف المرفق *</label>
+                    <label className="input-label">{t('sys.str_47')}</label>
                     <input type="file" ref={fileInputRef} className="input" style={{ padding: '8px' }} required />
                 </div>
 

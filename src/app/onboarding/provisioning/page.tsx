@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Terminal, Database, Server, CheckSquare, Zap, CloudCog, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function SaaSProvisioningTerminal() {
+    const { t } = useTranslation();
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [tenantId, setTenantId] = useState("n11");
-  const [orgName, setOrgName] = useState("جاري جلب المنشأة...");
+  const [orgName, setOrgName] = useState(t('sys.str_1583'));
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import DocumentUploader from '@/components/DocumentUploader';
+import { useTranslation } from "@/lib/i18n";
 
 export default function LettersOfCreditPage() {
+    const { t } = useTranslation();
     const [lcs, setLcs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [banks, setBanks] = useState<any[]>([]);
@@ -63,7 +65,7 @@ export default function LettersOfCreditPage() {
                 setShowModal(false);
                 fetchData();
             } else {
-                alert('حدث خطأ في الحفظ');
+                alert(t('purchases.str_2293'));
             }
         } catch (error) {
             console.error(error);
@@ -71,7 +73,7 @@ export default function LettersOfCreditPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('هل أنت متأكد من الحذف؟')) return;
+        if (!confirm(t('sys.str_541'))) return;
         try {
             const token = localStorage.getItem('token') || '';
             const response = await fetch(`/api/purchases/letters-of-credit/${id}`, { 
@@ -81,7 +83,7 @@ export default function LettersOfCreditPage() {
             if (response.ok) {
                 fetchData();
             } else {
-                alert('فشل الحذف. قد يكون الاعتماد مرتبطاً بعمليات أخرى.');
+                alert(t('purchases.str_2294'));
             }
         } catch (error) {
             console.error(error);
@@ -103,17 +105,16 @@ export default function LettersOfCreditPage() {
         <>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">🌍 الاعتمادات المستندية (LC)</h1>
-                    <p className="page-description">إدارة خطابات الاعتماد والشحنات الخارجية (Foreign Purchases)</p>
+                    <h1 className="page-title">{t('purchases.str_2268')}</h1>
+                    <p className="page-description">{t('purchases.str_2269')}</p>
                 </div>
                 <button onClick={openCreateModal} className="btn btn-primary">
-                    ➕ فتح اعتماد جديد
-                </button>
+                    {t('purchases.str_2270')}</button>
             </div>
 
             <div className="page-content animate-fade-in">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</div>
+                    <div style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</div>
                 ) : (
                     <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                         {lcs.map(lc => (
@@ -122,7 +123,7 @@ export default function LettersOfCreditPage() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                                     <div>
                                         <h3 style={{ margin: 0, fontSize: '1.2rem' }}>LC: {lc.lcNumber}</h3>
-                                        <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>المورد: {lc.supplier?.name}</p>
+                                        <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>{t('purchases.str_2271')}{lc.supplier?.name}</p>
                                     </div>
                                     <span className={`badge ${lc.status === 'active' ? 'badge-success' : lc.status === 'draft' ? 'badge-warning' : ''}`}>
                                         {lc.status === 'active' ? 'نشط' : lc.status === 'draft' ? 'مسودة' : lc.status === 'completed' ? 'مكتمل' : 'ملغي'}
@@ -131,20 +132,20 @@ export default function LettersOfCreditPage() {
                                 
                                 <div style={{ background: 'var(--bg-lighter)', padding: '15px', borderRadius: '8px', marginBottom: '15px', fontSize: '14px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>البنك:</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>{t('purchases.str_2272')}</span>
                                         <strong>{lc.bank?.bankName} ({lc.bank?.accountName})</strong>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>المبلغ:</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>{t('purchases.str_2273')}</span>
                                         <strong style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>{lc.amount.toLocaleString()} {lc.currency?.code}</strong>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>تاريخ الانتهاء:</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>{t('sys.str_42')}</span>
                                         <strong style={{ color: 'var(--danger)' }}>{new Date(lc.expiryDate).toLocaleDateString()}</strong>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>الهامش (%):</span>
-                                        <strong>{lc.marginPercent}% (دُفع {lc.marginPaid})</strong>
+                                        <span style={{ color: 'var(--text-muted)' }}>{t('purchases.str_2274')}</span>
+                                        <strong>{lc.marginPercent}{t('purchases.str_2275')}{lc.marginPaid})</strong>
                                     </div>
                                 </div>
                                 
@@ -164,14 +165,12 @@ export default function LettersOfCreditPage() {
                                         }}
                                         className="btn btn-outline" style={{ flex: 1 }}
                                     >
-                                        تعديل
-                                    </button>
+                                        {t('sys.str_393')}</button>
                                     <button 
                                         onClick={() => handleDelete(lc.id)}
                                         className="btn btn-danger"
                                     >
-                                        حذف
-                                    </button>
+                                        {t('sys.str_394')}</button>
                                 </div>
                             </div>
                         ))}
@@ -190,87 +189,87 @@ export default function LettersOfCreditPage() {
                         <form onSubmit={handleSave} style={{ padding: '20px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '15px' }}>
                                 <div className="input-group">
-                                    <label className="input-label">رقم الاعتماد المستندي *</label>
+                                    <label className="input-label">{t('purchases.str_2276')}</label>
                                     <input type="text" className="input" value={formData.lcNumber} onChange={e => setFormData({...formData, lcNumber: e.target.value})} required />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">المورد المستفيد *</label>
+                                    <label className="input-label">{t('purchases.str_2277')}</label>
                                     <select className="input" value={formData.supplierId} onChange={e => setFormData({...formData, supplierId: e.target.value})} required>
-                                        <option value="">اختر المورد...</option>
+                                        <option value="">{t('sys.str_954')}</option>
                                         {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">البنك فاتح الاعتماد *</label>
+                                    <label className="input-label">{t('purchases.str_2278')}</label>
                                     <select className="input" value={formData.bankId} onChange={e => setFormData({...formData, bankId: e.target.value})} required>
-                                        <option value="">اختر البنك...</option>
+                                        <option value="">{t('sys.str_1816')}</option>
                                         {banks.map(b => <option key={b.id} value={b.id}>{b.bankName} - {b.accountName}</option>)}
                                     </select>
                                 </div>
 
                                 <div className="input-group">
-                                    <label className="input-label">المبلغ *</label>
+                                    <label className="input-label">{t('sys.str_577')}</label>
                                     <input type="number" step="0.01" className="input" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">عملة الاعتماد *</label>
+                                    <label className="input-label">{t('purchases.str_2279')}</label>
                                     <select className="input" value={formData.currencyId} onChange={e => setFormData({...formData, currencyId: e.target.value})} required>
-                                        <option value="">اختر العملة...</option>
+                                        <option value="">{t('purchases.str_2280')}</option>
                                         {currencies.map(c => <option key={c.id} value={c.id}>{c.code} - {c.nameAr}</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">سعر الصرف الداخلي *</label>
+                                    <label className="input-label">{t('purchases.str_2281')}</label>
                                     <input type="number" step="0.000001" className="input" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} required />
                                 </div>
 
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ الفتح *</label>
+                                    <label className="input-label">{t('purchases.str_2282')}</label>
                                     <input type="date" className="input" value={formData.openDate} onChange={e => setFormData({...formData, openDate: e.target.value})} required />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ الانتهاء *</label>
+                                    <label className="input-label">{t('purchases.str_2283')}</label>
                                     <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({...formData, expiryDate: e.target.value})} required />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">حالة الاعتماد</label>
+                                    <label className="input-label">{t('purchases.str_2284')}</label>
                                     <select className="input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                                        <option value="draft">مسودة</option>
-                                        <option value="active">نشط / مفتوح</option>
-                                        <option value="completed">مكتمل</option>
-                                        <option value="cancelled">ملغي</option>
+                                        <option value="draft">{t('purchases.str_2285')}</option>
+                                        <option value="active">{t('purchases.str_2286')}</option>
+                                        <option value="completed">{t('sys.str_1865')}</option>
+                                        <option value="cancelled">{t('purchases.str_2287')}</option>
                                     </select>
                                 </div>
 
                                 <div className="input-group">
-                                    <label className="input-label">نسبة الغطاء (% التأمين)</label>
+                                    <label className="input-label">{t('purchases.str_2288')}</label>
                                     <input type="number" step="0.01" className="input" value={formData.marginPercent} onChange={e => setFormData({...formData, marginPercent: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">المبلغ المسدد مسبقاً</label>
+                                    <label className="input-label">{t('purchases.str_2289')}</label>
                                     <input type="number" step="0.01" className="input" value={formData.marginPaid} onChange={e => setFormData({...formData, marginPaid: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">ميناء الشحن والتفريغ</label>
+                                    <label className="input-label">{t('purchases.str_2290')}</label>
                                     <input type="text" className="input" placeholder="Loading -> Discharge" value={formData.portOfLoading} onChange={e => setFormData({...formData, portOfLoading: e.target.value})} />
                                 </div>
                             </div>
 
                             <div className="input-group" style={{ marginTop: '15px' }}>
-                                <label className="input-label">ملاحظات إضافية</label>
+                                <label className="input-label">{t('purchases.str_2291')}</label>
                                 <textarea className="input" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} rows={2}></textarea>
                             </div>
 
                             <div className="modal-footer" style={{ marginTop: '20px' }}>
-                                <button type="submit" className="btn btn-primary">💾 حفظ الاعتماد المستندي</button>
-                                <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">إلغاء</button>
+                                <button type="submit" className="btn btn-primary">{t('purchases.str_2292')}</button>
+                                <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">{t('fin.str_206')}</button>
                             </div>
                         </form>
 
                         {/* Document Archiving - Only show when editing an existing LC */}
                         {editingId && (
                             <div style={{ padding: '0 20px 20px' }}>
-                                <DocumentUploader documentType="LETTER_OF_CREDIT" documentId={editingId} title="مرفقات الاعتماد (Swift, B/L, etc.)" />
+                                <DocumentUploader documentType="LETTER_OF_CREDIT" documentId={editingId} title={t('purchases.str_2297')} />
                             </div>
                         )}
                     </div>

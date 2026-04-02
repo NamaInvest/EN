@@ -1,0 +1,467 @@
+{
+  "sales.str_1": {
+    "ar": "🧾 فاتورة مبيعات"
+  },
+  "sales.str_2": {
+    "ar": "📄 جديدة"
+  },
+  "sales.str_3": {
+    "ar": "⏸️ تعليق"
+  },
+  "sales.str_4": {
+    "ar": "{ setVoidMode(!voidMode); showToast(voidMode ? '✅ تم إلغاء وضع الحذف' : '🔴 وضع الإلغاء - اضغط على الصنف لحذفه'); }}\n                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>🚫 إلغاء"
+  },
+  "sales.str_5": {
+    "ar": "📋 الفواتير"
+  },
+  "sales.str_6": {
+    "ar": "{bnplProvider === 'TABBY' ? 'تقسيط عبر تابي' : 'تقسيط عبر تمارا'}"
+  },
+  "sales.str_7": {
+    "ar": "استخدم هاتف العميل لمسح الرمز الكودي واستكمال عملية الدفع من جهازه."
+  },
+  "sales.str_8": {
+    "ar": "⏳ النظام ينتظر تأكيد الدفع التلقائي من {bnplProvider}..."
+  },
+  "sales.str_9": {
+    "ar": "⚠️ توقف البحث الآلي"
+  },
+  "sales.str_10": {
+    "ar": "{ setBnplPolling(false); setBnplProvider(null); setBnplUrl(''); setBnplOrderId(''); }}\n                                style={{ padding: '10px 15px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}\n                            >\n                                إلغاء وإغلاق"
+  },
+  "sales.str_11": {
+    "ar": "{\n                                    if(confirm('تأكيد يدوي: هل أنت متأكد أن العميل أتم الدفع بنجاح؟ تأكد أولاً!')) {\n                                        setBnplPolling(false);\n                                        await handleSave();\n                                    }\n                                }}\n                                style={{ padding: '10px 15px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}\n                            >\n                                توثيق فوري (تخطي / أو تلقائي)"
+  },
+  "sales.str_12": {
+    "ar": "عميل نقدي"
+  },
+  "sales.str_13": {
+    "ar": "setShowAddCustomer(true)} title=\"إضافة عميل جديد\"\n                                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+"
+  },
+  "sales.str_14": {
+    "ar": "المستودع الرئيسي"
+  },
+  "sales.str_15": {
+    "ar": "💵 نقداً"
+  },
+  "sales.str_16": {
+    "ar": "💳 بطاقة"
+  },
+  "sales.str_17": {
+    "ar": "🏦 تحويل"
+  },
+  "sales.str_18": {
+    "ar": "✂️ تقسيم (نقد/بطاقة)"
+  },
+  "sales.str_19": {
+    "ar": "🛍️ تابي (Tabby)"
+  },
+  "sales.str_20": {
+    "ar": "🛍️ تمارا (Tamara)"
+  },
+  "sales.str_21": {
+    "ar": "📝 آجل"
+  },
+  "sales.str_22": {
+    "ar": "💳 تقسيط"
+  },
+  "sales.str_23": {
+    "ar": "{posStatus === 'connected' ? '🔗 مدى' : posStatus === 'sending' ? '⏳' : '📡 ربط مدى'}"
+  },
+  "sales.str_24": {
+    "ar": "{p.barcode || 'بدون باركود'} | مخزون: {p.currentStock}"
+  },
+  "sales.str_25": {
+    "ar": "{fmt(p.sellPrice)} ر.س"
+  },
+  "sales.str_26": {
+    "ar": "❌ لا يوجد منتج بهذا الاسم أو الباركود"
+  },
+  "sales.str_27": {
+    "ar": "➕ إضافة منتج جديد"
+  },
+  "sales.str_28": {
+    "ar": "🚫 وضع الإلغاء - اضغط على الصنف لحذفه"
+  },
+  "sales.str_29": {
+    "ar": "المنتج"
+  },
+  "sales.str_30": {
+    "ar": "الكمية"
+  },
+  "sales.str_31": {
+    "ar": "السعر"
+  },
+  "sales.str_32": {
+    "ar": "خصم %"
+  },
+  "sales.str_33": {
+    "ar": "الإجمالي"
+  },
+  "sales.str_34": {
+    "ar": "ابحث عن منتج وأضفه للفاتورة"
+  },
+  "sales.str_35": {
+    "ar": "المجموع الفرعي"
+  },
+  "sales.str_36": {
+    "ar": "{fmt(subtotal)} ر.س"
+  },
+  "sales.str_37": {
+    "ar": "خصم"
+  },
+  "sales.str_38": {
+    "ar": "{ if (discountRate > 0) { showToast(`✅ تم تطبيق خصم ${discountRate}% = ${fmt(regularDiscountValue)} ر.س`); } }}\n                                        style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: discountRate > 0 ? 'var(--primary)' : 'var(--bg-card-hover)', color: discountRate > 0 ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>\n                                        ✅ تطبيق"
+  },
+  "sales.str_39": {
+    "ar": "{ setDiscountRate(0); showToast('❌ تم إلغاء الخصم'); }}\n                                            style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>\n                                            ✕ إلغاء"
+  },
+  "sales.str_40": {
+    "ar": "0 ? '#ef4444' : 'var(--text-muted)' }}>\n                                        {discountRate > 0 ? `- ${fmt(regularDiscountValue)}` : '0.00'} ر.س"
+  },
+  "sales.str_41": {
+    "ar": "كوبون"
+  },
+  "sales.str_42": {
+    "ar": "{couponApplying ? '⏳' : 'تفعيل'}"
+  },
+  "sales.str_43": {
+    "ar": "{ setAppliedCoupon(null); setCouponCode(''); showToast('❌ تم إلغاء الكوبون'); }}\n                                            style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>\n                                            ✕ إلغاء"
+  },
+  "sales.str_44": {
+    "ar": "{appliedCoupon ? `- ${fmt(couponDiscountValue)}` : '0.00'} ر.س"
+  },
+  "sales.str_45": {
+    "ar": "ضريبة القيمة المضافة (15%)"
+  },
+  "sales.str_46": {
+    "ar": "{fmt(taxValue)} ر.س"
+  },
+  "sales.str_47": {
+    "ar": "{fmt(total)} ر.س"
+  },
+  "sales.str_48": {
+    "ar": "المبلغ المدفوع"
+  },
+  "sales.str_49": {
+    "ar": "💰 الباقي"
+  },
+  "sales.str_50": {
+    "ar": "{fmt(parseFloat(paidAmount) - total)} ر.س"
+  },
+  "sales.str_51": {
+    "ar": "المبلغ النقدي"
+  },
+  "sales.str_52": {
+    "ar": "مبلغ البطاقة"
+  },
+  "sales.str_53": {
+    "ar": "⚠️ المجموع المدخل أقل من الإجمالي"
+  },
+  "sales.str_54": {
+    "ar": "💰 الباقي للعميل: {fmt(((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) - total)} ر.س"
+  },
+  "sales.str_55": {
+    "ar": "{saving ? '⏳ جاري الإرسال...' : `🔄 إعادة إرسال ${fmt(retryPosAmount)} لمدى`}"
+  },
+  "sales.str_56": {
+    "ar": "{ setRetryPosAmount(null); setRetryInvoiceNo(''); }}>❌ إلغاء"
+  },
+  "sales.str_57": {
+    "ar": "handleSave(false)} disabled={saving || cart.length === 0}>\n                                            {saving ? '⏳ جاري الحفظ...' : '💾 حفظ'}"
+  },
+  "sales.str_58": {
+    "ar": "handleSave(true)} disabled={saving || cart.length === 0}>\n                                            🖨️ حفظ + طباعة"
+  },
+  "sales.str_59": {
+    "ar": "handleSave(false, true)} disabled={saving || cart.length === 0}\n                                            style={{ background: '#25D366', color: '#fff', fontWeight: '600' }}>\n                                            📤 حفظ + واتساب"
+  },
+  "sales.str_60": {
+    "ar": "setNotes(e.target.value)}\n                                    placeholder=\"ملاحظات على الفاتورة (اختياري)\" />"
+  },
+  "sales.str_61": {
+    "ar": "➕ إضافة عميل جديد"
+  },
+  "sales.str_62": {
+    "ar": "عميل"
+  },
+  "sales.str_63": {
+    "ar": "مورد"
+  },
+  "sales.str_64": {
+    "ar": "عميل ومورد"
+  },
+  "sales.str_65": {
+    "ar": "setShowAddCustomer(false)}>إلغاء"
+  },
+  "sales.str_66": {
+    "ar": "{savingCust ? '⏳ جاري الحفظ...' : '💾 حفظ'}"
+  },
+  "sales.str_67": {
+    "ar": "سعر الشراء"
+  },
+  "sales.str_68": {
+    "ar": "سعر البيع *"
+  },
+  "sales.str_69": {
+    "ar": "نسبة الضريبة %"
+  },
+  "sales.str_70": {
+    "ar": "الكمية الحالية"
+  },
+  "sales.str_71": {
+    "ar": "setShowAddProduct(false)}>إلغاء"
+  },
+  "sales.str_72": {
+    "ar": "{savingProd ? '⏳ جاري الحفظ...' : '💾 حفظ وإضافة للفاتورة'}"
+  },
+  "sales.str_73": {
+    "ar": "⏸️ الفواتير المعلقة ({heldInvoices.length})"
+  },
+  "sales.str_74": {
+    "ar": "لا توجد فواتير معلقة"
+  },
+  "sales.str_75": {
+    "ar": "{held.cart.map(c => c.productName).join('، ').substring(0, 60)}{held.cart.map(c => c.productName).join('، ').length > 60 ? '...' : ''}"
+  },
+  "sales.str_76": {
+    "ar": "الإجمالي: {fmt(heldWithTax)} ر.س"
+  },
+  "sales.str_77": {
+    "ar": "recallInvoice(held.id)}>▶️ استرجاع"
+  },
+  "sales.str_78": {
+    "ar": "📋 الفواتير السابقة"
+  },
+  "sales.str_79": {
+    "ar": "⏳ جاري التحميل..."
+  },
+  "sales.str_80": {
+    "ar": "لا توجد فواتير"
+  },
+  "sales.str_81": {
+    "ar": "التاريخ"
+  },
+  "sales.str_82": {
+    "ar": "الوقت"
+  },
+  "sales.str_83": {
+    "ar": "العميل"
+  },
+  "sales.str_84": {
+    "ar": "الدفع"
+  },
+  "sales.str_85": {
+    "ar": "{inv.customer?.name || 'عميل نقدي'}"
+  },
+  "sales.str_86": {
+    "ar": "{fmt(inv.total)} ر.س"
+  },
+  "sales.str_87": {
+    "ar": "🧾 فاتورة #{selectedInvoice.invoiceNo}"
+  },
+  "sales.str_88": {
+    "ar": "📅 التاريخ:"
+  },
+  "sales.str_89": {
+    "ar": "⏰ الوقت:"
+  },
+  "sales.str_90": {
+    "ar": "👤 العميل:"
+  },
+  "sales.str_91": {
+    "ar": "{selectedInvoice.customer?.name || 'عميل نقدي'}"
+  },
+  "sales.str_92": {
+    "ar": "💳 الدفع:"
+  },
+  "sales.str_93": {
+    "ar": "{selectedInvoice.paymentType === 'cash' ? 'نقداً' : selectedInvoice.paymentType === 'card' ? 'بطاقة' : selectedInvoice.paymentType === 'transfer' ? 'تحويل' : 'آجل'}"
+  },
+  "sales.str_94": {
+    "ar": "الصنف"
+  },
+  "sales.str_95": {
+    "ar": "{fmt(selectedInvoice.subtotal)} ر.س"
+  },
+  "sales.str_96": {
+    "ar": "الخصم"
+  },
+  "sales.str_97": {
+    "ar": "-{fmt(selectedInvoice.discountValue)} ر.س"
+  },
+  "sales.str_98": {
+    "ar": "الضريبة 15%"
+  },
+  "sales.str_99": {
+    "ar": "{fmt(selectedInvoice.taxValue)} ر.س"
+  },
+  "sales.str_100": {
+    "ar": "{fmt(selectedInvoice.total)} ر.س"
+  },
+  "sales.str_101": {
+    "ar": "reprintInvoice(selectedInvoice)}>🖨️ طباعة الفاتورة"
+  },
+  "sales.str_102": {
+    "ar": "printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>🎫 سند قبض"
+  },
+  "sales.str_103": {
+    "ar": "sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>📤 واتساب"
+  },
+  "sales.str_104": {
+    "ar": "deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🗑️ حذف"
+  },
+  "sales.str_105": {
+    "ar": "setSelectedInvoice(null)}>إغلاق"
+  },
+  "sales.str_106": {
+    "ar": "رقم الفاتورة (اختياري)"
+  },
+  "sales.str_107": {
+    "ar": "تعديل رقم الفاتورة (اختياري)"
+  },
+  "sales.str_108": {
+    "ar": "تعديل تاريخ الفاتورة (اختياري)"
+  },
+  "sales.str_109": {
+    "ar": "🔍 بحث (F1)، أو تمرير الباركود..."
+  },
+  "sales.str_110": {
+    "ar": "كود الخصم"
+  },
+  "sales.str_111": {
+    "ar": "اسم العميل *"
+  },
+  "sales.str_112": {
+    "ar": "رقم الجوال"
+  },
+  "sales.str_113": {
+    "ar": "الرقم الضريبي"
+  },
+  "sales.str_114": {
+    "ar": "الشارع"
+  },
+  "sales.str_115": {
+    "ar": "رقم المبنى"
+  },
+  "sales.str_116": {
+    "ar": "الحي"
+  },
+  "sales.str_117": {
+    "ar": "المدينة"
+  },
+  "sales.str_118": {
+    "ar": "الرمز البريدي"
+  },
+  "sales.str_119": {
+    "ar": "حد الائتمان"
+  },
+  "sales.str_120": {
+    "ar": "ملاحظات"
+  },
+  "sales.str_121": {
+    "ar": "اسم المنتج *"
+  },
+  "sales.str_122": {
+    "ar": "الباركود"
+  },
+  "sales.str_123": {
+    "ar": "❌ تم رفض الدفعة التقسيط من قبل المزود."
+  },
+  "sales.str_124": {
+    "ar": "❌ المتصفح لا يدعم WebSerial - استخدم Chrome"
+  },
+  "sales.str_125": {
+    "ar": "✅ تم الاتصال بجهاز الدفع"
+  },
+  "sales.str_126": {
+    "ar": "❌ فشل الاتصال بجهاز الدفع"
+  },
+  "sales.str_127": {
+    "ar": "❌ فشل في إضافة العميل"
+  },
+  "sales.str_128": {
+    "ar": "❌ خطأ في الاتصال"
+  },
+  "sales.str_129": {
+    "ar": "❌ فشل في إضافة المنتج"
+  },
+  "sales.str_130": {
+    "ar": "حبة"
+  },
+  "sales.str_131": {
+    "ar": "عميل مبيعات الجملة"
+  },
+  "sales.str_132": {
+    "ar": "❌ فشل توليد رابط التقسيط:"
+  },
+  "sales.str_133": {
+    "ar": "❌ انقطع الاتصال بمخدم التقسيط"
+  },
+  "sales.str_134": {
+    "ar": "⏳ جاري إرسال المبلغ لجهاز مدى..."
+  },
+  "sales.str_135": {
+    "ar": "❌ رفض جهاز الدفع - اضغط إعادة الإرسال"
+  },
+  "sales.str_136": {
+    "ar": "⚠️ خطأ في جهاز الدفع - اضغط إعادة الإرسال"
+  },
+  "sales.str_137": {
+    "ar": "🤖 تم إرسال الفاتورة عبر واتساب بنجاح"
+  },
+  "sales.str_138": {
+    "ar": "❌ فشل في حفظ الفاتورة"
+  },
+  "sales.str_139": {
+    "ar": "❌ لا توجد أصناف للتعليق"
+  },
+  "sales.str_140": {
+    "ar": "▶️ تم استرجاع الفاتورة المعلقة"
+  },
+  "sales.str_141": {
+    "ar": "🗑️ تم حذف الفاتورة المعلقة"
+  },
+  "sales.str_142": {
+    "ar": "❌ العميل لا يملك رقم هاتف"
+  },
+  "sales.str_143": {
+    "ar": "⏳ جاري الإرسال عبر واتساب..."
+  },
+  "sales.str_144": {
+    "ar": "✅ تم إرسال رسالة الواتساب بنجاح (CRM Bot)"
+  },
+  "sales.str_145": {
+    "ar": "فشل الإرسال الآلي"
+  },
+  "sales.str_146": {
+    "ar": "⏳ جاري إعادة الإرسال لجهاز مدى..."
+  },
+  "sales.str_147": {
+    "ar": "❌ فشل الدفع مرة أخرى - حاول مجدداً"
+  },
+  "sales.str_148": {
+    "ar": ": undefined }}>\n                        ▶️ استرجاع\n                        {heldInvoices.length > 0 && <span style={{ position:"
+  },
+  "sales.str_149": {
+    "ar": "جهاز الدفع متصل"
+  },
+  "sales.str_150": {
+    "ar": "جاري الإرسال..."
+  },
+  "sales.str_151": {
+    "ar": "اضغط لربط جهاز الدفع"
+  },
+  "sales.str_152": {
+    "ar": "✅ تم تطبيق الكوبون بنجاح"
+  },
+  "sales.str_153": {
+    "ar": ");\n                setAppliedCoupon(null);\n            }\n        } catch {\n            showToast('❌ خطأ في الاتصال');\n        } finally {\n            setCouponApplying(false);\n        }\n    };\n\n    const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });\n\n    const handleSave = async (print = false, whatsapp = false) => {\n        if (cart.length === 0) return;\n\n        // --- BNPL INTERCEPTION STAGE ---\n        if ((paymentType === 'TABBY' || paymentType === 'TAMARA') && !bnplOrderId) {\n            setSaving(true);\n            try {\n                const token = localStorage.getItem('token');\n                const reqBody = {\n                    provider: paymentType.toLowerCase(),\n                    amount: total,\n                    phone: customers.find(c => c.id.toString() === customerId)?.phone || '0500000000',\n                    customerName: customers.find(c => c.id.toString() === customerId)?.name || t('sales.str_131'),\n                    items: cart.map(c => ({ name: c.productName, quantity: c.quantity, price: c.price, id: c.productId }))\n                };\n                // Create BNPL Payment Session before saving invoice locally\n                const res = await fetch("
+  },
+  "sales.str_154": {
+    "ar": "شكراً لتعاملكم معنا 🙏"
+  },
+  "sales.str_155": {
+    "ar": "},\n                        body: JSON.stringify({\n                            phone: customerPhone,\n                            message: text,\n                            invoiceId: invoice.id,\n                            type: 'invoice'\n                        })\n                    }).then(r => r.json()).then(res => {\n                        if (res.success) {\n                            showToast(t('sales.str_137'));\n                        } else {\n                            // التراجع للطريقة اليدوية في حال فشل البوت\n                            console.warn('Bot Failed, falling back to manual whatsapp');\n                            const url ="
+  }
+}

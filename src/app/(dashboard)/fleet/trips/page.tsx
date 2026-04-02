@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function FleetTripsPage() {
+    const { t } = useTranslation();
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,21 +35,21 @@ export default function FleetTripsPage() {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="p-4 font-semibold">المركبة</th>
-                <th className="p-4 font-semibold">السائق</th>
+                <th className="p-4 font-semibold">{t('sys.str_2029')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_2030')}</th>
                 <th className="p-4 font-semibold">المسار</th>
                 <th className="p-4 font-semibold">وقت المغادرة</th>
-                <th className="p-4 font-semibold">الحالة</th>
+                <th className="p-4 font-semibold">{t('fin.str_227')}</th>
               </tr>
             </thead>
             <tbody>
               {trips.map(trip => (
                 <tr key={trip.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
                   <td className="p-4 font-bold text-slate-700">
-                    <span dir="ltr">{trip.vehicle?.plateNumber || 'غير معروف'}</span> <br/>
+                    <span dir="ltr">{trip.vehicle?.plateNumber || t('sys.str_963')}</span> <br/>
                     <span className="text-xs font-normal text-slate-500">{trip.vehicle?.make} {trip.vehicle?.model}</span>
                   </td>
-                  <td className="p-4">{trip.driver?.name || 'غير معروف'}</td>
+                  <td className="p-4">{trip.driver?.name || t('sys.str_963')}</td>
                   <td className="p-4 text-sm">
                     <span className="text-blue-600">{trip.startLocation}</span> ➔ <span className="text-emerald-600">{trip.endLocation}</span>
                   </td>

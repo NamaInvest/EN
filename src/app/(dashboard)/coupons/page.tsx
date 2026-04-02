@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface CouponUsage { id: number; invoiceId: number | null; discountAmount: number; usedAt: string; }
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrder: number; maxUses: number; usedCount: number; startDate: string | null; endDate: string | null; isActive: boolean; createdAt: string; usages: CouponUsage[]; }
 
 export default function CouponsPage() {
+    const { t } = useTranslation();
     const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -33,12 +35,12 @@ export default function CouponsPage() {
     };
 
     const handleSave = async () => {
-        if (!form.code || !form.discountValue) { alert('الكود وقيمة الخصم مطلوبة'); return; }
+        if (!form.code || !form.discountValue) { alert(t('sys.str_512')); return; }
         setSaving(true);
         try {
             const res = await fetch('/api/coupons', { method: 'POST', headers: headers(), body: JSON.stringify(form) });
             if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
-        } catch { alert('خطأ في الاتصال'); } finally { setSaving(false); }
+        } catch { alert(t('sys.str_446')); } finally { setSaving(false); }
     };
 
     const toggleStatus = async (c: Coupon) => {
@@ -47,7 +49,7 @@ export default function CouponsPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('حذف هذا الكوبون؟')) return;
+        if (!confirm(t('sys.str_513'))) return;
         const res = await fetch(`/api/coupons/${id}`, { method: 'DELETE', headers: headers() });
         if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
     };
@@ -64,17 +66,17 @@ export default function CouponsPage() {
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>🎟️ كوبونات الخصم</h1>
-                <button className="btn btn-primary" onClick={openAdd}>➕ كوبون جديد</button>
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{t('sys.str_492')}</h1>
+                <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_493')}</button>
             </div>
 
             <div className="card">
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>الكود</th><th>الخصم</th><th>الحد الأدنى</th><th>الاستخدامات</th><th>تاريخ الانتهاء</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                        <thead><tr><th>{t('fin.str_197')}</th><th>{t('sys.str_494')}</th><th>{t('sys.str_495')}</th><th>{t('sys.str_496')}</th><th>{t('sys.str_432')}</th><th>{t('fin.str_227')}</th><th>{t('sys.str_435')}</th></tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                            : coupons.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">🎟️</div><div className="empty-state-text">لا يوجد كوبونات</div></div></td></tr>
+                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                            : coupons.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">🎟️</div><div className="empty-state-text">{t('sys.str_497')}</div></div></td></tr>
                             : coupons.map(c => {
                                 const expired = isExpired(c);
                                 return (
@@ -112,51 +114,51 @@ export default function CouponsPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>➕ إضافة كوبون جديد</h3>
+                            <h3>{t('sys.str_498')}</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
                         <div className="modal-body">
                             <div className="input-group">
-                                <label className="input-label">كود الكوبون *</label>
-                                <input className="input" style={{ textTransform: 'uppercase', fontWeight: 'bold' }} value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="مثال: SAVE20" />
+                                <label className="input-label">{t('sys.str_499')}</label>
+                                <input className="input" style={{ textTransform: 'uppercase', fontWeight: 'bold' }} value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder={t('sys.str_518')} />
                             </div>
                             <div className="grid-2">
                                 <div className="input-group">
-                                    <label className="input-label">نوع الخصم</label>
+                                    <label className="input-label">{t('sys.str_500')}</label>
                                     <select className="input" value={form.discountType} onChange={e => setForm({ ...form, discountType: e.target.value })}>
-                                        <option value="percentage">نسبة مئوية (%)</option>
-                                        <option value="fixed">مبلغ ثابت (ر.س)</option>
+                                        <option value="percentage">{t('sys.str_501')}</option>
+                                        <option value="fixed">{t('sys.str_502')}</option>
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">قيمة الخصم *</label>
+                                    <label className="input-label">{t('sys.str_503')}</label>
                                     <input className="input" type="number" step="0.01" value={form.discountValue} onChange={e => setForm({ ...form, discountValue: e.target.value })} />
                                 </div>
                             </div>
                             <div className="grid-2">
                                 <div className="input-group">
-                                    <label className="input-label">الحد الأدنى للطلب (اختياري)</label>
+                                    <label className="input-label">{t('sys.str_504')}</label>
                                     <input className="input" type="number" value={form.minOrder} onChange={e => setForm({ ...form, minOrder: e.target.value })} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">الحد الأقصى للاستخدامات</label>
-                                    <input className="input" type="number" value={form.maxUses} onChange={e => setForm({ ...form, maxUses: e.target.value })} placeholder="0 = غير محدود" />
+                                    <label className="input-label">{t('sys.str_505')}</label>
+                                    <input className="input" type="number" value={form.maxUses} onChange={e => setForm({ ...form, maxUses: e.target.value })} placeholder={t('sys.str_519')} />
                                 </div>
                             </div>
                             <div className="grid-2">
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ البداية</label>
+                                    <label className="input-label">{t('sys.str_506')}</label>
                                     <input className="input" type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ النهاية</label>
+                                    <label className="input-label">{t('sys.str_507')}</label>
                                     <input className="input" type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} />
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 إنشاء'}</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>
@@ -167,18 +169,18 @@ export default function CouponsPage() {
                 <div className="modal-overlay" onClick={() => setShowUsagesModal(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
                         <div className="modal-header">
-                            <h3>📜 سجل الاستخدام: {showUsagesModal.code}</h3>
+                            <h3>{t('sys.str_508')}{showUsagesModal.code}</h3>
                             <button className="modal-close" onClick={() => setShowUsagesModal(null)}>&times;</button>
                         </div>
                         <div className="modal-body">
-                            {showUsagesModal.usages.length === 0 ? <p>لم يتم استخدام الكوبون بعد.</p> : (
+                            {showUsagesModal.usages.length === 0 ? <p>{t('sys.str_509')}</p> : (
                                 <table className="table">
-                                    <thead><tr><th>رقم الفاتورة</th><th>قيمة الخصم</th><th>التاريخ</th></tr></thead>
+                                    <thead><tr><th>{t('sys.str_510')}</th><th>{t('sys.str_511')}</th><th>{t('fin.str_232')}</th></tr></thead>
                                     <tbody>
                                         {showUsagesModal.usages.map(u => (
                                             <tr key={u.id}>
                                                 <td>{u.invoiceId || '-'}</td>
-                                                <td style={{ fontWeight: 'bold', color: '#10b981' }}>{fmt(u.discountAmount)} ر.س</td>
+                                                <td style={{ fontWeight: 'bold', color: '#10b981' }}>{fmt(u.discountAmount)} {t('sys.str_68')}</td>
                                                 <td>{new Date(u.usedAt).toLocaleString('ar-SA')}</td>
                                             </tr>
                                         ))}
@@ -187,7 +189,7 @@ export default function CouponsPage() {
                             )}
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowUsagesModal(null)}>إغلاق</button>
+                            <button className="btn btn-ghost" onClick={() => setShowUsagesModal(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Box, Plus, CheckCircle, Package } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function GoodsReceiptNotePage() {
+    const { t } = useTranslation();
     const [grns, setGrns] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -58,7 +60,7 @@ export default function GoodsReceiptNotePage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (items.length === 0) return alert('يجب إضافة منتجات للطلب');
+        if (items.length === 0) return alert(t('purchases.str_2265'));
         
         try {
             const token = localStorage.getItem('token') || '';
@@ -73,49 +75,48 @@ export default function GoodsReceiptNotePage() {
                 setItems([]);
                 loadData();
             } else {
-                alert('فشل حفظ سند الاستلام');
+                alert(t('purchases.str_2266'));
             }
         } catch (e) {}
     };
 
     return (<>
-        <div className="page-header"><h1 className="page-title">📦 مذكرات استلام البضائع (GRN)</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('purchases.str_2241')}</h1></div>
         
         <div className="page-content animate-fade-in">
             <div className="toolbar">
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إدارة الإدخالات المخزنية وفحص مطابقة البضائع قبل استلام الفاتورة</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('purchases.str_2242')}</span>
                 <div className="toolbar-spacer" />
                 <button onClick={() => setShowModal(true)} className="primary-btn">
-                    <Plus size={16} /> تسجيل مستند استلام (New GRN)
-                </button>
+                    <Plus size={16} /> {t('purchases.str_2243')}</button>
             </div>
 
             <div className="card" style={{ padding: '0', overflowX: 'auto' }}>
                 <table className="table" style={{ width: '100%' }}>
                     <thead>
                         <tr>
-                            <th>رقم السند</th>
-                            <th>تاريخ الاستلام</th>
-                            <th>المورد</th>
-                            <th>المستودع</th>
-                            <th>مستلم البضاعة</th>
-                            <th>حالة المطابقة</th>
-                            <th>الإجراءات</th>
+                            <th>{t('sys.str_1045')}</th>
+                            <th>{t('purchases.str_2244')}</th>
+                            <th>{t('sys.str_953')}</th>
+                            <th>{t('sys.str_2227')}</th>
+                            <th>{t('purchases.str_2245')}</th>
+                            <th>{t('purchases.str_2246')}</th>
+                            <th>{t('purchases.str_2247')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>جاري التحميل...</td></tr> : grns.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>لا توجد مذكرات استلام مسجلة</td></tr> : grns.map(g => (
+                        {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : grns.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('purchases.str_2248')}</td></tr> : grns.map(g => (
                             <tr key={g.id}>
                                 <td><strong style={{color: '#6366f1'}}>GRN-{g.grnNo}</strong></td>
                                 <td>{new Date(g.date).toLocaleDateString()}</td>
                                 <td>{g.supplier?.name || '-'}</td>
-                                <td>{g.stock?.name || 'الرئيسي'}</td>
+                                <td>{g.stock?.name || t('purchases.str_2267')}</td>
                                 <td>{g.receiver?.fullName || '-'}</td>
-                                <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}><CheckCircle size={12} style={{display:'inline', marginRight:'4px'}}/> تم الفحص والإدخال</span></td>
+                                <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}><CheckCircle size={12} style={{display:'inline', marginRight:'4px'}}/> {t('purchases.str_2249')}</span></td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>
-                                        <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>إظهار السند</button>
-                                        <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>ترصيد فاتورة شراء</button>
+                                        <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2250')}</button>
+                                        <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2251')}</button>
                                     </div>
                                 </td>
                             </tr>
@@ -129,37 +130,37 @@ export default function GoodsReceiptNotePage() {
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal animate-scale-in" style={{ maxWidth: '900px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
-                    <h2>تسجيل مذكرة استلام بالمخزن (Goods Receipt Note)</h2>
+                    <h2>{t('purchases.str_2252')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div style={{ display: 'flex', gap: '15px' }}>
                             <div className="input-group" style={{ margin: 0, flex: 1 }}>
-                                <label className="input-label">المورد (مصدر البضاعة)</label>
+                                <label className="input-label">{t('purchases.str_2253')}</label>
                                 <select required className="input" value={form.supplierId} onChange={e => setForm({...form, supplierId: e.target.value})}>
-                                    <option value="">اختر...</option>
+                                    <option value="">{t('sys.str_1498')}</option>
                                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
                             </div>
                             <div className="input-group" style={{ margin: 0, flex: 1 }}>
-                                <label className="input-label">أمين المستودع / مستودع التخزين</label>
+                                <label className="input-label">{t('purchases.str_2254')}</label>
                                 <select className="input" value={form.stockId} onChange={e => setForm({...form, stockId: e.target.value})}>
-                                    {stocks.length > 0 ? stocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>) : <option value="1">المستودع الرئيسي</option>}
+                                    {stocks.length > 0 ? stocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>) : <option value="1">{t('sys.str_753')}</option>}
                                 </select>
                             </div>
                         </div>
                         
                         <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '8px' }}>
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                <h4>فحص البضائع المستلمة فعلياً</h4>
-                                <button type="button" onClick={addItem} className="btn btn-outline" style={{fontSize: '12px'}}>+ إضافة عنصر</button>
+                                <h4>{t('purchases.str_2255')}</h4>
+                                <button type="button" onClick={addItem} className="btn btn-outline" style={{fontSize: '12px'}}>{t('purchases.str_2256')}</button>
                             </div>
                             <div style={{ overflowX: 'auto' }}>
                                 <table className="table" style={{ width: '100%', marginTop: '10px', minWidth: '700px' }}>
                                     <thead>
                                         <tr>
-                                            <th>الصنف المورد</th>
-                                            <th style={{width: '120px'}}>المطالب به</th>
-                                            <th style={{width: '120px'}}>المقبول (سليم)</th>
-                                            <th style={{width: '100px'}}>المرفوض (تالف)</th>
+                                            <th>{t('purchases.str_2257')}</th>
+                                            <th style={{width: '120px'}}>{t('purchases.str_2258')}</th>
+                                            <th style={{width: '120px'}}>{t('purchases.str_2259')}</th>
+                                            <th style={{width: '100px'}}>{t('purchases.str_2260')}</th>
                                             <th style={{width: '50px'}}></th>
                                         </tr>
                                     </thead>
@@ -168,7 +169,7 @@ export default function GoodsReceiptNotePage() {
                                             <tr key={index}>
                                                 <td>
                                                     <select required className="input" value={item.productId} onChange={e => updateItem(index, 'productId', e.target.value)}>
-                                                        <option value="">الصنف...</option>
+                                                        <option value="">{t('purchases.str_2262')}</option>
                                                         {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                                     </select>
                                                 </td>
@@ -186,8 +187,8 @@ export default function GoodsReceiptNotePage() {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                            <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">إلغاء المستند</button>
-                            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#10b981' }}><Package size={16} style={{display:'inline', marginRight:'5px'}}/> ترحيل المستند وإثبات الإدخال المخزني</button>
+                            <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('purchases.str_2263')}</button>
+                            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#10b981' }}><Package size={16} style={{display:'inline', marginRight:'5px'}}/> {t('purchases.str_2264')}</button>
                         </div>
                     </form>
                 </div>

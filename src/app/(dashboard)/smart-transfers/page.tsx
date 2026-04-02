@@ -56,7 +56,7 @@ export default function SmartTransfersPage() {
 
     const handleDispatch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (senderStock === receiverStock) return alert('لا يمكن التحويل لنفس المستودع.');
+        if (senderStock === receiverStock) return alert(t('sys.str_1435'));
 
         setLoading(true);
         try {
@@ -81,17 +81,17 @@ export default function SmartTransfersPage() {
                 fetchTransits();
                 setActiveTab('track'); // Switch to tracking
             } else {
-                alert(data.error || 'فشل في إنشاء التحويل');
+                alert(data.error || t('sys.str_1436'));
             }
         } catch (e) {
-            alert('انقطع الاتصال');
+            alert(t('sys.str_1437'));
         } finally {
             setLoading(false);
         }
     };
 
     const handleReceive = async (movementId: number) => {
-        if (!confirm('هل تأكدت من وصول البضاعة كاملة للمستودع وتطابقها مع الشحنة؟')) return;
+        if (!confirm(t('sys.str_1438'))) return;
 
         setLoading(true);
         try {
@@ -108,7 +108,7 @@ export default function SmartTransfersPage() {
                 alert(data.error);
             }
         } catch (e) {
-            alert('انقطع الاتصال');
+            alert(t('sys.str_1437'));
         } finally {
             setLoading(false);
         }
@@ -120,8 +120,7 @@ export default function SmartTransfersPage() {
                 
                 <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
                     <Truck className="text-blue-500" size={32} />
-                    نظام تحويلات المستودعات الذكي (In-Transit WMS)
-                </h1>
+                    {t('sys.str_1413')}</h1>
 
                 {/* TABS */}
                 <div className="flex border-b border-divider mb-8">
@@ -129,14 +128,12 @@ export default function SmartTransfersPage() {
                         onClick={() => setActiveTab('dispatch')}
                         className={`px-6 py-3 font-semibold text-lg flex items-center gap-2 border-b-2 transition ${activeTab === 'dispatch' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500'}`}
                     >
-                        <Send size={20} /> تجهيز شحنة للفرع
-                    </button>
+                        <Send size={20} /> {t('sys.str_1414')}</button>
                     <button 
                         onClick={() => setActiveTab('track')}
                         className={`px-6 py-3 font-semibold text-lg flex items-center gap-2 border-b-2 transition ${activeTab === 'track' ? 'border-orange-500 text-orange-400' : 'border-transparent text-gray-500'}`}
                     >
-                        <ArrowRightLeft size={20} /> البضائع في الطريق (الاستلام)
-                        {activeTransits.length > 0 && (
+                        <ArrowRightLeft size={20} /> {t('sys.str_1415')}{activeTransits.length > 0 && (
                             <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{activeTransits.length}</span>
                         )}
                     </button>
@@ -147,60 +144,60 @@ export default function SmartTransfersPage() {
                     <div className="bg-surface border border-divider rounded-2xl p-8 shadow-sm">
                         <div className="mb-6 bg-blue-500/10 border border-blue-500/20 text-blue-400 p-4 rounded-xl flex items-center gap-3">
                             <AlertTriangle />
-                            <p>البضاعة التي ترسلها من هنا ستخصم فوراً من مستودعك، لكنها <b>لن تضاف لمستودع المستلم</b> إلا بعد أن ينقر على زر (تأكيد الاستلام).</p>
+                            <p>{t('sys.str_1416')}<b>{t('sys.str_1417')}</b> {t('sys.str_1418')}</p>
                         </div>
                         
                         <form onSubmit={handleDispatch} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-gray-300 font-bold mb-2">المنتج المراد تحويله</label>
+                                    <label className="block text-gray-300 font-bold mb-2">{t('sys.str_1419')}</label>
                                     <select 
                                         required
                                         value={selectedProduct} 
                                         onChange={e => setSelectedProduct(e.target.value)}
                                         className="w-full bg-[#111] border border-divider text-white p-3 rounded-xl outline-none focus:border-blue-500"
                                     >
-                                        <option value="">-- اختر المنتج --</option>
+                                        <option value="">{t('sys.str_439')}</option>
                                         {products.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-gray-300 font-bold mb-2">الكمية بالتحديد</label>
+                                    <label className="block text-gray-300 font-bold mb-2">{t('sys.str_1420')}</label>
                                     <input 
                                         type="number"
                                         min="1"
                                         required
                                         value={quantity}
                                         onChange={e => setQuantity(e.target.value)}
-                                        placeholder="مثال: 50"
+                                        placeholder={t('sys.str_1439')}
                                         className="w-full bg-[#111] border border-divider text-white p-3 rounded-xl outline-none focus:border-blue-500"
                                     />
                                 </div>
                                 <div className="p-4 bg-black/20 rounded-xl border border-dashed border-gray-600">
-                                    <label className="block text-gray-400 font-bold mb-2 text-sm">🚚 من مستودع المرسل (مخزونك):</label>
+                                    <label className="block text-gray-400 font-bold mb-2 text-sm">{t('sys.str_1421')}</label>
                                     <select 
                                         required
                                         value={senderStock} 
                                         onChange={e => setSenderStock(e.target.value)}
                                         className="w-full bg-transparent text-white p-2 border-b border-gray-700 outline-none focus:border-blue-500"
                                     >
-                                        <option value="" className="bg-[#111]">-- حدد مستودعك --</option>
+                                        <option value="" className="bg-[#111]">{t('sys.str_1422')}</option>
                                         {stocks.map(s => (
                                             <option key={s.id} value={s.id} className="bg-[#111]">{s.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="p-4 bg-black/20 rounded-xl border border-dashed border-gray-600">
-                                    <label className="block text-orange-400 font-bold mb-2 text-sm">🎯 إلى مستودع المستلم (الوجهة):</label>
+                                    <label className="block text-orange-400 font-bold mb-2 text-sm">{t('sys.str_1423')}</label>
                                     <select 
                                         required
                                         value={receiverStock} 
                                         onChange={e => setReceiverStock(e.target.value)}
                                         className="w-full bg-transparent text-white p-2 border-b border-gray-700 outline-none focus:border-orange-500"
                                     >
-                                        <option value="" className="bg-[#111]">-- حدد الوجهة --</option>
+                                        <option value="" className="bg-[#111]">{t('sys.str_1424')}</option>
                                         {stocks.map(s => (
                                             <option key={s.id} value={s.id} className="bg-[#111]">{s.name}</option>
                                         ))}
@@ -227,7 +224,7 @@ export default function SmartTransfersPage() {
                     <div className="space-y-6">
                         <div className="bg-surface rounded-2xl border border-orange-500/30 overflow-hidden shadow-lg shadow-orange-500/5">
                             <div className="p-4 bg-orange-500/10 border-b border-orange-500/20 flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-orange-400 flex items-center gap-2"><Truck /> الشحنات العابرة (بانتظار الاستلام)</h2>
+                                <h2 className="text-xl font-bold text-orange-400 flex items-center gap-2"><Truck /> {t('sys.str_1425')}</h2>
                                 <button onClick={fetchTransits} className="text-orange-300 hover:text-white"><RefreshCw size={20} /></button>
                             </div>
                             
@@ -235,13 +232,13 @@ export default function SmartTransfersPage() {
                                 <table className="w-full text-left" dir={isRTL ? 'rtl':'ltr'}>
                                     <thead className="bg-[#111]">
                                         <tr>
-                                            <th className="p-4 font-medium text-gray-400">رقم البوليصة</th>
-                                            <th className="p-4 font-medium text-gray-400">المنتج</th>
-                                            <th className="p-4 font-medium text-gray-400">الكمية</th>
-                                            <th className="p-4 font-medium text-gray-400">من مستودع</th>
-                                            <th className="p-4 font-medium text-gray-400">إلى مستودع</th>
-                                            <th className="p-4 font-medium text-gray-400">التاريخ</th>
-                                            <th className="p-4 font-medium text-gray-400">الإجراء</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_1426')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_63')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_64')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_1427')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_1428')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('fin.str_232')}</th>
+                                            <th className="p-4 font-medium text-gray-400">{t('sys.str_1429')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -249,8 +246,8 @@ export default function SmartTransfersPage() {
                                             <tr key={tr.id} className="border-t border-divider hover:bg-white/5 transition">
                                                 <td className="p-4 font-mono text-orange-300 font-bold">{tr.reference}</td>
                                                 <td className="p-4 text-white font-bold">{tr.productName}</td>
-                                                <td className="p-4 text-xl font-bold">{tr.quantity} حبة</td>
-                                                <td className="p-4 text-gray-400">{tr.senderStock}<br/><span className="text-xs">الموظف: {tr.senderName}</span></td>
+                                                <td className="p-4 text-xl font-bold">{tr.quantity} {t('sys.str_813')}</td>
+                                                <td className="p-4 text-gray-400">{tr.senderStock}<br/><span className="text-xs">{t('sys.str_1430')}{tr.senderName}</span></td>
                                                 <td className="p-4 text-orange-400 font-bold border-l-2 border-r-2 border-dashed border-orange-500/30">{tr.receiverStock}</td>
                                                 <td className="p-4 text-sm text-gray-400">{new Date(tr.date).toLocaleDateString()}</td>
                                                 <td className="p-4">
@@ -259,13 +256,12 @@ export default function SmartTransfersPage() {
                                                         onClick={() => handleReceive(tr.id)}
                                                         className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md flex items-center gap-1"
                                                     >
-                                                        <PackageCheck size={16} /> استلام وفك
-                                                    </button>
+                                                        <PackageCheck size={16} /> {t('sys.str_1431')}</button>
                                                 </td>
                                             </tr>
                                         ))}
                                         {activeTransits.length === 0 && (
-                                            <tr><td colSpan={7} className="p-8 text-center text-gray-500">لا توجد بضائع في الطريق حالياً.</td></tr>
+                                            <tr><td colSpan={7} className="p-8 text-center text-gray-500">{t('sys.str_1432')}</td></tr>
                                         )}
                                     </tbody>
                                 </table>
@@ -275,7 +271,7 @@ export default function SmartTransfersPage() {
                         {/* COMPLETED */}
                         <div className="bg-surface rounded-2xl border border-divider overflow-hidden opacity-80">
                             <div className="p-4 bg-[#111] border-b border-divider">
-                                <h2 className="text-lg font-bold text-gray-400 flex items-center gap-2"><PackageCheck /> الشحنات المستلمة (أرشيف)</h2>
+                                <h2 className="text-lg font-bold text-gray-400 flex items-center gap-2"><PackageCheck /> {t('sys.str_1433')}</h2>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left" dir={isRTL ? 'rtl':'ltr'}>
@@ -285,7 +281,7 @@ export default function SmartTransfersPage() {
                                                 <td className="p-4 text-green-400 font-mono text-sm">{tr.reference}</td>
                                                 <td className="p-4">{tr.productName} ({tr.quantity})</td>
                                                 <td className="p-4 text-gray-400">{tr.senderStock} ➔ {tr.receiverStock}</td>
-                                                <td className="p-4 text-green-500 text-sm">✅ تم التوريد بنجاح</td>
+                                                <td className="p-4 text-green-500 text-sm">{t('sys.str_1434')}</td>
                                             </tr>
                                         ))}
                                     </tbody>

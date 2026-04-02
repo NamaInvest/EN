@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance' | 'cost_centers';
 
@@ -16,6 +17,7 @@ const TYPE_LABELS: Record<string, string> = { asset: 'أصول', liability: 'خ�
 const TYPE_COLORS: Record<string, string> = { asset: '#22c55e', liability: '#ef4444', equity: '#8b5cf6', revenue: '#3b82f6', expense: '#f59e0b' };
 
 export default function AccountingPage() {
+    const { t } = useTranslation();
     const [tab, setTab] = useState<Tab>('tree');
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [journals, setJournals] = useState<JournalEntry[]>([]);
@@ -138,7 +140,7 @@ export default function AccountingPage() {
     };
 
     const handleInitAccounts = async () => {
-        if (!confirm('سيتم إضافة الدليل المحاسبي الافتراضي. هل تريد المتابعة؟')) return;
+        if (!confirm(t('fin.str_254'))) return;
         setLoading(true);
         const res = await fetch('/api/accounting/accounts/init', { method: 'POST' });
         if (res.ok) {
@@ -146,7 +148,7 @@ export default function AccountingPage() {
             alert(data.message);
             loadAccounts();
         } else {
-            alert('فشل تهيئة الحسابات');
+            alert(t('fin.str_255'));
         }
         setLoading(false);
     };
@@ -170,16 +172,16 @@ export default function AccountingPage() {
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const tabs: { key: Tab; label: string; icon: string }[] = [
-        { key: 'tree', label: 'شجرة الحسابات', icon: '🌳' },
-        { key: 'journal', label: 'القيود اليومية', icon: '📋' },
-        { key: 'ledger', label: 'دفتر الأستاذ', icon: '📒' },
-        { key: 'trial', label: 'ميزان المراجعة', icon: '⚖️' },
-        { key: 'income', label: 'قائمة الدخل', icon: '📊' },
-        { key: 'balance', label: 'الميزانية', icon: '🏦' },
-        { key: 'cost_centers', label: 'مراكز التكلفة', icon: '🏢' },
+        { key: 'tree', label: t('fin.str_256'), icon: '🌳' },
+        { key: 'journal', label: t('fin.str_257'), icon: '📋' },
+        { key: 'ledger', label: t('fin.str_258'), icon: '📒' },
+        { key: 'trial', label: t('fin.str_259'), icon: '⚖️' },
+        { key: 'income', label: t('fin.str_260'), icon: '📊' },
+        { key: 'balance', label: t('fin.str_261'), icon: '🏦' },
+        { key: 'cost_centers', label: t('fin.str_262'), icon: '🏢' },
     ];
 
-    return (<><div className="page-header"><h1 className="page-title">📊 المحاسبة</h1></div>
+    return (<><div className="page-header"><h1 className="page-title">{t('fin.str_192')}</h1></div>
         <div className="page-content animate-fade-in">
             {/* Tabs */}
             <div className="tabs" style={{ flexWrap: 'wrap', gap: '4px' }}>
@@ -194,27 +196,26 @@ export default function AccountingPage() {
             {tab === 'tree' && (
                 <div className="card">
                     <div className="toolbar">
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{accounts.length} حساب</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{accounts.length} {t('fin.str_193')}</span>
                         <div className="toolbar-spacer" />
                         {accounts.length === 0 && (
                             <button className="btn btn-sm" style={{ background: '#3b82f620', color: '#3b82f6' }} onClick={handleInitAccounts} disabled={loading}>
-                                🔄 تهيئة الدليل الافتراضي
-                            </button>
+                                {t('fin.str_194')}</button>
                         )}
-                        <button className="btn btn-primary btn-sm" onClick={() => setShowAddAccount(true)}>➕ حساب جديد</button>
+                        <button className="btn btn-primary btn-sm" onClick={() => setShowAddAccount(true)}>{t('fin.str_195')}</button>
                     </div>
                     {showAddAccount && (
                         <div style={{ padding: '16px', background: 'rgba(108,99,255,0.05)', borderRadius: '8px', marginBottom: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>حساب الأب</label><input disabled value={accounts.find(a => a.id === newAccount.parentId)?.name || 'رئيسي'} style={{ width: '120px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: '#eee' }} /></div>
-                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>الكود</label><input value={newAccount.code} onChange={e => setNewAccount({ ...newAccount, code: e.target.value })} placeholder="1110" style={{ width: '80px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
-                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>الاسم</label><input value={newAccount.name} onChange={e => setNewAccount({ ...newAccount, name: e.target.value })} placeholder="اسم الحساب" style={{ width: '180px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
-                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>النوع</label>
+                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('fin.str_196')}</label><input disabled value={accounts.find(a => a.id === newAccount.parentId)?.name || t('fin.str_263')} style={{ width: '120px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: '#eee' }} /></div>
+                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('fin.str_197')}</label><input value={newAccount.code} onChange={e => setNewAccount({ ...newAccount, code: e.target.value })} placeholder="1110" style={{ width: '80px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('fin.str_198')}</label><input value={newAccount.name} onChange={e => setNewAccount({ ...newAccount, name: e.target.value })} placeholder={t('fin.str_264')} style={{ width: '180px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} /></div>
+                            <div><label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('fin.str_199')}</label>
                                 <select disabled={newAccount.parentId > 0} value={newAccount.type} onChange={e => setNewAccount({ ...newAccount, type: e.target.value })} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: newAccount.parentId > 0 ? '#eee' : '#fff' }}>
-                                    <option value="asset">أصول</option><option value="liability">خصوم</option><option value="equity">ملكية</option><option value="revenue">إيرادات</option><option value="expense">مصروفات</option>
+                                    <option value="asset">{t('fin.str_200')}</option><option value="liability">{t('fin.str_201')}</option><option value="equity">{t('fin.str_202')}</option><option value="revenue">{t('fin.str_203')}</option><option value="expense">{t('fin.str_204')}</option>
                                 </select>
                             </div>
-                            <button className="btn btn-primary btn-sm" onClick={handleAddAccount}>حفظ</button>
-                            <button className="btn btn-sm" onClick={() => {setShowAddAccount(false); setNewAccount({ code: '', name: '', type: 'asset', level: 1, parentId: 0 });}}>إلغاء</button>
+                            <button className="btn btn-primary btn-sm" onClick={handleAddAccount}>{t('fin.str_205')}</button>
+                            <button className="btn btn-sm" onClick={() => {setShowAddAccount(false); setNewAccount({ code: '', name: '', type: 'asset', level: 1, parentId: 0 });}}>{t('fin.str_206')}</button>
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
@@ -256,8 +257,7 @@ export default function AccountingPage() {
                                                 {rollup !== 0 ? fmt(rollup) : '-'}
                                             </span>
                                             <button className="btn btn-sm" style={{ padding: '4px 8px', fontSize: '11px', background: '#eef2ff', color: '#4f46e5' }} onClick={(e) => { e.stopPropagation(); openAddSubAccount(acc); }}>
-                                                ➕ تفريغ
-                                            </button>
+                                                {t('fin.str_207')}</button>
                                         </div>
                                         {isExpanded && hasChildren && (
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -277,26 +277,26 @@ export default function AccountingPage() {
             {tab === 'journal' && (
                 <div>
                     <div className="toolbar">
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{journals.length} قيد</span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{journals.length} {t('fin.str_208')}</span>
                         <div className="toolbar-spacer" />
-                        <button className="btn btn-primary" onClick={() => setShowAddJournal(true)}>➕ قيد يدوي</button>
+                        <button className="btn btn-primary" onClick={() => setShowAddJournal(true)}>{t('fin.str_209')}</button>
                     </div>
                     {showAddJournal && (
                         <div className="card" style={{ marginBottom: '16px' }}>
-                            <h3 style={{ marginBottom: '12px' }}>📋 قيد جديد</h3>
-                            <input value={journalDesc} onChange={e => setJournalDesc(e.target.value)} placeholder="وصف القيد" style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', marginBottom: '12px' }} />
+                            <h3 style={{ marginBottom: '12px' }}>{t('fin.str_210')}</h3>
+                            <input value={journalDesc} onChange={e => setJournalDesc(e.target.value)} placeholder={t('fin.str_265')} style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', marginBottom: '12px' }} />
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                                    <th style={{ padding: '8px', textAlign: 'right' }}>كود الحساب</th><th style={{ padding: '8px', textAlign: 'right' }}>الوصف</th><th style={{ padding: '8px', textAlign: 'right' }}>مركز التكلفة</th>
-                                    <th style={{ padding: '8px', textAlign: 'right' }}>مدين</th><th style={{ padding: '8px', textAlign: 'right' }}>دائن</th><th></th>
+                                    <th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_211')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_212')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_213')}</th>
+                                    <th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_214')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_215')}</th><th></th>
                                 </tr></thead>
                                 <tbody>{journalLines.map((l, i) => (
                                     <tr key={i}>
                                         <td style={{ padding: '4px' }}><input value={l.accountCode} onChange={e => { const nl = [...journalLines]; nl[i].accountCode = e.target.value; setJournalLines(nl); }} placeholder="1110" style={{ width: '80px', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
-                                        <td style={{ padding: '4px' }}><input value={l.description} onChange={e => { const nl = [...journalLines]; nl[i].description = e.target.value; setJournalLines(nl); }} placeholder="بيان" style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
+                                        <td style={{ padding: '4px' }}><input value={l.description} onChange={e => { const nl = [...journalLines]; nl[i].description = e.target.value; setJournalLines(nl); }} placeholder={t('fin.str_266')} style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }} /></td>
                                         <td style={{ padding: '4px' }}>
                                             <select value={l.costCenterId || 0} onChange={e => { const nl = [...journalLines]; nl[i].costCenterId = parseInt(e.target.value); setJournalLines(nl); }} style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                                                <option value={0}>بدون</option>
+                                                <option value={0}>{t('fin.str_216')}</option>
                                                 {costCenters.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </td>
@@ -306,22 +306,22 @@ export default function AccountingPage() {
                                     </tr>
                                 ))}
                                     <tr style={{ background: 'rgba(108,99,255,0.05)', fontWeight: 'bold' }}>
-                                        <td colSpan={3} style={{ padding: '8px', textAlign: 'right' }}>الإجمالي</td>
+                                        <td colSpan={3} style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_66')}</td>
                                         <td style={{ padding: '8px' }}>{fmt(journalLines.reduce((s, l) => s + l.debit, 0))}</td>
                                         <td style={{ padding: '8px' }}>{fmt(journalLines.reduce((s, l) => s + l.credit, 0))}</td>
                                         <td></td>
                                     </tr></tbody>
                             </table>
                             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                                <button className="btn btn-sm" onClick={() => setJournalLines([...journalLines, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }])}>➕ سطر</button>
+                                <button className="btn btn-sm" onClick={() => setJournalLines([...journalLines, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }])}>{t('fin.str_217')}</button>
                                 <div className="toolbar-spacer" />
-                                <button className="btn btn-sm" onClick={() => setShowAddJournal(false)}>إلغاء</button>
-                                <button className="btn btn-primary btn-sm" onClick={handleAddJournal}>✅ حفظ القيد</button>
+                                <button className="btn btn-sm" onClick={() => setShowAddJournal(false)}>{t('fin.str_206')}</button>
+                                <button className="btn btn-primary btn-sm" onClick={handleAddJournal}>{t('fin.str_218')}</button>
                             </div>
                         </div>
                     )}
-                    {loading ? <div className="card"><div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div></div> :
-                        journals.length === 0 ? <div className="card"><div className="empty-state"><div className="empty-state-icon">📋</div><div className="empty-state-text">لا توجد قيود يومية<br /><small>ستظهر القيود تلقائياً عند إصدار الفواتير</small></div></div></div> :
+                    {loading ? <div className="card"><div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div></div> :
+                        journals.length === 0 ? <div className="card"><div className="empty-state"><div className="empty-state-icon">📋</div><div className="empty-state-text">{t('fin.str_219')}<br /><small>{t('fin.str_220')}</small></div></div></div> :
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {journals.map(j => (
                                     <div key={j.id} className="card" style={{ padding: '12px', cursor: 'pointer' }} onClick={() => setExpandedEntry(expandedEntry === j.id ? null : j.id)}>
@@ -334,7 +334,7 @@ export default function AccountingPage() {
                                         </div>
                                         {expandedEntry === j.id && (
                                             <table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
-                                                <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>الحساب</th><th style={{ padding: '6px', textAlign: 'right' }}>البيان</th><th style={{ padding: '6px', textAlign: 'right' }}>مركز تسجيل</th><th style={{ padding: '6px', textAlign: 'right' }}>مدين</th><th style={{ padding: '6px', textAlign: 'right' }}>دائن</th></tr></thead>
+                                                <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_221')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_222')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_223')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_214')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_215')}</th></tr></thead>
                                                 <tbody>{j.lines.map(l => (
                                                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                                         <td style={{ padding: '6px', fontSize: '12px' }}><span style={{ fontFamily: 'monospace' }}>{l.account.code}</span> {l.account.name}</td>
@@ -356,21 +356,20 @@ export default function AccountingPage() {
             {/* ===== مراكز التكلفة ===== */}
             {tab === 'cost_centers' && (
                 <div className="card">
-                    <h3 style={{ marginBottom: '16px' }}>🏢 مراكز التكلفة (المشاريع والأقسام)</h3>
+                    <h3 style={{ marginBottom: '16px' }}>{t('fin.str_224')}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 2fr', gap: '24px' }}>
                         <div style={{ background: 'rgba(108,99,255,0.03)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <h4 style={{ marginBottom: '12px' }}>➕ إضافة مركز جديد</h4>
-                            <input value={newCostCenter.code} onChange={e => setNewCostCenter({ ...newCostCenter, code: e.target.value })} placeholder="رقم المركز (مثال: 101)" style={{ width: '100%', padding: '8px 12px', marginBottom: '8px', borderRadius: '6px', border: '1px solid var(--border)' }} />
-                            <input value={newCostCenter.name} onChange={e => setNewCostCenter({ ...newCostCenter, name: e.target.value })} placeholder="اسم المركز (مثال: فرع الرياض)" style={{ width: '100%', padding: '8px 12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid var(--border)' }} />
+                            <h4 style={{ marginBottom: '12px' }}>{t('fin.str_225')}</h4>
+                            <input value={newCostCenter.code} onChange={e => setNewCostCenter({ ...newCostCenter, code: e.target.value })} placeholder={t('fin.str_267')} style={{ width: '100%', padding: '8px 12px', marginBottom: '8px', borderRadius: '6px', border: '1px solid var(--border)' }} />
+                            <input value={newCostCenter.name} onChange={e => setNewCostCenter({ ...newCostCenter, name: e.target.value })} placeholder={t('fin.str_268')} style={{ width: '100%', padding: '8px 12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid var(--border)' }} />
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '16px', fontSize: '14px' }}>
                                 <input type="checkbox" checked={newCostCenter.isActive} onChange={e => setNewCostCenter({ ...newCostCenter, isActive: e.target.checked })} />
-                                نشط
-                            </label>
-                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleAddCostCenter}>حفظ المركز</button>
+                                {t('sys.str_180')}</label>
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleAddCostCenter}>{t('fin.str_226')}</button>
                         </div>
                         <div>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead><tr style={{ background: 'rgba(0,0,0,0.03)' }}><th style={{ padding: '10px', textAlign: 'right' }}>الكود</th><th style={{ padding: '10px', textAlign: 'right' }}>الاسم</th><th style={{ padding: '10px', textAlign: 'right' }}>الحالة</th></tr></thead>
+                                <thead><tr style={{ background: 'rgba(0,0,0,0.03)' }}><th style={{ padding: '10px', textAlign: 'right' }}>{t('fin.str_197')}</th><th style={{ padding: '10px', textAlign: 'right' }}>{t('fin.str_198')}</th><th style={{ padding: '10px', textAlign: 'right' }}>{t('fin.str_227')}</th></tr></thead>
                                 <tbody>{costCenters.map(c => (
                                     <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '10px', fontFamily: 'monospace' }}>{c.code}</td>
@@ -378,7 +377,7 @@ export default function AccountingPage() {
                                         <td style={{ padding: '10px' }}><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: c.isActive ? '#22c55e20' : '#ef444420', color: c.isActive ? '#22c55e' : '#ef4444' }}>{c.isActive ? 'نشط' : 'إيقاف'}</span></td>
                                     </tr>
                                 ))}
-                                {costCenters.length === 0 && <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>لا توجد مراكز تكلفة مسجلة</td></tr>}
+                                {costCenters.length === 0 && <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>{t('fin.str_228')}</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -391,19 +390,19 @@ export default function AccountingPage() {
                 <div>
                     <div className="toolbar" style={{ marginBottom: '12px' }}>
                         <select value={selectedAccount} onChange={e => loadLedger(parseInt(e.target.value))} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '250px' }}>
-                            <option value={0}>اختر حساباً...</option>
+                            <option value={0}>{t('fin.str_229')}</option>
                             {accounts.filter(a => a.level > 0).map(a => (<option key={a.id} value={a.id}>{a.code} - {a.name}</option>))}
                         </select>
                     </div>
-                    {loading ? <div className="card"><div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div></div> :
-                        !ledgerData ? <div className="card"><div className="empty-state"><div className="empty-state-icon">📒</div><div className="empty-state-text">اختر حساباً لعرض حركاته</div></div></div> :
+                    {loading ? <div className="card"><div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div></div> :
+                        !ledgerData ? <div className="card"><div className="empty-state"><div className="empty-state-icon">📒</div><div className="empty-state-text">{t('fin.str_230')}</div></div></div> :
                             <div className="card">
                                 <h3 style={{ marginBottom: '12px' }}>{ledgerData.account.code} - {ledgerData.account.name}</h3>
-                                {ledgerData.lines.length === 0 ? <div className="empty-state"><div className="empty-state-text">لا توجد حركات لهذا الحساب</div></div> :
+                                {ledgerData.lines.length === 0 ? <div className="empty-state"><div className="empty-state-text">{t('fin.str_231')}</div></div> :
                                     <><table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                         <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}>
-                                            <th style={{ padding: '8px', textAlign: 'right' }}>التاريخ</th><th style={{ padding: '8px', textAlign: 'right' }}>رقم القيد</th><th style={{ padding: '8px', textAlign: 'right' }}>البيان</th>
-                                            <th style={{ padding: '8px', textAlign: 'right' }}>مدين</th><th style={{ padding: '8px', textAlign: 'right' }}>دائن</th><th style={{ padding: '8px', textAlign: 'right' }}>الرصيد</th>
+                                            <th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_232')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_233')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_222')}</th>
+                                            <th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_214')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_215')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_234')}</th>
                                         </tr></thead>
                                         <tbody>{ledgerData.lines.map(l => (
                                             <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
@@ -417,9 +416,9 @@ export default function AccountingPage() {
                                         ))}</tbody>
                                     </table>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: 'rgba(108,99,255,0.05)', borderRadius: '6px', marginTop: '12px', fontWeight: 'bold' }}>
-                                            <span>إجمالي مدين: {fmt(ledgerData.totalDebit)}</span>
-                                            <span>إجمالي دائن: {fmt(ledgerData.totalCredit)}</span>
-                                            <span>الرصيد: <span style={{ color: ledgerData.closingBalance >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(ledgerData.closingBalance)}</span></span>
+                                            <span>{t('fin.str_235')}{fmt(ledgerData.totalDebit)}</span>
+                                            <span>{t('fin.str_236')}{fmt(ledgerData.totalCredit)}</span>
+                                            <span>{t('fin.str_237')}<span style={{ color: ledgerData.closingBalance >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(ledgerData.closingBalance)}</span></span>
                                         </div></>}
                             </div>}
                 </div>
@@ -428,16 +427,16 @@ export default function AccountingPage() {
             {/* ===== ميزان المراجعة ===== */}
             {tab === 'trial' && (
                 <div className="card">
-                    {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                        !trialData ? <div className="empty-state"><div className="empty-state-icon">⚖️</div><div className="empty-state-text">لا توجد بيانات</div></div> :
+                    {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                        !trialData ? <div className="empty-state"><div className="empty-state-icon">⚖️</div><div className="empty-state-text">{t('fin.str_238')}</div></div> :
                             <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <h3>⚖️ ميزان المراجعة</h3>
+                                <h3>{t('fin.str_239')}</h3>
                                 <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '13px', background: trialData.isBalanced ? '#22c55e20' : '#ef444420', color: trialData.isBalanced ? '#22c55e' : '#ef4444' }}>
                                     {trialData.isBalanced ? '✅ متوازن' : '⚠️ غير متوازن'}
                                 </span>
                             </div>
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}><th style={{ padding: '8px', textAlign: 'right' }}>الكود</th><th style={{ padding: '8px', textAlign: 'right' }}>الحساب</th><th style={{ padding: '8px', textAlign: 'right' }}>رصيد مدين</th><th style={{ padding: '8px', textAlign: 'right' }}>رصيد دائن</th></tr></thead>
+                                    <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_197')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_221')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_240')}</th><th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_241')}</th></tr></thead>
                                     <tbody>{trialData.rows.map(r => (
                                         <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                             <td style={{ padding: '8px', fontFamily: 'monospace', fontSize: '12px' }}>{r.code}</td>
@@ -447,7 +446,7 @@ export default function AccountingPage() {
                                         </tr>
                                     ))}
                                         <tr style={{ background: 'rgba(108,99,255,0.08)', fontWeight: 'bold' }}>
-                                            <td colSpan={2} style={{ padding: '10px' }}>الإجمالي</td>
+                                            <td colSpan={2} style={{ padding: '10px' }}>{t('sys.str_66')}</td>
                                             <td style={{ padding: '10px', fontFamily: 'monospace' }}>{fmt(trialData.grandTotalDebit)}</td>
                                             <td style={{ padding: '10px', fontFamily: 'monospace' }}>{fmt(trialData.grandTotalCredit)}</td>
                                         </tr></tbody>
@@ -458,34 +457,34 @@ export default function AccountingPage() {
             {/* ===== قائمة الدخل ===== */}
             {tab === 'income' && (
                 <div className="card">
-                    {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                        !incomeData ? <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">لا توجد بيانات</div></div> :
-                            <><h3 style={{ marginBottom: '16px' }}>📊 قائمة الدخل</h3>
+                    {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                        !incomeData ? <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">{t('fin.str_238')}</div></div> :
+                            <><h3 style={{ marginBottom: '16px' }}>{t('fin.str_242')}</h3>
                                 <div style={{ background: '#3b82f610', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
-                                    <h4 style={{ color: '#3b82f6', marginBottom: '8px' }}>الإيرادات</h4>
+                                    <h4 style={{ color: '#3b82f6', marginBottom: '8px' }}>{t('fin.str_243')}</h4>
                                     {incomeData.revenue.items.map((r, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: '13px' }}>
                                             <span>{r.code} - {r.name}</span><span style={{ fontFamily: 'monospace' }}>{fmt(r.amount)}</span>
                                         </div>
                                     ))}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', fontWeight: 'bold', borderTop: '1px solid #3b82f630', marginTop: '8px' }}>
-                                        <span>إجمالي الإيرادات</span><span style={{ fontFamily: 'monospace', color: '#3b82f6' }}>{fmt(incomeData.revenue.total)}</span>
+                                        <span>{t('fin.str_244')}</span><span style={{ fontFamily: 'monospace', color: '#3b82f6' }}>{fmt(incomeData.revenue.total)}</span>
                                     </div>
                                 </div>
                                 <div style={{ background: '#f59e0b10', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
-                                    <h4 style={{ color: '#f59e0b', marginBottom: '8px' }}>المصروفات</h4>
+                                    <h4 style={{ color: '#f59e0b', marginBottom: '8px' }}>{t('fin.str_245')}</h4>
                                     {incomeData.expenses.items.map((e, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: '13px' }}>
                                             <span>{e.code} - {e.name}</span><span style={{ fontFamily: 'monospace' }}>{fmt(e.amount)}</span>
                                         </div>
                                     ))}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', fontWeight: 'bold', borderTop: '1px solid #f59e0b30', marginTop: '8px' }}>
-                                        <span>إجمالي المصروفات</span><span style={{ fontFamily: 'monospace', color: '#f59e0b' }}>{fmt(incomeData.expenses.total)}</span>
+                                        <span>{t('fin.str_246')}</span><span style={{ fontFamily: 'monospace', color: '#f59e0b' }}>{fmt(incomeData.expenses.total)}</span>
                                     </div>
                                 </div>
                                 <div style={{ background: incomeData.netProfit >= 0 ? '#22c55e15' : '#ef444415', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
                                     <div style={{ fontSize: '14px', marginBottom: '4px' }}>{incomeData.netProfit >= 0 ? '✅ صافي الربح' : '⚠️ صافي الخسارة'}</div>
-                                    <div style={{ fontSize: '28px', fontWeight: 'bold', fontFamily: 'monospace', color: incomeData.netProfit >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(Math.abs(incomeData.netProfit))} ر.س</div>
+                                    <div style={{ fontSize: '28px', fontWeight: 'bold', fontFamily: 'monospace', color: incomeData.netProfit >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(Math.abs(incomeData.netProfit))} {t('sys.str_68')}</div>
                                 </div></>}
                 </div>
             )}
@@ -493,47 +492,47 @@ export default function AccountingPage() {
             {/* ===== الميزانية العمومية ===== */}
             {tab === 'balance' && (
                 <div className="card">
-                    {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                        !balanceData ? <div className="empty-state"><div className="empty-state-icon">🏦</div><div className="empty-state-text">لا توجد بيانات</div></div> :
+                    {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                        !balanceData ? <div className="empty-state"><div className="empty-state-icon">🏦</div><div className="empty-state-text">{t('fin.str_238')}</div></div> :
                             <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <h3>🏦 الميزانية العمومية</h3>
+                                <h3>{t('fin.str_247')}</h3>
                                 <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '13px', background: balanceData.isBalanced ? '#22c55e20' : '#ef444420', color: balanceData.isBalanced ? '#22c55e' : '#ef4444' }}>
                                     {balanceData.isBalanced ? '✅ متوازنة' : '⚠️ غير متوازنة'}
                                 </span>
                             </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <div style={{ background: '#22c55e10', padding: '12px', borderRadius: '8px' }}>
-                                        <h4 style={{ color: '#22c55e', marginBottom: '8px' }}>الأصول</h4>
+                                        <h4 style={{ color: '#22c55e', marginBottom: '8px' }}>{t('fin.str_248')}</h4>
                                         {balanceData.assets.items.map((a, i) => (
                                             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: '13px' }}>
                                                 <span>{a.code} - {a.name}</span><span style={{ fontFamily: 'monospace' }}>{fmt(a.balance)}</span>
                                             </div>
                                         ))}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', fontWeight: 'bold', borderTop: '2px solid #22c55e30', marginTop: '8px' }}>
-                                            <span>إجمالي الأصول</span><span style={{ fontFamily: 'monospace', color: '#22c55e', fontSize: '16px' }}>{fmt(balanceData.assets.total)}</span>
+                                            <span>{t('fin.str_249')}</span><span style={{ fontFamily: 'monospace', color: '#22c55e', fontSize: '16px' }}>{fmt(balanceData.assets.total)}</span>
                                         </div>
                                     </div>
                                     <div>
                                         <div style={{ background: '#ef444410', padding: '12px', borderRadius: '8px', marginBottom: '12px' }}>
-                                            <h4 style={{ color: '#ef4444', marginBottom: '8px' }}>الخصوم</h4>
+                                            <h4 style={{ color: '#ef4444', marginBottom: '8px' }}>{t('fin.str_250')}</h4>
                                             {balanceData.liabilities.items.map((l, i) => (
                                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: '13px' }}>
                                                     <span>{l.code} - {l.name}</span><span style={{ fontFamily: 'monospace' }}>{fmt(l.balance)}</span>
                                                 </div>
                                             ))}
                                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', fontWeight: 'bold', borderTop: '1px solid #ef444430', marginTop: '8px' }}>
-                                                <span>إجمالي الخصوم</span><span style={{ fontFamily: 'monospace', color: '#ef4444' }}>{fmt(balanceData.liabilities.total)}</span>
+                                                <span>{t('fin.str_251')}</span><span style={{ fontFamily: 'monospace', color: '#ef4444' }}>{fmt(balanceData.liabilities.total)}</span>
                                             </div>
                                         </div>
                                         <div style={{ background: '#8b5cf610', padding: '12px', borderRadius: '8px' }}>
-                                            <h4 style={{ color: '#8b5cf6', marginBottom: '8px' }}>حقوق الملكية</h4>
+                                            <h4 style={{ color: '#8b5cf6', marginBottom: '8px' }}>{t('fin.str_252')}</h4>
                                             {balanceData.equity.items.map((e, i) => (
                                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: '13px' }}>
                                                     <span>{e.code} - {e.name}</span><span style={{ fontFamily: 'monospace' }}>{fmt(e.balance)}</span>
                                                 </div>
                                             ))}
                                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', fontWeight: 'bold', borderTop: '1px solid #8b5cf630', marginTop: '8px' }}>
-                                                <span>إجمالي الملكية</span><span style={{ fontFamily: 'monospace', color: '#8b5cf6' }}>{fmt(balanceData.equity.total)}</span>
+                                                <span>{t('fin.str_253')}</span><span style={{ fontFamily: 'monospace', color: '#8b5cf6' }}>{fmt(balanceData.equity.total)}</span>
                                             </div>
                                         </div>
                                     </div>

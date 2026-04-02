@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function SystemAlertsPage() {
+    const { t } = useTranslation();
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,17 +20,16 @@ export default function SystemAlertsPage() {
   return (
     <div className="p-6" dir="rtl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">🔔 تنبيهات النظام وصندوق سير العمل</h1>
+        <h1 className="text-2xl font-bold">{t('sys.str_2679')}</h1>
         <button className="text-slate-500 hover:text-slate-800 font-medium transition">
-          تحديد الكل كمقروء
-        </button>
+          {t('sys.str_2680')}</button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">جاري تحميل صندوق الوارد...</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_2681')}</div>
         ) : alerts.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">لا توجد تنبيهات نشطة أو مهام في صندوقك الآن. 🎉</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_2682')}</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {alerts.map(al => (

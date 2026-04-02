@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Factory, Wrench, CheckCircle, PackageOpen, Plus, Play, ShieldCheck, Truck } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ManufacturingKanbanPage() {
+    const { t } = useTranslation();
     const [orders, setOrders] = useState<any[]>([]);
     const [recipes, setRecipes] = useState<any[]>([]);
     const [machines, setMachines] = useState<any[]>([]);
@@ -57,7 +59,7 @@ export default function ManufacturingKanbanPage() {
         if (currentStatus === 'draft') nextStatus = 'processing';
         else if (currentStatus === 'processing') nextStatus = 'qa';
         else if (currentStatus === 'qa') {
-            const isSure = confirm("إنهاء أمر التصنيع سيقوم آلياً بخصم المواد الخام، واحتساب وقت الآلة، وتوريد المنتج النهائي للمخزون. هل أنت متأكد؟");
+            const isSure = confirm(t('sys.str_732'));
             if (!isSure) return;
             nextStatus = 'completed';
         }
@@ -89,11 +91,11 @@ export default function ManufacturingKanbanPage() {
                         <div className="flex justify-between items-start mb-2">
                             <span className="text-xs font-mono font-bold text-slate-500">{order.orderNumber}</span>
                             <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">
-                                خط الإنتاج: {order.machine?.name || "عام"}
+                                {t('sys.str_718')}{order.machine?.name || t('sys.str_733')}
                             </span>
                         </div>
                         <h3 className="font-bold text-lg text-slate-800">{order.recipe?.finishedProduct?.name}</h3>
-                        <p className="text-sm text-slate-500 mb-4">الكمية المستهدفة: <strong className="text-slate-800">{order.quantityToProduce}</strong></p>
+                        <p className="text-sm text-slate-500 mb-4">{t('sys.str_719')}<strong className="text-slate-800">{order.quantityToProduce}</strong></p>
                         
                         {status !== 'completed' && (
                             <button 
@@ -104,15 +106,14 @@ export default function ManufacturingKanbanPage() {
                                     "bg-emerald-600 hover:bg-emerald-700"
                                 }`}
                             >
-                                {status === 'draft' && "بدء التصنيع 🏭"}
-                                {status === 'processing' && "إرسال للفحص 🔬"}
-                                {status === 'qa' && "اعتماد للمخزن ✅"}
+                                {status === 'draft' && t('sys.str_734')}
+                                {status === 'processing' && t('sys.str_735')}
+                                {status === 'qa' && t('sys.str_736')}
                             </button>
                         )}
                         {status === 'completed' && (
                             <div className="text-center pt-2 border-t border-slate-100 text-emerald-600 font-bold text-sm">
-                                تم خصم المواد ورفع المخزون
-                            </div>
+                                {t('sys.str_720')}</div>
                         )}
                     </div>
                 ))}
@@ -125,40 +126,38 @@ export default function ManufacturingKanbanPage() {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3">
-                        <Factory className="w-8 h-8 text-amber-600" /> إدارة التصنيع المتقدمة (MES)
-                    </h1>
-                    <p className="text-slate-500 mt-2">لوحة مراقبة خطوط الإنتاج والآلات وتحويل المواد الخام.</p>
+                        <Factory className="w-8 h-8 text-amber-600" /> {t('sys.str_721')}</h1>
+                    <p className="text-slate-500 mt-2">{t('sys.str_722')}</p>
                 </div>
                 <button 
                     onClick={() => setShowNewOrder(true)}
                     className="bg-slate-800 text-white px-5 py-2.5 rounded shadow-sm hover:bg-slate-700 transition flex items-center gap-2"
                 >
-                    <Plus size={18} /> إصدار أمر تشغيل
-                </button>
+                    <Plus size={18} /> {t('sys.str_723')}</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {renderColumn("draft", "مُسودة الأوامر", <PackageOpen className="text-slate-500" size={20}/>, "border-slate-400")}
-                {renderColumn("processing", "قيد الإنتاج والتشغيل", <Wrench className="text-amber-500" size={20}/>, "border-amber-400")}
-                {renderColumn("qa", "فحص الجودة", <ShieldCheck className="text-blue-500" size={20}/>, "border-blue-400")}
-                {renderColumn("completed", "أُرسلت للمخزن", <CheckCircle className="text-emerald-500" size={20}/>, "border-emerald-400")}
+                {renderColumn("draft", t('sys.str_737'), <PackageOpen className="text-slate-500" size={20}/>, "border-slate-400")}
+                {renderColumn("processing", t('sys.str_738'), <Wrench className="text-amber-500" size={20}/>, "border-amber-400")}
+                {renderColumn("qa", t('sys.str_739'), <ShieldCheck className="text-blue-500" size={20}/>, "border-blue-400")}
+                {renderColumn("completed", t('sys.str_740'), <CheckCircle className="text-emerald-500" size={20}/>, "border-emerald-400")}
             </div>
 
             {/* Modal for New Order */}
             {showNewOrder && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4 border-b pb-2">إصدار أمر تصنيع جديد</h2>
+                        <h2 className="text-xl font-bold mb-4 border-b pb-2">{t('sys.str_724')}</h2>
                         
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm mb-1 text-slate-600">وصفة التصنيع (المنتج النهائي)</label>
+                                <label className="block text-sm mb-1 text-slate-600">{t('sys.str_725')}</label>
                                 <select 
                                     className="w-full p-2 border rounded focus:ring-2 focus:ring-amber-500"
                                     value={newOrderForm.recipeId}
                                     onChange={e => setNewOrderForm({...newOrderForm, recipeId: e.target.value})}
                                 >
-                                    <option value="">-- اختر الوصفة --</option>
+                                    <option value="">{t('sys.str_726')}</option>
                                     {recipes.map(r => (
                                         <option key={r.id} value={r.id}>{r.finishedProduct?.name}</option>
                                     ))}
@@ -166,21 +165,21 @@ export default function ManufacturingKanbanPage() {
                             </div>
                             
                             <div>
-                                <label className="block text-sm mb-1 text-slate-600">خط الإنتاج / الآلة (اختياري، لحساب التكلفة)</label>
+                                <label className="block text-sm mb-1 text-slate-600">{t('sys.str_727')}</label>
                                 <select 
                                     className="w-full p-2 border rounded focus:ring-2 focus:ring-amber-500"
                                     value={newOrderForm.machineId}
                                     onChange={e => setNewOrderForm({...newOrderForm, machineId: e.target.value})}
                                 >
-                                    <option value="">-- يدوية / عامة --</option>
+                                    <option value="">{t('sys.str_728')}</option>
                                     {machines.map(m => (
-                                        <option key={m.id} value={m.id}>{m.name} ({m.hourlyCost} ر.س/ساعة)</option>
+                                        <option key={m.id} value={m.id}>{m.name} ({m.hourlyCost} {t('sys.str_729')}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm mb-1 text-slate-600">الكمية المطلوبة إنتاجها</label>
+                                <label className="block text-sm mb-1 text-slate-600">{t('sys.str_730')}</label>
                                 <input 
                                     type="number"
                                     min="1"
@@ -192,10 +191,9 @@ export default function ManufacturingKanbanPage() {
                         </div>
 
                         <div className="flex justify-end gap-3 mt-8">
-                            <button onClick={() => setShowNewOrder(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">إلغاء</button>
+                            <button onClick={() => setShowNewOrder(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded">{t('fin.str_206')}</button>
                             <button onClick={handleCreateOrder} disabled={!newOrderForm.recipeId || !newOrderForm.qty} className="bg-amber-600 text-white px-6 py-2 rounded hover:bg-amber-700 disabled:opacity-50 font-bold shadow">
-                                اعتماد الإصدار
-                            </button>
+                                {t('sys.str_731')}</button>
                         </div>
                     </div>
                 </div>

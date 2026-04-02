@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit3, Trash2, PieChart, Calendar, CheckCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function FinancialBudgetsPage() {
+    const { t } = useTranslation();
     const [budgets, setBudgets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -56,17 +58,17 @@ export default function FinancialBudgetsPage() {
                 setShowModal(false);
                 fetchData();
             } else {
-                alert('فشل في حفظ الموازنة');
+                alert(t('sys.str_2084'));
             }
         } catch (error) {
-            alert('حدث خطأ بالاتصال');
+            alert(t('sys.str_2085'));
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('هل أنت متأكد من حذف هذه الموازنة نهائياً؟')) return;
+        if (!confirm(t('sys.str_2086'))) return;
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/fng/budgets?id=${id}`, {
@@ -75,7 +77,7 @@ export default function FinancialBudgetsPage() {
             });
             if (res.ok) fetchData();
         } catch (error) {
-            alert('خطأ في الاتصال');
+            alert(t('sys.str_446'));
         }
     };
 
@@ -85,11 +87,9 @@ export default function FinancialBudgetsPage() {
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <PieChart size={28} color="var(--primary)" />
-                        الموازنات والاعتمادات المالية
-                    </h1>
+                        {t('sys.str_2067')}</h1>
                     <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>
-                        إدارة الموازنات التقديرية (Budgets)، تخصيص الاعتمادات المالية السنوية، ومراقبة الانحرافات.
-                    </p>
+                        {t('sys.str_2068')}</p>
                 </div>
                 <button 
                     className="btn btn-primary"
@@ -100,15 +100,14 @@ export default function FinancialBudgetsPage() {
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px' }}
                 >
                     <Plus size={20} />
-                    إنشاء موازنة جديدة
-                </button>
+                    {t('sys.str_2069')}</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                         <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', borderRadius: '12px' }}><PieChart size={24} /></div>
-                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>إجمالي الموازنات</span>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('sys.str_2070')}</span>
                     </div>
                     <span style={{ fontSize: '28px', fontWeight: '900' }}>{budgets.length}</span>
                 </div>
@@ -116,7 +115,7 @@ export default function FinancialBudgetsPage() {
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                         <div style={{ padding: '10px', background: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', borderRadius: '12px' }}><CheckCircle size={24} /></div>
-                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>الموازنات النشطة</span>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('sys.str_2071')}</span>
                     </div>
                     <span style={{ fontSize: '28px', fontWeight: '900' }}>{budgets.filter(b => b.status === 'ACTIVE').length}</span>
                 </div>
@@ -124,7 +123,7 @@ export default function FinancialBudgetsPage() {
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                         <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', color: '#EAB308', borderRadius: '12px' }}><Calendar size={24} /></div>
-                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>إجمالي الاعتمادات (SAR)</span>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('sys.str_2072')}</span>
                     </div>
                     <span style={{ fontSize: '28px', fontWeight: '900' }}>
                         {budgets.reduce((acc, b) => acc + (b.totalAmount || 0), 0).toLocaleString()}
@@ -134,20 +133,20 @@ export default function FinancialBudgetsPage() {
 
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري التحميل...</div>
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{t('sys.str_168')}</div>
                 ) : budgets.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>لا توجد موازنات مسجلة. انقر على "إنشاء موازنة جديدة" للبدء.</div>
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{t('sys.str_2073')}</div>
                 ) : (
                     <table className="table" style={{ width: '100%' }}>
                         <thead style={{ background: 'var(--bg-card-hover)', borderBottom: '2px solid var(--border)' }}>
                             <tr>
-                                <th>الاسم / الوصف</th>
-                                <th>السنة المالية</th>
-                                <th>تاريخ البدء</th>
-                                <th>تاريخ الانتهاء</th>
-                                <th>إجمالي الاعتماد (SAR)</th>
-                                <th>الحالة</th>
-                                <th>إجراءات</th>
+                                <th>{t('sys.str_2074')}</th>
+                                <th>{t('sys.str_2075')}</th>
+                                <th>{t('sys.str_1860')}</th>
+                                <th>{t('sys.str_432')}</th>
+                                <th>{t('sys.str_2076')}</th>
+                                <th>{t('fin.str_227')}</th>
+                                <th>{t('sys.str_435')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -210,51 +209,51 @@ export default function FinancialBudgetsPage() {
                             <form onSubmit={handleSave}>
                                 <div className="grid-2">
                                     <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                                        <label className="input-label">اسم / وصف الموازنة *</label>
+                                        <label className="input-label">{t('sys.str_2077')}</label>
                                         <input 
-                                            className="input" required placeholder="مثال: موازنة التشغيل للربع الأول"
+                                            className="input" required placeholder={t('sys.str_2091')}
                                             value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
                                         />
                                     </div>
                                     <div className="input-group">
-                                        <label className="input-label">السنة المالية *</label>
+                                        <label className="input-label">{t('sys.str_2078')}</label>
                                         <input 
                                             className="input" type="number" required
                                             value={formData.fiscalYear} onChange={e => setFormData({...formData, fiscalYear: parseInt(e.target.value)})}
                                         />
                                     </div>
                                     <div className="input-group">
-                                        <label className="input-label">إجمالي مبلغ الاعتماد *</label>
+                                        <label className="input-label">{t('sys.str_2079')}</label>
                                         <input 
                                             className="input" type="number" step="0.01" required dir="ltr"
                                             value={formData.totalAmount} onChange={e => setFormData({...formData, totalAmount: e.target.value})}
                                         />
                                     </div>
                                     <div className="input-group">
-                                        <label className="input-label">تاريخ سريان الموازنة *</label>
+                                        <label className="input-label">{t('sys.str_2080')}</label>
                                         <input 
                                             className="input" type="date" required
                                             value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})}
                                         />
                                     </div>
                                     <div className="input-group">
-                                        <label className="input-label">تاريخ انتهاء الموازنة *</label>
+                                        <label className="input-label">{t('sys.str_2081')}</label>
                                         <input 
                                             className="input" type="date" required
                                             value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})}
                                         />
                                     </div>
                                     <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                                        <label className="input-label">الحالة</label>
+                                        <label className="input-label">{t('fin.str_227')}</label>
                                         <select className="input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                                            <option value="ACTIVE">🟢 موازنة نشطة ومعتمدة</option>
-                                            <option value="DRAFT">⚪ مسودة قيد التحضير</option>
+                                            <option value="ACTIVE">{t('sys.str_2082')}</option>
+                                            <option value="DRAFT">{t('sys.str_2083')}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>
                                         {saving ? '⏳ جاري الحفظ...' : '💾 حفظ واعتماد'}
                                     </button>

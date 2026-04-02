@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Printer, Calendar, RefreshCcw, FileText } from 'lucide-react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
+import { useTranslation } from "@/lib/i18n";
 
 interface Invoice {
     id: number;
@@ -18,6 +19,7 @@ interface Invoice {
 }
 
 export default function SalesHistoryPage() {
+    const { t } = useTranslation();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(false);
     
@@ -81,7 +83,7 @@ export default function SalesHistoryPage() {
             invoiceId: inv.id,
             invoiceNumber: String(inv.invoiceNo),
             date: inv.date,
-            customerName: inv.customer?.name || 'عميل نقدي',
+            customerName: inv.customer?.name || t('sys.str_752'),
             customerTaxNo: inv.customer?.taxNumber,
             customerCrNo: inv.customer?.crNo,
             customerAddress: inv.customer?.address,
@@ -109,27 +111,26 @@ export default function SalesHistoryPage() {
         <div className="history-page">
             <div className="page-header" style={{ marginBottom: '2rem' }}>
                 <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <FileText size={28} color="var(--primary)" /> سجل الفواتير السابقة
-                </h1>
-                <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>استعراض جميع فواتير المبيعات الصادرة، البحث، وإعادة الطباعة الضريبية.</p>
+                    <FileText size={28} color="var(--primary)" /> {t('sales.str_2413')}</h1>
+                <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>{t('sales.str_2414')}</p>
             </div>
 
             <div className="card" style={{ marginBottom: '2rem' }}>
                 <form onSubmit={handleFilter} className="filter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
                     <div>
-                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={16} /> من تاريخ</label>
+                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={16} /> {t('sales.str_2415')}</label>
                         <input type="date" className="input" value={fromDate} onChange={e => setFromDate(e.target.value)} />
                     </div>
                     <div>
-                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={16} /> إلى تاريخ</label>
+                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={16} /> {t('sales.str_2416')}</label>
                         <input type="date" className="input" value={toDate} onChange={e => setToDate(e.target.value)} />
                     </div>
                     <div>
-                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={16} /> بحث برقم الفاتورة أو العميل</label>
+                        <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={16} /> {t('sales.str_2417')}</label>
                         <input 
                             type="text" 
                             className="input" 
-                            placeholder="ابحث هنا..." 
+                            placeholder={t('sales.str_2423')} 
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                         />
@@ -138,7 +139,7 @@ export default function SalesHistoryPage() {
                         <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
                             {loading ? 'جاري التحديث...' : 'تطبيق الفلتر'}
                         </button>
-                        <button type="button" className="btn btn-secondary" onClick={resetFilters} title="إعادة ضبط">
+                        <button type="button" className="btn btn-secondary" onClick={resetFilters} title={t('sales.str_2426')}>
                             <RefreshCcw size={18} />
                         </button>
                     </div>
@@ -149,41 +150,39 @@ export default function SalesHistoryPage() {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>رقم الفاتورة</th>
-                            <th>التاريخ والوقت</th>
-                            <th>اسم العميل</th>
-                            <th>طريقة الدفع</th>
-                            <th>الإجمالي (شامل الضريبة)</th>
-                            <th style={{ textAlign: 'center' }}>إجراءات</th>
+                            <th>{t('sys.str_510')}</th>
+                            <th>{t('sales.str_2418')}</th>
+                            <th>{t('sys.str_673')}</th>
+                            <th>{t('sys.str_1046')}</th>
+                            <th>{t('sales.str_2419')}</th>
+                            <th style={{ textAlign: 'center' }}>{t('sys.str_435')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && invoices.length === 0 ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>جاري التحميل...</td></tr>
+                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>{t('sys.str_168')}</td></tr>
                         ) : filteredInvoices.length === 0 ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>لا توجد فواتير مطابقة لخيارات البحث</td></tr>
+                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>{t('sales.str_2420')}</td></tr>
                         ) : (
                             filteredInvoices.map(inv => (
                                 <tr key={inv.id}>
                                     <td style={{ fontWeight: 'bold' }}>#{inv.invoiceNo}</td>
                                     <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(inv.date).toLocaleString('ar-SA')}</td>
-                                    <td>{inv.customer?.name || <span className="badge badge-gray">عميل نقدي مباشر</span>}</td>
+                                    <td>{inv.customer?.name || <span className="badge badge-gray">{t('sales.str_2421')}</span>}</td>
                                     <td>
                                         <span className={`badge ${inv.paymentType.toLowerCase() === 'cash' ? 'badge-success' : 'badge-primary'}`}>
                                             {inv.paymentType.toUpperCase()}
                                         </span>
                                     </td>
                                     <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>
-                                        {Number(inv.total).toLocaleString()} ر.س
-                                    </td>
+                                        {Number(inv.total).toLocaleString()} {t('sys.str_68')}</td>
                                     <td style={{ textAlign: 'center' }}>
                                         <button 
                                             className="btn btn-secondary btn-sm"
                                             onClick={() => reprintInvoice(inv)}
                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                                         >
-                                            <Printer size={16} /> إعادة طباعة
-                                        </button>
+                                            <Printer size={16} /> {t('sales.str_2422')}</button>
                                     </td>
                                 </tr>
                             ))

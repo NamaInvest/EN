@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Scale, FileText, ChevronDown, ChevronRight, Download, Filter } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function TrialBalancePage() {
+    const { t } = useTranslation();
     const [accounts, setAccounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [dates, setDates] = useState({ from: "", to: "" });
@@ -111,9 +113,8 @@ export default function TrialBalancePage() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3">
-                        <Scale className="w-8 h-8 text-indigo-600" /> ميزان المراجعة الشجري (Trial Balance)
-                    </h1>
-                    <p className="text-slate-500 mt-2">تحليل القوائم المالية والأرصدة الختامية لجميع مستويات الدليل المحاسبي.</p>
+                        <Scale className="w-8 h-8 text-indigo-600" /> {t('fin.str_1719')}</h1>
+                    <p className="text-slate-500 mt-2">{t('fin.str_1720')}</p>
                 </div>
                 
                 <div className="flex gap-4">
@@ -122,23 +123,23 @@ export default function TrialBalancePage() {
                         <input type="date" className="text-sm outline-none text-slate-600" value={dates.from} onChange={e => setDates({...dates, from: e.target.value})} />
                         <span className="text-slate-300">-</span>
                         <input type="date" className="text-sm outline-none text-slate-600" value={dates.to} onChange={e => setDates({...dates, to: e.target.value})} />
-                        <button onClick={fetchTrialBalance} className="bg-indigo-600 text-white px-3 py-1 rounded text-xs ms-2">تطبيق</button>
+                        <button onClick={fetchTrialBalance} className="bg-indigo-600 text-white px-3 py-1 rounded text-xs ms-2">{t('pos.str_184')}</button>
                     </div>
                 </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 {loading ? (
-                    <div className="p-12 text-center text-slate-400">جاري تحميل المعاملات المحاسبية...</div>
+                    <div className="p-12 text-center text-slate-400">{t('fin.str_1721')}</div>
                 ) : (
                     <table className="w-full text-sm text-right">
                         <thead className="bg-indigo-50 border-b border-indigo-100 text-indigo-900">
                             <tr>
-                                <th className="px-4 py-4 font-bold">الحساب (رقم / إسم)</th>
-                                <th className="px-4 py-4 font-bold text-center">النوع</th>
-                                <th className="px-4 py-4 font-bold text-left">مدين (Debit)</th>
-                                <th className="px-4 py-4 font-bold text-left">دائن (Credit)</th>
-                                <th className="px-4 py-4 font-bold text-left">الرصيد المُرصد (Net)</th>
+                                <th className="px-4 py-4 font-bold">{t('fin.str_1722')}</th>
+                                <th className="px-4 py-4 font-bold text-center">{t('fin.str_199')}</th>
+                                <th className="px-4 py-4 font-bold text-left">{t('fin.str_1723')}</th>
+                                <th className="px-4 py-4 font-bold text-left">{t('fin.str_1724')}</th>
+                                <th className="px-4 py-4 font-bold text-left">{t('fin.str_1725')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,13 +147,13 @@ export default function TrialBalancePage() {
                         </tbody>
                         <tfoot className="bg-slate-800 text-white font-bold">
                             <tr>
-                                <td className="px-4 py-4 text-center" colSpan={2}>الإجمالي المطابق (Total)</td>
+                                <td className="px-4 py-4 text-center" colSpan={2}>{t('fin.str_1726')}</td>
                                 <td className="px-4 py-4 text-left font-mono" dir="ltr">{totalCompanyDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                 <td className="px-4 py-4 text-left font-mono" dir="ltr">{totalCompanyCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                 <td className="px-4 py-4 text-center">
                                     {isBalanced ? 
-                                        <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded">الميزان متطابق ✅</span> : 
-                                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">يوجد خلل ❌</span>
+                                        <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded">{t('fin.str_1727')}</span> : 
+                                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">{t('fin.str_1728')}</span>
                                     }
                                 </td>
                             </tr>

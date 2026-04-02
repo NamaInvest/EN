@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function StudentsPage() {
+    const { t } = useTranslation();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,10 +35,10 @@ export default function StudentsPage() {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="p-4 font-semibold">الرقم الأكاديمي</th>
-                <th className="p-4 font-semibold">الاسم</th>
+                <th className="p-4 font-semibold">{t('sys.str_2589')}</th>
+                <th className="p-4 font-semibold">{t('fin.str_198')}</th>
                 <th className="p-4 font-semibold">معلومات ولي الأمر</th>
-                <th className="p-4 font-semibold">الحالة</th>
+                <th className="p-4 font-semibold">{t('fin.str_227')}</th>
               </tr>
             </thead>
             <tbody>

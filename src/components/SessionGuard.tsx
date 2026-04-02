@@ -23,7 +23,7 @@ export default function SessionGuard() {
                 if (!data.valid && data.reason === 'session_replaced') {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-                    alert('⚠️ تم تسجيل الدخول من جهاز آخر. سيتم تسجيل خروجك.');
+                    alert(t('sys.str_98'));
                     router.replace('/login');
                 }
             } catch { /* ignore network errors */ }

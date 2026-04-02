@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface ChatMessage {
     role: 'user' | 'model';
@@ -14,6 +15,7 @@ interface ChatSession {
 }
 
 export default function WhatsAppHubPage() {
+    const { t } = useTranslation();
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activePhone, setActivePhone] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function WhatsAppHubPage() {
     const activeSession = sessions.find(s => s.phone === activePhone);
 
     if (loading && sessions.length === 0) {
-        return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ جاري تحميل المحادثات...</div>;
+        return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_1510')}</div>;
     }
 
     return (
@@ -52,15 +54,15 @@ export default function WhatsAppHubPage() {
             {/* Contacts Column */}
             <div className="card" style={{ width: '350px', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '20px', background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border)' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>💬 محادثات العملاء (AI)</h2>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>مراقبة حية لردود الذكاء الاصطناعي</p>
+                    <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{t('sys.str_1511')}</h2>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>{t('sys.str_1512')}</p>
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                     {sessions.length === 0 ? (
-                        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>لا يوجد محادثات حالياً</div>
+                        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>{t('sys.str_1513')}</div>
                     ) : (
                         sessions.map(s => {
-                            const lastMsgText = s.history[s.history.length - 1]?.parts[0]?.text || 'بدأت المحادثة...';
+                            const lastMsgText = s.history[s.history.length - 1]?.parts[0]?.text || t('sys.str_1521');
                             const preview = lastMsgText.length > 40 ? lastMsgText.substring(0, 40) + '...' : lastMsgText;
                             const isActive = activePhone === s.phone;
                             
@@ -78,7 +80,7 @@ export default function WhatsAppHubPage() {
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                                         <div style={{ fontWeight: '700', color: isActive ? '#fff' : 'inherit' }} dir="ltr">+{s.phone}</div>
-                                        <div style={{ fontSize: '12px', color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>مباشر 🟢</div>
+                                        <div style={{ fontSize: '12px', color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>{t('sys.str_1514')}</div>
                                     </div>
                                     <div style={{ fontSize: '13px', color: isActive ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)' }}>
                                         {preview}
@@ -101,7 +103,7 @@ export default function WhatsAppHubPage() {
                             </div>
                             <div>
                                 <h3 style={{ margin: 0, fontWeight: '700' }} dir="ltr">+{activeSession.phone}</h3>
-                                <div style={{ fontSize: '12px', color: 'var(--success-light)' }}>متصل بـ Gemini AI</div>
+                                <div style={{ fontSize: '12px', color: 'var(--success-light)' }}>{t('sys.str_1515')}</div>
                             </div>
                         </div>
 
@@ -137,32 +139,32 @@ export default function WhatsAppHubPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
                                 <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📢</div>
                                 <div>
-                                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: 'var(--text-main)' }}>منصة بث التسويق (CRM)</h2>
-                                    <p style={{ margin: '4px 0 0', color: 'var(--text-muted)' }}>إرسال عروض ترويجية ورسائل جماعية لجميع العملاء.</p>
+                                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: 'var(--text-main)' }}>{t('sys.str_1516')}</h2>
+                                    <p style={{ margin: '4px 0 0', color: 'var(--text-muted)' }}>{t('sys.str_1517')}</p>
                                 </div>
                             </div>
                             
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text-secondary)' }}>محتوى الحملة التسويقية:</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text-secondary)' }}>{t('sys.str_1518')}</label>
                                 <textarea 
                                     id="broadcastMessage"
-                                    placeholder="اكتب رسالتك التسويقية هنا... (مثال: خصم 20% بمناسبة نهاية العام!)"
+                                    placeholder={t('sys.str_1523')}
                                     style={{ width: '100%', minHeight: '150px', padding: '16px', borderRadius: '12px', border: '2px solid var(--border)', fontSize: '15px', resize: 'vertical', fontFamily: 'inherit' }}
                                 />
                             </div>
                             
                             <div style={{ background: 'var(--bg-app)', padding: '16px', borderRadius: '12px', marginBottom: '24px', fontSize: '13px', color: 'var(--text-muted)', display: 'flex', gap: '12px' }}>
                                 <span>ℹ️</span>
-                                <div>سيقوم النظام الذكي بسحب أرقام الهواتف النشطة من قاعدة البيانات وتوجيه الرسائل عبر (Meta Cloud API) لتجنب حظر الرقم. سيتم إضافة اسم العميل تلقائياً في بداية الرسالة.</div>
+                                <div>{t('sys.str_1519')}</div>
                             </div>
 
                             <button 
                                 onClick={async (e) => {
                                     const btn = e.currentTarget;
                                     const msg = (document.getElementById('broadcastMessage') as HTMLTextAreaElement).value;
-                                    if(!msg) return alert('يرجى كتابة محتوى الرسالة أولاً!');
+                                    if(!msg) return alert(t('sys.str_1524'));
                                     
-                                    btn.innerText = '⏳ جاري إرسال الحملة...';
+                                    btn.innerText = t('sys.str_1525');
                                     btn.style.opacity = '0.7';
                                     btn.disabled = true;
 
@@ -177,12 +179,12 @@ export default function WhatsAppHubPage() {
                                             alert(`✅ اكتملت الحملة!\nتم الإرسال بنجاح إلى: ${data.stats.success} عميل\nفشل الإرسال إلى: ${data.stats.failed} عميل`);
                                             (document.getElementById('broadcastMessage') as HTMLTextAreaElement).value = '';
                                         } else {
-                                            alert('❌ خطأ: ' + (data.error || 'فشل الاتصال'));
+                                            alert(t('sys.str_1526') + (data.error || t('sys.str_1527')));
                                         }
                                     } catch (err) {
-                                        alert('حدث خطأ غير متوقع');
+                                        alert(t('sys.str_1528'));
                                     } finally {
-                                        btn.innerText = '🚀 إطلاق الحملة التسويقية';
+                                        btn.innerText = t('sys.str_1520');
                                         btn.style.opacity = '1';
                                         btn.disabled = false;
                                     }
@@ -191,8 +193,7 @@ export default function WhatsAppHubPage() {
                                 onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
                                 onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                             >
-                                🚀 إطلاق الحملة التسويقية
-                            </button>
+                                {t('sys.str_1520')}</button>
                         </div>
                     </div>
                 )}

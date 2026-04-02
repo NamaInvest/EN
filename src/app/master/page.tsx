@@ -108,7 +108,7 @@ export default function MasterControlPanel() {
 
   // Pre-fill nodes n1 to n15 even if PM2 doesn't return them all (so they can be provisioned/viewed)
   const displayNodes = Array.from({ length: 15 }, (_, i) => {
-    const id = \`n\${i + 1}\`;
+    const id = `n${i + 1}`;
     const liveNode = nodes.find(n => n.id === id);
     return liveNode || { id, status: "offline", pm2_env: {} };
   });
@@ -130,7 +130,7 @@ export default function MasterControlPanel() {
           </div>
           <div className="flex gap-4">
             <button onClick={fetchNodes} className="flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold transition-colors border border-slate-700">
-              <RefreshCw className={\`w-4 h-4 ml-2 \${loading ? 'animate-spin' : ''}\`} />
+              <RefreshCw className={`w-4 h-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
               تحديث الحالة
             </button>
             <button onClick={() => { localStorage.removeItem("master_auth"); setAuthenticated(false); }} className="flex items-center px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm font-semibold transition-colors border border-red-500/20">
@@ -143,7 +143,7 @@ export default function MasterControlPanel() {
         {/* Console / Logs */}
         <div className="mb-8 bg-black/60 rounded-xl p-4 border border-slate-800 font-mono text-xs h-32 overflow-y-auto">
           {actionLog.map((log, i) => (
-            <div key={i} className={\`mb-1 \${log.includes('ERROR') ? 'text-red-400' : log.includes('SUCCESS') ? 'text-green-400' : 'text-slate-500'}\`}>
+            <div key={i} className={`mb-1 ${log.includes('ERROR') ? 'text-red-400' : log.includes('SUCCESS') ? 'text-green-400' : 'text-slate-500'}`}>
               {log}
             </div>
           ))}
@@ -158,7 +158,7 @@ export default function MasterControlPanel() {
               <div key={node.id} className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg hover:border-indigo-500/30 transition-colors group">
                 <div className="px-5 py-4 flex justify-between items-center border-b border-slate-800/80 bg-slate-900/50">
                   <div className="flex items-center gap-3">
-                    <div className={\`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] \${isOnline ? 'bg-emerald-500 text-emerald-500' : 'bg-red-500 text-red-500'}\`}></div>
+                    <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] ${isOnline ? 'bg-emerald-500 text-emerald-500' : 'bg-red-500 text-red-500'}`}></div>
                     <span className="font-bold text-white text-lg tracking-wider uppercase">{node.id}</span>
                   </div>
                   <div className="text-xs font-mono px-2 py-1 rounded bg-black/50 text-slate-400 border border-slate-800 border-dashed">
@@ -170,7 +170,7 @@ export default function MasterControlPanel() {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-500 flex items-center"><Cpu className="w-4 h-4 ml-2" /> PM2 Process</span>
-                      <span className={\`font-mono \${isOnline ? 'text-emerald-400' : 'text-slate-600'}\`}>{isOnline ? 'Active' : 'Unallocated'}</span>
+                      <span className={`font-mono ${isOnline ? 'text-emerald-400' : 'text-slate-600'}`}>{isOnline ? 'Active' : 'Unallocated'}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-500 flex items-center"><Database className="w-4 h-4 ml-2" /> Database</span>
@@ -196,7 +196,7 @@ export default function MasterControlPanel() {
                       <Power className="w-3.5 h-3.5 ml-1.5" /> إيقاف Node
                     </button>
                     <button 
-                      onClick={() => window.open(\`https://\${node.id}.namainvist.com\`, '_blank')}
+                      onClick={() => window.open(`https://${node.id}.namainvist.com`, '_blank')}
                       className="col-span-2 flex items-center justify-center px-2 py-2.5 bg-indigo-500/10 hover:bg-indigo-500 border border-indigo-500/20 text-indigo-400 hover:text-white rounded-lg text-xs font-bold transition-all mt-1"
                     >
                       <Globe className="w-3.5 h-3.5 ml-1.5" /> الدخول للنظام (Portal)

@@ -104,7 +104,7 @@ export default function AICFOPage() {
                                     <DollarSign size={24} />
                                     <h3 className="font-bold">مبيعات الشهر (للمرجعية)</h3>
                                 </div>
-                                <div className="text-3xl font-bold mt-5 text-white">{(raw?.revenue || 0).toLocaleString()} ر.س</div>
+                                <div className="text-3xl font-bold mt-5 text-white">{(raw?.revenue || 0).toLocaleString()} {t('sys.str_68')}</div>
                             </div>
 
                         </div>
@@ -148,7 +148,7 @@ export default function AICFOPage() {
                                         <div key={i} className="bg-black/30 p-4 rounded-xl border border-red-500/10">
                                             <div className="flex justify-between mb-1">
                                                 <span className="font-bold text-white">{item.name}</span>
-                                                <span className="text-red-400 font-bold bg-red-400/10 px-2 rounded">مجمد: {item.capital?.toLocaleString()} ر.س</span>
+                                                <span className="text-red-400 font-bold bg-red-400/10 px-2 rounded">مجمد: {item.capital?.toLocaleString()} {t('sys.str_68')}</span>
                                             </div>
                                             <div className="text-sm text-gray-400">{item.action}</div>
                                         </div>

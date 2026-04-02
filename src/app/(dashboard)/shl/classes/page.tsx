@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AcademicClassesPage() {
+    const { t } = useTranslation();
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +36,7 @@ export default function AcademicClassesPage() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <th className="p-4 font-semibold">اسم الفصل</th>
-                <th className="p-4 font-semibold">المرحلة / الصف</th>
+                <th className="p-4 font-semibold">{t('sys.str_2565')}</th>
                 <th className="p-4 font-semibold">المعلم / الرائد</th>
                 <th className="p-4 font-semibold">حالة التسجيل والتلاميذ</th>
               </tr>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface VoucherProps {
     voucherData: {
@@ -19,6 +20,7 @@ interface VoucherProps {
 }
 
 export default function VoucherReceipt({ voucherData, autoPrint = false, onClose }: VoucherProps) {
+    const { t } = useTranslation();
     const [companyName, setCompanyName] = useState('');
     const [printerType, setPrinterType] = useState('80mm');
     const [printed, setPrinted] = useState(false);
@@ -46,7 +48,7 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
                 const settings = await res.json();
                 const map: Record<string, string> = {};
                 settings.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
-                setCompanyName(map['company_name'] || 'إعدادات الشركة مفقودة');
+                setCompanyName(map['company_name'] || t('sys.str_78'));
                 setPrinterType(map['printer_type'] || '80mm');
             }
         } catch (err) { console.error(err); }
@@ -134,55 +136,51 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
                     <div className="header" style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>{companyName}</div>
                         <div style={{ fontSize: '16px', fontWeight: '700', border: '1px solid #000', display: 'inline-block', padding: '2px 12px', borderRadius: '4px' }}>
-                            سند قبض
-                        </div>
+                            {t('sys.str_111')}</div>
                     </div>
 
                     {/* Metadata */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                        <span><strong>رقم السند:</strong> {voucherData.receiptNumber}</span>
-                        <span><strong>التاريخ:</strong> {new Date(voucherData.date).toLocaleDateString('ar-SA')}</span>
+                        <span><strong>{t('sys.str_112')}</strong> {voucherData.receiptNumber}</span>
+                        <span><strong>{t('sys.str_113')}</strong> {new Date(voucherData.date).toLocaleDateString('ar-SA')}</span>
                     </div>
 
                     {/* Content Box */}
                     <div style={{ border: '1px solid #000', padding: '12px', borderRadius: '6px', margin: '16px 0', background: '#fafafa', fontSize: '14px', lineHeight: '1.8' }}>
-                        <div><strong>استلمنا من المكرم / </strong> {voucherData.customerName}</div>
+                        <div><strong>{t('sys.str_114')}</strong> {voucherData.customerName}</div>
                         {(voucherData.customerTaxNo || voucherData.customerCrNo || voucherData.customerAddress) && (
                             <div style={{ fontSize: '12px', color: '#444', marginBottom: '8px', borderBottom: '1px dashed #ccc', paddingBottom: '4px' }}>
-                                {voucherData.customerTaxNo && <span style={{ marginLeft: '12px' }}><strong>الرقم الضريبي:</strong> {voucherData.customerTaxNo}</span>}
-                                {voucherData.customerCrNo && <span style={{ marginLeft: '12px' }}><strong>س.ت:</strong> {voucherData.customerCrNo}</span>}
-                                {voucherData.customerAddress && <span><strong>العنوان:</strong> {voucherData.customerAddress}</span>}
+                                {voucherData.customerTaxNo && <span style={{ marginLeft: '12px' }}><strong>{t('sys.str_56')}</strong> {voucherData.customerTaxNo}</span>}
+                                {voucherData.customerCrNo && <span style={{ marginLeft: '12px' }}><strong>{t('sys.str_115')}</strong> {voucherData.customerCrNo}</span>}
+                                {voucherData.customerAddress && <span><strong>{t('sys.str_61')}</strong> {voucherData.customerAddress}</span>}
                             </div>
                         )}
-                        <div><strong>مبلغاً وقدره / </strong> {formatCurrency(voucherData.amount)} ريال سعودي</div>
-                        <div><strong>وذلك عن / </strong> قيمة فاتورة مبيعات رقم {voucherData.invoiceNumber}</div>
-                        <div><strong>طريقة الدفع / </strong> {paymentLabel(voucherData.paymentMethod)}</div>
+                        <div><strong>{t('sys.str_116')}</strong> {formatCurrency(voucherData.amount)} {t('sys.str_117')}</div>
+                        <div><strong>{t('sys.str_118')}</strong> {t('sys.str_119')}{voucherData.invoiceNumber}</div>
+                        <div><strong>{t('sys.str_120')}</strong> {paymentLabel(voucherData.paymentMethod)}</div>
                     </div>
 
                     {/* Signatures */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', textAlign: 'center', fontSize: '13px' }}>
                         <div style={{ width: '45%' }}>
-                            <div style={{ paddingBottom: '24px' }}>المستلم</div>
-                            <div style={{ borderTop: '1px dashed #000', paddingTop: '4px' }}>التوقيع</div>
+                            <div style={{ paddingBottom: '24px' }}>{t('sys.str_121')}</div>
+                            <div style={{ borderTop: '1px dashed #000', paddingTop: '4px' }}>{t('sys.str_122')}</div>
                         </div>
                         <div style={{ width: '45%' }}>
-                            <div style={{ paddingBottom: '24px' }}>الدافع</div>
-                            <div style={{ borderTop: '1px dashed #000', paddingTop: '4px' }}>التوقيع</div>
+                            <div style={{ paddingBottom: '24px' }}>{t('sys.str_123')}</div>
+                            <div style={{ borderTop: '1px dashed #000', paddingTop: '4px' }}>{t('sys.str_122')}</div>
                         </div>
                     </div>
 
                     <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '11px', color: '#666' }}>
-                        نسخة إلكترونية - لا تحتاج إلى ختم رسمي
-                    </div>
+                        {t('sys.str_124')}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid #eee' }} className="no-print">
                     <button onClick={handlePrint} style={{ flex: 1, padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Cairo' }}>
-                        🖨️ طباعة السند
-                    </button>
+                        {t('sys.str_125')}</button>
                     <button onClick={onClose} style={{ padding: '12px 24px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Cairo' }}>
-                        إغلاق
-                    </button>
+                        {t('sys.str_77')}</button>
                 </div>
             </div>
         </div>

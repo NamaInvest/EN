@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Target {
     id: number;
@@ -12,6 +13,7 @@ interface Target {
 }
 
 export default function SalesTargetsPage() {
+    const { t } = useTranslation();
     const d = new Date();
     const [year, setYear] = useState(d.getFullYear());
     const [month, setMonth] = useState(d.getMonth() + 1);
@@ -58,7 +60,7 @@ export default function SalesTargetsPage() {
                 setForm({ employeeId: '', year: year.toString(), month: month.toString(), targetAmount: '' });
                 loadData();
             } else {
-                alert('فشل حفظ المستهدف');
+                alert(t('sales.str_2482'));
             }
         } catch (e) {}
     };
@@ -66,7 +68,7 @@ export default function SalesTargetsPage() {
     const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     return (<>
-        <div className="page-header"><h1 className="page-title">🎯 مستهدفات المبيعات والعمولات (Sales Targets & KPIs)</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('sales.str_2469')}</h1></div>
         
         <div className="page-content animate-fade-in">
             <div className="toolbar" style={{ display: 'flex', gap: '15px' }}>
@@ -77,15 +79,15 @@ export default function SalesTargetsPage() {
                 </div>
                 <div className="input-group" style={{ margin: 0, width: '150px' }}>
                     <select className="input" value={month} onChange={e => setMonth(parseInt(e.target.value))}>
-                        {[...Array(12)].map((_, i) => <option key={i} value={i + 1}>شهر {i + 1}</option>)}
+                        {[...Array(12)].map((_, i) => <option key={i} value={i + 1}>{t('sales.str_2470')}{i + 1}</option>)}
                     </select>
                 </div>
                 <div className="toolbar-spacer" />
-                <button onClick={() => setShowModal(true)} className="primary-btn">➕ تحديد مستهدف جديد لمندوب</button>
+                <button onClick={() => setShowModal(true)} className="primary-btn">{t('sales.str_2471')}</button>
             </div>
 
             <div className="grid-3" style={{ marginTop: '20px' }}>
-                {loading ? <div style={{ padding: '20px' }}>جاري الحساب والتحميل...</div> : targets.length === 0 ? <div style={{ padding: '20px', color: 'var(--text-muted)' }}>لا توجد مستهدفات مسجلة لهذا الشهر</div> : targets.map(t => {
+                {loading ? <div style={{ padding: '20px' }}>{t('sales.str_2472')}</div> : targets.length === 0 ? <div style={{ padding: '20px', color: 'var(--text-muted)' }}>{t('sales.str_2473')}</div> : targets.map(t => {
                     const isSuper = t.achievementPct >= 100;
                     const isMid = t.achievementPct >= 50 && t.achievementPct < 100;
                     const color = isSuper ? '#10b981' : isMid ? '#f59e0b' : '#ef4444';
@@ -94,12 +96,12 @@ export default function SalesTargetsPage() {
                         <div key={t.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <h3>{t.employee.name}</h3>
-                                {isSuper && <span title="حقق المستهدف بالكامل" style={{ fontSize: '20px' }}>⭐</span>}
+                                {isSuper && <span title={t('sales.str_2483')} style={{ fontSize: '20px' }}>⭐</span>}
                             </div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '13px' }}>
-                                <span>المستهدف: <strong>{fmt(t.targetAmount)}</strong></span>
-                                <span>المبيعات: <strong style={{color: 'var(--text)'}}>{fmt(t.actualAmount)}</strong></span>
+                                <span>{t('sales.str_2474')}<strong>{fmt(t.targetAmount)}</strong></span>
+                                <span>{t('sales.str_2475')}<strong style={{color: 'var(--text)'}}>{fmt(t.actualAmount)}</strong></span>
                             </div>
                             
                             <div style={{ width: '100%', backgroundColor: 'var(--border)', height: '12px', borderRadius: '6px', overflow: 'hidden' }}>
@@ -112,9 +114,9 @@ export default function SalesTargetsPage() {
                             </div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-                                <span style={{ fontWeight: 'bold', color: color }}>{t.achievementPct.toFixed(1)}% إنجاز</span>
+                                <span style={{ fontWeight: 'bold', color: color }}>{t.achievementPct.toFixed(1)}{t('sales.str_2476')}</span>
                                 <span style={{ fontSize: '12px', backgroundColor: 'var(--bg)', padding: '2px 6px', borderRadius: '4px' }}>
-                                    عمولة تقديرية: <strong style={{ color: '#10b981' }}>{isSuper ? fmt(t.actualAmount * 0.05) : isMid ? fmt(t.actualAmount * 0.02) : '0'} ر.س</strong>
+                                    {t('sales.str_2477')}<strong style={{ color: '#10b981' }}>{isSuper ? fmt(t.actualAmount * 0.05) : isMid ? fmt(t.actualAmount * 0.02) : '0'} {t('sys.str_68')}</strong>
                                 </span>
                             </div>
                         </div>
@@ -127,33 +129,33 @@ export default function SalesTargetsPage() {
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal" style={{ maxWidth: '500px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
-                    <h2>تسجيل مستهدف مبيعات</h2>
+                    <h2>{t('sales.str_2478')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">مندوب المبيعات</label>
+                            <label className="input-label">{t('sales.str_2479')}</label>
                             <select required className="input" value={form.employeeId} onChange={e => setForm({...form, employeeId: e.target.value})}>
-                                <option value="">اختر الموظف...</option>
+                                <option value="">{t('hr.str_2138')}</option>
                                 {employees.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
                         <div style={{ display: 'flex', gap: '15px' }}>
                             <div className="input-group" style={{ margin: 0, flex: 1 }}>
-                                <label className="input-label">السنة</label>
+                                <label className="input-label">{t('sys.str_1109')}</label>
                                 <input required type="number" className="input" value={form.year} onChange={e => setForm({...form, year: e.target.value})} />
                             </div>
                             <div className="input-group" style={{ margin: 0, flex: 1 }}>
-                                <label className="input-label">الشهر</label>
+                                <label className="input-label">{t('sys.str_1108')}</label>
                                 <input required type="number" className="input" value={form.month} onChange={e => setForm({...form, month: e.target.value})} />
                             </div>
                         </div>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">المبلغ المستهدف للمبيعات (Target)</label>
+                            <label className="input-label">{t('sales.str_2480')}</label>
                             <input required type="number" step="0.01" className="input" value={form.targetAmount} onChange={e => setForm({...form, targetAmount: e.target.value})} />
                         </div>
                         
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                            <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
-                            <button type="submit" className="btn btn-primary">💾 حفظ المستهدف</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
+                            <button type="submit" className="btn btn-primary">{t('sales.str_2481')}</button>
                         </div>
                     </form>
                 </div>

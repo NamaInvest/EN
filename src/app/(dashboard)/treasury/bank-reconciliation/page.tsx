@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Account { id: number; name: string; code: string; }
 interface Line {
@@ -19,6 +20,7 @@ interface ReconSession {
 }
 
 export default function BankReconciliationPage() {
+    const { t } = useTranslation();
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [form, setForm] = useState({ bankAccountId: '', statementDate: new Date().toISOString().split('T')[0], statementBalance: '' });
     const [session, setSession] = useState<ReconSession | null>(null);
@@ -49,7 +51,7 @@ export default function BankReconciliationPage() {
                 setSelectedLines(new Set());
             } else {
                 const err = await res.json();
-                alert('فشل بدء المطابقة: ' + err.error);
+                alert(t('sys.str_2720') + err.error);
             }
         } catch (e) { console.error(e); }
         setLoading(false);
@@ -73,10 +75,10 @@ export default function BankReconciliationPage() {
                 body: JSON.stringify({ reconciledLineIds: Array.from(selectedLines) })
             });
             if (res.ok) {
-                alert('تمت المطابقة والتسوية بنجاح!');
+                alert(t('sys.str_2721'));
                 setSession(null);
             } else {
-                alert('فشل حفظ التسوية');
+                alert(t('stock.str_2638'));
             }
         } catch (e) {}
         setLoading(false);
@@ -92,25 +94,25 @@ export default function BankReconciliationPage() {
     const isMatched = session?.reconciliation.difference === netCleared; 
 
     return (<>
-        <div className="page-header"><h1 className="page-title">🏦 التسويات البنكية (Bank Reconciliation)</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('sys.str_2704')}</h1></div>
         
         {!session ? (
             <div className="card animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto', padding: '30px' }}>
-                <h2>بدء مطابقة جديدة</h2>
+                <h2>{t('sys.str_2705')}</h2>
                 <form onSubmit={startReconciliation} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
                     <div className="input-group">
-                        <label className="input-label">حساب البنك</label>
+                        <label className="input-label">{t('sys.str_2706')}</label>
                         <select className="input" required value={form.bankAccountId} onChange={e => setForm({...form, bankAccountId: e.target.value})}>
-                            <option value="">اختر حساب البنك...</option>
+                            <option value="">{t('sys.str_2707')}</option>
                             {accounts.map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
                         </select>
                     </div>
                     <div className="input-group">
-                        <label className="input-label">تاريخ كشف الحساب (نهاية المدة)</label>
+                        <label className="input-label">{t('sys.str_2708')}</label>
                         <input type="date" className="input" required value={form.statementDate} onChange={e => setForm({...form, statementDate: e.target.value})} />
                     </div>
                     <div className="input-group">
-                        <label className="input-label">الرصيد الفعلي في كشف الحساب (ر.س)</label>
+                        <label className="input-label">{t('sys.str_2709')}</label>
                         <input type="number" step="0.01" className="input" required value={form.statementBalance} onChange={e => setForm({...form, statementBalance: e.target.value})} />
                     </div>
                     <button type="submit" disabled={loading} className="btn btn-primary" style={{ marginTop: '10px' }}>
@@ -122,44 +124,42 @@ export default function BankReconciliationPage() {
             <div className="animate-fade-in">
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
                      <div className="card" style={{ flex: 1, backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>الرصيد الدفتري للنظام</div>
-                        <h2 style={{ margin: '5px 0 0 0' }}>{session.reconciliation.systemBalance.toLocaleString()} ر.س</h2>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{t('sys.str_2710')}</div>
+                        <h2 style={{ margin: '5px 0 0 0' }}>{session.reconciliation.systemBalance.toLocaleString()} {t('sys.str_68')}</h2>
                      </div>
                      <div className="card" style={{ flex: 1, backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>رصيد كشف الحساب البنكي</div>
-                        <h2 style={{ margin: '5px 0 0 0' }}>{session.reconciliation.statementBalance.toLocaleString()} ر.س</h2>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{t('sys.str_2711')}</div>
+                        <h2 style={{ margin: '5px 0 0 0' }}>{session.reconciliation.statementBalance.toLocaleString()} {t('sys.str_68')}</h2>
                      </div>
                      <div className="card" style={{ flex: 1, backgroundColor: isMatched ? '#10b98115' : 'var(--bg)', border: `1px solid ${isMatched ? '#10b981' : 'var(--border)'}` }}>
-                        <div style={{ color: isMatched ? '#10b981' : 'var(--text-muted)', fontSize: '13px' }}>الفارق الفعلي للمطابقة</div>
+                        <div style={{ color: isMatched ? '#10b981' : 'var(--text-muted)', fontSize: '13px' }}>{t('sys.str_2712')}</div>
                         <h2 style={{ margin: '5px 0 0 0', color: isMatched ? '#10b981' : 'var(--text)' }}>
-                            {Math.abs(session.reconciliation.difference - netCleared).toLocaleString()} ر.س
-                        </h2>
+                            {Math.abs(session.reconciliation.difference - netCleared).toLocaleString()} {t('sys.str_68')}</h2>
                      </div>
                 </div>
 
                 <div className="card" style={{ padding: 0 }}>
                     <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3>الحركات المعلقة والمطابقة (Uncleared Items)</h3>
+                        <h3>{t('sys.str_2713')}</h3>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                             <button onClick={() => setSession(null)} className="btn btn-ghost">إلغاء</button>
+                             <button onClick={() => setSession(null)} className="btn btn-ghost">{t('fin.str_206')}</button>
                              <button onClick={submitReconciliation} className="btn btn-primary" disabled={loading}>
-                                 ✅ تأكيد التسوية ({selectedLines.size} عنصر)
-                             </button>
+                                 {t('sys.str_2714')}{selectedLines.size} {t('sys.str_2224')}</button>
                         </div>
                     </div>
                     <table className="table" style={{ width: '100%' }}>
                         <thead>
                             <tr>
                                 <th style={{ width: '40px' }}></th>
-                                <th>تاريخ القيد</th>
-                                <th>رقم القيد</th>
-                                <th>البيان والتفاصيل</th>
-                                <th>مدين (إيداع)</th>
-                                <th>دائن (سحب)</th>
+                                <th>{t('sys.str_2715')}</th>
+                                <th>{t('fin.str_233')}</th>
+                                <th>{t('sys.str_2716')}</th>
+                                <th>{t('sys.str_2717')}</th>
+                                <th>{t('sys.str_2718')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {session.unclearedLines.length === 0 ? <tr><td colSpan={6} style={{ textAlign:'center', padding:'20px' }}>لا توجد حركات معلقة للتسوية</td></tr> : null}
+                            {session.unclearedLines.length === 0 ? <tr><td colSpan={6} style={{ textAlign:'center', padding:'20px' }}>{t('sys.str_2719')}</td></tr> : null}
                             {session.unclearedLines.map(line => (
                                 <tr key={line.id} style={{ backgroundColor: selectedLines.has(line.id) ? '#3b82f610' : 'transparent', cursor: 'pointer' }} onClick={() => toggleLine(line.id)}>
                                     <td>

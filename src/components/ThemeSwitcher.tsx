@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
     { id: 'default', name: '🌑 الداكن الكلاسيكي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
@@ -11,6 +12,7 @@ export const themes = [
 ];
 
 export default function ThemeSwitcher() {
+    const { t } = useTranslation();
     const [currentTheme, setCurrentTheme] = useState('default');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,14 +57,14 @@ export default function ThemeSwitcher() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="theme-switcher-btn"
-                title="تغيير المظهر (Theme)"
+                title={t('sys.str_110')}
             >
                 🎨
             </button>
 
             {isOpen && (
                 <div className="theme-dropdown" style={{ minWidth: '220px' }}>
-                    <div className="theme-dropdown-title" style={{ fontSize: '13px', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid var(--border)'}}>اختر القالب (Theme)</div>
+                    <div className="theme-dropdown-title" style={{ fontSize: '13px', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid var(--border)'}}>{t('sys.str_109')}</div>
                     {themes.map(theme => (
                         <button
                             key={theme.id}

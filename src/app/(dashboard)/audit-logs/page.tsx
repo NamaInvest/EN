@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface AuditLog {
     id: number;
@@ -17,6 +18,7 @@ interface AuditLog {
 }
 
 export default function AuditLogsPage() {
+    const { t } = useTranslation();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -47,26 +49,26 @@ export default function AuditLogsPage() {
     );
 
     const getActionBadge = (action: string) => {
-        if (action.includes('CREATE') || action.includes('إضافة')) return 'badge-success';
-        if (action.includes('UPDATE') || action.includes('تعديل')) return 'badge-warning';
-        if (action.includes('DELETE') || action.includes('حذف')) return 'badge-danger';
+        if (action.includes('CREATE') || action.includes(t('sys.str_392'))) return 'badge-success';
+        if (action.includes('UPDATE') || action.includes(t('sys.str_393'))) return 'badge-warning';
+        if (action.includes('DELETE') || action.includes(t('sys.str_394'))) return 'badge-danger';
         return 'badge-outline';
     };
 
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🛡️ سجل المراقبة والتدقيق (Audit Logs)</h1>
+                <h1 className="page-title">{t('sys.str_383')}</h1>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <input 
                         type="text" 
                         className="input" 
-                        placeholder="بحث في السجل..." 
+                        placeholder={t('sys.str_395')} 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{ width: '300px' }}
                     />
-                    <button className="btn btn-ghost" onClick={fetchData}>🔄 تحديث</button>
+                    <button className="btn btn-ghost" onClick={fetchData}>{t('sys.str_384')}</button>
                 </div>
             </div>
 
@@ -75,17 +77,17 @@ export default function AuditLogsPage() {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>الوقت والتاريخ</th>
-                                <th>المستخدم</th>
-                                <th>العملية</th>
-                                <th>الجدول (Table)</th>
-                                <th>رقم السجل (ID)</th>
-                                <th>التفاصيل</th>
+                                <th>{t('sys.str_385')}</th>
+                                <th>{t('sys.str_386')}</th>
+                                <th>{t('sys.str_387')}</th>
+                                <th>{t('sys.str_388')}</th>
+                                <th>{t('sys.str_389')}</th>
+                                <th>{t('sys.str_390')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : filteredLogs.length === 0 ? <tr><td colSpan={6}><div className="empty-state"><div className="empty-state-text">لا توجد حركات مسجلة أو ليس لديك صلاحية</div></div></td></tr>
+                            {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                                : filteredLogs.length === 0 ? <tr><td colSpan={6}><div className="empty-state"><div className="empty-state-text">{t('sys.str_391')}</div></div></td></tr>
                                     : filteredLogs.map((log) => (
                                         <tr key={log.id}>
                                             <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: 'var(--text-muted)' }}>

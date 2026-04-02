@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Customer { name: string; phone: string | null; }
 interface LoyaltyTransaction { id: number; invoiceId: number | null; points: number; type: string; description: string | null; createdAt: string; }
 interface LoyaltyPoint { id: number; customerId: number; points: number; totalEarned: number; totalRedeemed: number; tier: string; customer: Customer; }
 
 export default function LoyaltyPage() {
+    const { t } = useTranslation();
     const [loyalties, setLoyalties] = useState<LoyaltyPoint[]>([]);
     const [loading, setLoading] = useState(true);
     
@@ -70,43 +72,43 @@ export default function LoyaltyPage() {
                 fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify({ key: 'loyalty_redeem_rate', value: redeemRate }) })
             ];
             await Promise.all(promises);
-            alert('تم حفظ إعدادات الولاء بنجاح');
+            alert(t('sys.str_697'));
             setShowSettings(false);
-        } catch (e) { alert('حدث خطأ أثناء الحفظ'); }
+        } catch (e) { alert(t('sys.str_698')); }
         finally { setSavingSettings(false); }
     };
 
     const tierLabels: Record<string, { label: string; cls: string }> = {
-        bronze: { label: '🥉 برونزي', cls: 'badge-ghost' },
-        silver: { label: '🥈 فضي', cls: 'badge-info' },
-        gold: { label: '🥇 ذهبي', cls: 'badge-warning' },
-        platinum: { label: '💎 بلاتيني', cls: 'badge-primary' }
+        bronze: { label: t('sys.str_699'), cls: 'badge-ghost' },
+        silver: { label: t('sys.str_700'), cls: 'badge-info' },
+        gold: { label: t('sys.str_701'), cls: 'badge-warning' },
+        platinum: { label: t('sys.str_702'), cls: 'badge-primary' }
     };
 
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>🎁 برنامج الولاء</h1>
-                <button className="btn btn-primary" onClick={() => setShowSettings(true)}>⚙️ إعدادات الاحتساب</button>
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{t('sys.str_671')}</h1>
+                <button className="btn btn-primary" onClick={() => setShowSettings(true)}>{t('sys.str_672')}</button>
             </div>
 
             <div className="card">
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>اسم العميل</th><th>الجوال</th><th>الرصيد الحالي</th><th>إجمالي المكتسب</th><th>إجمالي المستبدل</th><th>الفئة (Tier)</th><th>سجل الحركات</th></tr></thead>
+                        <thead><tr><th>{t('sys.str_673')}</th><th>{t('sys.str_477')}</th><th>{t('sys.str_674')}</th><th>{t('sys.str_675')}</th><th>{t('sys.str_676')}</th><th>{t('sys.str_677')}</th><th>{t('sys.str_678')}</th></tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                            : loyalties.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">🎁</div><div className="empty-state-text">لا يوجد عملاء مسجلين في برنامج الولاء</div></div></td></tr>
+                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                            : loyalties.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">🎁</div><div className="empty-state-text">{t('sys.str_679')}</div></div></td></tr>
                             : loyalties.map(l => (
                                 <tr key={l.id}>
-                                    <td style={{ fontWeight: '600' }}>{l.customer?.name || 'عميل محذوف'}</td>
+                                    <td style={{ fontWeight: '600' }}>{l.customer?.name || t('sys.str_703')}</td>
                                     <td dir="ltr">{l.customer?.phone || '-'}</td>
-                                    <td style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>{l.points.toLocaleString()} نقطة</td>
-                                    <td style={{ color: '#10b981' }}>{l.totalEarned.toLocaleString()} نقطة</td>
-                                    <td style={{ color: '#ef4444' }}>{l.totalRedeemed.toLocaleString()} نقطة</td>
+                                    <td style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>{l.points.toLocaleString()} {t('sys.str_680')}</td>
+                                    <td style={{ color: '#10b981' }}>{l.totalEarned.toLocaleString()} {t('sys.str_680')}</td>
+                                    <td style={{ color: '#ef4444' }}>{l.totalRedeemed.toLocaleString()} {t('sys.str_680')}</td>
                                     <td><span className={`badge ${tierLabels[l.tier]?.cls || 'badge-ghost'}`}>{tierLabels[l.tier]?.label || l.tier}</span></td>
                                     <td>
-                                        <button className="btn btn-sm btn-ghost" onClick={() => openTransactions(l)}>📜 كشف الحركات</button>
+                                        <button className="btn btn-sm btn-ghost" onClick={() => openTransactions(l)}>{t('sys.str_681')}</button>
                                     </td>
                                 </tr>
                             ))}
@@ -120,20 +122,20 @@ export default function LoyaltyPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
-                            <h3>📜 سجل النقاط: {showModal.customer?.name}</h3>
+                            <h3>{t('sys.str_682')}{showModal.customer?.name}</h3>
                             <button className="modal-close" onClick={() => setShowModal(null)}>&times;</button>
                         </div>
                         <div className="modal-body">
                             <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', gap: '20px' }}>
-                                <div><strong>الرصيد الحالي:</strong> <span style={{ color: 'var(--primary-color)' }}>{showModal.points.toLocaleString()}</span> نقطة</div>
-                                <div><strong>إجمالي المكتسب:</strong> <span style={{ color: '#10b981' }}>{showModal.totalEarned.toLocaleString()}</span> نقطة</div>
+                                <div><strong>{t('sys.str_683')}</strong> <span style={{ color: 'var(--primary-color)' }}>{showModal.points.toLocaleString()}</span> {t('sys.str_680')}</div>
+                                <div><strong>{t('sys.str_684')}</strong> <span style={{ color: '#10b981' }}>{showModal.totalEarned.toLocaleString()}</span> {t('sys.str_680')}</div>
                             </div>
                             
-                            {loadingTx ? <div style={{ textAlign: 'center', padding: '20px' }}>جاري تحميل السجل...</div>
-                            : transactions.length === 0 ? <p style={{ textAlign: 'center', padding: '20px' }}>لا يوجد حركات مسجلة</p>
+                            {loadingTx ? <div style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_685')}</div>
+                            : transactions.length === 0 ? <p style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_686')}</p>
                             : (
                                 <table className="table" style={{ fontSize: '14px' }}>
-                                    <thead><tr><th>التاريخ</th><th>النوع</th><th>النقاط</th><th>رقم الفاتورة</th><th>البيان</th></tr></thead>
+                                    <thead><tr><th>{t('fin.str_232')}</th><th>{t('fin.str_199')}</th><th>{t('sys.str_687')}</th><th>{t('sys.str_510')}</th><th>{t('fin.str_222')}</th></tr></thead>
                                     <tbody>
                                         {transactions.map(tx => (
                                             <tr key={tx.id}>
@@ -149,7 +151,7 @@ export default function LoyaltyPage() {
                             )}
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowModal(null)}>إغلاق</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>
                 </div>
@@ -160,32 +162,32 @@ export default function LoyaltyPage() {
                 <div className="modal-overlay" onClick={() => setShowSettings(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>⚙️ إعدادات احتساب النقاط</h3>
+                            <h3>{t('sys.str_688')}</h3>
                             <button className="modal-close" onClick={() => setShowSettings(false)}>&times;</button>
                         </div>
                         <div className="modal-body">
                             <div className="form-control" style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>معادلة الاكتساب (كم ريال = نقطة واحدة؟)</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{t('sys.str_689')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span>إنفاق</span>
+                                    <span>{t('sys.str_690')}</span>
                                     <input type="number" className="input" style={{ width: '80px', textAlign: 'center' }} value={earnRate} onChange={e => setEarnRate(e.target.value)} min="1" />
-                                    <span>ريال = (1) نقطة واحدة</span>
+                                    <span>{t('sys.str_691')}</span>
                                 </div>
-                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>مثال: إنفاق 10 ريال يعطي العميل نقطة واحدة.</small>
+                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>{t('sys.str_692')}</small>
                             </div>
                             
                             <div className="form-control">
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>معادلة الاستبدال (كم نقطة = خصم ريال واحد؟)</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{t('sys.str_693')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span>كل</span>
+                                    <span>{t('sys.str_694')}</span>
                                     <input type="number" className="input" style={{ width: '80px', textAlign: 'center' }} value={redeemRate} onChange={e => setRedeemRate(e.target.value)} min="1" />
-                                    <span>نقطة = (1) ريال سعودي كخصم</span>
+                                    <span>{t('sys.str_695')}</span>
                                 </div>
-                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>مثال: كل 100 نقطة تساوي خصم 1 ريال.</small>
+                                <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>{t('sys.str_696')}</small>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowSettings(false)} disabled={savingSettings}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowSettings(false)} disabled={savingSettings}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveSettings} disabled={savingSettings}>
                                 {savingSettings ? 'جاري الحفظ...' : 'حفظ التحديثات'}
                             </button>

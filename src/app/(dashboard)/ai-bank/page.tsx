@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AIBankPage() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<string | null>(null);
 
@@ -10,9 +12,9 @@ export default function AIBankPage() {
         try {
             const res = await fetch('/api/ai/bank-reconciliation');
             const data = await res.json();
-            setResult(data.summary || 'تم إجراء المطابقة البنكية بنجاح.');
+            setResult(data.summary || t('sys.str_291'));
         } catch (e) {
-            setResult('حدث خطأ أثناء إجراء التسوية البنكية.');
+            setResult(t('sys.str_292'));
         }
         setLoading(false);
     };
@@ -21,8 +23,7 @@ export default function AIBankPage() {
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-8 text-white shadow-2xl">
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
-                    <span className="text-4xl">🏦</span> التسويات البنكية المستقلة (Zero-Touch)
-                </h1>
+                    <span className="text-4xl">🏦</span> {t('sys.str_289')}</h1>
                 <p className="text-emerald-50 text-lg">
                     يقوم هذا المحرك بربط الحوالات البنكية الواردة بفواتير المبيعات آلياً.
                     لن تحتاج بعد اليوم لمراجعة الكشوفات يدوياً للبحث عن صاحب الحوالة.

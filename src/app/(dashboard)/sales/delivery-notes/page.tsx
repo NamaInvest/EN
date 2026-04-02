@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Truck, Plus, PackageOpen } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function DeliveryNotesPage() {
+    const { t } = useTranslation();
     const [notes, setNotes] = useState<any[]>([]);
     const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -49,7 +51,7 @@ export default function DeliveryNotesPage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (items.length === 0) return alert('يجب إضافة منتجات للإذن');
+        if (items.length === 0) return alert(t('sales.str_2411'));
         
         try {
             const token = localStorage.getItem('token') || '';
@@ -64,45 +66,44 @@ export default function DeliveryNotesPage() {
                 setItems([]);
                 loadData();
             } else {
-                alert('فشل حفظ إذن التسليم. تأكد من توفر الكميات المخزنية.');
+                alert(t('sales.str_2412'));
             }
         } catch (e) {}
     };
 
     return (<>
-        <div className="page-header"><h1 className="page-title">🚚 مذكرات التسليم (Delivery Notes)</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('sales.str_2394')}</h1></div>
         
         <div className="page-content animate-fade-in">
             <div className="toolbar">
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إصدار أوامر السحب المخزنية للعملاء ومتابعة تسليم البضائع</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sales.str_2395')}</span>
                 <div className="toolbar-spacer" />
                 <button onClick={() => setShowModal(true)} className="primary-btn">
-                    <Plus size={16} /> مستند تسليم جديد
-                </button>
+                    <Plus size={16} /> {t('sales.str_2396')}</button>
             </div>
 
             <div className="card" style={{ padding: '0', overflowX: 'auto' }}>
                 <table className="table" style={{ width: '100%' }}>
                     <thead>
                         <tr>
-                            <th>رقم الإذن</th>
-                            <th>التاريخ</th>
-                            <th>العميل المستلم</th>
-                            <th>الحالة</th>
-                            <th>عدد الأصناف</th>
-                            <th>الإجراءات</th>
+                            <th>{t('sales.str_2397')}</th>
+                            <th>{t('fin.str_232')}</th>
+                            <th>{t('sales.str_2398')}</th>
+                            <th>{t('fin.str_227')}</th>
+                            <th>{t('stock.str_1443')}</th>
+                            <th>{t('purchases.str_2247')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>جاري التحميل...</td></tr> : notes.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>لا توجد مذكرات تسليم مسجلة</td></tr> : notes.map(n => (
+                        {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : notes.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sales.str_2399')}</td></tr> : notes.map(n => (
                             <tr key={n.id}>
                                 <td><strong style={{color: '#f59e0b'}}>DN-{n.noteNo}</strong></td>
                                 <td>{new Date(n.date).toLocaleDateString()}</td>
-                                <td>{n.customer?.name || 'عميل نقدي'}</td>
-                                <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}>تم التسليم وصرف المخزون</span></td>
+                                <td>{n.customer?.name || t('sys.str_752')}</td>
+                                <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}>{t('sales.str_2400')}</span></td>
                                 <td>{n.details?.length || 0}</td>
                                 <td>
-                                    <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>إظهار الإذن</button>
+                                    <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('sales.str_2401')}</button>
                                 </td>
                             </tr>
                         ))}
@@ -114,13 +115,13 @@ export default function DeliveryNotesPage() {
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal animate-scale-in" style={{ maxWidth: '800px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
-                    <h2>إنشاء إذن تسليم مبيعات (Outbound Delivery)</h2>
+                    <h2>{t('sales.str_2402')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div style={{ display: 'flex', gap: '15px' }}>
                             <div className="input-group" style={{ margin: 0, flex: 1 }}>
-                                <label className="input-label">العميل المُستلِم</label>
+                                <label className="input-label">{t('sales.str_2403')}</label>
                                 <select required className="input" value={form.customerId} onChange={e => setForm({...form, customerId: e.target.value})}>
-                                    <option value="">عميل نقدي...</option>
+                                    <option value="">{t('sales.str_2404')}</option>
                                     {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
@@ -128,16 +129,16 @@ export default function DeliveryNotesPage() {
                         
                         <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '8px' }}>
                             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                                <h4>البضائع المسحوبة من المخزن</h4>
-                                <button type="button" onClick={addItem} className="btn btn-outline" style={{fontSize: '12px'}}>+ إضافة صنف منصرف</button>
+                                <h4>{t('sales.str_2405')}</h4>
+                                <button type="button" onClick={addItem} className="btn btn-outline" style={{fontSize: '12px'}}>{t('sales.str_2406')}</button>
                             </div>
                             <div style={{ overflowX: 'auto' }}>
                                 <table className="table" style={{ width: '100%', marginTop: '10px' }}>
                                     <thead>
                                         <tr>
-                                            <th>الصنف</th>
-                                            <th style={{width: '120px'}}>الكمية المتوفرة</th>
-                                            <th style={{width: '120px'}}>الكمية المصروفة</th>
+                                            <th>{t('sys.str_801')}</th>
+                                            <th style={{width: '120px'}}>{t('sales.str_2407')}</th>
+                                            <th style={{width: '120px'}}>{t('sales.str_2408')}</th>
                                             <th style={{width: '50px'}}></th>
                                         </tr>
                                     </thead>
@@ -146,7 +147,7 @@ export default function DeliveryNotesPage() {
                                             <tr key={index}>
                                                 <td>
                                                     <select required className="input" value={item.productId} onChange={e => updateItem(index, 'productId', e.target.value)}>
-                                                        <option value="">اختيار...</option>
+                                                        <option value="">{t('fin.str_2007')}</option>
                                                         {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                                     </select>
                                                 </td>
@@ -163,8 +164,8 @@ export default function DeliveryNotesPage() {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                            <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">إلغاء الإذن</button>
-                            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white' }}><Truck size={16} style={{display:'inline', marginRight:'5px'}}/> صرف البضاعة (Outbound Post)</button>
+                            <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('sales.str_2409')}</button>
+                            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white' }}><Truck size={16} style={{display:'inline', marginRight:'5px'}}/> {t('sales.str_2410')}</button>
                         </div>
                     </form>
                 </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Product {
     id: number;
@@ -33,6 +34,7 @@ interface Category {
 }
 
 export default function ProductsPage() {
+    const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [search, setSearch] = useState('');
@@ -156,7 +158,7 @@ export default function ProductsPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('هل أنت متأكد من حذف هذا المنتج؟ سيتم حذف جميع البيانات المرتبطة به.')) return;
+        if (!confirm(t('sys.str_896'))) return;
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/products/${id}`, {
@@ -164,16 +166,16 @@ export default function ProductsPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(`✅ ${data.message || 'تم حذف المنتج'}`);
+                showToast(`✅ ${data.message || t('sys.str_897')}`);
                 fetchProducts();
             } else {
-                showToast(`❌ ${data.error || 'فشل في الحذف'}`);
+                showToast(`❌ ${data.error || t('sys.str_831')}`);
             }
-        } catch (err) { console.error(err); showToast('❌ خطأ في الاتصال بالسيرفر'); }
+        } catch (err) { console.error(err); showToast(t('sys.str_898')); }
     };
 
     const handleRestore = async (id: number) => {
-        if (!confirm('هل تريد استعادة وتفعيل هذا المنتج؟')) return;
+        if (!confirm(t('sys.str_899'))) return;
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/products/${id}`, {
@@ -182,12 +184,12 @@ export default function ProductsPage() {
                 body: JSON.stringify({ active: true }),
             });
             if (res.ok) {
-                showToast('✅ تم استعادة وتفعيل المنتج بنجاح');
+                showToast(t('sys.str_900'));
                 fetchProducts();
             } else {
-                showToast('❌ فشل في الاستعادة');
+                showToast(t('sys.str_901'));
             }
-        } catch (err) { console.error(err); showToast('❌ خطأ في الاتصال بالسيرفر'); }
+        } catch (err) { console.error(err); showToast(t('sys.str_898')); }
     };
 
     const formatCurrency = (v: number) => new Intl.NumberFormat('ar-SA', {
@@ -208,13 +210,13 @@ export default function ProductsPage() {
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                showToast('✅ تم التصدير بنجاح');
+                showToast(t('sys.str_902'));
             } else {
-                showToast('❌ فشل تصدير البيانات');
+                showToast(t('sys.str_903'));
             }
         } catch (err) {
             console.error('Export error:', err);
-            showToast('❌ حدث خطأ أثناء التصدير');
+            showToast(t('sys.str_904'));
         }
     };
 
@@ -233,14 +235,14 @@ export default function ProductsPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(`✅ ${data.message || 'تم الاستيراد بنجاح'}`);
+                showToast(`✅ ${data.message || t('sys.str_905')}`);
                 fetchProducts();
             } else {
-                showToast(`❌ ${data.error || 'فشل الاستيراد'}`);
+                showToast(`❌ ${data.error || t('sys.str_906')}`);
             }
         } catch (err) {
             console.error('Import error:', err);
-            showToast('❌ حدث خطأ أثناء الاستيراد');
+            showToast(t('sys.str_907'));
         } finally {
             setIsImporting(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -248,25 +250,25 @@ export default function ProductsPage() {
     };
 
     const handleResetStock = async () => {
-        if (!confirm('⚠️ هل أنت متأكد من تصفير مخزون جميع المنتجات؟')) return;
-        if (!confirm('تأكيد نهائي: سيتم تصفير مخزون كل المنتجات إلى صفر. لا يمكن التراجع!')) return;
+        if (!confirm(t('sys.str_908'))) return;
+        if (!confirm(t('sys.str_909'))) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); fetchProducts(); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل'}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_591')}`); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const handleDeleteAllProducts = async () => {
-        if (!confirm('⚠️ هل أنت متأكد من حذف أو أرشفة جميع المنتجات؟')) return;
-        if (!confirm('تأكيد نهائي: سيتم حذف جميع المنتجات التي ليس لها حركات مالية، وسيتم أرشفة الباقي. استمر؟')) return;
+        if (!confirm(t('sys.str_910'))) return;
+        if (!confirm(t('sys.str_911'))) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products?action=delete_all', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); fetchProducts(); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل الحذف'}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_912')}`); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const paginatedProducts = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -275,37 +277,36 @@ export default function ProductsPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">📦 المنتجات</h1>
-                <span className="badge badge-info">{products.length} منتج</span>
+                <h1 className="page-title">{t('sys.str_866')}</h1>
+                <span className="badge badge-info">{products.length} {t('sys.str_867')}</span>
             </div>
             <div className="page-content animate-fade-in">
                 <div className="toolbar">
                     <div className="search-bar">
                         <input
                             className="input"
-                            placeholder="🔍 بحث بالاسم أو الباركود..."
+                            placeholder={t('sys.str_913')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <select className="input" style={{ width: '180px' }}
                         value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                        <option value="">كل التصنيفات</option>
+                        <option value="">{t('sys.str_868')}</option>
                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     <div className="toolbar-spacer" />
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)', marginRight: '12px' }}>
                         <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
-                        عرض المؤرشفة (المحذوفة)
-                    </label>
+                        {t('sys.str_869')}</label>
                     <input type="file" ref={fileInputRef} hidden accept=".xlsx, .xls" onChange={handleImport} />
-                    <button className="btn" onClick={handleExport} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>📤 تصدير لإكسيل</button>
+                    <button className="btn" onClick={handleExport} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>{t('sys.str_870')}</button>
                     <button className="btn" onClick={() => fileInputRef.current?.click()} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }} disabled={isImporting}>
                         {isImporting ? '⏳ جاري الاستيراد...' : '📥 استيراد منتجات'}
                     </button>
-                    {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🔄 تصفير المخزون</button>}
-                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🗑️ حذف كل المنتجات</button>}
-                    <button className="btn btn-primary" onClick={openAdd}>➕ إضافة منتج</button>
+                    {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_871')}</button>}
+                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_872')}</button>}
+                    <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_873')}</button>
                 </div>
 
                 <div className="table-container">
@@ -313,27 +314,27 @@ export default function ProductsPage() {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>الصورة</th>
-                                <th>الاسم</th>
-                                <th>الباركود</th>
-                                <th>التصنيف</th>
-                                <th>سعر الشراء</th>
-                                <th>سعر الشراء + الضريبة</th>
-                                <th>سعر البيع</th>
-                                <th>المخزون</th>
-                                <th>الموقع/الرف</th>
-                                <th>انتهاء الصلاحية</th>
-                                <th>إجراءات</th>
+                                <th>{t('sys.str_874')}</th>
+                                <th>{t('fin.str_198')}</th>
+                                <th>{t('sys.str_857')}</th>
+                                <th>{t('sys.str_875')}</th>
+                                <th>{t('sys.str_785')}</th>
+                                <th>{t('sys.str_876')}</th>
+                                <th>{t('sys.str_877')}</th>
+                                <th>{t('sys.str_878')}</th>
+                                <th>{t('sys.str_879')}</th>
+                                <th>{t('sys.str_880')}</th>
+                                <th>{t('sys.str_435')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
+                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
                             ) : paginatedProducts.length === 0 ? (
                                 <tr><td colSpan={10}>
                                     <div className="empty-state">
                                         <div className="empty-state-icon">📦</div>
-                                        <div className="empty-state-text">لا توجد منتجات</div>
+                                        <div className="empty-state-text">{t('sys.str_881')}</div>
                                     </div>
                                 </td></tr>
                             ) : paginatedProducts.map((p, i) => (
@@ -366,20 +367,20 @@ export default function ProductsPage() {
                                     <td>
                                         <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             {p.name}
-                                            {!p.active && <span className="badge badge-danger" style={{ fontSize: '10px', padding: '2px 6px' }}>مؤرشف</span>}
+                                            {!p.active && <span className="badge badge-danger" style={{ fontSize: '10px', padding: '2px 6px' }}>{t('sys.str_882')}</span>}
                                         </div>
                                         {p.nameEn && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{p.nameEn}</div>}
                                         {p.brandAr && <div style={{ fontSize: '11px', color: 'var(--purple)' }}>{p.brandAr} {p.sizeInfo ? `• ${p.sizeInfo}` : ''}</div>}
                                     </td>
                                     <td><code style={{ background: 'var(--bg-card-hover)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>{p.barcode || '-'}</code></td>
                                     <td>{p.category?.name || '-'}</td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(p.buyPrice)} ر.س</td>
-                                    <td style={{ fontWeight: '600', color: 'var(--warning, #f59e0b)' }}>{formatCurrency(p.buyPrice * 1.15)} ر.س</td>
-                                    <td style={{ fontWeight: '600', color: 'var(--success-light)' }}>{formatCurrency(p.sellPrice)} ر.س</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(p.buyPrice)} {t('sys.str_68')}</td>
+                                    <td style={{ fontWeight: '600', color: 'var(--warning, #f59e0b)' }}>{formatCurrency(p.buyPrice * 1.15)} {t('sys.str_68')}</td>
+                                    <td style={{ fontWeight: '600', color: 'var(--success-light)' }}>{formatCurrency(p.sellPrice)} {t('sys.str_68')}</td>
                                     <td>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <span className={`badge ${p.currentStock <= p.minQuantity ? 'badge-danger' : 'badge-success'}`}>
-                                                الإجمالي: {p.currentStock} {p.unit?.name || ''}
+                                                {t('sys.str_71')}{p.currentStock} {p.unit?.name || ''}
                                             </span>
                                             {p.productStocks && p.productStocks.length > 0 && (
                                                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
@@ -397,8 +398,8 @@ export default function ProductsPage() {
                                     <td>
                                         <div style={{ display: 'flex', gap: '6px' }}>
                                             <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}>✏️</button>
-                                            {canDeleteProduct && p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id)} style={{ color: 'var(--danger)' }} title="حذف أو أرشفة">🗑️</button>}
-                                            {canDeleteProduct && !p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleRestore(p.id)} style={{ color: 'var(--success)' }} title="استعادة المنتج">♻️</button>}
+                                            {canDeleteProduct && p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id)} style={{ color: 'var(--danger)' }} title={t('sys.str_916')}>🗑️</button>}
+                                            {canDeleteProduct && !p.active && <button className="btn btn-ghost btn-sm" onClick={() => handleRestore(p.id)} style={{ color: 'var(--success)' }} title={t('sys.str_917')}>♻️</button>}
                                         </div>
                                     </td>
                                 </tr>
@@ -410,11 +411,10 @@ export default function ProductsPage() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
-                        <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>◀️ السابق</button>
+                        <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>{t('sys.str_883')}</button>
                         <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                            صفحة {page} من {totalPages} ({products.length} منتج)
-                        </span>
-                        <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>التالي ▶️</button>
+                            {t('sys.str_884')}{page} {t('sys.str_885')}{totalPages} ({products.length} {t('sys.str_886')}</span>
+                        <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>{t('sys.str_887')}</button>
                     </div>
                 )}
             </div>
@@ -428,7 +428,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="grid-2">
                             <div className="input-group">
-                                <label className="input-label">اسم المنتج *</label>
+                                <label className="input-label">{t('sys.str_856')}</label>
                                 <input className="input" value={form.name} onChange={e => {
                                     const val = e.target.value;
                                     setForm(f => ({ ...f, name: val }));
@@ -441,16 +441,16 @@ export default function ProductsPage() {
                                     } else {
                                         setForm(f => ({ ...f, nameEn: '' }));
                                     }
-                                }} placeholder="اسم المنتج بالعربي" />
+                                }} placeholder={t('sys.str_919')} />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">الاسم بالإنجليزي</label>
+                                <label className="input-label">{t('sys.str_888')}</label>
                                 <input className="input" value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} placeholder="Product Name" dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">الباركود</label>
+                                <label className="input-label">{t('sys.str_857')}</label>
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                    <input className="input" style={{ flex: 1 }} value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder="رقم الباركود" dir="ltr" />
+                                    <input className="input" style={{ flex: 1 }} value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder={t('sys.str_400')} dir="ltr" />
                                     <button
                                         type="button"
                                         className="btn btn-primary btn-sm"
@@ -464,25 +464,24 @@ export default function ProductsPage() {
                                                 setForm(f => ({ ...f, barcode: String(nextBarcode) }));
                                             } catch { setForm(f => ({ ...f, barcode: '1000' })); }
                                         }}
-                                        title="توليد باركود تلقائي"
+                                        title={t('sys.str_920')}
                                         style={{ whiteSpace: 'nowrap', minWidth: '36px', padding: '6px 10px', fontSize: '14px' }}
                                     >
-                                        🔢 توليد
-                                    </button>
+                                        {t('sys.str_401')}</button>
                                 </div>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">التصنيف</label>
+                                <label className="input-label">{t('sys.str_875')}</label>
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                     <select className="input" style={{ flex: 1 }} value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })}>
-                                        <option value="">بدون تصنيف</option>
+                                        <option value="">{t('sys.str_889')}</option>
                                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                     <button
                                         type="button"
                                         className="btn btn-primary btn-sm"
                                         onClick={() => { setShowAddCategory(!showAddCategory); setNewCategoryName(''); }}
-                                        title="إضافة صنف جديد"
+                                        title={t('sys.str_921')}
                                         style={{ minWidth: '36px', padding: '6px 10px', fontSize: '16px', borderRadius: '8px' }}
                                     >
                                         {showAddCategory ? '✕' : '➕'}
@@ -493,7 +492,7 @@ export default function ProductsPage() {
                                         <input
                                             className="input"
                                             style={{ flex: 1 }}
-                                            placeholder="اسم الصنف الجديد..."
+                                            placeholder={t('sys.str_922')}
                                             value={newCategoryName}
                                             onChange={e => setNewCategoryName(e.target.value)}
                                             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); } }}
@@ -512,21 +511,19 @@ export default function ProductsPage() {
                                 )}
                             </div>
                             <div className="input-group">
-                                <label className="input-label">سعر الشراء</label>
+                                <label className="input-label">{t('sys.str_785')}</label>
                                 <input className="input" type="number" step="0.01" value={form.buyPrice} onChange={e => setForm({ ...form, buyPrice: e.target.value })} placeholder="0.00" dir="ltr" />
                                 {form.addVat && form.buyPrice && (
                                     <div style={{ fontSize: '12px', color: 'var(--success-light)', marginTop: '4px', fontWeight: '600' }}>
-                                        💰 شامل الضريبة: {(parseFloat(form.buyPrice) * (1 + (parseFloat(form.taxRate) || 15) / 100)).toFixed(2)} ر.س
-                                    </div>
+                                        {t('sys.str_890')}{(parseFloat(form.buyPrice) * (1 + (parseFloat(form.taxRate) || 15) / 100)).toFixed(2)} {t('sys.str_68')}</div>
                                 )}
                             </div>
                             <div className="input-group">
-                                <label className="input-label">سعر البيع</label>
+                                <label className="input-label">{t('sys.str_877')}</label>
                                 <input className="input" type="number" step="0.01" value={form.sellPrice} onChange={e => setForm({ ...form, sellPrice: e.target.value })} placeholder="0.00" dir="ltr" />
                                 {form.addVat && form.sellPrice && (
                                     <div style={{ fontSize: '12px', color: 'var(--success-light)', marginTop: '4px', fontWeight: '600' }}>
-                                        💰 شامل الضريبة: {(parseFloat(form.sellPrice) * (1 + (parseFloat(form.taxRate) || 15) / 100)).toFixed(2)} ر.س
-                                    </div>
+                                        {t('sys.str_890')}{(parseFloat(form.sellPrice) * (1 + (parseFloat(form.taxRate) || 15) / 100)).toFixed(2)} {t('sys.str_68')}</div>
                                 )}
                             </div>
                             <div className="input-group" style={{ gridColumn: '1 / -1' }}>
@@ -537,37 +534,37 @@ export default function ProductsPage() {
                                         onChange={e => setForm({ ...form, addVat: e.target.checked })}
                                         style={{ width: '20px', height: '20px', accentColor: '#22c55e' }}
                                     />
-                                    <span style={{ fontWeight: '600' }}>✅ إضافة ضريبة القيمة المضافة ({form.taxRate}%) على سعر الشراء والبيع</span>
+                                    <span style={{ fontWeight: '600' }}>{t('sys.str_891')}{form.taxRate}{t('sys.str_892')}</span>
                                 </label>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">نسبة الضريبة %</label>
+                                <label className="input-label">{t('sys.str_787')}</label>
                                 <input className="input" type="number" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">الحد الأدنى للمخزون</label>
+                                <label className="input-label">{t('sys.str_893')}</label>
                                 <input className="input" type="number" value={form.minQuantity} onChange={e => setForm({ ...form, minQuantity: e.target.value })} dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">المخزون الحالي</label>
+                                <label className="input-label">{t('sys.str_894')}</label>
                                 <input className="input" type="number" value={form.currentStock} onChange={e => setForm({ ...form, currentStock: e.target.value })} dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">موقع الرف المخزني (Bin/Shelf)</label>
-                                <input className="input" value={form.binLocation} onChange={e => setForm({ ...form, binLocation: e.target.value })} placeholder="مثال: A1-05" dir="ltr" />
+                                <label className="input-label">{t('sys.str_895')}</label>
+                                <input className="input" value={form.binLocation} onChange={e => setForm({ ...form, binLocation: e.target.value })} placeholder={t('sys.str_924')} dir="ltr" />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">تاريخ الانتهاء</label>
+                                <label className="input-label">{t('sys.str_432')}</label>
                                 <input className="input" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} dir="ltr" />
                             </div>
                         </div>
                         <div className="input-group">
-                            <label className="input-label">الوصف</label>
-                            <textarea className="input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="وصف المنتج (اختياري)" rows={2} />
+                            <label className="input-label">{t('fin.str_212')}</label>
+                            <textarea className="input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={t('sys.str_925')} rows={2} />
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleSave}>💾 حفظ</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={handleSave}>{t('sys.str_455')}</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

@@ -37,7 +37,7 @@ export default function RecurringInvoicesPage() {
             setCronResult(data);
             if(data.success) fetchContracts(); // refresh table dates
         } catch(e) {
-            alert('فشل في تشغيل المحرك التلقائي.');
+            alert(t('sys.str_1059'));
         } finally {
             setCronLoading(false);
         }
@@ -50,11 +50,9 @@ export default function RecurringInvoicesPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                             <RefreshCw className="text-blue-400" size={32} />
-                            نظام العقود والفواتير الدورية (الاشتراكات)
-                        </h1>
+                            {t('sys.str_1048')}</h1>
                         <p className="text-gray-400 mt-2">
-                            جميع أوامر البيع المسجلة كعقود دورية والتي تصدر فواتير ضريبية لعملائك تلقائياً كل شهر/سنة.
-                        </p>
+                            {t('sys.str_1049')}</p>
                     </div>
 
                     <div className="flex gap-3">
@@ -67,8 +65,7 @@ export default function RecurringInvoicesPage() {
                             {cronLoading ? 'جاري الفحص التلقائي...' : 'محاكاة البوت الآلي الآن'}
                         </button>
                         <a href="/sales/orders/create" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
-                            <Plus size={18} /> إنشاء عقد جديد
-                        </a>
+                            <Plus size={18} /> {t('sys.str_1050')}</a>
                     </div>
                 </div>
 
@@ -81,18 +78,18 @@ export default function RecurringInvoicesPage() {
 
                 <div className="bg-surface border border-divider rounded-2xl overflow-hidden shadow-sm">
                     {loading ? (
-                        <div className="p-10 text-center text-gray-400">جاري تحميل العقود النشطة...</div>
+                        <div className="p-10 text-center text-gray-400">{t('sys.str_1051')}</div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left" dir={isRTL ? 'rtl' : 'ltr'}>
                                 <thead className="bg-[#111]">
                                     <tr>
-                                        <th className="p-4 text-gray-400 font-medium">رقم العقد</th>
-                                        <th className="p-4 text-gray-400 font-medium">اسم المشترك</th>
-                                        <th className="p-4 text-gray-400 font-medium">قيمة الاشتراك</th>
-                                        <th className="p-4 text-gray-400 font-medium">نظام التجديد</th>
-                                        <th className="p-4 text-gray-400 font-medium">موعد الفاتورة القادمة</th>
-                                        <th className="p-4 text-gray-400 font-medium">الحالة</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('sys.str_1052')}</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('sys.str_1053')}</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('sys.str_1054')}</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('sys.str_1055')}</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('sys.str_1056')}</th>
+                                        <th className="p-4 text-gray-400 font-medium">{t('fin.str_227')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -102,7 +99,7 @@ export default function RecurringInvoicesPage() {
                                             <tr key={idx} className="border-t border-divider hover:bg-white/5 transition">
                                                 <td className="p-4 font-mono font-bold text-white">#CO-{contract.orderNo}</td>
                                                 <td className="p-4">{contract.customerName}</td>
-                                                <td className="p-4 text-emerald-400 font-bold">{contract.total?.toLocaleString()} ر.س</td>
+                                                <td className="p-4 text-emerald-400 font-bold">{contract.total?.toLocaleString()} {t('sys.str_68')}</td>
                                                 <td className="p-4 text-gray-300">
                                                     {contract.frequency === 'MONTHLY' ? 'شهري' : contract.frequency === 'YEARLY' ? 'سنوي' : contract.frequency}
                                                 </td>
@@ -113,7 +110,7 @@ export default function RecurringInvoicesPage() {
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className="text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded">نشط أوتوماتيكياً</span>
+                                                    <span className="text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded">{t('sys.str_1057')}</span>
                                                 </td>
                                             </tr>
                                         )
@@ -121,8 +118,7 @@ export default function RecurringInvoicesPage() {
                                     {contracts.length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="p-10 text-center text-gray-500">
-                                                لا توجد أي عقود فواتير دورية مسجلة في شاشة الحجوزات.
-                                            </td>
+                                                {t('sys.str_1058')}</td>
                                         </tr>
                                     )}
                                 </tbody>

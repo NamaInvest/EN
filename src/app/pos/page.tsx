@@ -119,7 +119,7 @@ export default function POSPage() {
     
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
-    const [activeCategory, setActiveCategory] = useState('الكل');
+    const [activeCategory, setActiveCategory] = useState(t('sys.str_522'));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -155,7 +155,7 @@ export default function POSPage() {
     }, [showCustomerModal]);
 
     const filteredProducts = products.filter(p => 
-        (activeCategory === 'الكل' || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
+        (activeCategory === t('sys.str_522') || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
         (p.name.includes(searchQuery) || p.barcode?.includes(searchQuery))
     );
 
@@ -197,7 +197,7 @@ export default function POSPage() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + ' ر.س'}`);
+                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_68')}`);
             } else {
                 alert(data.error);
                 setAppliedCoupon(null);
@@ -674,7 +674,7 @@ export default function POSPage() {
                                     }
                                 </div>
                                 <div className="product-name">{product.name}</div>
-                                <div className="product-price">{product.price.toLocaleString()} ر.س</div>
+                                <div className="product-price">{product.price.toLocaleString()} {t('sys.str_68')}</div>
                             </div>
                         ))
                     )}
@@ -711,7 +711,7 @@ export default function POSPage() {
                         <div key={item.id} className="cart-item">
                             <div className="item-info">
                                 <span className="item-name">{item.name}</span>
-                                <span className="item-price">{item.price} ر.س</span>
+                                <span className="item-price">{item.price} {t('sys.str_68')}</span>
                             </div>
                             <div className="item-controls">
                                 <button className="qty-btn" onClick={() => updateQty(item.id, -1)}>-</button>
@@ -731,18 +731,18 @@ export default function POSPage() {
 
                 <div className="cart-summary">
                     <div className="summary-row">
-                        <span>المجموع الفرعي</span>
-                        <span>{total.toLocaleString()} ر.س</span>
+                        <span>{t('sys.str_768')}</span>
+                        <span>{total.toLocaleString()} {t('sys.str_68')}</span>
                     </div>
                     {appliedCoupon && (
                         <div className="summary-row" style={{ color: '#10b981', fontWeight: 'bold' }}>
                             <span>خصم الكوبون ({appliedCoupon.code})</span>
-                            <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} ر.س</span>
+                            <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} {t('sys.str_68')}</span>
                         </div>
                     )}
                     <div className="summary-row">
                         <span>الضريبة (15%)</span>
-                        <span>{tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ر.س</span>
+                        <span>{tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} {t('sys.str_68')}</span>
                     </div>
                     
                     {/* Coupon Input Box */}
@@ -761,14 +761,13 @@ export default function POSPage() {
                             </button>
                         ) : (
                             <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
-                                إلغاء
-                            </button>
+                                {t('fin.str_206')}</button>
                         )}
                     </div>
 
                     <div className="summary-total">
-                        <span>الإجمالي</span>
-                        <span>{finalTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ر.س</span>
+                        <span>{t('sys.str_66')}</span>
+                        <span>{finalTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} {t('sys.str_68')}</span>
                     </div>
                 </div>
 
@@ -780,10 +779,10 @@ export default function POSPage() {
                         <CreditCard size={20} /> {isProcessing ? 'جاري...' : 'شبكة (مدى)'}
                     </button>
                     <button className="pay-btn" style={{ background: '#3eedbf', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tabby')}>
-                        <strong>تابي</strong> Tabby
+                        <strong>{t('pos.str_188')}</strong> Tabby
                     </button>
                     <button className="pay-btn" style={{ background: '#ffb5a3', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tamara')}>
-                        <strong>تمارا</strong> Tamara
+                        <strong>{t('pos.str_189')}</strong> Tamara
                     </button>
                     <button className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
                         <Save size={20} /> حفظ مسودة (تعليق الطلب)
@@ -838,7 +837,7 @@ export default function POSPage() {
                         
                         {!bnplUrl ? (
                             <>
-                                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>أدخل رقم جوال العميل لإنشاء جلسة تقسيط للفاتورة البالغة <strong>{finalTotal.toLocaleString()} ر.س</strong></p>
+                                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>أدخل رقم جوال العميل لإنشاء جلسة تقسيط للفاتورة البالغة <strong>{finalTotal.toLocaleString()} {t('sys.str_68')}</strong></p>
                                 <input 
                                     type="text" 
                                     placeholder="رقم الجوال (مثال: 0500000000)" 
@@ -900,8 +899,8 @@ export default function POSPage() {
                                 <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                                     <div>
                                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>مسودة وقت: {order.time}</div>
-                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>العميل: {order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
-                                        <div style={{ color: '#818cf8', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} ر.س</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{t('sys.str_57')}{order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
+                                        <div style={{ color: '#818cf8', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} {t('sys.str_68')}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>استرجاع</button>
@@ -923,7 +922,7 @@ export default function POSPage() {
                             <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {historyLoading ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>جاري التحميل...</p> : 
+                            {historyLoading ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>{t('sys.str_168')}</p> : 
                             recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>لا توجد فواتير سابقة</p> : 
                             recentOrders.map((inv: any) => (
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
@@ -932,7 +931,7 @@ export default function POSPage() {
                                         <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} | العميل: {inv.customer?.name || 'مبيعات مباشرة'}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} ر.س</div>
+                                        <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_68')}</div>
                                         <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>إعادة طباعة الإيصال</button>
                                     </div>
                                 </div>

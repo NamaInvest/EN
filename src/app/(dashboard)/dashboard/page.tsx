@@ -202,8 +202,7 @@ export default function DashboardPage() {
                 <div className="chart-container" style={{ marginBottom: '24px', background: 'linear-gradient(to right, #f8fafc, #eff6ff)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <div className="chart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                            <span>🤖</span> المستشار المالي (AI CFO)
-                        </div>
+                            <span>🤖</span> {t('sys.str_549')}</div>
                         <button 
                             className="btn btn-primary btn-sm" 
                             onClick={fetchAiCfo} 
@@ -238,8 +237,7 @@ export default function DashboardPage() {
                     
                     {!aiAlerts && !loadingAi && (
                         <div style={{ textAlign: 'center', padding: '24px', border: '2px dashed #bfdbfe', borderRadius: '8px', color: '#60a5fa', fontSize: '14px' }}>
-                            احصل على نصائح وتوقعات مخصصة لمتجرك مدعومة بالذكاء الاصطناعي (Gemini) لتحسين المبيعات وتقليل المصروفات.
-                        </div>
+                            {t('sys.str_550')}</div>
                     )}
                 </div>
 

@@ -213,7 +213,7 @@ export default function Sidebar() {
             <button
                 className="mobile-menu-btn"
                 onClick={() => setIsOpen(!isOpen)}
-                aria-label="القائمة"
+                aria-label={t('sys.str_100')}
             >
                 {isOpen ? '✕' : '☰'}
             </button>
@@ -228,7 +228,7 @@ export default function Sidebar() {
 
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
-                    <div className="sidebar-logo-icon">ن</div>
+                    <div className="sidebar-logo-icon">{t('sys.str_99')}</div>
                     <div className="sidebar-logo-text" style={{ flex: 1 }}>{companyName}</div>
                     <button
                         className="mobile-close-btn"
@@ -251,7 +251,7 @@ export default function Sidebar() {
 
                 <nav className="sidebar-nav" style={{ padding: '10px 0' }}>
                     {filteredMenu.map((group, gIdx) => {
-                        const isDashboard = group.sectionKey === 'الرئيسية (Dashboard)';
+                        const isDashboard = group.sectionKey === t('sys.str_101');
                         const isExpanded = expandedGroup === group.sectionKey || (expandedGroup === null && isDashboard);
 
                         return (

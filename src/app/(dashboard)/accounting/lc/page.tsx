@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Ship, Landmark, LandmarkIcon, Building2, Plus, Info } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LcManagementPage() {
+    const { t } = useTranslation();
     const [lcs, setLcs] = useState<any[]>([]);
     const [banks, setBanks] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export default function LcManagementPage() {
                 setShowNewLc(false);
                 fetchData();
             } else {
-                alert("تعذر فتح الاعتماد المستندي، تأكد من صحة البيانات.");
+                alert(t('fin.str_1716'));
             }
         } catch (e) {
             console.error(e);
@@ -67,9 +69,8 @@ export default function LcManagementPage() {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3">
-                        <Ship className="w-8 h-8 text-blue-600" /> الاعتمادات المستندية (LC)
-                    </h1>
-                    <p className="text-slate-500 mt-2">نظام إدارة الاستيراد، التغطيات البنكية، والربط الجمركي للحاويات.</p>
+                        <Ship className="w-8 h-8 text-blue-600" /> {t('fin.str_1689')}</h1>
+                    <p className="text-slate-500 mt-2">{t('fin.str_1690')}</p>
                 </div>
                 <button 
                     onClick={() => {
@@ -78,26 +79,25 @@ export default function LcManagementPage() {
                     }}
                     className="bg-blue-700 text-white px-5 py-2.5 rounded shadow hover:bg-blue-800 transition flex items-center gap-2 font-bold"
                 >
-                    <Plus size={18} /> فتح اعتماد جديد
-                </button>
+                    <Plus size={18} /> {t('fin.str_1691')}</button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
                         <tr>
-                            <th className="px-6 py-4 font-bold text-right">رقم الاعتماد</th>
-                            <th className="px-6 py-4 font-bold text-right">البنك المُمول</th>
-                            <th className="px-6 py-4 font-bold text-right">المُصدر (المورد)</th>
-                            <th className="px-6 py-4 font-bold text-right">قيمة الاعتماد</th>
-                            <th className="px-6 py-4 font-bold text-right">التغطية المدفوعة</th>
-                            <th className="px-6 py-4 font-bold text-right">تاريخ الإنتهاء</th>
-                            <th className="px-6 py-4 font-bold text-center">الحالة</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1692')}</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1693')}</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1694')}</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1695')}</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1696')}</th>
+                            <th className="px-6 py-4 font-bold text-right">{t('fin.str_1697')}</th>
+                            <th className="px-6 py-4 font-bold text-center">{t('fin.str_227')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {lcs.length === 0 ? (
-                            <tr><td colSpan={7} className="p-8 text-center text-slate-500">لا توجد اعتمادات مستندية مفتوحة.</td></tr>
+                            <tr><td colSpan={7} className="p-8 text-center text-slate-500">{t('fin.str_1698')}</td></tr>
                         ) : lcs.map(lc => (
                             <tr key={lc.id} className="border-b border-slate-100 hover:bg-slate-50">
                                 <td className="px-6 py-4 font-mono font-bold text-blue-600">{lc.lcNumber}</td>
@@ -127,52 +127,51 @@ export default function LcManagementPage() {
                 <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-bold mb-6 text-slate-800 border-b pb-3 flex items-center gap-2">
-                            <LandmarkIcon className="text-blue-600" /> تفاصيل الاعتماد المستندي الجديد
-                        </h2>
+                            <LandmarkIcon className="text-blue-600" /> {t('fin.str_1699')}</h2>
                         
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-semibold mb-1">رقم الاعتماد البنكي</label>
+                                <label className="block text-sm font-semibold mb-1">{t('fin.str_1700')}</label>
                                 <input type="text" className="w-full p-2 border rounded bg-slate-50" value={form.lcNumber} onChange={e => setForm({...form, lcNumber: e.target.value})} />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold mb-1 text-red-600">تاريخ الإنتهاء (Expiry)</label>
+                                <label className="block text-sm font-semibold mb-1 text-red-600">{t('fin.str_1701')}</label>
                                 <input type="date" className="w-full p-2 border rounded border-red-200" value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} />
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-semibold mb-1">البنك المُمول (يتم خصم التغطية منه)</label>
+                                <label className="block text-sm font-semibold mb-1">{t('fin.str_1702')}</label>
                                 <select className="w-full p-2 border rounded" value={form.bankId} onChange={e => setForm({...form, bankId: e.target.value})}>
-                                    <option value="">-- اختر البنك --</option>
+                                    <option value="">{t('fin.str_1703')}</option>
                                     {banks.map(b => <option key={b.id} value={b.id}>{b.bankName} ({b.accountNumber})</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold mb-1">المورد (المُستفيد)</label>
+                                <label className="block text-sm font-semibold mb-1">{t('fin.str_1704')}</label>
                                 <select className="w-full p-2 border rounded" value={form.supplierId} onChange={e => setForm({...form, supplierId: e.target.value})}>
-                                    <option value="">-- مكتب الشراء الخارجي --</option>
-                                    {suppliers.map(s => <option key={s.id} value={s.id}>{s.name} ({s.country || 'دولي'})</option>)}
+                                    <option value="">{t('fin.str_1705')}</option>
+                                    {suppliers.map(s => <option key={s.id} value={s.id}>{s.name} ({s.country || t('fin.str_1718')})</option>)}
                                 </select>
                             </div>
 
                             <div className="col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                                <h3 className="font-bold text-slate-700 mb-3 text-sm">التفاصيل المالية والعملات</h3>
+                                <h3 className="font-bold text-slate-700 mb-3 text-sm">{t('fin.str_1706')}</h3>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-xs mb-1">العملة (FX)</label>
+                                        <label className="block text-xs mb-1">{t('fin.str_1707')}</label>
                                         <select className="w-full p-2 border rounded" value={form.currency} onChange={e => setForm({...form, currency: e.target.value})}>
-                                            <option value="USD">دولار أمريكي (USD)</option>
-                                            <option value="EUR">يورو (EUR)</option>
-                                            <option value="CNY">يوان صيني (CNY)</option>
-                                            <option value="SAR">ريال (SAR)</option>
+                                            <option value="USD">{t('purchases.str_1012')}</option>
+                                            <option value="EUR">{t('fin.str_1677')}</option>
+                                            <option value="CNY">{t('fin.str_1708')}</option>
+                                            <option value="SAR">{t('fin.str_1709')}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs mb-1">القيمة الإجمالية بالعملة</label>
+                                        <label className="block text-xs mb-1">{t('fin.str_1710')}</label>
                                         <input type="number" className="w-full p-2 border rounded font-bold" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
                                     </div>
                                     <div>
-                                        <label className="block text-xs mb-1">سعر الصرف للصرف (SAR)</label>
+                                        <label className="block text-xs mb-1">{t('fin.str_1711')}</label>
                                         <input type="number" step="0.01" className="w-full p-2 border rounded text-slate-600" value={form.exchangeRate} onChange={e => setForm({...form, exchangeRate: e.target.value})} />
                                     </div>
                                 </div>
@@ -181,32 +180,30 @@ export default function LcManagementPage() {
                             <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 col-span-2">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-blue-800 mb-1">نسبة التغطية النقدية المطلوبة (Margin %)</label>
+                                        <label className="block text-xs font-bold text-blue-800 mb-1">{t('fin.str_1712')}</label>
                                         <div className="flex items-center gap-2">
                                             <input type="number" className="w-full p-2 border rounded border-blue-200" value={form.marginPercent} onChange={e => setForm({...form, marginPercent: e.target.value, marginPaid: calcMargin()})} />
                                             <span className="text-slate-500 font-bold">%</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-blue-800 mb-1">المبلغ المخصوم فعلياً (ر.س)</label>
+                                        <label className="block text-xs font-bold text-blue-800 mb-1">{t('fin.str_1713')}</label>
                                         <input type="number" className="w-full p-2 border rounded border-blue-200 bg-white" value={form.marginPaid} onChange={e => setForm({...form, marginPaid: e.target.value})} />
                                     </div>
                                     <p className="col-span-2 text-xs text-blue-600 flex items-center gap-1 mt-1">
-                                        <Info size={12}/> سيتم خصم هذا المبلغ من رصيد البنك الذي قمت باختياره وإدراجه كقيد محاسبي معلق لمصلحة البنك.
-                                    </p>
+                                        <Info size={12}/> {t('fin.str_1714')}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
-                            <button onClick={() => setShowNewLc(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded font-bold">إلغاء</button>
+                            <button onClick={() => setShowNewLc(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded font-bold">{t('fin.str_206')}</button>
                             <button 
                                 onClick={handleCreateLc} 
                                 disabled={!form.expiryDate || !form.bankId || !form.supplierId || !form.amount} 
                                 className="bg-blue-700 text-white px-8 py-2.5 rounded hover:bg-blue-800 disabled:opacity-50 font-bold shadow-md"
                             >
-                                طلب الاعتماد وحجز التغطية
-                            </button>
+                                {t('fin.str_1715')}</button>
                         </div>
                     </div>
                 </div>

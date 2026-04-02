@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Branch {
     id: number;
@@ -18,6 +19,7 @@ interface Branch {
 }
 
 export default function BranchesPage() {
+    const { t } = useTranslation();
     const [branches, setBranches] = useState<Branch[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -41,7 +43,7 @@ export default function BranchesPage() {
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
     const handleSave = async () => {
-        if (!form.name.trim()) { showToast('❌ يرجى إدخال اسم الفرع'); return; }
+        if (!form.name.trim()) { showToast(t('sys.str_485')); return; }
         
         const token = localStorage.getItem('token');
         try {
@@ -50,17 +52,17 @@ export default function BranchesPage() {
                     method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ id: editId, ...form }),
                 });
-                if (res.ok) { showToast('✅ تم تحديث الفرع'); setShowModal(false); fetchData(); }
+                if (res.ok) { showToast(t('sys.str_486')); setShowModal(false); fetchData(); }
                 else { const d = await res.json(); showToast(`❌ ${d.error}`); }
             } else {
                 const res = await fetch('/api/branches', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify(form),
                 });
-                if (res.ok) { showToast('✅ تمت إضافة الفرع'); setShowModal(false); fetchData(); }
+                if (res.ok) { showToast(t('sys.str_487')); setShowModal(false); fetchData(); }
                 else { const d = await res.json(); showToast(`❌ ${d.error}`); }
             }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const deleteBranch = async (b: Branch) => {
@@ -68,9 +70,9 @@ export default function BranchesPage() {
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/branches?id=${b.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { showToast('✅ تم الحذف'); fetchData(); }
+            if (res.ok) { showToast(t('sys.str_488')); fetchData(); }
             else { const d = await res.json(); showToast(`❌ ${d.error}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     const openEdit = (b: Branch) => {
@@ -88,8 +90,8 @@ export default function BranchesPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🏢 إدارة الفروع</h1>
-                <button className="btn btn-primary" onClick={openAdd}>➕ إضافة فرع</button>
+                <h1 className="page-title">{t('sys.str_472')}</h1>
+                <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_473')}</button>
             </div>
 
             <div className="page-content animate-fade-in">
@@ -98,18 +100,18 @@ export default function BranchesPage() {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>اسم الفرع</th>
-                                <th>كود الفرع</th>
-                                <th>العنوان</th>
-                                <th>الجوال</th>
-                                <th>إحصائيات</th>
-                                <th>الحالة</th>
-                                <th>إجراءات</th>
+                                <th>{t('sys.str_474')}</th>
+                                <th>{t('sys.str_475')}</th>
+                                <th>{t('sys.str_476')}</th>
+                                <th>{t('sys.str_477')}</th>
+                                <th>{t('sys.str_478')}</th>
+                                <th>{t('fin.str_227')}</th>
+                                <th>{t('sys.str_435')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : branches.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-text">لا توجد فروع مسجلة</div></div></td></tr>
+                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                                : branches.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-text">{t('sys.str_479')}</div></div></td></tr>
                                     : branches.map((b, i) => (
                                         <tr key={b.id}>
                                             <td>{i + 1}</td>
@@ -142,28 +144,28 @@ export default function BranchesPage() {
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header"><div className="modal-title">{editId ? '✏️ تعديل الفرع' : '➕ إضافة فرع'}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
                         <div className="input-group">
-                            <label className="input-label">اسم الفرع *</label>
-                            <input className="input" type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="مثال: فرع الرياض الأول" />
+                            <label className="input-label">{t('sys.str_480')}</label>
+                            <input className="input" type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('sys.str_491')} />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">كود الفرع (اختياري)</label>
+                            <label className="input-label">{t('sys.str_481')}</label>
                             <input className="input" type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} dir="ltr" placeholder="BR-01" />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">العنوان</label>
+                            <label className="input-label">{t('sys.str_476')}</label>
                             <input className="input" type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">رقم التواصل</label>
+                            <label className="input-label">{t('sys.str_482')}</label>
                             <input className="input" type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} dir="ltr" />
                         </div>
                         <div className="input-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <input type="checkbox" id="isActive" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} />
-                            <label htmlFor="isActive" style={{ margin: 0 }}>تفعيل الفرع</label>
+                            <label htmlFor="isActive" style={{ margin: 0 }}>{t('sys.str_483')}</label>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleSave}>💾 احفظ التغييرات</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={handleSave}>{t('sys.str_484')}</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

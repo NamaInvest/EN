@@ -138,8 +138,8 @@ export default function WarehousesPage() {
               <DollarSign className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-sm text-slate-500 font-semibold">إجمالي التكلفة للمخزون</p>
-              <h3 className="text-2xl font-bold text-slate-800">{analytics.totalValuationBuy?.toLocaleString()} ر.س</h3>
+              <p className="text-sm text-slate-500 font-semibold">{t('sys.str_1506')}</p>
+              <h3 className="text-2xl font-bold text-slate-800">{analytics.totalValuationBuy?.toLocaleString()} {t('sys.str_68')}</h3>
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -147,8 +147,8 @@ export default function WarehousesPage() {
               <TrendingUp className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-sm text-slate-500 font-semibold">الربح المتوقع (بعد البيع)</p>
-              <h3 className="text-2xl font-bold text-slate-800">{analytics.expectedProfit?.toLocaleString()} ر.س</h3>
+              <p className="text-sm text-slate-500 font-semibold">{t('sys.str_1507')}</p>
+              <h3 className="text-2xl font-bold text-slate-800">{analytics.expectedProfit?.toLocaleString()} {t('sys.str_68')}</h3>
             </div>
           </div>
           <a href="/warehouses/alerts" className="bg-white p-6 rounded-xl border border-red-200 shadow-sm flex items-center gap-4 hover:border-red-300 hover:shadow transition cursor-pointer group">
@@ -156,8 +156,8 @@ export default function WarehousesPage() {
               <AlertTriangle className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-sm text-slate-500 font-semibold">نواقص المخزون (تنبيهات)</p>
-              <h3 className="text-2xl font-bold text-red-600">{analytics.lowStockCount} نفاد وشيك</h3>
+              <p className="text-sm text-slate-500 font-semibold">{t('sys.str_1508')}</p>
+              <h3 className="text-2xl font-bold text-red-600">{analytics.lowStockCount} {t('sys.str_1509')}</h3>
             </div>
           </a>
         </div>

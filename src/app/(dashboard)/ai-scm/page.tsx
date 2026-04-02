@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AISCMPage() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<string | null>(null);
 
@@ -10,9 +12,9 @@ export default function AISCMPage() {
         try {
             const res = await fetch('/api/ai/predictive-scm');
             const data = await res.json();
-            setResult(data.message || 'تم فحص المخزون بنجاح.');
+            setResult(data.message || t('sys.str_327'));
         } catch (e) {
-            setResult('حدث خطأ أثناء الاتصال بعقل الذكاء الاصطناعي.');
+            setResult(t('sys.str_328'));
         }
         setLoading(false);
     };
@@ -21,8 +23,7 @@ export default function AISCMPage() {
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl p-8 text-white shadow-2xl">
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
-                    <span className="text-4xl">📦</span> المخزون الاستباقي الذكي (AI SCM)
-                </h1>
+                    <span className="text-4xl">📦</span> {t('sys.str_321')}</h1>
                 <p className="text-purple-100 text-lg">
                     هذا النظام المتطور يقوم بمراقبة أرصدة مستودعاتك في الخلفية. 
                     عندما تقترب كمية أي منتج من النفاذ، سيقوم العقل الاصطناعي بإنشاء (أمر شراء) تلقائياً من المورد الافتراضي.
@@ -42,11 +43,11 @@ export default function AISCMPage() {
             </div>
             
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold mb-4">كيف يعمل هذا النظام؟</h2>
+                <h2 className="text-xl font-bold mb-4">{t('sys.str_323')}</h2>
                 <ul className="space-y-3 text-gray-600 list-disc list-inside">
-                    <li>يعمل تلقائياً كل ليلة لمسح آلاف الأصناف.</li>
-                    <li>يحلل سرعة بيع كل منتج (Velocity) ويتوقع تاريخ نفاده.</li>
-                    <li>يُنشئ أوامر شراء بحالة "مسودة" لتوافق عليها الإدارة.</li>
+                    <li>{t('sys.str_324')}</li>
+                    <li>{t('sys.str_325')}</li>
+                    <li>{t('sys.str_326')}</li>
                 </ul>
             </div>
         </div>

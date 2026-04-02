@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import VoucherReceipt from '../../../components/VoucherReceipt';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useTranslation } from "@/lib/i18n";
+
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
     currentStock: number; taxRate: number; unit?: { name: string };
@@ -17,6 +19,7 @@ interface Customer { id: number; name: string; phone?: string; taxNumber?: strin
 interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes: string; discountRate: number; paidAmount: string; paymentType: string; heldAt: string; label: string; }
 
 export default function SalesPage() {
+    const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [search, setSearch] = useState('');
@@ -81,7 +84,7 @@ export default function SalesPage() {
                     } else if (data.status === 'REJECTED' || data.status === 'EXPIRED' || data.status === 'DECLINED') {
                         clearInterval(interval);
                         setBnplPolling(false);
-                        alert('❌ تم رفض الدفعة التقسيط من قبل المزود.');
+                        alert(t('sys.str_807'));
                         setBnplProvider(null); setBnplUrl(''); setBnplOrderId('');
                     }
                 } catch (e) {
@@ -146,15 +149,15 @@ export default function SalesPage() {
     };
 
     const connectPosManual = async () => {
-        if (!('serial' in navigator)) { showToast('❌ المتصفح لا يدعم WebSerial - استخدم Chrome'); return; }
+        if (!('serial' in navigator)) { showToast(t('sys.str_808')); return; }
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const port = await (navigator as any).serial.requestPort();
             await port.open({ baudRate: 9600 });
             setPosPort(port);
             setPosStatus('connected');
-            showToast('✅ تم الاتصال بجهاز الدفع');
-        } catch (e) { console.warn('POS connect:', e); showToast('❌ فشل الاتصال بجهاز الدفع'); }
+            showToast(t('sys.str_809'));
+        } catch (e) { console.warn('POS connect:', e); showToast(t('sys.str_810')); }
     };
 
     const sendToPos = async (amount: number): Promise<'approved' | 'declined' | 'error' | 'no_device'> => {
@@ -285,9 +288,9 @@ export default function SalesPage() {
                 setShowAddCustomer(false);
                 setNewCust({ name: '', phone: '', taxNumber: '', street: '', buildingNumber: '', district: '', city: '', postalCode: '', creditLimit: '', notes: '', type: '0' });
             } else {
-                alert('❌ فشل في إضافة العميل');
+                alert(t('sys.str_811'));
             }
-        } catch { alert('❌ خطأ في الاتصال'); }
+        } catch { alert(t('sys.str_419')); }
         finally { setSavingCust(false); }
     };
 
@@ -313,9 +316,9 @@ export default function SalesPage() {
                 setShowAddProduct(false);
                 setNewProd({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
             } else {
-                alert('❌ فشل في إضافة المنتج');
+                alert(t('sys.str_812'));
             }
-        } catch { alert('❌ خطأ في الاتصال'); }
+        } catch { alert(t('sys.str_419')); }
         finally { setSavingProd(false); }
     };
 
@@ -351,7 +354,7 @@ export default function SalesPage() {
             setCart([...cart, {
                 productId: p.id, productName: p.name, quantity: 1,
                 price: p.sellPrice, discountRate: 0, taxRate: p.taxRate || 15,
-                stock: p.currentStock, unitName: p.unit?.name || 'حبة',
+                stock: p.currentStock, unitName: p.unit?.name || t('sys.str_813'),
             }]);
         }
         setSearch('');
@@ -403,13 +406,13 @@ export default function SalesPage() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon({ code: data.code, type: data.discountType, value: data.discountValue });
-                showToast(`✅ تم تطبيق الكوبون بنجاح`);
+                showToast(t('sys.str_864'));
             } else {
                 showToast(`❌ ${data.error}`);
                 setAppliedCoupon(null);
             }
         } catch {
-            showToast('❌ خطأ في الاتصال');
+            showToast(t('sys.str_419'));
         } finally {
             setCouponApplying(false);
         }
@@ -429,7 +432,7 @@ export default function SalesPage() {
                     provider: paymentType.toLowerCase(),
                     amount: total,
                     phone: customers.find(c => c.id.toString() === customerId)?.phone || '0500000000',
-                    customerName: customers.find(c => c.id.toString() === customerId)?.name || 'عميل مبيعات الجملة',
+                    customerName: customers.find(c => c.id.toString() === customerId)?.name || t('sys.str_814'),
                     items: cart.map(c => ({ name: c.productName, quantity: c.quantity, price: c.price, id: c.productId }))
                 };
                 // Create BNPL Payment Session before saving invoice locally
@@ -445,10 +448,10 @@ export default function SalesPage() {
                     setBnplProvider(paymentType === 'TABBY' ? 'TABBY' : 'TAMARA');
                     setBnplPolling(true); // Begin auto polling!
                 } else {
-                    showToast('❌ فشل توليد رابط التقسيط: ' + (data.error || ''));
+                    showToast(t('sys.str_815') + (data.error || ''));
                 }
             } catch (e) {
-                showToast('❌ انقطع الاتصال بمخدم التقسيط');
+                showToast(t('sys.str_816'));
             } finally {
                 setSaving(false);
             }
@@ -463,15 +466,15 @@ export default function SalesPage() {
 
             // For card payments with POS terminal: confirm payment FIRST
             if (paymentType === 'card' && posPort) {
-                showToast('⏳ جاري إرسال المبلغ لجهاز مدى...');
+                showToast(t('sys.str_817'));
                 const result = await sendToPos(total);
                 if (result === 'declined') {
-                    showToast('❌ رفض جهاز الدفع - اضغط إعادة الإرسال');
+                    showToast(t('sys.str_818'));
                     setRetryPosAmount(total); setRetryInvoiceNo('');
                     setSaving(false);
                     return; // DO NOT save invoice
                 } else if (result === 'error') {
-                    showToast('⚠️ خطأ في جهاز الدفع - اضغط إعادة الإرسال');
+                    showToast(t('sys.str_819'));
                     setRetryPosAmount(total); setRetryInvoiceNo('');
                     setSaving(false);
                     return; // DO NOT save invoice
@@ -513,7 +516,7 @@ export default function SalesPage() {
                 setRetryPosAmount(null); setRetryInvoiceNo('');
                 if (print) {
                     const cust = customers.find(c => c.id.toString() === customerId);
-                    const customerName = cust?.name || 'عميل نقدي';
+                    const customerName = cust?.name || t('sys.str_752');
                     setLastInvoiceData({
                         invoiceId: invoice.id,
                         invoiceNumber: invoice.invoiceNo,
@@ -552,7 +555,7 @@ export default function SalesPage() {
                 }
                 // Send to WhatsApp via automated CRM bot
                 if (whatsapp && customers.find(c => c.id.toString() === customerId)?.phone) {
-                    const customerName = customers.find(c => c.id.toString() === customerId)?.name || 'عميل نقدي';
+                    const customerName = customers.find(c => c.id.toString() === customerId)?.name || t('sys.str_752');
                     const customerPhone = customers.find(c => c.id.toString() === customerId)?.phone || '';
                     
                     const itemsText = cart.map((c, i) =>
@@ -566,7 +569,7 @@ export default function SalesPage() {
                         `💰 المجموع: ${fmt(subtotal)} ر.س\n` +
                         `📊 الضريبة: ${fmt(taxValue)} ر.س\n` +
                         `✅ *الإجمالي: ${fmt(total)} ر.س*\n\n` +
-                        `شكراً لتعاملكم معنا 🙏`;
+                        t('sys.str_865');
 
                     // إرسال عبر الـ CRM Bot بدلاً من فتح تطبيق واتساب للمستخدم
                     fetch('/api/crm/whatsapp', {
@@ -598,7 +601,7 @@ export default function SalesPage() {
             }
         } catch (err) {
             console.error(err);
-            showToast('❌ خطأ في الاتصال');
+            showToast(t('sys.str_419'));
         } finally {
             setSaving(false);
         }
@@ -619,7 +622,7 @@ export default function SalesPage() {
 
     // Hold / Recall Invoice
     const holdInvoice = () => {
-        if (cart.length === 0) { showToast('❌ لا توجد أصناف للتعليق'); return; }
+        if (cart.length === 0) { showToast(t('sys.str_822')); return; }
         const now = new Date();
         const held: HeldInvoice = {
             id: Date.now().toString(),
@@ -688,7 +691,7 @@ export default function SalesPage() {
         }));
         setLastInvoiceData({
             invoiceId: inv.id, invoiceNumber: String(inv.invoiceNo),
-            date: inv.date, customerName: inv.customer?.name || 'عميل نقدي',
+            date: inv.date, customerName: inv.customer?.name || t('sys.str_752'),
             customerTaxNo: inv.customer?.taxNumber,
             customerCrNo: null,
             customerAddress: inv.customer?.address,
@@ -706,7 +709,7 @@ export default function SalesPage() {
             receiptNumber: String(Date.now()).slice(-6), // Optional or generated
             invoiceNumber: String(inv.invoiceNo),
             date: inv.date,
-            customerName: inv.customer?.name || 'عميل نقدي',
+            customerName: inv.customer?.name || t('sys.str_752'),
             customerTaxNo: inv.customer?.taxNumber,
             customerCrNo: inv.customer?.crNo,
             customerAddress: inv.customer?.address,
@@ -722,7 +725,7 @@ export default function SalesPage() {
     const sendWhatsApp = async (inv: any) => {
         const phone = inv.customer?.phone || '';
         if (!phone) {
-            showToast('❌ العميل لا يملك رقم هاتف');
+            showToast(t('sys.str_825'));
             return;
         }
 
@@ -731,14 +734,14 @@ export default function SalesPage() {
         ).join('\n');
         const text = `🧾 *فاتورة مبيعات #${inv.invoiceNo}*\n` +
             `📅 ${new Date(inv.date).toLocaleDateString('ar-SA')}\n` +
-            `👤 ${inv.customer?.name || 'عميل نقدي'}\n\n` +
+            `👤 ${inv.customer?.name || t('sys.str_752')}\n\n` +
             `📦 *الأصناف:*\n${items}\n\n` +
             `💰 المجموع: ${fmt(inv.subtotal)} ر.س\n` +
             `📊 الضريبة: ${fmt(inv.taxValue)} ر.س\n` +
             `✅ *الإجمالي: ${fmt(inv.total)} ر.س*\n\n` +
-            `شكراً لتعاملكم معنا 🙏`;
+            t('sys.str_865');
         
-        showToast('⏳ جاري الإرسال عبر واتساب...');
+        showToast(t('sys.str_826'));
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/crm/whatsapp', {
@@ -748,9 +751,9 @@ export default function SalesPage() {
             });
             const data = await res.json();
             if (data.success) {
-                showToast('✅ تم إرسال رسالة الواتساب بنجاح (CRM Bot)');
+                showToast(t('sys.str_827'));
             } else {
-                throw new Error(data.error || 'فشل الإرسال الآلي');
+                throw new Error(data.error || t('sys.str_828'));
             }
         } catch (err) {
             console.warn('Falling back to manual WhatsApp link', err);
@@ -762,13 +765,13 @@ export default function SalesPage() {
     const retryPosPayment = async () => {
         if (!retryPosAmount || !posPort) return;
         setSaving(true);
-        showToast('⏳ جاري إعادة الإرسال لجهاز مدى...');
+        showToast(t('sys.str_829'));
         const result = await sendToPos(retryPosAmount);
         if (result === 'approved') {
             handleSave(false);
             return;
         } else {
-            showToast('❌ فشل الدفع مرة أخرى - حاول مجدداً');
+            showToast(t('sys.str_830'));
         }
         setSaving(false);
     };
@@ -785,9 +788,9 @@ export default function SalesPage() {
                 fetchHistory();
             } else {
                 const data = await res.json();
-                showToast(`❌ ${data.error || 'فشل في الحذف'}`);
+                showToast(`❌ ${data.error || t('sys.str_831')}`);
             }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_419')); }
     };
 
     return (
@@ -795,17 +798,16 @@ export default function SalesPage() {
             <div className="page-header">
                 <h1 className="page-title">🧾 فاتورة مبيعات</h1>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice}>📄 جديدة</button>
+                    <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
                     <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
-                        style={{ color: 'var(--warning)' }}>⏸️ تعليق</button>
+                        style={{ color: 'var(--warning)' }}>{t('sys.str_743')}</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
                         style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined }}>
-                        ▶️ استرجاع
-                        {heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
+                        {t('sys.str_744')}{heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
                     </button>
                     <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
                         onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? '✅ تم إلغاء وضع الحذف' : '🔴 وضع الإلغاء - اضغط على الصنف لحذفه'); }}
-                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>🚫 إلغاء</button>
+                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>{t('sys.str_745')}</button>
                     <button className="btn btn-ghost btn-sm" onClick={openHistory}>📋 الفواتير</button>
                 </div>
             </div>
@@ -817,7 +819,7 @@ export default function SalesPage() {
                         <h2 style={{ color: bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e', marginBottom: '10px' }}>
                             {bnplProvider === 'TABBY' ? 'تقسيط عبر تابي' : 'تقسيط عبر تمارا'}
                         </h2>
-                        <p style={{ color: '#aaa', marginBottom: '20px' }}>استخدم هاتف العميل لمسح الرمز الكودي واستكمال عملية الدفع من جهازه.</p>
+                        <p style={{ color: '#aaa', marginBottom: '20px' }}>{t('sys.str_747')}</p>
                         
                         <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px' }}>
                             <QRCodeCanvas value={bnplUrl} size={250} level="H" includeMargin />
@@ -825,9 +827,9 @@ export default function SalesPage() {
                         
                         <div style={{ marginBottom: '20px' }}>
                             {bnplPolling ? (
-                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>⏳ النظام ينتظر تأكيد الدفع التلقائي من {bnplProvider}...</p>
+                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>{t('sys.str_748')}{bnplProvider}...</p>
                             ) : (
-                                <p style={{ color: '#ef4444', fontSize: '14px' }}>⚠️ توقف البحث الآلي</p>
+                                <p style={{ color: '#ef4444', fontSize: '14px' }}>{t('sys.str_749')}</p>
                             )}
                         </div>
 
@@ -836,20 +838,18 @@ export default function SalesPage() {
                                 onClick={() => { setBnplPolling(false); setBnplProvider(null); setBnplUrl(''); setBnplOrderId(''); }}
                                 style={{ padding: '10px 15px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
                             >
-                                إلغاء وإغلاق
-                            </button>
+                                {t('sys.str_750')}</button>
                             <button 
                                 id="bnpl-force-save"
                                 onClick={async () => {
-                                    if(confirm('تأكيد يدوي: هل أنت متأكد أن العميل أتم الدفع بنجاح؟ تأكد أولاً!')) {
+                                    if(confirm(t('sys.str_836'))) {
                                         setBnplPolling(false);
                                         await handleSave();
                                     }
                                 }}
                                 style={{ padding: '10px 15px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
                             >
-                                توثيق فوري (تخطي / أو تلقائي)
-                            </button>
+                                {t('sys.str_751')}</button>
                         </div>
                     </div>
                 </div>
@@ -865,26 +865,26 @@ export default function SalesPage() {
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                 <select className="input" style={{ width: '180px' }}
                                     value={customerId} onChange={e => setCustomerId(e.target.value)}>
-                                    <option value="">عميل نقدي</option>
+                                    <option value="">{t('sys.str_752')}</option>
                                     {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
-                                <button onClick={() => setShowAddCustomer(true)} title="إضافة عميل جديد"
+                                <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
                                     style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
                             </div>
                             <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
-                                <option value="1">المستودع الرئيسي</option>
+                                <option value="1">{t('sys.str_753')}</option>
                                 {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                             </select>
                             <select className="input" style={{ width: '140px' }}
                                 value={paymentType} onChange={e => setPaymentType(e.target.value)}>
-                                <option value="cash">💵 نقداً</option>
-                                <option value="card">💳 بطاقة</option>
-                                <option value="transfer">🏦 تحويل</option>
-                                <option value="split">✂️ تقسيم (نقد/بطاقة)</option>
-                                <option value="TABBY">🛍️ تابي (Tabby)</option>
-                                <option value="TAMARA">🛍️ تمارا (Tamara)</option>
-                                {isAdmin && <option value="credit">📝 آجل</option>}
-                                {isAdmin && <option value="installment">💳 تقسيط</option>}
+                                <option value="cash">{t('sys.str_754')}</option>
+                                <option value="card">{t('sys.str_755')}</option>
+                                <option value="transfer">{t('sys.str_756')}</option>
+                                <option value="split">{t('sys.str_757')}</option>
+                                <option value="TABBY">{t('sys.str_758')}</option>
+                                <option value="TAMARA">{t('sys.str_759')}</option>
+                                {isAdmin && <option value="credit">{t('sys.str_760')}</option>}
+                                {isAdmin && <option value="installment">{t('sys.str_761')}</option>}
                             </select>
                             <input className="input" type="number" placeholder="رقم الفاتورة (اختياري)" value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title="تعديل رقم الفاتورة (اختياري)" />
                             <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title="تعديل تاريخ الفاتورة (اختياري)" />
@@ -901,7 +901,7 @@ export default function SalesPage() {
                                 <input
                                     ref={searchRef}
                                     className="input"
-                                    placeholder="🔍 بحث (F1)، أو تمرير الباركود..."
+                                    placeholder={t('sys.str_846')}
                                     value={search}
                                     onChange={e => {
                                         setSearch(e.target.value);
@@ -964,15 +964,15 @@ export default function SalesPage() {
                                                 >
                                                     <div>
                                                         <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{p.name}</div>
-                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.barcode || 'بدون باركود'} | مخزون: {p.currentStock}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.barcode || t('sys.str_421')} {t('sys.str_762')}{p.currentStock}</div>
                                                     </div>
-                                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ر.س</div>
+                                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{fmt(p.sellPrice)} {t('sys.str_68')}</div>
                                                 </div>
                                             ))
                                         ) : (
                                             <div style={{ padding: '24px', textAlign: 'center' }}>
-                                                <div style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>❌ لا يوجد منتج بهذا الاسم أو الباركود</div>
-                                                <button className="btn btn-primary btn-sm" onClick={openAddProduct}>➕ إضافة منتج جديد</button>
+                                                <div style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_763')}</div>
+                                                <button className="btn btn-primary btn-sm" onClick={openAddProduct}>{t('sys.str_764')}</button>
                                             </div>
                                         )}
                                     </div>
@@ -981,16 +981,16 @@ export default function SalesPage() {
                         </div>
 
                         {/* Cart Table */}
-                        {voidMode && <div style={{ background: 'rgba(239,68,68,0.15)', border: '2px solid var(--danger)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', textAlign: 'center', fontWeight: '700', color: 'var(--danger)', fontSize: '13px', animation: 'pulse 1.5s infinite' }}>🚫 وضع الإلغاء - اضغط على الصنف لحذفه</div>}
+                        {voidMode && <div style={{ background: 'rgba(239,68,68,0.15)', border: '2px solid var(--danger)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', textAlign: 'center', fontWeight: '700', color: 'var(--danger)', fontSize: '13px', animation: 'pulse 1.5s infinite' }}>{t('sys.str_765')}</div>}
                         <div className="pos-invoice-table">
                             <table className="table">
                                 <thead>
                                     <tr>
-                                        <th>المنتج</th>
-                                        <th style={{ width: '80px' }}>الكمية</th>
-                                        <th style={{ width: '100px' }}>السعر</th>
-                                        <th style={{ width: '80px' }}>خصم %</th>
-                                        <th style={{ width: '100px' }}>الإجمالي</th>
+                                        <th>{t('sys.str_63')}</th>
+                                        <th style={{ width: '80px' }}>{t('sys.str_64')}</th>
+                                        <th style={{ width: '100px' }}>{t('sys.str_65')}</th>
+                                        <th style={{ width: '80px' }}>{t('sys.str_766')}</th>
+                                        <th style={{ width: '100px' }}>{t('sys.str_66')}</th>
                                         <th style={{ width: '40px' }}></th>
                                     </tr>
                                 </thead>
@@ -1000,7 +1000,7 @@ export default function SalesPage() {
                                             <td colSpan={6}>
                                                 <div className="empty-state" style={{ padding: '40px' }}>
                                                     <div className="empty-state-icon">🧾</div>
-                                                    <div className="empty-state-text">ابحث عن منتج وأضفه للفاتورة</div>
+                                                    <div className="empty-state-text">{t('purchases.str_981')}</div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1046,11 +1046,11 @@ export default function SalesPage() {
                         <div className="pos-invoice-footer">
                             <div className="pos-totals">
                                 <div className="pos-total-row">
-                                    <span>المجموع الفرعي</span>
-                                    <span>{fmt(subtotal)} ر.س</span>
+                                    <span>{t('sys.str_768')}</span>
+                                    <span>{fmt(subtotal)} {t('sys.str_68')}</span>
                                 </div>
                                 <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                    <span>خصم</span>
+                                    <span>{t('sys.str_769')}</span>
                                     <input className="input" type="number" min="0" step="0.01"
                                         id="discount-input"
                                         value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value) || 0)}
@@ -1059,24 +1059,21 @@ export default function SalesPage() {
                                     <span style={{ fontSize: '14px', fontWeight: '600' }}>%</span>
                                     <button onClick={() => { if (discountRate > 0) { showToast(`✅ تم تطبيق خصم ${discountRate}% = ${fmt(regularDiscountValue)} ر.س`); } }}
                                         style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: discountRate > 0 ? 'var(--primary)' : 'var(--bg-card-hover)', color: discountRate > 0 ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
-                                        ✅ تطبيق
-                                    </button>
+                                        {t('sys.str_770')}</button>
                                     {discountRate > 0 && (
-                                        <button onClick={() => { setDiscountRate(0); showToast('❌ تم إلغاء الخصم'); }}
+                                        <button onClick={() => { setDiscountRate(0); showToast(t('sys.str_847')); }}
                                             style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-                                            ✕ إلغاء
-                                        </button>
+                                            {t('sys.str_771')}</button>
                                     )}
                                     <span style={{ marginRight: 'auto', fontWeight: '600', color: discountRate > 0 ? '#ef4444' : 'var(--text-muted)' }}>
-                                        {discountRate > 0 ? `- ${fmt(regularDiscountValue)}` : '0.00'} ر.س
-                                    </span>
+                                        {discountRate > 0 ? `- ${fmt(regularDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
                                 </div>
                                 <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                    <span>كوبون</span>
+                                    <span>{t('sys.str_772')}</span>
                                     <input className="input" type="text"
                                         value={couponCode} onChange={e => setCouponCode(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
-                                        placeholder="كود الخصم"
+                                        placeholder={t('sys.str_848')}
                                         style={{ width: '100px', textAlign: 'center', padding: '6px 8px', fontWeight: '700', textTransform: 'uppercase' }} dir="ltr" disabled={!!appliedCoupon} />
                                     
                                     {!appliedCoupon ? (
@@ -1085,35 +1082,33 @@ export default function SalesPage() {
                                             {couponApplying ? '⏳' : 'تفعيل'}
                                         </button>
                                     ) : (
-                                        <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); showToast('❌ تم إلغاء الكوبون'); }}
+                                        <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); showToast(t('sys.str_850')); }}
                                             style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-                                            ✕ إلغاء
-                                        </button>
+                                            {t('sys.str_771')}</button>
                                     )}
                                     <span style={{ marginRight: 'auto', fontWeight: '600', color: appliedCoupon ? '#ef4444' : 'var(--text-muted)' }}>
-                                        {appliedCoupon ? `- ${fmt(couponDiscountValue)}` : '0.00'} ر.س
-                                    </span>
+                                        {appliedCoupon ? `- ${fmt(couponDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
                                 </div>
                                 <div className="pos-total-row">
-                                    <span>ضريبة القيمة المضافة (15%)</span>
-                                    <span>{fmt(taxValue)} ر.س</span>
+                                    <span>{t('sys.str_773')}</span>
+                                    <span>{fmt(taxValue)} {t('sys.str_68')}</span>
                                 </div>
                                 <div className="pos-total-row grand">
-                                    <span>الإجمالي</span>
-                                    <span style={{ color: 'var(--primary-light)' }}>{fmt(total)} ر.س</span>
+                                    <span>{t('sys.str_66')}</span>
+                                    <span style={{ color: 'var(--primary-light)' }}>{fmt(total)} {t('sys.str_68')}</span>
                                 </div>
                                 {(paymentType === 'cash' || paymentType === 'credit' || paymentType === 'installment') && (
                                     <>
                                         <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>المبلغ المدفوع</span>
+                                            <span>{t('sys.str_774')}</span>
                                             <input className="input" type="number" min="0" step="0.01"
                                                 value={paidAmount} onChange={e => setPaidAmount(e.target.value)}
                                                 placeholder={fmt(total)} style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
                                         </div>
                                         {paymentType === 'cash' && paidAmount && parseFloat(paidAmount) > total && (
                                             <div className="pos-total-row" style={{ background: 'rgba(34,197,94,0.1)', borderRadius: '6px', padding: '8px' }}>
-                                                <span style={{ fontWeight: '700', color: '#22c55e' }}>💰 الباقي</span>
-                                                <span style={{ fontWeight: '700', fontSize: '18px', color: '#22c55e', fontFamily: 'monospace' }}>{fmt(parseFloat(paidAmount) - total)} ر.س</span>
+                                                <span style={{ fontWeight: '700', color: '#22c55e' }}>{t('sys.str_775')}</span>
+                                                <span style={{ fontWeight: '700', fontSize: '18px', color: '#22c55e', fontFamily: 'monospace' }}>{fmt(parseFloat(paidAmount) - total)} {t('sys.str_68')}</span>
                                             </div>
                                         )}
                                     </>
@@ -1121,26 +1116,24 @@ export default function SalesPage() {
                                 {paymentType === 'split' && (
                                     <>
                                         <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>المبلغ النقدي</span>
+                                            <span>{t('sys.str_776')}</span>
                                             <input className="input" type="number" min="0" step="0.01"
                                                 value={splitCash} onChange={e => setSplitCash(e.target.value)}
                                                 style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
                                         </div>
                                         <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>مبلغ البطاقة</span>
+                                            <span>{t('sys.str_777')}</span>
                                             <input className="input" type="number" min="0" step="0.01"
                                                 value={splitCard} onChange={e => setSplitCard(e.target.value)}
                                                 style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
                                         </div>
                                         {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) < total && (
                                             <div className="pos-total-row" style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 'bold' }}>
-                                                ⚠️ المجموع المدخل أقل من الإجمالي
-                                            </div>
+                                                {t('sys.str_778')}</div>
                                         )}
                                         {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) > total && (
                                             <div className="pos-total-row" style={{ color: '#22c55e', fontSize: '13px', fontWeight: 'bold' }}>
-                                                💰 الباقي للعميل: {fmt(((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) - total)} ر.س
-                                            </div>
+                                                {t('sys.str_779')}{fmt(((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) - total)} {t('sys.str_68')}</div>
                                         )}
                                     </>
                                 )}
@@ -1153,7 +1146,7 @@ export default function SalesPage() {
                                             style={{ background: '#f59e0b', color: '#fff', fontWeight: '700', flex: 1, animation: 'pulse 1.5s infinite' }}>
                                             {saving ? '⏳ جاري الإرسال...' : `🔄 إعادة إرسال ${fmt(retryPosAmount)} لمدى`}
                                         </button>
-                                        <button className="btn btn-ghost" onClick={() => { setRetryPosAmount(null); setRetryInvoiceNo(''); }}>❌ إلغاء</button>
+                                        <button className="btn btn-ghost" onClick={() => { setRetryPosAmount(null); setRetryInvoiceNo(''); }}>{t('sys.str_780')}</button>
                                     </>
                                 ) : (
                                     <>
@@ -1161,13 +1154,11 @@ export default function SalesPage() {
                                             {saving ? '⏳ جاري الحفظ...' : '💾 حفظ'}
                                         </button>
                                         <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
-                                            🖨️ حفظ + طباعة
-                                        </button>
+                                            {t('sys.str_781')}</button>
                                         <button className="btn" onClick={() => handleSave(false, true)} disabled={saving || cart.length === 0}
                                             style={{ background: '#25D366', color: '#fff', fontWeight: '600' }}>
-                                            📤 حفظ + واتساب
-                                        </button>
-                                        <button className="btn btn-ghost" onClick={handleNewInvoice}>📄 جديدة</button>
+                                            {t('sys.str_782')}</button>
+                                        <button className="btn btn-ghost" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
                                     </>
                                 )}
                             </div>
@@ -1203,34 +1194,34 @@ export default function SalesPage() {
                 <div className="modal-overlay" onClick={() => setShowAddCustomer(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
                         <div className="modal-header">
-                            <h3>➕ إضافة عميل جديد</h3>
+                            <h3>{t('sys.str_783')}</h3>
                             <button className="modal-close" onClick={() => setShowAddCustomer(false)}>✕</button>
                         </div>
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <input className="input" placeholder="اسم العميل *" value={newCust.name} onChange={e => setNewCust({ ...newCust, name: e.target.value })} autoFocus />
-                            <input className="input" placeholder="رقم الجوال" value={newCust.phone} onChange={e => setNewCust({ ...newCust, phone: e.target.value })} dir="ltr" />
-                            <input className="input" placeholder="الرقم الضريبي" value={newCust.taxNumber} onChange={e => setNewCust({ ...newCust, taxNumber: e.target.value })} dir="ltr" />
+                            <input className="input" placeholder={t('sys.str_854')} value={newCust.name} onChange={e => setNewCust({ ...newCust, name: e.target.value })} autoFocus />
+                            <input className="input" placeholder={t('sys.str_855')} value={newCust.phone} onChange={e => setNewCust({ ...newCust, phone: e.target.value })} dir="ltr" />
+                            <input className="input" placeholder={t('sys.str_529')} value={newCust.taxNumber} onChange={e => setNewCust({ ...newCust, taxNumber: e.target.value })} dir="ltr" />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                <input className="input" placeholder="الشارع" value={newCust.street} onChange={e => setNewCust({ ...newCust, street: e.target.value })} />
-                                <input className="input" placeholder="رقم المبنى" value={newCust.buildingNumber} onChange={e => setNewCust({ ...newCust, buildingNumber: e.target.value })} dir="ltr" />
+                                <input className="input" placeholder={t('sys.str_537')} value={newCust.street} onChange={e => setNewCust({ ...newCust, street: e.target.value })} />
+                                <input className="input" placeholder={t('sys.str_538')} value={newCust.buildingNumber} onChange={e => setNewCust({ ...newCust, buildingNumber: e.target.value })} dir="ltr" />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                                <input className="input" placeholder="الحي" value={newCust.district} onChange={e => setNewCust({ ...newCust, district: e.target.value })} />
-                                <input className="input" placeholder="المدينة" value={newCust.city} onChange={e => setNewCust({ ...newCust, city: e.target.value })} />
-                                <input className="input" placeholder="الرمز البريدي" value={newCust.postalCode} onChange={e => setNewCust({ ...newCust, postalCode: e.target.value })} dir="ltr" />
+                                <input className="input" placeholder={t('sys.str_536')} value={newCust.district} onChange={e => setNewCust({ ...newCust, district: e.target.value })} />
+                                <input className="input" placeholder={t('sys.str_528')} value={newCust.city} onChange={e => setNewCust({ ...newCust, city: e.target.value })} />
+                                <input className="input" placeholder={t('sys.str_539')} value={newCust.postalCode} onChange={e => setNewCust({ ...newCust, postalCode: e.target.value })} dir="ltr" />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                <input className="input" type="number" placeholder="حد الائتمان" value={newCust.creditLimit} onChange={e => setNewCust({ ...newCust, creditLimit: e.target.value })} dir="ltr" />
+                                <input className="input" type="number" placeholder={t('sys.str_540')} value={newCust.creditLimit} onChange={e => setNewCust({ ...newCust, creditLimit: e.target.value })} dir="ltr" />
                                 <select className="input" value={newCust.type} onChange={e => setNewCust({ ...newCust, type: e.target.value })}>
-                                    <option value="0">عميل</option>
-                                    <option value="1">مورد</option>
-                                    <option value="2">عميل ومورد</option>
+                                    <option value="0">{t('sys.str_532')}</option>
+                                    <option value="1">{t('sys.str_533')}</option>
+                                    <option value="2">{t('sys.str_784')}</option>
                                 </select>
                             </div>
-                            <input className="input" placeholder="ملاحظات" value={newCust.notes} onChange={e => setNewCust({ ...newCust, notes: e.target.value })} />
+                            <input className="input" placeholder={t('sys.str_465')} value={newCust.notes} onChange={e => setNewCust({ ...newCust, notes: e.target.value })} />
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowAddCustomer(false)}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowAddCustomer(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewCustomer} disabled={savingCust || !newCust.name.trim()}>
                                 {savingCust ? '⏳ جاري الحفظ...' : '💾 حفظ'}
                             </button>
@@ -1244,35 +1235,35 @@ export default function SalesPage() {
                 <div className="modal-overlay" onClick={() => setShowAddProduct(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
                         <div className="modal-header">
-                            <h3>➕ إضافة منتج جديد</h3>
+                            <h3>{t('sys.str_764')}</h3>
                             <button className="modal-close" onClick={() => setShowAddProduct(false)}>✕</button>
                         </div>
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <input className="input" placeholder="اسم المنتج *" value={newProd.name} onChange={e => setNewProd({ ...newProd, name: e.target.value })} autoFocus />
-                            <input className="input" placeholder="الباركود" value={newProd.barcode} onChange={e => setNewProd({ ...newProd, barcode: e.target.value })} dir="ltr" />
+                            <input className="input" placeholder={t('sys.str_856')} value={newProd.name} onChange={e => setNewProd({ ...newProd, name: e.target.value })} autoFocus />
+                            <input className="input" placeholder={t('sys.str_857')} value={newProd.barcode} onChange={e => setNewProd({ ...newProd, barcode: e.target.value })} dir="ltr" />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                                 <div>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>سعر الشراء</label>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('sys.str_785')}</label>
                                     <input className="input" type="number" placeholder="0.00" value={newProd.buyPrice} onChange={e => setNewProd({ ...newProd, buyPrice: e.target.value })} dir="ltr" />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>سعر البيع *</label>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('sys.str_786')}</label>
                                     <input className="input" type="number" placeholder="0.00" value={newProd.sellPrice} onChange={e => setNewProd({ ...newProd, sellPrice: e.target.value })} dir="ltr" />
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                                 <div>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>نسبة الضريبة %</label>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('sys.str_787')}</label>
                                     <input className="input" type="number" placeholder="15" value={newProd.taxRate} onChange={e => setNewProd({ ...newProd, taxRate: e.target.value })} dir="ltr" />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>الكمية الحالية</label>
+                                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('sys.str_788')}</label>
                                     <input className="input" type="number" placeholder="0" value={newProd.currentStock} onChange={e => setNewProd({ ...newProd, currentStock: e.target.value })} dir="ltr" />
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowAddProduct(false)}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowAddProduct(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewProduct} disabled={savingProd || !newProd.name.trim() || !newProd.sellPrice}>
                                 {savingProd ? '⏳ جاري الحفظ...' : '💾 حفظ وإضافة للفاتورة'}
                             </button>
@@ -1308,15 +1299,14 @@ export default function SalesPage() {
                                                 <div>
                                                     <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>⏸️ {held.label}</div>
                                                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                                        {held.cart.map(c => c.productName).join('، ').substring(0, 60)}{held.cart.map(c => c.productName).join('، ').length > 60 ? '...' : ''}
+                                                        {held.cart.map(c => c.productName).join(t('sys.str_859')).substring(0, 60)}{held.cart.map(c => c.productName).join(t('sys.str_859')).length > 60 ? '...' : ''}
                                                     </div>
                                                     <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary)', marginTop: '4px' }}>
-                                                        الإجمالي: {fmt(heldWithTax)} ر.س
-                                                    </div>
+                                                        {t('sys.str_71')}{fmt(heldWithTax)} {t('sys.str_68')}</div>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
                                                     <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }}
-                                                        onClick={() => recallInvoice(held.id)}>▶️ استرجاع</button>
+                                                        onClick={() => recallInvoice(held.id)}>{t('sys.str_744')}</button>
                                                     <button className="btn btn-ghost" style={{ padding: '8px 10px', fontSize: '13px', color: 'var(--danger)' }}
                                                         onClick={() => deleteHeldInvoice(held.id)}>🗑️</button>
                                                 </div>
@@ -1340,7 +1330,7 @@ export default function SalesPage() {
                         </div>
                         <div className="modal-body" style={{ overflow: 'auto', flex: 1 }}>
                             {historyLoading ? (
-                                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>⏳ جاري التحميل...</div>
+                                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{t('sys.str_792')}</div>
                             ) : historyInvoices.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                                     <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
@@ -1351,11 +1341,11 @@ export default function SalesPage() {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>التاريخ</th>
-                                            <th>الوقت</th>
-                                            <th>العميل</th>
-                                            <th>الدفع</th>
-                                            <th>الإجمالي</th>
+                                            <th>{t('fin.str_232')}</th>
+                                            <th>{t('sys.str_794')}</th>
+                                            <th>{t('sys.str_460')}</th>
+                                            <th>{t('sys.str_795')}</th>
+                                            <th>{t('sys.str_66')}</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -1365,9 +1355,9 @@ export default function SalesPage() {
                                                 <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
                                                 <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
                                                 <td>{new Date(inv.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td>
-                                                <td>{inv.customer?.name || 'عميل نقدي'}</td>
+                                                <td>{inv.customer?.name || t('sys.str_752')}</td>
                                                 <td>{inv.paymentType === 'cash' ? '💵' : inv.paymentType === 'card' ? '💳' : inv.paymentType === 'transfer' ? '🏦' : '📝'}</td>
-                                                <td style={{ fontWeight: '700', color: 'var(--primary)' }}>{fmt(inv.total)} ر.س</td>
+                                                <td style={{ fontWeight: '700', color: 'var(--primary)' }}>{fmt(inv.total)} {t('sys.str_68')}</td>
                                                 <td><span style={{ fontSize: '16px' }}>◀</span></td>
                                             </tr>
                                         ))}
@@ -1389,13 +1379,13 @@ export default function SalesPage() {
                         </div>
                         <div className="modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px', fontSize: '13px' }}>
-                                <div><strong>📅 التاريخ:</strong> {new Date(selectedInvoice.date).toLocaleDateString('ar-SA')}</div>
-                                <div><strong>⏰ الوقت:</strong> {new Date(selectedInvoice.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
-                                <div><strong>👤 العميل:</strong> {selectedInvoice.customer?.name || 'عميل نقدي'}</div>
-                                <div><strong>💳 الدفع:</strong> {selectedInvoice.paymentType === 'cash' ? 'نقداً' : selectedInvoice.paymentType === 'card' ? 'بطاقة' : selectedInvoice.paymentType === 'transfer' ? 'تحويل' : 'آجل'}</div>
+                                <div><strong>{t('sys.str_797')}</strong> {new Date(selectedInvoice.date).toLocaleDateString('ar-SA')}</div>
+                                <div><strong>{t('sys.str_798')}</strong> {new Date(selectedInvoice.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
+                                <div><strong>{t('sys.str_799')}</strong> {selectedInvoice.customer?.name || t('sys.str_752')}</div>
+                                <div><strong>{t('sys.str_800')}</strong> {selectedInvoice.paymentType === 'cash' ? 'نقداً' : selectedInvoice.paymentType === 'card' ? 'بطاقة' : selectedInvoice.paymentType === 'transfer' ? 'تحويل' : 'آجل'}</div>
                             </div>
                             <table className="table" style={{ fontSize: '13px', marginBottom: '16px' }}>
-                                <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                                <thead><tr><th>{t('sys.str_801')}</th><th>{t('sys.str_64')}</th><th>{t('sys.str_65')}</th><th>{t('sys.str_66')}</th></tr></thead>
                                 <tbody>
                                     {(selectedInvoice.details || []).map((d: { id: number; productName: string; quantity: number; price: number; total: number }, i: number) => (
                                         <tr key={d.id || i}>
@@ -1408,18 +1398,18 @@ export default function SalesPage() {
                                 </tbody>
                             </table>
                             <div style={{ background: 'var(--bg-card-hover)', borderRadius: '10px', padding: '14px', fontSize: '13px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span>المجموع الفرعي</span><span>{fmt(selectedInvoice.subtotal)} ر.س</span></div>
-                                {selectedInvoice.discountValue > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--danger)' }}><span>الخصم</span><span>-{fmt(selectedInvoice.discountValue)} ر.س</span></div>}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span>الضريبة 15%</span><span>{fmt(selectedInvoice.taxValue)} ر.س</span></div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '16px', borderTop: '1px solid var(--border)', paddingTop: '8px', color: 'var(--primary)' }}><span>الإجمالي</span><span>{fmt(selectedInvoice.total)} ر.س</span></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span>{t('sys.str_768')}</span><span>{fmt(selectedInvoice.subtotal)} {t('sys.str_68')}</span></div>
+                                {selectedInvoice.discountValue > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--danger)' }}><span>{t('sys.str_494')}</span><span>-{fmt(selectedInvoice.discountValue)} {t('sys.str_68')}</span></div>}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span>{t('sys.str_802')}</span><span>{fmt(selectedInvoice.taxValue)} {t('sys.str_68')}</span></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '16px', borderTop: '1px solid var(--border)', paddingTop: '8px', color: 'var(--primary)' }}><span>{t('sys.str_66')}</span><span>{fmt(selectedInvoice.total)} {t('sys.str_68')}</span></div>
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>🖨️ طباعة الفاتورة</button>
-                            <button className="btn btn-primary" onClick={() => printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>🎫 سند قبض</button>
-                            <button className="btn btn-success" onClick={() => sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>📤 واتساب</button>
-                            {canDelete && <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>🗑️ حذف</button>}
-                            <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>إغلاق</button>
+                            <button className="btn btn-primary" onClick={() => printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>{t('sys.str_804')}</button>
+                            <button className="btn btn-success" onClick={() => sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>{t('sys.str_805')}</button>
+                            {canDelete && <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_806')}</button>}
+                            <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>
                 </div>

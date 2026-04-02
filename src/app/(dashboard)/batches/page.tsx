@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Product { id: number; name: string; barcode: string | null; }
 interface ProductBatch { id: number; productId: number; batchNumber: string; productionDate: string | null; expiryDate: string | null; initialQuantity: number; currentQuantity: number; unitCost: number; createdAt: string; product: Product; }
 
 export default function BatchesPage() {
+    const { t } = useTranslation();
     const [batches, setBatches] = useState<ProductBatch[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export default function BatchesPage() {
 
     const handleSave = async () => {
         if (!editItem && (!form.productId || !form.batchNumber || !form.initialQuantity)) { 
-            alert('المنتج ورقم التشغيلة والكمية مطلوبة'); return; 
+            alert(t('sys.str_445')); return; 
         }
         setSaving(true);
         try {
@@ -64,11 +66,11 @@ export default function BatchesPage() {
             const method = editItem ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(form) });
             if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
-        } catch { alert('خطأ في الاتصال'); } finally { setSaving(false); }
+        } catch { alert(t('sys.str_446')); } finally { setSaving(false); }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('حذف هذه التشغيلة؟ سيتم خصم رصيدها من المخزون العام للمنتج، ولا يمكن حذفها إذا تم البيع منها.')) return;
+        if (!confirm(t('sys.str_447'))) return;
         const res = await fetch(`/api/batches/${id}`, { method: 'DELETE', headers: headers() });
         if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
     };
@@ -77,12 +79,12 @@ export default function BatchesPage() {
     
     // Check expiry logic mapping
     const getExpiryStatus = (expiryDate: string | null) => {
-        if (!expiryDate) return { label: 'غير محدد', cls: 'badge-ghost', color: 'inherit' };
+        if (!expiryDate) return { label: t('sys.str_179'), cls: 'badge-ghost', color: 'inherit' };
         const now = new Date();
         const exp = new Date(expiryDate);
         const diffDays = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 3600 * 24));
         
-        if (diffDays <= 0) return { label: 'منتهي الصلاحية', cls: 'badge-error', color: '#ef4444' };
+        if (diffDays <= 0) return { label: t('sys.str_448'), cls: 'badge-error', color: '#ef4444' };
         if (diffDays <= 30) return { label: `ينتهي قريباً (${diffDays} يوم)`, cls: 'badge-warning', color: '#f59e0b' };
         return { label: `صالح (${diffDays} يوم)`, cls: 'badge-success', color: '#10b981' };
     };
@@ -90,17 +92,17 @@ export default function BatchesPage() {
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>📦 إدارة التشغيلات والصلاحية (Batches)</h1>
-                <button className="btn btn-primary" onClick={openAdd}>➕ إضافة تشغيلة / توريدة</button>
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{t('sys.str_426')}</h1>
+                <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_427')}</button>
             </div>
 
             {/* Warnings section for things expiring in <= 30 days */}
             {batches.filter(b => b.currentQuantity > 0 && b.expiryDate && Math.ceil((new Date(b.expiryDate).getTime() - new Date().getTime()) / 86400000) <= 30).length > 0 && (
                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px' }}>
-                    <h3 style={{ color: '#ef4444', fontWeight: 'bold', margin: '0 0 8px 0', fontSize: '15px' }}>⚠️ تنبيه: منتجات تقترب من انتهاء الصلاحية</h3>
+                    <h3 style={{ color: '#ef4444', fontWeight: 'bold', margin: '0 0 8px 0', fontSize: '15px' }}>{t('sys.str_428')}</h3>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {batches.filter(b => b.currentQuantity > 0 && b.expiryDate && Math.ceil((new Date(b.expiryDate).getTime() - new Date().getTime()) / 86400000) <= 30).map(b => (
-                            <span key={b.id} className="badge badge-error badge-outline">{b.product?.name} (الكمية: {b.currentQuantity})</span>
+                            <span key={b.id} className="badge badge-error badge-outline">{b.product?.name} {t('sys.str_429')}{b.currentQuantity})</span>
                         ))}
                     </div>
                 </div>
@@ -109,10 +111,10 @@ export default function BatchesPage() {
             <div className="card">
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>المنتج</th><th>رقم التشغيلة</th><th>تاريخ الإنتاج</th><th>تاريخ الانتهاء</th><th>الكمية الحالية / الأساسية</th><th>التكلفة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                        <thead><tr><th>{t('sys.str_63')}</th><th>{t('sys.str_430')}</th><th>{t('sys.str_431')}</th><th>{t('sys.str_432')}</th><th>{t('sys.str_433')}</th><th>{t('sys.str_434')}</th><th>{t('fin.str_227')}</th><th>{t('sys.str_435')}</th></tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                            : batches.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">📦</div><div className="empty-state-text">لا يوجد تشغيلات مسجلة</div></div></td></tr>
+                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                            : batches.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">📦</div><div className="empty-state-text">{t('sys.str_436')}</div></div></td></tr>
                             : batches.map(b => {
                                 const status = getExpiryStatus(b.expiryDate);
                                 return (
@@ -153,50 +155,49 @@ export default function BatchesPage() {
                         <div className="modal-body">
                             {!editItem && (
                                 <div style={{ background: '#e0f2fe', color: '#0369a1', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontSize: '13px' }}>
-                                    ℹ️ عند إضافة تشغيلة جديدة، سيتم زيادة المخزون العام للمنتج وتسجيل حركة إدخال في سجلات المستودع التلقائية التابعة للنظام.
-                                </div>
+                                    {t('sys.str_437')}</div>
                             )}
 
                             <div className="grid-2">
                                 <div className="input-group">
-                                    <label className="input-label">المنتج *</label>
+                                    <label className="input-label">{t('sys.str_438')}</label>
                                     <select className="input" value={form.productId} onChange={e => setForm({ ...form, productId: e.target.value })} disabled={!!editItem}>
-                                        <option value="">-- اختر المنتج --</option>
+                                        <option value="">{t('sys.str_439')}</option>
                                         {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.barcode ? `(${p.barcode})` : ''}</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">رقم التشغيلة (Batch/Lot) *</label>
-                                    <input className="input" style={{ textTransform: 'uppercase' }} value={form.batchNumber} onChange={e => setForm({ ...form, batchNumber: e.target.value })} disabled={!!editItem} placeholder="مثال: BAT-2023-XYZ" />
+                                    <label className="input-label">{t('sys.str_440')}</label>
+                                    <input className="input" style={{ textTransform: 'uppercase' }} value={form.batchNumber} onChange={e => setForm({ ...form, batchNumber: e.target.value })} disabled={!!editItem} placeholder={t('sys.str_452')} />
                                 </div>
                             </div>
                             
                             {!editItem && (
                                 <div className="input-group">
-                                    <label className="input-label">الكمية المدخلة للمستودع *</label>
-                                    <input className="input" type="number" step="0.01" value={form.initialQuantity} onChange={e => setForm({ ...form, initialQuantity: e.target.value })} placeholder="الكمية الواردة من هذه التشغيلة" />
+                                    <label className="input-label">{t('sys.str_441')}</label>
+                                    <input className="input" type="number" step="0.01" value={form.initialQuantity} onChange={e => setForm({ ...form, initialQuantity: e.target.value })} placeholder={t('sys.str_453')} />
                                 </div>
                             )}
 
                             <div className="grid-2">
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ الإنتاج (اختياري)</label>
+                                    <label className="input-label">{t('sys.str_442')}</label>
                                     <input className="input" type="date" value={form.productionDate} onChange={e => setForm({ ...form, productionDate: e.target.value })} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ الانتهاء للصلاحية (اختياري)</label>
+                                    <label className="input-label">{t('sys.str_443')}</label>
                                     <input className="input" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} />
                                 </div>
                             </div>
 
                             <div className="input-group">
-                                <label className="input-label">تكلفة الوحدة من المورد (اختياري)</label>
+                                <label className="input-label">{t('sys.str_444')}</label>
                                 <input className="input" type="number" step="0.01" value={form.unitCost} onChange={e => setForm({ ...form, unitCost: e.target.value })} />
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 حفظ'}</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

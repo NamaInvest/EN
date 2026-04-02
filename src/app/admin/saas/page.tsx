@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Server, Play, Square, RotateCw, Activity, ShieldAlert, CheckCircle, Search, Database } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 type NodeData = {
     id: number;
@@ -18,6 +19,7 @@ type NodeData = {
 };
 
 export default function SaaSAdminDashboard() {
+    const { t } = useTranslation();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loginUsername, setLoginUsername] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
@@ -52,7 +54,7 @@ export default function SaaSAdminDashboard() {
         if (loginUsername === "admin" && loginPassword === "nama2026") {
             setIsAuthenticated(true);
         } else {
-            alert("بيانات الدخول غير صحيحة");
+            alert(t('sys.str_1548'));
         }
     };
 
@@ -64,21 +66,20 @@ export default function SaaSAdminDashboard() {
                         <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <ShieldAlert className="w-8 h-8 text-blue-600" />
                         </div>
-                        <h1 className="text-2xl font-black text-slate-800">إمبراطورية الأقطاب</h1>
-                        <p className="text-sm text-slate-500 mt-2">يرجى تأكيد هويتك للوصول إلى لوحة التحكم الرئيسية</p>
+                        <h1 className="text-2xl font-black text-slate-800">{t('sys.str_1529')}</h1>
+                        <p className="text-sm text-slate-500 mt-2">{t('sys.str_1530')}</p>
                     </div>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">اسم المستخدم</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_1531')}</label>
                             <input autoFocus type="text" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" required />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">كلمة المرور</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_1532')}</label>
                             <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" required />
                         </div>
                         <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors mt-2">
-                            دخول آمن
-                        </button>
+                            {t('sys.str_1533')}</button>
                     </form>
                 </div>
             </div>
@@ -104,10 +105,10 @@ export default function SaaSAdminDashboard() {
                 // Instantly re-fetch
                 await fetchNodes();
             } else {
-                alert("فشل تنفيذ الأمر: " + data.error);
+                alert(t('sys.str_1549') + data.error);
             }
         } catch (e) {
-            alert("حدث خطأ في الاتصال بالخادم الرئيسي.");
+            alert(t('sys.str_1550'));
         } finally {
             setActionLoading(null);
         }
@@ -150,7 +151,7 @@ export default function SaaSAdminDashboard() {
             });
             await fetchNodes();
         } catch(e) {
-            alert("فشل تحديث بيانات الدفع. الرجاء المحاولة مجدداً.");
+            alert(t('sys.str_1551'));
         }
     };
 
@@ -168,10 +169,10 @@ export default function SaaSAdminDashboard() {
             if (data.success) {
                 alert(`✅ تم أخذ النسخة الاحتياطية بنجاح:\n${data.message}`);
             } else {
-                alert("❌ خطأ: " + data.error);
+                alert(t('sys.str_1526') + data.error);
             }
         } catch (e) {
-            alert("حدث خطأ غير متوقع أثناء تكوين النسخة الاحتياطية.");
+            alert(t('sys.str_1552'));
         } finally {
             setActionLoading(null);
         }
@@ -186,8 +187,7 @@ export default function SaaSAdminDashboard() {
                         <div className="sidebar-logo-icon" style={{ borderRadius: '50%' }}>
                             <ShieldAlert className="w-6 h-6 text-white" />
                         </div>
-                        إمبراطورية الأقطاب (SaaS Master)
-                    </div>
+                        {t('sys.str_1534')}</div>
                     <div style={{ display: 'flex', gap: '16px' }}>
                         <button 
                             onClick={async () => {
@@ -196,10 +196,10 @@ export default function SaaSAdminDashboard() {
                                     const res = await fetch("/api/admin/nodes/sync", { method: "POST" });
                                     const data = await res.json();
                                     if(data.success) {
-                                        alert("✅ تمت المزامنة والاستعادة: " + data.count + " منشأة");
+                                        alert(t('sys.str_1553') + data.count + t('sys.str_1554'));
                                         await fetchNodes();
                                     } else {
-                                        alert("خطأ: " + data.error);
+                                        alert(t('sys.str_1555') + data.error);
                                     }
                                 } finally {
                                     setActionLoading(null);
@@ -220,17 +220,17 @@ export default function SaaSAdminDashboard() {
                         <div className="kpi-card primary">
                             <Activity className="kpi-icon text-white opacity-80" />
                             <div className="kpi-value">{nodes.length}</div>
-                            <div className="kpi-label">إجمالي الخوادم المسجلة</div>
+                            <div className="kpi-label">{t('sys.str_1535')}</div>
                         </div>
                         <div className="kpi-card success">
                             <CheckCircle className="kpi-icon text-white opacity-80" />
                             <div className="kpi-value">{nodes.filter(n => n.pm2Status === "online").length}</div>
-                            <div className="kpi-label">تعمل الآن (Online)</div>
+                            <div className="kpi-label">{t('sys.str_1536')}</div>
                         </div>
                         <div className="kpi-card warning" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <Search className="w-6 h-6 text-white opacity-80 mb-2" />
                             <input 
-                                placeholder="ابحث عن نظام..." 
+                                placeholder={t('sys.str_1558')} 
                                 className="input"
                                 style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white' }}
                             />
@@ -241,12 +241,12 @@ export default function SaaSAdminDashboard() {
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
                             <Activity className="w-8 h-8 animate-pulse mx-auto mb-4" /> 
-                            <h3>جاري استجواب السيرفر الألماني...</h3>
+                            <h3>{t('sys.str_1537')}</h3>
                         </div>
                     ) : nodes.length === 0 && actionLoading === "syncing" ? (
                         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
                             <RotateCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" /> 
-                            <h3>جاري مسح مجلدات السيرفر لاستخراج قواعد البيانات القديمة وتأتمتها...</h3>
+                            <h3>{t('sys.str_1538')}</h3>
                         </div>
                     ) : (
                         <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
@@ -284,30 +284,30 @@ export default function SaaSAdminDashboard() {
                                     {/* Billing Control */}
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
                                         <div>
-                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>حالة السداد</label>
+                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_1539')}</label>
                                             <select 
                                                 className="input" 
                                                 style={{ padding: '6px 10px', fontSize: '13px', background: node.paymentStatus === 'paid' ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-card)', borderColor: node.paymentStatus === 'paid' ? 'var(--success)' : 'var(--border)' }}
                                                 value={node.paymentStatus || "pending"}
                                                 onChange={(e) => updateBilling(node.subdomain, "paymentStatus", e.target.value)}
                                             >
-                                                <option value="pending">⏳ بانتظار السداد</option>
-                                                <option value="paid">✅ تم السداد</option>
-                                                <option value="cancelled">🚫 ملغى</option>
+                                                <option value="pending">{t('sys.str_1540')}</option>
+                                                <option value="paid">{t('sys.str_1541')}</option>
+                                                <option value="cancelled">{t('sys.str_1542')}</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>مدة الاشتراك</label>
+                                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_1543')}</label>
                                             <select 
                                                 className="input" 
                                                 style={{ padding: '6px 10px', fontSize: '13px' }}
                                                 value={node.subscriptionDuration || "1_year"}
                                                 onChange={(e) => updateBilling(node.subdomain, "subscriptionDuration", e.target.value)}
                                             >
-                                                <option value="1_year">سنة كاملة</option>
-                                                <option value="6_months">6 أشهر</option>
-                                                <option value="3_months">3 أشهر</option>
-                                                <option value="1_month">شهر واحد</option>
+                                                <option value="1_year">{t('sys.str_1544')}</option>
+                                                <option value="6_months">{t('sys.str_1545')}</option>
+                                                <option value="3_months">{t('sys.str_1546')}</option>
+                                                <option value="1_month">{t('sys.str_1547')}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -318,7 +318,7 @@ export default function SaaSAdminDashboard() {
                                             onClick={() => triggerBackup(node.subdomain)}
                                             disabled={actionLoading !== null}
                                             className="btn btn-primary" style={{ flex: 1, padding: '8px', background: 'var(--gradient-purple)' }}
-                                            title="أخذ نسخة احتياطية"
+                                            title={t('sys.str_1559')}
                                         >
                                             <Database className="w-4 h-4" />
                                         </button>

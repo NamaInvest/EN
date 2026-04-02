@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Bell, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function StockNotificationBell() {
+    const { t } = useTranslation();
   const [alertsCount, setAlertsCount] = useState(0);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -50,17 +52,15 @@ export default function StockNotificationBell() {
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
           <div className="absolute left-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden" style={{ top: '100%', marginLeft: '-150px' }}>
             <div className="p-4 border-b border-slate-50 bg-slate-50 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">إشعارات المخزون ⚠️</h3>
+              <h3 className="font-bold text-slate-800">{t('sys.str_102')}</h3>
               <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
-                {alertsCount} نواقص
-              </span>
+                {alertsCount} {t('sys.str_103')}</span>
             </div>
             
             <div className="max-h-64 overflow-y-auto w-full">
               {alerts.length === 0 ? (
                 <div className="p-6 text-center text-slate-500 text-sm">
-                  لا توجد تنبيهات حالياً. المخزون آمن ✨
-                </div>
+                  {t('sys.str_104')}</div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {alerts.slice(0, 5).map((item, idx) => (
@@ -71,8 +71,8 @@ export default function StockNotificationBell() {
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-slate-800 line-clamp-1">{item.name}</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          متوفر: <span className="font-bold text-red-600">{item.currentStock}</span> 
-                          {' '}| الحد: {item.minQuantity}
+                          {t('sys.str_105')}<span className="font-bold text-red-600">{item.currentStock}</span> 
+                          {' '}{t('sys.str_106')}{item.minQuantity}
                         </p>
                       </div>
                     </li>
@@ -83,8 +83,7 @@ export default function StockNotificationBell() {
             
             {alerts.length > 5 && (
               <div className="p-2 border-t border-slate-50 text-center text-xs text-slate-500 bg-slate-50 italic">
-                {alerts.length - 5} منتجات إضافية نفدت...
-              </div>
+                {alerts.length - 5} {t('sys.str_107')}</div>
             )}
 
             <div className="p-3 border-t border-slate-100 bg-white">
@@ -92,8 +91,7 @@ export default function StockNotificationBell() {
                 href="/warehouses/alerts" 
                 className="block w-full py-2 text-center text-sm font-bold text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-700 transition"
               >
-                عرض تفاصيل النواقص
-              </a>
+                {t('sys.str_108')}</a>
             </div>
           </div>
         </>

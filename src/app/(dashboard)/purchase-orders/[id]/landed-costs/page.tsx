@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from "@/lib/i18n";
 
 export default function LandedCostsPage() {
+    const { t } = useTranslation();
     const params = useParams();
     const router = useRouter();
     const orderId = params.id as string;
@@ -64,13 +66,13 @@ export default function LandedCostsPage() {
                 });
                 fetchData();
             } else {
-                alert('حدث خطأ');
+                alert(t('sys.str_961'));
             }
         } catch(e) { console.error(e); }
     };
 
     const deleteCost = async (id: number) => {
-        if (!confirm('حذف التكلفة؟')) return;
+        if (!confirm(t('sys.str_2897'))) return;
         try {
             const token = localStorage.getItem('token') || '';
             const res = await fetch(`/api/purchase-orders/${orderId}/landed-costs/${id}`, {
@@ -81,8 +83,8 @@ export default function LandedCostsPage() {
         } catch(e) { console.error(e); }
     };
 
-    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>جاري التحميل...</div>;
-    if (!order) return <div style={{ padding: '40px', textAlign: 'center' }}>لم يتم العثور على الطلب</div>;
+    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_168')}</div>;
+    if (!order) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_2871')}</div>;
 
     // Calculate distributed costs
     const totalLandedCostInBaseCurrency = costs.reduce((sum, c) => sum + (c.amount * c.exchangeRate), 0);
@@ -92,9 +94,9 @@ export default function LandedCostsPage() {
         <>
             <div className="page-header" style={{ marginBottom: '20px' }}>
                 <div>
-                    <button onClick={() => router.back()} className="btn btn-ghost" style={{ marginBottom: '10px' }}>← رجوعللخلف</button>
-                    <h1 className="page-title">🚢 توزيع تكاليف الاستيراد (Landed Costs)</h1>
-                    <p className="page-description">طلب شراء رقم: {order.orderNo} | المورد: {order.supplier?.name}</p>
+                    <button onClick={() => router.back()} className="btn btn-ghost" style={{ marginBottom: '10px' }}>{t('sys.str_2872')}</button>
+                    <h1 className="page-title">{t('sys.str_2873')}</h1>
+                    <p className="page-description">{t('sys.str_2874')}{order.orderNo} {t('sys.str_2875')}{order.supplier?.name}</p>
                 </div>
             </div>
 
@@ -103,23 +105,21 @@ export default function LandedCostsPage() {
                 {/* Costs Distribution List */}
                 <div className="card" style={{ padding: '20px' }}>
                     <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '20px' }}>
-                        التكاليف الموزعة
-                    </h3>
+                        {t('sys.str_2876')}</h3>
                     
                     {costs.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', background: 'var(--bg-lighter)', borderRadius: '8px' }}>
-                            لا توجد تكاليف مضافة حتى الآن
-                        </div>
+                            {t('sys.str_2877')}</div>
                     ) : (
                         <table className="table" style={{ marginBottom: '20px' }}>
                             <thead>
                                 <tr>
-                                    <th>الوصف</th>
-                                    <th>المبلغ</th>
-                                    <th>العملة</th>
-                                    <th>سعر الصرف</th>
-                                    <th>القيمة الافتراضية</th>
-                                    <th>الحساب المستحق</th>
+                                    <th>{t('fin.str_212')}</th>
+                                    <th>{t('sys.str_463')}</th>
+                                    <th>{t('purchases.str_1013')}</th>
+                                    <th>{t('sys.str_2878')}</th>
+                                    <th>{t('sys.str_2879')}</th>
+                                    <th>{t('sys.str_2880')}</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -128,7 +128,7 @@ export default function LandedCostsPage() {
                                     <tr key={c.id}>
                                         <td>{c.description}</td>
                                         <td>{c.amount.toLocaleString()}</td>
-                                        <td>{c.currency?.code || 'الافتراضية'}</td>
+                                        <td>{c.currency?.code || t('sys.str_2520')}</td>
                                         <td>{c.exchangeRate}</td>
                                         <td style={{ fontWeight: 'bold' }}>{(c.amount * c.exchangeRate).toLocaleString()}</td>
                                         <td>{c.expenseAccount?.nameAr}</td>
@@ -138,7 +138,7 @@ export default function LandedCostsPage() {
                                     </tr>
                                 ))}
                                 <tr style={{ background: 'var(--bg-lighter)', fontWeight: 'bold' }}>
-                                    <td colSpan={4} style={{ textAlign: 'left' }}>إجمالي التكاليف (بالعملة الافتراضية):</td>
+                                    <td colSpan={4} style={{ textAlign: 'left' }}>{t('sys.str_2881')}</td>
                                     <td colSpan={3} style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>{totalLandedCostInBaseCurrency.toLocaleString()}</td>
                                 </tr>
                             </tbody>
@@ -146,17 +146,16 @@ export default function LandedCostsPage() {
                     )}
 
                     <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', margin: '30px 0 20px' }}>
-                        التأثير على تكلفة الأصناف الداخلية
-                    </h3>
+                        {t('sys.str_2882')}</h3>
                     <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th>الصنف</th>
-                                    <th>الكمية</th>
-                                    <th>السعر الأصلي</th>
-                                    <th>تكلفة الشحن الموزعة للوحدة</th>
-                                    <th>التكلفة النهائية للوحدة</th>
+                                    <th>{t('sys.str_801')}</th>
+                                    <th>{t('sys.str_64')}</th>
+                                    <th>{t('sys.str_2883')}</th>
+                                    <th>{t('sys.str_2884')}</th>
+                                    <th>{t('sys.str_2885')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -186,50 +185,48 @@ export default function LandedCostsPage() {
                 {/* Add Cost Form */}
                 <div className="card" style={{ padding: '20px', height: 'fit-content' }}>
                     <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '20px' }}>
-                        إضافة تكلفة شحن/خليص إضافية
-                    </h3>
+                        {t('sys.str_2886')}</h3>
                     <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div className="input-group">
-                            <label className="input-label">الوصف (مثال: جمارك، شحن، تخليص)</label>
+                            <label className="input-label">{t('sys.str_2887')}</label>
                             <input className="input" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div className="input-group">
-                                <label className="input-label">المبلغ</label>
+                                <label className="input-label">{t('sys.str_463')}</label>
                                 <input type="number" step="0.01" className="input" required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">العملة</label>
+                                <label className="input-label">{t('purchases.str_1013')}</label>
                                 <select className="input" value={formData.currencyId} onChange={e => setFormData({...formData, currencyId: e.target.value})}>
-                                    <option value="">العملة الافتراضية</option>
+                                    <option value="">{t('sys.str_2888')}</option>
                                     {currencies.map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
                                 </select>
                             </div>
                         </div>
                         {formData.currencyId && (
                             <div className="input-group">
-                                <label className="input-label">سعر الصرف (صرف العملة مقابل الافتراضية)</label>
+                                <label className="input-label">{t('sys.str_2889')}</label>
                                 <input type="number" step="0.0001" className="input" required value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} />
                             </div>
                         )}
                         <div className="input-group">
-                            <label className="input-label">حساب المصروف المرتبط (دائن)</label>
+                            <label className="input-label">{t('sys.str_2890')}</label>
                             <select className="input" required value={formData.expenseAccountId} onChange={e => setFormData({...formData, expenseAccountId: e.target.value})}>
-                                <option value="">اختر الحساب...</option>
+                                <option value="">{t('sys.str_2891')}</option>
                                 {accounts.map(a => <option key={a.id} value={a.id}>{a.accountNumber} - {a.nameAr}</option>)}
                             </select>
-                            <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '5px' }}>هذا الحساب سيتم قيده كـ (دائن) عند إنشاء الفاتورة النهائية.</small>
+                            <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '5px' }}>{t('sys.str_2892')}</small>
                         </div>
                         <div className="input-group">
-                            <label className="input-label">طريقة التوزيع</label>
+                            <label className="input-label">{t('sys.str_2893')}</label>
                             <select className="input" value={formData.allocationMethod} onChange={e => setFormData({...formData, allocationMethod: e.target.value})}>
-                                <option value="value">حسب القيمة (نسبة القيمة الإجمالية للصنف)</option>
-                                <option value="quantity">حسب الكمية اليدوية (مستقبلاً)</option>
+                                <option value="value">{t('sys.str_2894')}</option>
+                                <option value="quantity">{t('sys.str_2895')}</option>
                             </select>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
-                            ➕ إضافة التكلفة للقائمة
-                        </button>
+                            {t('sys.str_2896')}</button>
                     </form>
                 </div>
 

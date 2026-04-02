@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface GiftCard { id: number; code: string; initialBalance: number; currentBalance: number; customerId: number | null; expiryDate: string | null; isActive: boolean; createdAt: string; }
 
 export default function GiftCardsPage() {
+    const { t } = useTranslation();
     const [cards, setCards] = useState<GiftCard[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -31,12 +33,12 @@ export default function GiftCardsPage() {
     };
 
     const handleSave = async () => {
-        if (!form.initialBalance) { alert('يجب إدخال الرصيد الابتدائي'); return; }
+        if (!form.initialBalance) { alert(t('sys.str_652')); return; }
         setSaving(true);
         try {
             const res = await fetch('/api/gift-cards', { method: 'POST', headers: headers(), body: JSON.stringify(form) });
             if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
-        } catch { alert('خطأ في الاتصال'); } finally { setSaving(false); }
+        } catch { alert(t('sys.str_446')); } finally { setSaving(false); }
     };
 
     const toggleStatus = async (c: GiftCard) => {
@@ -45,7 +47,7 @@ export default function GiftCardsPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('حذف هذه البطاقة؟ (لا يمكن حذف بطاقة تم استخدام جزء من رصيدها)')) return;
+        if (!confirm(t('sys.str_653'))) return;
         const res = await fetch(`/api/gift-cards/${id}`, { method: 'DELETE', headers: headers() });
         if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
     };
@@ -58,22 +60,22 @@ export default function GiftCardsPage() {
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>💳 بطاقات الهدايا (Gift Cards)</h1>
-                <button className="btn btn-primary" onClick={openAdd}>➕ إصدار بطاقة جديدة</button>
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{t('sys.str_637')}</h1>
+                <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_638')}</button>
             </div>
 
             {/* Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
                 <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إجمالي الأرصدة المصدرة</div>
-                    <div style={{ fontSize: '22px', fontWeight: '700', color: 'var(--primary-color)' }}>{fmt(cards.reduce((sum, c) => sum + c.initialBalance, 0))} ر.س</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_639')}</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: 'var(--primary-color)' }}>{fmt(cards.reduce((sum, c) => sum + c.initialBalance, 0))} {t('sys.str_68')}</div>
                 </div>
                 <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>الأرصدة المتبقية (الفعالة)</div>
-                    <div style={{ fontSize: '22px', fontWeight: '700', color: '#10b981' }}>{fmt(cards.filter(c => c.isActive && !isExpired(c)).reduce((sum, c) => sum + c.currentBalance, 0))} ر.س</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_640')}</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: '#10b981' }}>{fmt(cards.filter(c => c.isActive && !isExpired(c)).reduce((sum, c) => sum + c.currentBalance, 0))} {t('sys.str_68')}</div>
                 </div>
                 <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>عدد البطاقات</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_641')}</div>
                     <div style={{ fontSize: '22px', fontWeight: '700' }}>{cards.length}</div>
                 </div>
             </div>
@@ -81,10 +83,10 @@ export default function GiftCardsPage() {
             <div className="card">
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>كود البطاقة</th><th>تاريخ الإصدار</th><th>الرصيد الأساسي</th><th>الرصيد المتبقي</th><th>تاريخ الانتهاء</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                        <thead><tr><th>{t('sys.str_642')}</th><th>{t('sys.str_643')}</th><th>{t('sys.str_644')}</th><th>{t('sys.str_645')}</th><th>{t('sys.str_432')}</th><th>{t('fin.str_227')}</th><th>{t('sys.str_435')}</th></tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                            : cards.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">💳</div><div className="empty-state-text">لا يوجد بطاقات هدايا مُصدرة</div></div></td></tr>
+                            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                            : cards.length === 0 ? <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">💳</div><div className="empty-state-text">{t('sys.str_646')}</div></div></td></tr>
                             : cards.map(c => {
                                 const expired = isExpired(c);
                                 const fullyUsed = isFullyUsed(c);
@@ -92,8 +94,8 @@ export default function GiftCardsPage() {
                                 <tr key={c.id}>
                                     <td style={{ fontWeight: '700', color: 'var(--primary-color)', letterSpacing: '2px' }}>{c.code}</td>
                                     <td style={{ color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('ar-SA')}</td>
-                                    <td>{fmt(c.initialBalance)} ر.س</td>
-                                    <td style={{ fontWeight: 'bold', color: fullyUsed ? '#ef4444' : '#10b981' }}>{fmt(c.currentBalance)} ر.س</td>
+                                    <td>{fmt(c.initialBalance)} {t('sys.str_68')}</td>
+                                    <td style={{ fontWeight: 'bold', color: fullyUsed ? '#ef4444' : '#10b981' }}>{fmt(c.currentBalance)} {t('sys.str_68')}</td>
                                     <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('ar-SA') : 'مفتوح'}</td>
                                     <td>
                                         <span className={`badge ${!c.isActive ? 'badge-error' : expired ? 'badge-warning' : fullyUsed ? 'badge-ghost' : 'badge-success'}`}>
@@ -118,27 +120,27 @@ export default function GiftCardsPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
                         <div className="modal-header">
-                            <h3>➕ إصدار بطاقة هدايا</h3>
+                            <h3>{t('sys.str_647')}</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
                         <div className="modal-body">
                             <div className="input-group">
-                                <label className="input-label">كود البطاقة (اختياري)</label>
-                                <input className="input" style={{ textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '2px' }} value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="اتركه فارغاً للتوليد التلقائي" />
-                                <small style={{ color: 'var(--text-muted)' }}>سيتم توليد كود عشوائي إذا تُرك فارغاً.</small>
+                                <label className="input-label">{t('sys.str_648')}</label>
+                                <input className="input" style={{ textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '2px' }} value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder={t('sys.str_658')} />
+                                <small style={{ color: 'var(--text-muted)' }}>{t('sys.str_649')}</small>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">قيمة البطاقة (الرصيد) *</label>
-                                <input className="input" type="number" value={form.initialBalance} onChange={e => setForm({ ...form, initialBalance: e.target.value })} placeholder="مثال: 500" />
+                                <label className="input-label">{t('sys.str_650')}</label>
+                                <input className="input" type="number" value={form.initialBalance} onChange={e => setForm({ ...form, initialBalance: e.target.value })} placeholder={t('sys.str_659')} />
                             </div>
                             <div className="input-group">
-                                <label className="input-label">تاريخ الانتهاء (اختياري)</label>
+                                <label className="input-label">{t('sys.str_651')}</label>
                                 <input className="input" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} />
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 إصدار البطاقة'}</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

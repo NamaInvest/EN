@@ -155,7 +155,7 @@ export default function ShiftsPage() {
                         <div className="modal-header"><div className="modal-title">➕ فتح وردية كاشير جديدة</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
                         <div className="input-group">
                             <label className="input-label">مبلغ العهدة الافتتاحي (في الدرج) *</label>
-                            <input className="input" type="number" value={form.startCash} onChange={e => setForm({ ...form, startCash: e.target.value })} placeholder="مثال: 500" dir="ltr" />
+                            <input className="input" type="text" inputMode="decimal" value={form.startCash} onChange={e => setForm({ ...form, startCash: e.target.value })} placeholder="مثال: 500" dir="ltr" />
                         </div>
                         <div className="input-group">
                             <label className="input-label">ملاحظات (اختياري)</label>
@@ -185,7 +185,7 @@ export default function ShiftsPage() {
                         </div>
                         <div className="input-group">
                             <label className="input-label">المبلغ الفعلي في الدرج (النهاية) *</label>
-                            <input className="input" type="number" value={closeForm.endCash} onChange={e => setCloseForm({ ...closeForm, endCash: e.target.value })} placeholder="أدخل مبلغ الدرج" dir="ltr" />
+                            <input className="input" type="text" inputMode="decimal" value={closeForm.endCash} onChange={e => setCloseForm({ ...closeForm, endCash: e.target.value })} placeholder="أدخل مبلغ الدرج" dir="ltr" />
                         </div>
                         <div className="input-group">
                             <label className="input-label">مبرر الفروقات / ملاحظات</label>

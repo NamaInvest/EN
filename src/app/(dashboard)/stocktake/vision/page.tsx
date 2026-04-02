@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n";
 
 interface VisionResult {
     productId: number | null;
@@ -15,6 +16,7 @@ interface VisionResult {
 }
 
 export default function VisionInventoryPage() {
+    const { t } = useTranslation();
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
@@ -56,18 +58,18 @@ export default function VisionInventoryPage() {
                 const data = await res.json();
                 setResults(data.results);
             } else {
-                alert("فشل في تحليل الصورة من قبل الذكاء الاصطناعي.");
+                alert(t('stock.str_2674'));
             }
         } catch (error) {
             console.error("Error processing image:", error);
-            alert("حدث خطأ أثناء معالجة الصورة.");
+            alert(t('stock.str_2675'));
         } finally {
             setLoading(false);
         }
     };
 
     const syncStock = async () => {
-        alert("تم اعتماد الجرد وتحديث النظام بنجاح!");
+        alert(t('stock.str_2676'));
         // Here we would send results back to a /api/stocktake/save endpoint
         setResults(null);
         setImagePreview(null);
@@ -79,11 +81,9 @@ export default function VisionInventoryPage() {
             <div className="page-header text-center md:text-right">
                 <h1 className="page-title flex items-center justify-center md:justify-start gap-2">
                     <span className="text-primary text-2xl">📸</span> 
-                    الجرد الذكي بالكاميرا (Vision AI)
-                </h1>
+                    {t('stock.str_2652')}</h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                    التقط صورة لرف المستودع وسيقوم الذكاء الاصطناعي (Gemini Vision) بإحصاء المنتجات ومطابقتها مع مسجل النظام فوراً.
-                </p>
+                    {t('stock.str_2653')}</p>
             </div>
 
             <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
@@ -108,12 +108,11 @@ export default function VisionInventoryPage() {
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800">انقر هنا لالتقاط صورة للرف</h3>
-                                <p className="text-sm text-slate-500">يُفضل أن تكون الصورة واضحة والمنتجات غير متداخلة بشكل كامل</p>
+                                <h3 className="text-lg font-bold text-slate-800">{t('stock.str_2654')}</h3>
+                                <p className="text-sm text-slate-500">{t('stock.str_2655')}</p>
                             </div>
                             <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()}>
-                                📷 التقط الصورة الآن
-                            </button>
+                                {t('stock.str_2656')}</button>
                         </div>
                     ) : (
                         <div className="w-full flex flex-col items-center gap-4">
@@ -123,8 +122,8 @@ export default function VisionInventoryPage() {
                                 {loading && (
                                     <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
                                         <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4" />
-                                        <h3 className="font-bold text-shadow text-lg">الذكاء الاصطناعي يقوم بالعد...</h3>
-                                        <p className="text-sm text-center text-shadow-sm opacity-90">يتم سحب الأسماء ومطابقتها مع النظام</p>
+                                        <h3 className="font-bold text-shadow text-lg">{t('stock.str_2657')}</h3>
+                                        <p className="text-sm text-center text-shadow-sm opacity-90">{t('stock.str_2658')}</p>
                                     </div>
                                 )}
                             </div>
@@ -132,11 +131,9 @@ export default function VisionInventoryPage() {
                             {!loading && !results && (
                                 <div className="flex gap-2 w-full max-w-md">
                                     <button className="btn outline flex-1" onClick={() => fileInputRef.current?.click()}>
-                                        إعادة الالتقاط
-                                    </button>
+                                        {t('stock.str_2659')}</button>
                                     <button className="btn btn-primary flex-1 shadow-md" onClick={processImage}>
-                                        ✨ تحليل الصورة وبدء الجرد
-                                    </button>
+                                        {t('stock.str_2660')}</button>
                                 </div>
                             )}
                         </div>
@@ -148,35 +145,33 @@ export default function VisionInventoryPage() {
                     <div className="border-t divide-y">
                         <div className="p-4 bg-slate-50 flex items-center justify-between">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                📊 نتائج المطابقة
-                            </h3>
-                            <span className="badge primary px-3 py-1">تم التعرف على {results.length} أصناف</span>
+                                {t('stock.str_2661')}</h3>
+                            <span className="badge primary px-3 py-1">{t('stock.str_2662')}{results.length} {t('stock.str_2663')}</span>
                         </div>
                         
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-right">
                                 <thead className="bg-slate-100/50 text-slate-500 border-b">
                                     <tr>
-                                        <th className="p-4 font-medium">المنتج المكتشف (AI)</th>
-                                        <th className="p-4 font-medium text-center">الرصيد في النظام</th>
-                                        <th className="p-4 font-medium text-center">العدد بالكاميرا</th>
-                                        <th className="p-4 font-medium text-center">الفارق (العجز/الزيادة)</th>
-                                        <th className="p-4 font-medium">الحالة</th>
+                                        <th className="p-4 font-medium">{t('stock.str_2664')}</th>
+                                        <th className="p-4 font-medium text-center">{t('stock.str_2665')}</th>
+                                        <th className="p-4 font-medium text-center">{t('stock.str_2666')}</th>
+                                        <th className="p-4 font-medium text-center">{t('stock.str_2667')}</th>
+                                        <th className="p-4 font-medium">{t('fin.str_227')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y bg-white">
                                     {results.length === 0 && (
                                         <tr>
                                             <td colSpan={5} className="p-8 text-center text-slate-500">
-                                                لم يتعرف الذكاء الاصطناعي على أي منتجات واضحة في الصورة.
-                                            </td>
+                                                {t('stock.str_2668')}</td>
                                         </tr>
                                     )}
                                     {results.map((res, i) => (
                                         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                                             <td className="p-4 font-medium text-slate-800">
                                                 {res.productName}
-                                                {!res.matched && <div className="text-xs text-amber-600 mt-1">⚠️ منتج غير مسجل برقم الصنف</div>}
+                                                {!res.matched && <div className="text-xs text-amber-600 mt-1">{t('stock.str_2669')}</div>}
                                             </td>
                                             <td className="p-4 text-center font-mono text-slate-500">
                                                 {res.systemStock}
@@ -186,18 +181,18 @@ export default function VisionInventoryPage() {
                                             </td>
                                             <td className="p-4 text-center font-mono">
                                                 {res.difference === 0 ? (
-                                                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">0 (مطابق)</span>
+                                                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">{t('stock.str_2670')}</span>
                                                 ) : res.difference > 0 ? (
-                                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">+{res.difference} (زيادة)</span>
+                                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">+{res.difference} {t('stock.str_2671')}</span>
                                                 ) : (
-                                                    <span className="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">{res.difference} (عجز)</span>
+                                                    <span className="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">{res.difference} {t('stock.str_2672')}</span>
                                                 )}
                                             </td>
                                             <td className="p-4">
                                                 {res.matched ? (
-                                                    <span className="text-emerald-500 text-lg" title="مربوط بالنظام">✅</span>
+                                                    <span className="text-emerald-500 text-lg" title={t('stock.str_2677')}>✅</span>
                                                 ) : (
-                                                    <span className="text-slate-300 text-lg" title="غير مربوط">❌</span>
+                                                    <span className="text-slate-300 text-lg" title={t('stock.str_2678')}>❌</span>
                                                 )}
                                             </td>
                                         </tr>
@@ -208,11 +203,9 @@ export default function VisionInventoryPage() {
 
                         <div className="p-6 bg-slate-50 flex justify-end gap-3 border-t">
                             <button className="btn outline text-slate-600 border-slate-300" onClick={() => setResults(null)}>
-                                إلغاء
-                            </button>
+                                {t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={syncStock}>
-                                💾 اعتماد نتيجة الجرد وتحديث النظام
-                            </button>
+                                {t('stock.str_2673')}</button>
                         </div>
                     </div>
                 )}

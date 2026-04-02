@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, X, Send } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AICopilotButton() {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [msg, setMsg] = useState('');
     const [loading, setLoading] = useState(false);
@@ -61,8 +63,7 @@ export default function AICopilotButton() {
                 }}>
                     <div style={{ padding: '1rem', background: '#1a1a1a', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 'bold' }}>
-                            <Bot size={20} color="#a855f7" /> المساعد الذكي (Copilot)
-                        </div>
+                            <Bot size={20} color="#a855f7" /> {t('sys.str_35')}</div>
                         <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: '#a3a3a3', cursor: 'pointer' }}>
                             <X size={20} />
                         </button>
@@ -71,8 +72,7 @@ export default function AICopilotButton() {
                     <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {history.length === 0 && (
                             <div style={{ textAlign: 'center', color: '#666', marginTop: '2rem' }}>
-                                كيف يمكنني مساعدتك اليوم يا صديقي؟ جرب: "أين أطبع الباركود؟"
-                            </div>
+                                {t('sys.str_36')}</div>
                         )}
                         {history.map((h, i) => (
                             <div key={i} style={{
@@ -84,7 +84,7 @@ export default function AICopilotButton() {
                                 {h.text}
                             </div>
                         ))}
-                        {loading && <div style={{ color: '#a3a3a3', fontSize: '0.9rem', alignSelf: 'flex-end' }}>جاري التفكير...</div>}
+                        {loading && <div style={{ color: '#a3a3a3', fontSize: '0.9rem', alignSelf: 'flex-end' }}>{t('sys.str_37')}</div>}
                     </div>
 
                     <div style={{ padding: '1rem', borderTop: '1px solid #333', display: 'flex', gap: '0.5rem' }}>
@@ -93,7 +93,7 @@ export default function AICopilotButton() {
                             value={msg} 
                             onChange={e => setMsg(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && askCopilot()}
-                            placeholder="اكتب أمرك هنا..."
+                            placeholder={t('sys.str_38')}
                             style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #333', background: '#0a0a0a', color: 'white', outline: 'none' }}
                         />
                         <button 

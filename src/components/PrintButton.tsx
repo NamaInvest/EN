@@ -9,7 +9,7 @@ export default function PrintButton() {
         <button 
             onClick={() => window.print()} 
             className="lang-switcher-btn" 
-            title={t('common.print') || 'طباعة / Print'}
+            title={t('common.print') || t('sys.str_97')}
             style={{ 
                 padding: '6px 8px', 
                 borderRadius: 'var(--radius-sm)', 

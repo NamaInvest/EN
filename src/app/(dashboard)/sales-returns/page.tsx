@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 // Interfaces for new Returns flow
 interface InvoiceDetail {
@@ -44,6 +45,7 @@ interface Return {
 }
 
 export default function SalesReturnsPage() {
+    const { t } = useTranslation();
     const [returns, setReturns] = useState<Return[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -97,14 +99,14 @@ export default function SalesReturnsPage() {
                     }));
                     setReturnItems(items);
                 } else {
-                    setErrorMsg('لم يتم العثور على الفاتورة. تأكد من الرقم صحيح.');
+                    setErrorMsg(t('sales.str_1144'));
                 }
             } else {
-                setErrorMsg('حدث خطأ أثناء البحث عن الفاتورة.');
+                setErrorMsg(t('sales.str_1145'));
             }
         } catch (e) {
             console.error(e);
-            setErrorMsg('تعذر الاتصال بالخادم.');
+            setErrorMsg(t('sales.str_1146'));
         }
         setSearching(false);
     };
@@ -149,7 +151,7 @@ export default function SalesReturnsPage() {
             }));
 
         if (itemsToReturn.length === 0) {
-            setErrorMsg('يجب تحديد كمية استرجاع لمنتج واحد على الأقل.');
+            setErrorMsg(t('sales.str_1147'));
             return;
         }
 
@@ -175,39 +177,38 @@ export default function SalesReturnsPage() {
                 load();
             } else {
                 const err = await r.json();
-                setErrorMsg(err.error || 'فشل في حفظ المرتجع');
+                setErrorMsg(err.error || t('sales.str_1148'));
             }
         } catch (e) {
             console.error(e);
-            setErrorMsg('فشل الاتصال بالخادم.');
+            setErrorMsg(t('sales.str_1149'));
         }
     };
 
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🔄 مرتجعات المبيعات</h1>
+                <h1 className="page-title">{t('sales.str_1127')}</h1>
             </div>
             <div className="page-content animate-fade-in">
                 <div className="toolbar">
-                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{returns.length} مرتجع</span>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{returns.length} {t('sys.str_966')}</span>
                     <div className="toolbar-spacer" />
-                    {!showAdd && <button className="btn btn-primary" onClick={() => setShowAdd(true)}>➕ مرتجع جديد</button>}
+                    {!showAdd && <button className="btn btn-primary" onClick={() => setShowAdd(true)}>{t('sys.str_967')}</button>}
                 </div>
 
                 {showAdd && (
                     <div className="card" style={{ marginBottom: '16px', padding: '16px' }}>
                         <h3 style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-                            🔄 إنشاء مرتجع مبيعات جديد
-                        </h3>
+                            {t('sales.str_1128')}</h3>
                         
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', marginBottom: '20px' }}>
                             <div>
-                                <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>ابحث برقم الفاتورة الأصلية</label>
+                                <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sales.str_1129')}</label>
                                 <input 
                                     value={searchInvoiceNo} 
                                     onChange={e => setSearchInvoiceNo(e.target.value)} 
-                                    placeholder="رقم الفاتورة..."
+                                    placeholder={t('sales.str_1150')}
                                     onKeyDown={e => e.key === 'Enter' && fetchInvoice()}
                                     style={{ width: '200px', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} 
                                 />
@@ -215,7 +216,7 @@ export default function SalesReturnsPage() {
                             <button className="btn btn-primary" onClick={fetchInvoice} disabled={searching || !searchInvoiceNo}>
                                 {searching ? 'جاري البحث...' : '🔍 جلب الفاتورة'}
                             </button>
-                            <button className="btn btn-ghost" onClick={() => { setShowAdd(false); setOriginalInvoice(null); setErrorMsg(''); }}>إلغاء</button>
+                            <button className="btn btn-ghost" onClick={() => { setShowAdd(false); setOriginalInvoice(null); setErrorMsg(''); }}>{t('fin.str_206')}</button>
                         </div>
 
                         {errorMsg && <div style={{ color: 'var(--danger)', fontSize: '13px', marginBottom: '16px', padding: '8px', background: 'rgba(239,68,68,0.1)', borderRadius: '6px' }}>{errorMsg}</div>}
@@ -223,18 +224,18 @@ export default function SalesReturnsPage() {
                         {originalInvoice && (
                             <div style={{ background: 'var(--bg-card-hover)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '13px' }}>
-                                    <div><strong>فاتورة المبيعات:</strong> #{originalInvoice.invoiceNo}</div>
-                                    <div><strong>التاريخ:</strong> {new Date(originalInvoice.date).toLocaleDateString('ar-SA')}</div>
-                                    <div><strong>الجمالي الأصلي:</strong> {fmt(originalInvoice.total)} ر.س</div>
+                                    <div><strong>{t('sales.str_1130')}</strong> #{originalInvoice.invoiceNo}</div>
+                                    <div><strong>{t('sys.str_113')}</strong> {new Date(originalInvoice.date).toLocaleDateString('ar-SA')}</div>
+                                    <div><strong>{t('sales.str_1131')}</strong> {fmt(originalInvoice.total)} {t('sys.str_68')}</div>
                                 </div>
 
                                 <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                                     <thead>
                                         <tr style={{ background: 'var(--bg-card)' }}>
-                                            <th style={{ padding: '8px', textAlign: 'right', fontSize: '12px' }}>المنتج</th>
-                                            <th style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>الكمية المباعة</th>
-                                            <th style={{ padding: '8px', textAlign: 'center', fontSize: '12px', width: '150px' }}>الكمية المرتجعة المستردة</th>
-                                            <th style={{ padding: '8px', textAlign: 'left', fontSize: '12px' }}>قيمة المسترد</th>
+                                            <th style={{ padding: '8px', textAlign: 'right', fontSize: '12px' }}>{t('sys.str_63')}</th>
+                                            <th style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>{t('sales.str_1132')}</th>
+                                            <th style={{ padding: '8px', textAlign: 'center', fontSize: '12px', width: '150px' }}>{t('sales.str_1133')}</th>
+                                            <th style={{ padding: '8px', textAlign: 'left', fontSize: '12px' }}>{t('sales.str_1134')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -265,18 +266,18 @@ export default function SalesReturnsPage() {
 
                                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
                                     <div style={{ flex: 1 }}>
-                                        <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>ملاحظات الاسترجاع</label>
+                                        <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sales.str_1135')}</label>
                                         <input 
                                             value={notes} 
                                             onChange={e => setNotes(e.target.value)} 
-                                            placeholder="سبب الاسترجاع..."
+                                            placeholder={t('sales.str_1153')}
                                             style={{ width: '100%', maxWidth: '300px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} 
                                         />
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>المبلغ المسترد: {fmt(currentTotals.subtotal)}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>الضريبة المرتجعة: {fmt(currentTotals.tax)}</div>
-                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--danger)' }}>إجمالي الاسترداد: {fmt(currentTotals.total)} ر.س</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('sales.str_1136')}{fmt(currentTotals.subtotal)}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('sales.str_1137')}{fmt(currentTotals.tax)}</div>
+                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--danger)' }}>{t('sales.str_1138')}{fmt(currentTotals.total)} {t('sys.str_68')}</div>
                                     </div>
                                 </div>
                                 
@@ -287,8 +288,7 @@ export default function SalesReturnsPage() {
                                         disabled={currentTotals.total === 0}
                                         style={{ background: 'var(--danger)', color: 'white', border: 'none' }}
                                     >
-                                        ✔️ تأكيد وحفظ المرتجع
-                                    </button>
+                                        {t('sales.str_1139')}</button>
                                 </div>
                             </div>
                         )}
@@ -296,18 +296,18 @@ export default function SalesReturnsPage() {
                 )}
 
                 <div className="card">
-                    {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                        returns.length === 0 ? <div className="empty-state"><div className="empty-state-icon">🔄</div><div className="empty-state-text">لا توجد مرتجعات مبيعات</div></div> :
+                    {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                        returns.length === 0 ? <div className="empty-state"><div className="empty-state-icon">🔄</div><div className="empty-state-text">{t('sales.str_1140')}</div></div> :
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
                                     <tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>سند المرتجع</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>التاريخ</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>فاتورة المبيعات</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>المبلغ</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>الضريبة</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>الإجمالي المسترد</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>ملاحظات</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sales.str_1141')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('fin.str_232')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sales.str_1142')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_463')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_946')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sales.str_1143')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_465')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>{returns.map(r => (

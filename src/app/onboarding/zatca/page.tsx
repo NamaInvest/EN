@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import { ArrowLeft, CheckCircle, ShieldAlert, Building2, FileDigit, Server, Key } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ZatcaOnboardingWizard() {
+    const { t } = useTranslation();
   const router = useRouter();
   
   const [step, setStep] = useState(1);
@@ -34,7 +36,7 @@ export default function ZatcaOnboardingWizard() {
     setLoading(true);
     try {
       // 1. Save Settings to DB (Geographic & English Names)
-      setStatusMsg("جاري حفظ بيانات العنوان الوطني...");
+      setStatusMsg(t('sys.str_1603'));
       const resSettings = await fetch("/api/settings/zatca-onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,28 +45,28 @@ export default function ZatcaOnboardingWizard() {
       if(!resSettings.ok) throw new Error("فشل حفظ البيانات الجغرافية");
 
       // 2. Generate ZATCA CSR & secp256k1 Keys
-      setStatusMsg("جاري توليد مفاتيح التشفير بصيغة secp256k1...");
+      setStatusMsg(t('sys.str_1605'));
       const resKeys = await fetch("/api/settings/generate-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
       if(!resKeys.ok) {
         const keyErr = await resKeys.json();
-        throw new Error(keyErr.error || "مفاتيح التشفير رُفضت بسبب البيانات المدخلة");
+        throw new Error(keyErr.error || t('sys.str_1606'));
       }
 
       // 3. Request Compliance CSID using OTP
-      setStatusMsg("جاري استخراج شهادة المطابقة CSID من بوابة الفاتورة...");
+      setStatusMsg(t('sys.str_1607'));
       const resCsid = await fetch("/api/zatca", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({ action: "compliance-csid", otp: formData.otp })
       });
       const csidData = await resCsid.json();
-      if(!resCsid.ok) throw new Error(csidData.error || "كود OTP غير صالح أو انتهت صلاحيته");
+      if(!resCsid.ok) throw new Error(csidData.error || t('sys.str_1608'));
 
       // 4. Run Compliance Invoices Validation
-      setStatusMsg("جاري فحص 3 فواتير تجريبية مشفرة...");
+      setStatusMsg(t('sys.str_1609'));
       const resInv = await fetch("/api/zatca", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,7 +75,7 @@ export default function ZatcaOnboardingWizard() {
       if(!resInv.ok) throw new Error("فشل فحص الفواتير التجريبية لدى الزكاة");
 
       // 5. Fetch Production CSID
-      setStatusMsg("نجاح! جاري إصدار الشهادة الإنتاجية النهائية...");
+      setStatusMsg(t('sys.str_1611'));
       const resProd = await fetch("/api/zatca", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,7 +84,7 @@ export default function ZatcaOnboardingWizard() {
       if(!resProd.ok) throw new Error("فشل إصدار الشهادة الإنتاجية");
 
       // 6. Record System Tenant Instance
-      setStatusMsg("تم الربط بالزكاة بنجاح 100%! جاري تأسيس الخادم...");
+      setStatusMsg(t('sys.str_1613'));
       await fetch("/api/tenant/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,7 +100,7 @@ export default function ZatcaOnboardingWizard() {
     } catch (err: any) {
       console.error(err);
       setStatusMsg("");
-      alert(err.message || "حدث خطأ غير معروف أثناء الاتصال بهيئة الزكاة.");
+      alert(err.message || t('sys.str_1614'));
       setLoading(false);
     }
   };
@@ -114,13 +116,13 @@ export default function ZatcaOnboardingWizard() {
            <div className="flex items-center gap-3 mb-6">
              <ShieldAlert className="w-8 h-8 text-blue-400" />
              <div>
-               <h1 className="text-2xl font-bold tracking-tight">الربط المباشر مع ZATCA (المرحلة 2)</h1>
-               <p className="text-blue-300 text-sm mt-1">تشفير تلقائي لشهادات CSID</p>
+               <h1 className="text-2xl font-bold tracking-tight">{t('sys.str_1584')}</h1>
+               <p className="text-blue-300 text-sm mt-1">{t('sys.str_1585')}</p>
              </div>
           </div>
           
           <div className="flex items-center justify-between text-sm font-medium text-slate-400 mb-2">
-            <span>الخطوة {step} من 4</span>
+            <span>{t('sys.str_1586')}{step} {t('sys.str_1587')}</span>
             <span>
               {step === 1 ? "بيانات المنشأة (مطلوب للـ CSR)" : 
                step === 2 ? "الرقم الضريبي" : 
@@ -141,21 +143,21 @@ export default function ZatcaOnboardingWizard() {
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8">
               <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-slate-800">بيانات التشفير الأساسية</h2>
-                <p className="text-sm text-slate-500">هيئة الزكاة تشترط وجود الاسم باللغة الإنجليزية في مفتاح התشفير CSR.</p>
+                <h2 className="text-xl font-bold text-slate-800">{t('sys.str_1588')}</h2>
+                <p className="text-sm text-slate-500">{t('sys.str_1589')}</p>
               </div>
 
               <div className="space-y-4 pt-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">الاسم التجاري بالعربية <span className="text-red-500">*</span></label>
-                  <input name="orgName" value={formData.orgName} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium" placeholder="شركة التقنية المتقدمة" />
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('sys.str_1590')}<span className="text-red-500">*</span></label>
+                  <input name="orgName" value={formData.orgName} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium" placeholder={t('sys.str_1618')} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">الاسم التجاري بالإنجليزية <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('sys.str_1591')}<span className="text-red-500">*</span></label>
                   <input name="orgNameEn" value={formData.orgNameEn} onChange={handleChange} dir="ltr" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium" placeholder="Advanced Tech Company" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">السجل التجاري (CRN)</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('sys.str_1592')}</label>
                   <input name="crn" value={formData.crn} type="number" onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium" placeholder="1010XXXXXX" />
                 </div>
               </div>
@@ -165,7 +167,7 @@ export default function ZatcaOnboardingWizard() {
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8">
                <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-slate-800">الرقم الضريبي (VAT)</h2>
+                <h2 className="text-xl font-bold text-slate-800">{t('sys.str_1207')}</h2>
               </div>
               <div className="pt-4">
                   <div className="relative">
@@ -180,7 +182,7 @@ export default function ZatcaOnboardingWizard() {
                     />
                   </div>
                   {formData.vatNumber.length === 15 && formData.vatNumber.startsWith("3") && formData.vatNumber.endsWith("3") && (
-                    <p className="text-sm text-green-600 mt-3 font-bold flex items-center gap-2"><CheckCircle className="w-5 h-5" /> صيغة الرقم مقبولة تشفيرياً.</p>
+                    <p className="text-sm text-green-600 mt-3 font-bold flex items-center gap-2"><CheckCircle className="w-5 h-5" /> {t('sys.str_1593')}</p>
                   )}
               </div>
             </div>
@@ -189,39 +191,38 @@ export default function ZatcaOnboardingWizard() {
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8">
                <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-slate-800">العنوان الوطني الدقيق</h2>
+                <h2 className="text-xl font-bold text-slate-800">{t('sys.str_1594')}</h2>
                 <div className="bg-amber-50 text-amber-700 p-3 rounded-lg text-xs font-bold mt-2 border border-amber-200">
-                   عناوين الزكاة الجغرافية يجب أن تضم اسم المدينة بالإنجليزي
-                </div>
+                   {t('sys.str_1595')}</div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="col-span-2">
-                  <label className="block text-xs font-bold mb-1 col-span-2">اسم الشارع</label>
-                  <input name="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder="طريق العليا" />
+                  <label className="block text-xs font-bold mb-1 col-span-2">{t('sys.str_1214')}</label>
+                  <input name="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder={t('sys.str_1619')} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1">المبنى (4 أرقام)</label>
+                  <label className="block text-xs font-bold mb-1">{t('sys.str_1596')}</label>
                   <input name="building" value={formData.building} onChange={handleChange} type="number" className="w-full px-4 py-2 border rounded-lg" placeholder="8211" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1">الإضافي (4 أرقام)</label>
+                  <label className="block text-xs font-bold mb-1">{t('sys.str_1597')}</label>
                   <input name="additional" value={formData.additional} onChange={handleChange} type="number" className="w-full px-4 py-2 border rounded-lg" placeholder="2314" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1">المدينة (عربي)</label>
-                  <input name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder="الرياض" />
+                  <label className="block text-xs font-bold mb-1">{t('sys.str_1598')}</label>
+                  <input name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder={t('sys.str_1620')} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1 text-blue-600">المدينة (English) *</label>
+                  <label className="block text-xs font-bold mb-1 text-blue-600">{t('sys.str_1599')}</label>
                   <input name="cityEn" value={formData.cityEn} onChange={handleChange} dir="ltr" className="w-full px-4 py-2 border rounded-lg bg-blue-50" placeholder="Riyadh" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1">الحي</label>
-                  <input name="district" value={formData.district} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder="العليا" />
+                  <label className="block text-xs font-bold mb-1">{t('sys.str_536')}</label>
+                  <input name="district" value={formData.district} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" placeholder={t('sys.str_1621')} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1">الرمز البريدي</label>
+                  <label className="block text-xs font-bold mb-1">{t('sys.str_539')}</label>
                   <input name="postal" value={formData.postal} onChange={handleChange} type="number" className="w-full px-4 py-2 border rounded-lg" placeholder="12345" />
                 </div>
               </div>
@@ -233,8 +234,8 @@ export default function ZatcaOnboardingWizard() {
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                  <Key className="w-10 h-10 text-green-600" />
               </div>
-              <h2 className="text-2xl font-black text-slate-800">تفعيل بوابة فاتورة (فاتورتي)</h2>
-              <p className="text-slate-500 font-medium">سجل دخولك في بوابة ZATCA، قم بإضافة جهاز جديد (Onboard Device)، وانسخ رمز الـ OTP هنا لربط السيرفر.</p>
+              <h2 className="text-2xl font-black text-slate-800">{t('sys.str_1600')}</h2>
+              <p className="text-slate-500 font-medium">{t('sys.str_1601')}</p>
               
               <div className="max-w-xs mx-auto mt-6">
                  <input 
@@ -260,7 +261,7 @@ export default function ZatcaOnboardingWizard() {
           {/* Footer Actions */}
           <div className="mt-10 flex items-center justify-between border-t border-gray-100 pt-6">
             {step > 1 && !loading ? (
-              <button onClick={() => setStep(p => p - 1)} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100">رجوع</button>
+              <button onClick={() => setStep(p => p - 1)} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100">{t('sys.str_1602')}</button>
             ) : <div />}
 
             <button 

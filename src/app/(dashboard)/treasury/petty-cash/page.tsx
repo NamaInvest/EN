@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface PettyCash {
     id: number;
@@ -13,6 +14,7 @@ interface PettyCash {
 }
 
 export default function PettyCashPage() {
+    const { t } = useTranslation();
     const [records, setRecords] = useState<PettyCash[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function PettyCashPage() {
                 setForm({ employeeId: '', amount: '', purpose: '' });
                 loadData();
             } else {
-                alert('فشل حفظ طلب العهدة');
+                alert(t('sys.str_2774'));
             }
         } catch (e) {}
     };
@@ -69,50 +71,50 @@ export default function PettyCashPage() {
             setSettleModal(null);
             loadData();
         } else {
-            alert('فشل تطبيق العملية');
+            alert(t('sys.str_2742'));
         }
     };
 
     const statusMap: any = {
-        PENDING: { label: 'بانتظار الصرف', color: '#f59e0b' },
-        DISBURSED: { label: 'عهدة مستلمة', color: '#3b82f6' },
-        SETTLED: { label: 'تمت التصفية', color: '#10b981' }
+        PENDING: { label: t('sys.str_2775'), color: '#f59e0b' },
+        DISBURSED: { label: t('sys.str_2776'), color: '#3b82f6' },
+        SETTLED: { label: t('sys.str_2777'), color: '#10b981' }
     };
 
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2 });
 
     return (<>
-        <div className="page-header"><h1 className="page-title">متابعة المصروفات النثرية والعهد (Petty Cash)</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('sys.str_2748')}</h1></div>
         
         <div className="page-content animate-fade-in">
             <div className="toolbar">
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{records.length} عهدة مسجلة</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{records.length} {t('sys.str_2749')}</span>
                 <div className="toolbar-spacer" />
-                <button onClick={() => setShowModal(true)} className="primary-btn">➕ تسجيل تسليم عهدة</button>
+                <button onClick={() => setShowModal(true)} className="primary-btn">{t('sys.str_2750')}</button>
             </div>
 
             <div className="card" style={{ padding: '0', overflowX: 'auto' }}>
                 <table className="table" style={{ width: '100%' }}>
                     <thead>
                         <tr>
-                            <th>رقم</th>
-                            <th>الموظف المستلم</th>
-                            <th>الغرض / البيان</th>
-                            <th>تاريخ الطلب</th>
-                            <th>مبلغ العهدة</th>
-                            <th>الحالة</th>
-                            <th>قيمة التصفية</th>
-                            <th>إجراءات الإدارة</th>
+                            <th>{t('sys.str_2751')}</th>
+                            <th>{t('sys.str_2752')}</th>
+                            <th>{t('sys.str_2753')}</th>
+                            <th>{t('sys.str_2754')}</th>
+                            <th>{t('sys.str_2755')}</th>
+                            <th>{t('fin.str_227')}</th>
+                            <th>{t('sys.str_2756')}</th>
+                            <th>{t('sys.str_2757')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>جاري التحميل...</td></tr> : records.length === 0 ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>لا توجد عهد</td></tr> : records.map(r => (
+                        {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : records.length === 0 ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_2758')}</td></tr> : records.map(r => (
                             <tr key={r.id}>
                                 <td><strong>PC-{r.id}</strong></td>
                                 <td>{r.employee?.name}</td>
                                 <td>{r.purpose}</td>
                                 <td>{new Date(r.requestDate).toLocaleDateString()}</td>
-                                <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(r.amount)} ر.س</td>
+                                <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(r.amount)} {t('sys.str_68')}</td>
                                 <td>
                                     <span style={{
                                         display: 'inline-block', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold',
@@ -121,14 +123,14 @@ export default function PettyCashPage() {
                                         {statusMap[r.status]?.label}
                                     </span>
                                 </td>
-                                <td>{r.status === 'SETTLED' ? <strong style={{color: '#10b981'}}>{fmt(r.settlementAmount)} ر.س</strong> : '-'}</td>
+                                <td>{r.status === 'SETTLED' ? <strong style={{color: '#10b981'}}>{fmt(r.settlementAmount)} {t('sys.str_68')}</strong> : '-'}</td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>
                                         {r.status === 'PENDING' && (
-                                            <button onClick={() => handleAction(r.id, 'DISBURSED')} className="btn btn-primary" style={{ fontSize: '12px', padding: '4px 8px' }}>صرف العهدة (نقداً)</button>
+                                            <button onClick={() => handleAction(r.id, 'DISBURSED')} className="btn btn-primary" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('sys.str_2759')}</button>
                                         )}
                                         {r.status === 'DISBURSED' && (
-                                            <button onClick={() => { setSettleModal(r); setSettleAmount(r.amount.toString()); }} className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px', color: '#10b981', borderColor: '#10b981' }}>تقديم فواتير التصفية</button>
+                                            <button onClick={() => { setSettleModal(r); setSettleAmount(r.amount.toString()); }} className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px', color: '#10b981', borderColor: '#10b981' }}>{t('sys.str_2760')}</button>
                                         )}
                                     </div>
                                 </td>
@@ -143,27 +145,27 @@ export default function PettyCashPage() {
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal" style={{ maxWidth: '600px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
-                    <h2>تسجيل عهدة جديدة</h2>
+                    <h2>{t('sys.str_2761')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">الموظف المقر له بالعهدة</label>
+                            <label className="input-label">{t('sys.str_2762')}</label>
                             <select className="input" required value={form.employeeId} onChange={e => setForm({...form, employeeId: e.target.value})}>
-                                <option value="">اختر الموظف...</option>
+                                <option value="">{t('hr.str_2138')}</option>
                                 {employees.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">مبلغ العهدة</label>
+                            <label className="input-label">{t('sys.str_2755')}</label>
                             <input required type="number" step="0.01" className="input" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
                         </div>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">الغرض / التبرير</label>
+                            <label className="input-label">{t('sys.str_2763')}</label>
                             <input required className="input" value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} />
                         </div>
                         
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                            <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
-                            <button type="submit" className="btn btn-primary">💾 حفظ العهدة</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
+                            <button type="submit" className="btn btn-primary">{t('sys.str_2764')}</button>
                         </div>
                     </form>
                 </div>
@@ -174,30 +176,30 @@ export default function PettyCashPage() {
         {settleModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal" style={{ maxWidth: '500px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
-                    <h2>تصفية وتسوية عهدة</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>الموظف: {settleModal.employee.name} | العهدة الأساسية: {settleModal.amount} ر.س</p>
+                    <h2>{t('sys.str_2765')}</h2>
+                    <p style={{ color: 'var(--text-muted)' }}>{t('sys.str_1430')}{settleModal.employee.name} {t('sys.str_2766')}{settleModal.amount} {t('sys.str_68')}</p>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">إجمالي قيمة فواتير المصروفات الفعلية</label>
+                            <label className="input-label">{t('sys.str_2767')}</label>
                             <input type="number" step="0.01" className="input" value={settleAmount} onChange={e => setSettleAmount(e.target.value)} />
                         </div>
 
                         <div style={{ padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '8px', fontSize: '13px' }}>
                             {parseFloat(settleAmount) < settleModal.amount && (
-                                <span style={{ color: '#f59e0b' }}>⚠️ يجب على الموظف إرجاع <b>{settleModal.amount - parseFloat(settleAmount)} ر.س</b> إلى الصندوق، وسيتم إصدار سند قبض تلقائي.</span>
+                                <span style={{ color: '#f59e0b' }}>{t('sys.str_2768')}<b>{settleModal.amount - parseFloat(settleAmount)} {t('sys.str_68')}</b> {t('sys.str_2769')}</span>
                             )}
                             {parseFloat(settleAmount) > settleModal.amount && (
-                                <span style={{ color: '#3b82f6' }}>ℹ️ لقد تجاوز الموظف مبلغ العهدة بـ <b>{parseFloat(settleAmount) - settleModal.amount} ر.س</b> سيتم إصدار سند صرف تعويضي.</span>
+                                <span style={{ color: '#3b82f6' }}>{t('sys.str_2770')}<b>{parseFloat(settleAmount) - settleModal.amount} {t('sys.str_68')}</b> {t('sys.str_2771')}</span>
                             )}
                             {parseFloat(settleAmount) === settleModal.amount && (
-                                <span style={{ color: '#10b981' }}>✅ المطابقة تامة ولا يوجد فروقات نقدية متبقية.</span>
+                                <span style={{ color: '#10b981' }}>{t('sys.str_2772')}</span>
                             )}
                         </div>
                         
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                            <button type="button" className="btn btn-ghost" onClick={() => setSettleModal(null)}>إلغاء</button>
-                            <button onClick={() => handleAction(settleModal.id, 'SETTLED', settleAmount)} className="btn btn-primary" style={{ backgroundColor: '#10b981' }}>تأكيد واحتساب الدفاتر</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setSettleModal(null)}>{t('fin.str_206')}</button>
+                            <button onClick={() => handleAction(settleModal.id, 'SETTLED', settleAmount)} className="btn btn-primary" style={{ backgroundColor: '#10b981' }}>{t('sys.str_2773')}</button>
                         </div>
                     </div>
                 </div>

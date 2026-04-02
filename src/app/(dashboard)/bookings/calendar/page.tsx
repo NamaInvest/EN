@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from "@/lib/i18n";
 
 interface Booking { id: number; bookingNo: number; date: string; total: number; deposit: number; status: string; customer?: { name: string } }
 
 export default function BookingsCalendarPage() {
+    const { t } = useTranslation();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const router = useRouter();
@@ -32,7 +34,7 @@ export default function BookingsCalendarPage() {
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
     const monthName = currentDate.toLocaleString('ar-SA', { month: 'long', year: 'numeric' });
-    const weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const weekDays = [t('sys.str_1733'), t('sys.str_1734'), t('sys.str_1735'), t('sys.str_1736'), t('sys.str_1737'), t('sys.str_1738'), t('sys.str_1739')];
 
     const getBookingsForDay = (day: number) => {
         return bookings.filter(b => {
@@ -53,17 +55,17 @@ export default function BookingsCalendarPage() {
         <>
             <div className="page-header flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="page-title text-2xl font-bold">🗓️ تقويم الحجوزات</h1>
-                    <p className="text-slate-500 text-sm mt-1">تتبع مرئي للمواعيد والحجوزات المسجلة</p>
+                    <h1 className="page-title text-2xl font-bold">{t('sys.str_1729')}</h1>
+                    <p className="text-slate-500 text-sm mt-1">{t('sys.str_1730')}</p>
                 </div>
-                <button onClick={() => router.push('/bookings')} className="btn bg-white border border-slate-200 shadow-sm hover:bg-slate-50">↩ عودة للقائمة</button>
+                <button onClick={() => router.push('/bookings')} className="btn bg-white border border-slate-200 shadow-sm hover:bg-slate-50">{t('sys.str_1731')}</button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <div className="flex gap-2">
                         <button onClick={prevMonth} className="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100">&lt;</button>
-                        <button onClick={today} className="px-4 py-1 bg-white border border-slate-300 rounded font-bold hover:bg-slate-100">اليوم</button>
+                        <button onClick={today} className="px-4 py-1 bg-white border border-slate-300 rounded font-bold hover:bg-slate-100">{t('sys.str_1732')}</button>
                         <button onClick={nextMonth} className="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100">&gt;</button>
                     </div>
                     <h2 className="text-xl font-bold text-slate-800">{monthName}</h2>

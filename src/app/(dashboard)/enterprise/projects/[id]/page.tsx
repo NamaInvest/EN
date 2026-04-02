@@ -50,8 +50,8 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
             });
 
             if (res.ok) { setShowModal(false); fetchData(); } 
-            else { alert('فشل الحفظ'); }
-        } catch (error) { alert('خطأ في الاتصال'); } 
+            else { alert(t('sales.str_2452')); }
+        } catch (error) { alert(t('sys.str_446')); } 
         finally { setSaving(false); }
     };
 
@@ -65,7 +65,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
     };
 
     const updateTaskCost = async (taskId: number, currentCost: number) => {
-        const extra = prompt('أدخل التكلفة الإضافية المحروقة لهذه المهمة أو الرواتب (SAR):');
+        const extra = prompt(t('sys.str_2866'));
         if (!extra || isNaN(parseFloat(extra))) return;
         
         const token = localStorage.getItem('token');
@@ -76,8 +76,8 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
         fetchData();
     };
 
-    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>جاري التحميل...</div>;
-    if (!project) return <div style={{ padding: '40px', textAlign: 'center' }}>المشروع غير موجود</div>;
+    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_168')}</div>;
+    if (!project) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_2841')}</div>;
 
     const totalTaskBudget = tasks.reduce((a, b) => a + b.budget, 0);
     const totalTaskCost = tasks.reduce((a, b) => a + b.actualCost, 0);
@@ -95,7 +95,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{project.name}</h1>
                     <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>
-                        العميل: {project.customer?.name} | رمز المشروع: PROJ-{project.id}
+                        {t('sys.str_57')}{project.customer?.name} {t('sys.str_2842')}{project.id}
                     </p>
                 </div>
             </div>
@@ -103,28 +103,28 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
             {/* Dashboard Analytics for this single project */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 <div className="card" style={{ padding: '20px', borderRight: '4px solid var(--primary)' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>ميزانية المشروع الكلية المعتمدة</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_2843')}</div>
                     <div style={{ fontSize: '24px', fontWeight: '900', margin: '4px 0' }}>{project.budget.toLocaleString()} SAR</div>
                     <div style={{ fontSize: '12px', color: budgetMismatch ? 'var(--danger)' : 'var(--success)' }}>
-                        الموزع على المهام: {totalTaskBudget.toLocaleString()}
-                        {budgetMismatch && ' ⚠️ الموزع تجاوز ميزانية المشروع القطعية!'}
+                        {t('sys.str_2844')}{totalTaskBudget.toLocaleString()}
+                        {budgetMismatch && t('sys.str_2867')}
                     </div>
                 </div>
 
                 <div className="card" style={{ padding: '20px', borderRight: '4px solid var(--danger)' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>التكاليف المستهلكة فعلياً (Actuals)</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_2845')}</div>
                     <div style={{ fontSize: '24px', fontWeight: '900', margin: '4px 0', color: 'var(--danger)' }}>{totalTaskCost.toLocaleString()} SAR</div>
                     <div style={{ width: '100%', height: '4px', background: 'var(--bg-body)', borderRadius: '2px', marginTop: '10px' }}>
                         <div style={{ width: `${Math.min(costPercentage, 100)}%`, height: '100%', background: costPercentage > 100 ? 'var(--danger)' : 'var(--warning)', borderRadius: '2px' }} />
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'left' }}>استهلاك {costPercentage.toFixed(1)}% من المخصص</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'left' }}>{t('sys.str_2846')}{costPercentage.toFixed(1)}{t('sys.str_2847')}</div>
                 </div>
 
                 <div className="card" style={{ padding: '20px', borderRight: '4px solid var(--success)' }}>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>عدد المهام والجداوليات (WBS)</div>
-                    <div style={{ fontSize: '24px', fontWeight: '900', margin: '4px 0' }}>{tasks.length} <span style={{fontSize:'12px', fontWeight:'normal'}}>مهمة</span></div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_2848')}</div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', margin: '4px 0' }}>{tasks.length} <span style={{fontSize:'12px', fontWeight:'normal'}}>{t('sys.str_2849')}</span></div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        مكتمل: {tasks.filter(t => t.status === 'COMPLETED').length} | جاري: {tasks.filter(t => t.status === 'IN_PROGRESS').length}
+                        {t('sys.str_2850')}{tasks.filter(t => t.status === 'COMPLETED').length} {t('sys.str_2851')}{tasks.filter(t => t.status === 'IN_PROGRESS').length}
                     </div>
                 </div>
             </div>
@@ -134,23 +134,21 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', borderBottom: '1px solid var(--border)' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <AlignLeft size={20} color="var(--primary)" />
-                        هيكل تقسيم العمل (WBS) والجداوليات
-                    </h2>
+                        {t('sys.str_2852')}</h2>
                     <button className="btn btn-primary btn-sm" style={{ display: 'flex', gap: '6px' }} onClick={() => setShowModal(true)}>
-                        <Plus size={16} /> تقسيم مهمة جديدة
-                    </button>
+                        <Plus size={16} /> {t('sys.str_2853')}</button>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
                     <table className="table" style={{ minWidth: '800px' }}>
                         <thead style={{ background: 'var(--bg-body)' }}>
                             <tr>
-                                <th>المهمة (Task)</th>
-                                <th>الموظف/المهندس</th>
-                                <th>الميزانية (SAR)</th>
-                                <th>المنصرف الفعلي</th>
-                                <th>الحالة</th>
-                                <th>تحديثات إدارية</th>
+                                <th>{t('sys.str_2854')}</th>
+                                <th>{t('sys.str_2855')}</th>
+                                <th>{t('sys.str_2856')}</th>
+                                <th>{t('sys.str_2857')}</th>
+                                <th>{t('fin.str_227')}</th>
+                                <th>{t('sys.str_2858')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,7 +161,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
                                             <UserCircle size={16} color="var(--text-muted)" />
-                                            {task.assignedTo || 'غير محدد'}
+                                            {task.assignedTo || t('sys.str_179')}
                                         </div>
                                     </td>
                                     <td style={{ fontWeight: '600' }}>{task.budget.toLocaleString()}</td>
@@ -172,7 +170,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                                             <span style={{ color: task.actualCost > task.budget ? 'var(--danger)' : 'var(--success)', fontWeight: 'bold' }}>
                                                 {task.actualCost.toLocaleString()}
                                             </span>
-                                            <button className="btn btn-ghost btn-sm" onClick={() => updateTaskCost(task.id, task.actualCost)} title="إضافة تكلفة/رواتب" style={{ padding: '4px' }}>
+                                            <button className="btn btn-ghost btn-sm" onClick={() => updateTaskCost(task.id, task.actualCost)} title={t('sys.str_2868')} style={{ padding: '4px' }}>
                                                 <DollarSign size={14} color="var(--warning)" />
                                             </button>
                                         </div>
@@ -198,7 +196,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                             ))}
                             {tasks.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '30px' }}>لم يتم تقسيم جدول المهام لهذا المشروع بعد.</td>
+                                    <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '30px' }}>{t('sys.str_2859')}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -211,38 +209,38 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>إضافة مهمة جديدة لمشروع: {project.name}</h2>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>{t('sys.str_2860')}{project.name}</h2>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <div className="modal-body">
                             <form onSubmit={handleSave} className="grid-2">
                                 <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                                    <label className="input-label">اسم المهمة (مثال: حفر الأساسات, توريد الخرسانة) *</label>
+                                    <label className="input-label">{t('sys.str_2861')}</label>
                                     <input className="input" required value={formData.taskName} onChange={e => setFormData({...formData, taskName: e.target.value})} />
                                 </div>
                                 <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                                    <label className="input-label">تفاصيل إضافية</label>
+                                    <label className="input-label">{t('sys.str_2862')}</label>
                                     <textarea className="input" rows={2} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">مهندس/موظف التنفيذ</label>
+                                    <label className="input-label">{t('sys.str_2863')}</label>
                                     <input className="input" value={formData.assignedTo} onChange={e => setFormData({...formData, assignedTo: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">الميزانية المخصصة للخلية (SAR) *</label>
+                                    <label className="input-label">{t('sys.str_2864')}</label>
                                     <input className="input" type="number" dir="ltr" required value={formData.budget} onChange={e => setFormData({...formData, budget: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ البدء</label>
+                                    <label className="input-label">{t('sys.str_1860')}</label>
                                     <input className="input" type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                                 </div>
                                 <div className="input-group">
-                                    <label className="input-label">تاريخ الانتهاء</label>
+                                    <label className="input-label">{t('sys.str_432')}</label>
                                     <input className="input" type="date" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px', gridColumn: '1 / -1' }}>
-                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>💾 حفظ المهمة</button>
+                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
+                                    <button type="submit" className="btn btn-primary" disabled={saving}>{t('sys.str_2865')}</button>
                                 </div>
                             </form>
                         </div>

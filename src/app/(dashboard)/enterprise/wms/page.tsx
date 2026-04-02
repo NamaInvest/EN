@@ -57,8 +57,8 @@ export default function EnterpriseWMS() {
             if (res.ok) {
                 setShowModal(false);
                 fetchData();
-            } else { alert('فشل في الحفظ'); }
-        } catch (error) { alert('خطأ في الاتصال'); } 
+            } else { alert(t('sys.str_418')); }
+        } catch (error) { alert(t('sys.str_446')); } 
         finally { setSaving(false); }
     };
 
@@ -74,23 +74,20 @@ export default function EnterpriseWMS() {
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Grid size={28} color="var(--primary)" />
-                        المستودعات الذكية ثلاثية الأبعاد (WMS)
-                    </h1>
+                        {t('sys.str_1958')}</h1>
                     <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>
-                        تخطيط هندسي للمستودع: أقسام (Zones)، أرفف (Racks)، وخانات (Bins) لـ توجيه التخزين اللحظي 3D.
-                    </p>
+                        {t('sys.str_1959')}</p>
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري تحميل التخطيط...</div>
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{t('sys.str_1960')}</div>
             ) : (
                 <div className="grid-2">
                     {/* Left: Interactive Warehouse List */}
                     <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
                         <div style={{ padding: '20px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', fontWeight: 'bold' }}>
-                            🏢 هيكل المستودعات والمخازن
-                        </div>
+                            {t('sys.str_1961')}</div>
                         <div style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto', padding: '10px' }}>
                             {wmsData.map(stock => (
                                 <div key={stock.id} style={{ marginBottom: '8px' }}>
@@ -104,8 +101,7 @@ export default function EnterpriseWMS() {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span style={{ fontSize: '11px', padding: '2px 8px', background: 'var(--bg-card)', borderRadius: '12px', color: 'var(--text-muted)' }}>
-                                                {stock.totalZones} منطقة / {stock.totalRacks} رف
-                                            </span>
+                                                {stock.totalZones} {t('sys.str_1962')}{stock.totalRacks} {t('sys.str_1963')}</span>
                                             {expandedStock === stock.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                         </div>
                                     </div>
@@ -117,8 +113,7 @@ export default function EnterpriseWMS() {
                                                 style={{ width: '100%', marginBottom: '10px', display: 'flex', justifyContent: 'center', gap: '6px', fontSize: '12px', color: 'var(--primary)' }}
                                                 onClick={() => openModal('zone', stock.id)}
                                             >
-                                                <Plus size={14} /> إضافة منطقة (Zone) داخل المخزن
-                                            </button>
+                                                <Plus size={14} /> {t('sys.str_1964')}</button>
 
                                             {stock.warehouseZones.map((zone: any) => (
                                                 <div key={zone.id} style={{ marginBottom: '8px' }}>
@@ -139,8 +134,7 @@ export default function EnterpriseWMS() {
                                                                 style={{ width: '100%', marginBottom: '8px', fontSize: '12px', color: 'var(--text-muted)' }}
                                                                 onClick={() => openModal('rack', zone.id)}
                                                             >
-                                                                + رف جديد
-                                                            </button>
+                                                                {t('sys.str_1965')}</button>
                                                             {zone.racks.map((rack: any) => (
                                                                 <div 
                                                                     key={rack.id} 
@@ -149,8 +143,8 @@ export default function EnterpriseWMS() {
                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => setExpandedRack(expandedRack === rack.id ? null : rack.id)}>
                                                                         <span style={{ fontSize: '13px', fontWeight: 'bold' }}><Layers size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle', color: 'var(--primary)' }}/> {rack.name}</span>
                                                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{rack.bins?.length || 0} خانة</span>
-                                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0 4px', fontSize: '11px', color: 'var(--primary)' }} onClick={(e) => { e.stopPropagation(); openModal('bin', rack.id); }}>+ خانة (Bin)</button>
+                                                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{rack.bins?.length || 0} {t('sys.str_1966')}</span>
+                                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0 4px', fontSize: '11px', color: 'var(--primary)' }} onClick={(e) => { e.stopPropagation(); openModal('bin', rack.id); }}>{t('sys.str_1967')}</button>
                                                                         </div>
                                                                     </div>
                                                                     {expandedRack === rack.id && (
@@ -160,7 +154,7 @@ export default function EnterpriseWMS() {
                                                                                     key={bin.id} 
                                                                                     style={{ padding: '8px', background: 'var(--bg-body)', borderRadius: '6px', border: '1px solid var(--border)', textAlign: 'center', cursor: 'pointer' }}
                                                                                     onClick={() => { setSelectedBin(bin); setShowBinModal(true); }}
-                                                                                    title={`الوزن الحالي: ${bin.currentWeight || 0} كغ / الأقصى: ${bin.maxWeight || 'غير محدد'}`}
+                                                                                    title={`الوزن الحالي: ${bin.currentWeight || 0} كغ / الأقصى: ${bin.maxWeight || t('sys.str_179')}`}
                                                                                 >
                                                                                     <Box size={16} color={bin.status === 'FULL' ? 'var(--danger)' : bin.status === 'PARTIAL' ? 'var(--warning)' : 'var(--success)'} style={{ margin: '0 auto 4px auto' }} />
                                                                                     <div style={{ fontSize: '11px', fontWeight: 'bold' }}>{bin.code}</div>
@@ -172,7 +166,7 @@ export default function EnterpriseWMS() {
                                                                                     </div>
                                                                                 </div>
                                                                             ))}
-                                                                            {(!rack.bins || rack.bins.length === 0) && <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', gridColumn: '1/-1' }}>لا توجد خلايا التخزين</div>}
+                                                                            {(!rack.bins || rack.bins.length === 0) && <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', gridColumn: '1/-1' }}>{t('sys.str_1968')}</div>}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -194,26 +188,25 @@ export default function EnterpriseWMS() {
                             <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{wmsData.reduce((acc, s) => acc + s.totalZones, 0)}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إجمالي المناطق (Zones)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1969')}</div>
                             </div>
                             <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '36px', marginBottom: '8px' }}>📶</div>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{wmsData.reduce((acc, s) => acc + s.totalRacks, 0)}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إجمالي الأرفف (Racks)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1970')}</div>
                             </div>
                             <div className="card" style={{ padding: '20px', textAlign: 'center', gridColumn: '1 / -1' }}>
                                 <div style={{ fontSize: '36px', marginBottom: '8px' }}>📦</div>
                                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--primary)' }}>{wmsData.reduce((acc, s) => acc + s.totalBins, 0)}</div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>إجمالي الخانات / الخلايا (Bins) الجاهزة للتخزين</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1971')}</div>
                             </div>
                         </div>
 
                         <div className="card" style={{ padding: '20px', background: 'linear-gradient(135deg, var(--primary), #1E40AF)', color: '#fff', border: 'none' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>🚀 التوجيه الذكي للمخزون (In-route)</h3>
+                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{t('sys.str_1972')}</h3>
                             <p style={{ fontSize: '13px', opacity: 0.9, marginBottom: '20px', lineHeight: 1.6 }}>
-                                سيقوم النظام بطلب تحديد المنطقة، والرف، والخانة عند استلام مشتريات جديدة أو تحويلات مخزنية، لتمكين تطبيق جوال المندوبين من الوصول السريع للأصناف بناءً على (Row, Rack, Shelf, Bin).
-                            </p>
-                            <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 'bold', border: 'none' }}>قريباً - طباعة باركودات الأرفف WMS</button>
+                                {t('sys.str_1973')}</p>
+                            <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 'bold', border: 'none' }}>{t('sys.str_1974')}</button>
                         </div>
                     </div>
                 </div>
@@ -224,38 +217,38 @@ export default function EnterpriseWMS() {
                     <div className="modal-content" style={{ maxWidth: '400px' }}>
                         <div className="modal-header">
                             <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                {modalType === 'zone' && 'إضافة منطقة جديدة Zone'}
-                                {modalType === 'rack' && 'إضافة رف جديدة Rack'}
-                                {modalType === 'bin' && 'إضافة خانة جديدة Bin'}
+                                {modalType === 'zone' && t('sys.str_1986')}
+                                {modalType === 'rack' && t('sys.str_1987')}
+                                {modalType === 'bin' && t('sys.str_1988')}
                             </h2>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <div className="modal-body">
                             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div className="input-group">
-                                    <label className="input-label">الاسم أو الرمز (مثال: A1, الشمالي)</label>
+                                    <label className="input-label">{t('sys.str_1975')}</label>
                                     <input className="input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                                 </div>
                                 {modalType === 'bin' && (
                                     <>
                                         <div className="input-group">
-                                            <label className="input-label">باركود الخانة (للمسح اللحظي)</label>
+                                            <label className="input-label">{t('sys.str_1976')}</label>
                                             <input className="input" dir="ltr" placeholder="BIN-001" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} />
                                         </div>
                                         <div className="input-group">
-                                            <label className="input-label">أقصى وزن افتراضي (كغ)</label>
+                                            <label className="input-label">{t('sys.str_1977')}</label>
                                             <input className="input" type="number" dir="ltr" value={formData.maxWeight} onChange={e => setFormData({...formData, maxWeight: e.target.value})} />
                                         </div>
                                     </>
                                 )}
                                 {(modalType === 'zone') && (
                                     <div className="input-group">
-                                        <label className="input-label">وصف إضافي</label>
+                                        <label className="input-label">{t('sys.str_1978')}</label>
                                         <input className="input" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                                     </div>
                                 )}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                                    <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? '...' : 'تأكيد'}</button>
                                 </div>
                             </form>
@@ -270,37 +263,34 @@ export default function EnterpriseWMS() {
                     <div className="modal-content" style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
                             <h2 style={{ fontSize: '18px', fontWeight: 'bold', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <Box size={22} color="var(--primary)" /> تفاصيل الخانة ({selectedBin.code})
+                                <Box size={22} color="var(--primary)" /> {t('sys.str_1979')}{selectedBin.code})
                             </h2>
                             <button className="btn btn-ghost" onClick={() => setShowBinModal(false)}>✕</button>
                         </div>
                         <div className="modal-body">
                             <div className="grid-2" style={{ marginBottom: '20px' }}>
                                 <div className="card" style={{ padding: '16px', background: 'var(--bg-body)' }}>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>حالة التخزين</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1980')}</div>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: selectedBin.status === 'FULL' ? 'var(--danger)' : 'var(--success)' }}>
                                         {selectedBin.status === 'FULL' ? 'ممتلئة بالكامل' : selectedBin.status === 'PARTIAL' ? 'شبه ممتلئة' : 'فارغة تماماً'}
                                     </div>
                                 </div>
                                 <div className="card" style={{ padding: '16px', background: 'var(--bg-body)' }}>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>الوزن المستهلك</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1981')}</div>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                        {selectedBin.currentWeight || 0} / {selectedBin.maxWeight || '∞'} كغ
-                                    </div>
+                                        {selectedBin.currentWeight || 0} / {selectedBin.maxWeight || '∞'} {t('sys.str_1982')}</div>
                                 </div>
                             </div>
                             
                             <h3 style={{ fontSize: '15px', fontWeight: 'bold', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '12px' }}>
-                                محتويات الخلية الحالية من البضائع 📦
-                            </h3>
+                                {t('sys.str_1983')}</h3>
                             {/* Native WMS Link Mock - will be tied to StockMovements real-time queries */}
                             <div style={{ textAlign: 'center', padding: '30px', background: 'var(--bg-card)', borderRadius: '10px', color: 'var(--text-muted)' }}>
                                 <div><Target size={32} style={{ opacity: 0.5, margin: '0 auto 8px auto' }} /></div>
-                                يرجى استخدام (شاشة التحويلات المخزنية الذكية) لتوريد منتجات إلى هذا الموقع <strong style={{ color: 'var(--text)' }}>({selectedBin.code})</strong>.<br/>الربط الآلي للمخزون مفعّل.
-                            </div>
+                                {t('sys.str_1984')}<strong style={{ color: 'var(--text)' }}>({selectedBin.code})</strong>.<br/>{t('sys.str_1985')}</div>
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                                <button className="btn btn-ghost" onClick={() => setShowBinModal(false)}>إغلاق</button>
+                                <button className="btn btn-ghost" onClick={() => setShowBinModal(false)}>{t('sys.str_77')}</button>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface ReceiptProps {
     invoiceId?: number;
@@ -25,6 +26,7 @@ interface ReceiptProps {
 }
 
 export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = false, isQuote = false, onClose }: ReceiptProps) {
+    const { t } = useTranslation();
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [vatNumber, setVatNumber] = useState('');
@@ -68,7 +70,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 const settings = await res.json();
                 const map: Record<string, string> = {};
                 settings.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
-                const cName = map['company_name'] || map['company_name_ar'] || 'إعدادات الشركة مفقودة';
+                const cName = map['company_name'] || map['company_name_ar'] || t('sys.str_78');
                 const vNum = map['tax_number'] || '';
                 setCompanyName(cName);
                 setVatNumber(vNum);
@@ -284,7 +286,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                     {/* Header */}
                     <div className="header" style={{ textAlign: 'center', paddingBottom: '12px', marginBottom: '12px' }}>
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
-                        {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>الرقم الضريبي: {vatNumber}</div>}
+                        {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>{t('sys.str_56')}{vatNumber}</div>}
                         <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
                             {isQuote ? 'عـــرض سـعــر' : (['A4', 'A5'].includes(printerType) ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة')}
                         </div>
@@ -296,31 +298,31 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <span>{new Date(data.date).toLocaleDateString('ar-SA')}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
-                        <span>العميل: {data.customerName}</span>
-                        <span>الدفع: {paymentLabel(data.paymentMethod)}</span>
+                        <span>{t('sys.str_57')}{data.customerName}</span>
+                        <span>{t('sys.str_58')}{paymentLabel(data.paymentMethod)}</span>
                     </div>
 
                     {/* Additional Customer Info (ZATCA Requirements for B2B) */}
                     {(data.customerTaxNo || data.customerCrNo || data.customerAddress) && (
                         <div style={{ fontSize: '10px', marginBottom: '8px', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', background: '#fafafa' }}>
-                            {data.customerTaxNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>الضريبي للعميل:</span> <span>{data.customerTaxNo}</span></div>}
-                            {data.customerCrNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>س.ت للعميل:</span> <span>{data.customerCrNo}</span></div>}
-                            {data.customerAddress && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>العنوان:</span> <span>{data.customerAddress}</span></div>}
+                            {data.customerTaxNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_59')}</span> <span>{data.customerTaxNo}</span></div>}
+                            {data.customerCrNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_60')}</span> <span>{data.customerCrNo}</span></div>}
+                            {data.customerAddress && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_61')}</span> <span>{data.customerAddress}</span></div>}
                         </div>
                     )}
 
                     <div style={{ fontSize: '10px', marginBottom: '8px', color: '#666' }}>
-                        الوقت: {new Date(data.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {t('sys.str_62')}{new Date(data.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </div>
 
                     {/* Items */}
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '8px', border: '1px solid #000', borderWidth: '1px' }}>
                         <thead>
                             <tr style={{ background: '#f9f9f9', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                                <th style={{ textAlign: 'right', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>المنتج</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>الكمية</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>السعر</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>الإجمالي</th>
+                                <th style={{ textAlign: 'right', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_63')}</th>
+                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_64')}</th>
+                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_65')}</th>
+                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_66')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -338,22 +340,22 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                     {/* Totals */}
                     <div style={{ paddingTop: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
-                            <span>المجموع الفرعي:</span>
-                            <span>{formatCurrency(data.subtotal)} ر.س</span>
+                            <span>{t('sys.str_67')}</span>
+                            <span>{formatCurrency(data.subtotal)} {t('sys.str_68')}</span>
                         </div>
                         {data.discount > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px', color: '#e11d48' }}>
-                                <span>الخصم:</span>
-                                <span>-{formatCurrency(data.discount)} ر.س</span>
+                                <span>{t('sys.str_69')}</span>
+                                <span>-{formatCurrency(data.discount)} {t('sys.str_68')}</span>
                             </div>
                         )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
-                            <span>ضريبة القيمة المضافة ({data.taxRate}%):</span>
-                            <span>{formatCurrency(data.taxAmount)} ر.س</span>
+                            <span>{t('sys.str_70')}{data.taxRate}%):</span>
+                            <span>{formatCurrency(data.taxAmount)} {t('sys.str_68')}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '800', borderTop: '1px solid #000', paddingTop: '6px', marginTop: '4px' }}>
-                            <span>الإجمالي:</span>
-                            <span>{formatCurrency(data.grandTotal)} ر.س</span>
+                            <span>{t('sys.str_71')}</span>
+                            <span>{formatCurrency(data.grandTotal)} {t('sys.str_68')}</span>
                         </div>
                     </div>
 
@@ -361,11 +363,11 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                     {!isQuote && (
                         <div style={{ textAlign: 'center', margin: '16px auto 0', paddingTop: '12px', maxWidth: '140px' }} className="qr-section">
                             {loading ? (
-                                <div style={{ padding: '16px', color: '#999', fontSize: '11px' }}>جاري توليد QR...</div>
+                                <div style={{ padding: '16px', color: '#999', fontSize: '11px' }}>{t('sys.str_72')}</div>
                             ) : qrDataUrl ? (
                                 <>
                                     <img src={qrDataUrl} alt="ZATCA QR Code" style={{ width: '120px', height: '120px', margin: '0 auto', display: 'block' }} />
-                                    <div style={{ fontSize: '8px', color: '#666', marginTop: '4px', textAlign: 'center' }}>رمز الاستجابة السريعة - هيئة الزكاة والضريبة والجمارك</div>
+                                    <div style={{ fontSize: '8px', color: '#666', marginTop: '4px', textAlign: 'center' }}>{t('sys.str_73')}</div>
                                 </>
                             ) : null}
                         </div>
@@ -373,8 +375,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
 
                     {/* Footer */}
                     <div className="footer" style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: '#999', borderTop: '1px solid #000', paddingTop: '8px' }}>
-                        شكراً لتعاملكم معنا
-                    </div>
+                        {t('sys.str_74')}</div>
                 </div>
 
                 {/* Action buttons (screen only) */}
@@ -387,8 +388,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                             cursor: 'pointer', fontFamily: 'Cairo',
                         }}
                     >
-                        🖨️ طباعة
-                    </button>
+                        {t('sys.str_75')}</button>
                     <button
                         onClick={handleExportPDF}
                         style={{
@@ -397,8 +397,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                             cursor: 'pointer', fontFamily: 'Cairo',
                         }}
                     >
-                        📄 تصدير PDF
-                    </button>
+                        {t('sys.str_76')}</button>
                     <button
                         onClick={onClose}
                         style={{
@@ -407,8 +406,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                             cursor: 'pointer', fontFamily: 'Cairo',
                         }}
                     >
-                        إغلاق
-                    </button>
+                        {t('sys.str_77')}</button>
                 </div>
             </div>
         </div>

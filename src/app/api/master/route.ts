@@ -39,8 +39,8 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: false, error: 'Invalid target node' });
             }
             try {
-                const { stdout } = await execAsync(\`pm2 \${body.action} \${target} --update-env\`);
-                return NextResponse.json({ success: true, output: \`Successfully executed \${body.action} on \${target}\` });
+                const { stdout } = await execAsync(`pm2 ${body.action} ${target} --update-env`);
+                return NextResponse.json({ success: true, output: `Successfully executed ${body.action} on ${target}` });
             } catch (e: any) {
                 // If the node doesn't exist, we could return a specific error
                 return NextResponse.json({ success: false, error: e.message });

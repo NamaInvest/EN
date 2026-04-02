@@ -84,8 +84,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                         <p style={{ margin: '4px 0' }}><strong>التاريخ:</strong> {new Date(invoice.date).toLocaleString('ar-SA')}</p>
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                        <p style={{ margin: '4px 0' }}><strong>العميل:</strong> {invoice.customer?.name || 'عميل نقدي'}</p>
-                        <p style={{ margin: '4px 0' }}><strong>الكاشير:</strong> {invoice.user?.fullName || 'النظام'}</p>
+                        <p style={{ margin: '4px 0' }}><strong>"العميل:"</strong> {invoice.customer?.name || 'عميل نقدي'}</p>
+                        <p style={{ margin: '4px 0' }}><strong>"الكاشير:"</strong> {invoice.user?.fullName || 'النظام'}</p>
                     </div>
                 </div>
 

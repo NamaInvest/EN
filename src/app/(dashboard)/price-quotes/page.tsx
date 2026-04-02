@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
+import { useTranslation } from "@/lib/i18n";
 
 interface Product { id: number; name: string; sellPrice: number; barcode: string | null }
 interface QuoteItem { productId: number | null; productName: string; quantity: number; price: number }
 interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: { productName: string; quantity: number; price: number; total: number }[] }
 
 export default function PriceQuotesPage() {
+    const { t } = useTranslation();
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -124,10 +126,10 @@ export default function PriceQuotesPage() {
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2 });
 
     return (<>
-        <div className="page-header"><h1 className="page-title">📄 عروض الأسعار</h1></div>
+        <div className="page-header"><h1 className="page-title">{t('sys.str_1265')}</h1></div>
         <div className="page-content animate-fade-in">
             <div className="toolbar">
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} عرض</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} {t('sys.str_927')}</span>
                 <div className="toolbar-spacer" />
                 <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>➕ عرض سعر جديد</button>
             </div>
@@ -167,7 +169,7 @@ export default function PriceQuotesPage() {
                                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                 >
                                     <span>{p.name}</span>
-                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ر.س</span>
+                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} {t('sys.str_68')}</span>
                                 </div>
                             ))}
                         </div>
@@ -178,9 +180,9 @@ export default function PriceQuotesPage() {
                 {items.length > 0 && <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '12px' }}>
                     <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}>
                         <th style={{ padding: '8px', textAlign: 'right' }}>المنتج/الخدمة</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '80px' }}>الكمية</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>السعر</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>المجموع</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '80px' }}>{t('sys.str_64')}</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_65')}</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_947')}</th>
                         <th style={{ width: '40px' }}></th>
                     </tr></thead>
                     <tbody>{items.map((item, i) => (
@@ -217,23 +219,22 @@ export default function PriceQuotesPage() {
                     textAlign: 'left', padding: '8px 12px', background: 'rgba(108,99,255,0.05)',
                     borderRadius: '8px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '16px', fontWeight: 'bold'
                 }}>
-                    الإجمالي: {fmt(total)} ر.س
-                </div>}
+                    {t('sys.str_71')}{fmt(total)} {t('sys.str_68')}</div>}
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button className="btn btn-sm" onClick={addManualItem}>➕ إضافة يدوي</button>
-                    <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات"
+                    <input value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('sys.str_465')}
                         style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '150px', background: 'var(--card-bg)' }} />
-                    <button className="btn btn-sm" onClick={() => setShowAdd(false)}>إلغاء</button>
-                    <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>💾 حفظ</button>
+                    <button className="btn btn-sm" onClick={() => setShowAdd(false)}>{t('fin.str_206')}</button>
+                    <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>{t('sys.str_455')}</button>
                 </div>
             </div>}
 
             {/* Quotes List */}
             <div className="card">
-                {loading ? <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div> :
-                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">لا توجد عروض أسعار</div></div> :
+                {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
+                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{quotes.map(q => (
                             <div key={q.id} className="card" style={{ padding: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -241,16 +242,16 @@ export default function PriceQuotesPage() {
                                     <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 'bold' }}>#{q.quoteNo}</span>
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(q.date).toLocaleDateString('ar-SA')}</span>
                                     <div className="toolbar-spacer" />
-                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(q.total)} ر.س</span>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(q.total)} {t('sys.str_68')}</span>
                                     <button className="btn btn-sm" onClick={e => { e.stopPropagation(); handlePrint(q); }}
                                         style={{ fontSize: '12px', padding: '4px 10px' }}>🖨️</button>
                                 </div>
                                 {expanded === q.id && q.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
                                     <thead><tr style={{ background: 'rgba(108,99,255,0.03)' }}>
-                                        <th style={{ padding: '6px', textAlign: 'right', fontSize: '12px' }}>المنتج</th>
-                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>الكمية</th>
-                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>السعر</th>
-                                        <th style={{ padding: '6px', textAlign: 'left', fontSize: '12px' }}>المجموع</th>
+                                        <th style={{ padding: '6px', textAlign: 'right', fontSize: '12px' }}>{t('sys.str_63')}</th>
+                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>{t('sys.str_64')}</th>
+                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>{t('sys.str_65')}</th>
+                                        <th style={{ padding: '6px', textAlign: 'left', fontSize: '12px' }}>{t('sys.str_947')}</th>
                                     </tr></thead>
                                     <tbody>{q.details.map((d, i) => <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '6px', fontSize: '12px' }}>{d.productName}</td>
