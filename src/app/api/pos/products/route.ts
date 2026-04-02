@@ -14,7 +14,8 @@ export async function GET(req: Request) {
         if (search) {
             whereClause.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
-                { barcode: { contains: search, mode: 'insensitive' } }
+                { barcode: { contains: search, mode: 'insensitive' } },
+                { productUnits: { some: { barcode: { contains: search, mode: 'insensitive' } } } }
             ];
         }
 
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
             whereClause.categoryId = parseInt(catId);
         }
 
-        const [products, categories] = await Promise.all([
+        const [productsList, categories] = await Promise.all([
             prisma.product.findMany({
                 where: whereClause,
                 select: {
@@ -35,7 +36,8 @@ export async function GET(req: Request) {
                     categoryId: true,
                     imagePath: true,
                     sellByWeight: true,
-                    category: { select: { id: true, name: true } }
+                    category: { select: { id: true, name: true } },
+                    productUnits: { include: { unit: true } }
                 },
                 orderBy: { name: 'asc' }
             }),
@@ -44,9 +46,10 @@ export async function GET(req: Request) {
             })
         ]);
 
-        return NextResponse.json({
-            success: true,
-            products: products.map(p => ({
+        const flattenedProducts: any[] = [];
+        productsList.forEach(p => {
+            // Base product (Piece)
+            flattenedProducts.push({
                 id: p.id.toString(),
                 name: p.name,
                 barcode: p.barcode,
@@ -55,9 +58,36 @@ export async function GET(req: Request) {
                 stock: p.currentStock,
                 categoryId: p.categoryId?.toString() || '0',
                 categoryName: p.category?.name || 'عام',
-                img: p.imagePath ? p.imagePath : '📦', // Fallback icon
-                sellByWeight: p.sellByWeight
-            })),
+                img: p.imagePath ? p.imagePath : '📦',
+                sellByWeight: p.sellByWeight,
+                isUnit: false,
+                factor: 1
+            });
+
+            // Advanced Units (Cartons, Dozens, etc.)
+            if (p.productUnits && p.productUnits.length > 0) {
+                p.productUnits.forEach((u: any) => {
+                    flattenedProducts.push({
+                        id: p.id.toString() + '-unit-' + u.id,
+                        name: p.name + ' (' + (u.unit?.name || 'وحدة') + ')',
+                        barcode: u.barcode,
+                        price: u.sellPrice,
+                        taxRate: p.taxRate,
+                        stock: Math.floor(p.currentStock / (u.factor || 1)), // Virtual Stock
+                        categoryId: p.categoryId?.toString() || '0',
+                        categoryName: p.category?.name || 'عام',
+                        img: p.imagePath ? p.imagePath : '📦',
+                        sellByWeight: false,
+                        isUnit: true,
+                        factor: u.factor || 1
+                    });
+                });
+            }
+        });
+
+        return NextResponse.json({
+            success: true,
+            products: flattenedProducts,
             categories: categories.map(c => ({
                 id: c.id.toString(),
                 name: c.name

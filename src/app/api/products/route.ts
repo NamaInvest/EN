@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
             const [products, total] = await Promise.all([
                 prisma.product.findMany({
                     where,
-                    include: { category: true, unit: true, productStocks: { include: { stock: true } } },
+                    include: { category: true, unit: true, productStocks: { include: { stock: true } }, productUnits: true },
                     orderBy: { id: 'desc' },
                     skip: (page - 1) * limit,
                     take: limit,
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
         const products = await prisma.product.findMany({
             where,
-            include: { category: true, unit: true, productStocks: { include: { stock: true } } },
+            include: { category: true, unit: true, productStocks: { include: { stock: true } }, productUnits: true },
             orderBy: { id: 'desc' },
         });
 
@@ -104,6 +104,16 @@ export async function POST(request: Request) {
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
                 binLocation: body.binLocation || null,
+                productUnits: body.productUnits && Array.isArray(body.productUnits) ? {
+                    create: body.productUnits.map((pu: any) => ({
+                        unitId: parseInt(pu.unitId),
+                        barcode: pu.barcode || null,
+                        sellPrice: parseFloat(pu.sellPrice) || 0,
+                        buyPrice: parseFloat(pu.buyPrice) || 0,
+                        factor: parseFloat(pu.factor) || 1,
+                        isBase: Boolean(pu.isBase)
+                    }))
+                } : undefined,
             },
         });
 

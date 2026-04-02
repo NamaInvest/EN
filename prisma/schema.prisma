@@ -78,7 +78,8 @@ model Category {
 model Unit {
   id       Int       @id @default(autoincrement())
   name     String
-  products Product[]
+  products     Product[]
+  productUnits ProductUnit[]
 
   @@map("units")
 }
@@ -125,8 +126,26 @@ model Product {
   rfqDetails           RequestForQuotationDetail[]
   grnDetails           GoodsReceiptNoteDetail[]
   serialNumbers        ProductSerialNumber[]
+  productUnits         ProductUnit[]
 
   @@map("products")
+}
+
+// ==================== 5.1 Product Units ====================
+model ProductUnit {
+  id          Int      @id @default(autoincrement())
+  productId   Int      @map("product_id")
+  unitId      Int      @map("unit_id")
+  barcode     String?  @unique
+  sellPrice   Float    @map("sell_price")
+  buyPrice    Float    @default(0) @map("buy_price")
+  factor      Float    @default(1)
+  isBase      Boolean  @default(false) @map("is_base")
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  unit        Unit     @relation(fields: [unitId], references: [id])
+
+  @@map("product_units")
 }
 
 // ==================== 6. Customers ====================

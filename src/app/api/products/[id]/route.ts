@@ -7,7 +7,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const product = await prisma.product.findUnique({
             where: { id: parseInt(id) },
-            include: { category: true, unit: true, productStocks: { include: { stock: true } } },
+            include: { category: true, unit: true, productStocks: { include: { stock: true } }, productUnits: true },
         });
         if (!product) {
             return NextResponse.json({ error: 'المنتج غير موجود' }, { status: 404 });
@@ -41,6 +41,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 expiryDate: body.expiryDate || null,
                 binLocation: body.binLocation || null,
                 active: body.active !== undefined ? Boolean(body.active) : undefined,
+                productUnits: {
+                    deleteMany: {},
+                    ...(body.productUnits && Array.isArray(body.productUnits) ? {
+                        create: body.productUnits.map((pu: any) => ({
+                            unitId: parseInt(pu.unitId),
+                            barcode: pu.barcode || null,
+                            sellPrice: parseFloat(pu.sellPrice) || 0,
+                            buyPrice: parseFloat(pu.buyPrice) || 0,
+                            factor: parseFloat(pu.factor) || 1,
+                            isBase: Boolean(pu.isBase)
+                        }))
+                    } : {})
+                }
             },
         });
 
