@@ -64,10 +64,11 @@ export async function POST(req: NextRequest) {
                     }
                 });
 
-                // Deduct Inventory safely
+                // Deduct Inventory safely considering Factor (Multi-Units)
+                const deductionQty = item.qty * (item.factor || 1);
                 await tx.product.update({
                     where: { id: parseInt(item.id) },
-                    data: { currentStock: { decrement: item.qty } }
+                    data: { currentStock: { decrement: deductionQty } }
                 });
             }
 

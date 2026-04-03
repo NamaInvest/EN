@@ -94,6 +94,7 @@ model Product {
   buyPrice     Float    @default(0) @map("buy_price")
   sellPrice    Float    @default(0) @map("sell_price")
   taxRate      Float    @default(15) @map("tax_rate")
+  taxType      String   @default("VAT") @map("tax_type")
   minQuantity  Float    @default(0) @map("min_quantity")
   currentStock Float    @default(0) @map("current_stock")
   description  String?
@@ -166,6 +167,8 @@ model Customer {
   crNo           String?  @map("cr_no")
   notes          String?
   active         Boolean  @default(true)
+  password       String?  // For B2B Portal
+  b2bEnabled     Boolean  @default(false) @map("b2b_enabled")
   createdAt      DateTime @default(now()) @map("created_at")
 
   salesInvoices    SalesInvoice[]
@@ -228,6 +231,7 @@ model ProductStock {
   @@map("product_stocks")
 }
 
+
 // ==================== 8. SalesInvoices ====================
 model SalesInvoice {
   id            Int      @id @default(autoincrement())
@@ -248,6 +252,11 @@ model SalesInvoice {
   status        String   @default("completed")
   userId        Int?     @map("user_id")
   notes         String?
+  taxType       String?  @default("VAT") @map("tax_type")
+
+  currencyId    Int?      @map("currency_id")
+  exchangeRate  Float?    @default(1.0) @map("exchange_rate")
+  currency      Currency? @relation(fields: [currencyId], references: [id])
   zatcaStatus   String?  @default("pending") @map("zatca_status")
   zatcaHash     String?  @map("zatca_hash")
   zatcaQr       String?  @map("zatca_qr")
@@ -406,6 +415,11 @@ model PurchaseInvoice {
   receiptStatus     String   @default("received") @map("receipt_status")
   userId            Int?     @map("user_id")
   notes             String?
+  taxType           String?  @default("VAT") @map("tax_type")
+
+  currencyId        Int?      @map("currency_id")
+  exchangeRate      Float?    @default(1.0) @map("exchange_rate")
+  currency          Currency? @relation(fields: [currencyId], references: [id])
 
   supplier Customer?               @relation(fields: [supplierId], references: [id])
   stock    Stock?                  @relation(fields: [stockId], references: [id])
@@ -1315,9 +1329,12 @@ model Currency {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  exchangeRates  ExchangeRate[]
-  LetterOfCredit LetterOfCredit[]
-  LandedCost     LandedCost[]
+  exchangeRates    ExchangeRate[]
+  LetterOfCredit   LetterOfCredit[]
+  LandedCost       LandedCost[]
+
+  salesInvoices    SalesInvoice[]
+  purchaseInvoices PurchaseInvoice[]
 
   @@map("currencies")
 }

@@ -103,6 +103,8 @@ export async function POST(request: Request) {
                     status: remaining > 0 ? 'pending' : 'completed',
                     userId: body.userId || null,
                     notes: body.notes || null,
+                    currencyId: body.currencyId ? parseInt(body.currencyId) : null,
+                    exchangeRate: body.exchangeRate ? parseFloat(body.exchangeRate) : 1.0,
                     details: {
                         create: items.map((item: Record<string, unknown>) => {
                             const qty = parseFloat(item.quantity as string) || 1;
@@ -425,6 +427,17 @@ export async function DELETE(request: NextRequest) {
 
             // Remove related treasury entries
             await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
+
+            // Write to AuditLog for AI Fraud Engine
+            await tx.auditLog.create({
+                data: {
+                    userId: auth.userId,
+                    action: 'DELETE_SALES_INVOICE',
+                    tableName: 'SalesInvoice',
+                    recordId: id,
+                    details: JSON.stringify({ invoiceNo: invoice.invoiceNo, total: invoice.total, subtotal: invoice.subtotal, items: invoice.details.length })
+                }
+            });
 
             // Delete invoice (cascade deletes details)
             await tx.salesInvoice.delete({ where: { id } });

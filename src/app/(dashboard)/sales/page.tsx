@@ -28,6 +28,9 @@ export default function SalesPage() {
     const [customerId, setCustomerId] = useState('');
     const [stockId, setStockId] = useState('1');
     const [warehouses, setWarehouses] = useState<{ id: number; name: string }[]>([]);
+    const [currencies, setCurrencies] = useState<{ id: number; code: string; exchangeRate: number; isDefault: boolean; isActive: boolean }[]>([]);
+    const [currencyId, setCurrencyId] = useState('');
+    const [exchangeRate, setExchangeRate] = useState(1.0);
     const [paymentType, setPaymentType] = useState('card');
     const [splitCash, setSplitCash] = useState('');
     const [splitCard, setSplitCard] = useState('');
@@ -229,6 +232,20 @@ export default function SalesPage() {
         fetchProducts();
         fetchCustomers();
         fetchWarehouses();
+        const fetchCurrencies = async () => {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/settings/currencies', { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) {
+                const c = await res.json();
+                setCurrencies(c);
+                const def = c.find((x: any) => x.isDefault);
+                if (def) {
+                    setCurrencyId(def.id.toString());
+                    setExchangeRate(def.exchangeRate);
+                }
+            }
+        };
+        fetchCurrencies();
         searchRef.current?.focus();
         try {
             const u = JSON.parse(localStorage.getItem('user') || '{}');
@@ -871,6 +888,15 @@ export default function SalesPage() {
                                 <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
                                     style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
                             </div>
+                            <select className="input" style={{ width: '100px', backgroundColor: '#eef2ff' }}
+                                value={currencyId} onChange={e => {
+                                    setCurrencyId(e.target.value);
+                                    const c = currencies.find(x => x.id.toString() === e.target.value);
+                                    if (c) setExchangeRate(c.exchangeRate);
+                                }}>
+                                <option value="" disabled>العملة</option>
+                                {currencies.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
+                            </select>
                             <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
                                 <option value="1">{t('sys.str_753')}</option>
                                 {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
