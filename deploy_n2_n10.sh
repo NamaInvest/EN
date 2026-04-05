@@ -12,17 +12,25 @@ for i in {2..10}; do
     echo "Updating $DOMAIN..."
     echo "======================================"
     
-    mkdir -p "$DEST_DIR/src/app/api/units"
-    
+    mkdir -p "$DEST_DIR/src/app/(dashboard)/hr/ai-enrollment"
+    mkdir -p "$DEST_DIR/src/app/kiosk/attendance"
+    mkdir -p "$DEST_DIR/src/app/(dashboard)/hr/evaluations"
+    mkdir -p "$DEST_DIR/src/app/(dashboard)/hr/training"
+    mkdir -p "$DEST_DIR/src/app/api/employees"
+    mkdir -p "$DEST_DIR/src/components"
+
     cp "$SOURCE_DIR/prisma/schema.prisma" "$DEST_DIR/prisma/schema.prisma"
-    cp "$SOURCE_DIR/src/app/(dashboard)/products/page.tsx" "$DEST_DIR/src/app/(dashboard)/products/page.tsx"
-    cp "$SOURCE_DIR/src/app/api/pos/products/route.ts" "$DEST_DIR/src/app/api/pos/products/route.ts"
-    cp "$SOURCE_DIR/src/app/api/products/[id]/route.ts" "$DEST_DIR/src/app/api/products/[id]/route.ts"
-    cp "$SOURCE_DIR/src/app/api/products/route.ts" "$DEST_DIR/src/app/api/products/route.ts"
-    cp "$SOURCE_DIR/src/app/api/pos/checkout/route.ts" "$DEST_DIR/src/app/api/pos/checkout/route.ts"
-    cp "$SOURCE_DIR/src/app/api/units/route.ts" "$DEST_DIR/src/app/api/units/route.ts"
+    cp "$SOURCE_DIR/package.json" "$DEST_DIR/package.json"
+    cp "$SOURCE_DIR/package-lock.json" "$DEST_DIR/package-lock.json"
+    cp "$SOURCE_DIR/src/app/(dashboard)/hr/ai-enrollment/page.tsx" "$DEST_DIR/src/app/(dashboard)/hr/ai-enrollment/page.tsx"
+    cp "$SOURCE_DIR/src/app/kiosk/attendance/page.tsx" "$DEST_DIR/src/app/kiosk/attendance/page.tsx"
+    cp "$SOURCE_DIR/src/app/(dashboard)/hr/evaluations/page.tsx" "$DEST_DIR/src/app/(dashboard)/hr/evaluations/page.tsx"
+    cp "$SOURCE_DIR/src/app/(dashboard)/hr/training/page.tsx" "$DEST_DIR/src/app/(dashboard)/hr/training/page.tsx"
+    cp "$SOURCE_DIR/src/app/api/employees/route.ts" "$DEST_DIR/src/app/api/employees/route.ts"
+    cp "$SOURCE_DIR/src/components/Sidebar.tsx" "$DEST_DIR/src/components/Sidebar.tsx"
 
     cd "$DEST_DIR"
+    npm install
     npx prisma db push
     npm run build
   else

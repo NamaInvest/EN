@@ -12,6 +12,7 @@ interface Product {
     buyPrice: number;
     sellPrice: number;
     taxRate: number;
+    taxType?: string;
     minQuantity: number;
     currentStock: number;
     description: string;
@@ -58,7 +59,7 @@ export default function ProductsPage() {
 
     const [form, setForm] = useState({
         name: '', barcode: '', categoryId: '', unitId: '1',
-        buyPrice: '', sellPrice: '', taxRate: '15', minQuantity: '0',
+        buyPrice: '', sellPrice: '', taxRate: '15', taxType: 'VAT', minQuantity: '0',
         currentStock: '0', description: '', nameEn: '', sellByWeight: false,
         addVat: true, expiryDate: '', binLocation: ''
     });
@@ -161,7 +162,7 @@ export default function ProductsPage() {
             name: '', barcode: '', categoryId: '', unitId: '1',
             buyPrice: '', sellPrice: '', taxRate: '15', minQuantity: '0',
             currentStock: '0', description: '', nameEn: '', sellByWeight: false,
-            addVat: true, expiryDate: '', binLocation: ''
+            addVat: true, expiryDate: '', binLocation: '', taxType: 'VAT'
         });
         setFormUnits([]);
         setShowModal(true);
@@ -175,7 +176,7 @@ export default function ProductsPage() {
             sellPrice: p.sellPrice?.toString() || '', taxRate: p.taxRate?.toString() || '15',
             minQuantity: p.minQuantity?.toString() || '0', currentStock: p.currentStock?.toString() || '0',
             description: p.description || '', nameEn: p.nameEn || '', sellByWeight: p.sellByWeight || false,
-            addVat: true, expiryDate: p.expiryDate || '', binLocation: p.binLocation || ''
+            addVat: true, expiryDate: p.expiryDate || '', binLocation: p.binLocation || '', taxType: p.taxType || 'VAT'
         });
         setFormUnits(p.productUnits ? p.productUnits.map((u: any) => ({
             id: u.id, unitId: u.unitId?.toString(),
@@ -582,12 +583,20 @@ export default function ProductsPage() {
                                         onChange={e => setForm({ ...form, addVat: e.target.checked })}
                                         style={{ width: '20px', height: '20px', accentColor: '#22c55e' }}
                                     />
-                                    <span style={{ fontWeight: '600' }}>{t('sys.str_891')}{form.taxRate}{t('sys.str_892')}</span>
+                                    <span style={{ fontWeight: '600' }}>{t('sys.str_891')}{form.taxRate}% {form.taxType}</span>
                                 </label>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">{t('sys.str_787')}</label>
-                                <input className="input" type="number" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} dir="ltr" />
+                                <label className="input-label">نوع ونسبة الضريبة التشغيلية (Global Tax)</label>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    <select className="input" style={{ flex: 1 }} value={form.taxType} onChange={e => setForm({ ...form, taxType: e.target.value })}>
+                                        <option value="VAT">قيمة مضافة (ZATCA/EU VAT)</option>
+                                        <option value="GST">سلع وخدمات (Asia GST)</option>
+                                        <option value="SALES_TAX">المبيعات (US Sales Tax)</option>
+                                        <option value="NONE">معفي (Exempt)</option>
+                                    </select>
+                                    <input className="input" style={{ width: '80px' }} type="number" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} dir="ltr" />
+                                </div>
                             </div>
                             <div className="input-group">
                                 <label className="input-label">{t('sys.str_893')}</label>

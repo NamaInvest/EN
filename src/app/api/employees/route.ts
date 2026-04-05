@@ -37,3 +37,23 @@ export async function POST(request: Request) {
         return NextResponse.json(employee, { status: 201 });
     } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
+
+// Update Employee Biometrics (Face Descriptor)
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        if (!body.employeeId || !body.faceDescriptor) {
+            return NextResponse.json({ error: 'Missing employeeId or faceDescriptor' }, { status: 400 });
+        }
+        
+        const updated = await prisma.employee.update({
+            where: { id: parseInt(body.employeeId) },
+            data: { faceDescriptor: body.faceDescriptor }
+        });
+        
+        return NextResponse.json(updated);
+    } catch (error) {
+        console.error("Face registration error:", error);
+        return NextResponse.json({ error: 'Failed to save biometric data' }, { status: 500 });
+    }
+}

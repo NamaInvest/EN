@@ -568,6 +568,7 @@ model Employee {
   createdAt          DateTime @default(now()) @map("created_at")
   branchId           Int?     @map("branch_id")
   branch             Branch?  @relation(fields: [branchId], references: [id])
+  faceDescriptor     String?  @db.Text @map("face_descriptor")
 
   attendance          Attendance[]
   salaries            Salary[]

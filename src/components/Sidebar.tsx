@@ -104,6 +104,7 @@ const menuItems = [
             { icon: '👔', labelKey: 'التوظيف والسير الذاتية', href: '/hr/jobs', module: 'employees' },
             { icon: '📊', labelKey: 'تقييم الأداء (KPIs)', href: '/hr/evaluations', module: 'employees' },
             { icon: '🎓', labelKey: 'التدريب والتطوير', href: '/hr/training', module: 'employees' },
+            { icon: '👁️', labelKey: 'تسجيل البصمة الذكية', href: '/hr/ai-enrollment', module: 'employees' },
         ]
     },
     {
