@@ -224,7 +224,7 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#02040a] text-white flex items-center justify-center font-bold text-xl">جاري تهيئة بيئة الدخول...</div>}>
+        <Suspense fallback={<div style={{minHeight:'100vh',background:'#02040a',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:'bold',fontSize:'1.25rem',fontFamily:'Cairo,sans-serif'}}>جاري تهيئة بيئة الدخول...</div>}>
             <LoginForm />
         </Suspense>
     );
