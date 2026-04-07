@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
-    { id: 'default', name: '🌑 الداكن الكلاسيكي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
-    { id: 'theme-light', name: '💼 الفاتح النظيف', preview: { p: '#4F46E5', b: '#FFFFFF', t: '#0F172A'} },
-    { id: 'theme-luxury', name: '👑 الملكي الفاخر', preview: { p: '#D4AF37', b: '#04060F', t: '#FDFBF7'} },
-    { id: 'theme-cyber', name: '🔥 النيون السيبراني', preview: { p: '#00FFCC', b: '#050505', t: '#E0FFFF'} },
-    { id: 'theme-soft', name: '☁️ النعومة الفائقة', preview: { p: '#8DA9C4', b: '#E0E7ED', t: '#4A5A6A'} },
+    { id: 'default', name: t('sys.str_4003'), preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
+    { id: 'theme-light', name: t('sys.str_4004'), preview: { p: '#4F46E5', b: '#FFFFFF', t: '#0F172A'} },
+    { id: 'theme-luxury', name: t('sys.str_4005'), preview: { p: '#D4AF37', b: '#04060F', t: '#FDFBF7'} },
+    { id: 'theme-cyber', name: t('sys.str_4006'), preview: { p: '#00FFCC', b: '#050505', t: '#E0FFFF'} },
+    { id: 'theme-soft', name: t('sys.str_4007'), preview: { p: '#8DA9C4', b: '#E0E7ED', t: '#4A5A6A'} },
 ];
 
 export default function ThemeSwitcher() {

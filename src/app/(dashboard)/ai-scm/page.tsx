@@ -25,9 +25,7 @@ export default function AISCMPage() {
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
                     <span className="text-4xl">📦</span> {t('sys.str_321')}</h1>
                 <p className="text-purple-100 text-lg">
-                    هذا النظام المتطور يقوم بمراقبة أرصدة مستودعاتك في الخلفية. 
-                    عندما تقترب كمية أي منتج من النفاذ، سيقوم العقل الاصطناعي بإنشاء (أمر شراء) تلقائياً من المورد الافتراضي.
-                </p>
+                    {t('sys.str_4138')}</p>
                 <button 
                     onClick={triggerSCM} 
                     disabled={loading}

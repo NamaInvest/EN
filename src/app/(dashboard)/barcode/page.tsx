@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Product {
     id: number;
@@ -13,11 +14,12 @@ const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSiz
     { value: '30x20', label: '🏷️ 30×20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
     { value: '40x30', label: '🏷️ 40×30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
     { value: '50x25', label: '🏷️ 50×25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
-    { value: '50x30', label: '🏷️ 50×30mm (الأكثر شيوعاً)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
+    { value: '50x30', label: t('sys.str_4156'), w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
     { value: '100x50', label: '🏷️ 100×50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
 ];
 
 export default function BarcodePage() {
+    const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -91,7 +93,7 @@ export default function BarcodePage() {
 
     const handlePrint = () => {
         const code = manualBarcode.trim();
-        if (!code) { showToast('❌ أدخل رقم الباركود أولاً'); return; }
+        if (!code) { showToast(t('sys.str_4157')); return; }
         const sz = LABEL_SIZES.find(s => s.value === labelSize) || LABEL_SIZES[3];
         const name = manualName || '';
         const price = selectedProduct?.sellPrice;
@@ -115,7 +117,7 @@ export default function BarcodePage() {
         }
 
         const pw = window.open('', '_blank', 'width=500,height=500');
-        if (!pw) { showToast('❌ المتصفح منع النافذة المنبثقة'); return; }
+        if (!pw) { showToast(t('sys.str_4158')); return; }
         pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طباعة باركود</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
@@ -136,7 +138,7 @@ export default function BarcodePage() {
 
     // Save selected barcode to product if it was generated
     const handleSaveBarcode = async () => {
-        if (!selectedProduct || !manualBarcode) { showToast('❌ اختر منتج وأدخل الباركود'); return; }
+        if (!selectedProduct || !manualBarcode) { showToast(t('sys.str_4159')); return; }
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/products/${selectedProduct.id}`, {
@@ -145,30 +147,30 @@ export default function BarcodePage() {
                 body: JSON.stringify({ barcode: manualBarcode }),
             });
             if (res.ok) {
-                showToast('✅ تم حفظ الباركود للمنتج');
+                showToast(t('sys.str_4160'));
                 setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, barcode: manualBarcode } : p));
                 setSelectedProduct({ ...selectedProduct, barcode: manualBarcode });
             } else {
                 const d = await res.json();
-                showToast(`❌ ${d.error || 'فشل في الحفظ'}`);
+                showToast(`❌ ${d.error || t('sys.str_4161')}`);
             }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_4162')); }
     };
 
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🏷️ إنشاء وطباعة باركود</h1>
+                <h1 className="page-title">{t('sys.str_4139')}</h1>
             </div>
             <div className="page-content animate-fade-in">
                 <div className="card" style={{ padding: '24px' }}>
                     {/* Product Search */}
                     <div style={{ marginBottom: '20px' }}>
-                        <label className="input-label" style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px', display: 'block' }}>🔍 بحث عن منتج</label>
+                        <label className="input-label" style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px', display: 'block' }}>{t('sys.str_4140')}</label>
                         <div style={{ position: 'relative' }}>
                             <input
                                 className="input"
-                                placeholder="ابحث بالاسم أو الباركود..."
+                                placeholder={t('sys.str_4163')}
                                 value={search}
                                 onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
                                 onFocus={() => setShowDropdown(true)}
@@ -195,11 +197,10 @@ export default function BarcodePage() {
                                         >
                                             <div>
                                                 <div style={{ fontWeight: '600' }}>{p.name}</div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', direction: 'ltr' }}>{p.barcode || 'بدون باركود'}</div>
+                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', direction: 'ltr' }}>{p.barcode || t('sys.str_4164')}</div>
                                             </div>
                                             <div style={{ fontSize: '13px', color: 'var(--success-light)', fontWeight: '600' }}>
-                                                {p.sellPrice?.toFixed(2)} ر.س
-                                            </div>
+                                                {p.sellPrice?.toFixed(2)} {t('sys.str_4105')}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -217,40 +218,38 @@ export default function BarcodePage() {
                             <div>
                                 <div style={{ fontWeight: '700', fontSize: '15px' }}>📦 {selectedProduct.name}</div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    باركود: <code style={{ direction: 'ltr' }}>{selectedProduct.barcode || 'غير موجود'}</code>
+                                    {t('sys.str_4141')}<code style={{ direction: 'ltr' }}>{selectedProduct.barcode || t('sys.str_4165')}</code>
                                 </div>
                             </div>
                             <div style={{ fontWeight: '700', fontSize: '16px', color: 'var(--success-light)' }}>
-                                {selectedProduct.sellPrice?.toFixed(2)} ر.س
-                            </div>
+                                {selectedProduct.sellPrice?.toFixed(2)} {t('sys.str_4105')}</div>
                         </div>
                     )}
 
                     {/* Barcode Input & Generator */}
                     <div className="grid-2" style={{ marginBottom: '20px' }}>
                         <div className="input-group">
-                            <label className="input-label">رقم الباركود</label>
+                            <label className="input-label">{t('sys.str_4142')}</label>
                             <div style={{ display: 'flex', gap: '6px' }}>
                                 <input
                                     className="input"
                                     style={{ flex: 1 }}
                                     value={manualBarcode}
                                     onChange={e => setManualBarcode(e.target.value)}
-                                    placeholder="أدخل أو ولّد الباركود"
+                                    placeholder={t('sys.str_4166')}
                                     dir="ltr"
                                 />
-                                <button className="btn btn-primary btn-sm" onClick={generateBarcode} title="توليد باركود EAN-13">
-                                    🔢 توليد
-                                </button>
+                                <button className="btn btn-primary btn-sm" onClick={generateBarcode} title={t('sys.str_4167')}>
+                                    {t('sys.str_4143')}</button>
                             </div>
                         </div>
                         <div className="input-group">
-                            <label className="input-label">اسم المنتج (اختياري)</label>
+                            <label className="input-label">{t('sys.str_4144')}</label>
                             <input
                                 className="input"
                                 value={manualName}
                                 onChange={e => setManualName(e.target.value)}
-                                placeholder="يظهر على الملصق"
+                                placeholder={t('sys.str_4168')}
                             />
                         </div>
                     </div>
@@ -258,13 +257,13 @@ export default function BarcodePage() {
                     {/* Settings Row */}
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '20px' }}>
                         <div className="input-group" style={{ minWidth: '180px' }}>
-                            <label className="input-label">مقاس الملصق</label>
+                            <label className="input-label">{t('sys.str_4145')}</label>
                             <select className="input" value={labelSize} onChange={e => setLabelSize(e.target.value)}>
                                 {LABEL_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                             </select>
                         </div>
                         <div className="input-group" style={{ width: '100px' }}>
-                            <label className="input-label">الكمية</label>
+                            <label className="input-label">{t('sys.str_4093')}</label>
                             <input className="input" type="number" value={qty} onChange={e => setQty(Math.max(1, Math.min(200, parseInt(e.target.value) || 1)))} min="1" max="200" dir="ltr" />
                         </div>
                         <label style={{
@@ -274,14 +273,14 @@ export default function BarcodePage() {
                             border: showPrice ? '1px solid rgba(34,197,94,0.3)' : '1px solid var(--border)',
                         }}>
                             <input type="checkbox" checked={showPrice} onChange={e => setShowPrice(e.target.checked)} style={{ accentColor: '#22c55e' }} />
-                            <span style={{ fontWeight: '600' }}>💰 إظهار السعر</span>
+                            <span style={{ fontWeight: '600' }}>{t('sys.str_4146')}</span>
                         </label>
                     </div>
 
                     {/* Preview */}
                     {manualBarcode && (
                         <div style={{ marginBottom: '20px' }}>
-                            <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>معاينة الملصق</label>
+                            <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>{t('sys.str_4147')}</label>
                             <div style={{
                                 display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
                                 justifyContent: 'center', padding: '12px 20px',
@@ -293,7 +292,7 @@ export default function BarcodePage() {
                                 <div style={{ width: '150px', height: '50px', margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: generateBarcodeSvg(manualBarcode) }} />
                                 <div style={{ fontSize: '12px', fontWeight: '600', letterSpacing: '2px', fontFamily: 'monospace' }}>{manualBarcode}</div>
                                 {showPrice && selectedProduct?.sellPrice && (
-                                    <div style={{ fontSize: '12px', fontWeight: '700', marginTop: '2px' }}>{selectedProduct.sellPrice.toFixed(2)} ر.س</div>
+                                    <div style={{ fontSize: '12px', fontWeight: '700', marginTop: '2px' }}>{selectedProduct.sellPrice.toFixed(2)} {t('sys.str_4105')}</div>
                                 )}
                             </div>
                         </div>
@@ -302,49 +301,46 @@ export default function BarcodePage() {
                     {/* Action Buttons */}
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                         <button className="btn btn-primary" onClick={handlePrint} style={{ fontSize: '15px', padding: '10px 24px' }}>
-                            🖨️ طباعة ملصقات
-                        </button>
+                            {t('sys.str_4148')}</button>
                         {selectedProduct && manualBarcode && manualBarcode !== selectedProduct.barcode && (
                             <button className="btn" onClick={handleSaveBarcode} style={{
                                 background: 'rgba(99,102,241,0.12)', color: '#6366f1',
                                 border: '1px solid rgba(99,102,241,0.3)', fontWeight: '600',
                             }}>
-                                💾 حفظ الباركود للمنتج
-                            </button>
+                                {t('sys.str_4149')}</button>
                         )}
                     </div>
 
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px' }}>
-                        💡 عند الضغط على طباعة، سيظهر مربع حوار النظام لاختيار الطابعة المثبتة على جهازك (طابعة باركود أو عادية)
-                    </p>
+                        {t('sys.str_4150')}</p>
                 </div>
 
                 {/* Products without barcode */}
                 <div className="card" style={{ padding: '24px', marginTop: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>⚠️ منتجات بدون باركود</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>{t('sys.str_4151')}</h3>
                     <div className="table-container">
                         <table className="table">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>المنتج</th>
-                                    <th>السعر</th>
-                                    <th>إجراء</th>
+                                    <th>{t('sys.str_4152')}</th>
+                                    <th>{t('sys.str_4094')}</th>
+                                    <th>{t('sys.str_4153')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {products.filter(p => !p.barcode).length === 0 ? (
-                                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>✅ جميع المنتجات لديها باركود</td></tr>
+                                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>{t('sys.str_4154')}</td></tr>
                                 ) : products.filter(p => !p.barcode).slice(0, 20).map((p, i) => (
                                     <tr key={p.id}>
                                         <td>{i + 1}</td>
                                         <td style={{ fontWeight: '600' }}>{p.name}</td>
-                                        <td>{p.sellPrice?.toFixed(2)} ر.س</td>
+                                        <td>{p.sellPrice?.toFixed(2)} {t('sys.str_4105')}</td>
                                         <td>
                                             <button className="btn btn-primary btn-sm" onClick={() => {
                                                 selectProduct(p);
                                                 generateBarcode();
-                                            }}>🔢 توليد وتحديد</button>
+                                            }}>{t('sys.str_4155')}</button>
                                         </td>
                                     </tr>
                                 ))}

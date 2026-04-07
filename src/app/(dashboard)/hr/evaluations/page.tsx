@@ -54,7 +54,7 @@ export default function EmployeeEvaluationsPage() {
         setShowModal(false);
         loadData();
       } else {
-        alert('حدث خطأ أثناء حفظ التقييم');
+        alert(t('sys.str_4627'));
       }
     } catch (error) {
       console.error(error);
@@ -82,7 +82,7 @@ export default function EmployeeEvaluationsPage() {
             <form onSubmit={handleSave} className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Employee (الموظف)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4622')}</label>
                   <select required value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600">
                     <option value="">{t('sys.str_2106')}</option>
                     {employees.map(emp => (
@@ -91,18 +91,18 @@ export default function EmployeeEvaluationsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Period (الفترة الإدارية)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4623')}</label>
                   <input required type="text" value={period} onChange={e => setPeriod(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" placeholder="e.g. Q1 2026" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Score (نسبة التقييم %)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4624')}</label>
                   <input required type="number" min="0" max="100" value={score} onChange={e => setScore(Number(e.target.value))} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                   <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
                     <div className={`h-2 rounded-full ${score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{width: `${score}%`}}></div>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Manager Notes (ملاحظات)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4625')}</label>
                   <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600"></textarea>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function EmployeeEvaluationsPage() {
         {loading ? (
           <div className="p-8 text-center text-slate-500">{t('sys.str_168')}</div>
         ) : evaluations.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No evaluations recorded. اضغط على الزر بالأعلى لإضافة تقييم.</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_4626')}</div>
         ) : (
           <table className="w-full text-left border-collapse" dir="ltr">
             <thead>

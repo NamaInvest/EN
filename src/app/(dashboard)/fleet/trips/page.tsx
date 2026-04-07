@@ -20,25 +20,24 @@ export default function FleetTripsPage() {
   return (
     <div className="p-6" dir="rtl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">🚚 إدارة الأسطول - الرحلات</h1>
+        <h1 className="text-2xl font-bold">{t('sys.str_4605')}</h1>
         <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
-          + تسجيل رحلة جديدة
-        </button>
+          {t('sys.str_4606')}</button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">جاري تحميل رحلات الأسطول...</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_4607')}</div>
         ) : trips.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">لا توجد رحلات مسجلة.</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_4608')}</div>
         ) : (
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <th className="p-4 font-semibold">{t('sys.str_2029')}</th>
                 <th className="p-4 font-semibold">{t('sys.str_2030')}</th>
-                <th className="p-4 font-semibold">المسار</th>
-                <th className="p-4 font-semibold">وقت المغادرة</th>
+                <th className="p-4 font-semibold">{t('sys.str_4609')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_4610')}</th>
                 <th className="p-4 font-semibold">{t('fin.str_227')}</th>
               </tr>
             </thead>

@@ -70,9 +70,9 @@ export default function StockPage() {
                                                                     <input 
                                                                         type="text" 
                                                                         defaultValue={ps.location || ''} 
-                                                                        placeholder="الرف/الموقع"
+                                                                        placeholder={t('sys.str_3501')}
                                                                         onBlur={(e) => handleLocationUpdate(ps.id, e.target.value)}
-                                                                        title="تسجيل مكان الرف (Bin) بالمخزن"
+                                                                        title={t('sys.str_3502')}
                                                                         style={{ fontSize: '10px', padding: '2px 4px', width: '70px', border: '1px solid #ccc', borderRadius: '3px' }}
                                                                     />
                                                                 </div>

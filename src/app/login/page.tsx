@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Suspense } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 function LoginForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [companyName, setCompanyName] = useState('نما انفست');
+    const [companyName, setCompanyName] = useState(t('sys.str_4019'));
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/auth/routing';
@@ -74,12 +75,12 @@ function LoginForm() {
             try {
                 data = await res.json();
             } catch {
-                setError('الخادم أرسل رد غير صالح (status: ' + res.status + ')');
+                setError(t('sys.str_4020') + res.status + ')');
                 return;
             }
 
             if (!res.ok) {
-                setError(data.error || 'خطأ في تسجيل الدخول');
+                setError(data.error || t('sys.str_4021'));
                 return;
             }
 
@@ -93,9 +94,9 @@ function LoginForm() {
         } catch (err) {
             console.error('[LOGIN] Error:', err);
             if (err instanceof DOMException && err.name === 'AbortError') {
-                setError('انتهت مهلة الاتصال بالخادم - حاول مرة أخرى');
+                setError(t('sys.str_4022'));
             } else {
-                setError('خطأ في الاتصال: ' + (err instanceof Error ? err.message : 'تحقق من الشبكة'));
+                setError(t('sys.str_4023') + (err instanceof Error ? err.message : t('sys.str_4024')));
             }
         } finally {
             setLoading(false);
@@ -106,18 +107,18 @@ function LoginForm() {
         <div className="login-page">
             <div className="login-card">
                 <div className="login-logo">
-                    <div className="login-logo-icon">ن</div>
+                    <div className="login-logo-icon">{t('sys.str_4010')}</div>
                     <div className="login-logo-text">{companyName}</div>
-                    <div className="login-subtitle">نظام نقاط البيع والمحاسبة المتكامل</div>
+                    <div className="login-subtitle">{t('sys.str_4011')}</div>
                 </div>
 
                 <form onSubmit={handleLogin}>
                     <div className="input-group">
-                        <label className="input-label">اسم المستخدم</label>
+                        <label className="input-label">{t('sys.str_4012')}</label>
                         <input
                             type="text"
                             className="input"
-                            placeholder="أدخل اسم المستخدم"
+                            placeholder={t('sys.str_4025')}
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -126,11 +127,11 @@ function LoginForm() {
                     </div>
 
                     <div className="input-group">
-                        <label className="input-label">كلمة المرور</label>
+                        <label className="input-label">{t('sys.str_4013')}</label>
                         <input
                             type="password"
                             className="input"
-                            placeholder="أدخل كلمة المرور"
+                            placeholder={t('sys.str_4026')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -162,8 +163,7 @@ function LoginForm() {
                         {loading ? (
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                 <span className="login-spinner" />
-                                جاري الدخول...
-                            </span>
+                                {t('sys.str_4014')}</span>
                         ) : (
                             'تسجيل الدخول'
                         )}
@@ -171,7 +171,7 @@ function LoginForm() {
 
                     <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: '#64748b' }}>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border-color, #e2e8f0)' }}></div>
-                        <span style={{ margin: '0 10px', fontSize: '14px', fontWeight: 600 }}>أو</span>
+                        <span style={{ margin: '0 10px', fontSize: '14px', fontWeight: 600 }}>{t('sys.str_4015')}</span>
                         <div style={{ flex: 1, height: '1px', background: 'var(--border-color, #e2e8f0)' }}></div>
                     </div>
 
@@ -206,8 +206,7 @@ function LoginForm() {
                             <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
                             <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
                         </svg>
-                        التسجيل بواسطة حساب جوجل
-                    </button>
+                        {t('sys.str_4016')}</button>
                     
                 </form>
 
@@ -215,16 +214,16 @@ function LoginForm() {
                     textAlign: 'center', marginTop: '24px', paddingTop: '20px',
                     borderTop: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '12px'
                 }}>
-                    الحساب الافتراضي: admin / admin
-                </div>
+                    {t('sys.str_4017')}</div>
             </div>
         </div>
     );
 }
 
 export default function LoginPage() {
+    const { t } = useTranslation();
     return (
-        <Suspense fallback={<div style={{minHeight:'100vh',background:'#02040a',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:'bold',fontSize:'1.25rem',fontFamily:'Cairo,sans-serif'}}>جاري تهيئة بيئة الدخول...</div>}>
+        <Suspense fallback={<div style={{minHeight:'100vh',background:'#02040a',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:'bold',fontSize:'1.25rem',fontFamily:'Cairo,sans-serif'}}>{t('sys.str_4018')}</div>}>
             <LoginForm />
         </Suspense>
     );

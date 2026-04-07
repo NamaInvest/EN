@@ -4,62 +4,63 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/lib/SettingsContext';
+import { useTranslation } from "@/lib/i18n";
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
 
 export const SETTING_GROUPS = [
     {
-        title: '🏢 معلومات الشركة', keys: [
-            { key: 'company_name', label: 'اسم الشركة', type: 'text' },
-            { key: 'company_name_en', label: 'اسم الشركة بالإنجليزي', type: 'text' },
-            { key: 'company_phone', label: 'هاتف الشركة', type: 'text' },
-            { key: 'company_address', label: 'عنوان الشركة', type: 'text' },
-            { key: 'tax_number', label: 'الرقم الضريبي (VAT)', type: 'text' },
-            { key: 'currency', label: 'العملة', type: 'text' },
+        title: t('sys.str_4390'), keys: [
+            { key: 'company_name', label: t('sys.str_4391'), type: 'text' },
+            { key: 'company_name_en', label: t('sys.str_4392'), type: 'text' },
+            { key: 'company_phone', label: t('sys.str_4393'), type: 'text' },
+            { key: 'company_address', label: t('sys.str_4394'), type: 'text' },
+            { key: 'tax_number', label: t('sys.str_4395'), type: 'text' },
+            { key: 'currency', label: t('sys.str_4396'), type: 'text' },
         ]
     },
     {
-        title: '💰 الضريبة', keys: [
-            { key: 'tax_rate', label: 'نسبة الضريبة %', type: 'number' },
-            { key: 'zatca_enabled', label: 'تفعيل ZATCA', type: 'toggle' },
+        title: t('sys.str_4397'), keys: [
+            { key: 'tax_rate', label: t('sys.str_4398'), type: 'number' },
+            { key: 'zatca_enabled', label: t('sys.str_4399'), type: 'toggle' },
         ]
     },
     {
-        title: '🔐 ربط الزكاة - المرحلة الثانية', keys: [
-            { key: 'zatca_crn', label: 'رقم السجل التجاري (CRN)', type: 'text' },
-            { key: 'zatca_industry', label: 'نوع النشاط (مثل: Technology, Retail)', type: 'text' },
-            { key: 'branch_name_en', label: 'اسم الفرع بالإنجليزي (Organization Unit)', type: 'text' },
-            { key: 'zatca_street', label: 'اسم الشارع', type: 'text' },
-            { key: 'zatca_building', label: 'رقم المبنى', type: 'text' },
-            { key: 'zatca_district', label: 'الحي', type: 'text' },
-            { key: 'zatca_city', label: 'المدينة بالعربي', type: 'text' },
-            { key: 'zatca_city_en', label: 'المدينة بالإنجليزي (للشهادة)', type: 'text' },
-            { key: 'zatca_postal_code', label: 'الرمز البريدي', type: 'text' },
+        title: t('sys.str_4400'), keys: [
+            { key: 'zatca_crn', label: t('sys.str_4401'), type: 'text' },
+            { key: 'zatca_industry', label: t('sys.str_4402'), type: 'text' },
+            { key: 'branch_name_en', label: t('sys.str_4403'), type: 'text' },
+            { key: 'zatca_street', label: t('sys.str_4404'), type: 'text' },
+            { key: 'zatca_building', label: t('sys.str_4405'), type: 'text' },
+            { key: 'zatca_district', label: t('sys.str_4406'), type: 'text' },
+            { key: 'zatca_city', label: t('sys.str_4407'), type: 'text' },
+            { key: 'zatca_city_en', label: t('sys.str_4408'), type: 'text' },
+            { key: 'zatca_postal_code', label: t('sys.str_4409'), type: 'text' },
         ]
     },
     {
-        title: '🖨️ الطباعة', keys: [
-            { key: 'printer_type', label: 'مقاس ورق الفواتير', type: 'select', options: [
-                { value: '58mm', label: '🧾 حرارية 58mm (صغيرة)' },
-                { value: '76mm', label: '🧾 حرارية 76mm (متوسطة)' },
-                { value: '80mm', label: '🧾 حرارية 80mm (قياسية)' },
+        title: t('sys.str_4410'), keys: [
+            { key: 'printer_type', label: t('sys.str_4411'), type: 'select', options: [
+                { value: '58mm', label: t('sys.str_4412') },
+                { value: '76mm', label: t('sys.str_4413') },
+                { value: '80mm', label: t('sys.str_4414') },
                 { value: 'A4', label: '📄 A4 (210mm)' },
                 { value: 'A5', label: '📄 A5 (148mm)' },
             ]},
-            { key: 'receipt_header', label: 'رأس الفاتورة', type: 'text' },
-            { key: 'receipt_footer', label: 'تذييل الفاتورة', type: 'text' },
-            { key: 'barcode_label_size', label: 'مقاس ملصق الباركود', type: 'select', options: [
+            { key: 'receipt_header', label: t('sys.str_4415'), type: 'text' },
+            { key: 'receipt_footer', label: t('sys.str_4416'), type: 'text' },
+            { key: 'barcode_label_size', label: t('sys.str_4417'), type: 'select', options: [
                 { value: '30x20', label: '🏷️ 30×20mm' },
                 { value: '40x30', label: '🏷️ 40×30mm' },
                 { value: '50x25', label: '🏷️ 50×25mm' },
-                { value: '50x30', label: '🏷️ 50×30mm (الأكثر شيوعاً)' },
+                { value: '50x30', label: t('sys.str_4156') },
                 { value: '100x50', label: '🏷️ 100×50mm' },
             ]},
         ]
     },
     {
-        title: '📱 واتساب API', id: 'whatsapp', keys: [
-            { key: 'whatsapp_enabled', label: 'تفعيل واتساب API', type: 'toggle' },
+        title: t('sys.str_4418'), id: 'whatsapp', keys: [
+            { key: 'whatsapp_enabled', label: t('sys.str_4419'), type: 'toggle' },
             { key: 'whatsapp_token', label: 'WhatsApp Access Token', type: 'text' },
             { key: 'whatsapp_phone_id', label: 'Phone Number ID', type: 'text' },
             { key: 'whatsapp_business_id', label: 'Business Account ID', type: 'text' },
@@ -67,59 +68,60 @@ export const SETTING_GROUPS = [
         ]
     },
     {
-        title: '✉️ بوابات الـ SMS (رسائل نصية)', id: 'sms_gateways', keys: [
-            { key: 'sms_enabled', label: 'تفعيل إرسال الفواتير عبر رقم الجوال', type: 'toggle' },
-            { key: 'sms_provider', label: 'مزود الخدمة (Taqnyat أو Unifonic)', type: 'select', options: [
-                { value: 'taqnyat', label: 'Taqnyat (تقنيات)' },
-                { value: 'unifonic', label: 'Unifonic (يونيفونك)' }
+        title: t('sys.str_4420'), id: 'sms_gateways', keys: [
+            { key: 'sms_enabled', label: t('sys.str_4421'), type: 'toggle' },
+            { key: 'sms_provider', label: t('sys.str_4422'), type: 'select', options: [
+                { value: 'taqnyat', label: t('sys.str_4423') },
+                { value: 'unifonic', label: t('sys.str_4424') }
             ]},
-            { key: 'sms_api_key', label: 'مفتاح الـ API (Access Token)', type: 'text' },
-            { key: 'sms_sender_id', label: 'اسم المرسل (Sender ID)', type: 'text' },
+            { key: 'sms_api_key', label: t('sys.str_4425'), type: 'text' },
+            { key: 'sms_sender_id', label: t('sys.str_4426'), type: 'text' },
         ]
     },
     {
-        title: '🛒 سلة API', id: 'salla', keys: [
-            { key: 'salla_enabled', label: 'تفعيل ربط سلة', type: 'toggle' },
-            { key: 'salla_merchant_id', label: 'معرف المتجر (Merchant ID)', type: 'text' },
+        title: t('sys.str_4427'), id: 'salla', keys: [
+            { key: 'salla_enabled', label: t('sys.str_4428'), type: 'toggle' },
+            { key: 'salla_merchant_id', label: t('sys.str_4429'), type: 'text' },
             { key: 'salla_client_id', label: 'Client ID', type: 'text' },
             { key: 'salla_client_secret', label: 'Client Secret (Webhook HMAC)', type: 'text' },
             { key: 'salla_access_token', label: 'Access Token', type: 'text' },
-            { key: 'salla_webhook_url', label: 'Webhook URL (للقراءة فقط)', type: 'text' },
+            { key: 'salla_webhook_url', label: t('sys.str_4430'), type: 'text' },
         ]
     },
     {
-        title: '🛍️ زد API', id: 'zid', keys: [
-            { key: 'zid_enabled', label: 'تفعيل ربط زد', type: 'toggle' },
-            { key: 'zid_store_id', label: 'معرف المتجر (Store ID)', type: 'text' },
+        title: t('sys.str_4431'), id: 'zid', keys: [
+            { key: 'zid_enabled', label: t('sys.str_4432'), type: 'toggle' },
+            { key: 'zid_store_id', label: t('sys.str_4433'), type: 'text' },
             { key: 'zid_client_id', label: 'Client ID', type: 'text' },
             { key: 'zid_webhook_secret', label: 'Webhook Secret (Authorization Token)', type: 'text' },
             { key: 'zid_access_token', label: 'Access Token', type: 'text' },
-            { key: 'zid_webhook_url', label: 'Webhook URL (للقراءة فقط)', type: 'text' },
+            { key: 'zid_webhook_url', label: t('sys.str_4430'), type: 'text' },
         ]
     },
     {
-        title: '🌐 ربط منصة فاتورة (OTA)', keys: [
-            { key: 'zatca_environment', label: 'البيئة', type: 'select' },
-            { key: 'zatca_otp', label: 'OTP من بوابة فاتورة', type: 'text' },
+        title: t('sys.str_4434'), keys: [
+            { key: 'zatca_environment', label: t('sys.str_4435'), type: 'select' },
+            { key: 'zatca_otp', label: t('sys.str_4436'), type: 'text' },
         ]
     },
     {
-        title: '💳 بوابات الدفع والتقسيط (BNPL)', id: 'bnpl', keys: [
-            { key: 'tabby_api_key', label: 'مفتاح Tabby Secret Key', type: 'text' },
-            { key: 'tabby_merchant_code', label: 'كود التاجر (Merchant Code) لتابي', type: 'text' },
-            { key: 'tamara_bearer_token', label: 'مفتاح Tamara Bearer Token', type: 'text' },
+        title: t('sys.str_4437'), id: 'bnpl', keys: [
+            { key: 'tabby_api_key', label: t('sys.str_4438'), type: 'text' },
+            { key: 'tabby_merchant_code', label: t('sys.str_4439'), type: 'text' },
+            { key: 'tamara_bearer_token', label: t('sys.str_4440'), type: 'text' },
         ]
     },
     {
-        title: '🤖 الذكاء الاصطناعي وبوت تلجرام', id: 'ai_bots', keys: [
-            { key: 'gemini_api_key', label: 'مفتاح Gemini API (لقارئ الفواتير الذكي)', type: 'text' },
-            { key: 'telegram_bot_token', label: 'مفتاح بوت تلجرام (Bot Token)', type: 'text' },
-            { key: 'master_telegram_chat_id', label: 'معرف دردشة المدير (Chat ID للمدقق الآلي)', type: 'text' },
+        title: t('sys.str_4441'), id: 'ai_bots', keys: [
+            { key: 'gemini_api_key', label: t('sys.str_4442'), type: 'text' },
+            { key: 'telegram_bot_token', label: t('sys.str_4443'), type: 'text' },
+            { key: 'master_telegram_chat_id', label: t('sys.str_4444'), type: 'text' },
         ]
     },
 ];
 
 export default function SettingsPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [authorized, setAuthorized] = useState(false);
     const [settings, setSettings] = useState<Record<string, string>>({});
@@ -177,79 +179,79 @@ export default function SettingsPage() {
     const [canClearZatca, setCanClearZatca] = useState(false);
     const roleLabels: Record<string, string> = { owner: 'المالك', admin: 'مدير النظام', manager: 'مدير عام', auditor: 'مُراجع / مدقق', accountant: 'محاسب', cashier: 'كاشير', data_entry: 'مدخل بيانات', hr: 'موارد بشرية', sales_rep: 'مندوب مبيعات' };
     const ALL_MODULES = [
-        { key: 'dashboard', label: '📊 لوحة التحكم الرئيسية' },
-        { key: 'pos', label: '💻 شاشة نقطة البيع (POS)' },
-        { key: 'restaurant_pos', label: '🍔 نقطة بيع المطاعم' },
-        { key: 'shifts', label: '🕒 ورديات الكاشير' },
-        { key: 'sales_orders', label: '📦 أوامر البيع' },
-        { key: 'sales', label: '🧾 المبيعات' },
-        { key: 'sales_routes', label: '🗺️ خطوط السير' },
-        { key: 'sales_targets', label: '🎯 مستهدفات المبيعات' },
-        { key: 'purchases', label: '🛒 المشتريات' },
-        { key: 'purchase_orders', label: '📋 أوامر الشراء' },
-        { key: 'letters_of_credit', label: '🌍 الاعتمادات (الاستيراد)' },
-        { key: 'sales_returns', label: '↩️ مرتجع مبيعات' },
-        { key: 'purchase_returns', label: '↩️ مرتجع مشتريات' },
-        { key: 'bookings', label: '📋 الحجوزات' },
-        { key: 'price_quotes', label: '📄 عروض الأسعار' },
-        { key: 'coupons', label: '🎟️ الكوبونات' },
-        { key: 'products', label: '📦 المنتجات والأصناف' },
-        { key: 'stock', label: '🏭 حركة المخزون' },
-        { key: 'manufacturing', label: '🛠️ إدارة التصنيع والتجميع' },
-        { key: 'warehouses', label: '🏢 المستودعات' },
-        { key: 'stock_transfers', label: '🔀 التحويلات المخزنية' },
-        { key: 'barcode', label: '🏷️ طباعة الباركود' },
-        { key: 'batches', label: '⏱️ التشغيلات والصلاحيات' },
-        { key: 'customers', label: '👥 العملاء والموردين' },
-        { key: 'loyalty', label: '🎁 نقاط الولاء' },
-        { key: 'treasury', label: '💰 الخزينة' },
-        { key: 'treasury_checks', label: '🏦 الشيكات وأوراق الدفع' },
-        { key: 'bank_reconciliation', label: '⚖️ التسويات البنكية' },
-        { key: 'petty_cash', label: '💸 العهد والمصاريف النثرية' },
-        { key: 'banks', label: '🏦 البنوك' },
-        { key: 'receipt_vouchers', label: '🧾 سندات القبض والصرف' },
-        { key: 'expenses', label: '💸 المصروفات' },
-        { key: 'reports', label: '📊 التقارير الشاملة' },
-        { key: 'installments', label: '📑 أقساط العملاء' },
-        { key: 'gift_cards', label: '💳 بطاقات الهدايا' },
-        { key: 'employees', label: '👨‍💼 شؤون الموظفين' },
-        { key: 'attendance', label: '🕐 الحضور والانصراف' },
-        { key: 'hr_loans', label: '💼 سلف الموظفين' },
-        { key: 'salaries', label: '💵 مسير الرواتب' },
-        { key: 'vacations', label: '🏖️ الإجازات والطلبات' },
-        { key: 'whatsapp', label: '📨 واتساب API' },
-        { key: 'salla', label: '🛒 ربط منصة سلة' },
-        { key: 'maintenance', label: '🔧 الصيانة والأعطال' },
-        { key: 'promotions', label: '🎯 العروض الترويجية' },
-        { key: 'stocktake', label: '📦 عمليات الجرد المخزني' },
-        { key: 'vision_inventory', label: '📸 الجرد بالذكاء الاصطناعي' },
-        { key: 'master-panel', label: '🌐 محرك الإدارة (SaaS)' },
-        { key: 'mrp', label: '🏭 إدارة المصانع المتقدمة (MRP)' },
-        { key: 'projects', label: '🏗️ المشاريع والمقاولات (Job Costing)' },
-        { key: 'wms', label: '📐 توجيه المستودع الذكي (WMS)' },
-        { key: 'legal', label: '⚖️ الضمانات والرقابة الائتمانية' },
-        { key: 'accounting', label: '📊 المحاسبة العامة والقيود' },
-        { key: 'fixed_assets', label: '🏢 الأصول الثابتة والإهلاك' },
-        { key: 'crm_leads', label: '💼 إدارة الفرص البيعية (CRM)' },
-        { key: 'fleet', label: '🚚 حركة أسطول النقل والتوزيع' },
-        { key: 'property', label: '🏠 إدارة الأملاك والعقارات' },
-        { key: 'quality', label: '🔎 الفحص ومراقبة الجودة' },
-        { key: 'branches', label: '🏢 إدارة الفروع' },
-        { key: 'currencies', label: '💱 العملات وسعر الصرف' },
-        { key: 'approvals', label: '✅ نظام الرقابة والموافقات' },
-        { key: 'settings', label: '⚙️ إعدادات النظام' },
-        { key: 'audit_logs', label: '🛡️ سجل التدقيق والمراقبة' },
-        { key: 'manage_users', label: '👤 إدارة المستخدمين' },
-        { key: 'manage_permissions', label: '🔐 تعديل الصلاحيات' },
-        { key: 'delete_invoices', label: '🗑️ حذف الفواتير والمشتريات' },
-        { key: 'delete_expense', label: '🗑️ حذف مصاريف إفرادية' },
-        { key: 'delete_all_expenses', label: '⚠️ تصفير وحذف كل المصاريف' },
-        { key: 'edit_expense', label: '✏️ تعديل مبالغ المصروفات' },
-        { key: 'delete_products', label: '🗑️ مسح بطاقات الأصناف' },
-        { key: 'reset_stock', label: '🔄 تصفير المخزون كاملاً' },
-        { key: 'delete_all_sales', label: '⚠️ حذف وحرق كل المبيعات' },
-        { key: 'reset_password', label: '🔑 إعادة تعيين كلمات السر' },
-        { key: 'clear_zatca', label: '🧹 قطع وحذف ربط الزكاة' },
+        { key: 'dashboard', label: t('sys.str_4445') },
+        { key: 'pos', label: t('sys.str_4446') },
+        { key: 'restaurant_pos', label: t('sys.str_4447') },
+        { key: 'shifts', label: t('sys.str_4448') },
+        { key: 'sales_orders', label: t('sys.str_4449') },
+        { key: 'sales', label: t('sys.str_4450') },
+        { key: 'sales_routes', label: t('sys.str_4451') },
+        { key: 'sales_targets', label: t('sys.str_4452') },
+        { key: 'purchases', label: t('sys.str_4453') },
+        { key: 'purchase_orders', label: t('sys.str_4454') },
+        { key: 'letters_of_credit', label: t('sys.str_4455') },
+        { key: 'sales_returns', label: t('sys.str_4456') },
+        { key: 'purchase_returns', label: t('sys.str_4457') },
+        { key: 'bookings', label: t('sys.str_4458') },
+        { key: 'price_quotes', label: t('sys.str_4459') },
+        { key: 'coupons', label: t('sys.str_4460') },
+        { key: 'products', label: t('sys.str_4461') },
+        { key: 'stock', label: t('sys.str_4462') },
+        { key: 'manufacturing', label: t('sys.str_4463') },
+        { key: 'warehouses', label: t('sys.str_4464') },
+        { key: 'stock_transfers', label: t('sys.str_4465') },
+        { key: 'barcode', label: t('sys.str_4466') },
+        { key: 'batches', label: t('sys.str_4467') },
+        { key: 'customers', label: t('sys.str_4468') },
+        { key: 'loyalty', label: t('sys.str_4469') },
+        { key: 'treasury', label: t('sys.str_4470') },
+        { key: 'treasury_checks', label: t('sys.str_4471') },
+        { key: 'bank_reconciliation', label: t('sys.str_4472') },
+        { key: 'petty_cash', label: t('sys.str_4473') },
+        { key: 'banks', label: t('sys.str_4474') },
+        { key: 'receipt_vouchers', label: t('sys.str_4475') },
+        { key: 'expenses', label: t('sys.str_4169') },
+        { key: 'reports', label: t('sys.str_4476') },
+        { key: 'installments', label: t('sys.str_4477') },
+        { key: 'gift_cards', label: t('sys.str_4478') },
+        { key: 'employees', label: t('sys.str_4479') },
+        { key: 'attendance', label: t('sys.str_4480') },
+        { key: 'hr_loans', label: t('sys.str_4481') },
+        { key: 'salaries', label: t('sys.str_4482') },
+        { key: 'vacations', label: t('sys.str_4483') },
+        { key: 'whatsapp', label: t('sys.str_4484') },
+        { key: 'salla', label: t('sys.str_4485') },
+        { key: 'maintenance', label: t('sys.str_4486') },
+        { key: 'promotions', label: t('sys.str_4487') },
+        { key: 'stocktake', label: t('sys.str_4488') },
+        { key: 'vision_inventory', label: t('sys.str_4489') },
+        { key: 'master-panel', label: t('sys.str_4490') },
+        { key: 'mrp', label: t('sys.str_4491') },
+        { key: 'projects', label: t('sys.str_4492') },
+        { key: 'wms', label: t('sys.str_4493') },
+        { key: 'legal', label: t('sys.str_4494') },
+        { key: 'accounting', label: t('sys.str_4495') },
+        { key: 'fixed_assets', label: t('sys.str_4496') },
+        { key: 'crm_leads', label: t('sys.str_4497') },
+        { key: 'fleet', label: t('sys.str_4498') },
+        { key: 'property', label: t('sys.str_4499') },
+        { key: 'quality', label: t('sys.str_4500') },
+        { key: 'branches', label: t('sys.str_4501') },
+        { key: 'currencies', label: t('sys.str_4502') },
+        { key: 'approvals', label: t('sys.str_4503') },
+        { key: 'settings', label: t('sys.str_4504') },
+        { key: 'audit_logs', label: t('sys.str_4505') },
+        { key: 'manage_users', label: t('sys.str_4506') },
+        { key: 'manage_permissions', label: t('sys.str_4507') },
+        { key: 'delete_invoices', label: t('sys.str_4508') },
+        { key: 'delete_expense', label: t('sys.str_4509') },
+        { key: 'delete_all_expenses', label: t('sys.str_4510') },
+        { key: 'edit_expense', label: t('sys.str_4511') },
+        { key: 'delete_products', label: t('sys.str_4512') },
+        { key: 'reset_stock', label: t('sys.str_4513') },
+        { key: 'delete_all_sales', label: t('sys.str_4514') },
+        { key: 'reset_password', label: t('sys.str_4515') },
+        { key: 'clear_zatca', label: t('sys.str_4516') },
     ];
 
     const fetchUsers = async () => {
@@ -264,19 +266,19 @@ export default function SettingsPage() {
     };
 
     const saveUser = async () => {
-        if (!newUser.username.trim() || !newUser.password.trim() || !newUser.fullName.trim()) { showToast('❌ جميع الحقول مطلوبة'); return; }
+        if (!newUser.username.trim() || !newUser.password.trim() || !newUser.fullName.trim()) { showToast(t('sys.str_4517')); return; }
         setSavingUser(true);
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...newUser, modules: newUserModules }) });
             if (res.ok) {
-                showToast('✅ تم إضافة المستخدم');
+                showToast(t('sys.str_4518'));
                 setNewUser({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '' });
                 setNewUserModules([]);
                 setShowAddUser(false);
                 fetchUsers();
             } else { const d = await res.json(); showToast(`❌ ${d.error}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+        } catch { showToast(t('sys.str_4162')); }
         finally { setSavingUser(false); }
     };
 
@@ -286,8 +288,8 @@ export default function SettingsPage() {
             const token = localStorage.getItem('token');
             await fetch('/api/users', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ id: u.id, active: !u.active }) });
             fetchUsers();
-            showToast(u.active ? '❌ تم تعطيل المستخدم' : '✅ تم تفعيل المستخدم');
-        } catch { showToast('❌ خطأ'); }
+            showToast(u.active ? t('sys.str_4519') : t('sys.str_4520'));
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -297,7 +299,7 @@ export default function SettingsPage() {
             await fetch('/api/users', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ id: u.id, role }) });
             fetchUsers();
             showToast(`✅ تم تغيير الصلاحية إلى ${roleLabels[role]}`);
-        } catch { showToast('❌ خطأ'); }
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -307,10 +309,10 @@ export default function SettingsPage() {
             const token = localStorage.getItem('token');
             const res = await fetch(`/api/users?id=${u.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) {
-                showToast('✅ تم حذف المستخدم');
+                showToast(t('sys.str_4521'));
                 fetchUsers();
             } else { const d = await res.json(); showToast(`❌ ${d.error}`); }
-        } catch { showToast('❌ خطأ'); }
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -322,28 +324,28 @@ export default function SettingsPage() {
             const res = await fetch('/api/users', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ id: u.id, password: newPass }) });
             if (res.ok) showToast(`✅ تم تغيير كلمة سر ${u.fullName}`);
             else { const d = await res.json(); showToast(`❌ ${d.error}`); }
-        } catch { showToast('❌ خطأ'); }
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     const deleteAllSales = async () => {
-        if (!confirm('⚠️ هل أنت متأكد من حذف كل فواتير المبيعات؟ هذا لا يمكن التراجع عنه!')) return;
-        if (!confirm('تأكيد نهائي: سيتم حذف جميع فواتير المبيعات وتفاصيلها وقيود الخزينة المرتبطة بها!')) return;
+        if (!confirm(t('sys.str_4522'))) return;
+        if (!confirm(t('sys.str_4523'))) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/sales?action=delete_all', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل'}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_4198')}`); }
+        } catch { showToast(t('sys.str_4162')); }
     };
 
     const clearZatcaData = async () => {
-        if (!confirm('⚠️ هل أنت متأكد من حذف بيانات ربط الزكاة والدخل؟ ستحتاج لإعادة الربط من جديد.')) return;
+        if (!confirm(t('sys.str_4524'))) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/settings', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); setFatooraStep(0); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل'}`); }
-        } catch { showToast('❌ خطأ في الاتصال'); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_4198')}`); }
+        } catch { showToast(t('sys.str_4162')); }
     };
 
     const { refreshSettings } = useSettings();
@@ -384,7 +386,7 @@ export default function SettingsPage() {
     }, []);
 
     // Guard - must be AFTER all hooks
-    if (!authorized) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', fontSize: '18px' }}>⏳ جاري التحقق...</div>;
+    if (!authorized) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', fontSize: '18px' }}>{t('sys.str_4337')}</div>;
 
     const handleToggle = async (key: string) => {
         const newVal = settings[key] === '1' ? '0' : '1';
@@ -406,7 +408,7 @@ export default function SettingsPage() {
             const changedKeys = Array.from(allKeys).filter(key => (settings[key] || '') !== (originalSettings[key] || ''));
 
             if (changedKeys.length === 0) {
-                showToast('ℹ️ لا توجد تغييرات للحفظ');
+                showToast(t('sys.str_4525'));
                 setSaving(false);
                 return;
             }
@@ -428,11 +430,11 @@ export default function SettingsPage() {
                 refreshSettings();
             } else {
                 const errorData = await res.json().catch(() => ({}));
-                showToast(`❌ فشل في الحفظ: ${errorData.error || 'خطأ في الخادم'}`);
+                showToast(`❌ فشل في الحفظ: ${errorData.error || t('sys.str_4526')}`);
             }
         } catch (err) {
             console.error(err);
-            showToast('❌ فشل في الاتصال بالخادم');
+            showToast(t('sys.str_4527'));
         } finally {
             setSaving(false);
         }
@@ -459,12 +461,12 @@ export default function SettingsPage() {
             if (res.ok) {
                 const data = await res.json();
                 setLogoPreview(data.logo);
-                showToast('✅ تم رفع الشعار بنجاح');
+                showToast(t('sys.str_4528'));
             } else {
                 const err = await res.json();
                 showToast(`❌ ${err.error}`);
             }
-        } catch (err) { console.error(err); showToast('❌ فشل في رفع الشعار'); }
+        } catch (err) { console.error(err); showToast(t('sys.str_4529')); }
         finally { setUploadingLogo(false); e.target.value = ''; }
     };
 
@@ -477,14 +479,14 @@ export default function SettingsPage() {
                 body: JSON.stringify({ value: '' }),
             });
             setLogoPreview(null);
-            showToast('✅ تم حذف الشعار');
+            showToast(t('sys.str_4530'));
         } catch (err) { console.error(err); }
     };
 
     const hasChanges = Object.keys(settings).some(key => settings[key] !== originalSettings[key]);
 
     const handleGenerateKeys = async () => {
-        if (!confirm('سيتم توليد مفاتيح ECDSA جديدة. المفاتيح القديمة سيتم استبدالها. متأكد؟')) return;
+        if (!confirm(t('sys.str_4531'))) return;
         setGeneratingKeys(true);
         try {
             const token = localStorage.getItem('token');
@@ -502,11 +504,11 @@ export default function SettingsPage() {
                     setSettings(map);
                     setOriginalSettings(map);
                 }
-                showToast('✅ تم توليد مفاتيح ZATCA بنجاح');
+                showToast(t('sys.str_4532'));
             } else {
-                showToast('❌ فشل في توليد المفاتيح');
+                showToast(t('sys.str_4533'));
             }
-        } catch (err) { console.error(err); showToast('❌ فشل في توليد المفاتيح'); }
+        } catch (err) { console.error(err); showToast(t('sys.str_4533')); }
         finally { setGeneratingKeys(false); }
     };
 
@@ -520,7 +522,7 @@ export default function SettingsPage() {
             // For compliance-csid, pass OTP
             if (action === 'compliance-csid') {
                 const otp = settings['zatca_otp'] || '';
-                if (!otp) { showToast('❌ أدخل OTP من بوابة فاتورة أولاً واحفظ الإعدادات'); setFatooraLoading(false); return; }
+                if (!otp) { showToast(t('sys.str_4534')); setFatooraLoading(false); return; }
                 bodyData.otp = otp;
             }
 
@@ -537,19 +539,19 @@ export default function SettingsPage() {
                 if (action === 'compliance-invoice') setFatooraStep(2);
                 if (action === 'production-csid') setFatooraStep(3);
             } else {
-                setFatooraMessage(`❌ ${data.error || data.message || 'فشل'}`);
-                showToast(`❌ ${data.error || data.message || 'فشل'}`);
+                setFatooraMessage(`❌ ${data.error || data.message || t('sys.str_4198')}`);
+                showToast(`❌ ${data.error || data.message || t('sys.str_4198')}`);
             }
-        } catch (err) { console.error(err); setFatooraMessage('❌ فشل في الاتصال'); }
+        } catch (err) { console.error(err); setFatooraMessage(t('sys.str_4535')); }
         finally { setFatooraLoading(false); }
     };
 
-    if (loading) return <><div className="page-header"><h1 className="page-title">⚙️ الإعدادات</h1></div><div className="page-content"><div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>جاري التحميل...</div></div></>;
+    if (loading) return <><div className="page-header"><h1 className="page-title">{t('sys.str_4338')}</h1></div><div className="page-content"><div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4107')}</div></div></>;
 
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">⚙️ الإعدادات</h1>
+                <h1 className="page-title">{t('sys.str_4338')}</h1>
                 <button
                     className={`btn ${hasChanges ? 'btn-primary' : 'btn-ghost'}`}
                     onClick={handleSaveAll}
@@ -562,7 +564,7 @@ export default function SettingsPage() {
                         ...(hasChanges ? { animation: 'pulse 2s infinite' } : {}),
                     }}
                 >
-                    {saving ? '⏳ جاري الحفظ...' : '💾 حفظ الإعدادات'}
+                    {saving ? t('sys.str_4536') : t('sys.str_4537')}
                 </button>
             </div>
             <div className="page-content animate-fade-in">
@@ -571,22 +573,22 @@ export default function SettingsPage() {
                         <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>{group.title}</h3>
                         {gi === 0 && (
                             <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
-                                <label className="input-label" style={{ marginBottom: '12px', display: 'block' }}>🖼️ شعار الشركة</label>
+                                <label className="input-label" style={{ marginBottom: '12px', display: 'block' }}>{t('sys.str_4339')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                     {logoPreview ? (
-                                        <img src={logoPreview} alt="شعار الشركة" style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '12px', background: '#fff', padding: '4px', border: '1px solid var(--border)' }} />
+                                        <img src={logoPreview} alt={t('sys.str_4538')} style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '12px', background: '#fff', padding: '4px', border: '1px solid var(--border)' }} />
                                     ) : (
                                         <div style={{ width: '80px', height: '80px', borderRadius: '12px', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', border: '1px solid var(--border)' }}>🏢</div>
                                     )}
                                     <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
                                         <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                            {uploadingLogo ? '⏳ جاري الرفع...' : '📤 اختيار شعار'}
+                                            {uploadingLogo ? t('sys.str_4539') : t('sys.str_4540')}
                                             <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} disabled={uploadingLogo} />
                                         </label>
                                         {logoPreview && (
-                                            <button className="btn btn-ghost btn-sm" onClick={handleLogoDelete} style={{ color: 'var(--danger)', fontSize: '12px' }}>🗑️ حذف الشعار</button>
+                                            <button className="btn btn-ghost btn-sm" onClick={handleLogoDelete} style={{ color: 'var(--danger)', fontSize: '12px' }}>{t('sys.str_4340')}</button>
                                         )}
-                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PNG, JPG — أقصى حجم 2MB</span>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('sys.str_4341')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -601,7 +603,7 @@ export default function SettingsPage() {
                                                 className={`btn btn-sm ${settings[k.key] === '1' ? 'btn-success' : 'btn-ghost'}`}
                                                 onClick={() => handleToggle(k.key)}
                                             >
-                                                {settings[k.key] === '1' ? '✅ مفعل' : '❌ معطل'}
+                                                {settings[k.key] === '1' ? t('sys.str_4541') : t('sys.str_4542')}
                                             </button>
                                         </div>
                                     ) : k.type === 'textarea' ? (
@@ -631,8 +633,8 @@ export default function SettingsPage() {
                                                 ))
                                             ) : (
                                                 <>
-                                                    <option value="simulation">🧪 تجريبي (Simulation)</option>
-                                                    <option value="production">🚀 إنتاج (Production)</option>
+                                                    <option value="simulation">{t('sys.str_4342')}</option>
+                                                    <option value="production">{t('sys.str_4343')}</option>
                                                 </>
                                             )}
                                         </select>
@@ -653,22 +655,22 @@ export default function SettingsPage() {
                                 </div>
                             ))}
                         </div>
-                        {group.title.includes('الطباعة') && (
+                        {group.title.includes(t('sys.str_4543')) && (
                             <div style={{ marginTop: '16px', padding: '20px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>🏷️ إنشاء وطباعة باركود</h3>
-                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>💡 عند الضغط على طباعة، سيظهر مربع حوار النظام لاختيار الطابعة المثبتة على جهازك</p>
+                                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>{t('sys.str_4139')}</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4344')}</p>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                                     <div style={{ flex: '1', minWidth: '200px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>باركود المنتج</label>
+                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>{t('sys.str_4345')}</label>
                                         <input
                                             className="input"
                                             id="barcode-label-input"
-                                            placeholder="أدخل رقم الباركود أو اسم المنتج..."
+                                            placeholder={t('sys.str_4544')}
                                             dir="ltr"
                                         />
                                     </div>
                                     <div style={{ minWidth: '80px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>الكمية</label>
+                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>{t('sys.str_4093')}</label>
                                         <input className="input" id="barcode-label-qty" type="number" defaultValue="1" min="1" max="100" style={{ width: '80px' }} dir="ltr" />
                                     </div>
                                     <button
@@ -677,7 +679,7 @@ export default function SettingsPage() {
                                             const barcodeInput = (document.getElementById('barcode-label-input') as HTMLInputElement)?.value;
                                             const qty = parseInt((document.getElementById('barcode-label-qty') as HTMLInputElement)?.value || '1');
                                             const labelSize = settings['barcode_label_size'] || '50x30';
-                                            if (!barcodeInput) { showToast('❌ أدخل رقم الباركود'); return; }
+                                            if (!barcodeInput) { showToast(t('sys.str_4545')); return; }
                                             const sizes: Record<string, { w: string; h: string; fontSize: string; barcodeH: string }> = {
                                                 '30x20': { w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
                                                 '40x30': { w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
@@ -720,12 +722,11 @@ export default function SettingsPage() {
                                         }}
                                         style={{ minWidth: '120px' }}
                                     >
-                                        🖨️ طباعة ملصق
-                                    </button>
+                                        {t('sys.str_4346')}</button>
                                 </div>
                             </div>
                         )}
-                        {group.title.includes('المرحلة الثانية') && (
+                        {group.title.includes(t('sys.str_4546')) && (
                             <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -736,8 +737,8 @@ export default function SettingsPage() {
                                         }} />
                                         <span style={{ fontWeight: '600', fontSize: '14px' }}>
                                             {settings['zatca_private_key'] && settings['zatca_certificate']
-                                                ? '🔐 المفاتيح مُعدّة — المرحلة الثانية جاهزة'
-                                                : '⚠️ المفاتيح غير مُعدّة — يرجى توليد أو إدخال المفاتيح'}
+                                                ? t('sys.str_4547')
+                                                : t('sys.str_4548')}
                                         </span>
                                     </div>
                                     <button
@@ -746,15 +747,14 @@ export default function SettingsPage() {
                                         disabled={generatingKeys}
                                         style={{ whiteSpace: 'nowrap' }}
                                     >
-                                        {generatingKeys ? '⏳ جاري التوليد...' : '🔑 توليد مفاتيح تلقائي'}
+                                        {generatingKeys ? t('sys.str_4549') : t('sys.str_4550')}
                                     </button>
                                 </div>
                                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '8px 0 0' }}>
-                                    يمكنك توليد مفاتيح ECDSA (secp256r1) تلقائياً أو إدخال المفاتيح من بوابة ZATCA يدوياً
-                                </p>
+                                    {t('sys.str_4347')}</p>
                             </div>
                         )}
-                        {group.title.includes('فاتورة') && (
+                        {group.title.includes(t('sys.str_4551')) && (
                             <div style={{ marginTop: '16px', padding: '20px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 {/* Connection Status Banner */}
                                 <div style={{
@@ -780,12 +780,12 @@ export default function SettingsPage() {
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: '700', fontSize: '16px' }}>
-                                                {fatooraStep >= 3 ? 'مربوط بمنصة فاتورة ✅' : 'غير مربوط بمنصة فاتورة'}
+                                                {fatooraStep >= 3 ? t('sys.str_4552') : t('sys.str_4553')}
                                             </div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                                 {fatooraStep >= 3
-                                                    ? 'الفواتير ترسل تلقائياً لهيئة الزكاة والضريبة'
-                                                    : 'أكمل خطوات الربط أدناه للتفعيل'}
+                                                    ? t('sys.str_4554')
+                                                    : t('sys.str_4555')}
                                             </div>
                                         </div>
                                     </div>
@@ -798,16 +798,15 @@ export default function SettingsPage() {
                                         className="btn btn-primary btn-sm"
                                         style={{ whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                                     >
-                                        🌐 فتح بوابة فاتورة
-                                    </a>
+                                        {t('sys.str_4348')}</a>
                                 </div>
 
-                                <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '16px' }}>🔄 خطوات الربط مع فاتورة</h4>
+                                <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '16px' }}>{t('sys.str_4349')}</h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {[
-                                        { step: 1, label: '📋 الحصول على شهادة المطابقة', action: 'compliance-csid', desc: 'إرسال CSR مع OTP من بوابة فاتورة' },
-                                        { step: 2, label: '🧪 اختبار فاتورة المطابقة', action: 'compliance-invoice', desc: 'إرسال فاتورة تجريبية للتحقق' },
-                                        { step: 3, label: '🚀 الحصول على شهادة الإنتاج', action: 'production-csid', desc: 'تفعيل الربط المباشر مع منصة فاتورة' },
+                                        { step: 1, label: t('sys.str_4556'), action: 'compliance-csid', desc: 'إرسال CSR مع OTP من بوابة فاتورة' },
+                                        { step: 2, label: t('sys.str_4557'), action: 'compliance-invoice', desc: 'إرسال فاتورة تجريبية للتحقق' },
+                                        { step: 3, label: t('sys.str_4558'), action: 'production-csid', desc: 'تفعيل الربط المباشر مع منصة فاتورة' },
                                     ].map(s => (
                                         <div key={s.step} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: fatooraStep >= s.step ? 'rgba(34,197,94,0.08)' : 'var(--bg-card)', border: `1px solid ${fatooraStep >= s.step ? 'var(--success-light)' : 'var(--border)'}` }}>
                                             <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', background: fatooraStep >= s.step ? 'var(--success-light)' : 'var(--bg-card-hover)', color: fatooraStep >= s.step ? '#fff' : 'var(--text-muted)' }}>
@@ -823,7 +822,7 @@ export default function SettingsPage() {
                                                 disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)}
                                                 style={{ minWidth: '80px' }}
                                             >
-                                                {fatooraLoading ? '⏳' : fatooraStep >= s.step ? '✅ تم' : 'تنفيذ'}
+                                                {fatooraLoading ? '⏳' : fatooraStep >= s.step ? t('sys.str_4559') : t('sys.str_4560')}
                                             </button>
                                         </div>
                                     ))}
@@ -835,7 +834,7 @@ export default function SettingsPage() {
                                 )}
                             </div>
                         )}
-                        {group.title.includes('تلجرام') && (
+                        {group.title.includes(t('sys.str_4561')) && (
                             <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -846,8 +845,8 @@ export default function SettingsPage() {
                                         }} />
                                         <span style={{ fontWeight: '600', fontSize: '14px' }}>
                                             {settings['telegram_bot_token']
-                                                ? '🤖 البوت مضاف — اضغط لتحديث الاتصال'
-                                                : '⚠️ مفتاح البوت غير موجود'}
+                                                ? t('sys.str_4562')
+                                                : t('sys.str_4563')}
                                         </span>
                                     </div>
                                     <button
@@ -861,25 +860,24 @@ export default function SettingsPage() {
                                                     const data = await res.json();
                                                     showToast(`✅ تم ربط البوت بنجاح! URL: ${data.webhookUrl}`);
                                                 } else {
-                                                    showToast('❌ فشل في ربط التلجرام');
+                                                    showToast(t('sys.str_4564'));
                                                 }
-                                            } catch { showToast('❌ خطأ بالاتصال'); }
+                                            } catch { showToast(t('sys.str_4565')); }
                                             finally { setWebhookLoading(false); }
                                         }}
                                         disabled={webhookLoading || !settings['telegram_bot_token']}
                                         style={{ whiteSpace: 'nowrap' }}
                                     >
-                                        {webhookLoading ? '⏳ جاري الربط...' : '🔗 تفعيل وارتباط البوت'}
+                                        {webhookLoading ? t('sys.str_4566') : t('sys.str_4567')}
                                     </button>
                                 </div>
                                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '8px 0 0' }}>
-                                    يجب عليك إدخال المفتاح وحفظ الإعدادات أولاً، ثم الضغط على "تفعيل وارتباط البوت" لكي يبدأ باستقبال الأوامر.
-                                </p>
+                                    {t('sys.str_4350')}</p>
                             </div>
                         )}
                         {group.id === 'whatsapp' && (
                             <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>🤖 بوت الواتساب التفاعلي (الذكاء الاصطناعي)</h4>
+                                <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>{t('sys.str_4351')}</h4>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                     <div style={{ flex: 1, minWidth: '200px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
@@ -889,14 +887,12 @@ export default function SettingsPage() {
                                                 boxShadow: settings['whatsapp_status'] === 'connected' ? '0 0 8px var(--success-light)' : 'none',
                                             }} />
                                             <span style={{ fontWeight: '600', fontSize: '14px' }}>
-                                                {settings['whatsapp_status'] === 'connected' ? '✅ متصل (يعمل الآن)' :
-                                                 settings['whatsapp_status'] === 'scanning' ? '⏳ بانتظار مسح الباركود' : '❌ مفصول أو متوقف'}
+                                                {settings['whatsapp_status'] === 'connected' ? t('sys.str_4568') :
+                                                 settings['whatsapp_status'] === 'scanning' ? t('sys.str_4569') : t('sys.str_4570')}
                                             </span>
                                         </div>
                                         <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                            للربط، افتح واتساب في هاتفك، اذهب إلى "الأجهزة المرتبطة"، وقم بمسح الباركود. 
-                                            إذا لم يظهر، تأكد من تشغيل خدمة الواتساب وإعادة تحميل الصفحة.
-                                        </p>
+                                            {t('sys.str_4352')}</p>
                                     </div>
                                     {settings['whatsapp_qr'] && settings['whatsapp_status'] !== 'connected' && (
                                         <div style={{ background: 'var(--bg-card-hover)', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -917,10 +913,9 @@ export default function SettingsPage() {
                         boxShadow: 'var(--shadow-lg)',
                     }}>
                         <span style={{ color: 'var(--text-secondary)', marginLeft: '12px' }}>
-                            لديك تغييرات غير محفوظة
-                        </span>
+                            {t('sys.str_4353')}</span>
                         <button className="btn btn-primary" onClick={handleSaveAll} disabled={saving}>
-                            {saving ? '⏳ جاري الحفظ...' : '💾 حفظ جميع التغييرات'}
+                            {saving ? t('sys.str_4536') : t('sys.str_4571')}
                         </button>
                     </div>
                 )}
@@ -931,42 +926,42 @@ export default function SettingsPage() {
             {canManageUsers && (
                 <div className="card" style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '700' }}>👥 إدارة المستخدمين</h3>
-                        <button className="btn btn-primary btn-sm" onClick={() => setShowAddUser(!showAddUser)}>{showAddUser ? '✕ إلغاء' : '➕ إضافة مستخدم'}</button>
+                        <h3 style={{ fontSize: '16px', fontWeight: '700' }}>{t('sys.str_4354')}</h3>
+                        <button className="btn btn-primary btn-sm" onClick={() => setShowAddUser(!showAddUser)}>{showAddUser ? t('sys.str_4572') : t('sys.str_4573')}</button>
                     </div>
                     {showAddUser && (
                         <div style={{ background: 'var(--bg-card-hover)', borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                <input className="input" placeholder="اسم المستخدم (للدخول) *" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} dir="ltr" />
-                                <input className="input" type="password" placeholder="كلمة المرور *" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} dir="ltr" />
+                                <input className="input" placeholder={t('sys.str_4574')} value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })} dir="ltr" />
+                                <input className="input" type="password" placeholder={t('sys.str_4575')} value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} dir="ltr" />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
-                                <input className="input" placeholder="الاسم الكامل *" value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} />
-                                <input className="input" placeholder="رقم الجوال" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} dir="ltr" />
+                                <input className="input" placeholder={t('sys.str_4576')} value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} />
+                                <input className="input" placeholder={t('sys.str_4577')} value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} dir="ltr" />
                                 <select className="input" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
-                                    <option value="owner">🏢 المالك</option>
-                                    <option value="manager">👔 مدير عام</option>
-                                    <option value="admin">👑 مدير النظام</option>
-                                    <option value="auditor">🧐 مُراجع / مدقق</option>
-                                    <option value="accountant">📊 محاسب</option>
-                                    <option value="hr">👥 موارد بشرية</option>
-                                    <option value="sales_rep">💼 مندوب مبيعات</option>
-                                    <option value="cashier">💰 كاشير</option>
-                                    <option value="data_entry">📝 مدخل بيانات</option>
+                                    <option value="owner">{t('sys.str_4355')}</option>
+                                    <option value="manager">{t('sys.str_4356')}</option>
+                                    <option value="admin">{t('sys.str_4357')}</option>
+                                    <option value="auditor">{t('sys.str_4358')}</option>
+                                    <option value="accountant">{t('sys.str_4359')}</option>
+                                    <option value="hr">{t('sys.str_4360')}</option>
+                                    <option value="sales_rep">{t('sys.str_4361')}</option>
+                                    <option value="cashier">{t('sys.str_4362')}</option>
+                                    <option value="data_entry">{t('sys.str_4363')}</option>
                                 </select>
                                 <select className="input" value={newUser.branchId || ''} onChange={e => setNewUser({ ...newUser, branchId: e.target.value })}>
-                                    <option value="">🏢 اختيار الفرع (اختياري)</option>
+                                    <option value="">{t('sys.str_4364')}</option>
                                     {branches.map(b => (
                                         <option key={b.id} value={b.id}>{b.name}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الأقسام المسموحة</label>
+                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>{t('sys.str_4365')}</label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                     <button type="button" className={`btn btn-sm ${newUserModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
                                         onClick={() => setNewUserModules(newUserModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                        {newUserModules.length === ALL_MODULES.length ? '✖ إلغاء الكل' : '✔ تحديد الكل'}
+                                        {newUserModules.length === ALL_MODULES.length ? t('sys.str_4578') : t('sys.str_4579')}
                                     </button>
                                     {ALL_MODULES.map(m => (
                                         <button key={m.key} type="button"
@@ -976,14 +971,14 @@ export default function SettingsPage() {
                                     ))}
                                 </div>
                             </div>
-                            <button className="btn btn-primary" onClick={saveUser} disabled={savingUser}>{savingUser ? '⏳ جاري الحفظ...' : '💾 حفظ المستخدم'}</button>
+                            <button className="btn btn-primary" onClick={saveUser} disabled={savingUser}>{savingUser ? t('sys.str_4536') : t('sys.str_4580')}</button>
                         </div>
                     )}
                     {users.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '14px' }}>لا يوجد مستخدمين</div>
+                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '14px' }}>{t('sys.str_4366')}</div>
                     ) : (
                         <table className="table" style={{ fontSize: '13px' }}>
-                            <thead><tr><th>الاسم</th><th>اسم الدخول</th><th>الصلاحية</th><th>الفرع</th><th>الأقسام</th><th>الحالة</th><th></th></tr></thead>
+                            <thead><tr><th>{t('sys.str_4367')}</th><th>{t('sys.str_4368')}</th><th>{t('sys.str_4369')}</th><th>{t('sys.str_4370')}</th><th>{t('sys.str_4371')}</th><th>{t('sys.str_4215')}</th><th></th></tr></thead>
                             <tbody>
                                 {users.map(u => (
                                     <tr key={u.id} style={{ opacity: u.active ? 1 : 0.5 }}>
@@ -991,15 +986,15 @@ export default function SettingsPage() {
                                         <td dir="ltr">{u.username}</td>
                                         <td>
                                             <select className="input" value={u.role} onChange={e => updateUserRole(u, e.target.value)} style={{ padding: '4px 8px', fontSize: '12px', width: '120px' }}>
-                                                <option value="owner">🏢 المالك</option>
-                                                <option value="manager">👔 مدير عام</option>
-                                                <option value="admin">👑 مدير النظام</option>
-                                                <option value="auditor">🧐 مُراجع / مدقق</option>
-                                                <option value="accountant">📊 محاسب</option>
-                                                <option value="hr">👥 موارد بشرية</option>
-                                                <option value="sales_rep">💼 مندوب مبيعات</option>
-                                                <option value="cashier">💰 كاشير</option>
-                                                <option value="data_entry">📝 مدخل بيانات</option>
+                                                <option value="owner">{t('sys.str_4355')}</option>
+                                                <option value="manager">{t('sys.str_4356')}</option>
+                                                <option value="admin">{t('sys.str_4357')}</option>
+                                                <option value="auditor">{t('sys.str_4358')}</option>
+                                                <option value="accountant">{t('sys.str_4359')}</option>
+                                                <option value="hr">{t('sys.str_4360')}</option>
+                                                <option value="sales_rep">{t('sys.str_4361')}</option>
+                                                <option value="cashier">{t('sys.str_4362')}</option>
+                                                <option value="data_entry">{t('sys.str_4363')}</option>
                                             </select>
                                         </td>
                                         <td>
@@ -1009,7 +1004,7 @@ export default function SettingsPage() {
                                                 await fetch('/api/users', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ id: u.id, branchId: val }) });
                                                 fetchUsers();
                                             }} style={{ padding: '4px 8px', fontSize: '12px', width: '130px' }}>
-                                                <option value="">لا يوجد (الكل)</option>
+                                                <option value="">{t('sys.str_4372')}</option>
                                                 {branches.map(b => (
                                                     <option key={b.id} value={b.id}>{b.name}</option>
                                                 ))}
@@ -1019,22 +1014,20 @@ export default function SettingsPage() {
                                             {canManagePerms && (
                                                 <button className="btn btn-ghost btn-sm" onClick={() => { setEditPermUser(u); setEditPermModules((u.permissions || []).map((p: { module: string }) => p.module)); }}
                                                     style={{ fontSize: '11px' }}>
-                                                    🔐 {(u.permissions || []).length} قسم
-                                                </button>
+                                                    🔐 {(u.permissions || []).length} {t('sys.str_4373')}</button>
                                             )}
                                         </td>
                                         <td>
                                             <button className={`btn btn-sm ${u.active ? 'btn-success' : 'btn-ghost'}`} onClick={() => toggleUserActive(u)} style={{ fontSize: '11px' }}>
-                                                {u.active ? '✅ فعال' : '❌ معطل'}
+                                                {u.active ? t('sys.str_4581') : t('sys.str_4542')}
                                             </button>
                                         </td>
                                         <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(u.createdAt).toLocaleDateString('ar-SA')}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '4px' }}>
-                                                {canResetPassword && <button className="btn btn-sm" onClick={() => resetPassword(u)} style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>🔑 كلمة السر</button>}
+                                                {canResetPassword && <button className="btn btn-sm" onClick={() => resetPassword(u)} style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>{t('sys.str_4374')}</button>}
                                                 <button className="btn btn-sm" onClick={() => deleteUser(u)} style={{ fontSize: '11px', color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                                                    🗑️ حذف
-                                                </button>
+                                                    {t('sys.str_4375')}</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1048,12 +1041,11 @@ export default function SettingsPage() {
             {/* Device Management Section */}
             {canManageUsers && (
                 <div className="card" style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>📱 إدارة الأجهزة المربوطة</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>{t('sys.str_4376')}</h3>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                        كل مستخدم (غير المدير) يُربط بجهاز واحد فقط عند أول تسجيل دخول. يمكنك فك الربط ليتمكن من الدخول من جهاز جديد.
-                    </p>
+                        {t('sys.str_4377')}</p>
                     <table className="table" style={{ fontSize: '13px' }}>
-                        <thead><tr><th>المستخدم</th><th>الجهاز</th><th>تاريخ الربط</th><th>الحالة</th><th></th></tr></thead>
+                        <thead><tr><th>{t('sys.str_4378')}</th><th>{t('sys.str_4379')}</th><th>{t('sys.str_4380')}</th><th>{t('sys.str_4215')}</th><th></th></tr></thead>
                         <tbody>
                             {users.filter(u => u.role !== 'admin').map(u => (
                                 <tr key={u.id}>
@@ -1066,9 +1058,9 @@ export default function SettingsPage() {
                                     </td>
                                     <td>
                                         {u.deviceToken ? (
-                                            <span style={{ color: 'var(--success-light)', fontSize: '12px', fontWeight: '600' }}>🔒 مربوط</span>
+                                            <span style={{ color: 'var(--success-light)', fontSize: '12px', fontWeight: '600' }}>{t('sys.str_4381')}</span>
                                         ) : (
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>🔓 غير مربوط</span>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{t('sys.str_4382')}</span>
                                         )}
                                     </td>
                                     <td>
@@ -1090,12 +1082,11 @@ export default function SettingsPage() {
                                                             const d = await res.json();
                                                             showToast(`❌ ${d.error}`);
                                                         }
-                                                    } catch { showToast('❌ خطأ في الاتصال'); }
+                                                    } catch { showToast(t('sys.str_4162')); }
                                                 }}
                                                 style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}
                                             >
-                                                🔓 فك الربط
-                                            </button>
+                                                {t('sys.str_4383')}</button>
                                         )}
                                     </td>
                                 </tr>
@@ -1110,15 +1101,15 @@ export default function SettingsPage() {
                 <div className="modal-overlay" onClick={() => setEditPermUser(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>🔐 صلاحيات {editPermUser.fullName}</h3>
+                            <h3>{t('sys.str_4384')}{editPermUser.fullName}</h3>
                             <button className="modal-close" onClick={() => setEditPermUser(null)}>✕</button>
                         </div>
                         <div className="modal-body">
-                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>حدد الأقسام التي يمكن لهذا المستخدم الوصول إليها:</p>
+                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4385')}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
                                 <button type="button" className={`btn btn-sm ${editPermModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
                                     onClick={() => setEditPermModules(editPermModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                    {editPermModules.length === ALL_MODULES.length ? '✖ إلغاء الكل' : '✔ تحديد الكل'}
+                                    {editPermModules.length === ALL_MODULES.length ? t('sys.str_4578') : t('sys.str_4579')}
                                 </button>
                                 {ALL_MODULES.map(m => (
                                     <button key={m.key} type="button"
@@ -1136,12 +1127,12 @@ export default function SettingsPage() {
                                         method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                                         body: JSON.stringify({ id: editPermUser.id, modules: editPermModules })
                                     });
-                                    showToast('✅ تم حفظ الصلاحيات');
+                                    showToast(t('sys.str_4582'));
                                     setEditPermUser(null);
                                     fetchUsers();
-                                } catch { showToast('❌ خطأ'); }
-                            }}>💾 حفظ</button>
-                            <button className="btn btn-ghost" onClick={() => setEditPermUser(null)}>إلغاء</button>
+                                } catch { showToast(t('sys.str_4199')); }
+                            }}>{t('sys.str_4252')}</button>
+                            <button className="btn btn-ghost" onClick={() => setEditPermUser(null)}>{t('sys.str_4097')}</button>
                         </div>
                     </div>
                 </div>
@@ -1150,20 +1141,18 @@ export default function SettingsPage() {
             {/* Danger Zone */}
             {(canDeleteAllSales || canClearZatca) && (
                 <div className="card" style={{ marginBottom: '20px', borderColor: 'rgba(239,68,68,0.3)' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#ef4444', marginBottom: '16px' }}>⚠️ منطقة الخطر</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#ef4444', marginBottom: '16px' }}>{t('sys.str_4386')}</h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                         {canDeleteAllSales && (
                             <button className="btn" onClick={deleteAllSales} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>
-                                🗑️ حذف كل فواتير المبيعات
-                            </button>
+                                {t('sys.str_4387')}</button>
                         )}
                         {canClearZatca && (
                             <button className="btn" onClick={clearZatcaData} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>
-                                🧹 حذف بيانات ربط الزكاة والدخل
-                            </button>
+                                {t('sys.str_4388')}</button>
                         )}
                     </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>هذه العمليات لا يمكن التراجع عنها. تأكد جيداً قبل التنفيذ.</p>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>{t('sys.str_4389')}</p>
                 </div>
             )}
         </>

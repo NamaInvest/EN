@@ -59,7 +59,7 @@ export default function TrainingCoursesPage() {
         setStatus('SCHEDULED');
         loadData();
       } else {
-        alert('حدث خطأ أثناء حفظ الدورة التدريبية');
+        alert(t('sys.str_4646'));
       }
     } catch (error) {
       console.error(error);
@@ -69,33 +69,32 @@ export default function TrainingCoursesPage() {
   return (
     <div className="p-6" dir="rtl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">🎯 الدورات التدريبية (الموارد البشرية)</h1>
+        <h1 className="text-2xl font-bold">{t('sys.str_4628')}</h1>
         <button 
           onClick={() => setShowModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
-          + جدولة دورة تدريبية
-        </button>
+          {t('sys.str_4629')}</button>
       </div>
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-up">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-800">إضافة دورة تدريبية جديدة</h2>
+              <h2 className="text-xl font-bold text-slate-800">{t('sys.str_4630')}</h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
             </div>
             <form onSubmit={handleSave} className="p-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-sm font-bold text-slate-700 mb-1">اسم الدورة (Title)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4631')}</label>
                   <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">الجهة المدربة (Provider)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4632')}</label>
                   <input required type="text" value={provider} onChange={e => setProvider(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">التكلفة (Cost SAR)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4633')}</label>
                   <input type="number" step="0.01" value={cost} onChange={e => setCost(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div>
@@ -109,16 +108,16 @@ export default function TrainingCoursesPage() {
                 <div className="col-span-2">
                   <label className="block text-sm font-bold text-slate-700 mb-1">{t('fin.str_227')}</label>
                   <select value={status} onChange={e => setStatus(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600">
-                    <option value="SCHEDULED">مجدولة (Scheduled)</option>
-                    <option value="ONGOING">قيد التنفيذ (Ongoing)</option>
-                    <option value="COMPLETED">مكتملة (Completed)</option>
-                    <option value="CANCELLED">ملغية (Cancelled)</option>
+                    <option value="SCHEDULED">{t('sys.str_4634')}</option>
+                    <option value="ONGOING">{t('sys.str_4635')}</option>
+                    <option value="COMPLETED">{t('sys.str_4636')}</option>
+                    <option value="CANCELLED">{t('sys.str_4637')}</option>
                   </select>
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">{t('fin.str_206')}</button>
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ وجدولة الدورة</button>
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">{t('sys.str_4638')}</button>
               </div>
             </form>
           </div>
@@ -127,18 +126,18 @@ export default function TrainingCoursesPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">جاري تحميل الدورات...</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_4639')}</div>
         ) : courses.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">لا توجد دورات تدريبية مسجلة حالياً. اضغط على الزر بالأعلى لتسجيل أول دورة.</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_4640')}</div>
         ) : (
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="p-4 font-semibold">عنوان الدورة</th>
-                <th className="p-4 font-semibold">مقدم الدورة</th>
-                <th className="p-4 font-semibold">المدة الزمنية</th>
+                <th className="p-4 font-semibold">{t('sys.str_4641')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_4642')}</th>
+                <th className="p-4 font-semibold">{t('sys.str_4643')}</th>
                 <th className="p-4 font-semibold">{t('fin.str_227')}</th>
-                <th className="p-4 font-semibold">المسجلون</th>
+                <th className="p-4 font-semibold">{t('sys.str_4644')}</th>
               </tr>
             </thead>
             <tbody>
@@ -161,11 +160,11 @@ export default function TrainingCoursesPage() {
                       course.status === 'ONGOING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {course.status === 'COMPLETED' ? t('hr.str_2185') : 
-                       course.status === 'SCHEDULED' ? 'مجدولة' : 
-                       course.status === 'ONGOING' ? 'جارية' : 'ملغية'}
+                       course.status === 'SCHEDULED' ? t('sys.str_4647') : 
+                       course.status === 'ONGOING' ? t('sys.str_4648') : t('sys.str_4649')}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-600 font-bold">{course.enrollments?.length || 0} <span className="text-xs font-normal">موظفاً</span></td>
+                  <td className="p-4 text-slate-600 font-bold">{course.enrollments?.length || 0} <span className="text-xs font-normal">{t('sys.str_4645')}</span></td>
                 </tr>
               ))}
             </tbody>

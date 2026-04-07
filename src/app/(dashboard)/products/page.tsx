@@ -434,7 +434,7 @@ export default function ProductsPage() {
                                             {p.productUnits && p.productUnits.length > 0 && (
                                                 <div style={{ fontSize: '10.5px', color: 'var(--purple)', marginTop: '4px', background: 'rgba(139, 92, 246, 0.08)', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
                                                     {p.productUnits.map((u: any) => (
-                                                        <div key={u.id}>📦 {u.unit?.name || t('sys.str_1910')} = {u.factor} {t('sys.str_813')}<span style={{fontWeight:'bold', color:'var(--text)'}}>({Math.floor(p.currentStock / (u.factor || 1))} متاح)</span></div>
+                                                        <div key={u.id}>📦 {u.unit?.name || t('sys.str_1910')} = {u.factor} {t('sys.str_813')}<span style={{fontWeight:'bold', color:'var(--text)'}}>({Math.floor(p.currentStock / (u.factor || 1))} {t('sys.str_4259')}</span></div>
                                                     ))}
                                                 </div>
                                             )}
@@ -587,13 +587,13 @@ export default function ProductsPage() {
                                 </label>
                             </div>
                             <div className="input-group">
-                                <label className="input-label">نوع ونسبة الضريبة التشغيلية (Global Tax)</label>
+                                <label className="input-label">{t('sys.str_4260')}</label>
                                 <div style={{ display: 'flex', gap: '6px' }}>
                                     <select className="input" style={{ flex: 1 }} value={form.taxType} onChange={e => setForm({ ...form, taxType: e.target.value })}>
-                                        <option value="VAT">قيمة مضافة (ZATCA/EU VAT)</option>
-                                        <option value="GST">سلع وخدمات (Asia GST)</option>
-                                        <option value="SALES_TAX">المبيعات (US Sales Tax)</option>
-                                        <option value="NONE">معفي (Exempt)</option>
+                                        <option value="VAT">{t('sys.str_4261')}</option>
+                                        <option value="GST">{t('sys.str_4262')}</option>
+                                        <option value="SALES_TAX">{t('sys.str_4263')}</option>
+                                        <option value="NONE">{t('sys.str_4264')}</option>
                                     </select>
                                     <input className="input" style={{ width: '80px' }} type="number" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} dir="ltr" />
                                 </div>
@@ -619,10 +619,10 @@ export default function ProductsPage() {
                         <div className="input-group" style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-card-hover)', marginTop: '16px', gridColumn: '1 / -1' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>📦 الوحدات المتعددة (كرتون، درزن.. الخ)</label>
-                                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : '🛠️ إنشاء أسم وحدة جديدة'}</button>
+                                    <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>{t('sys.str_4265')}</label>
+                                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : t('sys.str_4272')}</button>
                                 </div>
-                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '12' }])}>➕ إضافة تعبئة للصنف</button>
+                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '12' }])}>{t('sys.str_4266')}</button>
                             </div>
                             
                             {showAddUnit && (
@@ -630,33 +630,33 @@ export default function ProductsPage() {
                                     <input
                                         className="input"
                                         style={{ flex: 1 }}
-                                        placeholder="مثال: طبلية، باكيت، شدة..."
+                                        placeholder={t('sys.str_4273')}
                                         value={newUnitName}
                                         onChange={e => setNewUnitName(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddUnit(); } }}
                                         autoFocus
                                     />
                                     <button type="button" className="btn btn-primary btn-sm" onClick={handleAddUnit} disabled={savingUnit || !newUnitName.trim()} style={{ whiteSpace: 'nowrap' }}>
-                                        {savingUnit ? '⏳' : '✅ حفظ اسم الوحدة بالقاموس'}
+                                        {savingUnit ? '⏳' : t('sys.str_4274')}
                                     </button>
                                 </div>
                             )}
 
-                            {formUnits.length === 0 ? <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>لا توجد وحدات إضافية لهذا الصنف (المخزون يحسب بالوحدة الأساسية فقط)</div> : (
+                            {formUnits.length === 0 ? <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_4267')}</div> : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {formUnits.map((fu, idx) => (
                                         <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', alignItems: 'end', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                             <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>إسم الوحدة (كرتون..)</label>
+                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4268')}</label>
                                                 <select className="input" style={{ width: '100%', padding: '6px' }} value={fu.unitId} onChange={e => {
                                                     const newArr = [...formUnits]; newArr[idx].unitId = e.target.value; setFormUnits(newArr);
                                                 }}>
-                                                    <option value="">-- اختر --</option>
+                                                    <option value="">{t('sys.str_4269')}</option>
                                                     {units.map((u:any) => <option key={u.id} value={u.id}>{u.name}</option>)}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>تعادل كم حبة أساسية؟</label>
+                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4270')}</label>
                                                 <input className="input" type="number" style={{ width: '100%', padding: '6px' }} placeholder="12" value={fu.factor} onChange={e => {
                                                     const newArr = [...formUnits]; newArr[idx].factor = e.target.value; setFormUnits(newArr);
                                                 }} />
@@ -668,7 +668,7 @@ export default function ProductsPage() {
                                                 }} />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>الباركود المخصص</label>
+                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4271')}</label>
                                                 <input className="input" style={{ width: '100%', padding: '6px' }} value={fu.barcode} onChange={e => {
                                                     const newArr = [...formUnits]; newArr[idx].barcode = e.target.value; setFormUnits(newArr);
                                                 }} />

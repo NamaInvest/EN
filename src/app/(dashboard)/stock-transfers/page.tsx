@@ -14,7 +14,7 @@ export default function StockTransfersPage() {
 
     useEffect(() => { load(); loadStocks(); }, []);
     async function load() { setLoading(true); try { const r = await fetch('/api/stock-transfers'); if (r.ok) setTransfers(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
-    async function loadStocks() { try { const r = await fetch('/api/products'); if (r.ok) { /* stocks from settings or hardcoded */ setStocks([{ id: 1, name: 'المخزن الرئيسي' }, { id: 2, name: 'المخزن الفرعي' }]); } } catch (e) { console.error(e); } };
+    async function loadStocks() { try { const r = await fetch('/api/products'); if (r.ok) { /* stocks from settings or hardcoded */ setStocks([{ id: 1, name: t('sys.str_3503') }, { id: 2, name: t('sys.str_3504') }]); } } catch (e) { console.error(e); } };
 
     const getStockName = (id: number) => stocks.find(s => s.id === id)?.name || `مخزن #${id}`;
 

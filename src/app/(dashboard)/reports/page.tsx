@@ -1,36 +1,38 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 const REPORT_TYPES = [
-    { key: 'daily-report', label: 'التقارير اليومية', icon: '📅', description: 'ملخص يومي بالتاريخ والمستخدم', special: true },
-    { key: 'sales', label: 'تقرير المبيعات', icon: '💳', description: 'كل فواتير المبيعات مع الإجماليات' },
-    { key: 'purchases', label: 'تقرير المشتريات', icon: '🛒', description: 'فواتير الموردين' },
-    { key: 'profit', label: 'تقرير الأرباح', icon: '📈', description: 'إيرادات - تكلفة يومياً' },
-    { key: 'stock', label: 'تقرير المخزون', icon: '📦', description: 'كل المنتجات + كميات + قيمة' },
-    { key: 'stock-audit', label: 'تعديلات المخزون', icon: '🔍', description: 'من عدّل المخزون ومتى وكم', special: true },
-    { key: 'expenses', label: 'تقرير المصروفات', icon: '💸', description: 'حسب الفئة' },
-    { key: 'customers', label: 'تقرير العملاء', icon: '👥', description: 'أرصدة + أنواع' },
-    { key: 'tax', label: 'تقرير الضريبة', icon: '🏛️', description: 'ضريبة محصّلة - مدفوعة = مستحقة' },
-    { key: 'discounts-audit', label: 'تدقيق التخفيضات', icon: '🏷️', description: 'من عمل التخفيض وكم ومتى', special: true },
-    { key: 'least-selling', label: 'الأقل مبيعاً', icon: '📉', description: 'منتجات لم تُباع خلال 30/60/90 يوم', special: true },
-    { key: 'daily-summary', label: 'ملخص يومي', icon: '📊', description: 'مبيعات + مشتريات + مصروفات' },
-    { key: 'income-statement', label: 'قائمة الدخل', icon: '📊', description: 'إيرادات - تكلفة = صافي ربح' },
-    { key: 'top-sellers', label: 'الأكثر مبيعاً', icon: '🏆', description: 'أعلى 20 منتج' },
-    { key: 'profit-margin', label: 'هامش الربح', icon: '📉', description: 'لكل صنف' },
-    { key: 'aging', label: 'أعمار الديون', icon: '⏰', description: 'تصنيف 30/60/90+ يوم' },
+    { key: 'daily-report', label: t('sys.str_4294'), icon: '📅', description: 'ملخص يومي بالتاريخ والمستخدم', special: true },
+    { key: 'sales', label: t('sys.str_4295'), icon: '💳', description: 'كل فواتير المبيعات مع الإجماليات' },
+    { key: 'purchases', label: t('sys.str_4296'), icon: '🛒', description: 'فواتير الموردين' },
+    { key: 'profit', label: t('sys.str_4297'), icon: '📈', description: 'إيرادات - تكلفة يومياً' },
+    { key: 'stock', label: t('sys.str_4298'), icon: '📦', description: 'كل المنتجات + كميات + قيمة' },
+    { key: 'stock-audit', label: t('sys.str_4299'), icon: '🔍', description: 'من عدّل المخزون ومتى وكم', special: true },
+    { key: 'expenses', label: t('sys.str_4300'), icon: '💸', description: 'حسب الفئة' },
+    { key: 'customers', label: t('sys.str_4301'), icon: '👥', description: 'أرصدة + أنواع' },
+    { key: 'tax', label: t('sys.str_4302'), icon: '🏛️', description: 'ضريبة محصّلة - مدفوعة = مستحقة' },
+    { key: 'discounts-audit', label: t('sys.str_4303'), icon: '🏷️', description: 'من عمل التخفيض وكم ومتى', special: true },
+    { key: 'least-selling', label: t('sys.str_4304'), icon: '📉', description: 'منتجات لم تُباع خلال 30/60/90 يوم', special: true },
+    { key: 'daily-summary', label: t('sys.str_4305'), icon: '📊', description: 'مبيعات + مشتريات + مصروفات' },
+    { key: 'income-statement', label: t('sys.str_4306'), icon: '📊', description: 'إيرادات - تكلفة = صافي ربح' },
+    { key: 'top-sellers', label: t('sys.str_4307'), icon: '🏆', description: 'أعلى 20 منتج' },
+    { key: 'profit-margin', label: t('sys.str_4308'), icon: '📉', description: 'لكل صنف' },
+    { key: 'aging', label: t('sys.str_4309'), icon: '⏰', description: 'تصنيف 30/60/90+ يوم' },
 ];
 
 const DAILY_TABS = [
-    { key: 'sales', label: 'المبيعات', icon: '💳' },
-    { key: 'purchases', label: 'المشتريات', icon: '🛒' },
-    { key: 'expenses', label: 'المصروفات', icon: '💸' },
-    { key: 'treasury', label: 'الخزينة', icon: '💰' },
-    { key: 'salesReturns', label: 'مرتجعات مبيعات', icon: '↩️' },
-    { key: 'purchaseReturns', label: 'مرتجعات مشتريات', icon: '↩️' },
+    { key: 'sales', label: t('sys.str_4310'), icon: '💳' },
+    { key: 'purchases', label: t('sys.str_4311'), icon: '🛒' },
+    { key: 'expenses', label: t('sys.str_4312'), icon: '💸' },
+    { key: 'treasury', label: t('sys.str_4313'), icon: '💰' },
+    { key: 'salesReturns', label: t('sys.str_4314'), icon: '↩️' },
+    { key: 'purchaseReturns', label: t('sys.str_4315'), icon: '↩️' },
 ];
 
 export default function ReportsPage() {
+    const { t } = useTranslation();
     const [selectedReport, setSelectedReport] = useState('');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
@@ -93,7 +95,7 @@ export default function ReportsPage() {
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0);
 
     const handlePrint = () => {
-        const reportTitle = REPORT_TYPES.find(r => r.key === selectedReport)?.label || 'تقرير';
+        const reportTitle = REPORT_TYPES.find(r => r.key === selectedReport)?.label || t('sys.str_4316');
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -124,7 +126,7 @@ export default function ReportsPage() {
             ).join('')}</div>`;
         }
 
-        const userName = selectedUserId === 'all' ? 'كل المستخدمين' : users.find(u => u.id === parseInt(selectedUserId))?.fullName || '';
+        const userName = selectedUserId === 'all' ? t('sys.str_4317') : users.find(u => u.id === parseInt(selectedUserId))?.fullName || '';
         printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8">
             <title>${reportTitle}</title>
             <style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl;}
@@ -153,13 +155,13 @@ export default function ReportsPage() {
             XLSX.writeFile(wb, `${reportTitle}.xlsx`);
         } catch (err) {
             console.error('Excel export error:', err);
-            alert('خطأ في تصدير Excel');
+            alert(t('sys.str_4318'));
         }
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const renderTable = (data: any[]) => {
-        if (!data || data.length === 0) return <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">لا توجد بيانات</div></div>;
+        if (!data || data.length === 0) return <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">{t('sys.str_4275')}</div></div>;
         const headers = Object.keys(data[0]);
         return (
             <div className="table-container">
@@ -199,16 +201,16 @@ export default function ReportsPage() {
             onChange={e => setSelectedUserId(e.target.value)}
             style={{ width: '200px' }}
         >
-            <option value="all">👥 كل المستخدمين</option>
+            <option value="all">{t('sys.str_4276')}</option>
             {users.map(u => (
-                <option key={u.id} value={u.id}>{u.fullName} ({u.role === 'admin' ? 'مدير' : u.role === 'cashier' ? 'كاشير' : u.role})</option>
+                <option key={u.id} value={u.id}>{u.fullName} ({u.role === 'admin' ? t('sys.str_4319') : u.role === 'cashier' ? t('sys.str_4320') : u.role})</option>
             ))}
         </select>
     );
 
     const renderBranchFilter = () => (
         <select className="input" value={selectedBranchId} onChange={e => setSelectedBranchId(e.target.value)} style={{ width: '200px' }}>
-            <option value="all">🏢 كل الفروع</option>
+            <option value="all">{t('sys.str_4277')}</option>
             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
     );
@@ -217,21 +219,21 @@ export default function ReportsPage() {
     const renderDailyReport = () => (
         <div>
             <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>⬅️ رجوع للتقارير</button>
-                <h2 style={{ fontSize: '18px', fontWeight: '700' }}>📅 التقارير اليومية</h2>
+                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>{t('sys.str_4278')}</button>
+                <h2 style={{ fontSize: '18px', fontWeight: '700' }}>{t('sys.str_4279')}</h2>
                 <div className="toolbar-spacer" />
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input className="input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ width: '155px' }} dir="ltr" />
-                    <span style={{ color: 'var(--text-muted)' }}>إلى</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{t('sys.str_4280')}</span>
                     <input className="input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ width: '155px' }} dir="ltr" />
                     {renderBranchFilter()}
                     {renderUserFilter()}
-                    <button className="btn btn-primary" onClick={() => fetchReport('daily-report')}>🔍 عرض التقرير</button>
+                    <button className="btn btn-primary" onClick={() => fetchReport('daily-report')}>{t('sys.str_4281')}</button>
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>⏳ جاري التحميل...</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4282')}</div>
             ) : reportData ? (
                 <>
                     {renderSummaryCards()}
@@ -253,7 +255,7 @@ export default function ReportsPage() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                             <h3 style={{ fontWeight: '700', margin: 0 }}>{DAILY_TABS.find(t => t.key === dailyTab)?.icon} {DAILY_TABS.find(t => t.key === dailyTab)?.label}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button className="btn btn-ghost btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
+                                <button className="btn btn-ghost btn-sm" onClick={handlePrint}>{t('sys.str_4283')}</button>
                                 <button className="btn btn-ghost btn-sm" onClick={handleExportExcel}>📥 Excel</button>
                             </div>
                         </div>
@@ -263,7 +265,7 @@ export default function ReportsPage() {
             ) : (
                 <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📅</div>
-                    <div style={{ color: 'var(--text-muted)' }}>اختر التاريخ والمستخدم ثم اضغط "عرض التقرير"</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{t('sys.str_4284')}</div>
                 </div>
             )}
         </div>
@@ -273,26 +275,26 @@ export default function ReportsPage() {
     const renderFilteredReport = (title: string, icon: string, reportKey: string) => (
         <div>
             <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>⬅️ رجوع للتقارير</button>
+                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>{t('sys.str_4278')}</button>
                 <h2 style={{ fontSize: '18px', fontWeight: '700' }}>{icon} {title}</h2>
                 <div className="toolbar-spacer" />
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input className="input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ width: '155px' }} dir="ltr" />
-                    <span style={{ color: 'var(--text-muted)' }}>إلى</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{t('sys.str_4280')}</span>
                     <input className="input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ width: '155px' }} dir="ltr" />
                     {renderBranchFilter()}
                     {renderUserFilter()}
-                    <button className="btn btn-primary" onClick={() => fetchReport(reportKey)}>🔍 عرض</button>
+                    <button className="btn btn-primary" onClick={() => fetchReport(reportKey)}>{t('sys.str_4285')}</button>
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>⏳ جاري التحميل...</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4282')}</div>
             ) : reportData ? (
                 <div className="card">
                     {renderSummaryCards()}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '12px' }}>
-                        <button className="btn btn-ghost btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
+                        <button className="btn btn-ghost btn-sm" onClick={handlePrint}>{t('sys.str_4283')}</button>
                         {reportData.data?.length > 0 && <button className="btn btn-ghost btn-sm" onClick={handleExportExcel}>📥 Excel</button>}
                     </div>
                     {renderTable(reportData.data || [])}
@@ -300,7 +302,7 @@ export default function ReportsPage() {
             ) : (
                 <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>{icon}</div>
-                    <div style={{ color: 'var(--text-muted)' }}>اختر الفترة والمستخدم ثم اضغط "عرض"</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{t('sys.str_4286')}</div>
                 </div>
             )}
         </div>
@@ -310,8 +312,8 @@ export default function ReportsPage() {
     const renderLeastSelling = () => (
         <div>
             <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>⬅️ رجوع للتقارير</button>
-                <h2 style={{ fontSize: '18px', fontWeight: '700' }}>📉 المنتجات الأقل مبيعاً</h2>
+                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>{t('sys.str_4278')}</button>
+                <h2 style={{ fontSize: '18px', fontWeight: '700' }}>{t('sys.str_4287')}</h2>
                 <div className="toolbar-spacer" />
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     {renderBranchFilter()}
@@ -321,19 +323,18 @@ export default function ReportsPage() {
                             className={`btn btn-sm ${leastDays === d ? 'btn-primary' : 'btn-ghost'}`}
                             onClick={() => { setLeastDays(d); fetchReport('least-selling', { days: d }); }}
                         >
-                            {d} يوم
-                        </button>
+                            {d} {t('sys.str_4288')}</button>
                     ))}
                 </div>
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>⏳ جاري التحميل...</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4282')}</div>
             ) : reportData ? (
                 <div className="card">
                     {renderSummaryCards()}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '12px' }}>
-                        <button className="btn btn-ghost btn-sm" onClick={handlePrint}>🖨️ طباعة</button>
+                        <button className="btn btn-ghost btn-sm" onClick={handlePrint}>{t('sys.str_4283')}</button>
                         {reportData.data?.length > 0 && <button className="btn btn-ghost btn-sm" onClick={handleExportExcel}>📥 Excel</button>}
                     </div>
                     {renderTable(reportData.data || [])}
@@ -341,7 +342,7 @@ export default function ReportsPage() {
             ) : (
                 <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📉</div>
-                    <div style={{ color: 'var(--text-muted)' }}>اختر المدة لعرض المنتجات الأقل مبيعاً</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{t('sys.str_4289')}</div>
                 </div>
             )}
         </div>
@@ -351,7 +352,7 @@ export default function ReportsPage() {
     const renderStandardReport = () => (
         <>
             <div className="toolbar">
-                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>⬅️ رجوع للتقارير</button>
+                <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>{t('sys.str_4278')}</button>
                 <h2 style={{ fontSize: '18px', fontWeight: '700' }}>
                     {REPORT_TYPES.find(r => r.key === selectedReport)?.icon} {REPORT_TYPES.find(r => r.key === selectedReport)?.label}
                 </h2>
@@ -360,24 +361,22 @@ export default function ReportsPage() {
                 {reportData && (
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button className="btn btn-ghost btn-sm" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            🖨️ طباعة
-                        </button>
+                            {t('sys.str_4283')}</button>
                         {reportData.data && reportData.data.length > 0 && (
                             <button className="btn btn-ghost btn-sm" onClick={handleExportExcel} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                📥 تصدير Excel
-                            </button>
+                                {t('sys.str_4290')}</button>
                         )}
                     </div>
                 )}
             </div>
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>⏳ جاري التحميل...</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4282')}</div>
             ) : reportData ? (
                 <div className="card">
                     {renderSummaryCards()}
                     {renderTable(reportData.data || [])}
                     {(!reportData.data || reportData.data.length === 0) && !reportData.summary && (
-                        <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">لا توجد بيانات لهذه الفترة</div></div>
+                        <div className="empty-state"><div className="empty-state-icon">📊</div><div className="empty-state-text">{t('sys.str_4291')}</div></div>
                     )}
                 </div>
             ) : null}
@@ -388,8 +387,8 @@ export default function ReportsPage() {
     const renderReportView = () => {
         switch (selectedReport) {
             case 'daily-report': return renderDailyReport();
-            case 'stock-audit': return renderFilteredReport('تعديلات المخزون', '🔍', 'stock-audit');
-            case 'discounts-audit': return renderFilteredReport('تدقيق التخفيضات', '🏷️', 'discounts-audit');
+            case 'stock-audit': return renderFilteredReport(t('sys.str_4299'), '🔍', 'stock-audit');
+            case 'discounts-audit': return renderFilteredReport(t('sys.str_4303'), '🏷️', 'discounts-audit');
             case 'least-selling': return renderLeastSelling();
             default: return renderStandardReport();
         }
@@ -397,13 +396,13 @@ export default function ReportsPage() {
 
     return (
         <>
-            <div className="page-header"><h1 className="page-title">📊 التقارير</h1></div>
+            <div className="page-header"><h1 className="page-title">{t('sys.str_4292')}</h1></div>
             <div className="page-content animate-fade-in">
                 {!selectedReport ? (
                     <>
                         <div className="toolbar" style={{ marginBottom: '24px' }}>
                             <input className="input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ width: '160px' }} dir="ltr" />
-                            <span style={{ color: 'var(--text-muted)' }}>إلى</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{t('sys.str_4280')}</span>
                             <input className="input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ width: '160px' }} dir="ltr" />
                             {renderBranchFilter()}
                         </div>
@@ -433,7 +432,7 @@ export default function ReportsPage() {
                                             <div style={{ fontSize: '15px', fontWeight: '700' }}>{r.label}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{r.description}</div>
                                         </div>
-                                        {r.special && <span style={{ marginRight: 'auto', fontSize: '10px', background: 'var(--primary)', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>جديد</span>}
+                                        {r.special && <span style={{ marginRight: 'auto', fontSize: '10px', background: 'var(--primary)', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>{t('sys.str_4293')}</span>}
                                     </div>
                                 </div>
                             ))}

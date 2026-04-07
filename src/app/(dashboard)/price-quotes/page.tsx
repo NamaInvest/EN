@@ -131,11 +131,11 @@ export default function PriceQuotesPage() {
             <div className="toolbar">
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} {t('sys.str_927')}</span>
                 <div className="toolbar-spacer" />
-                <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>➕ عرض سعر جديد</button>
+                <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>{t('sys.str_4253')}</button>
             </div>
 
             {showAdd && <div className="card" style={{ marginBottom: '16px', padding: '16px' }}>
-                <h3 style={{ marginBottom: '12px' }}>📄 عرض سعر جديد</h3>
+                <h3 style={{ marginBottom: '12px' }}>{t('sys.str_4254')}</h3>
 
                 {/* Product Search */}
                 <div style={{ position: 'relative', marginBottom: '12px' }}>
@@ -144,7 +144,7 @@ export default function PriceQuotesPage() {
                         value={searchText}
                         onChange={e => { setSearchText(e.target.value); setShowSearch(true); }}
                         onFocus={() => setShowSearch(true)}
-                        placeholder="🔍 ابحث عن منتج بالاسم أو الباركود..."
+                        placeholder={t('sys.str_4257')}
                         style={{
                             width: '100%', padding: '10px 14px', borderRadius: '8px',
                             border: '2px solid var(--primary)', fontSize: '14px',
@@ -179,7 +179,7 @@ export default function PriceQuotesPage() {
                 {/* Items Table */}
                 {items.length > 0 && <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '12px' }}>
                     <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                        <th style={{ padding: '8px', textAlign: 'right' }}>المنتج/الخدمة</th>
+                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_4255')}</th>
                         <th style={{ padding: '8px', textAlign: 'center', width: '80px' }}>{t('sys.str_64')}</th>
                         <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_65')}</th>
                         <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_947')}</th>
@@ -190,7 +190,7 @@ export default function PriceQuotesPage() {
                             <td style={{ padding: '4px' }}>
                                 <input value={item.productName}
                                     onChange={e => updateItem(i, 'productName', e.target.value)}
-                                    placeholder="اسم المنتج"
+                                    placeholder={t('sys.str_4258')}
                                     style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--card-bg)' }}
                                 />
                             </td>
@@ -223,7 +223,7 @@ export default function PriceQuotesPage() {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button className="btn btn-sm" onClick={addManualItem}>➕ إضافة يدوي</button>
+                    <button className="btn btn-sm" onClick={addManualItem}>{t('sys.str_4256')}</button>
                     <input value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('sys.str_465')}
                         style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '150px', background: 'var(--card-bg)' }} />
                     <button className="btn btn-sm" onClick={() => setShowAdd(false)}>{t('fin.str_206')}</button>

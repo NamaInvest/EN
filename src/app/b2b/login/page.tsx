@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function B2BLoginPage() {
+    const { t } = useTranslation();
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export default function B2BLoginPage() {
             if (res.ok && data.success) {
                 window.location.href = '/b2b/shop';
             } else {
-                setError(data.error || 'فشل تسجيل الدخول');
+                setError(data.error || t('sys.str_4585'));
             }
         } catch (err: any) {
             setError(err.message);
@@ -28,10 +30,10 @@ export default function B2BLoginPage() {
 
     return (
         <div style={{ maxWidth: '400px', margin: '100px auto', background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-            <h1 style={{ fontSize: '28px', marginBottom: '20px', textAlign: 'center', color: '#333' }}>تسجيل دخول الوكلاء</h1>
+            <h1 style={{ fontSize: '28px', marginBottom: '20px', textAlign: 'center', color: '#333' }}>{t('sys.str_4583')}</h1>
             <input 
                 type="text" 
-                placeholder="رقم الجوال المسجل لدينا" 
+                placeholder={t('sys.str_4586')} 
                 value={phone} 
                 onChange={e => setPhone(e.target.value)} 
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
@@ -40,7 +42,7 @@ export default function B2BLoginPage() {
             />
             <input 
                 type="password" 
-                placeholder="كلمة المرور (إن وجدت)" 
+                placeholder={t('sys.str_4587')} 
                 value={password} 
                 onChange={e => setPassword(e.target.value)} 
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
@@ -54,8 +56,7 @@ export default function B2BLoginPage() {
                 onMouseOver={e => e.currentTarget.style.background = '#2980b9'}
                 onMouseOut={e => e.currentTarget.style.background = '#3498db'}
             >
-                دخول البوابة
-            </button>
+                {t('sys.str_4584')}</button>
         </div>
     );
 }

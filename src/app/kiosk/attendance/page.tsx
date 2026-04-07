@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, CheckCircle, Clock } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AICameraAttendanceKiosk() {
+    const { t } = useTranslation();
   const [faceapiObj, setFaceapiObj] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -106,7 +108,7 @@ export default function AICameraAttendanceKiosk() {
       }
     } catch (err) {
       console.error("Camera access denied or failed", err);
-      alert("يرجى تفعيل صلاحية الكاميرا");
+      alert(t('sys.str_4601'));
     }
   };
 
@@ -248,7 +250,7 @@ export default function AICameraAttendanceKiosk() {
                  <CheckCircle className="w-12 h-12 text-green-600 relative z-10" />
                </div>
                <h2 className="text-3xl font-black text-slate-800 mb-1">{recognizedEmployee.name}</h2>
-               <p className="text-green-600 font-bold mb-6 text-xl tracking-tight">Identity Verified / تم الحضور</p>
+               <p className="text-green-600 font-bold mb-6 text-xl tracking-tight">{t('sys.str_4600')}</p>
                
                <div className="w-full bg-slate-50 rounded-xl p-4 flex justify-between items-center border border-slate-200">
                  <div>

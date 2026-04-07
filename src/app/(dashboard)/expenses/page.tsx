@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Expense { id: number; date: string; category: string; description: string; amount: number; notes: string; costCenterId?: number; costCenter?: { name: string } }
 
-const CATEGORIES = ['إيجار', 'كهرباء', 'ماء', 'صيانة', 'رواتب', 'مواصلات', 'إعلانات', 'مشتريات متنوعة', 'أخرى'];
+const CATEGORIES = [t('sys.str_4185'), t('sys.str_4186'), t('sys.str_4187'), t('sys.str_4188'), t('sys.str_4189'), t('sys.str_4190'), t('sys.str_4191'), t('sys.str_4192'), t('sys.str_4193')];
 
 export default function ExpensesPage() {
+    const { t } = useTranslation();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -55,15 +57,15 @@ export default function ExpensesPage() {
                     method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ id: editId, ...form, amount: parseFloat(form.amount), userId: user.id }),
                 });
-                if (res.ok) { showToast('✅ تم تعديل المصروف'); setShowModal(false); setEditId(null); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
-                else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل التعديل'}`); }
+                if (res.ok) { showToast(t('sys.str_4194')); setShowModal(false); setEditId(null); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
+                else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_4195')}`); }
             } else {
                 // Add new expense
                 const res = await fetch('/api/expenses', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ ...form, amount: parseFloat(form.amount), userId: user.id }),
                 });
-                if (res.ok) { showToast('✅ تم إضافة المصروف'); setShowModal(false); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
+                if (res.ok) { showToast(t('sys.str_4196')); setShowModal(false); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
             }
         } catch (err) { console.error(err); }
     };
@@ -77,9 +79,9 @@ export default function ExpensesPage() {
         try {
             const token = localStorage.getItem('token');
             const res = await fetch(`/api/expenses?id=${e.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { showToast('✅ تم حذف المصروف'); fetchData(); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل'}`); }
-        } catch { showToast('❌ خطأ'); }
+            if (res.ok) { showToast(t('sys.str_4197')); fetchData(); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_4198')}`); }
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     const deleteAllExpenses = async () => {
@@ -88,8 +90,8 @@ export default function ExpensesPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/expenses?all=true', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); fetchData(); }
-            else { const d = await res.json(); showToast(`❌ ${d.error || 'فشل'}`); }
-        } catch { showToast('❌ خطأ'); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || t('sys.str_4198')}`); }
+        } catch { showToast(t('sys.str_4199')); }
     };
 
     const editExpense = (e: Expense) => {
@@ -106,13 +108,13 @@ export default function ExpensesPage() {
 
     return (
         <>
-            <div className="page-header"><h1 className="page-title">💸 المصروفات</h1></div>
+            <div className="page-header"><h1 className="page-title">{t('sys.str_4169')}</h1></div>
             <div className="page-content animate-fade-in">
                 <div className="kpi-grid" style={{ marginBottom: '24px' }}>
                     <div className="kpi-card danger" style={{ gridColumn: 'span 2' }}>
                         <div className="kpi-icon">💸</div>
-                        <div className="kpi-value">{fmt(totalExpenses)} ر.س</div>
-                        <div className="kpi-label">إجمالي المصروفات</div>
+                        <div className="kpi-value">{fmt(totalExpenses)} {t('sys.str_4105')}</div>
+                        <div className="kpi-label">{t('sys.str_4170')}</div>
                     </div>
                 </div>
                 <div className="toolbar">
@@ -121,21 +123,21 @@ export default function ExpensesPage() {
                     <div className="toolbar-spacer" />
                     {canDeleteAll && expenses.length > 0 && (
                         <button className="btn btn-ghost" onClick={deleteAllExpenses} style={{ color: 'var(--danger)', border: '1px solid var(--danger)', marginLeft: '8px' }}>
-                            🗑️ حذف الكل ({expenses.length})
+                            {t('sys.str_4171')}{expenses.length})
                         </button>
                     )}
-                    <button className="btn btn-primary" onClick={openAddModal}>➕ إضافة مصروف</button>
+                    <button className="btn btn-primary" onClick={openAddModal}>{t('sys.str_4172')}</button>
                 </div>
                 <div className="table-container">
                     <table className="table">
-                        <thead><tr><th>#</th><th>التاريخ</th><th>الفئة</th><th>الوصف</th><th>المبلغ</th><th>مركز تسجيل</th><th>ملاحظات</th>{(canDelete || canEdit) && <th>إجراءات</th>}</tr></thead>
+                        <thead><tr><th>#</th><th>{t('sys.str_4173')}</th><th>{t('sys.str_4174')}</th><th>{t('sys.str_4175')}</th><th>{t('sys.str_4176')}</th><th>{t('sys.str_4177')}</th><th>{t('sys.str_4178')}</th>{(canDelete || canEdit) && <th>{t('sys.str_4179')}</th>}</tr></thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : expenses.length === 0 ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7}><div className="empty-state"><div className="empty-state-icon">💸</div><div className="empty-state-text">لا توجد مصروفات</div></div></td></tr>
+                            {loading ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_4107')}</td></tr>
+                                : expenses.length === 0 ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7}><div className="empty-state"><div className="empty-state-icon">💸</div><div className="empty-state-text">{t('sys.str_4180')}</div></div></td></tr>
                                     : expenses.map((e, i) => (
                                         <tr key={e.id}><td>{i + 1}</td><td>{new Date(e.date).toLocaleDateString('ar-SA')}</td>
                                             <td><span className="badge badge-warning">{e.category}</span></td>
-                                            <td>{e.description}</td><td style={{ fontWeight: '700', color: 'var(--danger-light)' }}>{fmt(e.amount)} ر.س</td>
+                                            <td>{e.description}</td><td style={{ fontWeight: '700', color: 'var(--danger-light)' }}>{fmt(e.amount)} {t('sys.str_4105')}</td>
                                             <td><span className="badge" style={{background:'#eef2ff', color:'#4f46e5'}}>{e.costCenter?.name || '-'}</span></td>
                                             <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{e.notes || '-'}</td>
                                             {(canDelete || canEdit) && <td style={{ display: 'flex', gap: '4px' }}>
@@ -151,24 +153,24 @@ export default function ExpensesPage() {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><div className="modal-title">{editId ? '✏️ تعديل مصروف' : '➕ إضافة مصروف'}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
-                        <div className="input-group"><label className="input-label">الفئة</label>
+                        <div className="modal-header"><div className="modal-title">{editId ? t('sys.str_4200') : t('sys.str_4172')}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
+                        <div className="input-group"><label className="input-label">{t('sys.str_4174')}</label>
                             <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                        <div className="input-group"><label className="input-label">مركز التكلفة (اختياري)</label>
+                        <div className="input-group"><label className="input-label">{t('sys.str_4181')}</label>
                             <select className="input" value={form.costCenterId} onChange={e => setForm({ ...form, costCenterId: e.target.value })}>
-                                <option value="">بدون مركز (عام)</option>
+                                <option value="">{t('sys.str_4182')}</option>
                                 {costCenters.filter(c => c.isActive || String(c.id) === form.costCenterId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select></div>
-                        <div className="input-group"><label className="input-label">الوصف *</label>
-                            <textarea className="input" value={form.description} onInput={e => setForm({ ...form, description: (e.target as HTMLTextAreaElement).value })} placeholder="وصف المصروف" rows={2} dir="rtl" /></div>
-                        <div className="input-group"><label className="input-label">المبلغ *</label>
+                        <div className="input-group"><label className="input-label">{t('sys.str_4183')}</label>
+                            <textarea className="input" value={form.description} onInput={e => setForm({ ...form, description: (e.target as HTMLTextAreaElement).value })} placeholder={t('sys.str_4201')} rows={2} dir="rtl" /></div>
+                        <div className="input-group"><label className="input-label">{t('sys.str_4184')}</label>
                             <input className="input" type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0.00" dir="ltr" /></div>
-                        <div className="input-group"><label className="input-label">ملاحظات</label>
+                        <div className="input-group"><label className="input-label">{t('sys.str_4178')}</label>
                             <textarea className="input" value={form.notes} onInput={e => setForm({ ...form, notes: (e.target as HTMLTextAreaElement).value })} rows={2} dir="rtl" /></div>
                         <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleSave}>💾 {editId ? 'تحديث' : 'حفظ'}</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button></div>
+                            <button className="btn btn-primary" onClick={handleSave}>💾 {editId ? t('sys.str_4202') : t('sys.str_4203')}</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('sys.str_4097')}</button></div>
                     </div>
                 </div>
             )}

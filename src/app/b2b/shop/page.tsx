@@ -87,7 +87,7 @@ export default function B2BShopPage() {
                 alert(data.error);
             }
         } catch (e: any) {
-            alert('فشل الإرسال: ' + e.message);
+            alert(t('sys.str_4594') + e.message);
         } finally {
             setPlacingOrder(false);
         }
@@ -104,14 +104,14 @@ export default function B2BShopPage() {
             <div>
                 <input 
                     type="text" 
-                    placeholder="ابحث عن منتج أو باركود..." 
+                    placeholder={t('sys.str_4595')} 
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{ width: '100%', padding: '15px 20px', borderRadius: '30px', border: '1px solid #ddd', marginBottom: '30px', fontSize: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', outline: 'none' }}
                 />
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '50px', color: '#888' }}>جاري تحميل المنتجات...</div>
+                    <div style={{ textAlign: 'center', padding: '50px', color: '#888' }}>{t('sys.str_4032')}</div>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
                         {filteredProducts.map(p => (
@@ -124,10 +124,10 @@ export default function B2BShopPage() {
                             onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
                             >
                                 <div style={{ height: '140px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', overflow: 'hidden' }}>
-                                    {p.imagePath ? <img src={p.imagePath} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '📦 لا توجد صورة'}
+                                    {p.imagePath ? <img src={p.imagePath} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : t('sys.str_4596')}
                                 </div>
                                 <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#2c3e50', marginBottom: '8px' }}>{p.name}</div>
-                                <div style={{ color: '#7f8c8d', fontSize: '13px', marginBottom: '15px', flex: 1 }}>المخزون المتاح: {p.currentStock > 0 ? p.currentStock : <span style={{color: 'red'}}>نفذت الكمية</span>}</div>
+                                <div style={{ color: '#7f8c8d', fontSize: '13px', marginBottom: '15px', flex: 1 }}>{t('sys.str_4588')}{p.currentStock > 0 ? p.currentStock : <span style={{color: 'red'}}>{t('sys.str_4589')}</span>}</div>
                                 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ color: '#27ae60', fontWeight: '900', fontSize: '18px' }}>{p.sellPrice} <span style={{fontSize: '12px'}}>{t('sys.str_68')}</span></div>
@@ -156,7 +156,7 @@ export default function B2BShopPage() {
                 borderRadius: '20px', padding: '25px', boxShadow: '0 20px 50px rgba(0,0,0,0.08)',
                 position: 'sticky', top: '30px', border: '1px solid rgba(255,255,255,0.4)'
             }}>
-                <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '15px' }}>🛒 سلة المشتريات (B2B)</h2>
+                <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '15px' }}>{t('sys.str_4590')}</h2>
                 
                 {successMessage && (
                     <div style={{ background: '#d4edda', color: '#155724', padding: '15px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
@@ -165,11 +165,11 @@ export default function B2BShopPage() {
                 )}
 
                 <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '20px', paddingRight: '10px' }}>
-                    {cart.length === 0 ? <div style={{ color: '#95a5a6', textAlign: 'center', padding: '30px 0' }}>السلة فارغة</div> : cart.map((c, i) => (
+                    {cart.length === 0 ? <div style={{ color: '#95a5a6', textAlign: 'center', padding: '30px 0' }}>{t('sys.str_4591')}</div> : cart.map((c, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f9fa', padding: '15px', borderRadius: '12px', marginBottom: '10px' }}>
                             <div>
                                 <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#34495e' }}>{c.name}</div>
-                                <div style={{ fontSize: '12px', color: '#7f8c8d', marginTop: '4px' }}>{c.sellPrice} ر.س × {c.cartQuantity}</div>
+                                <div style={{ fontSize: '12px', color: '#7f8c8d', marginTop: '4px' }}>{c.sellPrice} {t('sys.str_4592')}{c.cartQuantity}</div>
                             </div>
                             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                 <div style={{ fontWeight: 'bold' }}>{c.sellPrice * c.cartQuantity}</div>
@@ -183,7 +183,7 @@ export default function B2BShopPage() {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold', color: '#2c3e50' }}>
-                    <span>المجموع التقريبي:</span>
+                    <span>{t('sys.str_4593')}</span>
                     <span style={{ color: '#27ae60' }}>{cartTotal.toFixed(2)} {t('sys.str_68')}</span>
                 </div>
 
@@ -199,7 +199,7 @@ export default function B2BShopPage() {
                         transition: '0.2s'
                     }}
                 >
-                    {placingOrder ? t('hr.str_2155') : 'اعتماد طلبية الشراء'}
+                    {placingOrder ? t('hr.str_2155') : t('sys.str_4597')}
                 </button>
             </div>
         </div>

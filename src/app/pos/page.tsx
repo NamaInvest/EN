@@ -58,7 +58,7 @@ export default function POSPage() {
         setCart([]);
         setSelectedCustomer(null);
         removeCoupon();
-        alert('تم تعليق الفاتورة بنجاح في المسودات');
+        alert(t('sys.str_4064'));
     };
 
     const handleRestoreOrder = (order: any) => {
@@ -95,17 +95,17 @@ export default function POSPage() {
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (showBnplModal && bnplOrderId && bnplUrl) {
-            setBnplStatusMessage('بانتظار العميل لإتمام الدفع من هاتفه...');
+            setBnplStatusMessage(t('sys.str_4065'));
             interval = setInterval(async () => {
                 try {
                     const res = await fetch(`/api/pos/bnpl/status?provider=${bnplProvider}&sessionId=${bnplOrderId}`);
                     const data = await res.json();
                     if (data.isSuccess) {
-                        setBnplStatusMessage('✅ تمت الموافقة بنجاح! جاري إصدار الفاتورة...');
+                        setBnplStatusMessage(t('sys.str_4066'));
                         clearInterval(interval);
                         handleCheckout(bnplProvider.toUpperCase() as any);
                     } else if (data.status === 'REJECTED' || data.status === 'DECLINED') {
-                        setBnplStatusMessage('❌ تم رفض العملية من قبل ' + bnplProvider);
+                        setBnplStatusMessage(t('sys.str_4067') + bnplProvider);
                         clearInterval(interval);
                     }
                 } catch (e) {
@@ -133,11 +133,11 @@ export default function POSPage() {
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
-                const cats = [{id: 'الكل', name: 'الكل'}, ...data.categories];
+                const cats = [{id: 'الكل', name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
             }
         } catch (e) {
-            alert('فشل جلب المنتجات');
+            alert(t('sys.str_4069'));
         } finally {
             setLoading(false);
         }
@@ -161,7 +161,7 @@ export default function POSPage() {
 
     const addToCart = (product: any) => {
         if (product.stock <= 0) {
-            alert('المنتج غير متوفر في المخزون');
+            alert(t('sys.str_4070'));
             return;
         }
         setCart(prev => {
@@ -203,7 +203,7 @@ export default function POSPage() {
                 setAppliedCoupon(null);
             }
         } catch {
-            alert('حدث خطأ أثناء فحص الكوبون');
+            alert(t('sys.str_4071'));
         }
         setCouponLoading(false);
     };
@@ -238,7 +238,7 @@ export default function POSPage() {
     };
 
     const handleCreateBnplSession = async () => {
-        if (!bnplPhone) return alert('الرجاء إدخال رقم الجوال');
+        if (!bnplPhone) return alert(t('sys.str_4072'));
         if (cart.length === 0) return;
         setBnplLoading(true);
         try {
@@ -248,7 +248,7 @@ export default function POSPage() {
                 body: JSON.stringify({
                     totalAmount: finalTotal,
                     phone: bnplPhone,
-                    customerName: selectedCustomer?.name || 'عميل مباشر',
+                    customerName: selectedCustomer?.name || t('sys.str_4073'),
                     orderId: `POS-${Date.now()}`,
                     items: cart
                 })
@@ -261,7 +261,7 @@ export default function POSPage() {
                 alert(data.error);
             }
         } catch (e) {
-            alert('حدث خطأ في الاتصال بـ ' + bnplProvider);
+            alert(t('sys.str_4074') + bnplProvider);
         } finally {
             setBnplLoading(false);
         }
@@ -314,10 +314,10 @@ export default function POSPage() {
                 setShowBnplModal(false);
                 fetchProducts(); 
             } else {
-                alert(data.error || 'حدث خطأ أثناء الدفع');
+                alert(data.error || t('sys.str_4075'));
             }
         } catch (e) {
-            alert('حدث خطأ بالاتصال بالسيرفر');
+            alert(t('sys.str_4076'));
         } finally {
             setIsProcessing(false);
         }
@@ -633,40 +633,37 @@ export default function POSPage() {
                     <div className="nav-buttons">
                         <Link href="/dashboard" className="btn-back">
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
-                            عودة للرئيسية
-                        </Link>
+                            {t('sys.str_4028')}</Link>
                         <button className="btn-back" onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? 'rgba(245, 158, 11, 0.2)' : '', color: heldOrders.length > 0 ? '#fcd34d' : '' }}>
-                            <Clock size={18} /> المعلقة ({heldOrders.length})
+                            <Clock size={18} /> {t('sys.str_4029')}{heldOrders.length})
                         </button>
                         <button className="btn-back" onClick={fetchRecentOrders}>
-                            <History size={18} /> السابقة
-                        </button>
+                            <History size={18} /> {t('sys.str_4030')}</button>
                     </div>
 
                     <div className="search-bar">
                         <Search size={18} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [isRTL ? 'right' : 'left']: '12px', color: '#a3a3a3' }} />
                         <input 
                             type="text" 
-                            placeholder="البحث برقم الباركود أو اسم المنتج..." 
+                            placeholder={t('sys.str_4077')} 
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
                     
                     <div>
-                        <span style={{ color: '#a3a3a3', fontSize: '0.9rem' }}>الوردية: #1042 (مفتوحة)</span>
+                        <span style={{ color: '#a3a3a3', fontSize: '0.9rem' }}>{t('sys.str_4031')}</span>
                     </div>
                 </header>
 
                 <div className="products-grid">
                     {loading ? (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#a3a3a3' }}>
-                            جاري تحميل المنتجات...
-                        </div>
+                            {t('sys.str_4032')}</div>
                     ) : (
                         filteredProducts.slice(0, 100).map((product: any) => (
                             <div key={product.id} className={`product-card ${product.stock <= 0 ? 'disabled' : ''}`} onClick={() => product.stock > 0 && addToCart(product)}>
-                                {product.stock <= 0 && <span className="stock-badge">نفد المخزون</span>}
+                                {product.stock <= 0 && <span className="stock-badge">{t('sys.str_4033')}</span>}
                                 <div className="product-icon" style={{ overflow: 'hidden' }}>
                                     {product.img && product.img.length > 2 && (product.img.startsWith('/') || product.img.startsWith('http'))
                                         ? <img src={product.img} alt={product.name} style={{width:'60px', height:'60px', objectFit:'contain', borderRadius:'8px'}} /> 
@@ -680,18 +677,16 @@ export default function POSPage() {
                     )}
                     {!loading && filteredProducts.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#a3a3a3' }}>
-                            لا توجد منتجات مطابقة للبحث
-                        </div>
+                            {t('sys.str_4034')}</div>
                     )}
                 </div>
             </div>
 
             <div className="cart-pane">
                 <div className="cart-header">
-                    <h2>سلة المشتريات</h2>
+                    <h2>{t('sys.str_4035')}</h2>
                     <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.9rem' }}>
-                        {cart.reduce((a, b) => a + b.qty, 0)} عناصر
-                    </span>
+                        {cart.reduce((a, b) => a + b.qty, 0)} {t('sys.str_4036')}</span>
                 </div>
 
                 <div className="customer-selector">
@@ -701,8 +696,7 @@ export default function POSPage() {
                     </button>
                     {selectedCustomer && (
                         <button onClick={() => setSelectedCustomer(null)} style={{ marginTop: '0.5rem', width: '100%', padding: '0.5rem', borderRadius: '8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', cursor: 'pointer' }}>
-                            إلغاء ربط العميل
-                        </button>
+                            {t('sys.str_4037')}</button>
                     )}
                 </div>
 
@@ -724,7 +718,7 @@ export default function POSPage() {
                     {cart.length === 0 && (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#666', gap: '1rem' }}>
                             <ShoppingCart size={48} />
-                            <p>السلة فارغة، ابدأ بإضافة المنتجات</p>
+                            <p>{t('sys.str_4038')}</p>
                         </div>
                     )}
                 </div>
@@ -736,12 +730,12 @@ export default function POSPage() {
                     </div>
                     {appliedCoupon && (
                         <div className="summary-row" style={{ color: '#10b981', fontWeight: 'bold' }}>
-                            <span>خصم الكوبون ({appliedCoupon.code})</span>
+                            <span>{t('sys.str_4039')}{appliedCoupon.code})</span>
                             <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} {t('sys.str_68')}</span>
                         </div>
                     )}
                     <div className="summary-row">
-                        <span>الضريبة (15%)</span>
+                        <span>{t('sys.str_4040')}</span>
                         <span>{tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} {t('sys.str_68')}</span>
                     </div>
                     
@@ -749,7 +743,7 @@ export default function POSPage() {
                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                         <input 
                             type="text" 
-                            placeholder="رمز الكوبون" 
+                            placeholder={t('sys.str_4078')} 
                             value={couponCode}
                             onChange={e => setCouponCode(e.target.value.toUpperCase())}
                             disabled={!!appliedCoupon}
@@ -785,8 +779,7 @@ export default function POSPage() {
                         <strong>{t('pos.str_189')}</strong> Tamara
                     </button>
                     <button className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
-                        <Save size={20} /> حفظ مسودة (تعليق الطلب)
-                    </button>
+                        <Save size={20} /> {t('sys.str_4041')}</button>
                 </div>
             </div>
 
@@ -795,12 +788,12 @@ export default function POSPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowCustomerModal(false)}>
                     <div style={{ background: '#111', width: '500px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>اختر العميل</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('sys.str_4042')}</h3>
                             <button onClick={() => setShowCustomerModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <input 
                             type="text" 
-                            placeholder="البحث بالاسم أو رقم الجوال..." 
+                            placeholder={t('sys.str_4079')} 
                             value={customerSearch}
                             onChange={e => {
                                 setCustomerSearch(e.target.value);
@@ -820,7 +813,7 @@ export default function POSPage() {
                                 </div>
                             ))}
                             {customers.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>لا يوجد عملاء مطابقين لسجل البحث</div>
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>{t('sys.str_4043')}</div>
                             )}
                         </div>
                     </div>
@@ -832,15 +825,15 @@ export default function POSPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowBnplModal(false)}>
                     <div style={{ background: '#111', width: '450px', borderRadius: '16px', padding: '2rem', border: '1px solid #333', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <h2 style={{ color: bnplProvider === 'tabby' ? '#3eedbf' : '#ffb5a3', marginBottom: '1rem' }}>
-                            الدفع عبر {bnplProvider === 'tabby' ? t('pos.str_188') : t('pos.str_189')}
+                            {t('sys.str_4044')}{bnplProvider === 'tabby' ? t('pos.str_188') : t('pos.str_189')}
                         </h2>
                         
                         {!bnplUrl ? (
                             <>
-                                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>أدخل رقم جوال العميل لإنشاء جلسة تقسيط للفاتورة البالغة <strong>{finalTotal.toLocaleString()} {t('sys.str_68')}</strong></p>
+                                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>{t('sys.str_4045')}<strong>{finalTotal.toLocaleString()} {t('sys.str_68')}</strong></p>
                                 <input 
                                     type="text" 
-                                    placeholder="رقم الجوال (مثال: 0500000000)" 
+                                    placeholder={t('sys.str_4080')} 
                                     value={bnplPhone}
                                     onChange={e => setBnplPhone(e.target.value)}
                                     style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #333', background: '#1a1a1a', color: 'white', marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.2rem', letterSpacing: '2px' }}
@@ -869,15 +862,13 @@ export default function POSPage() {
                                         onClick={() => setShowBnplModal(false)}
                                         style={{ flex: 1, padding: '1rem', borderRadius: '8px', border: '1px solid #555', background: 'transparent', color: '#fff', cursor: 'pointer' }}
                                     >
-                                        إلغاء العملية
-                                    </button>
+                                        {t('sys.str_4046')}</button>
                                     <button 
                                         onClick={() => handleCheckout(bnplProvider.toUpperCase() as any)}
                                         disabled={isProcessing}
                                         style={{ flex: 1, padding: '1rem', borderRadius: '8px', border: 'none', background: '#22c55e', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
                                     >
-                                        تأكيد الدفع (اعتماد الفاتورة)
-                                    </button>
+                                        {t('sys.str_4047')}</button>
                                 </div>
                             </div>
                         )}
@@ -890,20 +881,20 @@ export default function POSPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHeldOrdersModal(false)}>
                     <div style={{ background: '#111', width: '600px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>الفواتير المعلقة (المسودات)</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('sys.str_4048')}</h3>
                             <button onClick={() => setShowHeldOrdersModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>لا توجد فواتير معلقة حالياً</p> : 
+                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>{t('sys.str_4049')}</p> : 
                             heldOrders.map((order: any) => (
                                 <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>مسودة وقت: {order.time}</div>
-                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{t('sys.str_57')}{order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
-                                        <div style={{ color: '#818cf8', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} {t('sys.str_68')}</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>{t('sys.str_4050')}{order.time}</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{t('sys.str_57')}{order.customer?.name || t('sys.str_4081')} {t('sys.str_4051')}{order.cart?.length}</div>
+                                        <div style={{ color: '#818cf8', fontWeight: 'bold', marginTop: '0.5rem' }}>{t('sys.str_4052')}{order.total?.toLocaleString()} {t('sys.str_68')}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>استرجاع</button>
+                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{t('sys.str_4053')}</button>
                                         <button onClick={() => saveHeldOrders(heldOrders.filter(o => o.id !== order.id))} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}><Trash2 size={18} /></button>
                                     </div>
                                 </div>
@@ -918,21 +909,21 @@ export default function POSPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHistoryModal(false)}>
                     <div style={{ background: '#111', width: '700px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>أحدث الفواتير المسددة بالشفت الحالي</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('sys.str_4054')}</h3>
                             <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {historyLoading ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>{t('sys.str_168')}</p> : 
-                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>لا توجد فواتير سابقة</p> : 
+                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>{t('sys.str_4055')}</p> : 
                             recentOrders.map((inv: any) => (
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>فاتورة ضريبية #{inv.invoiceNo}</div>
-                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} | العميل: {inv.customer?.name || 'مبيعات مباشرة'}</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>{t('sys.str_4056')}{inv.invoiceNo}</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_68')}</div>
-                                        <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>إعادة طباعة الإيصال</button>
+                                        <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{t('sys.str_4058')}</button>
                                     </div>
                                 </div>
                             ))}
@@ -953,17 +944,17 @@ export default function POSPage() {
                             <div style={{ width: '20px', height: '40px', background: '#f59e0b', borderRadius: '10px' }}></div>
                         </div>
 
-                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>دفع عبر جهاز شبكة مدى</h2>
+                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>{t('sys.str_4059')}</h2>
                         
                         <div style={{ background: '#f1f5f9', width: '100%', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
-                            <span style={{ color: '#64748b', fontWeight: 600 }}>المبلغ المطلوب:</span>
+                            <span style={{ color: '#64748b', fontWeight: 600 }}>{t('sys.str_4060')}</span>
                             <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>{finalTotal.toLocaleString()} SAR</span>
                         </div>
 
                         {madaStatus === 'WAITING' && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
                                 <div className="spinner" style={{ width: '48px', height: '48px', borderTopColor: '#3b82f6', borderWidth: '4px' }}></div>
-                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>يرجى تمرير البطاقة على جهاز مدى...</p>
+                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>{t('sys.str_4061')}</p>
                             </div>
                         )}
 
@@ -972,13 +963,13 @@ export default function POSPage() {
                                 <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                                     <CheckCircle2 size={40} />
                                 </div>
-                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>عملية مقبولة APPROVED</p>
-                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>جاري اعتماد الفاتورة وطباعة الإيصال...</p>
+                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>{t('sys.str_4062')}</p>
+                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>{t('sys.str_4063')}</p>
                             </div>
                         )}
                         
                         {madaStatus === 'WAITING' && (
-                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>إلغاء العملية</button>
+                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4046')}</button>
                         )}
                     </div>
                 </div>

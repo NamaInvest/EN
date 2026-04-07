@@ -131,11 +131,9 @@ export default function AIEnrollmentPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <ScanFace className="text-blue-600 w-8 h-8" />
-            تسجيل البصمة الذكية (AI Face Enrollment)
-          </h1>
+            {t('sys.str_4611')}</h1>
           <p className="text-slate-500 mt-1">
-            قم بالتقاط الوجه الخاص بالموظف وحفظ (بصمته البيومترية) للتعرف عليه آلياً في شاشة الحضور.
-          </p>
+            {t('sys.str_4612')}</p>
         </div>
       </div>
 
@@ -143,19 +141,19 @@ export default function AIEnrollmentPage() {
         
         {/* Left Side: Setup & Status */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="font-bold text-lg mb-4 text-slate-800">1. إعداد الموظف للإلتقاط</h3>
+          <h3 className="font-bold text-lg mb-4 text-slate-800">{t('sys.str_4613')}</h3>
           
-          <label className="block text-sm font-bold text-slate-700 mb-2">اختر الموظف المستهدف:</label>
+          <label className="block text-sm font-bold text-slate-700 mb-2">{t('sys.str_4614')}</label>
           <select 
             value={selectedEmp} 
             onChange={(e) => setSelectedEmp(e.target.value)}
             disabled={scanning || !modelsLoaded}
             className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600 font-medium bg-slate-50"
           >
-            <option value="">-- يرجى اختيار الموظف --</option>
+            <option value="">{t('sys.str_4615')}</option>
             {employees.map(e => (
               <option key={e.id} value={e.id}>
-                {e.name} {e.faceDescriptor ? '(بصمة مسجلة سابقاً)' : ''}
+                {e.name} {e.faceDescriptor ? t('sys.str_4621') : ''}
               </option>
             ))}
           </select>
@@ -180,8 +178,7 @@ export default function AIEnrollmentPage() {
               className="mt-6 w-full bg-slate-800 hover:bg-black text-white p-3 rounded-lg font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
             >
               <Camera className="w-5 h-5" />
-              فتح المستشعر والتقاط الوجه
-            </button>
+              {t('sys.str_4616')}</button>
           )}
 
           {faceDescriptor && (
@@ -189,7 +186,7 @@ export default function AIEnrollmentPage() {
                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check className="text-green-600 w-8 h-8" />
                </div>
-               <h4 className="font-bold text-slate-800 mb-1">الوجه مشفر ومعالج 100%</h4>
+               <h4 className="font-bold text-slate-800 mb-1">{t('sys.str_4617')}</h4>
                <p className="text-xs text-slate-500 font-mono mb-4 break-words">
                  Descriptor Matix: 128-points Neural Identity
                </p>
@@ -198,8 +195,7 @@ export default function AIEnrollmentPage() {
                  className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30 text-white p-3 rounded-lg font-bold flex items-center justify-center gap-2 transition"
                >
                  <Save className="w-5 h-5" />
-                 حفظ واعتماد البصمة للموظف
-               </button>
+                 {t('sys.str_4618')}</button>
             </div>
           )}
 
@@ -210,8 +206,7 @@ export default function AIEnrollmentPage() {
            {!scanning ? (
              <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-sm">
                 <Camera className="w-12 h-12 mb-2 opacity-20" />
-                الكاميرا مقفلة
-             </div>
+                {t('sys.str_4619')}</div>
            ) : (
              <>
                <video 
@@ -234,8 +229,7 @@ export default function AIEnrollmentPage() {
                    className="flex-[2] bg-blue-600 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.6)] text-white p-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
                  >
                    <ScanFace className="w-5 h-5" />
-                   التقط الملامح الآن!
-                 </button>
+                   {t('sys.str_4620')}</button>
                </div>
              </>
            )}

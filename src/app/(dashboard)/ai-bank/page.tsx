@@ -25,9 +25,7 @@ export default function AIBankPage() {
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
                     <span className="text-4xl">🏦</span> {t('sys.str_289')}</h1>
                 <p className="text-emerald-50 text-lg">
-                    يقوم هذا المحرك بربط الحوالات البنكية الواردة بفواتير المبيعات آلياً.
-                    لن تحتاج بعد اليوم لمراجعة الكشوفات يدوياً للبحث عن صاحب الحوالة.
-                </p>
+                    {t('sys.str_4118')}</p>
                 <button 
                     onClick={triggerMatch} 
                     disabled={loading}

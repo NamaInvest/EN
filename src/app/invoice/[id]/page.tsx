@@ -86,8 +86,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                         <p style={{ margin: '4px 0' }}><strong>{t('sys.str_113')}</strong> {new Date(invoice.date).toLocaleString('ar-SA')}</p>
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                        <p style={{ margin: '4px 0' }}><strong>"العميل:"</strong> {invoice.customer?.name || t('sys.str_752')}</p>
-                        <p style={{ margin: '4px 0' }}><strong>"الكاشير:"</strong> {invoice.user?.fullName || t('stock.str_1485')}</p>
+                        <p style={{ margin: '4px 0' }}><strong>{t('sys.str_4598')}</strong> {invoice.customer?.name || t('sys.str_752')}</p>
+                        <p style={{ margin: '4px 0' }}><strong>{t('sys.str_4599')}</strong> {invoice.user?.fullName || t('stock.str_1485')}</p>
                     </div>
                 </div>
 

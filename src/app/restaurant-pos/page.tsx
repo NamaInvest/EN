@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function RestaurantPOS() {
+    const { t } = useTranslation();
     // Force RTL for this specific layout to match image perfectly
     const isRTL = true;
 
@@ -54,7 +56,7 @@ export default function RestaurantPOS() {
         setCart([]);
         setSelectedCustomer(null);
         removeCoupon();
-        alert('تم تعليق طلب الطاولة بنجاح');
+        alert(t('sys.str_4112'));
     };
 
     const handleRestoreOrder = (order: any) => {
@@ -82,7 +84,7 @@ export default function RestaurantPOS() {
     
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
-    const [activeCategory, setActiveCategory] = useState('الكل');
+    const [activeCategory, setActiveCategory] = useState(t('sys.str_4068'));
     const [loading, setLoading] = useState(true);
     const [numpadValue, setNumpadValue] = useState('');
 
@@ -97,11 +99,11 @@ export default function RestaurantPOS() {
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
-                const cats = [{id: 'الكل', name: 'الكل'}, ...data.categories];
+                const cats = [{id: 'الكل', name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
             }
         } catch (e) {
-            alert('فشل جلب المنتجات');
+            alert(t('sys.str_4069'));
         } finally {
             setLoading(false);
         }
@@ -119,13 +121,13 @@ export default function RestaurantPOS() {
     }, [showCustomerModal]);
 
     const filteredProducts = products.filter(p => 
-        (activeCategory === 'الكل' || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
+        (activeCategory === t('sys.str_4068') || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
         (p.name.includes(searchQuery) || p.barcode?.includes(searchQuery))
     );
 
     const addToCart = (product: any) => {
         if (product.stock <= 0) {
-            alert('المنتج غير متوفر في المخزون');
+            alert(t('sys.str_4070'));
             return;
         }
         setCart(prev => {
@@ -202,7 +204,7 @@ export default function RestaurantPOS() {
         const doc = iframe.contentWindow?.document;
         if (doc) {
             doc.open();
-            doc.write('<html><head><title>طباعة الإيصال</title></head><body style="margin:0;">' + content + '</body></html>');
+            doc.write(t('sys.str_4113') + content + '</body></html>');
             doc.close();
         }
 
@@ -289,10 +291,10 @@ export default function RestaurantPOS() {
                 setNumpadValue('');
                 fetchProducts(); // refresh stock
             } else {
-                alert(data.error || 'حدث خطأ أثناء الدفع');
+                alert(data.error || t('sys.str_4075'));
             }
         } catch (e) {
-            alert('حدث خطأ بالاتصال بالسيرفر');
+            alert(t('sys.str_4076'));
         } finally {
             setIsProcessing(false);
         }
@@ -311,13 +313,13 @@ export default function RestaurantPOS() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + ' ر.س'}`);
+                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_4105')}`);
             } else {
                 alert(data.error);
                 setAppliedCoupon(null);
             }
         } catch {
-            alert('حدث خطأ أثناء فحص الكوبون');
+            alert(t('sys.str_4071'));
         }
         setCouponLoading(false);
     };
@@ -604,21 +606,19 @@ export default function RestaurantPOS() {
                 <div className="top-bar">
                     <div style={{display:'flex', gap:'1rem', alignItems:'center'}}>
                         <Link href="/dashboard" style={{textDecoration:'none', color:'#666', display:'flex', alignItems:'center', gap:'0.25rem'}}>
-                            <ArrowRight size={18} /> رجوع
-                        </Link>
-                        <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>نقطة البيع (مطاعم)</h2>
+                            <ArrowRight size={18} /> {t('sys.str_4082')}</Link>
+                        <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>{t('sys.str_4083')}</h2>
                         
                         <button onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? '#fef3c7' : 'transparent', color: heldOrders.length > 0 ? '#d97706' : '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
-                            <Clock size={16} /> الفواتير المعلقة ({heldOrders.length})
+                            <Clock size={16} /> {t('sys.str_4084')}{heldOrders.length})
                         </button>
                         <button onClick={fetchRecentOrders} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
-                            <History size={16} /> الفواتير السابقة
-                        </button>
+                            <History size={16} /> {t('sys.str_4085')}</button>
                     </div>
                     <input 
                         className="search-input"
                         type="text" 
-                        placeholder="البحث بالاسم أو الباركود..." 
+                        placeholder={t('sys.str_4114')} 
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                     />
@@ -627,8 +627,7 @@ export default function RestaurantPOS() {
                 <div className="products-grid">
                     {loading ? (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
-                            جاري تحميل قائمة الطعام...
-                        </div>
+                            {t('sys.str_4086')}</div>
                     ) : filteredProducts.slice(0, 100).map((product: any) => (
                         <div 
                             key={product.id} 
@@ -647,8 +646,7 @@ export default function RestaurantPOS() {
                     ))}
                     {!loading && filteredProducts.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
-                            لا توجد أصناف
-                        </div>
+                            {t('sys.str_4087')}</div>
                     )}
                 </div>
             </div>
@@ -661,38 +659,37 @@ export default function RestaurantPOS() {
                         style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: selectedCustomer ? '1px solid #22c55e' : '1px dashed #cbd5e1', background: selectedCustomer ? 'rgba(34,197,94,0.1)' : '#f8f9fa', color: selectedCustomer ? '#22c55e' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                         <User size={18} />
-                        {selectedCustomer ? `العميل: ${selectedCustomer.name}` : 'تحديد العميل (ولاء)'}
+                        {selectedCustomer ? `العميل: ${selectedCustomer.name}` : t('sys.str_4115')}
                     </button>
                     {selectedCustomer && (
                         <button onClick={() => setSelectedCustomer(null)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer' }}>
-                            إلغاء ربط العميل
-                        </button>
+                            {t('sys.str_4037')}</button>
                     )}
                 </div>
                 
                 <div className="cart-totals-banner">
                     <div className="banner-row">
-                        <span>المجموع:</span>
+                        <span>{t('sys.str_4088')}</span>
                         <span>{total.toLocaleString()}</span>
                     </div>
                     {/* Discount Row */}
                     {appliedCoupon ? (
                         <div className="banner-row" style={{ color: '#fff', background: 'rgba(34, 197, 94, 0.2)', padding: '2px 4px', borderRadius: '4px' }}>
-                            <span>خصم الكوبون ({appliedCoupon.code}):</span>
+                            <span>{t('sys.str_4039')}{appliedCoupon.code}):</span>
                             <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </div>
                     ) : (
                         <div className="banner-row">
-                            <span>الخصم:</span>
+                            <span>{t('sys.str_4089')}</span>
                             <span>0</span>
                         </div>
                     )}
                     <div className="banner-row">
-                        <span>الضريبة (15%):</span>
+                        <span>{t('sys.str_4090')}</span>
                         <span>{tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                     </div>
                     <div className="banner-grand">
-                        <span>الصافي</span>
+                        <span>{t('sys.str_4091')}</span>
                         <span>{finalTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                     </div>
                 </div>
@@ -701,10 +698,10 @@ export default function RestaurantPOS() {
                     <table style={{width:'100%', borderCollapse:'collapse'}}>
                         <thead>
                             <tr>
-                                <th>الصنف</th>
-                                <th style={{textAlign:'center'}}>الكمية</th>
-                                <th style={{textAlign:'center'}}>السعر</th>
-                                <th>الإجمالي</th>
+                                <th>{t('sys.str_4092')}</th>
+                                <th style={{textAlign:'center'}}>{t('sys.str_4093')}</th>
+                                <th style={{textAlign:'center'}}>{t('sys.str_4094')}</th>
+                                <th>{t('sys.str_4095')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -726,8 +723,7 @@ export default function RestaurantPOS() {
                     </table>
                     {cart.length === 0 && (
                         <div style={{textAlign:'center', padding:'3rem', color:'#aaa'}}>
-                            الطلبات فارغة
-                        </div>
+                            {t('sys.str_4096')}</div>
                     )}
                 </div>
 
@@ -735,7 +731,7 @@ export default function RestaurantPOS() {
                 <div style={{ padding: '0.75rem 1rem', background: '#f1f5f9', borderBottom: '1px solid #ddd', display: 'flex', gap: '0.5rem' }}>
                     <input 
                         type="text" 
-                        placeholder="رمز الكوبون" 
+                        placeholder={t('sys.str_4078')} 
                         value={couponCode}
                         onChange={e => setCouponCode(e.target.value.toUpperCase())}
                         disabled={!!appliedCoupon}
@@ -743,12 +739,11 @@ export default function RestaurantPOS() {
                     />
                     {!appliedCoupon ? (
                         <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                            {couponLoading ? '...' : 'تطبيق'}
+                            {couponLoading ? '...' : t('sys.str_4116')}
                         </button>
                     ) : (
                         <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                            إلغاء
-                        </button>
+                            {t('sys.str_4097')}</button>
                     )}
                 </div>
 
@@ -759,15 +754,14 @@ export default function RestaurantPOS() {
                             disabled={cart.length === 0}
                             style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
                         >
-                            <Clock size={18} /> تعليق الفاتورة
-                        </button>
+                            <Clock size={18} /> {t('sys.str_4098')}</button>
                         <button 
                             className="pay-btn-big" 
                             disabled={cart.length === 0 || isProcessing}
                             onClick={() => handleCheckout('CASH')}
                             style={{ flex: 1, fontSize: '1.2rem' }}
                         >
-                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>دفع نقدي</span>
+                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>{t('sys.str_4099')}</span>
                             <span style={{ fontSize: '1.6rem' }}>CASH</span>
                         </button>
                         <button 
@@ -776,7 +770,7 @@ export default function RestaurantPOS() {
                             onClick={() => handleCheckout('CARD')}
                             style={{ flex: 1, background: '#3b82f6', fontSize: '1.2rem' }}
                         >
-                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>دفع شبكة</span>
+                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>{t('sys.str_4100')}</span>
                             <span style={{ fontSize: '1.6rem' }}>MADA ✔</span>
                         </button>
                     </div>
@@ -796,8 +790,8 @@ export default function RestaurantPOS() {
                 
                 {/* Optional Status / Input Bar */}
                 <div style={{ background: '#334155', color: 'white', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', fontSize:'0.85rem' }}>
-                    <span>{numpadValue ? `المدخل: ${numpadValue}` : 'جاهز للطلب'}</span>
-                    <span>الكاشير: admin</span>
+                    <span>{numpadValue ? `المدخل: ${numpadValue}` : t('sys.str_4117')}</span>
+                    <span>{t('sys.str_4101')}</span>
                 </div>
             </div>
 
@@ -806,12 +800,12 @@ export default function RestaurantPOS() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowCustomerModal(false)}>
                     <div style={{ background: '#fff', width: '450px', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', color: '#333' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>اختر العميل</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>{t('sys.str_4042')}</h3>
                             <button onClick={() => setShowCustomerModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <input 
                             type="text" 
-                            placeholder="البحث بالاسم أو رقم الجوال..." 
+                            placeholder={t('sys.str_4079')} 
                             value={customerSearch}
                             onChange={e => {
                                 setCustomerSearch(e.target.value);
@@ -831,7 +825,7 @@ export default function RestaurantPOS() {
                                 </div>
                             ))}
                             {customers.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>لا يوجد عملاء مطابقين لسجل البحث</div>
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>{t('sys.str_4043')}</div>
                             )}
                         </div>
                     </div>
@@ -843,20 +837,20 @@ export default function RestaurantPOS() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHeldOrdersModal(false)}>
                     <div style={{ background: '#fff', width: '600px', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', color: '#333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>طلبات الطاولات المعلقة</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>{t('sys.str_4102')}</h3>
                             <button onClick={() => setShowHeldOrdersModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>لا توجد طلبات معلقة حالياً</p> : 
+                            {heldOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>{t('sys.str_4103')}</p> : 
                             heldOrders.map((order: any) => (
                                 <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>مسودة وقت: {order.time}</div>
-                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>العميل: {order.customer?.name || 'مبيعات مباشرة'} | عدد الأصناف: {order.cart?.length}</div>
-                                        <div style={{ color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem' }}>المجموع التقديري: {order.total?.toLocaleString()} ر.س</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>{t('sys.str_4050')}{order.time}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('sys.str_4104')}{order.customer?.name || t('sys.str_4081')} {t('sys.str_4051')}{order.cart?.length}</div>
+                                        <div style={{ color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem' }}>{t('sys.str_4052')}{order.total?.toLocaleString()} {t('sys.str_4105')}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>أكمل الطلب</button>
+                                        <button onClick={() => handleRestoreOrder(order)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{t('sys.str_4106')}</button>
                                         <button onClick={() => saveHeldOrders(heldOrders.filter(o => o.id !== order.id))} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '6px', cursor: 'pointer' }}><Trash2 size={18} /></button>
                                     </div>
                                 </div>
@@ -871,20 +865,20 @@ export default function RestaurantPOS() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowHistoryModal(false)}>
                     <div style={{ background: '#fff', width: '700px', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', color: '#333', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>أحدث الفواتير المسددة بالشفت الحالي</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>{t('sys.str_4054')}</h3>
                             <button onClick={() => setShowHistoryModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
                         </div>
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {historyLoading ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>جاري التحميل...</p> : 
-                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>لا توجد فواتير سابقة</p> : 
+                            {historyLoading ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>{t('sys.str_4107')}</p> : 
+                            recentOrders.length === 0 ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>{t('sys.str_4055')}</p> : 
                             recentOrders.map((inv: any) => (
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>فاتورة ضريبية #{inv.invoiceNo}</div>
-                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} | العميل: {inv.customer?.name || 'مبيعات مباشرة'}</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>{t('sys.str_4056')}{inv.invoiceNo}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} ر.س</div>
+                                        <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_4105')}</div>
                                         <button onClick={() => { 
                                             const printCart = (inv.details || []).map((d: any) => ({
                                                 name: d.productName,
@@ -898,7 +892,7 @@ export default function RestaurantPOS() {
                                                 inv.taxValue,
                                                 inv.discountValue
                                             );
-                                        }} style={{ background: '#22c55e', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>إعادة طباعة</button>
+                                        }} style={{ background: '#22c55e', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4108')}</button>
                                         
                                         <button onClick={() => { 
                                             const printCart = (inv.details || []).map((d: any) => ({
@@ -913,7 +907,7 @@ export default function RestaurantPOS() {
                                                 inv.taxValue,
                                                 inv.discountValue
                                             );
-                                        }} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>تصدير PDF</button>
+                                        }} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4109')}</button>
                                     </div>
                                 </div>
                             ))}
@@ -934,17 +928,17 @@ export default function RestaurantPOS() {
                             <div style={{ width: '20px', height: '40px', background: '#f59e0b', borderRadius: '10px' }}></div>
                         </div>
 
-                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>دفع عبر جهاز شبكة مدى</h2>
+                        <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>{t('sys.str_4059')}</h2>
                         
                         <div style={{ background: '#f1f5f9', width: '100%', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
-                            <span style={{ color: '#64748b', fontWeight: 600 }}>المبلغ المطلوب:</span>
+                            <span style={{ color: '#64748b', fontWeight: 600 }}>{t('sys.str_4060')}</span>
                             <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>{finalTotal.toLocaleString()} SAR</span>
                         </div>
 
                         {madaStatus === 'WAITING' && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
                                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>يرجى تمرير البطاقة على جهاز مدى المربوط بالصندوق...</p>
+                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>{t('sys.str_4110')}</p>
                             </div>
                         )}
 
@@ -953,13 +947,13 @@ export default function RestaurantPOS() {
                                 <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                                     <CheckCircle2 size={40} />
                                 </div>
-                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>عملية مقبولة APPROVED</p>
-                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>جاري اعتماد فاتورة الطاولة وطباعة الإيصال...</p>
+                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>{t('sys.str_4062')}</p>
+                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>{t('sys.str_4111')}</p>
                             </div>
                         )}
                         
                         {madaStatus === 'WAITING' && (
-                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>إلغاء العملية</button>
+                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4046')}</button>
                         )}
                     </div>
                 </div>

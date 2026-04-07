@@ -600,7 +600,7 @@ export default function SalesPage() {
                         })
                     }).then(r => r.json()).then(res => {
                         if (res.success) {
-                            showToast('🤖 تم إرسال الفاتورة عبر واتساب بنجاح');
+                            showToast(t('sys.str_4329'));
                         } else {
                             // التراجع للطريقة اليدوية في حال فشل البوت
                             console.warn('Bot Failed, falling back to manual whatsapp');
@@ -614,7 +614,7 @@ export default function SalesPage() {
                 setManualInvoiceNo(''); setManualDate('');
                 fetchProducts();
             } else {
-                showToast('❌ فشل في حفظ الفاتورة');
+                showToast(t('sys.str_4330'));
             }
         } catch (err) {
             console.error(err);
@@ -677,14 +677,14 @@ export default function SalesPage() {
         setHeldInvoices(updated);
         localStorage.setItem('heldInvoices', JSON.stringify(updated));
         setShowHeldPanel(false);
-        showToast('▶️ تم استرجاع الفاتورة المعلقة');
+        showToast(t('sys.str_4331'));
     };
 
     const deleteHeldInvoice = (heldId: string) => {
         const updated = heldInvoices.filter(h => h.id !== heldId);
         setHeldInvoices(updated);
         localStorage.setItem('heldInvoices', JSON.stringify(updated));
-        showToast('🗑️ تم حذف الفاتورة المعلقة');
+        showToast(t('sys.str_4332'));
     };
 
     // Invoice History
@@ -813,7 +813,7 @@ export default function SalesPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🧾 فاتورة مبيعات</h1>
+                <h1 className="page-title">{t('sys.str_4321')}</h1>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
                     <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
@@ -825,7 +825,7 @@ export default function SalesPage() {
                     <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
                         onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? t('sys.str_832') : t('sys.str_833')); }}
                         style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>{t('sys.str_745')}</button>
-                    <button className="btn btn-ghost btn-sm" onClick={openHistory}>📋 الفواتير</button>
+                    <button className="btn btn-ghost btn-sm" onClick={openHistory}>{t('sys.str_4322')}</button>
                 </div>
             </div>
 
@@ -912,8 +912,8 @@ export default function SalesPage() {
                                 {isAdmin && <option value="credit">{t('sys.str_760')}</option>}
                                 {isAdmin && <option value="installment">{t('sys.str_761')}</option>}
                             </select>
-                            <input className="input" type="number" placeholder="رقم الفاتورة (اختياري)" value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title="تعديل رقم الفاتورة (اختياري)" />
-                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title="تعديل تاريخ الفاتورة (اختياري)" />
+                            <input className="input" type="number" placeholder={t('sys.str_4333')} value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title={t('sys.str_4334')} />
+                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title={t('sys.str_4335')} />
                             <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
                                 style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
@@ -1191,7 +1191,7 @@ export default function SalesPage() {
 
                             <div style={{ marginTop: '12px' }}>
                                 <input className="input" value={notes} onChange={e => setNotes(e.target.value)}
-                                    placeholder="ملاحظات على الفاتورة (اختياري)" />
+                                    placeholder={t('sys.str_4336')} />
                             </div>
                         </div>
                     </div>
@@ -1303,14 +1303,14 @@ export default function SalesPage() {
                 <div className="modal-overlay" onClick={() => setShowHeldPanel(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>⏸️ الفواتير المعلقة ({heldInvoices.length})</h3>
+                            <h3>{t('sys.str_4323')}{heldInvoices.length})</h3>
                             <button className="modal-close" onClick={() => setShowHeldPanel(false)}>✕</button>
                         </div>
                         <div className="modal-body">
                             {heldInvoices.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                                     <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
-                                    <div>لا توجد فواتير معلقة</div>
+                                    <div>{t('sys.str_4324')}</div>
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1351,7 +1351,7 @@ export default function SalesPage() {
                 <div className="modal-overlay" onClick={() => setShowHistory(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
                         <div className="modal-header">
-                            <h3>📋 الفواتير السابقة</h3>
+                            <h3>{t('sys.str_4325')}</h3>
                             <button className="modal-close" onClick={() => setShowHistory(false)}>✕</button>
                         </div>
                         <div className="modal-body" style={{ overflow: 'auto', flex: 1 }}>
@@ -1360,7 +1360,7 @@ export default function SalesPage() {
                             ) : historyInvoices.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                                     <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
-                                    <div>لا توجد فواتير</div>
+                                    <div>{t('sys.str_4326')}</div>
                                 </div>
                             ) : (
                                 <table className="table" style={{ fontSize: '13px' }}>
@@ -1400,7 +1400,7 @@ export default function SalesPage() {
                 <div className="modal-overlay" onClick={() => setSelectedInvoice(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px' }}>
                         <div className="modal-header">
-                            <h3>🧾 فاتورة #{selectedInvoice.invoiceNo}</h3>
+                            <h3>{t('sys.str_4327')}{selectedInvoice.invoiceNo}</h3>
                             <button className="modal-close" onClick={() => setSelectedInvoice(null)}>✕</button>
                         </div>
                         <div className="modal-body">
@@ -1431,7 +1431,7 @@ export default function SalesPage() {
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>🖨️ طباعة الفاتورة</button>
+                            <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>{t('sys.str_4328')}</button>
                             <button className="btn btn-primary" onClick={() => printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>{t('sys.str_804')}</button>
                             <button className="btn btn-success" onClick={() => sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>{t('sys.str_805')}</button>
                             {canDelete && <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_806')}</button>}
