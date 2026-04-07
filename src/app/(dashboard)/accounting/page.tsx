@@ -374,7 +374,7 @@ export default function AccountingPage() {
                                     <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '10px', fontFamily: 'monospace' }}>{c.code}</td>
                                         <td style={{ padding: '10px', fontWeight: 'bold' }}>{c.name}</td>
-                                        <td style={{ padding: '10px' }}><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: c.isActive ? '#22c55e20' : '#ef444420', color: c.isActive ? '#22c55e' : '#ef4444' }}>{c.isActive ? 'نشط' : 'إيقاف'}</span></td>
+                                        <td style={{ padding: '10px' }}><span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: c.isActive ? '#22c55e20' : '#ef444420', color: c.isActive ? '#22c55e' : '#ef4444' }}>{c.isActive ? t('sys.str_180') : t('fin.str_269')}</span></td>
                                     </tr>
                                 ))}
                                 {costCenters.length === 0 && <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>{t('fin.str_228')}</td></tr>}
@@ -432,7 +432,7 @@ export default function AccountingPage() {
                             <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                 <h3>{t('fin.str_239')}</h3>
                                 <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '13px', background: trialData.isBalanced ? '#22c55e20' : '#ef444420', color: trialData.isBalanced ? '#22c55e' : '#ef4444' }}>
-                                    {trialData.isBalanced ? '✅ متوازن' : '⚠️ غير متوازن'}
+                                    {trialData.isBalanced ? t('fin.str_270') : t('fin.str_271')}
                                 </span>
                             </div>
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -483,7 +483,7 @@ export default function AccountingPage() {
                                     </div>
                                 </div>
                                 <div style={{ background: incomeData.netProfit >= 0 ? '#22c55e15' : '#ef444415', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '14px', marginBottom: '4px' }}>{incomeData.netProfit >= 0 ? '✅ صافي الربح' : '⚠️ صافي الخسارة'}</div>
+                                    <div style={{ fontSize: '14px', marginBottom: '4px' }}>{incomeData.netProfit >= 0 ? t('fin.str_272') : t('fin.str_273')}</div>
                                     <div style={{ fontSize: '28px', fontWeight: 'bold', fontFamily: 'monospace', color: incomeData.netProfit >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(Math.abs(incomeData.netProfit))} {t('sys.str_68')}</div>
                                 </div></>}
                 </div>
@@ -497,7 +497,7 @@ export default function AccountingPage() {
                             <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                 <h3>{t('fin.str_247')}</h3>
                                 <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '13px', background: balanceData.isBalanced ? '#22c55e20' : '#ef444420', color: balanceData.isBalanced ? '#22c55e' : '#ef4444' }}>
-                                    {balanceData.isBalanced ? '✅ متوازنة' : '⚠️ غير متوازنة'}
+                                    {balanceData.isBalanced ? t('fin.str_274') : t('fin.str_275')}
                                 </span>
                             </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

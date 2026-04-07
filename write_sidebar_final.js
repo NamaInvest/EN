@@ -1,0 +1,567 @@
+const fs = require('fs');
+
+const SIDEBAR_CODE = `'use client';
+
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useSettings } from '@/lib/SettingsContext';
+
+// ── All 5 language labels ─────────────────────────────────────────────────────
+type Lang = 'ar' | 'en' | 'hi' | 'bn' | 'ur';
+
+const LABELS: Record<Lang, Record<string, string>> = {
+  ar: {
+    's.dashboard': 'الرئيسية',
+    's.sales': 'المبيعات',
+    's.purchases': 'المشتريات',
+    's.inventory': 'المستودعات والجرد',
+    's.manufacturing': 'التصنيع والإنتاج',
+    's.finance': 'المالية والحسابات',
+    's.crm': 'العملاء والتسويق',
+    's.hr': 'الموارد البشرية',
+    's.enterprise': 'أنظمة متخصصة',
+    's.settings': 'الإعدادات',
+    'i.dashboard': 'لوحة التحكم', 'i.copilot': 'المساعد الذكي', 'i.cfo': 'المدير المالي الذكي',
+    'i.scm': 'المخزون الذكي', 'i.alerts': 'صندوق الوارد والتنبيهات',
+    'i.pos': 'شاشة نقطة البيع', 'i.restaurant': 'نقطة بيع المطاعم', 'i.shifts': 'ورديات الكاشير',
+    'i.sales_invoices': 'فواتير المبيعات', 'i.sales_history': 'سجل الفواتير',
+    'i.sales_quotes': 'عروض الأسعار', 'i.sales_orders': 'أوامر البيع',
+    'i.delivery_notes': 'مذكرات التسليم', 'i.sales_returns': 'مرتجعات المبيعات',
+    'i.recurring': 'العقود الدورية', 'i.routes': 'خطوط السير', 'i.commissions': 'العمولات والمستهدفات',
+    'i.purchase_reqs': 'طلبات الشراء', 'i.rfq': 'عروض أسعار الموردين',
+    'i.po': 'أوامر الشراء', 'i.grn': 'سندات الاستلام',
+    'i.purchases': 'فواتير المشتريات', 'i.purchase_returns': 'مرتجعات المشتريات', 'i.lc': 'الاعتمادات المستندية',
+    'i.products': 'الأصناف والخدمات', 'i.stock': 'الأرصدة المخزنية',
+    'i.movements': 'حركة الصنف', 'i.transfer': 'نقل المخزون',
+    'i.smart_transfer': 'التحويلات الذكية', 'i.adjustments': 'تسويات الجرد',
+    'i.warehouses': 'المستودعات', 'i.wms': 'المستودع الذكي',
+    'i.barcodes': 'الباركود والملصقات', 'i.batches': 'تواريخ الصلاحية', 'i.serials': 'الأرقام التسلسلية',
+    'i.vision': 'جرد الكاميرا الذكي',
+    'i.bom': 'معادلات التصنيع', 'i.mrp': 'تخطيط الإنتاج', 'i.qc': 'الفحص المخزني',
+    'i.coa': 'شجرة الحسابات', 'i.treasury': 'الخزينة', 'i.banks': 'البنوك',
+    'i.checks': 'أوراق القبض والدفع', 'i.vouchers': 'سندات القبض والمصرف',
+    'i.expenses': 'المصروفات النثرية', 'i.petty_cash': 'صناديق العهدة',
+    'i.fixed_assets': 'الأصول الثابتة', 'i.budgets': 'الموازنات', 'i.installments': 'التقسيط',
+    'i.fin_reports': 'التقارير المالية',
+    'i.customers': 'قاعدة العملاء', 'i.leads': 'الفرص البيعية', 'i.loyalty': 'نقاط الولاء',
+    'i.gift_cards': 'بطاقات الهدايا', 'i.coupons': 'الكوبونات', 'i.promotions': 'العروض',
+    'i.employees': 'بيانات الموظفين', 'i.attendance': 'الحضور والانصراف',
+    'i.payroll': 'مسيرات الرواتب', 'i.leaves': 'الإجازات', 'i.loans': 'السلف والقروض',
+    'i.recruitment': 'التوظيف', 'i.kpi': 'تقييم الأداء',
+    'i.training': 'التدريب', 'i.face_id': 'البصمة الذكية',
+    'i.projects': 'المشاريع', 'i.property': 'الأملاك والعقارات', 'i.leases': 'عقود الإيجار',
+    'i.fleet': 'أسطول النقل', 'i.fleet_trips': 'رحلات الأسطول',
+    'i.schools': 'نظام المدارس', 'i.classes': 'الفصول',
+    'i.credit': 'الرقابة الائتمانية',
+    'i.saas': 'محرك الشركات', 'i.branches': 'الفروع ونقاط البيع',
+    'i.currencies': 'العملات', 'i.approvals': 'نظام الموافقات',
+    'i.wa': 'الواتساب الآلي', 'i.salla': 'ربط سلة',
+    'i.settings': 'إعدادات النظام', 'i.audit': 'سجلات المراقبة', 'i.support': 'الصيانة والدعم',
+    'logout': 'تسجيل الخروج',
+  },
+  en: {
+    's.dashboard': 'Dashboard',
+    's.sales': 'Sales & POS',
+    's.purchases': 'Purchases',
+    's.inventory': 'Inventory & WMS',
+    's.manufacturing': 'Manufacturing (MRP)',
+    's.finance': 'Finance & Accounting',
+    's.crm': 'CRM & Customers',
+    's.hr': 'HR & Payroll',
+    's.enterprise': 'Enterprise Modules',
+    's.settings': 'System Settings',
+    'i.dashboard': 'Home Dashboard', 'i.copilot': 'AI Copilot', 'i.cfo': 'AI CFO',
+    'i.scm': 'AI SCM', 'i.alerts': 'Inbox & Alerts',
+    'i.pos': 'POS Terminal', 'i.restaurant': 'Restaurant POS', 'i.shifts': 'Cashier Shifts',
+    'i.sales_invoices': 'Tax Invoices', 'i.sales_history': 'Sales History',
+    'i.sales_quotes': 'Sales Quotations', 'i.sales_orders': 'Sales Orders',
+    'i.delivery_notes': 'Delivery Notes', 'i.sales_returns': 'Sales Returns',
+    'i.recurring': 'Recurring Contracts', 'i.routes': 'Sales Routes', 'i.commissions': 'Commissions & Targets',
+    'i.purchase_reqs': 'Purchase Requests (PR)', 'i.rfq': 'Supplier RFQ',
+    'i.po': 'Purchase Orders (PO)', 'i.grn': 'Goods Receipt (GRN)',
+    'i.purchases': 'Purchase Invoices', 'i.purchase_returns': 'Purchase Returns', 'i.lc': 'Letters of Credit (LC)',
+    'i.products': 'Products & Services', 'i.stock': 'Stock Balances',
+    'i.movements': 'Stock Item History', 'i.transfer': 'Internal Stock Transfer',
+    'i.smart_transfer': 'Smart Branch Transfers', 'i.adjustments': 'Stock Adjustments',
+    'i.warehouses': 'Warehouses Setup', 'i.wms': 'Smart WMS',
+    'i.barcodes': 'Barcodes & Labels', 'i.batches': 'Batches & Expiry', 'i.serials': 'Serial Numbers',
+    'i.vision': 'AI Stocktake Vision',
+    'i.bom': 'Bills of Material (BOM)', 'i.mrp': 'Advanced MRP Planning', 'i.qc': 'Quality Control (QC)',
+    'i.coa': 'Chart of Accounts', 'i.treasury': 'Treasury & Funds', 'i.banks': 'Banks & Reconciliation',
+    'i.checks': 'Checks & Notes', 'i.vouchers': 'Journal Entries',
+    'i.expenses': 'Petty Cash Expenses', 'i.petty_cash': 'Petty Cash Funds',
+    'i.fixed_assets': 'Fixed Assets', 'i.budgets': 'Cost Centers & Budgets', 'i.installments': 'Installments',
+    'i.fin_reports': 'Financial Reports',
+    'i.customers': 'Customers Directory', 'i.leads': 'Leads & Prospects', 'i.loyalty': 'Loyalty Points',
+    'i.gift_cards': 'Gift Cards', 'i.coupons': 'Discount Coupons', 'i.promotions': 'Promotions & Offers',
+    'i.employees': 'Employee Files', 'i.attendance': 'Standard Attendance',
+    'i.payroll': 'Payroll Generation', 'i.leaves': 'Vacations & Leaves', 'i.loans': 'Employee Loans',
+    'i.recruitment': 'Recruitment', 'i.kpi': 'Performance Appraisals',
+    'i.training': 'Training & Courses', 'i.face_id': 'AI Face Attendance',
+    'i.projects': 'Project Management', 'i.property': 'Real Estate Management', 'i.leases': 'Rental Contracts',
+    'i.fleet': 'Fleet & Vehicles', 'i.fleet_trips': 'Fleet Trips',
+    'i.schools': 'Schools Management', 'i.classes': 'Classes Management',
+    'i.credit': 'B2B Credit Control',
+    'i.saas': 'SaaS Subscription', 'i.branches': 'Branches & Devices',
+    'i.currencies': 'Currencies & Rates', 'i.approvals': 'Approval Workflows',
+    'i.wa': 'WhatsApp Hub', 'i.salla': 'Salla Integration',
+    'i.settings': 'General Settings', 'i.audit': 'Audit & Logs', 'i.support': 'Maintenance & Support',
+    'logout': 'Logout',
+  },
+  hi: {
+    's.dashboard': 'डैशबोर्ड', 's.sales': 'बिक्री और POS', 's.purchases': 'खरीद',
+    's.inventory': 'इन्वेंटरी', 's.manufacturing': 'विनिर्माण', 's.finance': 'वित्त और लेखा',
+    's.crm': 'ग्राहक और CRM', 's.hr': 'मानव संसाधन', 's.enterprise': 'उद्यम', 's.settings': 'सेटिंग्स',
+    'i.dashboard': 'होम डैशबोर्ड', 'i.copilot': 'AI कोपायलट', 'i.cfo': 'AI CFO', 'i.scm': 'AI SCM',
+    'i.alerts': 'इनबॉक्स और अलर्ट', 'i.pos': 'POS टर्मिनल', 'i.restaurant': 'रेस्टोरेंट POS',
+    'i.shifts': 'कैशियर शिफ्ट', 'i.sales_invoices': 'टैक्स इनवॉइस', 'i.sales_history': 'बिक्री इतिहास',
+    'i.sales_quotes': 'बिक्री कोटेशन', 'i.sales_orders': 'बिक्री आदेश',
+    'i.delivery_notes': 'डिलीवरी नोट', 'i.sales_returns': 'बिक्री वापसी',
+    'i.recurring': 'आवर्ती अनुबंध', 'i.routes': 'बिक्री मार्ग', 'i.commissions': 'कमीशन और लक्ष्य',
+    'i.purchase_reqs': 'खरीद अनुरोध', 'i.rfq': 'सप्लायर कोटेशन', 'i.po': 'खरीद आदेश',
+    'i.grn': 'माल रसीद', 'i.purchases': 'खरीद इनवॉइस', 'i.purchase_returns': 'खरीद वापसी',
+    'i.lc': 'साख पत्र', 'i.products': 'उत्पाद और सेवाएं', 'i.stock': 'स्टॉक शेष',
+    'i.movements': 'स्टॉक इतिहास', 'i.transfer': 'आंतरिक स्थानांतरण',
+    'i.smart_transfer': 'स्मार्ट शाखा स्थानांतरण', 'i.adjustments': 'स्टॉक समायोजन',
+    'i.warehouses': 'गोदाम', 'i.wms': 'स्मार्ट WMS', 'i.barcodes': 'बारकोड', 'i.batches': 'बैच',
+    'i.serials': 'सीरियल नंबर', 'i.vision': 'AI स्टॉक जांच',
+    'i.bom': 'सामग्री बिल', 'i.mrp': 'उन्नत MRP', 'i.qc': 'गुणवत्ता नियंत्रण',
+    'i.coa': 'खाता चार्ट', 'i.treasury': 'कोषागार', 'i.banks': 'बैंक',
+    'i.checks': 'चेक', 'i.vouchers': 'जर्नल एंट्री', 'i.expenses': 'पेटी कैश',
+    'i.petty_cash': 'पेटी कैश फंड', 'i.fixed_assets': 'अचल संपत्ति', 'i.budgets': 'बजट',
+    'i.installments': 'किश्त', 'i.fin_reports': 'वित्तीय रिपोर्ट',
+    'i.customers': 'ग्राहक', 'i.leads': 'लीड', 'i.loyalty': 'वफादारी अंक',
+    'i.gift_cards': 'उपहार कार्ड', 'i.coupons': 'कूपन', 'i.promotions': 'प्रचार',
+    'i.employees': 'कर्मचारी', 'i.attendance': 'उपस्थिति', 'i.payroll': 'वेतन', 'i.leaves': 'छुट्टी',
+    'i.loans': 'ऋण', 'i.recruitment': 'भर्ती', 'i.kpi': 'प्रदर्शन', 'i.training': 'प्रशिक्षण',
+    'i.face_id': 'AI चेहरा', 'i.projects': 'परियोजना', 'i.property': 'रियल एस्टेट',
+    'i.leases': 'किराया', 'i.fleet': 'बेड़ा', 'i.fleet_trips': 'यात्राएं',
+    'i.schools': 'स्कूल', 'i.classes': 'कक्षाएं', 'i.credit': 'क्रेडिट',
+    'i.saas': 'SaaS', 'i.branches': 'शाखाएं', 'i.currencies': 'मुद्राएं',
+    'i.approvals': 'अनुमोदन', 'i.wa': 'WhatsApp', 'i.salla': 'Salla',
+    'i.settings': 'सेटिंग्स', 'i.audit': 'ऑडिट', 'i.support': 'समर्थन',
+    'logout': 'लॉगआउट',
+  },
+  bn: {
+    's.dashboard': 'ড্যাশবোর্ড', 's.sales': 'বিক্রয় এবং POS', 's.purchases': 'ক্রয়',
+    's.inventory': 'ইনভেন্টরি', 's.manufacturing': 'উৎপাদন', 's.finance': 'অর্থ ও হিসাব',
+    's.crm': 'গ্রাহক এবং CRM', 's.hr': 'মানব সম্পদ', 's.enterprise': 'এন্টারপ্রাইজ', 's.settings': 'সেটিংস',
+    'i.dashboard': 'হোম ড্যাশবোর্ড', 'i.copilot': 'AI কোপাইলট', 'i.cfo': 'AI CFO', 'i.scm': 'AI SCM',
+    'i.alerts': 'ইনবক্স', 'i.pos': 'POS টার্মিনাল', 'i.restaurant': 'রেস্টুরেন্ট POS',
+    'i.shifts': 'শিফট', 'i.sales_invoices': 'ট্যাক্স ইনভয়েস', 'i.sales_history': 'বিক্রয় ইতিহাস',
+    'i.sales_quotes': 'কোটেশন', 'i.sales_orders': 'বিক্রয় আদেশ',
+    'i.delivery_notes': 'ডেলিভারি নোট', 'i.sales_returns': 'বিক্রয় ফেরত',
+    'i.recurring': 'চুক্তি', 'i.routes': 'রুট', 'i.commissions': 'কমিশন',
+    'i.purchase_reqs': 'ক্রয় অনুরোধ', 'i.rfq': 'কোটেশন', 'i.po': 'ক্রয় আদেশ',
+    'i.grn': 'পণ্য রসিদ', 'i.purchases': 'ক্রয় ইনভয়েস', 'i.purchase_returns': 'ক্রয় ফেরত',
+    'i.lc': 'ঋণপত্র', 'i.products': 'পণ্য', 'i.stock': 'স্টক',
+    'i.movements': 'স্টক ইতিহাস', 'i.transfer': 'স্থানান্তর',
+    'i.smart_transfer': 'স্মার্ট স্থানান্তর', 'i.adjustments': 'সমন্বয়',
+    'i.warehouses': 'গুদাম', 'i.wms': 'WMS', 'i.barcodes': 'বারকোড', 'i.batches': 'ব্যাচ',
+    'i.serials': 'সিরিয়াল', 'i.vision': 'AI স্টকটেক',
+    'i.bom': 'BOM', 'i.mrp': 'MRP', 'i.qc': 'মান নিয়ন্ত্রণ',
+    'i.coa': 'হিসাব', 'i.treasury': 'কোষাগার', 'i.banks': 'ব্যাংক',
+    'i.checks': 'চেক', 'i.vouchers': 'ভাউচার', 'i.expenses': 'খরচ',
+    'i.petty_cash': 'পেটি ক্যাশ', 'i.fixed_assets': 'সম্পদ', 'i.budgets': 'বাজেট',
+    'i.installments': 'কিস্তি', 'i.fin_reports': 'আর্থিক রিপোর্ট',
+    'i.customers': 'গ্রাহক', 'i.leads': 'লিড', 'i.loyalty': 'আনুগত্য',
+    'i.gift_cards': 'গিফট কার্ড', 'i.coupons': 'কুপন', 'i.promotions': 'প্রচার',
+    'i.employees': 'কর্মচারী', 'i.attendance': 'উপস্থিতি', 'i.payroll': 'বেতন', 'i.leaves': 'ছুটি',
+    'i.loans': 'ঋণ', 'i.recruitment': 'নিয়োগ', 'i.kpi': 'KPI', 'i.training': 'প্রশিক্ষণ',
+    'i.face_id': 'AI হাজিরা', 'i.projects': 'প্রকল্প', 'i.property': 'রিয়েল এস্টেট',
+    'i.leases': 'ভাড়া', 'i.fleet': 'বহর', 'i.fleet_trips': 'ভ্রমণ',
+    'i.schools': 'স্কুল', 'i.classes': 'শ্রেণি', 'i.credit': 'ক্রেডিট',
+    'i.saas': 'SaaS', 'i.branches': 'শাখা', 'i.currencies': 'মুদ্রা',
+    'i.approvals': 'অনুমোদন', 'i.wa': 'WhatsApp', 'i.salla': 'Salla',
+    'i.settings': 'সেটিংস', 'i.audit': 'অডিট', 'i.support': 'সহায়তা',
+    'logout': 'লগআউট',
+  },
+  ur: {
+    's.dashboard': 'ڈیش بورڈ', 's.sales': 'فروخت اور POS', 's.purchases': 'خریداری',
+    's.inventory': 'انوینٹری', 's.manufacturing': 'مینوفیکچرنگ', 's.finance': 'مالیات',
+    's.crm': 'کسٹمرز اور CRM', 's.hr': 'انسانی وسائل', 's.enterprise': 'انٹرپرائز', 's.settings': 'ترتیبات',
+    'i.dashboard': 'ہوم ڈیش بورڈ', 'i.copilot': 'AI کوپائلٹ', 'i.cfo': 'AI CFO', 'i.scm': 'AI SCM',
+    'i.alerts': 'ان باکس', 'i.pos': 'POS ٹرمینل', 'i.restaurant': 'ریستوران POS',
+    'i.shifts': 'شفٹس', 'i.sales_invoices': 'ٹیکس انوائس', 'i.sales_history': 'فروخت کی تاریخ',
+    'i.sales_quotes': 'کوٹیشن', 'i.sales_orders': 'فروخت آرڈرز',
+    'i.delivery_notes': 'ڈیلیوری نوٹس', 'i.sales_returns': 'فروخت واپسی',
+    'i.recurring': 'کنٹریکٹس', 'i.routes': 'راستے', 'i.commissions': 'کمیشن',
+    'i.purchase_reqs': 'خریداری درخواستیں', 'i.rfq': 'کوٹیشن', 'i.po': 'خریداری آرڈرز',
+    'i.grn': 'مال رسید', 'i.purchases': 'خریداری انوائس', 'i.purchase_returns': 'خریداری واپسی',
+    'i.lc': 'اعتماد نامہ', 'i.products': 'مصنوعات', 'i.stock': 'اسٹاک',
+    'i.movements': 'اسٹاک تاریخ', 'i.transfer': 'منتقلی',
+    'i.smart_transfer': 'سمارٹ منتقلی', 'i.adjustments': 'ایڈجسٹمنٹ',
+    'i.warehouses': 'گودام', 'i.wms': 'WMS', 'i.barcodes': 'بارکوڈ', 'i.batches': 'بیچ',
+    'i.serials': 'سیریل', 'i.vision': 'AI اسٹاک',
+    'i.bom': 'BOM', 'i.mrp': 'MRP', 'i.qc': 'کوالٹی',
+    'i.coa': 'اکاؤنٹس', 'i.treasury': 'خزانہ', 'i.banks': 'بینک',
+    'i.checks': 'چیک', 'i.vouchers': 'ووچر', 'i.expenses': 'اخراجات',
+    'i.petty_cash': 'پیٹی کیش', 'i.fixed_assets': 'اثاثے', 'i.budgets': 'بجٹ',
+    'i.installments': 'قسط', 'i.fin_reports': 'مالی رپورٹیں',
+    'i.customers': 'کسٹمرز', 'i.leads': 'لیڈز', 'i.loyalty': 'وفاداری',
+    'i.gift_cards': 'گفٹ کارڈز', 'i.coupons': 'کوپن', 'i.promotions': 'پروموشن',
+    'i.employees': 'ملازمین', 'i.attendance': 'حاضری', 'i.payroll': 'تنخواہ', 'i.leaves': 'چھٹیاں',
+    'i.loans': 'قرض', 'i.recruitment': 'بھرتی', 'i.kpi': 'KPI', 'i.training': 'تربیت',
+    'i.face_id': 'AI حاضری', 'i.projects': 'پروجیکٹ', 'i.property': 'رئیل اسٹیٹ',
+    'i.leases': 'کرایہ', 'i.fleet': 'بیڑہ', 'i.fleet_trips': 'سفر',
+    'i.schools': 'اسکول', 'i.classes': 'کلاسز', 'i.credit': 'کریڈٹ',
+    'i.saas': 'SaaS', 'i.branches': 'شاخیں', 'i.currencies': 'کرنسی',
+    'i.approvals': 'منظوری', 'i.wa': 'WhatsApp', 'i.salla': 'Salla',
+    'i.settings': 'ترتیبات', 'i.audit': 'آڈٹ', 'i.support': 'مدد',
+    'logout': 'لاگ آؤٹ',
+  },
+};
+
+function gl(lang: string, key: string): string {
+  return (LABELS as any)[lang]?.[key] || LABELS['ar']?.[key] || key;
+}
+
+// ── Menu items ────────────────────────────────────────────────────────────────
+const menuItems = [
+  { sk: 's.dashboard', items: [
+    { icon: '📊', lk: 'i.dashboard', href: '/dashboard', module: 'dashboard' },
+    { icon: '🤖', lk: 'i.copilot', href: '/ai-copilot', module: 'ai_copilot' },
+    { icon: '🧠', lk: 'i.cfo', href: '/ai-cfo', module: 'ai_cfo' },
+    { icon: '📦', lk: 'i.scm', href: '/ai-scm', module: 'ai_scm' },
+    { icon: '🔔', lk: 'i.alerts', href: '/sys/alerts', module: 'dashboard' },
+  ]},
+  { sk: 's.sales', items: [
+    { icon: '💻', lk: 'i.pos', href: '/pos', module: 'pos' },
+    { icon: '🍔', lk: 'i.restaurant', href: '/restaurant-pos', module: 'restaurant_pos' },
+    { icon: '🕒', lk: 'i.shifts', href: '/shifts', module: 'shifts' },
+    { icon: '🧾', lk: 'i.sales_invoices', href: '/sales', module: 'sales' },
+    { icon: '🗂️', lk: 'i.sales_history', href: '/sales/history', module: 'sales' },
+    { icon: '📄', lk: 'i.sales_quotes', href: '/price-quotes', module: 'price_quotes' },
+    { icon: '📦', lk: 'i.sales_orders', href: '/sales/orders', module: 'sales_orders' },
+    { icon: '🚚', lk: 'i.delivery_notes', href: '/sales/delivery-notes', module: 'sales_orders' },
+    { icon: '↩️', lk: 'i.sales_returns', href: '/sales-returns', module: 'sales_returns' },
+    { icon: '🔄', lk: 'i.recurring', href: '/recurring-invoices', module: 'sales_orders' },
+    { icon: '🗺️', lk: 'i.routes', href: '/sales/routes', module: 'sales_routes' },
+    { icon: '🎯', lk: 'i.commissions', href: '/sales/targets', module: 'sales_targets' },
+  ]},
+  { sk: 's.purchases', items: [
+    { icon: '📝', lk: 'i.purchase_reqs', href: '/purchases/requisitions', module: 'purchase_orders' },
+    { icon: '📩', lk: 'i.rfq', href: '/purchases/rfq', module: 'purchase_orders' },
+    { icon: '📋', lk: 'i.po', href: '/purchase-orders', module: 'purchase_orders' },
+    { icon: '📥', lk: 'i.grn', href: '/purchases/grn', module: 'purchases' },
+    { icon: '🛒', lk: 'i.purchases', href: '/purchases', module: 'purchases' },
+    { icon: '↩️', lk: 'i.purchase_returns', href: '/purchase-returns', module: 'purchase_returns' },
+    { icon: '🌍', lk: 'i.lc', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
+  ]},
+  { sk: 's.inventory', items: [
+    { icon: '📦', lk: 'i.products', href: '/products', module: 'products' },
+    { icon: '🏭', lk: 'i.stock', href: '/stock', module: 'stock' },
+    { icon: '⌚', lk: 'i.movements', href: '/stock/movements', module: 'stock_transfers' },
+    { icon: '🔀', lk: 'i.transfer', href: '/stock-transfers', module: 'stock_transfers' },
+    { icon: '🚚', lk: 'i.smart_transfer', href: '/smart-transfers', module: 'stock_transfers' },
+    { icon: '⚖️', lk: 'i.adjustments', href: '/stock/adjustments', module: 'stock_transfers' },
+    { icon: '🏢', lk: 'i.warehouses', href: '/warehouses', module: 'warehouses' },
+    { icon: '📐', lk: 'i.wms', href: '/enterprise/wms', module: 'wms' },
+    { icon: '🏷️', lk: 'i.barcodes', href: '/barcode', module: 'barcode' },
+    { icon: '⏱️', lk: 'i.batches', href: '/batches', module: 'batches' },
+    { icon: '🔢', lk: 'i.serials', href: '/inv/serials', module: 'stock' },
+    { icon: '📸', lk: 'i.vision', href: '/stocktake/vision', module: 'vision_inventory' },
+  ]},
+  { sk: 's.manufacturing', items: [
+    { icon: '🛠️', lk: 'i.bom', href: '/manufacturing', module: 'manufacturing' },
+    { icon: '🏭', lk: 'i.mrp', href: '/enterprise/mrp', module: 'mrp' },
+    { icon: '🔎', lk: 'i.qc', href: '/enterprise/quality', module: 'mrp' },
+  ]},
+  { sk: 's.finance', items: [
+    { icon: '📊', lk: 'i.coa', href: '/accounting', module: 'accounting' },
+    { icon: '💰', lk: 'i.treasury', href: '/treasury', module: 'treasury' },
+    { icon: '🏦', lk: 'i.banks', href: '/accounting/banks', module: 'banks' },
+    { icon: '🏦', lk: 'i.checks', href: '/treasury/checks', module: 'treasury_checks' },
+    { icon: '🧾', lk: 'i.vouchers', href: '/receipt-vouchers', module: 'receipt_vouchers' },
+    { icon: '💸', lk: 'i.expenses', href: '/expenses', module: 'expenses' },
+    { icon: '💼', lk: 'i.petty_cash', href: '/fng/petty-cash-funds', module: 'petty_cash' },
+    { icon: '🏢', lk: 'i.fixed_assets', href: '/fixed-assets', module: 'fixed_assets' },
+    { icon: '⚖️', lk: 'i.budgets', href: '/fng/budgets', module: 'accounting' },
+    { icon: '📑', lk: 'i.installments', href: '/installments', module: 'installments' },
+    { icon: '📈', lk: 'i.fin_reports', href: '/reports', module: 'reports' },
+  ]},
+  { sk: 's.crm', items: [
+    { icon: '👥', lk: 'i.customers', href: '/customers', module: 'customers' },
+    { icon: '📈', lk: 'i.leads', href: '/crm/leads', module: 'customers' },
+    { icon: '🎁', lk: 'i.loyalty', href: '/loyalty', module: 'loyalty' },
+    { icon: '💳', lk: 'i.gift_cards', href: '/gift-cards', module: 'gift_cards' },
+    { icon: '🎟️', lk: 'i.coupons', href: '/coupons', module: 'coupons' },
+    { icon: '🎯', lk: 'i.promotions', href: '/promotions', module: 'promotions' },
+  ]},
+  { sk: 's.hr', items: [
+    { icon: '👨‍💼', lk: 'i.employees', href: '/employees', module: 'employees' },
+    { icon: '🕐', lk: 'i.attendance', href: '/attendance', module: 'attendance' },
+    { icon: '💵', lk: 'i.payroll', href: '/salaries', module: 'salaries' },
+    { icon: '🏖️', lk: 'i.leaves', href: '/vacations', module: 'vacations' },
+    { icon: '💼', lk: 'i.loans', href: '/hr/loans', module: 'hr_loans' },
+    { icon: '👔', lk: 'i.recruitment', href: '/hr/jobs', module: 'employees' },
+    { icon: '📊', lk: 'i.kpi', href: '/hr/evaluations', module: 'employees' },
+    { icon: '🎓', lk: 'i.training', href: '/hr/training', module: 'employees' },
+    { icon: '👁️', lk: 'i.face_id', href: '/hr/ai-enrollment', module: 'employees' },
+  ]},
+  { sk: 's.enterprise', items: [
+    { icon: '🏗️', lk: 'i.projects', href: '/enterprise/projects', module: 'projects' },
+    { icon: '🏢', lk: 'i.property', href: '/enterprise/property', module: 'legal' },
+    { icon: '📝', lk: 'i.leases', href: '/rem/leases', module: 'legal' },
+    { icon: '🚚', lk: 'i.fleet', href: '/enterprise/fleet', module: 'legal' },
+    { icon: '🛣️', lk: 'i.fleet_trips', href: '/fleet/trips', module: 'legal' },
+    { icon: '🏫', lk: 'i.schools', href: '/shl/students', module: 'schools' },
+    { icon: '📚', lk: 'i.classes', href: '/shl/classes', module: 'schools' },
+    { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
+  ]},
+  { sk: 's.settings', items: [
+    { icon: '🌐', lk: 'i.saas', href: '/master-panel', module: 'master-panel' },
+    { icon: '🏢', lk: 'i.branches', href: '/branches', module: 'branches' },
+    { icon: '💱', lk: 'i.currencies', href: '/settings/currencies', module: 'currencies' },
+    { icon: '✅', lk: 'i.approvals', href: '/settings/approvals', module: 'approvals' },
+    { icon: '💬', lk: 'i.wa', href: '/whatsapp-hub', module: 'whatsapp' },
+    { icon: '🛒', lk: 'i.salla', href: '/settings#salla', module: 'salla' },
+    { icon: '⚙️', lk: 'i.settings', href: '/settings', module: 'settings' },
+    { icon: '🛡️', lk: 'i.audit', href: '/audit-logs', module: 'audit_logs' },
+    { icon: '🔧', lk: 'i.support', href: '/maintenance', module: 'maintenance' },
+  ]},
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const { getSetting } = useSettings();
+  const companyName = getSetting('company_name', 'NamaaSoft ERP');
+
+  // Manage language locally - reads from localStorage, no SSR risk
+  const [lang, setLangLocal] = useState<Lang>('ar');
+
+  useEffect(() => {
+    const saved = (localStorage.getItem('app_lang') || 'ar') as Lang;
+    setLangLocal(saved);
+    // Listen for language changes (same-tab via custom event)
+    const onLangChange = () => {
+      const l = (localStorage.getItem('app_lang') || 'ar') as Lang;
+      setLangLocal(l);
+    };
+    window.addEventListener('langchange', onLangChange);
+    // Listen for cross-tab changes
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'app_lang' && e.newValue) setLangLocal(e.newValue as Lang);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('langchange', onLangChange);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleResize = () => { if (window.innerWidth > 768) setIsOpen(false); };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) { document.body.style.overflow = 'hidden'; }
+    else { document.body.style.overflow = ''; }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  const handleLogout = () => {
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('lastActivity');
+    router.push('/login');
+  };
+
+  const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });
+  const [userModules, setUserModules] = useState<string[]>([]);
+  const [permLoaded, setPermLoaded] = useState(false);
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.fullName) setLoggedUser({ fullName: u.fullName, role: u.role || 'admin' });
+      if (u.permissions && Array.isArray(u.permissions)) {
+        setUserModules(u.permissions.map((p: { module: string }) => p.module));
+      }
+    } catch { }
+    setPermLoaded(true);
+  }, []);
+
+  const isRTL = lang === 'ar' || lang === 'ur';
+
+  const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({
+    ...group,
+    items: group.items.filter(item => {
+      const mod = item.module || '';
+      if (mod === 'dashboard' || mod === 'login') return true;
+      if (mod === 'master-panel') return loggedUser.role === 'owner';
+      if (['admin', 'owner'].includes(loggedUser.role)) return true;
+      return userModules.includes(mod);
+    }),
+  })).filter(group => group.items.length > 0);
+
+  return (
+    <>
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Menu"
+      >
+        {isOpen ? '✕' : '☰'}
+      </button>
+
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />
+      )}
+
+      <aside className={\`sidebar \${isOpen ? 'open' : ''}\`}>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">🏢</div>
+          <div className="sidebar-logo-text" style={{ flex: 1 }}>{companyName}</div>
+          <button
+            className="mobile-close-btn"
+            onClick={() => setIsOpen(false)}
+            style={{
+              display: 'none',
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '6px 10px',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >✕</button>
+        </div>
+
+        <nav className="sidebar-nav" style={{ padding: '10px 0' }}>
+          {filteredMenu.map((group, gIdx) => {
+            const isDashboard = group.sk === 's.dashboard';
+            const isExpanded = expandedGroup === group.sk || (expandedGroup === null && isDashboard);
+
+            return (
+              <div key={gIdx} style={{ marginBottom: '4px' }}>
+                <button
+                  onClick={() => setExpandedGroup(isExpanded ? null : group.sk)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: isExpanded ? 'var(--bg-card-hover)' : 'transparent',
+                    border: 'none',
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    color: isExpanded ? 'var(--primary-light)' : 'var(--text-muted)',
+                    textAlign: isRTL ? 'right' : 'left',
+                    transition: 'all 0.2s ease',
+                    borderRadius: 'var(--radius-sm)'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = isExpanded ? 'var(--bg-card-hover)' : 'transparent'}
+                >
+                  <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.02em' }}>
+                    {gl(lang, group.sk)}
+                  </span>
+                  <span style={{
+                    fontSize: '10px',
+                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>▼</span>
+                </button>
+
+                <div style={{
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                  maxHeight: isExpanded ? '1200px' : '0',
+                  opacity: isExpanded ? 1 : 0,
+                  margin: isExpanded ? '4px 0 12px 0' : '0'
+                }}>
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 20px',
+                        color: pathname === item.href ? 'var(--primary-light)' : 'var(--text-secondary)',
+                        textDecoration: 'none',
+                        background: pathname === item.href ? 'rgba(var(--primary-rgb, 79,70,229),0.12)' : 'transparent',
+                        borderRadius: 'var(--radius-sm)',
+                        margin: '1px 8px',
+                        fontSize: '13px',
+                        fontWeight: pathname === item.href ? 600 : 400,
+                        transition: 'all 0.15s ease',
+                        direction: isRTL ? 'rtl' : 'ltr',
+                      }}
+                      onMouseOver={(e) => {
+                        if (pathname !== item.href) e.currentTarget.style.background = 'var(--bg-card-hover)';
+                      }}
+                      onMouseOut={(e) => {
+                        if (pathname !== item.href) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <span style={{ fontSize: '15px', flexShrink: 0 }}>{item.icon}</span>
+                      <span style={{ fontSize: '12.5px', lineHeight: '1.4' }}>{gl(lang, item.lk)}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div style={{
+          padding: '12px 16px',
+          borderTop: '1px solid var(--border-subtle)',
+          marginTop: 'auto'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: 'var(--primary)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: 'white',
+              flexShrink: 0
+            }}>
+              {(loggedUser.fullName || 'U')[0].toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', truncate: true } as any}>
+                {loggedUser.fullName || '...'}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                {loggedUser.role}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              width: '100%', padding: '8px', background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius-sm)',
+              color: '#ef4444', cursor: 'pointer', fontSize: '13px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+          >
+            🚪 {gl(lang, 'logout')}
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
+`;
+
+fs.writeFileSync('src/components/Sidebar.tsx', SIDEBAR_CODE, 'utf8');
+console.log('Sidebar.tsx written from scratch!', fs.statSync('src/components/Sidebar.tsx').size, 'bytes');

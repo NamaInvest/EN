@@ -65,7 +65,7 @@ export default function FaceIdAttendance() {
       if (res.ok) {
         setStatus('success');
         setEmployee(data.employee);
-        setMessage(`تم تسجيل الخْتْم بنجاح: ${data.action === 'check_in' ? 'حضور' : 'انصراف'}`);
+        setMessage(`تم تسجيل الخْتْم بنجاح: ${data.action === 'check_in' ? t('sys.str_380') : t('sys.str_381')}`);
         
         // Reset after 4 seconds for the next employee
         setTimeout(() => {
@@ -165,7 +165,7 @@ export default function FaceIdAttendance() {
         onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
         onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
       >
-        <Camera size={28} /> {loading ? 'جاري التحضير...' : 'تأكيد الحضور / الانصراف'}
+        <Camera size={28} /> {loading ? t('sys.str_1569') : t('sys.str_1570')}
       </button>
 
     </div>

@@ -70,7 +70,7 @@ for (const file of project.getSourceFiles()) {
                 if (parent.getKind() === SyntaxKind.JsxAttribute) {
                     node.replaceWithText(`{t('${key}')}`);
                     localEdits++; needsI18nHook = true;
-                } else if ([SyntaxKind.CallExpression, SyntaxKind.ObjectLiteralExpression, SyntaxKind.ArrayLiteralExpression, SyntaxKind.PropertyAssignment, SyntaxKind.EqualityChecker, SyntaxKind.BinaryExpression, SyntaxKind.ReturnStatement].includes(parent.getKind())) {
+                } else if ([SyntaxKind.CallExpression, SyntaxKind.ObjectLiteralExpression, SyntaxKind.ArrayLiteralExpression, SyntaxKind.PropertyAssignment, SyntaxKind.EqualityChecker, SyntaxKind.BinaryExpression, SyntaxKind.ReturnStatement, SyntaxKind.ConditionalExpression, SyntaxKind.JsxExpression].includes(parent.getKind())) {
                     node.replaceWithText(`t('${key}')`);
                     localEdits++; needsI18nHook = true;
                 }

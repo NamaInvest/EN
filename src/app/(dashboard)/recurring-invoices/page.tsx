@@ -62,7 +62,7 @@ export default function RecurringInvoicesPage() {
                             className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 px-4 py-2 rounded-lg flex items-center gap-2 transition"
                         >
                             <PlayCircle size={18} />
-                            {cronLoading ? 'جاري الفحص التلقائي...' : 'محاكاة البوت الآلي الآن'}
+                            {cronLoading ? t('sys.str_1060') : t('sys.str_1061')}
                         </button>
                         <a href="/sales/orders/create" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
                             <Plus size={18} /> {t('sys.str_1050')}</a>
@@ -101,7 +101,7 @@ export default function RecurringInvoicesPage() {
                                                 <td className="p-4">{contract.customerName}</td>
                                                 <td className="p-4 text-emerald-400 font-bold">{contract.total?.toLocaleString()} {t('sys.str_68')}</td>
                                                 <td className="p-4 text-gray-300">
-                                                    {contract.frequency === 'MONTHLY' ? 'شهري' : contract.frequency === 'YEARLY' ? 'سنوي' : contract.frequency}
+                                                    {contract.frequency === 'MONTHLY' ? t('sys.str_1062') : contract.frequency === 'YEARLY' ? t('sys.str_1063') : contract.frequency}
                                                 </td>
                                                 <td className="p-4">
                                                     <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isDueSoon ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-blue-500/10 text-blue-400'}`}>

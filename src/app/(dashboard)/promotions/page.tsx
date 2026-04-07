@@ -41,9 +41,9 @@ export default function PromotionsPage() {
                                 <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '8px', fontWeight: '600' }}>{p.name}</td>
                                     <td style={{ padding: '8px', fontSize: '12px' }}>{typeLabels[p.type] || p.type}</td>
-                                    <td style={{ padding: '8px', fontFamily: 'monospace' }}>{p.discountValue}{p.discountType === 'percentage' ? '%' : ' ر.س'}</td>
+                                    <td style={{ padding: '8px', fontFamily: 'monospace' }}>{p.discountValue}{p.discountType === 'percentage' ? '%' : t('sys.str_68')}</td>
                                     <td style={{ padding: '8px', fontSize: '12px' }}>{p.startDate || '-'} → {p.endDate || '-'}</td>
-                                    <td style={{ padding: '8px', textAlign: 'center' }}><button onClick={() => toggleActive(p.id, p.isActive)} className="btn btn-sm" style={{ fontSize: '11px', background: p.isActive ? '#22c55e15' : '#ef444415', color: p.isActive ? '#22c55e' : '#ef4444' }}>{p.isActive ? '✅ نشط' : '⏸️ متوقف'}</button></td>
+                                    <td style={{ padding: '8px', textAlign: 'center' }}><button onClick={() => toggleActive(p.id, p.isActive)} className="btn btn-sm" style={{ fontSize: '11px', background: p.isActive ? '#22c55e15' : '#ef444415', color: p.isActive ? '#22c55e' : '#ef4444' }}>{p.isActive ? t('sys.str_940') : t('sys.str_941')}</button></td>
                                 </tr>
                             ))}</tbody>
                         </table>}

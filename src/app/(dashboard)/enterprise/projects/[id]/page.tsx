@@ -181,7 +181,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                                             background: task.status === 'COMPLETED' ? 'var(--success)' : task.status === 'IN_PROGRESS' ? 'var(--primary)' : 'var(--bg-body)',
                                             color: task.status === 'PENDING' ? 'var(--text)' : '#fff'
                                         }}>
-                                            {task.status === 'PENDING' ? 'قيد الانتظار' : task.status === 'IN_PROGRESS' ? 'قيد التنفيذ' : 'مكتملة'}
+                                            {task.status === 'PENDING' ? t('sys.str_2869') : task.status === 'IN_PROGRESS' ? t('sys.str_2870') : t('hr.str_2185')}
                                         </span>
                                     </td>
                                     <td style={{ display: 'flex', gap: '6px' }}>

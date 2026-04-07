@@ -90,15 +90,15 @@ export default function CouponsPage() {
                                             {c.usedCount > 0 && <button className="btn btn-sm btn-ghost" style={{ padding: '0 4px', height: '20px', minHeight: '20px' }} onClick={() => setShowUsagesModal(c)}>👁️</button>}
                                         </div>
                                     </td>
-                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.endDate ? new Date(c.endDate).toLocaleDateString('ar-SA') : 'مفتوح'}</td>
+                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.endDate ? new Date(c.endDate).toLocaleDateString('ar-SA') : t('sys.str_514')}</td>
                                     <td>
                                         <span className={`badge ${!c.isActive ? 'badge-error' : expired ? 'badge-warning' : 'badge-success'}`}>
-                                            {!c.isActive ? 'موقوف' : expired ? 'منتهي' : 'نشط'}
+                                            {!c.isActive ? t('sys.str_489') : expired ? t('sys.str_515') : t('sys.str_180')}
                                         </span>
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '4px' }}>
-                                            <button className="btn btn-sm btn-ghost" onClick={() => toggleStatus(c)}>{c.isActive ? '⏸️ إيقاف' : '▶️ تفعيل'}</button>
+                                            <button className="btn btn-sm btn-ghost" onClick={() => toggleStatus(c)}>{c.isActive ? t('sys.str_516') : t('sys.str_517')}</button>
                                             <button className="btn btn-sm" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none' }} onClick={() => handleDelete(c.id)}>🗑️</button>
                                         </div>
                                     </td>
@@ -157,7 +157,7 @@ export default function CouponsPage() {
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
-                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 إنشاء'}</button>
+                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? t('sys.str_454') : t('sys.str_520')}</button>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>

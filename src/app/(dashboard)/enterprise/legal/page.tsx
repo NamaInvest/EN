@@ -97,7 +97,7 @@ export default function EnterpriseLegal() {
                     style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
                     <Plus size={20} />
-                    {activeTab === 'notes' ? 'تسجيل سند لأمر' : 'إصدار خطاب ضمان'}
+                    {activeTab === 'notes' ? t('sys.str_1824') : t('sys.str_1825')}
                 </button>
             </div>
 
@@ -131,7 +131,7 @@ export default function EnterpriseLegal() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
                                 <span>{t('sys.str_1806')}{new Date(note.dueDate).toLocaleDateString()}</span>
                                 <span style={{ color: isDueSoon(note.dueDate) && note.status === 'PENDING' ? 'var(--danger)' : 'inherit' }}>
-                                    {isDueSoon(note.dueDate) && note.status === 'PENDING' ? '⚠️ يستحق قريباً' : (note.status === 'PENDING' ? 'مجدول' : 'مُحصّل')}
+                                    {isDueSoon(note.dueDate) && note.status === 'PENDING' ? t('sys.str_1826') : (note.status === 'PENDING' ? t('sys.str_1827') : t('sys.str_1828'))}
                                 </span>
                             </div>
                             {note.status === 'PENDING' && (
@@ -146,7 +146,7 @@ export default function EnterpriseLegal() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                 <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>LG: {lg.lgNumber}</div>
                                 <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '11px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                    {lg.type === 'ADVANCE_PAYMENT' ? 'دفعة مقدمة' : 'ضمان أداء'}
+                                    {lg.type === 'ADVANCE_PAYMENT' ? t('sys.str_1829') : t('sys.str_1830')}
                                 </span>
                             </div>
                             <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px' }}>{lg.bank?.name}</h3>
@@ -156,7 +156,7 @@ export default function EnterpriseLegal() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '10px', borderRadius: '8px' }}>
                                 <span>{t('sys.str_1808')}{new Date(lg.expiryDate).toLocaleDateString()}</span>
                                 <span style={{ color: lg.status === 'ACTIVE' ? 'var(--success)' : 'var(--danger)' }}>
-                                    {lg.status === 'ACTIVE' ? 'فعّال' : 'منتهي الصلاحية'}
+                                    {lg.status === 'ACTIVE' ? t('sys.str_1831') : t('sys.str_448')}
                                 </span>
                             </div>
                         </div>
@@ -170,7 +170,7 @@ export default function EnterpriseLegal() {
                     <div className="modal-content" style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
                             <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                {activeTab === 'notes' ? 'تسجيل كمبيالة (سند لأمر) جديدة' : 'إصدار خطاب ضمان جديد'}
+                                {activeTab === 'notes' ? t('sys.str_1832') : t('sys.str_1833')}
                             </h2>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
                         </div>

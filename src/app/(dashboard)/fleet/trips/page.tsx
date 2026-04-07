@@ -61,7 +61,7 @@ export default function FleetTripsPage() {
                       trip.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                       trip.status === 'IN_PROGRESS' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
                     }`}>
-                      {trip.status === 'COMPLETED' ? 'مكتملة' : trip.status === 'IN_PROGRESS' ? 'قيد التنفيذ' : trip.status}
+                      {trip.status === 'COMPLETED' ? t('hr.str_2185') : trip.status === 'IN_PROGRESS' ? t('sys.str_2870') : trip.status}
                     </span>
                   </td>
                 </tr>

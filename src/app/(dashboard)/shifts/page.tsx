@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Shift {
     id: number;
@@ -15,6 +16,7 @@ interface Shift {
 }
 
 export default function ShiftsPage() {
+    const { t } = useTranslation();
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -48,16 +50,16 @@ export default function ShiftsPage() {
                 body: JSON.stringify({ userId: user.id, startCash: form.startCash, notes: form.notes }),
             });
             if (res.ok) {
-                showToast('✅ تم فتح الوردية بنجاح');
+                showToast(t('sys.str_1400'));
                 setShowModal(false);
                 setForm({ startCash: '', notes: '' });
                 fetchData();
             } else {
                 const d = await res.json();
-                showToast(`❌ ${d.error || 'فشل فتح الوردية'}`);
+                showToast(`❌ ${d.error || t('sys.str_1401')}`);
             }
         } catch {
-            showToast('❌ حدث خطأ في الاتصال');
+            showToast(t('sys.str_1402'));
         }
     };
 
@@ -70,35 +72,35 @@ export default function ShiftsPage() {
                 body: JSON.stringify({ id: closingShift.id, endCash: closeForm.endCash, notes: closeForm.notes, status: 'closed' }),
             });
             if (res.ok) {
-                showToast('✅ تم إغلاق الوردية');
+                showToast(t('sys.str_1403'));
                 setClosingShift(null);
                 setCloseForm({ endCash: '', notes: '' });
                 fetchData();
             } else {
                 const d = await res.json();
-                showToast(`❌ ${d.error || 'فشل إغلاق الوردية'}`);
+                showToast(`❌ ${d.error || t('sys.str_1404')}`);
             }
         } catch {
-            showToast('❌ حدث خطأ في الاتصال');
+            showToast(t('sys.str_1402'));
         }
     };
 
     const deleteShift = async (s: Shift) => {
-        if (!confirm('هل أنت متأكد من حذف هذه الوردية؟ سيتم حذفها نهائياً.')) return;
+        if (!confirm(t('sys.str_1405'))) return;
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`/api/shifts?id=${s.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { showToast('✅ تم حذف الوردية'); fetchData(); }
-            else showToast('❌ فشل الحذف');
-        } catch { showToast('❌ خطأ'); }
+            if (res.ok) { showToast(t('sys.str_1406')); fetchData(); }
+            else showToast(t('sys.str_1407'));
+        } catch { showToast(t('sys.str_592')); }
     }
 
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">🕒 إدارة الورديات</h1>
+                <h1 className="page-title">{t('sys.str_1383')}</h1>
                 <div className="page-actions">
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>➕ فتح وردية جديدة</button>
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>{t('sys.str_1384')}</button>
                 </div>
             </div>
 
@@ -107,37 +109,36 @@ export default function ShiftsPage() {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>الموظف</th>
-                                <th>الفرع</th>
-                                <th>وقت الفتح</th>
-                                <th>وقت الإغلاق</th>
-                                <th>رصيد الافتتاح</th>
-                                <th>رصيد الإغلاق</th>
-                                <th>الحالة</th>
-                                <th>إجراءات</th>
+                                <th>{t('sys.str_379')}</th>
+                                <th>{t('hr.str_556')}</th>
+                                <th>{t('sys.str_1385')}</th>
+                                <th>{t('sys.str_1386')}</th>
+                                <th>{t('sys.str_1387')}</th>
+                                <th>{t('sys.str_1388')}</th>
+                                <th>{t('fin.str_227')}</th>
+                                <th>{t('sys.str_435')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</td></tr>
-                                : shifts.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">🕒</div><div className="empty-state-text">لا توجد ورديات</div></div></td></tr>
+                            {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
+                                : shifts.length === 0 ? <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">🕒</div><div className="empty-state-text">{t('sys.str_1389')}</div></div></td></tr>
                                     : shifts.map(s => (
                                         <tr key={s.id}>
-                                            <td style={{ fontWeight: 'bold' }}>{s.user?.fullName || 'غير معروف'}</td>
-                                            <td><span className="badge badge-outline">{s.branch?.name || 'الفرع الرئيسي'}</span></td>
+                                            <td style={{ fontWeight: 'bold' }}>{s.user?.fullName || t('sys.str_963')}</td>
+                                            <td><span className="badge badge-outline">{s.branch?.name || t('sys.str_1408')}</span></td>
                                             <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(s.startTime).toLocaleString('ar-SA')}</td>
                                             <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--text-muted)' }}>{s.endTime ? new Date(s.endTime).toLocaleString('ar-SA') : '-'}</td>
-                                            <td style={{ color: 'var(--primary)' }}>{fmt(s.startCash)} ر.س</td>
+                                            <td style={{ color: 'var(--primary)' }}>{fmt(s.startCash)} {t('sys.str_68')}</td>
                                             <td style={{ color: s.endCash ? 'var(--success)' : 'var(--text-muted)' }}>{s.endCash !== null ? `${fmt(s.endCash)} ر.س` : '-'}</td>
                                             <td>
                                                 <span className={`badge ${s.status === 'open' ? 'badge-warning' : 'badge-success'}`}>
-                                                    {s.status === 'open' ? 'مفتوحة 🟢' : 'مغلقة 🔴'}
+                                                    {s.status === 'open' ? t('sys.str_1409') : t('sys.str_1410')}
                                                 </span>
                                             </td>
                                             <td style={{ display: 'flex', gap: '4px' }}>
                                                 {s.status === 'open' && (
                                                     <button className="btn btn-ghost btn-sm" onClick={() => { setClosingShift(s); setCloseForm({ endCash: String(s.startCash), notes: s.notes || '' }) }} style={{ color: 'var(--danger)', fontSize: '13px', background: 'var(--danger-light)' }}>
-                                                        إغلاق 🔒
-                                                    </button>
+                                                        {t('sys.str_1390')}</button>
                                                 )}
                                                 <button className="btn btn-ghost btn-sm" onClick={() => deleteShift(s)} style={{ color: 'var(--danger)', fontSize: '12px' }}>🗑️</button>
                                             </td>
@@ -152,18 +153,18 @@ export default function ShiftsPage() {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><div className="modal-title">➕ فتح وردية كاشير جديدة</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
+                        <div className="modal-header"><div className="modal-title">{t('sys.str_1391')}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
                         <div className="input-group">
-                            <label className="input-label">مبلغ العهدة الافتتاحي (في الدرج) *</label>
-                            <input className="input" type="text" inputMode="decimal" value={form.startCash} onChange={e => setForm({ ...form, startCash: e.target.value })} placeholder="مثال: 500" dir="ltr" />
+                            <label className="input-label">{t('sys.str_1392')}</label>
+                            <input className="input" type="text" inputMode="decimal" value={form.startCash} onChange={e => setForm({ ...form, startCash: e.target.value })} placeholder={t('sys.str_659')} dir="ltr" />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">ملاحظات (اختياري)</label>
+                            <label className="input-label">{t('sys.str_955')}</label>
                             <textarea className="input" value={form.notes} onInput={e => setForm({ ...form, notes: (e.target as HTMLTextAreaElement).value })} rows={3} dir="rtl" />
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleOpenShift}>بدء الوردية 🚀</button>
-                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={handleOpenShift}>{t('sys.str_1393')}</button>
+                            <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>
@@ -173,27 +174,26 @@ export default function ShiftsPage() {
             {closingShift && (
                 <div className="modal-overlay" onClick={() => setClosingShift(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><div className="modal-title">🔒 إغلاق وردية ({closingShift.user?.fullName})</div><button className="modal-close" onClick={() => setClosingShift(null)}>✕</button></div>
+                        <div className="modal-header"><div className="modal-title">{t('sys.str_1394')}{closingShift.user?.fullName})</div><button className="modal-close" onClick={() => setClosingShift(null)}>✕</button></div>
                         <div className="input-group" style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span>مبلغ الافتتاح:</span>
-                                <span style={{ fontWeight: 'bold' }}>{fmt(closingShift.startCash)} ر.س</span>
+                                <span>{t('sys.str_1395')}</span>
+                                <span style={{ fontWeight: 'bold' }}>{fmt(closingShift.startCash)} {t('sys.str_68')}</span>
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                تأكد من إدخال المبلغ الفعلي الموجود في الدرج حالياً لتسوية العهدة بنجاح.
-                            </div>
+                                {t('sys.str_1396')}</div>
                         </div>
                         <div className="input-group">
-                            <label className="input-label">المبلغ الفعلي في الدرج (النهاية) *</label>
-                            <input className="input" type="text" inputMode="decimal" value={closeForm.endCash} onChange={e => setCloseForm({ ...closeForm, endCash: e.target.value })} placeholder="أدخل مبلغ الدرج" dir="ltr" />
+                            <label className="input-label">{t('sys.str_1397')}</label>
+                            <input className="input" type="text" inputMode="decimal" value={closeForm.endCash} onChange={e => setCloseForm({ ...closeForm, endCash: e.target.value })} placeholder={t('sys.str_1411')} dir="ltr" />
                         </div>
                         <div className="input-group">
-                            <label className="input-label">مبرر الفروقات / ملاحظات</label>
-                            <textarea className="input" value={closeForm.notes} onInput={e => setCloseForm({ ...closeForm, notes: (e.target as HTMLTextAreaElement).value })} rows={3} dir="rtl" placeholder="في حال وجود عجز أو زيادة في الصندوق..." />
+                            <label className="input-label">{t('sys.str_1398')}</label>
+                            <textarea className="input" value={closeForm.notes} onInput={e => setCloseForm({ ...closeForm, notes: (e.target as HTMLTextAreaElement).value })} rows={3} dir="rtl" placeholder={t('sys.str_1412')} />
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleCloseShift} style={{ background: 'var(--danger)', color: 'white', border: 'none' }}>إغلاق واعتِماد التسوية 🔒</button>
-                            <button className="btn btn-ghost" onClick={() => setClosingShift(null)}>إلغاء</button>
+                            <button className="btn btn-primary" onClick={handleCloseShift} style={{ background: 'var(--danger)', color: 'white', border: 'none' }}>{t('sys.str_1399')}</button>
+                            <button className="btn btn-ghost" onClick={() => setClosingShift(null)}>{t('fin.str_206')}</button>
                         </div>
                     </div>
                 </div>

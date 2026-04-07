@@ -99,15 +99,15 @@ export default function TrainingCoursesPage() {
                   <input type="number" step="0.01" value={cost} onChange={e => setCost(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ البدء</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_1860')}</label>
                   <input required type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">تاريخ الإنتهاء</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('fin.str_1697')}</label>
                   <input required type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-bold text-slate-700 mb-1">الحالة</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">{t('fin.str_227')}</label>
                   <select value={status} onChange={e => setStatus(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600">
                     <option value="SCHEDULED">مجدولة (Scheduled)</option>
                     <option value="ONGOING">قيد التنفيذ (Ongoing)</option>
@@ -117,7 +117,7 @@ export default function TrainingCoursesPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">إلغاء</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">{t('fin.str_206')}</button>
                 <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ وجدولة الدورة</button>
               </div>
             </form>
@@ -150,8 +150,7 @@ export default function TrainingCoursesPage() {
                     <span className="inline-block bg-slate-100 px-2 py-1 rounded text-xs ml-1 font-mono">
                       {new Date(course.startDate).toLocaleDateString('en-GB')}
                     </span>
-                    إلى
-                    <span className="inline-block bg-slate-100 px-2 py-1 rounded text-xs mr-1 font-mono">
+                    {t('sys.str_1068')}<span className="inline-block bg-slate-100 px-2 py-1 rounded text-xs mr-1 font-mono">
                       {new Date(course.endDate).toLocaleDateString('en-GB')}
                     </span>
                   </td>
@@ -161,7 +160,7 @@ export default function TrainingCoursesPage() {
                       course.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' : 
                       course.status === 'ONGOING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {course.status === 'COMPLETED' ? 'مكتملة' : 
+                      {course.status === 'COMPLETED' ? t('hr.str_2185') : 
                        course.status === 'SCHEDULED' ? 'مجدولة' : 
                        course.status === 'ONGOING' ? 'جارية' : 'ملغية'}
                     </span>

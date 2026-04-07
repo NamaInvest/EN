@@ -344,7 +344,7 @@ export default function ProductsPage() {
                     <input type="file" ref={fileInputRef} hidden accept=".xlsx, .xls" onChange={handleImport} />
                     <button className="btn" onClick={handleExport} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>{t('sys.str_870')}</button>
                     <button className="btn" onClick={() => fileInputRef.current?.click()} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }} disabled={isImporting}>
-                        {isImporting ? '⏳ جاري الاستيراد...' : '📥 استيراد منتجات'}
+                        {isImporting ? t('sys.str_914') : t('sys.str_915')}
                     </button>
                     {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_871')}</button>}
                     {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_872')}</button>}
@@ -434,7 +434,7 @@ export default function ProductsPage() {
                                             {p.productUnits && p.productUnits.length > 0 && (
                                                 <div style={{ fontSize: '10.5px', color: 'var(--purple)', marginTop: '4px', background: 'rgba(139, 92, 246, 0.08)', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
                                                     {p.productUnits.map((u: any) => (
-                                                        <div key={u.id}>📦 {u.unit?.name || 'وحدة'} = {u.factor} حبة <span style={{fontWeight:'bold', color:'var(--text)'}}>({Math.floor(p.currentStock / (u.factor || 1))} متاح)</span></div>
+                                                        <div key={u.id}>📦 {u.unit?.name || t('sys.str_1910')} = {u.factor} {t('sys.str_813')}<span style={{fontWeight:'bold', color:'var(--text)'}}>({Math.floor(p.currentStock / (u.factor || 1))} متاح)</span></div>
                                                     ))}
                                                 </div>
                                             )}
@@ -472,7 +472,7 @@ export default function ProductsPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{editProduct ? '✏️ تعديل منتج' : '➕ إضافة منتج جديد'}</div>
+                            <div className="modal-title">{editProduct ? t('sys.str_918') : t('sys.str_764')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <div className="grid-2">
@@ -554,7 +554,7 @@ export default function ProductsPage() {
                                             disabled={savingCategory || !newCategoryName.trim()}
                                             style={{ whiteSpace: 'nowrap' }}
                                         >
-                                            {savingCategory ? '⏳' : '✅ حفظ'}
+                                            {savingCategory ? '⏳' : t('sys.str_923')}
                                         </button>
                                     </div>
                                 )}
@@ -620,7 +620,7 @@ export default function ProductsPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>📦 الوحدات المتعددة (كرتون، درزن.. الخ)</label>
-                                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? '✕ إلغاء' : '🛠️ إنشاء أسم وحدة جديدة'}</button>
+                                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : '🛠️ إنشاء أسم وحدة جديدة'}</button>
                                 </div>
                                 <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '12' }])}>➕ إضافة تعبئة للصنف</button>
                             </div>
@@ -662,7 +662,7 @@ export default function ProductsPage() {
                                                 }} />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>سعر البيع</label>
+                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_877')}</label>
                                                 <input className="input" type="number" step="0.01" style={{ width: '100%', padding: '6px' }} value={fu.sellPrice} onChange={e => {
                                                     const newArr = [...formUnits]; newArr[idx].sellPrice = e.target.value; setFormUnits(newArr);
                                                 }} />

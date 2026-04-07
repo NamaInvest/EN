@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Save, ScanFace, Check, AlertCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function AIEnrollmentPage() {
+    const { t } = useTranslation();
   const [faceapiObj, setFaceapiObj] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmp, setSelectedEmp] = useState('');
@@ -226,8 +228,7 @@ export default function AIEnrollmentPage() {
                    onClick={closeCamera}
                    className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 p-3 rounded-xl font-bold transition"
                  >
-                   إلغاء
-                 </button>
+                   {t('fin.str_206')}</button>
                  <button 
                    onClick={captureAndEncode}
                    className="flex-[2] bg-blue-600 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.6)] text-white p-3 rounded-xl font-bold transition flex items-center justify-center gap-2"

@@ -101,7 +101,7 @@ export default function StockPage() {
                                         <tr key={m.id}>
                                             <td>{new Date(m.date).toLocaleDateString('ar-SA')}</td>
                                             <td>{m.product?.name || '-'}</td>
-                                            <td><span className={`badge ${m.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{m.type === 'in' ? '📥 وارد' : m.type === 'out' ? '📤 صادر' : m.type}</span></td>
+                                            <td><span className={`badge ${m.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{m.type === 'in' ? t('stock.str_1451') : m.type === 'out' ? t('stock.str_1452') : m.type}</span></td>
                                             <td style={{ fontWeight: '600' }}>{m.quantity}</td>
                                             <td style={{ color: 'var(--text-muted)' }}>{m.notes || '-'}</td>
                                         </tr>

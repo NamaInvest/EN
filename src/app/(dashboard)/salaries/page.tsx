@@ -103,7 +103,7 @@ export default function SalariesPage() {
                         disabled={isGenerating || employees.length === 0}
                         className="bg-indigo-600 text-white px-6 py-4 rounded-md font-bold shadow-md hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2 mt-5"
                     >
-                        {isGenerating ? 'جاري الحساب والترحيل...' : '⚙️ اعتماد وإصدار المسير'}
+                        {isGenerating ? t('sys.str_1125') : t('sys.str_1126')}
                     </button>
                 </div>
             </div>

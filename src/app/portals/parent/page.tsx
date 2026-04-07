@@ -63,7 +63,7 @@ export default function ParentPortalPage() {
               disabled={loading}
               style={{ width: '100%', padding: '14px', backgroundColor: '#d946ef', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
             >
-              {loading ? 'جاري مطابقة السجل...' : 'استعراض سجل الأبناء'}
+              {loading ? t('sys.str_1644') : t('sys.str_1645')}
             </button>
           </form>
         </div>

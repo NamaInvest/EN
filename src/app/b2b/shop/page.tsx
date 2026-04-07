@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 interface Product {
     id: number;
@@ -17,6 +18,7 @@ interface CartItem extends Product {
 }
 
 export default function B2BShopPage() {
+    const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -128,7 +130,7 @@ export default function B2BShopPage() {
                                 <div style={{ color: '#7f8c8d', fontSize: '13px', marginBottom: '15px', flex: 1 }}>المخزون المتاح: {p.currentStock > 0 ? p.currentStock : <span style={{color: 'red'}}>نفذت الكمية</span>}</div>
                                 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ color: '#27ae60', fontWeight: '900', fontSize: '18px' }}>{p.sellPrice} <span style={{fontSize: '12px'}}>ر.س</span></div>
+                                    <div style={{ color: '#27ae60', fontWeight: '900', fontSize: '18px' }}>{p.sellPrice} <span style={{fontSize: '12px'}}>{t('sys.str_68')}</span></div>
                                     <button 
                                         disabled={p.currentStock <= 0}
                                         onClick={() => addToCart(p)}
@@ -182,7 +184,7 @@ export default function B2BShopPage() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold', color: '#2c3e50' }}>
                     <span>المجموع التقريبي:</span>
-                    <span style={{ color: '#27ae60' }}>{cartTotal.toFixed(2)} ر.س</span>
+                    <span style={{ color: '#27ae60' }}>{cartTotal.toFixed(2)} {t('sys.str_68')}</span>
                 </div>
 
                 <button 
@@ -197,7 +199,7 @@ export default function B2BShopPage() {
                         transition: '0.2s'
                     }}
                 >
-                    {placingOrder ? 'جاري الاعتماد...' : 'اعتماد طلبية الشراء'}
+                    {placingOrder ? t('hr.str_2155') : 'اعتماد طلبية الشراء'}
                 </button>
             </div>
         </div>

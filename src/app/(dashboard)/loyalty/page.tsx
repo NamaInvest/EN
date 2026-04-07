@@ -140,7 +140,7 @@ export default function LoyaltyPage() {
                                         {transactions.map(tx => (
                                             <tr key={tx.id}>
                                                 <td>{new Date(tx.createdAt).toLocaleDateString('ar-SA')}</td>
-                                                <td><span className={`badge ${tx.type === 'earned' ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '11px', padding: '2px 6px' }}>{tx.type === 'earned' ? 'مكتسبة' : 'مستبدلة'}</span></td>
+                                                <td><span className={`badge ${tx.type === 'earned' ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '11px', padding: '2px 6px' }}>{tx.type === 'earned' ? t('sys.str_704') : t('sys.str_705')}</span></td>
                                                 <td style={{ fontWeight: 'bold', color: tx.type === 'earned' ? '#10b981' : '#ef4444' }}>{tx.type === 'earned' ? '+' : '-'}{tx.points}</td>
                                                 <td>{tx.invoiceId ? `#${tx.invoiceId}` : '-'}</td>
                                                 <td style={{ color: 'var(--text-secondary)' }}>{tx.description || '-'}</td>
@@ -189,7 +189,7 @@ export default function LoyaltyPage() {
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowSettings(false)} disabled={savingSettings}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveSettings} disabled={savingSettings}>
-                                {savingSettings ? 'جاري الحفظ...' : 'حفظ التحديثات'}
+                                {savingSettings ? t('sys.str_454') : t('sys.str_706')}
                             </button>
                         </div>
                     </div>

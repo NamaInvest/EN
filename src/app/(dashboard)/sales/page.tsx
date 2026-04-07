@@ -823,7 +823,7 @@ export default function SalesPage() {
                         {t('sys.str_744')}{heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
                     </button>
                     <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? '✅ تم إلغاء وضع الحذف' : '🔴 وضع الإلغاء - اضغط على الصنف لحذفه'); }}
+                        onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? t('sys.str_832') : t('sys.str_833')); }}
                         style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>{t('sys.str_745')}</button>
                     <button className="btn btn-ghost btn-sm" onClick={openHistory}>📋 الفواتير</button>
                 </div>
@@ -834,7 +834,7 @@ export default function SalesPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ background: '#111', padding: '30px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', border: `2px solid ${bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e'}` }}>
                         <h2 style={{ color: bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e', marginBottom: '10px' }}>
-                            {bnplProvider === 'TABBY' ? 'تقسيط عبر تابي' : 'تقسيط عبر تمارا'}
+                            {bnplProvider === 'TABBY' ? t('sys.str_834') : t('sys.str_835')}
                         </h2>
                         <p style={{ color: '#aaa', marginBottom: '20px' }}>{t('sys.str_747')}</p>
                         
@@ -894,7 +894,7 @@ export default function SalesPage() {
                                     const c = currencies.find(x => x.id.toString() === e.target.value);
                                     if (c) setExchangeRate(c.exchangeRate);
                                 }}>
-                                <option value="" disabled>العملة</option>
+                                <option value="" disabled>{t('purchases.str_1013')}</option>
                                 {currencies.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
                             </select>
                             <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
@@ -914,10 +914,10 @@ export default function SalesPage() {
                             </select>
                             <input className="input" type="number" placeholder="رقم الفاتورة (اختياري)" value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title="تعديل رقم الفاتورة (اختياري)" />
                             <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title="تعديل تاريخ الفاتورة (اختياري)" />
-                            <button onClick={connectPosManual} title={posStatus === 'connected' ? 'جهاز الدفع متصل' : posStatus === 'sending' ? 'جاري الإرسال...' : 'اضغط لربط جهاز الدفع'}
+                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
                                 style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
-                                {posStatus === 'connected' ? '🔗 مدى' : posStatus === 'sending' ? '⏳' : '📡 ربط مدى'}
+                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
                             </button>
                         </div>
 
@@ -1105,7 +1105,7 @@ export default function SalesPage() {
                                     {!appliedCoupon ? (
                                         <button onClick={applyCoupon} disabled={couponApplying || !couponCode}
                                             style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: couponCode ? 'var(--primary)' : 'var(--bg-card-hover)', color: couponCode ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
-                                            {couponApplying ? '⏳' : 'تفعيل'}
+                                            {couponApplying ? '⏳' : t('sys.str_849')}
                                         </button>
                                     ) : (
                                         <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); showToast(t('sys.str_850')); }}
@@ -1170,14 +1170,14 @@ export default function SalesPage() {
                                     <>
                                         <button className="btn" onClick={retryPosPayment} disabled={saving}
                                             style={{ background: '#f59e0b', color: '#fff', fontWeight: '700', flex: 1, animation: 'pulse 1.5s infinite' }}>
-                                            {saving ? '⏳ جاري الإرسال...' : `🔄 إعادة إرسال ${fmt(retryPosAmount)} لمدى`}
+                                            {saving ? t('sys.str_851') : `🔄 إعادة إرسال ${fmt(retryPosAmount)} لمدى`}
                                         </button>
                                         <button className="btn btn-ghost" onClick={() => { setRetryPosAmount(null); setRetryInvoiceNo(''); }}>{t('sys.str_780')}</button>
                                     </>
                                 ) : (
                                     <>
                                         <button id="save-btn" className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0}>
-                                            {saving ? '⏳ جاري الحفظ...' : '💾 حفظ'}
+                                            {saving ? t('sys.str_852') : t('sys.str_455')}
                                         </button>
                                         <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
                                             {t('sys.str_781')}</button>
@@ -1249,7 +1249,7 @@ export default function SalesPage() {
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowAddCustomer(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewCustomer} disabled={savingCust || !newCust.name.trim()}>
-                                {savingCust ? '⏳ جاري الحفظ...' : '💾 حفظ'}
+                                {savingCust ? t('sys.str_852') : t('sys.str_455')}
                             </button>
                         </div>
                     </div>
@@ -1291,7 +1291,7 @@ export default function SalesPage() {
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowAddProduct(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewProduct} disabled={savingProd || !newProd.name.trim() || !newProd.sellPrice}>
-                                {savingProd ? '⏳ جاري الحفظ...' : '💾 حفظ وإضافة للفاتورة'}
+                                {savingProd ? t('sys.str_852') : t('purchases.str_1040')}
                             </button>
                         </div>
                     </div>
@@ -1408,7 +1408,7 @@ export default function SalesPage() {
                                 <div><strong>{t('sys.str_797')}</strong> {new Date(selectedInvoice.date).toLocaleDateString('ar-SA')}</div>
                                 <div><strong>{t('sys.str_798')}</strong> {new Date(selectedInvoice.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                                 <div><strong>{t('sys.str_799')}</strong> {selectedInvoice.customer?.name || t('sys.str_752')}</div>
-                                <div><strong>{t('sys.str_800')}</strong> {selectedInvoice.paymentType === 'cash' ? 'نقداً' : selectedInvoice.paymentType === 'card' ? 'بطاقة' : selectedInvoice.paymentType === 'transfer' ? 'تحويل' : 'آجل'}</div>
+                                <div><strong>{t('sys.str_800')}</strong> {selectedInvoice.paymentType === 'cash' ? t('sys.str_860') : selectedInvoice.paymentType === 'card' ? t('sys.str_861') : selectedInvoice.paymentType === 'transfer' ? t('sys.str_862') : t('sys.str_863')}</div>
                             </div>
                             <table className="table" style={{ fontSize: '13px', marginBottom: '16px' }}>
                                 <thead><tr><th>{t('sys.str_801')}</th><th>{t('sys.str_64')}</th><th>{t('sys.str_65')}</th><th>{t('sys.str_66')}</th></tr></thead>

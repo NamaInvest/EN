@@ -33,7 +33,7 @@ export default function AIBankPage() {
                     disabled={loading}
                     className="mt-6 bg-white text-teal-600 font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition shadow-lg disabled:opacity-50"
                 >
-                    {loading ? 'جاري تحليل الكشوفات وحوالات العملاء...' : 'إجراء مطابقة بنكية ذكية ⚡'}
+                    {loading ? t('sys.str_293') : t('sys.str_294')}
                 </button>
                 {result && (
                     <div className="mt-6 bg-black/20 p-4 rounded-xl border border-white/20">

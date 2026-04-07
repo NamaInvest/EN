@@ -63,7 +63,7 @@ export default function TenantPortalPage() {
               disabled={loading}
               style={{ width: '100%', padding: '14px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
             >
-              {loading ? 'جاري التحقق...' : 'دخول للبوابة'}
+              {loading ? t('sys.str_1665') : t('sys.str_1666')}
             </button>
           </form>
         </div>

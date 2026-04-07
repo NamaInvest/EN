@@ -123,7 +123,7 @@ export default function ChecksPage() {
                         <tr>
                             <th>{t('sys.str_2728')}</th>
                             <th>{t('sys.str_2729')}</th>
-                            <th>{tab === 'RECEIVABLE' ? 'العميل' : 'المورد'}</th>
+                            <th>{tab === 'RECEIVABLE' ? t('sys.str_460') : t('sys.str_953')}</th>
                             <th>{t('sys.str_666')}</th>
                             <th>{t('sys.str_463')}</th>
                             <th>{t('fin.str_227')}</th>
@@ -173,7 +173,7 @@ export default function ChecksPage() {
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
                 <div className="modal" style={{ maxWidth: '600px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
-                    <h2>{t('sys.str_2736')}{tab === 'RECEIVABLE' ? 'وارد' : 'صادر'}</h2>
+                    <h2>{t('sys.str_2736')}{tab === 'RECEIVABLE' ? t('sys.str_2746') : t('sys.str_2747')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div className="input-group" style={{ margin: 0 }}>
                             <label className="input-label">{t('sys.str_2728')}</label>
@@ -192,7 +192,7 @@ export default function ChecksPage() {
                             <input required type="number" step="0.01" className="input" value={newCheck.amount} onChange={e => setNewCheck({...newCheck, amount: e.target.value})} />
                         </div>
                         <div className="input-group" style={{ margin: 0 }}>
-                            <label className="input-label">{t('sys.str_2738')}{tab === 'RECEIVABLE' ? 'العميل' : 'المورد'})</label>
+                            <label className="input-label">{t('sys.str_2738')}{tab === 'RECEIVABLE' ? t('sys.str_460') : t('sys.str_953')})</label>
                             <select className="input" required value={tab === 'RECEIVABLE' ? newCheck.customerId : newCheck.supplierId} onChange={e => {
                                 if (tab === 'RECEIVABLE') setNewCheck({...newCheck, customerId: e.target.value});
                                 else setNewCheck({...newCheck, supplierId: e.target.value});

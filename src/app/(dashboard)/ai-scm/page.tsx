@@ -33,7 +33,7 @@ export default function AISCMPage() {
                     disabled={loading}
                     className="mt-6 bg-white text-indigo-600 font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition shadow-lg disabled:opacity-50"
                 >
-                    {loading ? 'جاري فحص المستودعات وعمل أوامر شراء...' : 'تشغيل الذكاء الاصطناعي الآن 🚀'}
+                    {loading ? t('sys.str_329') : t('sys.str_330')}
                 </button>
                 {result && (
                     <div className="mt-6 bg-black/20 p-4 rounded-xl border border-white/20">

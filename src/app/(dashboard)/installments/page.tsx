@@ -30,7 +30,7 @@ export default function InstallmentsPage() {
                                         <span style={{ fontSize: '12px', color: '#22c55e' }}>{t('sys.str_664')}{fmt(inst.paidAmount)}</span>
                                         <span style={{ fontSize: '12px', color: '#ef4444' }}>{t('sys.str_665')}{fmt(inst.remaining)}</span>
                                         <div className="toolbar-spacer" />
-                                        <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: inst.status === 'active' ? '#3b82f615' : '#22c55e15', color: inst.status === 'active' ? '#3b82f6' : '#22c55e' }}>{inst.status === 'active' ? '🔄 نشط' : '✅ مكتمل'}</span>
+                                        <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: inst.status === 'active' ? '#3b82f615' : '#22c55e15', color: inst.status === 'active' ? '#3b82f6' : '#22c55e' }}>{inst.status === 'active' ? t('sys.str_667') : t('sys.str_668')}</span>
                                     </div>
                                     {expanded === inst.id && inst.payments && (
                                         <table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
@@ -40,7 +40,7 @@ export default function InstallmentsPage() {
                                                     <td style={{ padding: '6px', fontSize: '12px' }}>{i + 1}</td>
                                                     <td style={{ padding: '6px', fontSize: '12px' }}>{p.dueDate}</td>
                                                     <td style={{ padding: '6px', fontFamily: 'monospace' }}>{fmt(p.amount)}</td>
-                                                    <td style={{ padding: '6px', textAlign: 'center' }}><span style={{ fontSize: '11px', color: p.paid ? '#22c55e' : '#f59e0b' }}>{p.paid ? '✅ مسدد' : '⏳ قيد الانتظار'}</span></td>
+                                                    <td style={{ padding: '6px', textAlign: 'center' }}><span style={{ fontSize: '11px', color: p.paid ? '#22c55e' : '#f59e0b' }}>{p.paid ? t('sys.str_669') : t('sys.str_670')}</span></td>
                                                 </tr>
                                             ))}</tbody>
                                         </table>

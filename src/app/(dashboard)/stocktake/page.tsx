@@ -105,7 +105,7 @@ export default function StocktakePage() {
                                 {s.over > 0 && <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: '#3b82f620', color: '#3b82f6' }}>📈 {s.over} {t('stock.str_1483')}</span>}
                                 {s.short > 0 && <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', background: '#ef444420', color: '#ef4444' }}>📉 {s.short} {t('stock.str_1484')}</span>}
                                 <div className="toolbar-spacer" />
-                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: s.status === 'applied' ? '#22c55e15' : '#f59e0b15', color: s.status === 'applied' ? '#22c55e' : '#f59e0b' }}>{s.status === 'applied' ? 'مطبّق' : 'محفوظ'}</span>
+                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: s.status === 'applied' ? '#22c55e15' : '#f59e0b15', color: s.status === 'applied' ? '#22c55e' : '#f59e0b' }}>{s.status === 'applied' ? t('stock.str_1487') : t('stock.str_1488')}</span>
                             </div>
                             {expandedId === s.id && s.items && (
                                 <table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
@@ -126,7 +126,7 @@ export default function StocktakePage() {
                                             </td>
                                             <td style={{ padding: '6px', textAlign: 'center' }}>
                                                 <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '8px', background: item.status === 'matched' ? '#22c55e15' : item.status === 'over' ? '#3b82f615' : '#ef444415', color: item.status === 'matched' ? '#22c55e' : item.status === 'over' ? '#3b82f6' : '#ef4444' }}>
-                                                    {item.status === 'matched' ? 'مطابق' : item.status === 'over' ? 'زيادة' : 'نقص'}
+                                                    {item.status === 'matched' ? t('stock.str_1482') : item.status === 'over' ? t('stock.str_1483') : t('stock.str_1484')}
                                                 </span>
                                             </td>
                                         </tr>

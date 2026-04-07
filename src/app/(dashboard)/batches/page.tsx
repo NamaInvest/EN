@@ -130,7 +130,7 @@ export default function BatchesPage() {
                                         </div>
                                     </td>
                                     <td>{fmt(b.unitCost)}</td>
-                                    <td><span className={`badge ${b.currentQuantity <= 0 ? 'badge-ghost' : status.cls}`}>{b.currentQuantity <= 0 ? 'نفدت الكمية' : status.label}</span></td>
+                                    <td><span className={`badge ${b.currentQuantity <= 0 ? 'badge-ghost' : status.cls}`}>{b.currentQuantity <= 0 ? t('sys.str_449') : status.label}</span></td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '4px' }}>
                                             <button className="btn btn-sm btn-ghost" onClick={() => openEdit(b)}>✏️</button>
@@ -149,7 +149,7 @@ export default function BatchesPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
-                            <h3>{editItem ? '✏️ تعديل توريدة / تشغيلة' : '➕ إدخال تشغيلة مخزونية (مشتريات/توريد)'}</h3>
+                            <h3>{editItem ? t('sys.str_450') : t('sys.str_451')}</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
                         <div className="modal-body">
@@ -196,7 +196,7 @@ export default function BatchesPage() {
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
-                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 حفظ'}</button>
+                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? t('sys.str_454') : t('sys.str_455')}</button>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>

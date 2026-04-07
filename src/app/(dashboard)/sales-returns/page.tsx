@@ -214,7 +214,7 @@ export default function SalesReturnsPage() {
                                 />
                             </div>
                             <button className="btn btn-primary" onClick={fetchInvoice} disabled={searching || !searchInvoiceNo}>
-                                {searching ? 'جاري البحث...' : '🔍 جلب الفاتورة'}
+                                {searching ? t('sales.str_1151') : t('sales.str_1152')}
                             </button>
                             <button className="btn btn-ghost" onClick={() => { setShowAdd(false); setOriginalInvoice(null); setErrorMsg(''); }}>{t('fin.str_206')}</button>
                         </div>
@@ -315,7 +315,7 @@ export default function SalesReturnsPage() {
                                         <td style={{ padding: '8px', fontFamily: 'monospace', fontWeight: 'bold' }}>#{r.returnNo}</td>
                                         <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(r.date).toLocaleDateString('ar-SA')}</td>
                                         <td style={{ padding: '8px', fontFamily: 'monospace', color: 'var(--primary)' }}>
-                                            {r.originalInvoiceId ? `#INV-${r.originalInvoiceId}` : 'بدون فاتورة'}
+                                            {r.originalInvoiceId ? `#INV-${r.originalInvoiceId}` : t('sales.str_1154')}
                                         </td>
                                         <td style={{ padding: '8px', fontFamily: 'monospace' }}>{fmt(r.subtotal)}</td>
                                         <td style={{ padding: '8px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{fmt(r.taxValue)}</td>

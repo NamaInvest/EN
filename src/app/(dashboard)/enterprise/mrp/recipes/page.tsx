@@ -240,7 +240,7 @@ export default function BOMRecipes() {
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>
                                         <Save size={18} style={{ marginLeft: '6px' }} />
-                                        {saving ? '⏳ جاري الاعتماد...' : 'حفظ تركيبة التصنيع'}
+                                        {saving ? t('sys.str_2839') : t('sys.str_2840')}
                                     </button>
                                 </div>
                             </form>

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Server, Activity, Power, RefreshCw, Key, ShieldAlert, Cpu, Database, Globe } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MasterControlPanel() {
+    const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [nodes, setNodes] = useState<{ id: string; status: string; pm2_env: any }[]>([]);
@@ -24,7 +26,7 @@ export default function MasterControlPanel() {
       setAuthenticated(true);
       fetchNodes();
     } else {
-      alert("كلمة المرور غير صحيحة");
+      alert(t('sys.str_164'));
     }
   };
 
@@ -82,8 +84,8 @@ export default function MasterControlPanel() {
                <ShieldAlert className="text-red-500 w-8 h-8" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-white text-center mb-2">النواة المركزية (Master Control)</h1>
-          <p className="text-slate-400 text-sm text-center mb-8">لوحة تحكم خوادم نما سوفت السحابية</p>
+          <h1 className="text-2xl font-bold text-white text-center mb-2">{t('sys.str_156')}</h1>
+          <p className="text-slate-400 text-sm text-center mb-8">{t('sys.str_157')}</p>
           
           <form onSubmit={handleLogin}>
             <div className="mb-6 relative">
@@ -91,15 +93,14 @@ export default function MasterControlPanel() {
               <input 
                 type="password" 
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pr-12 pl-4 text-white focus:outline-none focus:border-red-500 transition-colors"
-                placeholder="أدخل الرمز السري الفائق..."
+                placeholder={t('sys.str_165')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 autoFocus
               />
             </div>
             <button type="submit" className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-red-500/25">
-              فتح بروتوكول التحكم
-            </button>
+              {t('sys.str_158')}</button>
           </form>
         </div>
       </div>
@@ -124,19 +125,17 @@ export default function MasterControlPanel() {
               <Server className="text-indigo-400 w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-white">المركز السيادي (Hetzner Node Grid)</h1>
+              <h1 className="text-2xl font-black text-white">{t('sys.str_159')}</h1>
               <p className="text-indigo-400/80 text-sm font-medium mt-1">SaaS Infrastructure Hypervisor</p>
             </div>
           </div>
           <div className="flex gap-4">
             <button onClick={fetchNodes} className="flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-semibold transition-colors border border-slate-700">
               <RefreshCw className={`w-4 h-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
-              تحديث الحالة
-            </button>
+              {t('sys.str_160')}</button>
             <button onClick={() => { localStorage.removeItem("master_auth"); setAuthenticated(false); }} className="flex items-center px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm font-semibold transition-colors border border-red-500/20">
               <Power className="w-4 h-4 ml-2" />
-              إغلاق
-            </button>
+              {t('sys.str_77')}</button>
           </div>
         </div>
 
@@ -187,20 +186,17 @@ export default function MasterControlPanel() {
                       onClick={() => handleAction(node.id, "restart")}
                       className="flex items-center justify-center px-2 py-2.5 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 text-slate-300 rounded-lg text-xs font-bold transition-all border border-transparent hover:border-emerald-500/30"
                     >
-                      <RefreshCw className="w-3.5 h-3.5 ml-1.5" /> إعادة إقلاع
-                    </button>
+                      <RefreshCw className="w-3.5 h-3.5 ml-1.5" /> {t('sys.str_161')}</button>
                     <button 
                       onClick={() => handleAction(node.id, "stop")}
                       className="flex items-center justify-center px-2 py-2.5 bg-slate-800 hover:bg-red-600/20 hover:text-red-400 text-slate-300 rounded-lg text-xs font-bold transition-all border border-transparent hover:border-red-500/30"
                     >
-                      <Power className="w-3.5 h-3.5 ml-1.5" /> إيقاف Node
-                    </button>
+                      <Power className="w-3.5 h-3.5 ml-1.5" /> {t('sys.str_162')}</button>
                     <button 
                       onClick={() => window.open(`https://${node.id}.namainvist.com`, '_blank')}
                       className="col-span-2 flex items-center justify-center px-2 py-2.5 bg-indigo-500/10 hover:bg-indigo-500 border border-indigo-500/20 text-indigo-400 hover:text-white rounded-lg text-xs font-bold transition-all mt-1"
                     >
-                      <Globe className="w-3.5 h-3.5 ml-1.5" /> الدخول للنظام (Portal)
-                    </button>
+                      <Globe className="w-3.5 h-3.5 ml-1.5" /> {t('sys.str_163')}</button>
                   </div>
                 </div>
               </div>

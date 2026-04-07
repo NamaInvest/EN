@@ -96,15 +96,15 @@ export default function GiftCardsPage() {
                                     <td style={{ color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('ar-SA')}</td>
                                     <td>{fmt(c.initialBalance)} {t('sys.str_68')}</td>
                                     <td style={{ fontWeight: 'bold', color: fullyUsed ? '#ef4444' : '#10b981' }}>{fmt(c.currentBalance)} {t('sys.str_68')}</td>
-                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('ar-SA') : 'مفتوح'}</td>
+                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('ar-SA') : t('sys.str_514')}</td>
                                     <td>
                                         <span className={`badge ${!c.isActive ? 'badge-error' : expired ? 'badge-warning' : fullyUsed ? 'badge-ghost' : 'badge-success'}`}>
-                                            {!c.isActive ? 'موقوفة' : expired ? 'منتهية' : fullyUsed ? 'مستنفدة' : 'فعالة'}
+                                            {!c.isActive ? t('sys.str_654') : expired ? t('sys.str_655') : fullyUsed ? t('sys.str_656') : t('sys.str_657')}
                                         </span>
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '4px' }}>
-                                            <button className="btn btn-sm btn-ghost" onClick={() => toggleStatus(c)}>{c.isActive ? '⏸️ إيقاف' : '▶️ تفعيل'}</button>
+                                            <button className="btn btn-sm btn-ghost" onClick={() => toggleStatus(c)}>{c.isActive ? t('sys.str_516') : t('sys.str_517')}</button>
                                             <button className="btn btn-sm" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none' }} onClick={() => handleDelete(c.id)}>🗑️</button>
                                         </div>
                                     </td>
@@ -139,7 +139,7 @@ export default function GiftCardsPage() {
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
-                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'جاري الحفظ...' : '💾 إصدار البطاقة'}</button>
+                            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? t('sys.str_454') : t('sys.str_660')}</button>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>
                     </div>

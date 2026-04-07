@@ -188,7 +188,7 @@ export default function PettyCashFundsPage() {
                                             background: fund.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                                             color: fund.status === 'ACTIVE' ? '#16a34a' : '#ef4444'
                                         }}>
-                                            {fund.status === 'ACTIVE' ? '🟢 نشط' : '🔴 مجمد'}
+                                            {fund.status === 'ACTIVE' ? t('sys.str_2115') : t('sys.str_2116')}
                                         </span>
                                     </td>
                                     <td>
@@ -225,7 +225,7 @@ export default function PettyCashFundsPage() {
                     <div className="modal-content" style={{ maxWidth: '500px', animation: 'slideUp 0.3s ease' }}>
                         <div className="modal-header">
                             <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                {formData.id ? 'تعديل بيانات العهدة' : 'إنشاء صندوق عهدة جديد'}
+                                {formData.id ? t('sys.str_2117') : t('sys.str_2118')}
                             </h2>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
                         </div>
@@ -278,7 +278,7 @@ export default function PettyCashFundsPage() {
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>
-                                        {saving ? '⏳ جاري الحفظ...' : '💾 حفظ واعتماد العهدة'}
+                                        {saving ? t('sys.str_852') : t('sys.str_2120')}
                                     </button>
                                 </div>
                             </form>

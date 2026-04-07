@@ -79,7 +79,7 @@ export default function HRJobsPage() {
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       job.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
                     }`}>
-                      {job.status === 'OPEN' ? 'مفتوح' : 'مغلق'}
+                      {job.status === 'OPEN' ? t('sys.str_514') : t('fin.str_1684')}
                     </span>
                   </td>
                   <td className="p-4 font-medium text-emerald-600">

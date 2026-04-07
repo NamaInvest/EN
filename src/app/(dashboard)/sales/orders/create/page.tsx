@@ -202,7 +202,7 @@ export default function CreateRecurringContractPage() {
                         <button type="button" onClick={() => router.push('/recurring-invoices')} className="px-6 py-3 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 transition">
                             {t('sales.str_2912')}</button>
                         <button type="submit" disabled={loading} className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 transition disabled:opacity-50">
-                            {loading ? 'جاري الحفظ...' : '💾 إنشاء واعتماد العقد'}
+                            {loading ? t('sys.str_454') : t('sales.str_2918')}
                         </button>
                     </div>
                 </form>

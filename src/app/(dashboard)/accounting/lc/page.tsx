@@ -113,7 +113,7 @@ export default function LcManagementPage() {
                                 <td className="px-6 py-4">{new Date(lc.expiryDate).toLocaleDateString('ar-SA')}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                                        {lc.status === 'draft' ? 'مسودة بنكية' : lc.status}
+                                        {lc.status === 'draft' ? t('fin.str_1717') : lc.status}
                                     </span>
                                 </td>
                             </tr>

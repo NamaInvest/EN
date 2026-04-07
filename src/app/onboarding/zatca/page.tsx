@@ -124,9 +124,9 @@ export default function ZatcaOnboardingWizard() {
           <div className="flex items-center justify-between text-sm font-medium text-slate-400 mb-2">
             <span>{t('sys.str_1586')}{step} {t('sys.str_1587')}</span>
             <span>
-              {step === 1 ? "بيانات المنشأة (مطلوب للـ CSR)" : 
-               step === 2 ? "الرقم الضريبي" : 
-               step === 3 ? "العنوان الوطني (بالإنجليزي)" : "بوابة فاتورة (OTP)"}
+              {step === 1 ? t('sys.str_1615') : 
+               step === 2 ? t('sys.str_529') : 
+               step === 3 ? t('sys.str_1616') : t('sys.str_1617')}
             </span>
           </div>
           <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -269,7 +269,7 @@ export default function ZatcaOnboardingWizard() {
               disabled={loading || (step===1 && !formData.orgNameEn) || (step===2 && formData.vatNumber.length!==15) || (step===3 && !formData.cityEn) || (step===4 && formData.otp.length < 5)}
               className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 transition-all shadow-xl"
             >
-              {step === 4 ? "تأكيد الربط وإصدار CSID" : "التالي"}
+              {step === 4 ? t('sys.str_1622') : t('sys.str_1623')}
               {step !== 4 && <ArrowLeft className="w-5 h-5" />}
             </button>
           </div>

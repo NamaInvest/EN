@@ -162,7 +162,7 @@ export default function BankStatementPage() {
                                     <td style={{ fontSize: '12px' }}>{fmtDate(t.transactionDate)}</td>
                                     <td>
                                         <span className={`badge ${t.type === 'deposit' ? 'badge-success' : 'badge-danger'}`}>
-                                            {t.type === 'deposit' ? '📥 إيداع' : '📤 سحب / تحويل'}
+                                            {t.type === 'deposit' ? t('sys.str_1490') : t('fin.str_2811')}
                                         </span>
                                     </td>
                                     <td>{t.description || '—'}</td>
@@ -227,14 +227,14 @@ export default function BankStatementPage() {
                                 <div>
                                     <label htmlFor="linkedToTreasury" style={{ fontWeight: '600', cursor: 'pointer', display: 'block', marginBottom: '4px' }}>{t('fin.str_2809')}</label>
                                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-                                        {form.type === 'deposit' ? 'سيتم تسجيل "سحب" من الخزينة لحساب البنك لإثبات خروج النقدية.' : 'سيتم تسجيل "إيداع" في الخزينة من حساب البنك.'}
+                                        {form.type === 'deposit' ? t('fin.str_2813') : t('fin.str_2814')}
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn btn-primary" onClick={handleSaveTransaction} disabled={saving}>
-                                {saving ? 'جاري الحفظ...' : '💾 تأكيد الحركة'}
+                                {saving ? t('sys.str_454') : t('fin.str_2815')}
                             </button>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>

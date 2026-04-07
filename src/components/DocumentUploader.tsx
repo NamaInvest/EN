@@ -140,7 +140,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
                 </div>
 
                 <button type="submit" className="btn btn-primary" disabled={uploading}>
-                    {uploading ? 'جاري الرفع...' : '⬆️ رفع المرفق'}
+                    {uploading ? t('sys.str_54') : t('sys.str_55')}
                 </button>
             </form>
         </div>

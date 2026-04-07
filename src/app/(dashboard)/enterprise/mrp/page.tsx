@@ -140,7 +140,7 @@ export default function EnterpriseMRP() {
                                                 background: order.status === 'IN_PROGRESS' ? 'var(--primary)' : (order.status === 'COMPLETED' ? 'var(--success)' : 'var(--warning)'),
                                                 color: '#fff'
                                             }}>
-                                                {order.status === 'PLANNED' ? 'مخطط' : order.status === 'IN_PROGRESS' ? 'جاري التصنيع' : 'مكتمل'}
+                                                {order.status === 'PLANNED' ? t('sys.str_1863') : order.status === 'IN_PROGRESS' ? t('sys.str_1864') : t('sys.str_1865')}
                                             </span>
                                         </div>
                                         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>

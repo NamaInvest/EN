@@ -124,7 +124,7 @@ export default function BranchesPage() {
                                             </td>
                                             <td>
                                                 <span className={`badge ${b.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                                    {b.isActive ? 'نشط' : 'موقوف'}
+                                                    {b.isActive ? t('sys.str_180') : t('sys.str_489')}
                                                 </span>
                                             </td>
                                             <td style={{ display: 'flex', gap: '4px' }}>
@@ -142,7 +142,7 @@ export default function BranchesPage() {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><div className="modal-title">{editId ? '✏️ تعديل الفرع' : '➕ إضافة فرع'}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
+                        <div className="modal-header"><div className="modal-title">{editId ? t('sys.str_490') : t('sys.str_473')}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_480')}</label>
                             <input className="input" type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('sys.str_491')} />

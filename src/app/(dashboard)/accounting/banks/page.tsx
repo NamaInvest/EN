@@ -188,7 +188,7 @@ export default function BanksPage() {
                                     </td>
                                     <td>
                                         <span className={`badge ${b.isActive ? 'badge-success' : 'badge-ghost'}`}>
-                                            {b.isActive ? 'نشط' : 'مغلق'}
+                                            {b.isActive ? t('sys.str_180') : t('fin.str_1684')}
                                         </span>
                                     </td>
                                     <td>
@@ -210,7 +210,7 @@ export default function BanksPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
-                            <h3>{editItem ? '✏️ تعديل حساب بنكي' : '➕ إضافة حساب بنكي جديد'}</h3>
+                            <h3>{editItem ? t('fin.str_1685') : t('fin.str_1686')}</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
                         <div className="modal-body">
@@ -268,7 +268,7 @@ export default function BanksPage() {
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                                {saving ? 'جاري الحفظ...' : '💾 حفظ'}
+                                {saving ? t('sys.str_454') : t('sys.str_455')}
                             </button>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                         </div>

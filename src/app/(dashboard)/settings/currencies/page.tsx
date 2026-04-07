@@ -133,7 +133,7 @@ export default function CurrenciesPage() {
                                             </td>
                                             <td>
                                                 <span className={`badge ${c.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                                    {c.isActive ? 'نشطة' : 'موقوفة'}
+                                                    {c.isActive ? t('sys.str_2510') : t('sys.str_654')}
                                                 </span>
                                             </td>
                                             <td style={{ display: 'flex', gap: '4px' }}>
@@ -154,7 +154,7 @@ export default function CurrenciesPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{editId ? '✏️ تعديل عملة' : '➕ إضافة عملة'}</div>
+                            <div className="modal-title">{editId ? t('sys.str_2533') : t('sys.str_2514')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         

@@ -87,7 +87,7 @@ export default function EmployeesPage() {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header"><div className="modal-title">{editItem ? '✏️ تعديل' : '➕ إضافة موظف'}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
+                        <div className="modal-header"><div className="modal-title">{editItem ? t('sys.str_547') : t('hr.str_555')}</div><button className="modal-close" onClick={() => setShowModal(false)}>✕</button></div>
                         <div className="grid-2">
                             <div className="input-group"><label className="input-label">{t('sys.str_531')}</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
                             <div className="input-group"><label className="input-label">{t('sys.str_527')}</label><input className="input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} dir="ltr" /></div>

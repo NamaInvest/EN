@@ -209,7 +209,7 @@ export default function DashboardPage() {
                             disabled={loadingAi || !data}
                             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
-                            {loadingAi ? 'جاري التحليل...' : '✨ تحليل مباشر بمساعدة AI'}
+                            {loadingAi ? t('sys.str_551') : t('sys.str_552')}
                         </button>
                     </div>
                     

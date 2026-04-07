@@ -38,24 +38,32 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-    const [lang, setLangState] = useState<Language>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('app_lang') as Language;
-            if (saved && translations[saved]) return saved;
-        }
-        return 'ar';
-    });
+    // CRITICAL FIX: Always start with 'ar' during SSR to avoid hydration mismatch
+    // Then immediately switch to the correct language after mount using useEffect
+    const [lang, setLangState] = useState<Language>('ar');
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // This runs ONLY in the browser after hydration is complete
         const saved = localStorage.getItem('app_lang') as Language;
-        if (saved && translations[saved] && saved !== lang) {
-            setLangState(saved);
-        }
+        // FIX: validate against languages array, NOT translations object (which may not have per-lang keys)
+        const validCodes = languages.map(l => l.code);
+        const actualLang: Language = (saved && validCodes.includes(saved as Language)) ? (saved as Language) : 'ar';
+        setLangState(actualLang);
+        const info = languages.find(l => l.code === actualLang)!;
+        document.documentElement.dir = info.dir;
+        document.documentElement.lang = actualLang;
+        setMounted(true);
     }, []);
+
 
     const setLang = (newLang: Language) => {
         setLangState(newLang);
         localStorage.setItem('app_lang', newLang);
+        // Dispatch event so Sidebar (which reads localStorage directly) updates immediately
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('langchange'));
+        }
         const info = languages.find(l => l.code === newLang)!;
         document.documentElement.dir = info.dir;
         document.documentElement.lang = newLang;
@@ -65,7 +73,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return translate(key, lang);
     };
 
-    const langInfo = languages.find(l => l.code === lang)!;
+    const langInfo = languages.find(l => l.code === lang) || languages[0];
 
     return (
         <I18nContext.Provider value={{ lang, setLang, t, dir: langInfo.dir, langInfo }}>
@@ -76,7 +84,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 export function useTranslation() {
     const ctx = useContext(I18nContext);
-    // Direct reference to translations ensures bundler includes the dictionary
     const lang = ctx.lang || 'ar';
     const t = (key: string): string => translate(key, lang);
     return { ...ctx, t };

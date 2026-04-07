@@ -220,7 +220,7 @@ export default function EnterpriseProjects() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
                                     <Clock size={14} />
-                                    {t('sys.str_1876')}{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'غير مبين'}
+                                    {t('sys.str_1876')}{project.startDate ? new Date(project.startDate).toLocaleDateString() : t('sys.str_1894')}
                                 </div>
                                 
                                 <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }}>
@@ -240,7 +240,7 @@ export default function EnterpriseProjects() {
                     <div className="modal-content" style={{ maxWidth: '600px', animation: 'slideUp 0.3s ease' }}>
                         <div className="modal-header">
                             <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                {formData.id ? 'تعديل مشروع مقاولات' : 'إطلاق مشروع مقاولات جديد'}
+                                {formData.id ? t('sys.str_1896') : t('sys.str_1897')}
                             </h2>
                             <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
                         </div>
@@ -304,7 +304,7 @@ export default function EnterpriseProjects() {
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
                                     <button type="submit" className="btn btn-primary" disabled={saving}>
-                                        {saving ? '⏳ جاري الحفظ...' : '💾 حفظ وتأكيد المشروع'}
+                                        {saving ? t('sys.str_852') : t('sys.str_1899')}
                                     </button>
                                 </div>
                             </form>

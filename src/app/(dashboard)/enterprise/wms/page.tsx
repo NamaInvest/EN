@@ -159,7 +159,7 @@ export default function EnterpriseWMS() {
                                                                                     <Box size={16} color={bin.status === 'FULL' ? 'var(--danger)' : bin.status === 'PARTIAL' ? 'var(--warning)' : 'var(--success)'} style={{ margin: '0 auto 4px auto' }} />
                                                                                     <div style={{ fontSize: '11px', fontWeight: 'bold' }}>{bin.code}</div>
                                                                                     <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                                                        {bin.currentWeight || 0}{bin.maxWeight ? `/${bin.maxWeight}كغ` : 'كغ'}
+                                                                                        {bin.currentWeight || 0}{bin.maxWeight ? `/${bin.maxWeight}كغ` : t('sys.str_1982')}
                                                                                     </div>
                                                                                     <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
                                                                                         <div style={{ height: '100%', width: `${Math.min(((bin.currentWeight || 0) / (bin.maxWeight || 1)) * 100, 100)}%`, background: bin.status === 'FULL' ? 'var(--danger)' : 'var(--success)' }} />
@@ -249,7 +249,7 @@ export default function EnterpriseWMS() {
                                 )}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? '...' : 'تأكيد'}</button>
+                                    <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? '...' : t('sys.str_1989')}</button>
                                 </div>
                             </form>
                         </div>
@@ -272,7 +272,7 @@ export default function EnterpriseWMS() {
                                 <div className="card" style={{ padding: '16px', background: 'var(--bg-body)' }}>
                                     <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_1980')}</div>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: selectedBin.status === 'FULL' ? 'var(--danger)' : 'var(--success)' }}>
-                                        {selectedBin.status === 'FULL' ? 'ممتلئة بالكامل' : selectedBin.status === 'PARTIAL' ? 'شبه ممتلئة' : 'فارغة تماماً'}
+                                        {selectedBin.status === 'FULL' ? t('sys.str_1990') : selectedBin.status === 'PARTIAL' ? t('sys.str_1991') : t('sys.str_1992')}
                                     </div>
                                 </div>
                                 <div className="card" style={{ padding: '16px', background: 'var(--bg-body)' }}>

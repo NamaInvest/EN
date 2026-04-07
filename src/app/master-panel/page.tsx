@@ -65,7 +65,7 @@ export default function MasterPanelPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <h3 className="text-xl font-bold text-white">{company.name}</h3>
                                     <span className={`px-3 py-1 text-sm rounded-full font-bold ${isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                        {isActive ? 'نشط' : (latestSub?.status || t('sys.str_181'))}
+                                        {isActive ? t('sys.str_180') : (latestSub?.status || t('sys.str_181'))}
                                     </span>
                                 </div>
                                 <div className="text-neutral-400 text-sm space-y-2 mb-6">

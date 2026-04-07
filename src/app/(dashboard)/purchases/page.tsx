@@ -317,7 +317,7 @@ export default function PurchasesPage() {
                         {t('purchases.str_974')}{pendingReceipts.length > 0 && <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#3b82f6', color: '#fff', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{pendingReceipts.length}</span>}
                     </button>
                     {activeTab === 'new' && <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={ocrLoading}>
-                        {ocrLoading ? '⏳ جاري القراءة...' : '📷 رفع فاتورة'}
+                        {ocrLoading ? t('purchases.str_1033') : t('purchases.str_1034')}
                     </button>}
                 </div>
             </div>
@@ -521,12 +521,12 @@ export default function PurchasesPage() {
                                                 <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
                                                 <td>{inv.supplier?.name || t('purchases.str_1037')}</td>
                                                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(inv.total)} {t('sys.str_68')}</td>
-                                                <td>{inv.paymentType === 'cash' ? 'نقداً' : inv.paymentType === 'transfer' ? 'تحويل' : inv.paymentType === 'card' ? 'بطاقة' : 'آجل'}</td>
+                                                <td>{inv.paymentType === 'cash' ? t('sys.str_860') : inv.paymentType === 'transfer' ? t('sys.str_862') : inv.paymentType === 'card' ? t('sys.str_861') : t('sys.str_863')}</td>
                                                 <td><span style={{ padding: '4px 8px', borderRadius: '6px', background: '#fef3c7', color: '#d97706', fontSize: '12px', fontWeight: 'bold' }}>{t('purchases.str_995')}</span></td>
                                                 <td>
                                                     <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
                                                         onClick={() => handleReceiveGoods(inv.id)} disabled={receivingId === inv.id}>
-                                                        {receivingId === inv.id ? '⏳' : '📥 استلام البضاعة'}
+                                                        {receivingId === inv.id ? '⏳' : t('purchases.str_1038')}
                                                     </button>
                                                 </td>
                                             </tr>
@@ -569,7 +569,7 @@ export default function PurchasesPage() {
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowAddSupplier(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewSupplier} disabled={savingSupplier || !newSupplier.name.trim()}>
-                                {savingSupplier ? '⏳ جاري الحفظ...' : '💾 حفظ'}
+                                {savingSupplier ? t('sys.str_852') : t('sys.str_455')}
                             </button>
                         </div>
                     </div>
@@ -611,7 +611,7 @@ export default function PurchasesPage() {
                         <div className="modal-footer">
                             <button className="btn btn-ghost" onClick={() => setShowAddProduct(false)}>{t('fin.str_206')}</button>
                             <button className="btn btn-primary" onClick={saveNewProduct} disabled={savingProd || !newProd.name.trim()}>
-                                {savingProd ? '⏳ جاري الحفظ...' : '💾 حفظ وإضافة للفاتورة'}
+                                {savingProd ? t('sys.str_852') : t('purchases.str_1040')}
                             </button>
                         </div>
                     </div>

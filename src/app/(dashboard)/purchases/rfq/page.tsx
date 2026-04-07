@@ -105,7 +105,7 @@ export default function RequestForQuotationPage() {
                                 <td><strong style={{color: '#6366f1'}}>RFQ-{r.rfqNo}</strong></td>
                                 <td>{new Date(r.date).toLocaleDateString()}</td>
                                 <td>{r.supplier?.name || <span style={{color: 'var(--text-muted)'}}>{t('purchases.str_2336')}</span>}</td>
-                                <td>{r.dueDate ? new Date(r.dueDate).toLocaleDateString() : 'مفتوح المهلة'}</td>
+                                <td>{r.dueDate ? new Date(r.dueDate).toLocaleDateString() : t('purchases.str_2350')}</td>
                                 <td>{statusBadge(r.status)}</td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>

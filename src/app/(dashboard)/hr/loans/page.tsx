@@ -71,7 +71,7 @@ export default function LoansPage() {
                                 <td className="p-4 font-mono text-red-500 font-bold">{loan.remainingAmount} SAR</td>
                                 <td className="p-4">
                                     <span className={`px-2 py-1 text-xs rounded-full ${loan.status === 'active' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                        {loan.status === 'active' ? 'قيد السداد' : 'مسددة بالكامل'}
+                                        {loan.status === 'active' ? t('hr.str_2183') : t('hr.str_2184')}
                                     </span>
                                 </td>
                                 <td className="p-4 text-slate-500 text-sm">{new Date(loan.startDate).toLocaleDateString('ar-SA')}</td>

@@ -129,7 +129,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
 
     const handlePrint = useCallback(() => {
         const ps = paperSizes[printerType] || paperSizes['80mm'];
-        const windowTitle = isQuote ? 'عرض سعر' : (['A4', 'A5'].includes(printerType) ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة');
+        const windowTitle = isQuote ? t('sys.str_79') : (['A4', 'A5'].includes(printerType) ? t('sys.str_80') : t('sys.str_81'));
         const printWindow = window.open('', '_blank', `width=${ps.windowWidth},height=600`);
         if (!printWindow || !receiptRef.current) {
             window.print();
@@ -288,13 +288,13 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
                         {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>{t('sys.str_56')}{vatNumber}</div>}
                         <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-                            {isQuote ? 'عـــرض سـعــر' : (['A4', 'A5'].includes(printerType) ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة')}
+                            {isQuote ? t('sys.str_82') : (['A4', 'A5'].includes(printerType) ? t('sys.str_80') : t('sys.str_81'))}
                         </div>
                     </div>
 
                     {/* Invoice Info */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                        <span>{isQuote ? 'رقم العرض:' : 'رقم الفاتورة:'} <strong>{data.invoiceNumber}</strong></span>
+                        <span>{isQuote ? t('sys.str_83') : t('sys.str_84')} <strong>{data.invoiceNumber}</strong></span>
                         <span>{new Date(data.date).toLocaleDateString('ar-SA')}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>

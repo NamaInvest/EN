@@ -44,7 +44,7 @@ export default function CustomersPage() {
     useEffect(() => { fetchData(); }, []);
     useEffect(() => { const t = setTimeout(fetchData, 300); return () => clearTimeout(t); }, [search, typeFilter]);
 
-    const typeLabel = (t: number) => t === 0 ? 'عميل' : t === 1 ? 'مورد' : 'كلاهما';
+    const typeLabel = (t: number) => t === 0 ? t('sys.str_532') : t === 1 ? t('sys.str_533') : t('sys.str_525');
     const typeBadge = (t: number) => t === 0 ? 'badge-info' : t === 1 ? 'badge-purple' : 'badge-warning';
 
     const openAdd = () => {
@@ -182,7 +182,7 @@ export default function CustomersPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{editItem ? '✏️ تعديل' : '➕ إضافة جديد'}</div>
+                            <div className="modal-title">{editItem ? t('sys.str_547') : t('sys.str_548')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <div className="grid-2">

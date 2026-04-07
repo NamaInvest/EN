@@ -245,7 +245,7 @@ export default function PurchaseOrdersPage() {
 
                         <div className="modal-footer" style={{ borderTop: '1px solid #eee', paddingTop: '15px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">{t('fin.str_206')}</button>
-                            <button type="submit" disabled={saving} className="btn btn-primary">{saving ? 'جاري الحفظ...' : '💾 حفظ الطلب'}</button>
+                            <button type="submit" disabled={saving} className="btn btn-primary">{saving ? t('sys.str_454') : t('sys.str_964')}</button>
                         </div>
                     </form>
                 </div>

@@ -126,7 +126,7 @@ export default function LettersOfCreditPage() {
                                         <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>{t('purchases.str_2271')}{lc.supplier?.name}</p>
                                     </div>
                                     <span className={`badge ${lc.status === 'active' ? 'badge-success' : lc.status === 'draft' ? 'badge-warning' : ''}`}>
-                                        {lc.status === 'active' ? 'نشط' : lc.status === 'draft' ? 'مسودة' : lc.status === 'completed' ? 'مكتمل' : 'ملغي'}
+                                        {lc.status === 'active' ? t('sys.str_180') : lc.status === 'draft' ? t('purchases.str_2285') : lc.status === 'completed' ? t('sys.str_1865') : t('purchases.str_2287')}
                                     </span>
                                 </div>
                                 
@@ -183,7 +183,7 @@ export default function LettersOfCreditPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{editingId ? 'تعديل اعتماد مستندي' : 'فتح اعتماد مستندي جديد'}</div>
+                            <div className="modal-title">{editingId ? t('purchases.str_2295') : t('purchases.str_2296')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <form onSubmit={handleSave} style={{ padding: '20px' }}>

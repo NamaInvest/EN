@@ -140,13 +140,13 @@ export default function ApprovalsPage() {
                                         <tr key={r.id}>
                                             <td>{i + 1}</td>
                                             <td style={{ fontWeight: 'bold' }}>{getDocTypeName(r.documentType)}</td>
-                                            <td dir="ltr" style={{ color: 'var(--success)' }}>{r.minAmount > 0 ? r.minAmount?.toLocaleString() : 'أي مبلغ'}</td>
-                                            <td dir="ltr" style={{ color: 'var(--danger)' }}>{r.maxAmount ? r.maxAmount?.toLocaleString() : 'مفتوح (لا يوجد حد)'}</td>
+                                            <td dir="ltr" style={{ color: 'var(--success)' }}>{r.minAmount > 0 ? r.minAmount?.toLocaleString() : t('sys.str_2508')}</td>
+                                            <td dir="ltr" style={{ color: 'var(--danger)' }}>{r.maxAmount ? r.maxAmount?.toLocaleString() : t('sys.str_2509')}</td>
                                             <td><span className="badge badge-outline">{r.level}</span></td>
                                             <td><span className="badge badge-primary">{r.approverRole}</span></td>
                                             <td>
                                                 <span className={`badge ${r.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                                    {r.isActive ? 'نشطة' : 'موقوفة'}
+                                                    {r.isActive ? t('sys.str_2510') : t('sys.str_654')}
                                                 </span>
                                             </td>
                                             <td style={{ display: 'flex', gap: '4px' }}>
@@ -165,7 +165,7 @@ export default function ApprovalsPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{editId ? '✏️ تعديل قاعدة موافقة' : '➕ إضافة قاعدة موافقة'}</div>
+                            <div className="modal-title">{editId ? t('sys.str_2511') : t('sys.str_2484')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         

@@ -212,7 +212,7 @@ export default function SmartTransfersPage() {
                                     className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
                                 >
                                     <Truck size={20} />
-                                    {loading ? 'جاري التحميل للشاحنة...' : 'اعتماد وترحيل الشحنة'}
+                                    {loading ? t('sys.str_1440') : t('sys.str_1441')}
                                 </button>
                             </div>
                         </form>

@@ -80,7 +80,7 @@ export default function TreasuryPage() {
                                 <tr key={e.id}>
                                     <td>{i + 1}</td>
                                     <td>{new Date(e.date).toLocaleDateString('ar-SA')}</td>
-                                    <td><span className={`badge ${e.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{e.type === 'in' ? '📥 إيداع' : '📤 سحب'}</span></td>
+                                    <td><span className={`badge ${e.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{e.type === 'in' ? t('sys.str_1490') : t('sys.str_1491')}</span></td>
                                     <td style={{ fontWeight: '700', color: e.type === 'in' ? 'var(--success-light)' : 'var(--danger-light)' }}>{e.type === 'in' ? '+' : '-'}{fmt(e.amount)} {t('sys.str_68')}</td>
                                     <td>{e.description || '-'}</td>
                                     <td>{e.referenceType || '-'}</td>
@@ -95,7 +95,7 @@ export default function TreasuryPage() {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <div className="modal-title">{form.type === 'in' ? '📥 إيداع' : '📤 سحب'}</div>
+                            <div className="modal-title">{form.type === 'in' ? t('sys.str_1490') : t('sys.str_1491')}</div>
                             <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <div className="input-group"><label className="input-label">{t('sys.str_577')}</label>

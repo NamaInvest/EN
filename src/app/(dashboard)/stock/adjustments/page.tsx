@@ -144,7 +144,7 @@ export default function StockAdjustmentsPage() {
                             <div style={{ padding: '15px', borderRadius: '8px', backgroundColor: diff > 0 ? '#10b98115' : '#ef444415', color: diff > 0 ? '#059669' : '#dc2626', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 {diff > 0 ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
                                 <div>
-                                    {t('stock.str_2632')}<strong>{diff > 0 ? 'فائض' : 'عجز'}</strong> {t('stock.str_2633')}<strong>{Math.abs(diff)}</strong> {t('stock.str_2634')}</div>
+                                    {t('stock.str_2632')}<strong>{diff > 0 ? t('stock.str_2639') : t('stock.str_2640')}</strong> {t('stock.str_2633')}<strong>{Math.abs(diff)}</strong> {t('stock.str_2634')}</div>
                             </div>
                         )}
                         

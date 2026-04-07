@@ -209,7 +209,7 @@ export default function SaaSAdminDashboard() {
                             className="btn btn-primary"
                         >
                             <RotateCw className={`w-4 h-4 ${actionLoading === "syncing" ? "animate-spin" : ""}`} />
-                            {actionLoading === "syncing" ? "جاري الاسترجاع..." : "مزامنة الأنظمة القديمة"}
+                            {actionLoading === "syncing" ? t('sys.str_1556') : t('sys.str_1557')}
                         </button>
                     </div>
                 </div>

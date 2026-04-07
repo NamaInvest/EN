@@ -697,7 +697,7 @@ export default function POSPage() {
                 <div className="customer-selector">
                     <button className="customer-btn" onClick={() => setShowCustomerModal(true)} style={{ background: selectedCustomer ? 'rgba(34, 197, 94, 0.1)' : '', borderColor: selectedCustomer ? '#22c55e' : '', color: selectedCustomer ? '#22c55e' : '' }}>
                         <User size={18} />
-                        {selectedCustomer ? `العميل المربوط: ${selectedCustomer.name}` : 'تحديد العميل (نقاط الولاء)'}
+                        {selectedCustomer ? `العميل المربوط: ${selectedCustomer.name}` : t('pos.str_183')}
                     </button>
                     {selectedCustomer && (
                         <button onClick={() => setSelectedCustomer(null)} style={{ marginTop: '0.5rem', width: '100%', padding: '0.5rem', borderRadius: '8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', cursor: 'pointer' }}>
@@ -757,7 +757,7 @@ export default function POSPage() {
                         />
                         {!appliedCoupon ? (
                             <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
-                                {couponLoading ? '...' : 'تطبيق'}
+                                {couponLoading ? '...' : t('pos.str_184')}
                             </button>
                         ) : (
                             <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
@@ -773,10 +773,10 @@ export default function POSPage() {
 
                 <div className="checkout-actions">
                     <button className="pay-btn pay-cash" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CASH')}>
-                        <Banknote size={20} /> {isProcessing ? 'جاري...' : 'نقدي'}
+                        <Banknote size={20} /> {isProcessing ? t('pos.str_185') : t('pos.str_186')}
                     </button>
                     <button className="pay-btn pay-card" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CARD')}>
-                        <CreditCard size={20} /> {isProcessing ? 'جاري...' : 'شبكة (مدى)'}
+                        <CreditCard size={20} /> {isProcessing ? t('pos.str_185') : t('pos.str_187')}
                     </button>
                     <button className="pay-btn" style={{ background: '#3eedbf', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tabby')}>
                         <strong>{t('pos.str_188')}</strong> Tabby
@@ -832,7 +832,7 @@ export default function POSPage() {
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowBnplModal(false)}>
                     <div style={{ background: '#111', width: '450px', borderRadius: '16px', padding: '2rem', border: '1px solid #333', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <h2 style={{ color: bnplProvider === 'tabby' ? '#3eedbf' : '#ffb5a3', marginBottom: '1rem' }}>
-                            الدفع عبر {bnplProvider === 'tabby' ? 'تابي' : 'تمارا'}
+                            الدفع عبر {bnplProvider === 'tabby' ? t('pos.str_188') : t('pos.str_189')}
                         </h2>
                         
                         {!bnplUrl ? (
@@ -850,7 +850,7 @@ export default function POSPage() {
                                     disabled={bnplLoading || !bnplPhone}
                                     style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: 'none', background: bnplProvider === 'tabby' ? '#3eedbf' : '#ffb5a3', color: '#111', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
                                 >
-                                    {bnplLoading ? 'جاري إنشاء الجلسة...' : 'طلب رمز الدفع QR'}
+                                    {bnplLoading ? t('pos.str_190') : t('pos.str_191')}
                                 </button>
                             </>
                         ) : (

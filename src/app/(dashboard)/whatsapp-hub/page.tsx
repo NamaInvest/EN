@@ -125,7 +125,7 @@ export default function WhatsAppHubPage() {
                                         fontSize: '14px'
                                     }}>
                                         <div style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '4px', opacity: 0.7 }}>
-                                            {isUser ? 'العميل' : '🤖 المساعد الذكي'}
+                                            {isUser ? t('sys.str_460') : t('sys.str_1522')}
                                         </div>
                                         {msg.parts[0].text.split('\n').map((line, i) => <div key={i}>{line}</div>)}
                                     </div>

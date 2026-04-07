@@ -94,7 +94,7 @@ export default function AuditLogsPage() {
                                                 {new Date(log.date).toLocaleString('ar-SA')}
                                             </td>
                                             <td style={{ fontWeight: 'bold' }}>
-                                                {log.user ? `${log.user.fullName} (${log.user.role})` : 'نظام آلي'}
+                                                {log.user ? `${log.user.fullName} (${log.user.role})` : t('sys.str_396')}
                                             </td>
                                             <td>
                                                 <span className={`badge ${getActionBadge(log.action)}`}>

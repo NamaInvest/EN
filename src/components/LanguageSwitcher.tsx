@@ -5,37 +5,36 @@ import { useTranslation, languages } from '@/lib/i18n';
 export default function LanguageSwitcher() {
     const { lang, setLang } = useTranslation();
 
+    const handleSetLang = (code: string) => {
+        setLang(code as any);
+        // Dispatch custom event so Sidebar (which reads localStorage directly) reacts immediately
+        window.dispatchEvent(new Event('langchange'));
+    };
+
     return (
-        <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '4px', 
-            background: 'var(--bg-card)', 
-            padding: '4px', 
-            borderRadius: 'var(--radius)', 
-            border: '1px solid var(--border)' 
-        }}>
-            {languages.map((l) => (
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {languages.map(l => (
                 <button
                     key={l.code}
-                    onClick={() => setLang(l.code)}
-                    title={l.nativeName}
+                    onClick={() => handleSetLang(l.code)}
+                    title={l.name}
                     style={{
-                        padding: '6px 10px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: lang === l.code ? 'rgba(108, 99, 255, 0.15)' : 'transparent',
-                        color: lang === l.code ? 'var(--primary-light)' : 'var(--text-secondary)',
-                        border: 'none',
+                        background: lang === l.code ? 'var(--primary)' : 'rgba(255,255,255,0.08)',
+                        border: lang === l.code ? '1px solid var(--primary-light)' : '1px solid rgba(255,255,255,0.15)',
+                        color: lang === l.code ? 'white' : 'var(--text-muted)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
+                        gap: '4px',
+                        fontSize: '11px',
+                        fontWeight: lang === l.code ? 700 : 400,
                         transition: 'all 0.2s',
-                        fontWeight: lang === l.code ? 'bold' : 'normal'
                     }}
                 >
-                    <span style={{ fontSize: '16px' }}>{l.flag}</span>
-                    <span className="lang-switcher-label" style={{ fontSize: '12px' }}>{l.code.toUpperCase()}</span>
+                    <span>{l.flag}</span>
+                    <span style={{ fontSize: '10px' }}>{l.code.toUpperCase()}</span>
                 </button>
             ))}
         </div>

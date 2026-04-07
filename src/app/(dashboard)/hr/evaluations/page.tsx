@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function EmployeeEvaluationsPage() {
+    const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,7 @@ export default function EmployeeEvaluationsPage() {
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">Employee (الموظف)</label>
                   <select required value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600">
-                    <option value="">-- اختر الموظف --</option>
+                    <option value="">{t('sys.str_2106')}</option>
                     {employees.map(emp => (
                       <option key={emp.id} value={emp.id}>{emp.name}</option>
                     ))}
@@ -115,7 +117,7 @@ export default function EmployeeEvaluationsPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">جاري التحميل...</div>
+          <div className="p-8 text-center text-slate-500">{t('sys.str_168')}</div>
         ) : evaluations.length === 0 ? (
           <div className="p-8 text-center text-slate-500">No evaluations recorded. اضغط على الزر بالأعلى لإضافة تقييم.</div>
         ) : (
