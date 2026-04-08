@@ -14,7 +14,7 @@ const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSiz
     { value: '30x20', label: '🏷️ 30×20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
     { value: '40x30', label: '🏷️ 40×30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
     { value: '50x25', label: '🏷️ 50×25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
-    { value: '50x30', label: t('sys.str_4156'), w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
+    { value: '50x30', label: '🏷️ 50×30mm (مخصص)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
     { value: '100x50', label: '🏷️ 100×50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
 ];
 

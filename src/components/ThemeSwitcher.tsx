@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
-    { id: 'default', name: t('sys.str_4003'), preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
-    { id: 'theme-light', name: t('sys.str_4004'), preview: { p: '#4F46E5', b: '#FFFFFF', t: '#0F172A'} },
-    { id: 'theme-luxury', name: t('sys.str_4005'), preview: { p: '#D4AF37', b: '#04060F', t: '#FDFBF7'} },
-    { id: 'theme-cyber', name: t('sys.str_4006'), preview: { p: '#00FFCC', b: '#050505', t: '#E0FFFF'} },
-    { id: 'theme-soft', name: t('sys.str_4007'), preview: { p: '#8DA9C4', b: '#E0E7ED', t: '#4A5A6A'} },
+    { id: 'default', nameKey: 'sys.str_4003', name: 'الوضع الافتراضي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC'} },
+    { id: 'theme-light', nameKey: 'sys.str_4004', name: 'الوضع النهاري', preview: { p: '#4F46E5', b: '#FFFFFF', t: '#0F172A'} },
+    { id: 'theme-luxury', nameKey: 'sys.str_4005', name: 'الفاخر الداكن', preview: { p: '#D4AF37', b: '#04060F', t: '#FDFBF7'} },
+    { id: 'theme-cyber', nameKey: 'sys.str_4006', name: 'السيبراني', preview: { p: '#00FFCC', b: '#050505', t: '#E0FFFF'} },
+    { id: 'theme-soft', nameKey: 'sys.str_4007', name: 'الناعم الرمادي', preview: { p: '#8DA9C4', b: '#E0E7ED', t: '#4A5A6A'} },
 ];
 
 export default function ThemeSwitcher() {
@@ -88,7 +88,7 @@ export default function ThemeSwitcher() {
                             }}
                         >
                             <span className="theme-option-name" style={{ fontWeight: currentTheme === theme.id ? 'bold' : 'normal' }}>
-                                {theme.name}
+                                {t(theme.nameKey) || theme.name}
                             </span>
                             <div className="theme-preview" style={{ display: 'flex', gap: '4px' }}>
                                 <span style={{ background: theme.preview.p, width: '14px', height: '14px', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 4px rgba(0,0,0,0.2)' }} />

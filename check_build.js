@@ -1,14 +1,9 @@
-const cp = require('child_process');
-const ssh = '"C:\\Windows\\System32\\OpenSSH\\ssh.exe"';
-const key = '"C:\\Users\\1\\.ssh\\hetzner_key"';
-const n1 = "root@46.4.188.170";
-
-try {
-  console.log("Checking build on N1...");
-  const cmd = `cd /www/wwwroot/n1.namainvist.com && npm run build`;
-  const result = cp.execSync(`${ssh} -o StrictHostKeyChecking=no -i ${key} ${n1} "${cmd}"`);
-  console.log(result.toString());
-} catch(e) {
-  console.log("Error details:", e.stdout ? e.stdout.toString() : '');
-  console.log("Error details stderr:", e.stderr ? e.stderr.toString() : '');
-}
+const { Client } = require('ssh2'); 
+const conn = new Client(); 
+conn.on('ready', () => { 
+    conn.exec('grep "pages using" /www/wwwroot/n1.namainvist.com/build_new.log', (err, stream) => { 
+        if (err) throw err; 
+        stream.on('data', d => process.stdout.write(d.toString())); 
+        stream.on('close', () => conn.end()); 
+    }); 
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });

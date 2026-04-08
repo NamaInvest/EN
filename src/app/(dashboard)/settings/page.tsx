@@ -8,59 +8,62 @@ import { useTranslation } from "@/lib/i18n";
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
 
-export const SETTING_GROUPS = [
+export const SETTING_GROUPS = getSettingGroups((k) => k);
+
+export function getSettingGroups(t: (key: string) => string) {
+    return [
     {
-        title: t('sys.str_4390'), keys: [
-            { key: 'company_name', label: t('sys.str_4391'), type: 'text' },
-            { key: 'company_name_en', label: t('sys.str_4392'), type: 'text' },
-            { key: 'company_phone', label: t('sys.str_4393'), type: 'text' },
-            { key: 'company_address', label: t('sys.str_4394'), type: 'text' },
-            { key: 'tax_number', label: t('sys.str_4395'), type: 'text' },
-            { key: 'currency', label: t('sys.str_4396'), type: 'text' },
+        title: 'sys.str_4390', keys: [
+            { key: 'company_name', label: 'sys.str_4391', type: 'text' },
+            { key: 'company_name_en', label: 'sys.str_4392', type: 'text' },
+            { key: 'company_phone', label: 'sys.str_4393', type: 'text' },
+            { key: 'company_address', label: 'sys.str_4394', type: 'text' },
+            { key: 'tax_number', label: 'sys.str_4395', type: 'text' },
+            { key: 'currency', label: 'sys.str_4396', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4397'), keys: [
-            { key: 'tax_rate', label: t('sys.str_4398'), type: 'number' },
-            { key: 'zatca_enabled', label: t('sys.str_4399'), type: 'toggle' },
+        title: 'sys.str_4397', keys: [
+            { key: 'tax_rate', label: 'sys.str_4398', type: 'number' },
+            { key: 'zatca_enabled', label: 'sys.str_4399', type: 'toggle' },
         ]
     },
     {
-        title: t('sys.str_4400'), keys: [
-            { key: 'zatca_crn', label: t('sys.str_4401'), type: 'text' },
-            { key: 'zatca_industry', label: t('sys.str_4402'), type: 'text' },
-            { key: 'branch_name_en', label: t('sys.str_4403'), type: 'text' },
-            { key: 'zatca_street', label: t('sys.str_4404'), type: 'text' },
-            { key: 'zatca_building', label: t('sys.str_4405'), type: 'text' },
-            { key: 'zatca_district', label: t('sys.str_4406'), type: 'text' },
-            { key: 'zatca_city', label: t('sys.str_4407'), type: 'text' },
-            { key: 'zatca_city_en', label: t('sys.str_4408'), type: 'text' },
-            { key: 'zatca_postal_code', label: t('sys.str_4409'), type: 'text' },
+        title: 'sys.str_4400', keys: [
+            { key: 'zatca_crn', label: 'sys.str_4401', type: 'text' },
+            { key: 'zatca_industry', label: 'sys.str_4402', type: 'text' },
+            { key: 'branch_name_en', label: 'sys.str_4403', type: 'text' },
+            { key: 'zatca_street', label: 'sys.str_4404', type: 'text' },
+            { key: 'zatca_building', label: 'sys.str_4405', type: 'text' },
+            { key: 'zatca_district', label: 'sys.str_4406', type: 'text' },
+            { key: 'zatca_city', label: 'sys.str_4407', type: 'text' },
+            { key: 'zatca_city_en', label: 'sys.str_4408', type: 'text' },
+            { key: 'zatca_postal_code', label: 'sys.str_4409', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4410'), keys: [
-            { key: 'printer_type', label: t('sys.str_4411'), type: 'select', options: [
-                { value: '58mm', label: t('sys.str_4412') },
-                { value: '76mm', label: t('sys.str_4413') },
-                { value: '80mm', label: t('sys.str_4414') },
+        title: 'sys.str_4410', keys: [
+            { key: 'printer_type', label: 'sys.str_4411', type: 'select', options: [
+                { value: '58mm', label: 'sys.str_4412' },
+                { value: '76mm', label: 'sys.str_4413' },
+                { value: '80mm', label: 'sys.str_4414' },
                 { value: 'A4', label: '📄 A4 (210mm)' },
                 { value: 'A5', label: '📄 A5 (148mm)' },
             ]},
-            { key: 'receipt_header', label: t('sys.str_4415'), type: 'text' },
-            { key: 'receipt_footer', label: t('sys.str_4416'), type: 'text' },
-            { key: 'barcode_label_size', label: t('sys.str_4417'), type: 'select', options: [
+            { key: 'receipt_header', label: 'sys.str_4415', type: 'text' },
+            { key: 'receipt_footer', label: 'sys.str_4416', type: 'text' },
+            { key: 'barcode_label_size', label: 'sys.str_4417', type: 'select', options: [
                 { value: '30x20', label: '🏷️ 30×20mm' },
                 { value: '40x30', label: '🏷️ 40×30mm' },
                 { value: '50x25', label: '🏷️ 50×25mm' },
-                { value: '50x30', label: t('sys.str_4156') },
+                { value: '50x30', label: '🏷️ 50×30mm (مخصص)' },
                 { value: '100x50', label: '🏷️ 100×50mm' },
             ]},
         ]
     },
     {
-        title: t('sys.str_4418'), id: 'whatsapp', keys: [
-            { key: 'whatsapp_enabled', label: t('sys.str_4419'), type: 'toggle' },
+        title: 'sys.str_4418', id: 'whatsapp', keys: [
+            { key: 'whatsapp_enabled', label: 'sys.str_4419', type: 'toggle' },
             { key: 'whatsapp_token', label: 'WhatsApp Access Token', type: 'text' },
             { key: 'whatsapp_phone_id', label: 'Phone Number ID', type: 'text' },
             { key: 'whatsapp_business_id', label: 'Business Account ID', type: 'text' },
@@ -68,58 +71,58 @@ export const SETTING_GROUPS = [
         ]
     },
     {
-        title: t('sys.str_4420'), id: 'sms_gateways', keys: [
-            { key: 'sms_enabled', label: t('sys.str_4421'), type: 'toggle' },
-            { key: 'sms_provider', label: t('sys.str_4422'), type: 'select', options: [
-                { value: 'taqnyat', label: t('sys.str_4423') },
-                { value: 'unifonic', label: t('sys.str_4424') }
+        title: 'sys.str_4420', id: 'sms_gateways', keys: [
+            { key: 'sms_enabled', label: 'sys.str_4421', type: 'toggle' },
+            { key: 'sms_provider', label: 'sys.str_4422', type: 'select', options: [
+                { value: 'taqnyat', label: 'sys.str_4423' },
+                { value: 'unifonic', label: 'sys.str_4424' }
             ]},
-            { key: 'sms_api_key', label: t('sys.str_4425'), type: 'text' },
-            { key: 'sms_sender_id', label: t('sys.str_4426'), type: 'text' },
+            { key: 'sms_api_key', label: 'sys.str_4425', type: 'text' },
+            { key: 'sms_sender_id', label: 'sys.str_4426', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4427'), id: 'salla', keys: [
-            { key: 'salla_enabled', label: t('sys.str_4428'), type: 'toggle' },
-            { key: 'salla_merchant_id', label: t('sys.str_4429'), type: 'text' },
+        title: 'sys.str_4427', id: 'salla', keys: [
+            { key: 'salla_enabled', label: 'sys.str_4428', type: 'toggle' },
+            { key: 'salla_merchant_id', label: 'sys.str_4429', type: 'text' },
             { key: 'salla_client_id', label: 'Client ID', type: 'text' },
             { key: 'salla_client_secret', label: 'Client Secret (Webhook HMAC)', type: 'text' },
             { key: 'salla_access_token', label: 'Access Token', type: 'text' },
-            { key: 'salla_webhook_url', label: t('sys.str_4430'), type: 'text' },
+            { key: 'salla_webhook_url', label: 'sys.str_4430', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4431'), id: 'zid', keys: [
-            { key: 'zid_enabled', label: t('sys.str_4432'), type: 'toggle' },
-            { key: 'zid_store_id', label: t('sys.str_4433'), type: 'text' },
+        title: 'sys.str_4431', id: 'zid', keys: [
+            { key: 'zid_enabled', label: 'sys.str_4432', type: 'toggle' },
+            { key: 'zid_store_id', label: 'sys.str_4433', type: 'text' },
             { key: 'zid_client_id', label: 'Client ID', type: 'text' },
             { key: 'zid_webhook_secret', label: 'Webhook Secret (Authorization Token)', type: 'text' },
             { key: 'zid_access_token', label: 'Access Token', type: 'text' },
-            { key: 'zid_webhook_url', label: t('sys.str_4430'), type: 'text' },
+            { key: 'zid_webhook_url', label: 'sys.str_4430', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4434'), keys: [
-            { key: 'zatca_environment', label: t('sys.str_4435'), type: 'select' },
-            { key: 'zatca_otp', label: t('sys.str_4436'), type: 'text' },
+        title: 'sys.str_4434', keys: [
+            { key: 'zatca_environment', label: 'sys.str_4435', type: 'select' },
+            { key: 'zatca_otp', label: 'sys.str_4436', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4437'), id: 'bnpl', keys: [
-            { key: 'tabby_api_key', label: t('sys.str_4438'), type: 'text' },
-            { key: 'tabby_merchant_code', label: t('sys.str_4439'), type: 'text' },
-            { key: 'tamara_bearer_token', label: t('sys.str_4440'), type: 'text' },
+        title: 'sys.str_4437', id: 'bnpl', keys: [
+            { key: 'tabby_api_key', label: 'sys.str_4438', type: 'text' },
+            { key: 'tabby_merchant_code', label: 'sys.str_4439', type: 'text' },
+            { key: 'tamara_bearer_token', label: 'sys.str_4440', type: 'text' },
         ]
     },
     {
-        title: t('sys.str_4441'), id: 'ai_bots', keys: [
-            { key: 'gemini_api_key', label: t('sys.str_4442'), type: 'text' },
-            { key: 'telegram_bot_token', label: t('sys.str_4443'), type: 'text' },
-            { key: 'master_telegram_chat_id', label: t('sys.str_4444'), type: 'text' },
+        title: 'sys.str_4441', id: 'ai_bots', keys: [
+            { key: 'gemini_api_key', label: 'sys.str_4442', type: 'text' },
+            { key: 'telegram_bot_token', label: 'sys.str_4443', type: 'text' },
+            { key: 'master_telegram_chat_id', label: 'sys.str_4444', type: 'text' },
         ]
     },
-];
-
+    ];
+}
 export default function SettingsPage() {
     const { t } = useTranslation();
     const router = useRouter();
@@ -568,7 +571,7 @@ export default function SettingsPage() {
                 </button>
             </div>
             <div className="page-content animate-fade-in">
-                {SETTING_GROUPS.map((group, gi) => (
+                {getSettingGroups(t).map((group, gi) => (
                     <div key={gi} className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>{group.title}</h3>
                         {gi === 0 && (

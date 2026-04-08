@@ -1,13 +1,16 @@
-const cp = require('child_process');
-const ssh = '"C:\\Windows\\System32\\OpenSSH\\ssh.exe"';
-const key = '"C:\\Users\\1\\.ssh\\hetzner_key"';
-const n1 = "root@46.4.188.170";
-
-try {
-  console.log("Checking N1 status...");
-  const cmd = `cd /www/wwwroot/n1.namainvist.com && pm2 list`;
-  const result = cp.execSync(`${ssh} -o StrictHostKeyChecking=no -i ${key} ${n1} "${cmd}"`);
-  console.log(result.toString());
-} catch(e) {
-  console.log(e.message);
-}
+const { Client } = require('ssh2'); 
+const conn = new Client(); 
+conn.on('ready', () => { 
+  conn.exec('pm2 jlist', (err, stream) => { 
+    let out=''; 
+    stream.on('data', d => out+=d).on('close', () => { 
+      try { 
+        const p = JSON.parse(out); 
+        p.forEach(proc => { 
+          if(proc.name==="n2-main") console.log(proc.name, proc.pm2_env.pm_cwd); 
+        }); 
+      } catch(e){} 
+      conn.end(); 
+    }); 
+  }); 
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });

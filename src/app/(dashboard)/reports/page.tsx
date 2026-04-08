@@ -4,31 +4,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 const REPORT_TYPES = [
-    { key: 'daily-report', label: t('sys.str_4294'), icon: '📅', description: 'ملخص يومي بالتاريخ والمستخدم', special: true },
-    { key: 'sales', label: t('sys.str_4295'), icon: '💳', description: 'كل فواتير المبيعات مع الإجماليات' },
-    { key: 'purchases', label: t('sys.str_4296'), icon: '🛒', description: 'فواتير الموردين' },
-    { key: 'profit', label: t('sys.str_4297'), icon: '📈', description: 'إيرادات - تكلفة يومياً' },
-    { key: 'stock', label: t('sys.str_4298'), icon: '📦', description: 'كل المنتجات + كميات + قيمة' },
-    { key: 'stock-audit', label: t('sys.str_4299'), icon: '🔍', description: 'من عدّل المخزون ومتى وكم', special: true },
-    { key: 'expenses', label: t('sys.str_4300'), icon: '💸', description: 'حسب الفئة' },
-    { key: 'customers', label: t('sys.str_4301'), icon: '👥', description: 'أرصدة + أنواع' },
-    { key: 'tax', label: t('sys.str_4302'), icon: '🏛️', description: 'ضريبة محصّلة - مدفوعة = مستحقة' },
-    { key: 'discounts-audit', label: t('sys.str_4303'), icon: '🏷️', description: 'من عمل التخفيض وكم ومتى', special: true },
-    { key: 'least-selling', label: t('sys.str_4304'), icon: '📉', description: 'منتجات لم تُباع خلال 30/60/90 يوم', special: true },
-    { key: 'daily-summary', label: t('sys.str_4305'), icon: '📊', description: 'مبيعات + مشتريات + مصروفات' },
-    { key: 'income-statement', label: t('sys.str_4306'), icon: '📊', description: 'إيرادات - تكلفة = صافي ربح' },
-    { key: 'top-sellers', label: t('sys.str_4307'), icon: '🏆', description: 'أعلى 20 منتج' },
-    { key: 'profit-margin', label: t('sys.str_4308'), icon: '📉', description: 'لكل صنف' },
-    { key: 'aging', label: t('sys.str_4309'), icon: '⏰', description: 'تصنيف 30/60/90+ يوم' },
+    { key: 'daily-report', label: 'sys.str_4294', icon: '📅', description: 'ملخص يومي بالتاريخ والمستخدم', special: true },
+    { key: 'sales', label: 'sys.str_4295', icon: '💳', description: 'كل فواتير المبيعات مع الإجماليات' },
+    { key: 'purchases', label: 'sys.str_4296', icon: '🛒', description: 'فواتير الموردين' },
+    { key: 'profit', label: 'sys.str_4297', icon: '📈', description: 'إيرادات - تكلفة يومياً' },
+    { key: 'stock', label: 'sys.str_4298', icon: '📦', description: 'كل المنتجات + كميات + قيمة' },
+    { key: 'stock-audit', label: 'sys.str_4299', icon: '🔍', description: 'من عدّل المخزون ومتى وكم', special: true },
+    { key: 'expenses', label: 'sys.str_4300', icon: '💸', description: 'حسب الفئة' },
+    { key: 'customers', label: 'sys.str_4301', icon: '👥', description: 'أرصدة + أنواع' },
+    { key: 'tax', label: 'sys.str_4302', icon: '🏛️', description: 'ضريبة محصّلة - مدفوعة = مستحقة' },
+    { key: 'discounts-audit', label: 'sys.str_4303', icon: '🏷️', description: 'من عمل التخفيض وكم ومتى', special: true },
+    { key: 'least-selling', label: 'sys.str_4304', icon: '📉', description: 'منتجات لم تُباع خلال 30/60/90 يوم', special: true },
+    { key: 'daily-summary', label: 'sys.str_4305', icon: '📊', description: 'مبيعات + مشتريات + مصروفات' },
+    { key: 'income-statement', label: 'sys.str_4306', icon: '📊', description: 'إيرادات - تكلفة = صافي ربح' },
+    { key: 'top-sellers', label: 'sys.str_4307', icon: '🏆', description: 'أعلى 20 منتج' },
+    { key: 'profit-margin', label: 'sys.str_4308', icon: '📉', description: 'لكل صنف' },
+    { key: 'aging', label: 'sys.str_4309', icon: '⏰', description: 'تصنيف 30/60/90+ يوم' },
 ];
 
 const DAILY_TABS = [
-    { key: 'sales', label: t('sys.str_4310'), icon: '💳' },
-    { key: 'purchases', label: t('sys.str_4311'), icon: '🛒' },
-    { key: 'expenses', label: t('sys.str_4312'), icon: '💸' },
-    { key: 'treasury', label: t('sys.str_4313'), icon: '💰' },
-    { key: 'salesReturns', label: t('sys.str_4314'), icon: '↩️' },
-    { key: 'purchaseReturns', label: t('sys.str_4315'), icon: '↩️' },
+    { key: 'sales', label: 'sys.str_4310', icon: '💳' },
+    { key: 'purchases', label: 'sys.str_4311', icon: '🛒' },
+    { key: 'expenses', label: 'sys.str_4312', icon: '💸' },
+    { key: 'treasury', label: 'sys.str_4313', icon: '💰' },
+    { key: 'salesReturns', label: 'sys.str_4314', icon: '↩️' },
+    { key: 'purchaseReturns', label: 'sys.str_4315', icon: '↩️' },
 ];
 
 export default function ReportsPage() {

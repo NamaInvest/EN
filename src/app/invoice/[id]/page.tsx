@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
-import { useTranslation } from "@/lib/i18n";
 
 // Convert integer to hex byte string padding with 0 if necessary
 function toHex(val: number, length: number = 2) {
@@ -20,7 +19,30 @@ function getZatcaTLV(tags: { id: number; value: string }[]) {
 }
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
-    const { t } = useTranslation();
+        // Local translations for server component
+    const translations: Record<string, string> = {
+        'sys.str_1576': 'فاتورة ضريبية',
+        'sys.str_9': 'الرقم',
+        'sys.str_1577': 'رقم الفاتورة',
+        'sys.str_56': 'المبلغ',
+        'sys.str_84': 'المجموع',
+        'sys.str_113': 'التاريخ',
+        'sys.str_4598': 'الكمية',
+        'sys.str_752': 'الوحدة',
+        'sys.str_4599': 'سعر الوحدة',
+        'stock.str_1485': 'الوصف',
+        'sys.str_801': 'ضريبة القيمة المضافة',
+        'sys.str_64': 'المنتج',
+        'sys.str_947': 'الرقم الضريبي',
+        'sys.str_1579': 'المجموع قبل الضريبة',
+        'sys.str_68': 'ريال سعودي',
+        'sys.str_69': 'ريال سعودي',
+        'sys.str_1580': 'ضريبة القيمة المضافة (15%)',
+        'sys.str_1581': 'الإجمالي شامل الضريبة',
+        'sys.str_1582': 'شكراً لتعاملكم معنا',
+    };
+    const t = (key: string) => translations[key] ?? key;
+
     const { id } = await params;
     
     // Validate ID is numeric

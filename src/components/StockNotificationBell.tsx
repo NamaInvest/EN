@@ -50,7 +50,7 @@ export default function StockNotificationBell() {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-          <div className="absolute left-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden" style={{ top: '100%', marginLeft: '-150px' }}>
+          <div className="absolute left-0 rtl:left-auto rtl:right-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-slate-100 z-[99999] overflow-hidden" style={{ top: '100%' }}>
             <div className="p-4 border-b border-slate-50 bg-slate-50 flex justify-between items-center">
               <h3 className="font-bold text-slate-800">{t('sys.str_102')}</h3>
               <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">

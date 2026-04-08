@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import PosReturnsModal from '@/components/PosReturnsModal';
+import { useMadaTerminal } from '@/hooks/useMadaTerminal';
 import Link from 'next/link';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
@@ -11,7 +13,11 @@ export default function RestaurantPOS() {
     const isRTL = true;
 
     const [searchQuery, setSearchQuery] = useState('');
+    const [taxRate, setTaxRate] = useState(15);
+    const { status: madaTermStatus, connect: connectMada, disconnect: disconnectMada, sendPayment: sendMadaPayment } = useMadaTerminal();
     const [cart, setCart] = useState<any[]>([]);
+    const [showReturnsModal, setShowReturnsModal] = useState(false);
+
     
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
@@ -24,6 +30,13 @@ export default function RestaurantPOS() {
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [customerSearch, setCustomerSearch] = useState('');
 
+    // Split Payment State
+    const [showSplitModal, setShowSplitModal] = useState(false);
+    const [splitCash, setSplitCash] = useState('');
+    const [splitCard, setSplitCard] = useState('');
+
+    
+
     // Hold & History State
     const [heldOrders, setHeldOrders] = useState<any[]>([]);
     const [showHeldOrdersModal, setShowHeldOrdersModal] = useState(false);
@@ -31,6 +44,7 @@ export default function RestaurantPOS() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
 
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('rest_held_orders');
         if (saved) {
@@ -99,7 +113,7 @@ export default function RestaurantPOS() {
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
-                const cats = [{id: 'الكل', name: t('sys.str_4068')}, ...data.categories];
+                const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
             }
         } catch (e) {
@@ -119,6 +133,32 @@ export default function RestaurantPOS() {
     useEffect(() => {
         if (showCustomerModal && customers.length === 0) fetchCustomers();
     }, [showCustomerModal]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['F2', 'F3', 'F4', 'F8'].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === 'F2') {
+                document.getElementById('pay-cash-btn')?.click();
+            } else if (e.key === 'F3') {
+                document.getElementById('hold-btn')?.click();
+            } else if (e.key === 'F4') {
+                document.getElementById('held-orders-btn')?.click();
+            } else if (e.key === 'F8') {
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                if (qtyInputs.length > 0) {
+                    (qtyInputs[qtyInputs.length - 1] as HTMLInputElement).select();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return (
+        <>
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+
+) => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const filteredProducts = products.filter(p => 
         (activeCategory === t('sys.str_4068') || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
@@ -153,17 +193,17 @@ export default function RestaurantPOS() {
     const generateReceiptContent = (invoice: any, renderCart: any[], renderTotal: number, renderTax: number, renderDiscount: number) => {
         return `
             <div dir="rtl" style="font-family: 'Courier New', Courier, monospace; padding: 10px; font-size: 13px; margin: 0 auto; max-width: 300px; text-align: center; color: #000; background: #fff;">
-                <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">نمـا إنفست للأنظمـة</div>
-                <div style="font-size: 11px; margin-bottom: 10px;">طلب نقاط البيع - مطاعم</div>
-                <div style="font-size: 12px">رقم الإيصال: ${invoice?.invoiceNumber || '-'}</div>
-                <div style="font-size: 12px">التاريخ: ${new Date().toLocaleString('ar-SA')}</div>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${t('resto.company_name')}</div>
+                <div style="font-size: 11px; margin-bottom: 10px;">${t('resto.invoice_title')}</div>
+                <div style="font-size: 12px">${t('resto.invoice_no')}${invoice?.invoiceNumber || '-'}</div>
+                <div style="font-size: 12px">${t('resto.date')}${new Date().toLocaleString('ar-SA')}</div>
                 <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px;">
                     <thead>
                         <tr>
-                            <th style="padding: 4px 0;">الصنف</th>
-                            <th style="width: 30px; text-align: center; padding: 4px 0;">الكمية</th>
-                            <th style="width: 60px; text-align: left; padding: 4px 0;">القيمة</th>
+                            <th style="padding: 4px 0;"></th>
+                            <th style="width: 30px; text-align: center; padding: 4px 0;"></th>
+                            <th style="width: 60px; text-align: left; padding: 4px 0;"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -178,14 +218,14 @@ export default function RestaurantPOS() {
                 </table>
                 <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px; font-weight: bold;">
-                    <tr><td style="padding: 4px 0;">الإجمالي:</td><td style="text-align: left; padding: 4px 0;">${renderTotal.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td style="padding: 4px 0;">الخصم:</td><td style="text-align: left; padding: 4px 0;">${renderDiscount.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td style="padding: 4px 0;">ضريبة (15%):</td><td style="text-align: left; padding: 4px 0;">${renderTax.toLocaleString()}</td></tr>
-                    <tr style="font-size: 16px;"><th style="padding: 4px 0;">الصافي (SAR):</th><th style="text-align: left; padding: 4px 0;">${Math.max(0, renderTotal + renderTax - renderDiscount).toLocaleString()}</th></tr>
+                    <tr><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderTotal.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderDiscount.toLocaleString()}</td></tr>
+                    <tr style="font-weight: normal;"><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderTax.toLocaleString()}</td></tr>
+                    <tr style="font-size: 16px;"><th style="padding: 4px 0;"></th><th style="text-align: left; padding: 4px 0;">${Math.max(0, renderTotal + renderTax - renderDiscount).toLocaleString()}</th></tr>
                 </table>
                 <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 ${invoice?.zatcaQr ? `<img src="${invoice.zatcaQr}" style="width: 120px; height: 120px; margin-top: 10px;" />` : ''}
-                <div style="font-size: 11px; margin-top: 15px;">شكراً لزيارتكم!</div>
+                <div style="font-size: 11px; margin-top: 15px;">${t('resto.thanks')}</div>
             </div>
         `;
     };
@@ -246,18 +286,18 @@ export default function RestaurantPOS() {
     const [showMadaModal, setShowMadaModal] = useState(false);
     const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
 
-    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD') => {
+    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT') => {
         if (cart.length === 0) return;
 
         // Mada Interceptor
-        if (paymentMethod === 'CARD' && !showMadaModal) {
+        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !showMadaModal) {
             setShowMadaModal(true);
             setMadaStatus('WAITING');
             setTimeout(() => {
                 setMadaStatus('APPROVED');
                 setTimeout(() => {
                     setShowMadaModal(false);
-                    handleCheckout('CARD'); // Proceed with actual checkout
+                    handleCheckout(paymentMethod); // Proceed with actual checkout
                 }, 1500);
             }, 2500);
             return;
@@ -272,6 +312,8 @@ export default function RestaurantPOS() {
                 discount: finalDiscountValue,
                 couponId: appliedCoupon ? appliedCoupon.id : null,
                 paymentMethod,
+                splitDetails: paymentMethod === 'SPLIT' ? { cash: Number(splitCash), card: Number(splitCard) } : null,
+                
                 customerId: selectedCustomer ? selectedCustomer.id : null,
                 shiftId: null
             };
@@ -313,7 +355,7 @@ export default function RestaurantPOS() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_4105')}`);
+                alert(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_4105')}`);
             } else {
                 alert(data.error);
                 setAppliedCoupon(null);
@@ -609,6 +651,12 @@ export default function RestaurantPOS() {
                             <ArrowRight size={18} /> {t('sys.str_4082')}</Link>
                         <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>{t('sys.str_4083')}</h2>
                         
+                        <button onClick={() => setShowReturnsModal(true)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
+                              ↩ مرتجعات
+                          </button>
+                        <button onClick={() => { if(confirm('هل أنت متأكد من مسح جميع المنتجات من السلة؟')) setCart([]); }} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
+                            <Trash2 size={16} /> مسح السلة
+                        </button>
                         <button onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? '#fef3c7' : 'transparent', color: heldOrders.length > 0 ? '#d97706' : '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
                             <Clock size={16} /> {t('sys.str_4084')}{heldOrders.length})
                         </button>
@@ -659,7 +707,7 @@ export default function RestaurantPOS() {
                         style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: selectedCustomer ? '1px solid #22c55e' : '1px dashed #cbd5e1', background: selectedCustomer ? 'rgba(34,197,94,0.1)' : '#f8f9fa', color: selectedCustomer ? '#22c55e' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                         <User size={18} />
-                        {selectedCustomer ? `العميل: ${selectedCustomer.name}` : t('sys.str_4115')}
+                        {selectedCustomer ? `${t('resto.customer_linked')}${selectedCustomer.name}` : t('sys.str_4115')}
                     </button>
                     {selectedCustomer && (
                         <button onClick={() => setSelectedCustomer(null)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer' }}>
@@ -711,7 +759,26 @@ export default function RestaurantPOS() {
                                     <td style={{padding:'0.75rem 0.5rem', borderBottom:'1px solid #eee', textAlign:'center'}}>
                                         <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem'}}>
                                             <button className="qty-circle" onClick={() => updateQty(item.id, -1)}>-</button>
-                                            <span>{item.qty}</span>
+                                            <input 
+                                                type="number" 
+                                                className="qty-input"
+                                                min="1"
+                                                style={{ width: '40px', textAlign: 'center', background: 'transparent', border: '1px solid #ddd', color: '#333', borderRadius: '4px', fontSize: '1rem', padding: '2px 0' }}
+                                                value={item.qty}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value);
+                                                    if (!isNaN(val) && val > 0) {
+                                                        setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: val } : i));
+                                                    } else if (e.target.value === '') {
+                                                        setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: '' as any } : i));
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    if (!item.qty || item.qty <= 0) {
+                                                        setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: 1 } : i));
+                                                    }
+                                                }}
+                                            />
                                             <button className="qty-circle" onClick={() => updateQty(item.id, 1)}>+</button>
                                         </div>
                                     </td>
@@ -747,35 +814,25 @@ export default function RestaurantPOS() {
                     )}
                 </div>
 
-                <div className="numpad-section">
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <button 
-                            onClick={handleHoldOrder}
-                            disabled={cart.length === 0}
-                            style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
-                        >
-                            <Clock size={18} /> {t('sys.str_4098')}</button>
-                        <button 
-                            className="pay-btn-big" 
-                            disabled={cart.length === 0 || isProcessing}
-                            onClick={() => handleCheckout('CASH')}
-                            style={{ flex: 1, fontSize: '1.2rem' }}
-                        >
-                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>{t('sys.str_4099')}</span>
-                            <span style={{ fontSize: '1.6rem' }}>CASH</span>
+                <div className="numpad-section" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <button id="hold-btn" onClick={handleHoldOrder} disabled={cart.length === 0} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '0.75rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', gridColumn: '1 / -1' }}>
+                            <Clock size={18} /> {t('sys.str_4098')} <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px' }}>F3</kbd></button>
+                        <button id="pay-cash-btn" className="pay-btn-big" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CASH')} style={{ background: '#22c55e', fontSize: '1.2rem', padding: '0.5rem', height: '60px' }}>
+                            <span style={{ fontSize: '1.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>CASH <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px', marginTop: '2px' }}>F2</kbd></span>
                         </button>
-                        <button 
-                            className="pay-btn-big" 
-                            disabled={cart.length === 0 || isProcessing}
-                            onClick={() => handleCheckout('CARD')}
-                            style={{ flex: 1, background: '#3b82f6', fontSize: '1.2rem' }}
-                        >
-                            <span style={{ fontSize: '1rem', marginBottom: '-5px' }}>{t('sys.str_4100')}</span>
-                            <span style={{ fontSize: '1.6rem' }}>MADA ✔</span>
+                        <button className="pay-btn-big" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CARD')} style={{ background: '#3b82f6', fontSize: '1.2rem', padding: '0.5rem', height: '60px' }}>
+                            <span style={{ fontSize: '1.2rem' }}>MADA</span>
+                        </button>
+                        <button className="pay-btn-big" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('TRANSFER' as any)} style={{ background: '#8b5cf6', fontSize: '1.2rem', padding: '0.5rem', height: '60px' }}>
+                            <span style={{ fontSize: '1.2rem' }}>{'تحويل بنكي'}</span>
+                        </button>
+                        <button className="pay-btn-big" disabled={cart.length === 0 || isProcessing} onClick={() => setShowSplitModal(true)} style={{ background: '#f59e0b', fontSize: '1.2rem', padding: '0.5rem', height: '60px' }}>
+                            <span style={{ fontSize: '1.2rem' }}>{'تقسيم الفاتورة'}</span>
                         </button>
                     </div>
 
-                    <div className="numpad-grid">
+                    <div className="numpad-grid" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
                         {['7','8','9','4','5','6','1','2','3','0','C','.'].map(key => (
                             <button 
                                 key={key} 
@@ -790,10 +847,42 @@ export default function RestaurantPOS() {
                 
                 {/* Optional Status / Input Bar */}
                 <div style={{ background: '#334155', color: 'white', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', fontSize:'0.85rem' }}>
-                    <span>{numpadValue ? `المدخل: ${numpadValue}` : t('sys.str_4117')}</span>
+                    <span>{numpadValue ? `${t('resto.input')}${numpadValue}` : t('sys.str_4117')}</span>
                     <span>{t('sys.str_4101')}</span>
                 </div>
             </div>
+
+            {/* Split Payment Modal */}
+            {showSplitModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSplitModal(false)}>
+                    <div style={{ background: '#fff', width: '400px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #ddd', color: '#333', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 1rem 0' }}>{'تقسيم المدفوعات'}</h3>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', textAlign: 'center', color: '#f59e0b' }}>
+                            {t('sys.str_66')}: {finalTotal.toLocaleString(undefined, {minimumFractionDigits: 2})} {t('sys.str_4105')}
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#666' }}>{'المبلغ النقدي'} (Cash)</label>
+                            <input type="number" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ccc' }} value={splitCash} onChange={e => { const cashVal = Number(e.target.value); setSplitCash(e.target.value); if (cashVal < finalTotal) { setSplitCard((finalTotal - cashVal).toFixed(2)); } else { setSplitCard('0'); } }} />
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#666' }}>{'مبلغ الشبكة'} (Card)</label>
+                            <input type="number" disabled style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ccc', background: '#e2e8f0', color: '#64748b' }} value={splitCard} />
+                        </div>
+                        {((Number(splitCash) || 0) + (Number(splitCard) || 0)) < finalTotal && (
+                            <div style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center' }}>{t('pos.str_195')}</div>
+                        )}
+                        {((Number(splitCash) || 0) + (Number(splitCard) || 0)) > finalTotal && (
+                            <div style={{ color: '#22c55e', marginBottom: '1rem', textAlign: 'center' }}>{t('pos.str_196')} {(((Number(splitCash)||0) + (Number(splitCard)||0)) - finalTotal).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('sys.str_4105')}</div>
+                        )}
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #ccc', background: '#f8f9fa', color: '#333', cursor: 'pointer', fontWeight: 'bold' }} onClick={() => setShowSplitModal(false)}>{t('fin.str_206')}</button>
+                            <button style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: 'none', background: '#f59e0b', color: 'white', cursor: 'pointer', fontWeight: 'bold', opacity: (((Number(splitCash)||0) + (Number(splitCard)||0)) < (finalTotal - 0.01)) ? 0.5 : 1 }} disabled={((Number(splitCash)||0) + (Number(splitCard)||0)) < (finalTotal - 0.01) || isProcessing} onClick={() => { setShowSplitModal(false); handleCheckout('SPLIT'); }}>
+                                {isProcessing ? t('sys.str_4070') : t('sys.str_4099')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Customer Selection Modal */}
             {showCustomerModal && (
@@ -936,25 +1025,24 @@ export default function RestaurantPOS() {
                         </div>
 
                         {madaStatus === 'WAITING' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>{t('sys.str_4110')}</p>
-                            </div>
-                        )}
-
-                        {madaStatus === 'APPROVED' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem', animation: 'fadeIn 0.3s ease-in-out' }}>
-                                <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                                    <CheckCircle2 size={40} />
-                                </div>
-                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>{t('sys.str_4062')}</p>
-                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>{t('sys.str_4111')}</p>
-                            </div>
-                        )}
-                        
-                        {madaStatus === 'WAITING' && (
-                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4046')}</button>
-                        )}
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                            <button
+                                onClick={() => setShowMadaModal(false)}
+                                style={{ background: '#fef2f2', border: '1px solid #fee2e2', padding: '8px 16px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontWeight: 600, flex: 1 }}
+                            >
+                                {t('sys.str_4046')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowMadaModal(false);
+                                    handleCheckout(paymentType === 'split' ? 'SPLIT' : 'CARD');
+                                }}
+                                style={{ background: '#ecfdf5', border: '1px solid #d1fae5', padding: '8px 16px', borderRadius: '8px', color: '#10b981', cursor: 'pointer', fontWeight: 600, flex: 1 }}
+                            >
+                                الدفع يدوياً
+                            </button>
+                        </div>
+                    )}
                     </div>
                 </div>
             )}

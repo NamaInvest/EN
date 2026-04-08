@@ -2,19 +2,17 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('cat /root/build_n1_phase84_hotfix.log | tail -n 50', (err, stream) => {
+    console.log('Connected to 46.4.188.170');
+    conn.exec('tail -n 100 /www/wwwroot/n1.namainvist.com/build.log || tail -n 100 /tmp/deploy_n1_full.log', (err, stream) => {
         if (err) throw err;
-        stream.on('close', () => {
+        stream.on('close', (code, signal) => {
             conn.end();
         }).on('data', (data) => {
             console.log(data.toString());
         }).stderr.on('data', (data) => {
-            console.error(data.toString());
+            console.error('STDERR: ' + data);
         });
     });
-}).connect({
-    host: '46.4.188.170',
-    port: 22,
-    username: 'root',
-    password: '_ee4SWbxLVfH9b'
-});
+}).on('error', (err) => {
+    console.error('SSH Error:', err.message);
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', keepaliveInterval: 10000 });

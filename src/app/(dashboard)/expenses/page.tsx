@@ -5,7 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 
 interface Expense { id: number; date: string; category: string; description: string; amount: number; notes: string; costCenterId?: number; costCenter?: { name: string } }
 
-const CATEGORIES = [t('sys.str_4185'), t('sys.str_4186'), t('sys.str_4187'), t('sys.str_4188'), t('sys.str_4189'), t('sys.str_4190'), t('sys.str_4191'), t('sys.str_4192'), t('sys.str_4193')];
+const CATEGORIES = ['رواتب وأجور', 'إيجارات', 'مشتريات', 'خدمات ومرافق', 'تسويق وإعلان', 'صيانة', 'مصاريف إدارية', 'نقل وتوصيل', 'أخرى'];
 
 export default function ExpensesPage() {
     const { t } = useTranslation();

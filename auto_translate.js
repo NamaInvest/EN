@@ -1,65 +1,62 @@
 const fs = require('fs');
 const https = require('https');
 
-async function translateText(text, targetLang) {
-    if(!text || text.trim() === '') return text;
-    // Map languages
-    let tl = targetLang;
-    if (tl === 'ur') tl = 'ur';
-    else if (tl === 'bn') tl = 'bn';
-    else if (tl === 'hi') tl = 'hi';
-    else tl = 'en';
+const arDict = JSON.parse(fs.readFileSync('valid_missing.json', 'utf8'));
 
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
-    
-    return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const parsed = JSON.parse(data);
-                    let result = '';
-                    parsed[0].forEach(item => result += item[0]);
-                    resolve(result);
-                } catch (e) {
-                    resolve(text); // Fallback to original
-                }
-            });
-        }).on('error', () => resolve(text));
-    });
+// Format texts to maintain some uniformity
+const keys = Object.keys(arDict);
+const texts = keys.map(k => arDict[k]);
+
+async function translateBatch(texts, targetLang) {
+    const batched = texts.join(' \n'); // Joining with newline helps some delimiters
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=${targetLang}&dt=t&q=${encodeURIComponent(batched)}`;
+        return new Promise((resolve) => {
+            https.get(url, (res) => {
+                let body = '';
+                res.on('data', chunk => body += chunk.toString('utf8'));
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(body);
+                        const str = parsed[0].map(x => x[0]).join('');
+                        resolve(str.split('\n').map(s => s.trim()));
+                    } catch (e) {
+                        resolve(texts); // fallback to original on error
+                    }
+                });
+            }).on('error', () => resolve(texts));
+        });
+    } catch {
+        return texts;
+    }
 }
 
 async function run() {
-    console.log("Starting translation...");
-    const dict = JSON.parse(fs.readFileSync('batch1_extracted.json', 'utf8'));
-    const keys = Object.keys(dict);
+    console.log('Translating', keys.length, 'entries to en, hi, bn, ur...');
+    const langs = ['en', 'hi', 'bn', 'ur'];
     
-    const enDict = {};
-    const hiDict = {};
-    const urDict = {};
-    const bnDict = {};
+    // We break into batches of 50 to avoid URL length limits
+    const BATCH_SIZE = 40;
+    const finalDicts = { en: {}, hi: {}, bn: {}, ur: {} };
     
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const text = dict[key].ar;
-        console.log(`[${i+1}/${keys.length}] Translating: ${text}`);
-        
-        enDict[key] = await translateText(text, 'en');
-        hiDict[key] = await translateText(text, 'hi');
-        urDict[key] = await translateText(text, 'ur');
-        bnDict[key] = await translateText(text, 'bn');
-        
-        // Small delay to avoid API rate limits
-        await new Promise(r => setTimeout(r, 200));
+    for (const lang of langs) {
+        console.log(`Starting ${lang}...`);
+        for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+            const batchTexts = texts.slice(i, i + BATCH_SIZE);
+            const batchKeys = keys.slice(i, i + BATCH_SIZE);
+            
+            const translated = await translateBatch(batchTexts, lang);
+            
+            for (let j = 0; j < batchKeys.length; j++) {
+                finalDicts[lang][batchKeys[j]] = translated[j] || batchTexts[j];
+            }
+            process.stdout.write('.');
+        }
+        console.log(`\nFinished ${lang}`);
+        fs.writeFileSync(`missing_${lang}.json`, JSON.stringify(finalDicts[lang], null, 2));
     }
     
-    fs.writeFileSync('batch1_en.json', JSON.stringify(enDict, null, 2));
-    fs.writeFileSync('batch1_hi.json', JSON.stringify(hiDict, null, 2));
-    fs.writeFileSync('batch1_ur.json', JSON.stringify(urDict, null, 2));
-    fs.writeFileSync('batch1_bn.json', JSON.stringify(bnDict, null, 2));
-    
-    console.log('Translations completed and saved.');
+    console.log('All translations done!');
 }
 
 run();

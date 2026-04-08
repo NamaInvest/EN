@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import PosReturnsModal from '@/components/PosReturnsModal';
+import Link from 'next/link';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import VoucherReceipt from '../../../components/VoucherReceipt';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -24,6 +26,7 @@ export default function SalesPage() {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [search, setSearch] = useState('');
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [taxRate, setTaxRate] = useState(15);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [customerId, setCustomerId] = useState('');
     const [stockId, setStockId] = useState('1');
@@ -70,6 +73,7 @@ export default function SalesPage() {
     const [checkingStatus, setCheckingStatus] = useState(false);
 
     // Dynamic Watcher for BNPL Status
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (bnplPolling && bnplOrderId && bnplProvider) {
@@ -97,7 +101,11 @@ export default function SalesPage() {
                 }
             }, 3000); 
         }
-        return () => { if (interval) clearInterval(interval); };
+        return (
+        <>
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+
+) => { if (interval) clearInterval(interval); };
     }, [bnplPolling, bnplOrderId, bnplProvider]);
 
     // Coupon logic
@@ -261,19 +269,19 @@ export default function SalesPage() {
     // Global POS Hotkeys
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (['F1', 'F2', 'F3', 'F4', 'F9', 'F12', 'Escape'].includes(e.key)) {
+            if (['F1', 'F2', 'F3', 'F4', 'F8', 'F9', 'F12', 'Escape'].includes(e.key)) {
                 e.preventDefault();
             }
             if (e.key === 'F1') {
                 searchRef.current?.focus();
-            } else if (e.key === 'F2') {
+            } else if (e.key === 'F8') {
                 const qtyInputs = document.querySelectorAll('.qty-input');
                 if (qtyInputs.length > 0) (qtyInputs[qtyInputs.length - 1] as HTMLInputElement).select();
             } else if (e.key === 'F4') {
-                document.getElementById('discount-input')?.focus();
-            } else if (e.key === 'F9') {
+                document.getElementById('history-btn')?.click();
+            } else if (e.key === 'F2') {
                 document.getElementById('save-btn')?.click();
-            } else if (e.key === 'F12') {
+            } else if (e.key === 'F3') {
                 document.getElementById('hold-btn')?.click();
             } else if (e.key === 'Escape') {
                 setSearch('');
@@ -406,7 +414,7 @@ export default function SalesPage() {
     }
     afterDiscount = afterDiscount - couponDiscountValue;
 
-    const taxValue = afterDiscount * 0.15;
+    const taxValue = afterDiscount * (taxRate / 100);
     const total = afterDiscount + taxValue;
     const totalDiscountValue = regularDiscountValue + couponDiscountValue;
 
@@ -812,20 +820,34 @@ export default function SalesPage() {
 
     return (
         <>
-            <div className="page-header">
-                <h1 className="page-title">{t('sys.str_4321')}</h1>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
+                    <button onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                        ↩ {'مرتجعات'}
+                    </button>
+                </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
+                    <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>✖</span> {t('sys.str_742')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Esc</kbd>
+                    </button>
                     <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
-                        style={{ color: 'var(--warning)' }}>{t('sys.str_743')}</button>
+                        style={{ color: 'var(--warning)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>⏸️</span> {t('sys.str_743')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F3</kbd>
+                    </button>
                     <button className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
-                        style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined }}>
-                        {t('sys.str_744')}{heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
+                        style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined, display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>📋</span> {t('sys.str_744')}
+                        {heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
                     </button>
                     <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
                         onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? t('sys.str_832') : t('sys.str_833')); }}
-                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined }}>{t('sys.str_745')}</button>
-                    <button className="btn btn-ghost btn-sm" onClick={openHistory}>{t('sys.str_4322')}</button>
+                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined, display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>🗑️</span> {t('sys.str_745')}
+                    </button>
+                    <button id="history-btn" className="btn btn-ghost btn-sm" onClick={openHistory} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>🕒</span> {t('sys.str_4322')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F4</kbd>
+                    </button>
                 </div>
             </div>
 
@@ -1144,14 +1166,22 @@ export default function SalesPage() {
                                         <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span>{t('sys.str_776')}</span>
                                             <input className="input" type="number" min="0" step="0.01"
-                                                value={splitCash} onChange={e => setSplitCash(e.target.value)}
+                                                value={splitCash} onChange={e => {
+                                                    const val = parseFloat(e.target.value) || 0;
+                                                    setSplitCash(e.target.value);
+                                                    if (val < total) {
+                                                        setSplitCard((total - val).toFixed(2));
+                                                    } else {
+                                                        setSplitCard('0');
+                                                    }
+                                                }}
                                                 style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
                                         </div>
                                         <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span>{t('sys.str_777')}</span>
-                                            <input className="input" type="number" min="0" step="0.01"
-                                                value={splitCard} onChange={e => setSplitCard(e.target.value)}
-                                                style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
+                                            <input className="input" type="number" min="0" step="0.01" disabled
+                                                value={splitCard} 
+                                                style={{ width: '120px', textAlign: 'center', padding: '4px 8px', background: '#f1f5f9', cursor: 'not-allowed' }} dir="ltr" />
                                         </div>
                                         {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) < total && (
                                             <div className="pos-total-row" style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 'bold' }}>
@@ -1176,8 +1206,8 @@ export default function SalesPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <button id="save-btn" className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0}>
-                                            {saving ? t('sys.str_852') : t('sys.str_455')}
+                                        <button id="save-btn" className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0} style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
+                                            {saving ? t('sys.str_852') : t('sys.str_455')} <kbd style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>F2</kbd>
                                         </button>
                                         <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
                                             {t('sys.str_781')}</button>
@@ -1319,7 +1349,7 @@ export default function SalesPage() {
                                             const t = item.quantity * item.price;
                                             return s + (t - t * (item.discountRate / 100));
                                         }, 0);
-                                        const heldWithTax = heldTotal * 1.15;
+                                        const heldWithTax = heldTotal + (heldTotal * (taxRate / 100));
                                         return (
                                             <div key={held.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '10px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <div>

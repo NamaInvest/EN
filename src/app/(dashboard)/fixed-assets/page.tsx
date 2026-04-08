@@ -7,13 +7,13 @@ interface DepreciationRecord { id: number; depreciationDate: string; amount: num
 interface FixedAssetItem { id: number; assetName: string; assetType: string; purchaseDate: string; purchaseCost: number; salvageValue: number; usefulLifeYears: number; currentValue: number; location: string | null; status: string; depreciations: DepreciationRecord[]; }
 
 const ASSET_TYPES = [
-    { value: 'equipment', label: t('sys.str_4232') },
-    { value: 'vehicle', label: t('sys.str_4233') },
-    { value: 'furniture', label: t('sys.str_4234') },
-    { value: 'computer', label: t('sys.str_4235') },
-    { value: 'building', label: t('sys.str_4236') },
-    { value: 'land', label: t('sys.str_4237') },
-    { value: 'other', label: t('sys.str_4238') },
+    { value: 'equipment', label: 'sys.str_4232' },
+    { value: 'vehicle', label: 'sys.str_4233' },
+    { value: 'furniture', label: 'sys.str_4234' },
+    { value: 'computer', label: 'sys.str_4235' },
+    { value: 'building', label: 'sys.str_4236' },
+    { value: 'land', label: 'sys.str_4237' },
+    { value: 'other', label: 'sys.str_4238' },
 ];
 
 export default function FixedAssetsPage() {

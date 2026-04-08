@@ -8,11 +8,12 @@ import { Suspense } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 function LoginForm() {
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [companyName, setCompanyName] = useState(t('sys.str_4019'));
+    const [companyName, setCompanyName] = useState('نما انفست');
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/auth/routing';

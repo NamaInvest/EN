@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import PosReturnsModal from '@/components/PosReturnsModal';
+import { useMadaTerminal } from '@/hooks/useMadaTerminal';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2, Clock, History, CheckCircle2 } from 'lucide-react';
@@ -12,7 +14,11 @@ export default function POSPage() {
     const isRTL = lang === 'ar';
 
     const [searchQuery, setSearchQuery] = useState('');
+    const { status: madaTermStatus, connect: connectMada, disconnect: disconnectMada, sendPayment: sendMadaPayment } = useMadaTerminal();
     const [cart, setCart] = useState<any[]>([]);
+    const [showReturnsModal, setShowReturnsModal] = useState(false);
+
+    const [taxRate, setTaxRate] = useState(15);
     
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
@@ -26,6 +32,11 @@ export default function POSPage() {
     const [customerSearch, setCustomerSearch] = useState('');
     const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
 
+    // Split Payment State
+    const [showSplitModal, setShowSplitModal] = useState(false);
+    const [splitCash, setSplitCash] = useState('');
+    const [splitCard, setSplitCard] = useState('');
+
     // Hold & History State
     const [heldOrders, setHeldOrders] = useState<any[]>([]);
     const [showHeldOrdersModal, setShowHeldOrdersModal] = useState(false);
@@ -33,6 +44,7 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
 
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('pos_held_orders');
         if (saved) {
@@ -83,38 +95,7 @@ export default function POSPage() {
         }
     };
 
-    // BNPL State
-    const [showBnplModal, setShowBnplModal] = useState(false);
-    const [bnplProvider, setBnplProvider] = useState<'tabby'|'tamara'>('tabby');
-    const [bnplPhone, setBnplPhone] = useState('');
-    const [bnplUrl, setBnplUrl] = useState('');
-    const [bnplOrderId, setBnplOrderId] = useState('');
-    const [bnplLoading, setBnplLoading] = useState(false);
-    const [bnplStatusMessage, setBnplStatusMessage] = useState('');
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (showBnplModal && bnplOrderId && bnplUrl) {
-            setBnplStatusMessage(t('sys.str_4065'));
-            interval = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/pos/bnpl/status?provider=${bnplProvider}&sessionId=${bnplOrderId}`);
-                    const data = await res.json();
-                    if (data.isSuccess) {
-                        setBnplStatusMessage(t('sys.str_4066'));
-                        clearInterval(interval);
-                        handleCheckout(bnplProvider.toUpperCase() as any);
-                    } else if (data.status === 'REJECTED' || data.status === 'DECLINED') {
-                        setBnplStatusMessage(t('sys.str_4067') + bnplProvider);
-                        clearInterval(interval);
-                    }
-                } catch (e) {
-                    console.error("Polling error", e);
-                }
-            }, 3000);
-        }
-        return () => clearInterval(interval);
-    }, [showBnplModal, bnplOrderId, bnplProvider, bnplUrl]);
 
     
     const [products, setProducts] = useState<any[]>([]);
@@ -133,7 +114,7 @@ export default function POSPage() {
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
-                const cats = [{id: 'الكل', name: t('sys.str_4068')}, ...data.categories];
+                const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
             }
         } catch (e) {
@@ -153,6 +134,32 @@ export default function POSPage() {
     useEffect(() => {
         if (showCustomerModal && customers.length === 0) fetchCustomers();
     }, [showCustomerModal]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['F2', 'F3', 'F4', 'F8'].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === 'F2') {
+                document.getElementById('pay-cash-btn')?.click();
+            } else if (e.key === 'F3') {
+                document.getElementById('hold-btn')?.click();
+            } else if (e.key === 'F4') {
+                document.getElementById('held-orders-btn')?.click();
+            } else if (e.key === 'F8') {
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                if (qtyInputs.length > 0) {
+                    (qtyInputs[qtyInputs.length - 1] as HTMLInputElement).select();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return (
+        <>
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+
+) => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const filteredProducts = products.filter(p => 
         (activeCategory === t('sys.str_522') || p.categoryId === activeCategory || p.categoryName === activeCategory) &&
@@ -197,7 +204,7 @@ export default function POSPage() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`تم تطبيق الكوبون بنجاح بخصم ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_68')}`);
+                alert(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_68')}`);
             } else {
                 alert(data.error);
                 setAppliedCoupon(null);
@@ -214,7 +221,7 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = total * 0.15; // 15% VAT placeholder
+    const tax = total * (taxRate / 100); // Dynamic VAT
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -229,59 +236,23 @@ export default function POSPage() {
 
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const startBnplCheckout = (provider: 'tabby'|'tamara') => {
-        setBnplProvider(provider);
-        setBnplPhone(selectedCustomer?.phone || '');
-        setBnplUrl('');
-        setBnplOrderId('');
-        setShowBnplModal(true);
-    };
 
-    const handleCreateBnplSession = async () => {
-        if (!bnplPhone) return alert(t('sys.str_4072'));
-        if (cart.length === 0) return;
-        setBnplLoading(true);
-        try {
-            const res = await fetch(`/api/bnpl/${bnplProvider}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    totalAmount: finalTotal,
-                    phone: bnplPhone,
-                    customerName: selectedCustomer?.name || t('sys.str_4073'),
-                    orderId: `POS-${Date.now()}`,
-                    items: cart
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setBnplUrl(data.checkoutUrl);
-                setBnplOrderId(data.paymentId || data.orderId);
-            } else {
-                alert(data.error);
-            }
-        } catch (e) {
-            alert(t('sys.str_4074') + bnplProvider);
-        } finally {
-            setBnplLoading(false);
-        }
-    };
 
     const [showMadaModal, setShowMadaModal] = useState(false);
     const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
 
-    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA') => {
+    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT') => {
         if (cart.length === 0) return;
         
         // Mada Interceptor
-        if (paymentMethod === 'CARD' && !showMadaModal) {
+        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !showMadaModal) {
             setShowMadaModal(true);
             setMadaStatus('WAITING');
             setTimeout(() => {
                 setMadaStatus('APPROVED');
                 setTimeout(() => {
                     setShowMadaModal(false);
-                    handleCheckout('CARD'); // Proceed with actual checkout
+                    handleCheckout(paymentMethod); // Proceed with actual checkout
                 }, 1500);
             }, 2500);
             return;
@@ -296,7 +267,7 @@ export default function POSPage() {
                 discount: finalDiscountValue,
                 couponId: appliedCoupon ? appliedCoupon.id : null,
                 paymentMethod,
-                bnplOrderId: (paymentMethod === 'TABBY' || paymentMethod === 'TAMARA') ? bnplOrderId : null,
+                splitDetails: paymentMethod === 'SPLIT' ? { cash: Number(splitCash), card: Number(splitCard) } : null,
                 customerId: selectedCustomer ? selectedCustomer.id : null,
                 shiftId: null 
             };
@@ -311,7 +282,6 @@ export default function POSPage() {
                 setCart([]); 
                 removeCoupon(); 
                 setSelectedCustomer(null); 
-                setShowBnplModal(false);
                 fetchProducts(); 
             } else {
                 alert(data.error || t('sys.str_4075'));
@@ -634,8 +604,13 @@ export default function POSPage() {
                         <Link href="/dashboard" className="btn-back">
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
                             {t('sys.str_4028')}</Link>
-                        <button className="btn-back" onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? 'rgba(245, 158, 11, 0.2)' : '', color: heldOrders.length > 0 ? '#fcd34d' : '' }}>
-                            <Clock size={18} /> {t('sys.str_4029')}{heldOrders.length})
+                        <button onClick={() => setShowReturnsModal(true)} className="btn-back" style={{ color: '#ef4444', textDecoration: 'none', border: 'none', background: 'transparent' }}>
+                              ↩ مرتجعات
+                        </button>
+                        <button className="btn-back" onClick={() => { if(confirm('هل أنت متأكد من مسح جميع المنتجات من السلة؟')) setCart([]); }}>
+                            <Trash2 size={18} /> مسح السلة</button>
+                        <button id="held-orders-btn" className="btn-back" onClick={() => setShowHeldOrdersModal(true)} style={{ background: heldOrders.length > 0 ? 'rgba(245, 158, 11, 0.2)' : '', color: heldOrders.length > 0 ? '#fcd34d' : '' }}>
+                            <Clock size={18} /> {t('sys.str_4029')}{heldOrders.length}) <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px' }}>F4</kbd>
                         </button>
                         <button className="btn-back" onClick={fetchRecentOrders}>
                             <History size={18} /> {t('sys.str_4030')}</button>
@@ -692,7 +667,7 @@ export default function POSPage() {
                 <div className="customer-selector">
                     <button className="customer-btn" onClick={() => setShowCustomerModal(true)} style={{ background: selectedCustomer ? 'rgba(34, 197, 94, 0.1)' : '', borderColor: selectedCustomer ? '#22c55e' : '', color: selectedCustomer ? '#22c55e' : '' }}>
                         <User size={18} />
-                        {selectedCustomer ? `العميل المربوط: ${selectedCustomer.name}` : t('pos.str_183')}
+                        {selectedCustomer ? `${t('pos.linked_customer')}${selectedCustomer.name}` : t('pos.str_183')}
                     </button>
                     {selectedCustomer && (
                         <button onClick={() => setSelectedCustomer(null)} style={{ marginTop: '0.5rem', width: '100%', padding: '0.5rem', borderRadius: '8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', cursor: 'pointer' }}>
@@ -709,7 +684,26 @@ export default function POSPage() {
                             </div>
                             <div className="item-controls">
                                 <button className="qty-btn" onClick={() => updateQty(item.id, -1)}>-</button>
-                                <span>{item.qty}</span>
+                                <input 
+                                    type="number" 
+                                    className="qty-input"
+                                    min="1"
+                                    style={{ width: '40px', textAlign: 'center', background: 'transparent', border: '1px solid #333', color: 'white', borderRadius: '4px', fontSize: '1rem', padding: '2px 0' }}
+                                    value={item.qty}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        if (!isNaN(val) && val > 0) {
+                                            setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: val } : i));
+                                        } else if (e.target.value === '') {
+                                            setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: '' as any } : i));
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        if (!item.qty || item.qty <= 0) {
+                                            setCart(prev => prev.map(i => i.id === item.id ? { ...i, qty: 1 } : i));
+                                        }
+                                    }}
+                                />
                                 <button className="qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
                             </div>
                         </div>
@@ -766,22 +760,69 @@ export default function POSPage() {
                 </div>
 
                 <div className="checkout-actions">
-                    <button className="pay-btn pay-cash" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CASH')}>
-                        <Banknote size={20} /> {isProcessing ? t('pos.str_185') : t('pos.str_186')}
+                    <button id="pay-cash-btn" className="pay-btn pay-cash" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CASH')}>
+                        <Banknote size={20} /> {isProcessing ? t('pos.str_185') : t('pos.str_186')} <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px' }}>F2</kbd>
                     </button>
                     <button className="pay-btn pay-card" disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('CARD')}>
                         <CreditCard size={20} /> {isProcessing ? t('pos.str_185') : t('pos.str_187')}
                     </button>
-                    <button className="pay-btn" style={{ background: '#3eedbf', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tabby')}>
-                        <strong>{t('pos.str_188')}</strong> Tabby
+                    <button className="pay-btn" style={{ background: 'var(--primary-color)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('TRANSFER')}>
+                        🏦 {'تحويل بنكي'}
                     </button>
-                    <button className="pay-btn" style={{ background: '#ffb5a3', color: '#111' }} disabled={cart.length === 0 || isProcessing} onClick={() => startBnplCheckout('tamara')}>
-                        <strong>{t('pos.str_189')}</strong> Tamara
+                    <button className="pay-btn" style={{ background: '#f59e0b', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={() => setShowSplitModal(true)}>
+                        ✂️ {'تقسيم الفاتورة'}
                     </button>
-                    <button className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
-                        <Save size={20} /> {t('sys.str_4041')}</button>
+
+                    <button id="hold-btn" className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
+                        <Save size={20} /> {t('sys.str_4041')} <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px' }}>F3</kbd></button>
                 </div>
             </div>
+
+            {/* Split Payment Modal */}
+            {showSplitModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSplitModal(false)}>
+                    <div style={{ background: '#111', width: '400px', borderRadius: '12px', padding: '1.5rem', border: '1px solid #333' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 1rem 0' }}>{'تقسيم المدفوعات'}</h3>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', textAlign: 'center', color: '#fbbf24' }}>
+                            {t('sys.str_66')}: {finalTotal.toLocaleString(undefined, {minimumFractionDigits: 2})} {t('sys.str_68')}
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#a3a3a3' }}>{'المبلغ النقدي'} (Cash)</label>
+                            <input 
+                                type="number" 
+                                className="search-bar" 
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #333', background: '#1a1a1a', color: 'white' }} 
+                                value={splitCash} 
+                                onChange={e => {
+                                    const cashVal = Number(e.target.value);
+                                    setSplitCash(e.target.value);
+                                    if (cashVal < finalTotal) {
+                                        setSplitCard((finalTotal - cashVal).toFixed(2));
+                                    } else {
+                                        setSplitCard('0');
+                                    }
+                                }} 
+                            />
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#a3a3a3' }}>{'مبلغ الشبكة'} (Card)</label>
+                            <input type="number" disabled className="search-bar" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #333', background: '#333', color: '#aaa', opacity: 0.7 }} value={splitCard} />
+                        </div>
+                        {((Number(splitCash) || 0) + (Number(splitCard) || 0)) < finalTotal && (
+                            <div style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center' }}>{t('pos.str_195')}</div>
+                        )}
+                        {((Number(splitCash) || 0) + (Number(splitCard) || 0)) > finalTotal && (
+                            <div style={{ color: '#22c55e', marginBottom: '1rem', textAlign: 'center' }}>{t('pos.str_196')} {(((Number(splitCash)||0) + (Number(splitCard)||0)) - finalTotal).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('sys.str_68')}</div>
+                        )}
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button className="pay-cash" style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: 'none', background: '#333', color: 'white', cursor: 'pointer' }} onClick={() => setShowSplitModal(false)}>{t('fin.str_206')}</button>
+                            <button className="pay-card" style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: 'none', background: '#f59e0b', color: 'white', cursor: 'pointer', opacity: (((Number(splitCash)||0) + (Number(splitCard)||0)) < (finalTotal - 0.01)) ? 0.5 : 1 }} disabled={((Number(splitCash)||0) + (Number(splitCard)||0)) < (finalTotal - 0.01) || isProcessing} onClick={() => { setShowSplitModal(false); handleCheckout('SPLIT'); }}>
+                                {isProcessing ? t('pos.str_185') : t('pos.str_186')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Customer Selection Modal */}
             {showCustomerModal && (
@@ -820,61 +861,7 @@ export default function POSPage() {
                 </div>
             )}
 
-            {/* BNPL QR Scanner Modal */}
-            {showBnplModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowBnplModal(false)}>
-                    <div style={{ background: '#111', width: '450px', borderRadius: '16px', padding: '2rem', border: '1px solid #333', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ color: bnplProvider === 'tabby' ? '#3eedbf' : '#ffb5a3', marginBottom: '1rem' }}>
-                            {t('sys.str_4044')}{bnplProvider === 'tabby' ? t('pos.str_188') : t('pos.str_189')}
-                        </h2>
-                        
-                        {!bnplUrl ? (
-                            <>
-                                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>{t('sys.str_4045')}<strong>{finalTotal.toLocaleString()} {t('sys.str_68')}</strong></p>
-                                <input 
-                                    type="text" 
-                                    placeholder={t('sys.str_4080')} 
-                                    value={bnplPhone}
-                                    onChange={e => setBnplPhone(e.target.value)}
-                                    style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #333', background: '#1a1a1a', color: 'white', marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.2rem', letterSpacing: '2px' }}
-                                />
-                                <button 
-                                    onClick={handleCreateBnplSession} 
-                                    disabled={bnplLoading || !bnplPhone}
-                                    style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: 'none', background: bnplProvider === 'tabby' ? '#3eedbf' : '#ffb5a3', color: '#111', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
-                                >
-                                    {bnplLoading ? t('pos.str_190') : t('pos.str_191')}
-                                </button>
-                            </>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-                                <div style={{ background: 'white', padding: '1rem', borderRadius: '12px' }}>
-                                    <QRCodeCanvas value={bnplUrl} size={250} level="H" includeMargin />
-                                </div>
-                                <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.2)', width: '100%' }}>
-                                    <p style={{ color: '#fff', fontSize: '1rem', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                        {bnplStatusMessage.includes('✅') || bnplStatusMessage.includes('❌') ? null : <span className="spinner" style={{ animation: 'spin 1s linear infinite' }}>⏳</span>}
-                                        {bnplStatusMessage}
-                                    </p>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
-                                    <button 
-                                        onClick={() => setShowBnplModal(false)}
-                                        style={{ flex: 1, padding: '1rem', borderRadius: '8px', border: '1px solid #555', background: 'transparent', color: '#fff', cursor: 'pointer' }}
-                                    >
-                                        {t('sys.str_4046')}</button>
-                                    <button 
-                                        onClick={() => handleCheckout(bnplProvider.toUpperCase() as any)}
-                                        disabled={isProcessing}
-                                        style={{ flex: 1, padding: '1rem', borderRadius: '8px', border: 'none', background: '#22c55e', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                                    >
-                                        {t('sys.str_4047')}</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+
 
             {/* Held Orders Modal */}
             {showHeldOrdersModal && (
@@ -952,25 +939,24 @@ export default function POSPage() {
                         </div>
 
                         {madaStatus === 'WAITING' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                                <div className="spinner" style={{ width: '48px', height: '48px', borderTopColor: '#3b82f6', borderWidth: '4px' }}></div>
-                                <p style={{ color: '#64748b', margin: 0, fontWeight: 600 }}>{t('sys.str_4061')}</p>
-                            </div>
-                        )}
-
-                        {madaStatus === 'APPROVED' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem', animation: 'fadeIn 0.3s ease-in-out' }}>
-                                <div style={{ width: '64px', height: '64px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                                    <CheckCircle2 size={40} />
-                                </div>
-                                <p style={{ color: '#10b981', margin: 0, fontWeight: 800, fontSize: '1.2rem' }}>{t('sys.str_4062')}</p>
-                                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>{t('sys.str_4063')}</p>
-                            </div>
-                        )}
-                        
-                        {madaStatus === 'WAITING' && (
-                            <button onClick={() => setShowMadaModal(false)} style={{ background: 'transparent', border: 'none', color: '#ef4444', marginTop: '1rem', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4046')}</button>
-                        )}
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                            <button
+                                onClick={() => setShowMadaModal(false)}
+                                style={{ background: '#fef2f2', border: '1px solid #fee2e2', padding: '8px 16px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontWeight: 600, flex: 1 }}
+                            >
+                                {t('sys.str_4046')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowMadaModal(false);
+                                    handleCheckout(paymentType === 'split' ? 'SPLIT' : 'CARD');
+                                }}
+                                style={{ background: '#ecfdf5', border: '1px solid #d1fae5', padding: '8px 16px', borderRadius: '8px', color: '#10b981', cursor: 'pointer', fontWeight: 600, flex: 1 }}
+                            >
+                                الدفع يدوياً
+                            </button>
+                        </div>
+                    )}
                     </div>
                 </div>
             )}
