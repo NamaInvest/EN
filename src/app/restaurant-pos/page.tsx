@@ -153,11 +153,7 @@ export default function RestaurantPOS() {
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return (
-        <>
-            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
-
-) => window.removeEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const filteredProducts = products.filter(p => 
@@ -651,8 +647,8 @@ export default function RestaurantPOS() {
                             <ArrowRight size={18} /> {t('sys.str_4082')}</Link>
                         <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>{t('sys.str_4083')}</h2>
                         
-                        <button onClick={() => setShowReturnsModal(true)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
-                              ↩ مرتجعات
+                        <button type="button" onClick={() => setShowReturnsModal(true)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
+                              ↩ استرجاع محلي
                           </button>
                         <button onClick={() => { if(confirm('هل أنت متأكد من مسح جميع المنتجات من السلة؟')) setCart([]); }} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
                             <Trash2 size={16} /> مسح السلة
@@ -1046,6 +1042,7 @@ export default function RestaurantPOS() {
                     </div>
                 </div>
             )}
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
         </div>
     );
 }

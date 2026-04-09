@@ -1,4 +1,8 @@
+const fs = require('fs');
+const path = require('path');
+const file = path.join(__dirname, 'src', 'app', '(dashboard)', 'fixed-assets', 'page.tsx');
 
+let code = `
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,7 +36,7 @@ export default function FixedAssetsPage() {
     });
 
     const token = () => localStorage.getItem('token') || '';
-    const headers = () => ({ Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' });
+    const headers = () => ({ Authorization: \`Bearer \${token()}\`, 'Content-Type': 'application/json' });
 
     async function fetchData() {
         try {
@@ -64,7 +68,7 @@ export default function FixedAssetsPage() {
         if (!form.assetName || !form.purchaseCost) { alert(t('sys.str_4239')); return; }
         setSaving(true);
         try {
-            const url = editItem ? `/api/fixed-assets/${editItem.id}` : '/api/fixed-assets';
+            const url = editItem ? \`/api/fixed-assets/\${editItem.id}\` : '/api/fixed-assets';
             const method = editItem ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(form) });
             if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
@@ -73,7 +77,7 @@ export default function FixedAssetsPage() {
 
     const handleDelete = async (id: number) => {
         if (!confirm(t('sys.str_4241'))) return;
-        const res = await fetch(`/api/fixed-assets/${id}`, { method: 'DELETE', headers: headers() });
+        const res = await fetch(\`/api/fixed-assets/\${id}\`, { method: 'DELETE', headers: headers() });
         if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
     };
 
@@ -81,7 +85,7 @@ export default function FixedAssetsPage() {
         if (!confirm(t('sys.str_4242'))) return;
         setSaving(true);
         try {
-            const res = await fetch(`/api/fixed-assets/${id}/depreciate`, { method: 'POST', headers: headers() });
+            const res = await fetch(\`/api/fixed-assets/\${id}/depreciate\`, { method: 'POST', headers: headers() });
             if (res.ok) { fetchData(); setShowDepModal(null); alert(t('sys.str_4243')); }
             else { const d = await res.json(); alert(d.error); }
         } catch { alert(t('sys.str_4244')); } finally { setSaving(false); }
@@ -137,7 +141,7 @@ export default function FixedAssetsPage() {
                                     <td>{fmt(a.purchaseCost)} {t('sys.str_4105')}</td>
                                     <td style={{ fontWeight: '700', color: a.currentValue <= a.salvageValue ? '#f59e0b' : '#10b981' }}>{fmt(a.currentValue)} {t('sys.str_4105')}</td>
                                     <td>{a.usefulLifeYears} {t('sys.str_4217')}</td>
-                                    <td><span className={`badge ${statusLabels[a.status]?.cls || ''}`}>{statusLabels[a.status]?.label || a.status}</span></td>
+                                    <td><span className={\`badge \${statusLabels[a.status]?.cls || ''}\`}>{statusLabels[a.status]?.label || a.status}</span></td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                                             {a.status === 'active' && <button className="btn btn-sm" style={{ background: '#f59e0b', color: '#fff', border: 'none', fontSize: '11px' }} onClick={() => handleDepreciate(a.id)}>{t('sys.str_4218')}</button>}
@@ -223,4 +227,7 @@ export default function FixedAssetsPage() {
         </div>
     );
 }
+\n`;
 
+fs.writeFileSync(file, code, 'utf8');
+console.log('✅ Restored fixed-assets/page.tsx with correct translations format');

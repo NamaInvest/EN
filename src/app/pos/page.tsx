@@ -154,11 +154,7 @@ export default function POSPage() {
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return (
-        <>
-            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
-
-) => window.removeEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const filteredProducts = products.filter(p => 
@@ -604,8 +600,8 @@ export default function POSPage() {
                         <Link href="/dashboard" className="btn-back">
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
                             {t('sys.str_4028')}</Link>
-                        <button onClick={() => setShowReturnsModal(true)} className="btn-back" style={{ color: '#ef4444', textDecoration: 'none', border: 'none', background: 'transparent' }}>
-                              ↩ مرتجعات
+                        <button type="button" onClick={() => setShowReturnsModal(true)} className="btn-back" style={{ color: '#ef4444', textDecoration: 'none', border: 'none', background: 'transparent' }}>
+                              ↩ استرجاع محلي
                         </button>
                         <button className="btn-back" onClick={() => { if(confirm('هل أنت متأكد من مسح جميع المنتجات من السلة؟')) setCart([]); }}>
                             <Trash2 size={18} /> مسح السلة</button>
@@ -969,6 +965,7 @@ export default function POSPage() {
                     onClose={() => setCompletedInvoiceId(null)} 
                 />
             )}
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
         </div>
     );
 }

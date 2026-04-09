@@ -54,6 +54,36 @@ export default function SalesPage() {
     const [showVoucher, setShowVoucher] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [selectedVoucherData, setSelectedVoucherData] = useState<any>(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const [lastInvoiceData, setLastInvoiceData] = useState<{
         invoiceId: number; invoiceNumber: string; date: string; customerName: string;
         customerTaxNo?: string | null; customerCrNo?: string | null; customerAddress?: string | null;
@@ -64,6 +94,7 @@ export default function SalesPage() {
     const discountRef = useRef<HTMLInputElement>(null);
     const [focusedProductIndex, setFocusedProductIndex] = useState(-1);
     const [showTypeahead, setShowTypeahead] = useState(false);
+    const [showReturnsModal, setShowReturnsModal] = useState(false);
 
     // BNPL (Tabby/Tamara) Polling State
     const [bnplProvider, setBnplProvider] = useState<'TABBY' | 'TAMARA' | null>(null);
@@ -101,11 +132,7 @@ export default function SalesPage() {
                 }
             }, 3000); 
         }
-        return (
-        <>
-            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
-
-) => { if (interval) clearInterval(interval); };
+        return () => { if (interval) clearInterval(interval); };
     }, [bnplPolling, bnplOrderId, bnplProvider]);
 
     // Coupon logic
@@ -820,11 +847,12 @@ export default function SalesPage() {
 
     return (
         <>
+            
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
-                    <button onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                        ↩ {'مرتجعات'}
+                    <button type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                        ↩ {'استرجاع مباشر'}
                     </button>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1468,7 +1496,8 @@ export default function SalesPage() {
                             <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>
-                </div>
+                    <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+        </div>
             )}
             {/* Receipt Modal */}
             {showReceipt && lastInvoiceData && (
