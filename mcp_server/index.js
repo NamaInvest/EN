@@ -74,7 +74,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const totalSales = invoices.reduce((acc, inv) => acc + inv.total, 0);
 
         return {
-          content: [{ type: "text", text: \`Total sales for today: \${totalSales} SAR generated from \${invoices.length} invoices.\` }]
+          content: [{ type: "text", text: `Total sales for today: ${totalSales} SAR generated from ${invoices.length} invoices.` }]
         };
       }
 
@@ -85,7 +85,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const active = companies.filter(c => c.subscriptions?.[0]?.status === 'ACTIVE').length;
         
         return {
-          content: [{ type: "text", text: \`There are \${active} fully active tenants on the Nama Invest SaaS Platform, out of \${companies.length} total registered.\` }]
+          content: [{ type: "text", text: `There are ${active} fully active tenants on the Nama Invest SaaS Platform, out of ${companies.length} total registered.` }]
         };
       }
 
@@ -96,7 +96,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           take: 5
         });
 
-        const strings = products.map(p => \`[\${p.barcode || 'N/A'}] \${p.name}: \${p.currentStock} units in stock. Price: \${p.sellPrice} SAR.\`);
+        const strings = products.map(p => `[${p.barcode || 'N/A'}] ${p.name}: ${p.currentStock} units in stock. Price: ${p.sellPrice} SAR.`);
         return {
           content: [{ type: "text", text: strings.length > 0 ? strings.join('\\n') : 'No products found matching that query.' }]
         };
@@ -107,7 +107,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   } catch (err) {
     return {
-      content: [{ type: "text", text: \`Error executing tool: \${err.message}\` }],
+      content: [{ type: "text", text: `Error executing tool: ${err.message}` }],
       isError: true
     };
   }

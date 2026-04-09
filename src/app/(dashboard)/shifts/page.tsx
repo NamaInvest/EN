@@ -7,8 +7,8 @@ interface Shift {
     id: number;
     startTime: string;
     endTime: string | null;
-    startCash: number;
-    endCash: number | null;
+    startingCash: number;
+    endingCashActual: number | null;
     status: string;
     notes: string | null;
     user: { fullName: string };
@@ -47,7 +47,7 @@ export default function ShiftsPage() {
         try {
             const res = await fetch('/api/shifts', {
                 method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ userId: user.id, startCash: form.startCash, notes: form.notes }),
+                body: JSON.stringify({ userId: user.id, startingCash: form.startCash, notes: form.notes }),
             });
             if (res.ok) {
                 showToast(t('sys.str_1400'));
@@ -69,7 +69,7 @@ export default function ShiftsPage() {
         try {
             const res = await fetch('/api/shifts', {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ id: closingShift.id, endCash: closeForm.endCash, notes: closeForm.notes, status: 'closed' }),
+                body: JSON.stringify({ id: closingShift.id, endingCashActual: closeForm.endCash, notes: closeForm.notes, status: 'closed' }),
             });
             if (res.ok) {
                 showToast(t('sys.str_1403'));
@@ -128,8 +128,8 @@ export default function ShiftsPage() {
                                             <td><span className="badge badge-outline">{s.branch?.name || t('sys.str_1408')}</span></td>
                                             <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(s.startTime).toLocaleString('ar-SA')}</td>
                                             <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--text-muted)' }}>{s.endTime ? new Date(s.endTime).toLocaleString('ar-SA') : '-'}</td>
-                                            <td style={{ color: 'var(--primary)' }}>{fmt(s.startCash)} {t('sys.str_68')}</td>
-                                            <td style={{ color: s.endCash ? 'var(--success)' : 'var(--text-muted)' }}>{s.endCash !== null ? `${fmt(s.endCash)} ر.س` : '-'}</td>
+                                            <td style={{ color: 'var(--primary)' }}>{fmt(s.startingCash)} {t('sys.str_68')}</td>
+                                            <td style={{ color: s.endingCashActual ? 'var(--success)' : 'var(--text-muted)' }}>{s.endingCashActual !== null ? `${fmt(s.endingCashActual)} ر.س` : '-'}</td>
                                             <td>
                                                 <span className={`badge ${s.status === 'open' ? 'badge-warning' : 'badge-success'}`}>
                                                     {s.status === 'open' ? t('sys.str_1409') : t('sys.str_1410')}
@@ -137,7 +137,7 @@ export default function ShiftsPage() {
                                             </td>
                                             <td style={{ display: 'flex', gap: '4px' }}>
                                                 {s.status === 'open' && (
-                                                    <button className="btn btn-ghost btn-sm" onClick={() => { setClosingShift(s); setCloseForm({ endCash: String(s.startCash), notes: s.notes || '' }) }} style={{ color: 'var(--danger)', fontSize: '13px', background: 'var(--danger-light)' }}>
+                                                    <button className="btn btn-ghost btn-sm" onClick={() => { setClosingShift(s); setCloseForm({ endCash: String(s.startingCash), notes: s.notes || '' }) }} style={{ color: 'var(--danger)', fontSize: '13px', background: 'var(--danger-light)' }}>
                                                         {t('sys.str_1390')}</button>
                                                 )}
                                                 <button className="btn btn-ghost btn-sm" onClick={() => deleteShift(s)} style={{ color: 'var(--danger)', fontSize: '12px' }}>🗑️</button>
@@ -178,7 +178,7 @@ export default function ShiftsPage() {
                         <div className="input-group" style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                 <span>{t('sys.str_1395')}</span>
-                                <span style={{ fontWeight: 'bold' }}>{fmt(closingShift.startCash)} {t('sys.str_68')}</span>
+                                <span style={{ fontWeight: 'bold' }}>{fmt(closingShift.startingCash)} {t('sys.str_68')}</span>
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                 {t('sys.str_1396')}</div>

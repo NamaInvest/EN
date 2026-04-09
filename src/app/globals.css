@@ -1273,7 +1273,7 @@ textarea.input {
   gap: 12px;
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 48;
   background: var(--bg-dark);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);

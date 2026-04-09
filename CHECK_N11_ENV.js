@@ -1,5 +1,4 @@
 const { Client } = require('ssh2');
-
 const conn = new Client();
 conn.on('ready', () => {
     conn.exec('cat /www/wwwroot/n11.namainvist.com/.env', (err, stream) => {

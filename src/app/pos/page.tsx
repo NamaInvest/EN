@@ -236,19 +236,21 @@ export default function POSPage() {
 
     const [showMadaModal, setShowMadaModal] = useState(false);
     const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
+    const [activePaymentMethod, setActivePaymentMethod] = useState<string | null>(null);
 
-    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT') => {
+    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT', isMadaCallback = false) => {
         if (cart.length === 0) return;
         
         // Mada Interceptor
-        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !showMadaModal) {
+        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !isMadaCallback) {
+            setActivePaymentMethod(paymentMethod);
             setShowMadaModal(true);
             setMadaStatus('WAITING');
             setTimeout(() => {
                 setMadaStatus('APPROVED');
                 setTimeout(() => {
                     setShowMadaModal(false);
-                    handleCheckout(paymentMethod); // Proceed with actual checkout
+                    handleCheckout(paymentMethod, true); // Proceed with actual checkout using the callback flag
                 }, 1500);
             }, 2500);
             return;
@@ -305,7 +307,7 @@ export default function POSPage() {
                     min-width: 0;
                     display: flex;
                     flex-direction: column;
-                    border-${isRTL ? 'left' : 'right'}: 1px solid var(--border-color, #2a2a2a);
+                    border-inline-end: 1px solid var(--border-color, #2a2a2a);
                 }
                 .pos-header {
                     display: flex;
@@ -353,7 +355,7 @@ export default function POSPage() {
                 .categories-pane {
                     width: 140px;
                     background: var(--card-bg, #111);
-                    border-${isRTL ? 'left' : 'right'}: 1px solid var(--border-color, #2a2a2a);
+                    border-inline-end: 1px solid var(--border-color, #2a2a2a);
                     display: flex;
                     flex-direction: column;
                     overflow-y: auto;
@@ -390,7 +392,7 @@ export default function POSPage() {
                 .category-btn.active {
                     background: rgba(34, 197, 94, 0.1);
                     color: #22c55e;
-                    border-${isRTL ? 'right' : 'left'}: 4px solid #22c55e;
+                    border-inline-start: 4px solid #22c55e;
                 }
                 
                 .products-grid {
@@ -442,7 +444,7 @@ export default function POSPage() {
                 .stock-badge {
                     position: absolute;
                     top: 10px;
-                    ${isRTL ? 'left' : 'right'}: 10px;
+                    inset-inline-end: 10px;
                     font-size: 0.75rem;
                     padding: 2px 8px;
                     border-radius: 9999px;
@@ -945,7 +947,7 @@ export default function POSPage() {
                             <button
                                 onClick={() => {
                                     setShowMadaModal(false);
-                                    handleCheckout(paymentType === 'split' ? 'SPLIT' : 'CARD');
+                                    handleCheckout(activePaymentMethod === 'SPLIT' ? 'SPLIT' : 'CARD', true);
                                 }}
                                 style={{ background: '#ecfdf5', border: '1px solid #d1fae5', padding: '8px 16px', borderRadius: '8px', color: '#10b981', cursor: 'pointer', fontWeight: 600, flex: 1 }}
                             >

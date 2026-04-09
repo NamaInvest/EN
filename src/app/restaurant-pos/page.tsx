@@ -282,18 +282,21 @@ export default function RestaurantPOS() {
     const [showMadaModal, setShowMadaModal] = useState(false);
     const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
 
-    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT') => {
+    const [activePaymentMethod, setActivePaymentMethod] = useState<string | null>(null);
+
+    const handleCheckout = async (paymentMethod: 'CASH' | 'CARD' | 'TABBY' | 'TAMARA' | 'TRANSFER' | 'SPLIT', isMadaCallback = false) => {
         if (cart.length === 0) return;
 
         // Mada Interceptor
-        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !showMadaModal) {
+        if ((paymentMethod === 'CARD' || (paymentMethod === 'SPLIT' && Number(splitCard) > 0)) && !isMadaCallback) {
+            setActivePaymentMethod(paymentMethod);
             setShowMadaModal(true);
             setMadaStatus('WAITING');
             setTimeout(() => {
                 setMadaStatus('APPROVED');
                 setTimeout(() => {
                     setShowMadaModal(false);
-                    handleCheckout(paymentMethod); // Proceed with actual checkout
+                    handleCheckout(paymentMethod, true); // Proceed with actual checkout
                 }, 1500);
             }, 2500);
             return;
@@ -1031,7 +1034,7 @@ export default function RestaurantPOS() {
                             <button
                                 onClick={() => {
                                     setShowMadaModal(false);
-                                    handleCheckout(paymentType === 'split' ? 'SPLIT' : 'CARD');
+                                    handleCheckout(activePaymentMethod === 'SPLIT' ? 'SPLIT' : 'CARD', true);
                                 }}
                                 style={{ background: '#ecfdf5', border: '1px solid #d1fae5', padding: '8px 16px', borderRadius: '8px', color: '#10b981', cursor: 'pointer', fontWeight: 600, flex: 1 }}
                             >
