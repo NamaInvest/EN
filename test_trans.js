@@ -1,11 +1,9 @@
-const translations = require('./src/lib/translations.ts').default;
+const fs = require('fs');
 
-const t = (key, lang = 'ar') => {
-  if (translations[lang] && translations[lang][key]) return translations[lang][key];
-  if (translations['ar'] && translations['ar'][key]) return translations['ar'][key];
-  return key;
-};
+// We test if the object has the property at runtime
+require('ts-node').register();
+const trans = require('./src/lib/translations.ts').default;
 
-console.log('Test 4390:', t('sys.str_4390', 'ar'));
-console.log('Test 4391:', t('sys.str_4391', 'ar'));
-console.log('Test 4339:', t('sys.str_4339', 'ar'));
+console.log("sys.str_4390:", trans['ar']['sys.str_4390']);
+console.log("sys.str_4400:", trans['ar']['sys.str_4400']);
+

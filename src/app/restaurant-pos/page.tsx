@@ -392,249 +392,22 @@ export default function RestaurantPOS() {
         }
     };
 
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => { setIsMounted(true); }, []);
+
     return (
         <div className="restaurant-pos" dir="rtl">
-            <style jsx>{`
-                .restaurant-pos {
-                    display: flex;
-                    height: 100vh;
-                    background: #f0f2f5;
-                    font-family: 'Inter', system-ui, sans-serif;
-                    overflow: hidden;
-                    color: #333;
-                }
-                
-                /* Left Column: Categories */
-                .categories-pane {
-                    width: 140px;
-                    background: #ffffff;
-                    border-left: 1px solid #ddd;
-                    display: flex;
-                    flex-direction: column;
-                    overflow-y: auto;
-                    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-                    z-index: 10;
-                }
-                .category-btn {
-                    padding: 1.2rem 0.5rem;
-                    border: none;
-                    border-bottom: 1px solid #eee;
-                    background: #fff;
-                    color: #444;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    text-align: center;
-                }
-                .category-btn:hover { background: #f8f9fa; }
-                .category-btn.active {
-                    background: #22c55e;
-                    color: white;
-                    border-left: 4px solid #16a34a;
-                }
+            
 
-                /* Center Column: Products Grid */
-                .main-pane {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    background: #f8f9fa;
-                }
-                .top-bar {
-                    height: 60px;
-                    background: #fff;
-                    border-bottom: 1px solid #ddd;
-                    display: flex;
-                    align-items: center;
-                    padding: 0 1rem;
-                    justify-content: space-between;
-                }
-                .search-input {
-                    padding: 0.5rem 1rem;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                    width: 300px;
-                    outline: none;
-                }
-                .products-grid {
-                    flex: 1;
-                    padding: 1rem;
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                    gap: 1rem;
-                    overflow-y: auto;
-                    align-content: start;
-                }
-                .product-card {
-                    background: white;
-                    border: 1px solid #e0e0e0;
-                    border-radius: 8px;
-                    padding: 1rem;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: transform 0.1s, box-shadow 0.1s;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    height: 180px;
-                }
-                .product-card:active { transform: scale(0.97); }
-                .product-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #22c55e; }
-                .product-img-wrapper {
-                    height: 80px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 0.5rem;
-                    font-size: 2.5rem;
-                }
-                .product-name {
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    margin-bottom: auto;
-                    color: #333;
-                }
-                .product-price {
-                    font-weight: 700;
-                    color: #16a34a;
-                    margin-top: 0.5rem;
-                }
-
-                /* Right Column: Cart & Numpad */
-                .cart-pane {
-                    width: 380px;
-                    background: #fff;
-                    border-right: 1px solid #ddd;
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .cart-totals-banner {
-                    background: #111;
-                    color: #10b981;
-                    padding: 1rem;
-                    text-align: left;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.25rem;
-                }
-                .banner-row {
-                    display: flex;
-                    justify-content: space-between;
-                    color: white;
-                    font-size: 0.9rem;
-                }
-                .banner-grand {
-                    display: flex;
-                    justify-content: space-between;
-                    color: #22c55e;
-                    font-size: 1.8rem;
-                    font-weight: bold;
-                    margin-top: 0.5rem;
-                }
-
-                .cart-table {
-                    flex: 1;
-                    overflow-y: auto;
-                    background: #f9fafb;
-                }
-                .cart-table th {
-                    background: #f1f5f9;
-                    padding: 0.5rem;
-                    font-size: 0.85rem;
-                    color: #64748b;
-                    text-align: right;
-                    border-bottom: 1px solid #e2e8f0;
-                    position: sticky;
-                    top: 0;
-                }
-                .cart-row {
-                    display: flex;
-                    padding: 0.75rem 0.5rem;
-                    border-bottom: 1px solid #e2e8f0;
-                    align-items: center;
-                }
-                .col-name { flex: 2; font-size: 0.9rem; font-weight: 600; color: #333; }
-                .col-qty { flex: 1; display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
-                .col-price { flex: 1; text-align: center; font-size: 0.9rem; color: #666; }
-                .col-total { flex: 1; text-align: left; font-weight: 700; color: #16a34a; }
-                
-                .qty-circle {
-                    width: 24px; height: 24px;
-                    border-radius: 50%;
-                    background: #e2e8f0;
-                    display: flex; align-items: center; justify-content: center;
-                    cursor: pointer;
-                    font-weight: bold; color: #333;
-                    border: none;
-                }
-
-                /* Numpad Section */
-                .numpad-section {
-                    padding: 1rem;
-                    background: #e2e8f0;
-                    display: flex;
-                    gap: 1rem;
-                }
-                .pay-btn-big {
-                    flex: 1;
-                    background: #22c55e;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 1.8rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    box-shadow: 0 4px 6px rgba(34,197,94,0.3);
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-                }
-                .pay-btn-big:active { transform: translateY(2px); box-shadow: none; }
-                .pay-btn-big:disabled { background: #9ca3af; cursor: not-allowed; box-shadow: none; }
-
-                .numpad-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 0.35rem;
-                    width: 180px;
-                }
-                .numpad-btn {
-                    background: white;
-                    border: 1px solid #cbd5e1;
-                    border-radius: 6px;
-                    padding: 0.75rem 0;
-                    font-size: 1.25rem;
-                    font-weight: bold;
-                    cursor: pointer;
-                    color: #334155;
-                    box-shadow: 0 2px 0 #cbd5e1;
-                }
-                .numpad-btn:active {
-                    transform: translateY(2px);
-                    box-shadow: none;
-                }
-                
-                /* Responsive tweaks */
-                @media (max-width: 1024px) {
-                    .restaurant-pos { flex-direction: column; }
-                    .categories-pane { width: 100%; height: 60px; flex-direction: row; border-left: none; border-bottom: 1px solid #ddd; }
-                    .category-btn { padding: 0.5rem 1.5rem; white-space: nowrap; border-bottom: none; border-left: 1px solid #eee; }
-                    .category-btn.active { border-left: none; border-bottom: 4px solid #16a34a; }
-                    .cart-pane { width: 100%; height: 50vh; border-right: none; border-top: 1px solid #ddd; }
-                }
-            `}</style>
-
+            {!isMounted ? (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>{t("sys.str_168")}...</div>
+            ) : (<>
             {/* LEFT CATEGORIES */}
             <div className="categories-pane">
                 {categories.map(cat => (
                     <button 
                         key={cat.id}
-                        className={`category-btn \${activeCategory === cat.id ? 'active' : ''}`}
+                        className={`category-btn ${activeCategory === cat.id ? 'active' : ''}`}
                         onClick={() => setActiveCategory(cat.id)}
                     >
                         {cat.name}
@@ -1046,6 +819,8 @@ export default function RestaurantPOS() {
                 </div>
             )}
             <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+            </>
+            )}
         </div>
     );
 }

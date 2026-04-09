@@ -8,6 +8,12 @@ const filesToUpload = [
     { local: 'src/app/pos/page.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/app/pos/page.tsx' },
     { local: 'src/app/restaurant-pos/page.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/app/restaurant-pos/page.tsx' },
     { local: 'src/app/(dashboard)/shifts/page.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/shifts/page.tsx' },
+    { local: 'src/app/api/shifts/route.ts', remote: '/www/wwwroot/n11.namainvist.com/src/app/api/shifts/route.ts' },
+    { local: 'src/app/(dashboard)/customers/page.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/customers/page.tsx' },
+    { local: 'src/app/globals.css', remote: '/www/wwwroot/n11.namainvist.com/src/app/globals.css' },
+    { local: 'src/lib/translations.ts', remote: '/www/wwwroot/n11.namainvist.com/src/lib/translations.ts' },
+    { local: 'src/lib/i18n.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/lib/i18n.tsx' },
+    { local: 'src/lib/i18n_from_server.tsx', remote: '/www/wwwroot/n11.namainvist.com/src/lib/i18n_from_server.tsx' },
     { local: 'mcp_server/index.js', remote: '/root/mcp_server/index.js' }
 ];
 

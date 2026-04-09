@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { userId, startCash, branchId, notes } = body;
+        const { userId, startCash, startingCash, branchId, notes } = body;
 
         if (!userId) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
         let parsedStartCash = 0;
         try {
-            parsedStartCash = parseAmount(startCash);
+            parsedStartCash = parseAmount(startCash !== undefined ? startCash : startingCash);
         } catch (e: any) {
             return NextResponse.json({ error: e.message }, { status: 400 });
         }
@@ -85,16 +85,17 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const body = await request.json();
-        const { id, endCash, notes, status } = body;
+        const { id, endCash, endingCashActual, notes, status } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'Shift ID is required' }, { status: 400 });
         }
 
         let parsedEndCash: number | undefined = undefined;
-        if (endCash !== undefined && endCash !== '') {
+        const incomingEndCash = endCash !== undefined ? endCash : endingCashActual;
+        if (incomingEndCash !== undefined && incomingEndCash !== '') {
             try {
-                parsedEndCash = parseAmount(endCash);
+                parsedEndCash = parseAmount(incomingEndCash);
             } catch (e: any) {
                 return NextResponse.json({ error: e.message }, { status: 400 });
             }

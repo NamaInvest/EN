@@ -1,14 +1,13 @@
 const { Client } = require('ssh2');
 const c = new Client();
 c.on('ready', () => {
-    c.exec('pm2 jlist', (err, stream) => {
+    c.exec("curl -s http://localhost:3000/test_settings", (err, stream) => {
         let output = '';
         stream.on('data', d => { output += d.toString(); });
         stream.on('close', () => {
-            const list = JSON.parse(output);
-            const n11 = list.find(p => p.name === 'n11');
-            console.log('N11 path:', n11 ? n11.pm2_env.pm_cwd : 'NOT FOUND');
-            c.end();
+             console.log('Contains info:', output.includes('Company Info'));
+             console.log('Contains 4390:', output.includes('sys.str_4390'));
+             c.end();
         });
     });
 }).connect({host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b', readyTimeout:30000});

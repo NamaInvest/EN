@@ -47,7 +47,7 @@ export default function ShiftsPage() {
         try {
             const res = await fetch('/api/shifts', {
                 method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ userId: user.id, startingCash: form.startCash, notes: form.notes }),
+                body: JSON.stringify({ userId: user.id, startCash: form.startCash, notes: form.notes }),
             });
             if (res.ok) {
                 showToast(t('sys.str_1400'));
@@ -69,7 +69,7 @@ export default function ShiftsPage() {
         try {
             const res = await fetch('/api/shifts', {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ id: closingShift.id, endingCashActual: closeForm.endCash, notes: closeForm.notes, status: 'closed' }),
+                body: JSON.stringify({ id: closingShift.id, endCash: closeForm.endCash, notes: closeForm.notes, status: 'closed' }),
             });
             if (res.ok) {
                 showToast(t('sys.str_1403'));

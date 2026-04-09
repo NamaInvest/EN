@@ -42,10 +42,10 @@ export default function CustomersPage() {
     };
 
     useEffect(() => { fetchData(); }, []);
-    useEffect(() => { const t = setTimeout(fetchData, 300); return () => clearTimeout(t); }, [search, typeFilter]);
+    useEffect(() => { const timer = setTimeout(fetchData, 300); return () => clearTimeout(timer); }, [search, typeFilter]);
 
-    const typeLabel = (t: number) => t === 0 ? t('sys.str_532') : t === 1 ? t('sys.str_533') : t('sys.str_525');
-    const typeBadge = (t: number) => t === 0 ? 'badge-info' : t === 1 ? 'badge-purple' : 'badge-warning';
+    const typeLabel = (val: number) => val === 0 ? t('sys.str_532') : val === 1 ? t('sys.str_533') : t('sys.str_525');
+    const typeBadge = (val: number) => val === 0 ? 'badge-info' : val === 1 ? 'badge-purple' : 'badge-warning';
 
     const openAdd = () => {
         setEditItem(null);
