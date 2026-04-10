@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { postGRN } from '@/lib/auto-journal';
 
 const prisma = new PrismaClient();
 
@@ -66,9 +67,14 @@ export async function POST(req: Request) {
                 }
             });
 
+            let totalGrnCost = 0;
+
             for (const item of items) {
                 const accepted = parseFloat(item.acceptedQty) || parseFloat(item.quantity);
                 if (accepted > 0) {
+                    const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
+                    totalGrnCost += accepted * (productObj?.buyPrice || productObj?.cost || 0);
+
                     await tx.product.update({
                         where: { id: parseInt(item.productId) },
                         data: { currentStock: { increment: accepted } }
@@ -88,6 +94,20 @@ export async function POST(req: Request) {
                     });
                 }
             }
+
+            if (totalGrnCost > 0) {
+                try {
+                    await postGRN({
+                        grnNo: newGrn.grnNo,
+                        totalCost: totalGrnCost,
+                        supplierName: 'مورد', // Could fetch from tx.supplier if needed
+                        userId: decoded.userId
+                    });
+                } catch (je) {
+                    console.error("Auto Journal Error (GRN):", je);
+                }
+            }
+
             return newGrn;
         });
 

@@ -16,6 +16,7 @@ const ACCOUNTS = {
     IN_TRANSIT: '1310',     // بضاعة بالطريق
     VAT_INPUT: '1400',      // ضريبة مدخلات
     PAYABLES: '2100',       // الدائنون (الموردون)
+    GRNI: '2110',           // فواتير غير مستلمة (استلام بدون فاتورة)
     VAT_OUTPUT: '2300',     // ضريبة مخرجات
     SALES: '4100',          // المبيعات
     SALES_RETURNS: '4110',  // مرتجعات المبيعات
@@ -23,6 +24,7 @@ const ACCOUNTS = {
     OTHER_REVENUE: '4200',  // إيرادات أخرى
     COGS: '5100',           // تكلفة البضاعة المباعة
     PURCHASE_RETURNS: '5110', // مرتجعات المشتريات
+    SHRINKAGE: '5120',      // مصروف عجز وتسوية مخزون
     SALARIES: '5200',       // الرواتب
 };
 
@@ -426,6 +428,100 @@ export async function postStockTransfer(transfer: {
         userId: transfer.userId,
         branchId: transfer.branchId,
         date: transfer.date || new Date().toISOString().split('T')[0],
+    });
+}
+
+/**
+ * قيد مرتجع مشتريات
+ * مدين: الصندوق/المورد
+ * دائن: المخزون/تكلفة المشتريات
+ * دائن: ضريبة المدخلات
+ */
+export async function postPurchaseReturn(ret: {
+    returnNo: number;
+    subtotal: number;
+    taxValue: number;
+    total: number;
+    paymentType: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const receiveAccount = ret.paymentType === 'cash' ? ACCOUNTS.CASH :
+        ret.paymentType === 'bank' ? ACCOUNTS.BANK :
+            ACCOUNTS.PAYABLES;
+
+    return createJournalEntry({
+        description: `مرتجع مشتريات #${ret.returnNo}`,
+        reference: `PRET-${ret.returnNo}`,
+        lines: [
+            { accountCode: receiveAccount, debit: ret.total, credit: 0, description: `استرداد نقدي لمرتجع مشتريات #${ret.returnNo}` },
+            { accountCode: ACCOUNTS.INVENTORY, debit: 0, credit: ret.subtotal, description: `نقص مخزون بسبب الاسترجاع #${ret.returnNo}` },
+            { accountCode: ACCOUNTS.VAT_INPUT, debit: 0, credit: ret.taxValue, description: `عكس ضريبة المدخلات لمرتجع #${ret.returnNo}` },
+        ],
+        userId: ret.userId,
+        branchId: ret.branchId,
+        date: ret.date,
+    });
+}
+
+/**
+ * قيد تسوية جردية
+ */
+export async function postInventoryAdjustment(adj: {
+    productId: number;
+    diffCost: number; // positive = increase stock, negative = shrink
+    reason: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const lines = [];
+    const absCost = Math.abs(adj.diffCost);
+
+    if (adj.diffCost > 0) {
+        // Gain: Dr Inventory, Cr Shrinkage (as income recovery)
+        lines.push({ accountCode: ACCOUNTS.INVENTORY, debit: absCost, credit: 0, description: `زيادة تسوية جردية: ${adj.reason}` });
+        lines.push({ accountCode: ACCOUNTS.SHRINKAGE, debit: 0, credit: absCost, description: `إيراد عرضي من تسوية مخزون: ${adj.reason}` });
+    } else {
+        // Loss: Dr Shrinkage, Cr Inventory
+        lines.push({ accountCode: ACCOUNTS.SHRINKAGE, debit: absCost, credit: 0, description: `خسارة تسوية عجز: ${adj.reason}` });
+        lines.push({ accountCode: ACCOUNTS.INVENTORY, debit: 0, credit: absCost, description: `نقص تسوية جردية: ${adj.reason}` });
+    }
+
+    return createJournalEntry({
+        description: `تسوية أصدة مستودع (الجرد)`,
+        reference: `ADJ-${Date.now()}`,
+        lines,
+        userId: adj.userId,
+        branchId: adj.branchId,
+        date: adj.date,
+    });
+}
+
+/**
+ * قيد استلام بضاعة (GRN)
+ */
+export async function postGRN(grn: {
+    grnNo: number;
+    totalCost: number;
+    supplierName?: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    // Dr Inventory
+    // Cr GRNI (Goods Received Not Invoiced)
+    return createJournalEntry({
+        description: `سند إدخال مخزني #${grn.grnNo} من ${grn.supplierName || 'مورد'}`,
+        reference: `GRN-${grn.grnNo}`,
+        lines: [
+            { accountCode: ACCOUNTS.INVENTORY, debit: grn.totalCost, credit: 0, description: `استلام مخزون وارد سند ادخال #${grn.grnNo}` },
+            { accountCode: ACCOUNTS.GRNI, debit: 0, credit: grn.totalCost, description: `استحقاق استلام بضاعة غير مفوترة #${grn.grnNo}` },
+        ],
+        userId: grn.userId,
+        branchId: grn.branchId,
+        date: grn.date,
     });
 }
 

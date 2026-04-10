@@ -112,17 +112,39 @@ export async function POST(request: Request) {
             }
 
             if (totalGrossSalaries > 0) {
+                // Fetch dynamic Account IDs for Salaries and Bank
+                const salaryAcc = await tx.account.findFirst({ where: { code: '5200' } });
+                const bankAcc = await tx.account.findFirst({ where: { code: '1120' } });
+
+                if (!salaryAcc || !bankAcc) throw new Error('لا يمكن تسجيل القيد: حسابات الرواتب أو البنك غير معرّفة');
+
                 // Post Macro Journal Entry
-                await tx.journalEntry.create({
+                const jEntry = await tx.journalEntry.create({
                     data: {
                         entryNumber: `PAY-${year}-${month}`,
                         entryDate: new Date().toISOString().split('T')[0],
-                        description: `قيد مسير رواتب موظفي الشركة لشهر ${month}/${year}`,
+                        description: `قيد مسير رواتب الموظفين لشهر ${month}/${year}`,
                         reference: 'AUTO_PAYROLL',
                         totalDebit: totalGrossSalaries,
                         totalCredit: totalGrossSalaries,
-                        status: 'posted'
+                        status: 'posted',
+                        lines: {
+                            create: [
+                                { accountId: salaryAcc.id, debit: totalGrossSalaries, credit: 0, description: `إجمالي رواتب شهر ${month}` },
+                                { accountId: bankAcc.id, debit: 0, credit: totalGrossSalaries, description: `دفع مسير رواتب شهر ${month}` }
+                            ]
+                        }
                     }
+                });
+
+                // Update account balances
+                await tx.account.update({
+                    where: { id: salaryAcc.id },
+                    data: { balance: { increment: totalGrossSalaries } }
+                });
+                await tx.account.update({
+                    where: { id: bankAcc.id },
+                    data: { balance: { decrement: totalGrossSalaries } }
                 });
             }
         });

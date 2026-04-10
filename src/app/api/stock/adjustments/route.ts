@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { postInventoryAdjustment } from '@/lib/auto-journal';
 
 const prisma = new PrismaClient();
 
@@ -71,6 +72,22 @@ export async function POST(req: Request) {
                     notes: 'تسوية رصيد: من ' + current + ' إلى ' + actualQuantity + '. السبب: ' + (reason || 'تسوية يدوية')
                 }
             });
+
+            // Post to Auto Journal
+            const diffCost = diff * (product.buyPrice || product.cost || 0);
+            if (diffCost !== 0) {
+                try {
+                    await postInventoryAdjustment({
+                        productId: product.id,
+                        diffCost: diffCost,
+                        reason: reason || 'تسوية جردية يدوية',
+                        userId: decoded.userId
+                    });
+                } catch (je) {
+                    console.error("Auto Journal Error (Inventory Adj):", je);
+                }
+            }
+
             return mov;
         });
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { postPurchaseReturn } from '@/lib/auto-journal';
 
 export async function GET() {
     try {
@@ -33,6 +34,20 @@ export async function POST(request: Request) {
 
         if (ret.total > 0) {
             await prisma.treasury.create({ data: { type: 'in', amount: ret.total, description: `مرتجع مشتريات #${returnNo}`, referenceType: 'purchase_return', referenceId: ret.id, userId, branchId } });
+
+            try {
+                await postPurchaseReturn({
+                    returnNo: ret.returnNo,
+                    subtotal: ret.subtotal,
+                    taxValue: ret.taxValue,
+                    total: ret.total,
+                    paymentType: 'cash',
+                    userId: ret.userId || undefined,
+                    branchId: branchId,
+                });
+            } catch (je) {
+                console.error("Auto Journal Error (Purchase Return):", je);
+            }
         }
 
         return NextResponse.json(ret, { status: 201 });

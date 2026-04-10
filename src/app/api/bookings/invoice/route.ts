@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { postSalesInvoice } from '@/lib/auto-journal';
 
 export async function POST(request: Request) {
     try {
@@ -81,6 +82,20 @@ export async function POST(request: Request) {
 
             return invoice;
         });
+
+        try {
+            await postSalesInvoice({
+                invoiceNo: newInvoice.invoiceNo,
+                subtotal: newInvoice.subtotal,
+                taxValue: newInvoice.taxValue,
+                total: newInvoice.total,
+                paymentType: 'cash',
+                userId: newInvoice.userId || undefined,
+                branchId: booking.branchId || null
+            });
+        } catch (je) {
+            console.error("Auto Journal Error (Bookings - Invoice Conversion):", je);
+        }
 
         return NextResponse.json(newInvoice, { status: 201 });
 
