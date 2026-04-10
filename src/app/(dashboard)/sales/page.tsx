@@ -174,6 +174,117 @@ export default function SalesPage() {
 
     // Invoice History
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [notes, setNotes] = useState('');
+    const [paidAmount, setPaidAmount] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [toast, setToast] = useState('');
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [showVoucher, setShowVoucher] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [selectedVoucherData, setSelectedVoucherData] = useState<any>(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const [lastInvoiceData, setLastInvoiceData] = useState<{
+        invoiceId: number; invoiceNumber: string; date: string; customerName: string;
+        customerTaxNo?: string | null; customerCrNo?: string | null; customerAddress?: string | null;
+        paymentMethod: string; items: { name: string; quantity: number; price: number; total: number }[];
+        subtotal: number; discount: number; taxRate: number; taxAmount: number; grandTotal: number;
+    } | null>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const discountRef = useRef<HTMLInputElement>(null);
+    const [focusedProductIndex, setFocusedProductIndex] = useState(-1);
+    const [showTypeahead, setShowTypeahead] = useState(false);
+    const [showReturnsModal, setShowReturnsModal] = useState(false);
+
+    // BNPL (Tabby/Tamara) Polling State
+    const [bnplProvider, setBnplProvider] = useState<'TABBY' | 'TAMARA' | null>(null);
+    const [bnplUrl, setBnplUrl] = useState('');
+    const [bnplOrderId, setBnplOrderId] = useState('');
+    const [bnplPolling, setBnplPolling] = useState(false);
+    const [checkingStatus, setCheckingStatus] = useState(false);
+
+    // Dynamic Watcher for BNPL Status
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (bnplPolling && bnplOrderId && bnplProvider) {
+            interval = setInterval(async () => {
+                try {
+                    setCheckingStatus(true);
+                    const res = await fetch(`/api/pos/bnpl/status?provider=${bnplProvider.toLowerCase()}&sessionId=${bnplOrderId}`);
+                    const data = await res.json();
+                    
+                    if (data.isSuccess) {
+                        clearInterval(interval);
+                        setBnplPolling(false);
+                        // Trigger final save using the manual override trick
+                        document.getElementById('bnpl-force-save')?.click();
+                    } else if (data.status === 'REJECTED' || data.status === 'EXPIRED' || data.status === 'DECLINED') {
+                        clearInterval(interval);
+                        setBnplPolling(false);
+                        alert(t('sys.str_807'));
+                        setBnplProvider(null); setBnplUrl(''); setBnplOrderId('');
+                    }
+                } catch (e) {
+                    console.error('Polling Error', e);
+                } finally {
+                    setCheckingStatus(false);
+                }
+            }, 3000); 
+        }
+        return () => { if (interval) clearInterval(interval); };
+    }, [bnplPolling, bnplOrderId, bnplProvider]);
+
+    // Coupon logic
+    const [couponCode, setCouponCode] = useState('');
+    const [couponApplying, setCouponApplying] = useState(false);
+    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
+
+    // Quick Add Customer
+    const [showAddCustomer, setShowAddCustomer] = useState(false);
+    const [newCust, setNewCust] = useState({ name: '', phone: '', taxNumber: '', street: '', buildingNumber: '', district: '', city: '', postalCode: '', creditLimit: '', notes: '', type: '0' });
+    const [savingCust, setSavingCust] = useState(false);
+
+    // Held Invoices
+    const [heldInvoices, setHeldInvoices] = useState<HeldInvoice[]>([]);
+    const [showHeldPanel, setShowHeldPanel] = useState(false);
+
+    // Quick Add Product
+    const [showAddProduct, setShowAddProduct] = useState(false);
+    const [newProd, setNewProd] = useState({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
+    const [savingProd, setSavingProd] = useState(false);
+
+    // Invoice History
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [historyInvoices, setHistoryInvoices] = useState<any[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -182,6 +293,9 @@ export default function SalesPage() {
 
     // Void Mode
     const [voidMode, setVoidMode] = useState(false);
+
+    // Tax Inclusive Mode
+    const [isTaxInclusive, setIsTaxInclusive] = useState(true);
 
     // Permission-based delete
     const [canDelete, setCanDelete] = useState(false);
@@ -462,7 +576,11 @@ export default function SalesPage() {
 
     // Calculations
     const subtotal = cart.reduce((sum, item) => {
-        const itemTotal = item.quantity * item.price;
+        let actualPrice = item.price;
+        if (isTaxInclusive && taxEnabled) {
+             actualPrice = actualPrice / (1 + (taxRate / 100));
+        }
+        const itemTotal = item.quantity * actualPrice;
         const disc = itemTotal * (item.discountRate / 100) + (item.discountValue || 0);
         return sum + Math.max(0, itemTotal - disc);
     }, 0);
@@ -495,620 +613,6 @@ export default function SalesPage() {
     afterDiscount = afterDiscount - couponDiscountValue;
 
     const actualTaxRate = taxEnabled ? taxRate : 0;
-    const taxValue = afterDiscount * (actualTaxRate / 100);
-    const total = afterDiscount + taxValue;
-    const totalDiscountValue = regularDiscountValue + couponDiscountValue;
-
-    const applyCoupon = async () => {
-        if (!couponCode) return;
-        setCouponApplying(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/coupons/validate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ code: couponCode, cartTotal: subtotal - regularDiscountValue }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setAppliedCoupon({ code: data.code, type: data.discountType, value: data.discountValue });
-                showToast(t('sys.str_864'));
-            } else {
-                showToast(`❌ ${data.error}`);
-                setAppliedCoupon(null);
-            }
-        } catch {
-            showToast(t('sys.str_419'));
-        } finally {
-            setCouponApplying(false);
-        }
-    };
-
-    const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    const handleSave = async (print = false, whatsapp = false) => {
-        if (cart.length === 0) return;
-
-        // --- BNPL INTERCEPTION STAGE ---
-        if ((paymentType === 'TABBY' || paymentType === 'TAMARA') && !bnplOrderId) {
-            setSaving(true);
-            try {
-                const token = localStorage.getItem('token');
-                const reqBody = {
-                    provider: paymentType.toLowerCase(),
-                    amount: total,
-                    phone: customers.find(c => c.id.toString() === customerId)?.phone || '0500000000',
-                    customerName: customers.find(c => c.id.toString() === customerId)?.name || t('sys.str_814'),
-                    items: cart.map(c => ({ name: c.productName, quantity: c.quantity, price: c.price, id: c.productId }))
-                };
-                // Create BNPL Payment Session before saving invoice locally
-                const res = await fetch(`/api/pos/bnpl`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                    body: JSON.stringify(reqBody)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    setBnplUrl(data.webUrl);
-                    setBnplOrderId(data.sessionId);
-                    setBnplProvider(paymentType === 'TABBY' ? 'TABBY' : 'TAMARA');
-                    setBnplPolling(true); // Begin auto polling!
-                } else {
-                    showToast(t('sys.str_815') + (data.error || ''));
-                }
-            } catch (e) {
-                showToast(t('sys.str_816'));
-            } finally {
-                setSaving(false);
-            }
-            return; // stop standard saving process until BNPL is cleared
-        }
-        // -------------------------------
-
-        setSaving(true);
-        try {
-            const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-            // For card payments with POS terminal: confirm payment FIRST
-            if (paymentType === 'card' && posPort) {
-                showToast(t('sys.str_817'));
-                const result = await sendToPos(total);
-                if (result === 'declined') {
-                    showToast(t('sys.str_818'));
-                    setRetryPosAmount(total); setRetryInvoiceNo('');
-                    setSaving(false);
-                    return; // DO NOT save invoice
-                } else if (result === 'error') {
-                    showToast(t('sys.str_819'));
-                    setRetryPosAmount(total); setRetryInvoiceNo('');
-                    setSaving(false);
-                    return; // DO NOT save invoice
-                }
-                // approved or no_device → proceed to save
-            }
-
-            const res = await fetch('/api/sales', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({
-                    customerId: customerId || null,
-                    stockId: stockId || '1',
-                    items: cart.map(c => ({
-                        productId: c.productId, productName: c.productName,
-                        quantity: c.quantity, price: c.price, discountRate: c.discountRate,
-                    })),
-                    discountRate,
-                    paymentType,
-                    splitCash: paymentType === 'split' ? parseFloat(splitCash) || 0 : undefined,
-                    splitCard: paymentType === 'split' ? parseFloat(splitCard) || 0 : undefined,
-                    paid: paymentType === 'split' ? (parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0) : (paidAmount ? parseFloat(paidAmount) : total),
-                    userId: user.id,
-                    notes: bnplOrderId ? notes + `\nBNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
-                    manualInvoiceNo: manualInvoiceNo ? parseInt(manualInvoiceNo) : undefined,
-                    manualDate: manualDate || undefined,
-                }),
-            });
-            if (res.ok) {
-                const invoice = await res.json();
-                if (paymentType === 'card' && posPort) {
-                    showToast(`✅ تم الدفع وحفظ الفاتورة #${invoice.invoiceNo}`);
-                } else if (bnplOrderId) {
-                    showToast(`✅ تم تأكيد الدفعة المجزأة وحفظ الفاتورة #${invoice.invoiceNo}`);
-                } else {
-                    showToast(`✅ تم حفظ الفاتورة #${invoice.invoiceNo}`);
-                }
-                setBnplOrderId(''); setBnplUrl(''); setBnplProvider(null); setBnplPolling(false);
-                setRetryPosAmount(null); setRetryInvoiceNo('');
-                if (print) {
-                    const cust = customers.find(c => c.id.toString() === customerId);
-                    const customerName = cust?.name || t('sys.str_752');
-                    setLastInvoiceData({
-                        invoiceId: invoice.id,
-                        invoiceNumber: invoice.invoiceNo,
-                        date: invoice.date, // Use the server-generated date
-                        customerName,
-                        customerTaxNo: cust?.taxNumber,
-                        customerCrNo: cust?.crNo,
-                        customerAddress: cust?.address,
-                        paymentMethod: paymentType,
-                        items: cart.map(c => ({
-                            name: c.productName,
-                            quantity: c.quantity,
-                            price: c.price,
-                            total: c.quantity * c.price * (1 - c.discountRate / 100),
-                        })),
-                        subtotal,
-                        discount: totalDiscountValue,
-                        taxRate: 15,
-                        taxAmount: taxValue,
-                        grandTotal: total,
-                    });
-                    setShowReceipt(true);
-                }
-                // Open cash drawer for cash payments
-                if (paymentType === 'cash') {
-                    try {
-                        const drawerCmd = '\x1B\x70\x00\x19\xFA';
-                        const blob = new Blob([drawerCmd], { type: 'application/octet-stream' });
-                        const url = URL.createObjectURL(blob);
-                        const iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = url;
-                        document.body.appendChild(iframe);
-                        setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 2000);
-                    } catch (e) { console.warn('Cash drawer open skipped:', e); }
-                }
-                // Send to WhatsApp via automated CRM bot
-                if (whatsapp && customers.find(c => c.id.toString() === customerId)?.phone) {
-                    const customerName = customers.find(c => c.id.toString() === customerId)?.name || t('sys.str_752');
-                    const customerPhone = customers.find(c => c.id.toString() === customerId)?.phone || '';
-                    
-                    const itemsText = cart.map((c, i) =>
-                        `${i + 1}. ${c.productName} × ${c.quantity} = ${fmt(c.quantity * c.price * (1 - c.discountRate / 100))} ر.س`
-                    ).join('\n');
-                    
-                    const text = `🧾 *فاتورة مبيعات #${invoice.invoiceNo}*\n` +
-                        `📅 ${new Date().toLocaleDateString('ar-SA')}\n` +
-                        `👤 ${customerName}\n\n` +
-                        `📦 *الأصناف:*\n${itemsText}\n\n` +
-                        `💰 المجموع: ${fmt(subtotal)} ر.س\n` +
-                        `📊 الضريبة: ${fmt(taxValue)} ر.س\n` +
-                        `✅ *الإجمالي: ${fmt(total)} ر.س*\n\n` +
-                        t('sys.str_865');
-
-                    // إرسال عبر الـ CRM Bot بدلاً من فتح تطبيق واتساب للمستخدم
-                    fetch('/api/crm/whatsapp', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({
-                            phone: customerPhone,
-                            message: text,
-                            invoiceId: invoice.id,
-                            type: 'invoice'
-                        })
-                    }).then(r => r.json()).then(res => {
-                        if (res.success) {
-                            showToast(t('sys.str_4329'));
-                        } else {
-                            // التراجع للطريقة اليدوية في حال فشل البوت
-                            console.warn('Bot Failed, falling back to manual whatsapp');
-                            const url = `https://wa.me/${customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
-                            window.open(url, '_blank');
-                        }
-                    }).catch(err => console.error('WhatsApp Bot Error', err));
-                }
-                setCart([]); setDiscountRate(0); setNotes(''); setPaidAmount(''); setCustomerId(''); setAppliedCoupon(null); setCouponCode('');
-                setSplitCash(''); setSplitCard(''); 
-                setManualInvoiceNo(''); setManualDate('');
-                fetchProducts();
-            } else {
-                showToast(t('sys.str_4330'));
-            }
-        } catch (err) {
-            console.error(err);
-            showToast(t('sys.str_419'));
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const showToast = (msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(''), 3000);
-    };
-
-    const handleNewInvoice = () => {
-        setCart([]); setDiscountRate(0); setNotes(''); setPaidAmount(''); setCustomerId(''); setAppliedCoupon(null); setCouponCode('');
-        setSplitCash(''); setSplitCard('');
-        setManualInvoiceNo(''); setManualDate('');
-        setRetryPosAmount(null); setRetryInvoiceNo('');
-        searchRef.current?.focus();
-    };
-
-    // Hold / Recall Invoice
-    const holdInvoice = () => {
-        if (cart.length === 0) { showToast(t('sys.str_822')); return; }
-        const now = new Date();
-        const held: HeldInvoice = {
-            id: Date.now().toString(),
-            cart: [...cart],
-            customerId,
-            notes,
-            discountRate,
-            paidAmount,
-            paymentType,
-            heldAt: now.toISOString(),
-            label: `${cart.length} صنف - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
-        };
-        const updated = [...heldInvoices, held];
-        setHeldInvoices(updated);
-        localStorage.setItem('heldInvoices', JSON.stringify(updated));
-        setCart([]); setDiscountRate(0); setNotes(''); setPaidAmount(''); setCustomerId(''); setAppliedCoupon(null); setCouponCode('');
-        showToast(`⏸️ تم تعليق الفاتورة (${held.label})`);
-        searchRef.current?.focus();
-    };
-
-    const recallInvoice = (heldId: string) => {
-        const held = heldInvoices.find(h => h.id === heldId);
-        if (!held) return;
-        // If current cart has items, hold it first
-        if (cart.length > 0) {
-            holdInvoice();
-        }
-        setCart(held.cart);
-        setCustomerId(held.customerId);
-        setNotes(held.notes);
-        setDiscountRate(held.discountRate);
-        setPaidAmount(held.paidAmount);
-        setPaymentType(held.paymentType);
-        const updated = heldInvoices.filter(h => h.id !== heldId);
-        setHeldInvoices(updated);
-        localStorage.setItem('heldInvoices', JSON.stringify(updated));
-        setShowHeldPanel(false);
-        showToast(t('sys.str_4331'));
-    };
-
-    const deleteHeldInvoice = (heldId: string) => {
-        const updated = heldInvoices.filter(h => h.id !== heldId);
-        setHeldInvoices(updated);
-        localStorage.setItem('heldInvoices', JSON.stringify(updated));
-        showToast(t('sys.str_4332'));
-    };
-
-    // Invoice History
-    const fetchHistory = async () => {
-        setHistoryLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/sales', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { const d = await res.json(); setHistoryInvoices(Array.isArray(d) ? d : []); }
-        } catch (err) { console.error(err); }
-        finally { setHistoryLoading(false); }
-    };
-
-    const openHistory = () => { setShowHistory(true); fetchHistory(); };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const reprintInvoice = (inv: any) => {
-        const items = (inv.details || []).map((d: { productName: string; quantity: number; price: number; discountRate: number; total: number }) => ({
-            name: d.productName, quantity: d.quantity, price: d.price,
-            total: d.quantity * d.price * (1 - (d.discountRate || 0) / 100),
-        }));
-        setLastInvoiceData({
-            invoiceId: inv.id, invoiceNumber: String(inv.invoiceNo),
-            date: inv.date, customerName: inv.customer?.name || t('sys.str_752'),
-            customerTaxNo: inv.customer?.taxNumber,
-            customerCrNo: null,
-            customerAddress: inv.customer?.address,
-            paymentMethod: inv.paymentType, items,
-            subtotal: inv.subtotal, discount: inv.discountValue || 0,
-            taxRate: actualTaxRate, taxAmount: inv.taxValue, grandTotal: inv.total,
-        });
-        setShowReceipt(true);
-        setSelectedInvoice(null);
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const printVoucher = (inv: any) => {
-        setSelectedVoucherData({
-            receiptNumber: String(Date.now()).slice(-6), // Optional or generated
-            invoiceNumber: String(inv.invoiceNo),
-            date: inv.date,
-            customerName: inv.customer?.name || t('sys.str_752'),
-            customerTaxNo: inv.customer?.taxNumber,
-            customerCrNo: inv.customer?.crNo,
-            customerAddress: inv.customer?.address,
-            amount: inv.total,
-            paymentMethod: inv.paymentType,
-        });
-        setShowVoucher(true);
-        setSelectedInvoice(null);
-    };
-
-    // WhatsApp Send (CRM Bot or Manual Fallback)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sendWhatsApp = async (inv: any) => {
-        const phone = inv.customer?.phone || '';
-        if (!phone) {
-            showToast(t('sys.str_825'));
-            return;
-        }
-
-        const items = (inv.details || []).map((d: { productName: string; quantity: number; price: number; total: number }, i: number) =>
-            `${i + 1}. ${d.productName} × ${d.quantity} = ${fmt(d.total)} ر.س`
-        ).join('\n');
-        const text = `🧾 *فاتورة مبيعات #${inv.invoiceNo}*\n` +
-            `📅 ${new Date(inv.date).toLocaleDateString('ar-SA')}\n` +
-            `👤 ${inv.customer?.name || t('sys.str_752')}\n\n` +
-            `📦 *الأصناف:*\n${items}\n\n` +
-            `💰 المجموع: ${fmt(inv.subtotal)} ر.س\n` +
-            `📊 الضريبة: ${fmt(inv.taxValue)} ر.س\n` +
-            `✅ *الإجمالي: ${fmt(inv.total)} ر.س*\n\n` +
-            t('sys.str_865');
-        
-        showToast(t('sys.str_826'));
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/crm/whatsapp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ phone, message: text, invoiceId: inv.id, type: 'invoice' })
-            });
-            const data = await res.json();
-            if (data.success) {
-                showToast(t('sys.str_827'));
-            } else {
-                throw new Error(data.error || t('sys.str_828'));
-            }
-        } catch (err) {
-            console.warn('Falling back to manual WhatsApp link', err);
-            const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
-        }
-    };
-
-    const retryPosPayment = async () => {
-        if (!retryPosAmount || !posPort) return;
-        setSaving(true);
-        showToast(t('sys.str_829'));
-        const result = await sendToPos(retryPosAmount);
-        if (result === 'approved') {
-            handleSave(false);
-            return;
-        } else {
-            showToast(t('sys.str_830'));
-        }
-        setSaving(false);
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const deleteInvoice = async (inv: any) => {
-        if (!confirm(`هل أنت متأكد من حذف الفاتورة #${inv.invoiceNo}؟ سيتم استرجاع المخزون وحذف قيد الخزينة.`)) return;
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/sales?id=${inv.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) {
-                showToast(`✅ تم حذف الفاتورة #${inv.invoiceNo}`);
-                setSelectedInvoice(null);
-                fetchHistory();
-            } else {
-                const data = await res.json();
-                showToast(`❌ ${data.error || t('sys.str_831')}`);
-            }
-        } catch { showToast(t('sys.str_419')); }
-    };
-
-    return (
-        <>
-            
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
-                    <button id="returns-btn" type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                        ↩ {'استرجاع مباشر'}
-                    </button>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>✖</span> {t('sys.str_742')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Esc</kbd>
-                    </button>
-                    <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
-                        style={{ color: 'var(--warning)', display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>⏸️</span> {t('sys.str_743')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F3</kbd>
-                    </button>
-                    <button id="recall-btn" className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
-                        style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined, display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>📋</span> {t('sys.str_744')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F4</kbd>
-                        {heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
-                    </button>
-                    <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => { setVoidMode(!voidMode); showToast(voidMode ? t('sys.str_832') : t('sys.str_833')); }}
-                        style={{ color: voidMode ? '#fff' : 'var(--danger)', background: voidMode ? 'var(--danger)' : undefined, display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>🗑️</span> {t('sys.str_745')}
-                    </button>
-                    <button id="history-btn" className="btn btn-ghost btn-sm" onClick={openHistory} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>🕒</span> {t('sys.str_4322')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F9</kbd>
-                    </button>
-                </div>
-            </div>
-
-            {/* ---------- BNPL POLLING MODAL ---------- */}
-            {bnplProvider && bnplUrl && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ background: '#111', padding: '30px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', border: `2px solid ${bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e'}` }}>
-                        <h2 style={{ color: bnplProvider === 'TABBY' ? '#3eede7' : '#ff796e', marginBottom: '10px' }}>
-                            {bnplProvider === 'TABBY' ? t('sys.str_834') : t('sys.str_835')}
-                        </h2>
-                        <p style={{ color: '#aaa', marginBottom: '20px' }}>{t('sys.str_747')}</p>
-                        
-                        <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px' }}>
-                            <QRCodeCanvas value={bnplUrl} size={250} level="H" includeMargin />
-                        </div>
-                        
-                        <div style={{ marginBottom: '20px' }}>
-                            {bnplPolling ? (
-                                <p style={{ color: '#fbbf24', fontSize: '14px', animation: 'pulse 2s infinite' }}>{t('sys.str_748')}{bnplProvider}...</p>
-                            ) : (
-                                <p style={{ color: '#ef4444', fontSize: '14px' }}>{t('sys.str_749')}</p>
-                            )}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                            <button 
-                                onClick={() => { setBnplPolling(false); setBnplProvider(null); setBnplUrl(''); setBnplOrderId(''); }}
-                                style={{ padding: '10px 15px', background: '#333', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
-                            >
-                                {t('sys.str_750')}</button>
-                            <button 
-                                id="bnpl-force-save"
-                                onClick={async () => {
-                                    if(confirm(t('sys.str_836'))) {
-                                        setBnplPolling(false);
-                                        await handleSave();
-                                    }
-                                }}
-                                style={{ padding: '10px 15px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', flex: 1 }}
-                            >
-                                {t('sys.str_751')}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* -------------------------------------- */}
-
-            <div className="page-content">
-                <div className="pos-layout" style={{ gridTemplateColumns: '1fr' }}>
-                    {/* Invoice Panel */}
-                    <div className="pos-invoice" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                                {/* Invoice Header */}
-                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
-                            {/* Smart Unified Search Bar */}
-                        <div style={{ position: 'relative', zIndex: 20, flex: '1 1 300px' }}>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    ref={searchRef}
-                                    className="input"
-                                    placeholder={t('sys.str_846')}
-                                    value={search}
-                                    onChange={e => {
-                                        setSearch(e.target.value);
-                                        setShowTypeahead(true);
-                                        setFocusedProductIndex(-1);
-                                    }}
-                                    onFocus={() => setShowTypeahead(true)}
-                                    // Delay blur so click events on typeahead can fire
-                                    onBlur={() => setTimeout(() => setShowTypeahead(false), 200)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'ArrowDown') {
-                                            e.preventDefault();
-                                            setFocusedProductIndex(prev => Math.min(prev + 1, filteredProducts.length - 1));
-                                            setShowTypeahead(true);
-                                        } else if (e.key === 'ArrowUp') {
-                                            e.preventDefault();
-                                            setFocusedProductIndex(prev => Math.max(prev - 1, -1));
-                                        } else if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            if (filteredProducts.length > 0) {
-                                                const idxToSelect = focusedProductIndex >= 0 ? focusedProductIndex : 0;
-                                                addToCart(filteredProducts[idxToSelect]);
-                                                setShowTypeahead(false);
-                                                setFocusedProductIndex(-1);
-                                            }
-                                        }
-                                    }}
-                                    style={{ width: '100%', fontSize: '15px', padding: '10px 16px', fontWeight: 'bold', borderRadius: '8px', border: '2px solid var(--primary)' }}
-                                />
-                                {/* Typeahead Dropdown */}
-                                {showTypeahead && search.trim() && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '100%',
-                                        left: 0,
-                                        right: 0,
-                                        marginTop: '4px',
-                                        background: 'var(--bg-card)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: '8px',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                        maxHeight: '300px',
-                                        overflowY: 'auto'
-                                    }}>
-                                        {filteredProducts.length > 0 ? (
-                                            filteredProducts.map((p, index) => (
-                                                <div 
-                                                    key={p.id} 
-                                                    style={{ 
-                                                        padding: '12px 16px', 
-                                                        borderBottom: '1px solid var(--border)', 
-                                                        cursor: 'pointer',
-                                                        background: index === focusedProductIndex ? 'var(--bg-card-hover)' : 'transparent',
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center'
-                                                    }}
-                                                    onClick={() => { addToCart(p); setShowTypeahead(false); }}
-                                                    onMouseEnter={() => setFocusedProductIndex(index)}
-                                                >
-                                                    <div>
-                                                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{p.name}</div>
-                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.barcode || t('sys.str_421')} {t('sys.str_762')}{p.currentStock}</div>
-                                                    </div>
-                                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{fmt(p.sellPrice)} {t('sys.str_68')}</div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div style={{ padding: '24px', textAlign: 'center' }}>
-                                                <div style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_763')}</div>
-                                                {allowAddProduct && <button className="btn btn-primary btn-sm" onClick={openAddProduct}>{t('sys.str_764')}</button>}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                <select className="input" style={{ width: '180px' }}
-                                    value={customerId} onChange={e => setCustomerId(e.target.value)}>
-                                    <option value="">{t('sys.str_752')}</option>
-                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
-                                <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
-                                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
-                            </div>
-                            <select className="input" style={{ width: '100px', /* removed bg */ }}
-                                value={currencyId} onChange={e => {
-                                    setCurrencyId(e.target.value);
-                                    const c = currencies.find(x => x.id.toString() === e.target.value);
-                                    if (c) setExchangeRate(c.exchangeRate);
-                                }}>
-                                <option value="" disabled>{t('purchases.str_1013')}</option>
-                                {currencies.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
-                            </select>
-                            <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
-                                <option value="1">{t('sys.str_753')}</option>
-                                {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                            </select>
-                            <select className="input" style={{ width: '140px' }}
-                                value={paymentType} onChange={e => setPaymentType(e.target.value)}>
-                                <option value="cash">{t('sys.str_754')}</option>
-                                <option value="card">{t('sys.str_755')}</option>
-                                <option value="transfer">{t('sys.str_756')}</option>
-                                <option value="split">{t('sys.str_757')}</option>
-                                <option value="TABBY">{t('sys.str_758')}</option>
-                                <option value="TAMARA">{t('sys.str_759')}</option>
-                                {isAdmin && <option value="credit">{t('sys.str_760')}</option>}
-                                {isAdmin && <option value="installment">{t('sys.str_761')}</option>}
-                            </select>
-                            <input className="input" type="number" placeholder={t('sys.str_4333')} value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title={t('sys.str_4334')} />
-                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title={t('sys.str_4335')} />
-                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
-                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
-                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
-                            </button>
-                        </div>
-
                         {/* Cart Table */}
                         {voidMode && <div style={{ background: 'rgba(239,68,68,0.15)', border: '2px solid var(--danger)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', textAlign: 'center', fontWeight: '700', color: 'var(--danger)', fontSize: '13px', animation: 'pulse 1.5s infinite' }}>{t('sys.str_765')}</div>}
                         <div className="pos-invoice-table">

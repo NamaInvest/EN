@@ -62,7 +62,12 @@ export async function POST(request: Request) {
         let subtotal = 0;
         const items = body.items || [];
         for (const item of items) {
-            const itemTotal = (item.quantity || 1) * (item.price || 0);
+            let price = parseFloat(item.price as string) || 0;
+            if (body.isTaxInclusive) {
+                 price = price / 1.15;
+                 item.price = price; // update in place for details creation
+            }
+            const itemTotal = (item.quantity || 1) * price;
             const itemDiscount = itemTotal * ((item.discountRate || 0) / 100);
             subtotal += itemTotal - itemDiscount;
         }

@@ -13,12 +13,10 @@ const config = {
 const basePath = '/www/wwwroot/n11.namainvist.com/';
 
 const filesToUpload = [
-    'prisma/schema.prisma',
-    'src/app/api/purchases/route.ts',
-    'src/app/(dashboard)/purchases/page.tsx',
-    'src/app/(dashboard)/purchases/options/page.tsx',
-    'src/app/(dashboard)/reports/manual-purchases/page.tsx',
-    'src/components/Sidebar.tsx'
+    'src/locales/ar.json',
+    'src/locales/en.json',
+    'src/app/api/sales/route.ts',
+    'src/app/(dashboard)/sales/page.tsx'
 ];
 
 console.log('🔄 جاري الاتصال بخادم N11 الحقيقي (46.4.188.170)...');
@@ -27,7 +25,7 @@ const conn = new Client();
 conn.on('ready', () => {
     console.log('✅ تم الاتصال بنجاح!');
     
-    conn.exec(`mkdir -p /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/purchases/options && mkdir -p /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/reports/manual-purchases`, (err, stream) => {
+    conn.exec(`mkdir -p /www/wwwroot/n11.namainvist.com/src/locales && mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/sales && mkdir -p /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/sales`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => {
             
