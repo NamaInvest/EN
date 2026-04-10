@@ -9,11 +9,11 @@ const config = {
     readyTimeout: 30000
 };
 
-console.log('🔄 Checking n1 translations...');
+console.log('🔄 Searching translations in all nodes...');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec(`grep -r "sys.str_3501" /www/wwwroot/n1.namainvist.com/src/`, (err, stream) => {
+    conn.exec(`grep -r "sys.str_3501" /www/wwwroot/*/src/lib/translations.ts`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => {
             conn.end();

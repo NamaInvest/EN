@@ -9,11 +9,11 @@ const config = {
     readyTimeout: 30000
 };
 
-console.log('🔄 Checking n1 translations...');
+console.log('🔄 Checking git status...');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec(`grep -r "sys.str_3501" /www/wwwroot/n1.namainvist.com/src/`, (err, stream) => {
+    conn.exec(`cd /www/wwwroot/n11.namainvist.com && git status`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => {
             conn.end();

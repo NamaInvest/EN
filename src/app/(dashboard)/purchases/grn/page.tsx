@@ -129,7 +129,7 @@ export default function GoodsReceiptNotePage() {
         {/* Create Modal */}
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-                <div className="modal animate-scale-in" style={{ maxWidth: '900px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+                <div className="modal animate-scale-in" style={{ maxWidth: '900px', width: '95%', backgroundColor: 'var(--bg-card, white)', borderRadius: '12px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
                     <h2>{t('purchases.str_2252')}</h2>
                     <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         <div style={{ display: 'flex', gap: '15px' }}>

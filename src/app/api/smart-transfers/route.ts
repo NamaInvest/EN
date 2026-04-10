@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { postStockTransfer } from '@/lib/auto-journal';
 
 export async function GET(req: NextRequest) {
     try {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
             where: { type: 'transit_out' },
             include: { 
                 product: { select: { name: true } }, 
-                stock: { select: { name: true } },
+                stock: { select: { name: true, branch: { select: { name: true } } } },
                 user: { select: { fullName: true } }
             },
             orderBy: { id: 'desc' }
@@ -27,15 +28,15 @@ export async function GET(req: NextRequest) {
             try { if (tr.notes) meta = JSON.parse(tr.notes); } catch (e) {}
             
             // To get receiver name without N+1 problem, ideally fetch all stocks once, but let's query gracefully
-            const receiverStock = await prisma.stock.findUnique({ where: { id: meta.receiverStockId || 0 }, select: { name: true } });
+            const receiverStock = await prisma.stock.findUnique({ where: { id: meta.receiverStockId || 0 }, select: { name: true, branch: { select: { name: true } } } });
 
             const formatted = {
                 id: tr.id,
                 reference: meta.transferRef || `TRX-${tr.id}`,
                 productName: tr.product?.name || 'Unknown',
                 quantity: Math.abs(tr.quantity),
-                senderStock: tr.stock?.name || 'Unknown',
-                receiverStock: receiverStock?.name || 'Unknown',
+                senderStock: tr.stock?.branch?.name ? `${tr.stock.branch.name} - ${tr.stock.name}` : (tr.stock?.name || 'Unknown'),
+                receiverStock: receiverStock?.branch?.name ? `${receiverStock.branch.name} - ${receiverStock.name}` : (receiverStock?.name || 'Unknown'),
                 receiverStockId: meta.receiverStockId,
                 status: meta.status,
                 date: tr.date,
@@ -77,6 +78,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'الكمية غير متوفرة في المستودع المرسل' }, { status: 400 });
         }
 
+        const product = await prisma.product.findUnique({ where: { id: Number(productId) } });
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 400 });
+
         const transferRef = `TRX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
         // Phase 1: Dispatch (Transit Out) using Prisma Transaction
@@ -104,7 +108,21 @@ export async function POST(req: NextRequest) {
             })
         ]);
 
-        return NextResponse.json({ success: true, message: 'تم إرسال الإرسالية بنجاح، البضاعة الآن في الطريق.', dispatchCheck: dispatchAction[1].id });
+        const movementId = dispatchAction[1].id;
+        try {
+            await postStockTransfer({
+                movementId: movementId,
+                reference: transferRef,
+                type: 'transit_out',
+                totalCost: (product.cost || 0) * Number(quantity),
+                productName: product.name,
+                userId: (user as any).id || 1,
+            });
+        } catch (je) {
+            console.error('Auto Journal Transit Out Error', je);
+        }
+
+        return NextResponse.json({ success: true, message: 'تم إرسال الإرسالية بنجاح، البضاعة الآن في الطريق.', dispatchCheck: movementId });
 
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
@@ -121,7 +139,10 @@ export async function PUT(req: NextRequest) {
 
         if (!movementId) return NextResponse.json({ error: 'No ID provided' }, { status: 400 });
 
-        const tr = await prisma.stockMovement.findUnique({ where: { id: parseInt(movementId) } });
+        const tr = await prisma.stockMovement.findUnique({ 
+            where: { id: parseInt(movementId) },
+            include: { product: true } 
+        });
         if (!tr || tr.type !== 'transit_out') return NextResponse.json({ error: 'Invalid Movement' }, { status: 400 });
 
         let meta = JSON.parse(tr.notes || '{}');
@@ -171,6 +192,19 @@ export async function PUT(req: NextRequest) {
                 }
             });
         });
+
+        try {
+            await postStockTransfer({
+                movementId: tr.id,
+                reference: meta.transferRef,
+                type: 'transit_in',
+                totalCost: (tr.product?.cost || 0) * qty,
+                productName: tr.product?.name || 'Unknown',
+                userId: (user as any).id || 1,
+            });
+        } catch (je) {
+            console.error('Auto Journal Transit In Error', je);
+        }
 
         return NextResponse.json({ success: true, message: 'تم ادخال البضاعة بنجاح إلى المستودع الهدف!' });
 

@@ -23,9 +23,9 @@ export default function ManualPurchasesReport() {
         try {
             const token = localStorage.getItem('token');
             let url = '/api/purchases?';
-            if (from) url += `from=\${from}&`;
-            if (to) url += `to=\${to}&`;
-            const res = await fetch(url, { headers: { Authorization: \`Bearer \${token}\` } });
+            if (from) url += `from=${from}&`;
+            if (to) url += `to=${to}&`;
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) {
                 const data = await res.json();
                 // Filter only manual invoices

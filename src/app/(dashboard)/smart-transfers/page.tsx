@@ -24,13 +24,22 @@ export default function SmartTransfersPage() {
     useEffect(() => {
         fetchResources();
         fetchTransits();
-    }, []);
+        
+        // Auto-Refresh for real-time tracking (every 10 seconds)
+        const interval = setInterval(() => {
+            if (activeTab === 'track') {
+                fetchTransits();
+            }
+        }, 10000);
+        
+        return () => clearInterval(interval);
+    }, [activeTab]);
 
     const fetchResources = async () => {
         try {
             const [pRes, sRes] = await Promise.all([
                 fetch('/api/products?limit=5000'), // Quick pull
-                fetch('/api/stock')
+                fetch('/api/warehouses')
             ]);
             const pData = await pRes.json();
             const sData = await sRes.json();
@@ -185,7 +194,9 @@ export default function SmartTransfersPage() {
                                     >
                                         <option value="" className="bg-[#111]">{t('sys.str_1422')}</option>
                                         {stocks.map(s => (
-                                            <option key={s.id} value={s.id} className="bg-[#111]">{s.name}</option>
+                                            <option key={s.id} value={s.id} className="bg-[#111]">
+                                                {s.branch?.name ? `${s.branch.name} - ${s.name}` : s.name}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
@@ -199,7 +210,9 @@ export default function SmartTransfersPage() {
                                     >
                                         <option value="" className="bg-[#111]">{t('sys.str_1424')}</option>
                                         {stocks.map(s => (
-                                            <option key={s.id} value={s.id} className="bg-[#111]">{s.name}</option>
+                                            <option key={s.id} value={s.id} className="bg-[#111]">
+                                                {s.branch?.name ? `${s.branch.name} - ${s.name}` : s.name}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>

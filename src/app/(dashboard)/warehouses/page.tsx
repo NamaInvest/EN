@@ -299,7 +299,7 @@ export default function WarehousesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded shadow hover:bg-primary/90"
+                  className="px-4 py-2 bg-primary text-black font-bold rounded shadow hover:bg-primary/90"
                 >
                   {t("save")}
                 </button>

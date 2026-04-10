@@ -13,6 +13,7 @@ const ACCOUNTS = {
     BANK: '1120',           // البنك
     RECEIVABLES: '1200',    // المدينون (العملاء)
     INVENTORY: '1300',      // المخزون
+    IN_TRANSIT: '1310',     // بضاعة بالطريق
     VAT_INPUT: '1400',      // ضريبة مدخلات
     PAYABLES: '2100',       // الدائنون (الموردون)
     VAT_OUTPUT: '2300',     // ضريبة مخرجات
@@ -390,6 +391,41 @@ export async function postSalary(salary: {
         userId: salary.userId,
         branchId: salary.branchId,
         date: salary.date,
+    });
+}
+
+/**
+ * قيد تحويل مخزون ذكي (In-Transit WMS)
+ */
+export async function postStockTransfer(transfer: {
+    movementId: number;
+    reference: string;
+    type: 'transit_out' | 'transit_in';
+    totalCost: number;
+    productName: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const lines = [];
+
+    if (transfer.type === 'transit_out') {
+        // Debit: IN_TRANSIT, Credit: INVENTORY
+        lines.push({ accountCode: ACCOUNTS.IN_TRANSIT, debit: transfer.totalCost, credit: 0, description: `إرسال بضاعة للفرع الهدف: ${transfer.productName}` });
+        lines.push({ accountCode: ACCOUNTS.INVENTORY, debit: 0, credit: transfer.totalCost, description: `مخزون صادر بالطريق: ${transfer.productName}` });
+    } else {
+        // Debit: INVENTORY, Credit: IN_TRANSIT
+        lines.push({ accountCode: ACCOUNTS.INVENTORY, debit: transfer.totalCost, credit: 0, description: `استلام بضاعة محولة: ${transfer.productName}` });
+        lines.push({ accountCode: ACCOUNTS.IN_TRANSIT, debit: 0, credit: transfer.totalCost, description: `إقفال حساب بضاعة بالطريق: ${transfer.productName}` });
+    }
+
+    return createJournalEntry({
+        description: `حركة تحويل مخزوني رقم #${transfer.movementId} - ${transfer.type === 'transit_out' ? 'إرسال' : 'استلام'}`,
+        reference: transfer.reference,
+        lines,
+        userId: transfer.userId,
+        branchId: transfer.branchId,
+        date: transfer.date || new Date().toISOString().split('T')[0],
     });
 }
 

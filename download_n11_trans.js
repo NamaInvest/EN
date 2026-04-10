@@ -9,17 +9,18 @@ const config = {
     readyTimeout: 30000
 };
 
-console.log('🔄 Checking n1 translations...');
+console.log('🔄 Downloading n11 translations.ts...');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec(`grep -r "sys.str_3501" /www/wwwroot/n1.namainvist.com/src/`, (err, stream) => {
+    conn.sftp((err, sftp) => {
         if (err) throw err;
-        stream.on('close', () => {
+        
+        sftp.fastGet('/www/wwwroot/n11.namainvist.com/src/lib/translations.ts', 'd:\\namasoft9-3-main\\translations_n11.ts', (err) => {
+            if (err) throw err;
+            console.log('✅ Downloaded n11 translations');
             conn.end();
-            console.log('🏁 Search completed.');
-        }).on('data', (data) => process.stdout.write(data.toString()))
-          .stderr.on('data', (data) => process.stderr.write(data.toString()));
+        });
     });
 }).on('error', (err) => {
     console.error('❌ Error:', err);

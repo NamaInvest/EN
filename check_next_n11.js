@@ -9,11 +9,11 @@ const config = {
     readyTimeout: 30000
 };
 
-console.log('🔄 Checking n1 translations...');
+console.log('🔄 Checking Next.js build...');
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec(`grep -r "sys.str_3501" /www/wwwroot/n1.namainvist.com/src/`, (err, stream) => {
+    conn.exec(`grep -r "manual_purchases" /www/wwwroot/n11.namainvist.com/.next`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => {
             conn.end();
