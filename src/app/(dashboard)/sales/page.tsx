@@ -304,8 +304,10 @@ export default function SalesPage() {
             } else if (e.key === 'F8') {
                 const qtyInputs = document.querySelectorAll('.qty-input');
                 if (qtyInputs.length > 0) (qtyInputs[qtyInputs.length - 1] as HTMLInputElement).select();
-            } else if (e.key === 'F4') {
+            } else if (e.key === 'F9') {
                 document.getElementById('history-btn')?.click();
+            } else if (e.key === 'F4') {
+                document.getElementById('recall-btn')?.click();
             } else if (e.key === 'F2') {
                 document.getElementById('save-btn')?.click();
             } else if (e.key === 'F3') {
@@ -851,7 +853,7 @@ export default function SalesPage() {
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
-                    <button type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <button id="returns-btn" type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
                         ↩ {'استرجاع مباشر'}
                     </button>
                 </div>
@@ -863,9 +865,9 @@ export default function SalesPage() {
                         style={{ color: 'var(--warning)', display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <span>⏸️</span> {t('sys.str_743')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F3</kbd>
                     </button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
+                    <button id="recall-btn" className="btn btn-ghost btn-sm" onClick={() => setShowHeldPanel(true)}
                         style={{ position: 'relative', color: heldInvoices.length > 0 ? 'var(--primary)' : undefined, display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>📋</span> {t('sys.str_744')}
+                        <span>📋</span> {t('sys.str_744')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F4</kbd>
                         {heldInvoices.length > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{heldInvoices.length}</span>}
                     </button>
                     <button className={`btn btn-sm ${voidMode ? 'btn-primary' : 'btn-ghost'}`}
@@ -874,7 +876,7 @@ export default function SalesPage() {
                         <span>🗑️</span> {t('sys.str_745')}
                     </button>
                     <button id="history-btn" className="btn btn-ghost btn-sm" onClick={openHistory} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <span>🕒</span> {t('sys.str_4322')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F4</kbd>
+                        <span>🕒</span> {t('sys.str_4322')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>F9</kbd>
                     </button>
                 </div>
             </div>
@@ -927,52 +929,8 @@ export default function SalesPage() {
                 <div className="pos-layout" style={{ gridTemplateColumns: '1fr' }}>
                     {/* Invoice Panel */}
                     <div className="pos-invoice" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        {/* Invoice Header */}
-                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
-                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                <select className="input" style={{ width: '180px' }}
-                                    value={customerId} onChange={e => setCustomerId(e.target.value)}>
-                                    <option value="">{t('sys.str_752')}</option>
-                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
-                                <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
-                                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
-                            </div>
-                            <select className="input" style={{ width: '100px', backgroundColor: '#eef2ff' }}
-                                value={currencyId} onChange={e => {
-                                    setCurrencyId(e.target.value);
-                                    const c = currencies.find(x => x.id.toString() === e.target.value);
-                                    if (c) setExchangeRate(c.exchangeRate);
-                                }}>
-                                <option value="" disabled>{t('purchases.str_1013')}</option>
-                                {currencies.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
-                            </select>
-                            <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
-                                <option value="1">{t('sys.str_753')}</option>
-                                {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                            </select>
-                            <select className="input" style={{ width: '140px' }}
-                                value={paymentType} onChange={e => setPaymentType(e.target.value)}>
-                                <option value="cash">{t('sys.str_754')}</option>
-                                <option value="card">{t('sys.str_755')}</option>
-                                <option value="transfer">{t('sys.str_756')}</option>
-                                <option value="split">{t('sys.str_757')}</option>
-                                <option value="TABBY">{t('sys.str_758')}</option>
-                                <option value="TAMARA">{t('sys.str_759')}</option>
-                                {isAdmin && <option value="credit">{t('sys.str_760')}</option>}
-                                {isAdmin && <option value="installment">{t('sys.str_761')}</option>}
-                            </select>
-                            <input className="input" type="number" placeholder={t('sys.str_4333')} value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title={t('sys.str_4334')} />
-                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title={t('sys.str_4335')} />
-                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
-                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
-                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
-                            </button>
-                        </div>
-
                         {/* Smart Unified Search Bar */}
-                        <div style={{ position: 'relative', padding: '12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', zIndex: 10 }}>
+                        <div style={{ position: 'relative', padding: '16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', zIndex: 20, marginBottom: '8px', borderRadius: '8px' }}>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     ref={searchRef}
@@ -1005,7 +963,7 @@ export default function SalesPage() {
                                             }
                                         }
                                     }}
-                                    style={{ width: '100%', fontSize: '16px', padding: '12px 16px', fontWeight: 'bold' }}
+                                    style={{ width: '100%', fontSize: '18px', padding: '16px 24px', fontWeight: 'bold', borderRadius: '12px', border: '2px solid var(--primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                                 />
                                 {/* Typeahead Dropdown */}
                                 {showTypeahead && search.trim() && (
@@ -1054,6 +1012,51 @@ export default function SalesPage() {
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        
+                        {/* Invoice Header */}
+                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                <select className="input" style={{ width: '180px' }}
+                                    value={customerId} onChange={e => setCustomerId(e.target.value)}>
+                                    <option value="">{t('sys.str_752')}</option>
+                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                                <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
+                                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
+                            </div>
+                            <select className="input" style={{ width: '100px', backgroundColor: '#eef2ff' }}
+                                value={currencyId} onChange={e => {
+                                    setCurrencyId(e.target.value);
+                                    const c = currencies.find(x => x.id.toString() === e.target.value);
+                                    if (c) setExchangeRate(c.exchangeRate);
+                                }}>
+                                <option value="" disabled>{t('purchases.str_1013')}</option>
+                                {currencies.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
+                            </select>
+                            <select className="input" style={{ width: '140px' }} value={stockId} onChange={e => setStockId(e.target.value)}>
+                                <option value="1">{t('sys.str_753')}</option>
+                                {warehouses.filter(w => w.id !== 1).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                            </select>
+                            <select className="input" style={{ width: '140px' }}
+                                value={paymentType} onChange={e => setPaymentType(e.target.value)}>
+                                <option value="cash">{t('sys.str_754')}</option>
+                                <option value="card">{t('sys.str_755')}</option>
+                                <option value="transfer">{t('sys.str_756')}</option>
+                                <option value="split">{t('sys.str_757')}</option>
+                                <option value="TABBY">{t('sys.str_758')}</option>
+                                <option value="TAMARA">{t('sys.str_759')}</option>
+                                {isAdmin && <option value="credit">{t('sys.str_760')}</option>}
+                                {isAdmin && <option value="installment">{t('sys.str_761')}</option>}
+                            </select>
+                            <input className="input" type="number" placeholder={t('sys.str_4333')} value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title={t('sys.str_4334')} />
+                            <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title={t('sys.str_4335')} />
+                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
+                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
+                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
+                            </button>
                         </div>
 
                         {/* Cart Table */}
@@ -1496,9 +1499,11 @@ export default function SalesPage() {
                             <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>
-                    <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
-        </div>
+                </div>
             )}
+            
+            <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+
             {/* Receipt Modal */}
             {showReceipt && lastInvoiceData && (
                 <InvoiceReceipt

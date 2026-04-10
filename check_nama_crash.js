@@ -2,11 +2,11 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/wwwroot/n1.namainvist.com/build_log.txt | tail -n 50', (err, s) => {
+    c.exec('pm2 logs nama-main --lines 20 --nostream', (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("BUILD LOG:\n", o);
+            console.log("NAMA-MAIN LOGS:\n", o);
             c.end();
         });
     });

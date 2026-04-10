@@ -1,22 +1,22 @@
 const { Client } = require('ssh2');
-const conn = new Client();
-conn.on('ready', () => {
-    conn.exec(`
-        echo "=== PM2 LIST FULL ===" &&
-        pm2 list --no-color &&
-        echo "=== ALL NEXT PORTS ===" &&
-        ss -tlnp 2>/dev/null | grep next-server &&
-        echo "=== NGINX FOR N2 ===" &&
-        find /www/server/nginx/vhost/ -name "*n2*namainvist*" 2>/dev/null -exec echo "FILE: {}" \\; -exec cat {} \\; 2>/dev/null &&
-        echo "=== N2 .ENV PORT ===" &&
-        grep -E "PORT|port" /www/wwwroot/n2.namainvist.com/.env 2>/dev/null | head -5
-    `, (err, stream) => {
-        let data = '';
-        stream.on('data', d => data += d);
-        stream.stderr.on('data', d => data += d);
-        stream.on('close', () => {
-            console.log(data);
-            conn.end();
+const c = new Client();
+c.on('ready', () => {
+    // Find nginx config for n11
+    c.exec("cat /etc/nginx/sites-enabled/n11* 2>/dev/null || cat /etc/nginx/conf.d/n11* 2>/dev/null || ls /www/server/panel/vhost/nginx/ 2>/dev/null | grep n11", (err, s) => {
+        let o = '';
+        s.on('data', d => { o += d.toString(); });
+        s.on('close', () => {
+            console.log('Nginx config:', o.slice(0, 500));
+            
+            // Get ngnix config path for n11.namainvist.com
+            c.exec("find /www -name '*.conf' 2>/dev/null | xargs grep -l 'n11.namainvist' 2>/dev/null | head -3", (err2, s2) => {
+                let o2 = '';
+                s2.on('data', d => { o2 += d.toString(); });
+                s2.on('close', () => {
+                    console.log('\nNginx conf files:', o2.trim());
+                    c.end();
+                });
+            });
         });
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });

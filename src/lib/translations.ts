@@ -1,17 +1,11 @@
 import ar from '../locales/ar.json';
 import en from '../locales/en.json';
-import hi from '../locales/hi.json';
-import ur from '../locales/ur.json';
-import bn from '../locales/bn.json';
 
-export type Language = 'ar' | 'en' | 'hi' | 'ur' | 'bn';
+export type Language = 'ar' | 'en';
 
 const translations: Record<Language, Record<string, string>> = {
   ar,
   en,
-  hi,
-  ur,
-  bn
 };
 
 export function translate(key: string, lang: Language): string {

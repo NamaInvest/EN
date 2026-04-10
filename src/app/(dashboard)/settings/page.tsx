@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/lib/SettingsContext';
 import { useTranslation } from "@/lib/i18n";
+import { translate } from "@/lib/translations";
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
-
-export const SETTING_GROUPS = getSettingGroups((k) => k);
 
 export function getSettingGroups(t: (key: string) => string) {
     return [
@@ -124,8 +123,11 @@ export function getSettingGroups(t: (key: string) => string) {
     ];
 }
 export default function SettingsPage() {
-    const { t } = useTranslation();
+    const { lang } = useTranslation();
     const router = useRouter();
+    // Create fresh t fn from translate + lang every render - bypasses any context reference issues
+    const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
+    const settingGroups = useMemo(() => getSettingGroups(t), [lang]); // eslint-disable-line react-hooks/exhaustive-deps
     const [authorized, setAuthorized] = useState(false);
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [originalSettings, setOriginalSettings] = useState<Record<string, string>>({});
@@ -571,7 +573,7 @@ export default function SettingsPage() {
                 </button>
             </div>
             <div className="page-content animate-fade-in">
-                {getSettingGroups(t).map((group, gi) => (
+                {settingGroups.map((group, gi) => (
                     <div key={gi} className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>{group.title}</h3>
                         {gi === 0 && (

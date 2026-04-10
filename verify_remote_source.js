@@ -1,16 +1,17 @@
 const { Client } = require('ssh2');
+
 const c = new Client();
 c.on('ready', () => {
-    c.exec('netstat -tlnp | grep 3011', (err, s) => {
+    c.exec("cat /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/settings/page.tsx | grep -n -A 10 'getSettingGroups' | head -30", (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("Port 3011 listeners:\n", o);
-            c.exec('ps -ef | grep next-server', (err2, s2) => {
+            console.log("Settings page:\n", o);
+            c.exec("grep -n 'export const languages' /www/wwwroot/n11.namainvist.com/src/lib/i18n.tsx -A 6", (err2, s2) => {
                 let o2 = '';
                 s2.on('data', d => o2 += d.toString());
                 s2.on('close', () => {
-                    console.log("Next servers running:\n", o2);
+                    console.log("\ni18n page:\n", o2);
                     c.end();
                 });
             });

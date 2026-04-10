@@ -2,12 +2,14 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
+    // Clear cache AND restart nama-main
     const cmd = `
-        cd /www/wwwroot/n1.namainvist.com
-        npm run build > build_log.txt 2>&1
         pm2 restart nama-main
-        echo "BUILD FINISHED"
-        pm2 logs nama-main --lines 20 --nostream
+        rm -rf /usr/local/lsws/cachedata/* || true
+        rm -rf /www/server/nginx/proxy_cache_dir/* || true
+        nginx -s reload || true
+        systemctl restart openlitespeed || true
+        echo "N1 COMPLETELY RESTARTED!"
     `;
     c.exec(cmd, { env: { HOME: '/root', PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.nvm/versions/node/v22.0.0/bin' } }, (e, stream) => {
         stream.on('data', d => process.stdout.write(d.toString()));

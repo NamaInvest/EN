@@ -2,11 +2,11 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/wwwroot/n1.namainvist.com/build_log.txt | tail -n 50', (err, s) => {
+    c.exec('grep -ri "cache" /www/server/panel/vhost/openlitespeed/ /usr/local/lsws/conf/ 2>/dev/null', (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("BUILD LOG:\n", o);
+            console.log("Cache Directives:\n", o);
             c.end();
         });
     });

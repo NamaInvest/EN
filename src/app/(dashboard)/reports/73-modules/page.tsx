@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -172,7 +172,7 @@ export default function Epic73ModulesDashboard() {
                    </div>
                 </div>
                 
-                <h3 className="font-bold text-lg text-slate-800 mb-2 leading-snug group-hover:text-blue-600">{mod.title}</h3>
+                <h3 className="font-bold text-lg text-slate-800 mb-2 leading-snug group-hover:text-blue-600">{t(mod.title)}</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed mb-4 flex-1">{mod.desc}</p>
                 
                 <div className="pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-slate-400">
@@ -193,7 +193,7 @@ export default function Epic73ModulesDashboard() {
                     <Cpu className="w-5 h-5" />
                     <span className="font-bold text-sm tracking-widest uppercase">Global Module Architecture</span>
                  </div>
-                 <h2 className="text-2xl sm:text-4xl font-black">{selectedMod.title}</h2>
+                 <h2 className="text-2xl sm:text-4xl font-black">{t(selectedMod.title)}</h2>
                  <p className="mt-3 text-blue-100 leading-relaxed max-w-2xl text-sm sm:text-base opacity-90">{selectedMod.desc}</p>
                </div>
                <button 

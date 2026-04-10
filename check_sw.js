@@ -1,12 +1,11 @@
 const { Client } = require('ssh2');
-
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/wwwroot/n1.namainvist.com/build_log.txt | tail -n 50', (err, s) => {
+    c.exec('cat /www/wwwroot/n11.namainvist.com/public/sw.js 2>/dev/null', (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("BUILD LOG:\n", o);
+            console.log("SW Config:\n", o.slice(0, 1000));
             c.end();
         });
     });
