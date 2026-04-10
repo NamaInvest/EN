@@ -399,6 +399,7 @@ model PurchaseOrderDetail {
 model PurchaseInvoice {
   id                Int      @id @default(autoincrement())
   invoiceNo         Int      @map("invoice_no")
+  isManual          Boolean  @default(false) @map("is_manual")
   date              DateTime @default(now())
   supplierId        Int?     @map("supplier_id")
   stockId           Int      @default(1) @map("stock_id")

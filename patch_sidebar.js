@@ -1,28 +1,53 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/Sidebar.tsx', 'utf8');
 
-// Fix 1: Add setLang to destructured values
-code = code.replace(
-    `    const { t, lang } = useTranslation();`,
-    `    const { t, lang, setLang } = useTranslation();`
+let c = fs.readFileSync('src/components/Sidebar.tsx', 'utf8');
+
+// 1. Add Labels
+c = c.replace(
+    /'i.purchases': 'فواتير المشتريات',/g,
+    `'i.purchases_options': 'خيارات المشتريات', 'i.manual_purchases': 'فواتير المشتريات اليدوية', 'i.purchases': 'فواتير المشتريات',`
 );
 
-// Fix 2: Add storage event listener after the useTranslation line
-const insertAfter = `    const companyName = getSetting('company_name', 'NamaaSoft ERP');`;
-const insertCode = `
+c = c.replace(
+    /'i.purchases': 'Purchase Invoices',/g,
+    `'i.purchases_options': 'Purchases Options', 'i.manual_purchases': 'Manual Purchase Invoices', 'i.purchases': 'Purchase Invoices',`
+);
 
-    // Re-render when lang changes (cross-tab or same-tab via storage event)
-    useEffect(() => {
-        const handleStorage = (e: StorageEvent) => {
-            if (e.key === 'app_lang' && e.newValue) {
-                setLang(e.newValue as any);
-            }
-        };
-        window.addEventListener('storage', handleStorage);
-        return () => window.removeEventListener('storage', handleStorage);
-    }, [setLang]);`;
+// Fallbacks for other languages to not break build
+c = c.replace(
+    /'i.purchases': 'खरीद इनवॉइस',/g,
+    `'i.purchases_options': 'Purchase Options', 'i.manual_purchases': 'Manual Purchases', 'i.purchases': 'खरीद इनवॉइस',`
+);
 
-code = code.replace(insertAfter, insertAfter + insertCode);
+c = c.replace(
+    /'i.purchases': 'ক্রয় ইনভয়েস',/g,
+    `'i.purchases_options': 'Purchase Options', 'i.manual_purchases': 'Manual Purchases', 'i.purchases': 'ক্রয় ইনভয়েস',`
+);
 
-fs.writeFileSync('src/components/Sidebar.tsx', code, 'utf8');
-console.log('Sidebar patched with storage listener and setLang!');
+c = c.replace(
+    /'i.purchases': 'خریداری انوائس',/g,
+    `'i.purchases_options': 'Purchase Options', 'i.manual_purchases': 'Manual Purchases', 'i.purchases': 'خریداری انوائس',`
+);
+
+// 2. Add Links to s.purchases in menuItems
+const purchasesMenuTarget = `{ sk: 's.purchases', items: [
+    { icon: '📝', lk: 'i.purchase_reqs', href: '/purchases/requisitions', module: 'purchase_orders' },`;
+
+const purchasesMenuReplacement = `{ sk: 's.purchases', items: [
+    { icon: '⚙️', lk: 'i.purchases_options', href: '/purchases/options', module: 'purchases' },
+    { icon: '📝', lk: 'i.purchase_reqs', href: '/purchases/requisitions', module: 'purchase_orders' },`;
+
+c = c.replace(purchasesMenuTarget, purchasesMenuReplacement);
+
+const purchasesMenuBottomTarget = `{ icon: '🌍', lk: 'i.lc', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
+  ]},`;
+
+const purchasesMenuBottomReplacement = `{ icon: '🌍', lk: 'i.lc', href: '/purchases/letters-of-credit', module: 'letters_of_credit' },
+    { icon: '📊', lk: 'i.manual_purchases', href: '/reports/manual-purchases', module: 'reports' },
+  ]},`;
+
+c = c.replace(purchasesMenuBottomTarget, purchasesMenuBottomReplacement);
+
+
+fs.writeFileSync('src/components/Sidebar.tsx', c);
+console.log('Sidebar Patched');

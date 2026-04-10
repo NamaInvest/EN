@@ -6,7 +6,9 @@ import Link from 'next/link';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import VoucherReceipt from '../../../components/VoucherReceipt';
 import { QRCodeCanvas } from 'qrcode.react';
+import { RiyalLogo } from '@/components/RiyalLogo';
 import { useTranslation } from "@/lib/i18n";
+import { useSettings } from '@/lib/SettingsContext';
 
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
@@ -22,6 +24,21 @@ interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes:
 
 export default function SalesPage() {
     const { t } = useTranslation();
+    const { getSetting } = useSettings();
+    const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
+    const taxEnabled = getSetting('POS_TAX_ENABLED', 'true') === 'true';
+    const couponsEnabled = getSetting('POS_COUPONS_ENABLED', 'true') === 'true';
+    const allowNegativeStock = getSetting('POS_ALLOW_NEGATIVE_STOCK', 'false') === 'true';
+    const allowAddProduct = getSetting('POS_ALLOW_ADD_PRODUCT', 'true') === 'true';
+    const rulesRaw = getSetting('POS_DISCOUNT_RULES', '[]');
+    const [discountRules, setDiscountRules] = useState<{minAmount: number, maxDiscount: number, maxDiscountPercent?: number}[]>([]);
+
+    useEffect(() => {
+        try {
+            const parsed = JSON.parse(rulesRaw);
+            if(Array.isArray(parsed)) setDiscountRules(parsed);
+        } catch(e) {}
+    }, [rulesRaw]);
     const [products, setProducts] = useState<Product[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [search, setSearch] = useState('');
@@ -46,6 +63,7 @@ export default function SalesPage() {
     const [retryPosAmount, setRetryPosAmount] = useState<number | null>(null);
     const [retryInvoiceNo, setRetryInvoiceNo] = useState<string>('');
     const [discountRate, setDiscountRate] = useState(0);
+    const [discountValueState, setDiscountValueState] = useState(0);
     const [notes, setNotes] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [saving, setSaving] = useState(false);
@@ -401,8 +419,16 @@ export default function SalesPage() {
     }, [search, products]);
 
     const addToCart = (p: Product) => {
+        if (!allowNegativeStock && p.currentStock <= 0) {
+            showToast('الكمية نافذة ولا يمكن البيع بالسالب حسب الإعدادات');
+            return;
+        }
         const existing = cart.find(c => c.productId === p.id);
         if (existing) {
+            if (!allowNegativeStock && existing.quantity + 1 > p.currentStock) {
+                showToast('الكمية المطلوبة تتجاوز المخزون المتاح');
+                return;
+            }
             // Update quantity AND move item to the top
             setCart([
                 { ...existing, quantity: existing.quantity + 1 },
@@ -420,6 +446,13 @@ export default function SalesPage() {
     };
 
     const updateCartItem = (idx: number, field: string, value: number) => {
+        if (!allowNegativeStock && field === 'quantity') {
+            const item = cart[idx];
+            if (value > item.stock) {
+                 showToast('الكمية المطلوبة تتجاوز المخزون المتاح');
+                 return;
+            }
+        }
         setCart(cart.map((c, i) => i === idx ? { ...c, [field]: value } : c));
     };
 
@@ -433,7 +466,21 @@ export default function SalesPage() {
         const disc = itemTotal * (item.discountRate / 100) + (item.discountValue || 0);
         return sum + Math.max(0, itemTotal - disc);
     }, 0);
-    const regularDiscountValue = subtotal * (discountRate / 100);
+    const maxAllowedDiscount = (() => {
+        if (!discountEnabled) return 0;
+        if (discountRules.length === 0) return Infinity;
+        const applicableRules = discountRules.filter(r => r.minAmount <= subtotal);
+        if (applicableRules.length === 0) return 0;
+        return Math.max(...applicableRules.map(r => r.maxDiscount));
+    })();
+    const maxAllowedDiscountPercent = (() => {
+        if (!discountEnabled) return 0;
+        if (discountRules.length === 0) return 100;
+        const applicableRules = discountRules.filter(r => r.minAmount <= subtotal);
+        if (applicableRules.length === 0) return 0;
+        return Math.max(...applicableRules.map(r => r.maxDiscountPercent || 0));
+    })();
+    const regularDiscountValue = subtotal * (discountRate / 100) + discountValueState;
     let afterDiscount = subtotal - regularDiscountValue;
 
     let couponDiscountValue = 0;
@@ -447,7 +494,8 @@ export default function SalesPage() {
     }
     afterDiscount = afterDiscount - couponDiscountValue;
 
-    const taxValue = afterDiscount * (taxRate / 100);
+    const actualTaxRate = taxEnabled ? taxRate : 0;
+    const taxValue = afterDiscount * (actualTaxRate / 100);
     const total = afterDiscount + taxValue;
     const totalDiscountValue = regularDiscountValue + couponDiscountValue;
 
@@ -755,7 +803,7 @@ export default function SalesPage() {
             customerAddress: inv.customer?.address,
             paymentMethod: inv.paymentType, items,
             subtotal: inv.subtotal, discount: inv.discountValue || 0,
-            taxRate: 15, taxAmount: inv.taxValue, grandTotal: inv.total,
+            taxRate: actualTaxRate, taxAmount: inv.taxValue, grandTotal: inv.total,
         });
         setShowReceipt(true);
         setSelectedInvoice(null);
@@ -1012,7 +1060,7 @@ export default function SalesPage() {
                                         ) : (
                                             <div style={{ padding: '24px', textAlign: 'center' }}>
                                                 <div style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_763')}</div>
-                                                <button className="btn btn-primary btn-sm" onClick={openAddProduct}>{t('sys.str_764')}</button>
+                                                {allowAddProduct && <button className="btn btn-primary btn-sm" onClick={openAddProduct}>{t('sys.str_764')}</button>}
                                             </div>
                                         )}
                                     </div>
@@ -1028,7 +1076,7 @@ export default function SalesPage() {
                                 <button onClick={() => setShowAddCustomer(true)} title={t('sys.str_837')}
                                     style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '700', minWidth: '34px' }}>+</button>
                             </div>
-                            <select className="input" style={{ width: '100px', backgroundColor: '#eef2ff' }}
+                            <select className="input" style={{ width: '100px', /* removed bg */ }}
                                 value={currencyId} onChange={e => {
                                     setCurrencyId(e.target.value);
                                     const c = currencies.find(x => x.id.toString() === e.target.value);
@@ -1070,8 +1118,7 @@ export default function SalesPage() {
                                         <th>{t('sys.str_63')}</th>
                                         <th style={{ width: '80px' }}>{t('sys.str_64')}</th>
                                         <th style={{ width: '100px' }}>{t('sys.str_65')}</th>
-                                        <th style={{ width: '80px' }}>{t('sys.str_766')}</th>
-                                        <th style={{ width: '90px' }}>خصم (ريال)</th>
+                                        
                                         <th style={{ width: '100px' }}>{t('sys.str_66')}</th>
                                         <th style={{ width: '40px' }}></th>
                                     </tr>
@@ -1079,7 +1126,7 @@ export default function SalesPage() {
                                 <tbody>
                                     {cart.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7}>
+                                            <td colSpan={5}>
                                                 <div className="empty-state" style={{ padding: '40px' }}>
                                                     <div className="empty-state-icon">🧾</div>
                                                     <div className="empty-state-text">{t('purchases.str_981')}</div>
@@ -1106,16 +1153,6 @@ export default function SalesPage() {
                                                 <td>
                                                     <span style={{ display: 'block', textAlign: 'center', padding: '6px 8px', fontWeight: '600', color: 'var(--text-primary)' }} dir="ltr">{fmt(item.price)}</span>
                                                 </td>
-                                                <td>
-                                                    <input className="input" type="number" min="0" max="100"
-                                                        value={item.discountRate} onChange={e => updateCartItem(idx, 'discountRate', parseFloat(e.target.value) || 0)}
-                                                        style={{ textAlign: 'center', padding: '6px 8px' }} dir="ltr" />
-                                                </td>
-                                                <td>
-                                                    <input className="input" type="number" min="0"
-                                                        value={item.discountValue || 0} onChange={e => updateCartItem(idx, 'discountValue', parseFloat(e.target.value) || 0)}
-                                                        style={{ textAlign: 'center', padding: '6px 8px' }} dir="ltr" />
-                                                </td>
                                                 <td style={{ fontWeight: '600' }}>{fmt(itemTotal)}</td>
                                                 <td>
                                                     <button onClick={() => removeCartItem(idx)}
@@ -1136,50 +1173,77 @@ export default function SalesPage() {
                                     <span>{t('sys.str_768')}</span>
                                     <span>{fmt(subtotal)} {t('sys.str_68')}</span>
                                 </div>
-                                <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                    <span>{t('sys.str_769')}</span>
-                                    <input className="input" type="number" min="0" step="0.01"
-                                        id="discount-input"
-                                        value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value) || 0)}
-                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); showToast(`✅ تم تطبيق خصم ${discountRate}%`); } }}
-                                        style={{ width: '70px', textAlign: 'center', padding: '6px 8px', fontWeight: '700' }} dir="ltr" />
-                                    <span style={{ fontSize: '14px', fontWeight: '600' }}>%</span>
-                                    <button onClick={() => { if (discountRate > 0) { showToast(`✅ تم تطبيق خصم ${discountRate}% = ${fmt(regularDiscountValue)} ر.س`); } }}
-                                        style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: discountRate > 0 ? 'var(--primary)' : 'var(--bg-card-hover)', color: discountRate > 0 ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
-                                        {t('sys.str_770')}</button>
-                                    {discountRate > 0 && (
-                                        <button onClick={() => { setDiscountRate(0); showToast(t('sys.str_847')); }}
-                                            style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-                                            {t('sys.str_771')}</button>
-                                    )}
-                                    <span style={{ marginRight: 'auto', fontWeight: '600', color: discountRate > 0 ? '#ef4444' : 'var(--text-muted)' }}>
-                                        {discountRate > 0 ? `- ${fmt(regularDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
-                                </div>
-                                <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                    <span>{t('sys.str_772')}</span>
-                                    <input className="input" type="text"
-                                        value={couponCode} onChange={e => setCouponCode(e.target.value)}
-                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
-                                        placeholder={t('sys.str_848')}
-                                        style={{ width: '100px', textAlign: 'center', padding: '6px 8px', fontWeight: '700', textTransform: 'uppercase' }} dir="ltr" disabled={!!appliedCoupon} />
-                                    
-                                    {!appliedCoupon ? (
-                                        <button onClick={applyCoupon} disabled={couponApplying || !couponCode}
-                                            style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: couponCode ? 'var(--primary)' : 'var(--bg-card-hover)', color: couponCode ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
-                                            {couponApplying ? '⏳' : t('sys.str_849')}
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); showToast(t('sys.str_850')); }}
-                                            style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-                                            {t('sys.str_771')}</button>
-                                    )}
-                                    <span style={{ marginRight: 'auto', fontWeight: '600', color: appliedCoupon ? '#ef4444' : 'var(--text-muted)' }}>
-                                        {appliedCoupon ? `- ${fmt(couponDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
-                                </div>
+                                {discountEnabled && (
+                                    <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                        <span>{t('sys.str_769')}</span>
+                                        <input className="input" type="number" min="0" step="0.01"
+                                            id="discount-input"
+                                            value={discountRate} onChange={e => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                if (discountRules.length > 0 && val > maxAllowedDiscountPercent) {
+                                                    showToast(`❌ عذراً، أقصى نسبة خصم مسموحة هي ${maxAllowedDiscountPercent}%`);
+                                                    return;
+                                                }
+                                                setDiscountRate(val);
+                                            }}
+                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); showToast(`✅ تم تطبيق خصم ${discountRate}%`); } }}
+                                            style={{ width: '70px', textAlign: 'center', padding: '6px 8px', fontWeight: '700' }} dir="ltr" />
+                                        <span style={{ fontSize: '14px', fontWeight: '600' }}>%</span>
+                                        <input className="input" type="number" min="0" step="0.01"
+                                            placeholder="خصم بالريال"
+                                            value={discountValueState} 
+                                            onChange={e => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                if (discountRules.length > 0 && val > maxAllowedDiscount) {
+                                                    showToast(`❌ عذراً، أقصى خصم بالريال مسموح لهذه الفاتورة هو ${maxAllowedDiscount} ريال`);
+                                                    return;
+                                                }
+                                                setDiscountValueState(val);
+                                            }}
+                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); showToast(`✅ تم تطبيق خصم ${discountValueState} ر.س`); } }}
+                                            style={{ width: '90px', textAlign: 'center', padding: '6px 8px', fontWeight: '700', marginLeft: '10px' }} dir="ltr" />
+                                        <span style={{ fontSize: '14px', fontWeight: '600' }}>ر.س</span>
+                                        <button onClick={() => { if (discountRate > 0) { showToast(`✅ تم تطبيق خصم ${discountRate}% = ${fmt(regularDiscountValue)} ر.س`); } }}
+                                            style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: discountRate > 0 ? 'var(--primary)' : 'var(--bg-card-hover)', color: discountRate > 0 ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
+                                            {t('sys.str_770')}</button>
+                                        {(discountRate > 0 || discountValueState > 0) && (
+                                            <button onClick={() => { setDiscountRate(0); setDiscountValueState(0); showToast(t('sys.str_847')); }}
+                                                style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                                                {t('sys.str_771')}</button>
+                                        )}
+                                        <span style={{ marginRight: 'auto', fontWeight: '600', color: discountRate > 0 ? '#ef4444' : 'var(--text-muted)' }}>
+                                            {(discountRate > 0 || discountValueState > 0) ? `- ${fmt(regularDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
+                                    </div>
+                                )}
+                                {couponsEnabled && (
+                                    <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                        <span>{t('sys.str_772')}</span>
+                                        <input className="input" type="text"
+                                            value={couponCode} onChange={e => setCouponCode(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                                            placeholder={t('sys.str_848')}
+                                            style={{ width: '100px', textAlign: 'center', padding: '6px 8px', fontWeight: '700', textTransform: 'uppercase' }} dir="ltr" disabled={!!appliedCoupon} />
+                                        
+                                        {!appliedCoupon ? (
+                                            <button onClick={applyCoupon} disabled={couponApplying || !couponCode}
+                                                style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: couponCode ? 'var(--primary)' : 'var(--bg-card-hover)', color: couponCode ? '#fff' : 'var(--text-muted)', cursor: 'pointer', fontWeight: '700', fontSize: '13px', transition: 'all 0.2s' }}>
+                                                {couponApplying ? '⏳' : t('sys.str_849')}
+                                            </button>
+                                        ) : (
+                                            <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); showToast(t('sys.str_850')); }}
+                                                style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                                                {t('sys.str_771')}</button>
+                                        )}
+                                        <span style={{ marginRight: 'auto', fontWeight: '600', color: appliedCoupon ? '#ef4444' : 'var(--text-muted)' }}>
+                                            {appliedCoupon ? `- ${fmt(couponDiscountValue)}` : '0.00'} {t('sys.str_68')}</span>
+                                    </div>
+                                )}
+                                {taxEnabled && (
                                 <div className="pos-total-row">
                                     <span>{t('sys.str_773')}</span>
                                     <span>{fmt(taxValue)} {t('sys.str_68')}</span>
                                 </div>
+                                )}
                                 <div className="pos-total-row grand">
                                     <span>{t('sys.str_66')}</span>
                                     <span style={{ color: 'var(--primary-light)' }}>{fmt(total)} {t('sys.str_68')}</span>

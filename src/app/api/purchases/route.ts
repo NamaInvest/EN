@@ -44,9 +44,14 @@ export async function POST(request: Request) {
         const last = await prisma.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
         const invoiceNo = (last?.invoiceNo || 0) + 1;
         const items = body.items || [];
-        let subtotal = 0;
-        for (const item of items) { const t = (item.quantity || 1) * (item.price || 0); subtotal += t - t * ((item.discountRate || 0) / 100); }
-        const taxValue = subtotal * 0.15;
+        const isManual = body.isManual === true;
+        let subtotal = isManual ? (parseFloat(body.manualSubtotal) || 0) : 0;
+        
+        if (!isManual) {
+            for (const item of items) { const t = (item.quantity || 1) * (item.price || 0); subtotal += t - t * ((item.discountRate || 0) / 100); }
+        }
+        
+        const taxValue = isManual ? (parseFloat(body.manualTaxValue) || 0) : subtotal * 0.15;
         const total = subtotal + taxValue;
         const paymentType = body.paymentType || 'cash';
         const paid = paymentType === 'credit' ? (parseFloat(body.paid) || 0) : (parseFloat(body.paid) || total);
@@ -57,7 +62,7 @@ export async function POST(request: Request) {
         const invoice = await prisma.$transaction(async (tx) => {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
-                    invoiceNo, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
+                    invoiceNo, isManual, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
                     stockId: body.stockId ? parseInt(body.stockId) : 1,
                     subtotal, taxValue, total, paid, remaining,
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
@@ -66,11 +71,15 @@ export async function POST(request: Request) {
                     details: {
                         create: items.map((item: Record<string, unknown>) => {
                             const qty = parseFloat(item.quantity as string) || 1;
-                            const price = parseFloat(item.price as string) || 0;
-                            const dRate = parseFloat(item.discountRate as string) || 0;
+                            let price = parseFloat(item.price as string) || 0;
+                            let dRate = parseFloat(item.discountRate as string) || 0;
+                            
+                            // 🛑 Override for manual invoices to prevent inventory valuation disruption
+                            if (isManual) { price = 0; dRate = 0; }
+                            
                             const iSub = qty * price; const dVal = iSub * (dRate / 100);
                             const afterD = iSub - dVal; const tax = afterD * 0.15;
-                            return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: 15, taxValue: tax, total: afterD + tax };
+                            return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: isManual ? 0 : 15, taxValue: tax, total: afterD + tax };
                         }),
                     },
                 },

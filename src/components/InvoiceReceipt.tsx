@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { RiyalLogo } from '@/components/RiyalLogo';
 
 interface ReceiptProps {
     invoiceId?: number;
@@ -30,6 +31,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [vatNumber, setVatNumber] = useState('');
+    const [cashierName, setCashierName] = useState('الكاشير');
+    const [companyCity, setCompanyCity] = useState('');
+    const [crNumber, setCrNumber] = useState('');
+    const [companyAddress, setCompanyAddress] = useState('');
     const [loading, setLoading] = useState(true);
     const [printed, setPrinted] = useState(false);
     const [printerType, setPrinterType] = useState('80mm');
@@ -38,6 +43,19 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     useEffect(() => {
         const init = async () => {
             const settings = await loadSettings();
+
+            // Secure Cashier Fetch
+            const tk = window.localStorage.getItem('token');
+            if (tk) {
+                fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + tk } })
+                    .then(r=>r.json())
+                    .then(s => { 
+                        if(s?.user?.fullName || s?.user?.username) {
+                            setCashierName(s.user.fullName || s.user.username);
+                        }
+                    }).catch(()=>{});
+            }
+
             if (!isQuote) {
                 if (invoiceId) {
                     await generateQR(settings?.companyName, settings?.vatNumber);
@@ -75,6 +93,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 setCompanyName(cName);
                 setVatNumber(vNum);
                 setPrinterType(map['printer_type'] || '80mm');
+                setCompanyCity(map['zatca_city'] || map['company_city'] || '');
+                setCrNumber(map['zatca_crn'] || map['cr_number'] || '');
+                setCompanyAddress(map['company_address'] || map['company_address_ar'] || '');
                 return { companyName: cName, vatNumber: vNum };
             }
         } catch (err) { console.error(err); }
@@ -200,10 +221,11 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
         script.onload = () => {
-            const ps = paperSizes[printerType] || paperSizes['80mm'];
-            const content = receiptRef.current?.innerHTML || '';
-            const element = document.createElement('div');
-            element.innerHTML = `
+            const formatCurrency = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+            const data = invoiceData;
+            if (!data) return;
+
+            const htmlString = `
                 <html dir="rtl" lang="ar">
                 <head>
                     <style>
@@ -211,60 +233,152 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         * { margin: 0; padding: 0; box-sizing: border-box; }
                         body {
                             font-family: 'Cairo', sans-serif;
-                            width: ${ps.width};
-                            padding: ${ps.padding};
-                            font-size: ${ps.fontSize};
                             line-height: 1.4;
                             direction: rtl;
                             color: #000;
                             background: white;
+                            width: 100%;
                         }
-                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
-                        .company-name { font-size: ${ps.companySize}; font-weight: 800; }
-                        .vat-num { font-size: 10px; color: #666; }
-                        .invoice-type { font-size: 10px; color: #999; margin-top: 2px; }
-                        .info-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
-                        .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: ${ps.fontSize}; border: 1px solid #000; }
-                        .items-table th, .items-table td { border: 1px solid #000 !important; padding: 4px; text-align: center; }
+                        .a4-container { width: 100%; padding: 40px; }
+                        .a4-header { text-align: center; margin-bottom: 20px; }
+                        .a4-header h1 { font-size: 26px; font-weight: 800; margin-bottom: 5px; }
+                        .a4-header h2 { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+                        .a4-header h3 { font-size: 14px; color: #666; font-weight: bold; }
+                        
+                        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 2px solid #000; }
+                        .info-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
+                        .info-table .ar-cell { text-align: right; width: 50%; }
+                        .info-table .en-cell { text-align: left; direction: ltr; width: 50%; }
+                        .info-table strong { display: inline-block; width: 120px; }
+                        .info-table .en-cell strong { width: 100px; }
+
+                        .items-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 12px; border: 1px solid #000; }
+                        .items-table th, .items-table td { border: 1px solid #000 !important; padding: 8px; text-align: center; }
                         .items-table th { font-weight: 600; background: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .items-table td:first-child, .items-table th:first-child { text-align: right; }
-                        .totals { padding-top: 8px; }
-                        .total-row { display: flex; justify-content: space-between; font-size: ${ps.fontSize}; margin-bottom: 2px; }
-                        .grand-total { font-size: 16px; font-weight: 800; border-top: 1px solid #000; padding-top: 6px; margin-top: 4px; }
-                        .discount { color: #e11d48; }
-                        ${!isQuote ? `
-                        .qr-section { text-align: center; margin-top: 12px; padding-top: 8px; }
-                        .qr-section img { width: ${ps.qrSize}; height: ${ps.qrSize}; }
-                        .qr-label { font-size: 8px; color: #666; margin-top: 2px; }
-                        ` : ''}
-                        .footer { text-align: center; margin-top: 8px; font-size: 10px; color: #999; border-top: 1px solid #000; padding-top: 8px; }
+                        
+                        .split-total { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+                        .split-total .en-text { font-size: 10px; color: #555; }
                     </style>
                 </head>
                 <body>
-                    ${content}
+                    <div class="a4-container">
+                        <div class="a4-header">
+                            <h1>${companyName}</h1>
+                            <h2>الرقم الضريبي : <span dir="ltr">${vatNumber}</span></h2>
+                            <h3>${isQuote ? 'عرض سعر / Quotation' : 'فاتورة ضريبية / Tax Invoice'}</h3>
+                        </div>
+                        
+                        <table class="info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="ar-cell">
+                                        <div><strong>المدينة:</strong> ${companyCity}</div>
+                                        <div><strong>العنوان:</strong> ${companyAddress}</div>
+                                        <div><strong>رقم السجل التجاري:</strong> <span dir="ltr">${crNumber}</span></div>
+                                    </td>
+                                    <td class="en-cell">
+                                        <div><strong>City:</strong> ${companyCity}</div>
+                                        <div><strong>Address:</strong> ${companyAddress}</div>
+                                        <div><strong>CR Number:</strong> ${crNumber}</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ar-cell">
+                                        <div><strong>الكاشير:</strong> ${cashierName}</div>
+                                        <div><strong>العميل:</strong> ${data.customerName || 'عميل نقدي'}</div>
+                                        <div><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
+                                        <div><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
+                                    </td>
+                                    <td class="en-cell">
+                                        <div><strong>Cashier:</strong> ${cashierName}</div>
+                                        <div><strong>Customer:</strong> ${data.customerName || 'Cash Customer'}</div>
+                                        <div><strong>Invoice No:</strong> ${data.invoiceNumber}</div>
+                                        <div><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: right;">المنتج<br/><span style="font-size:10px;font-weight:normal">Product</span></th>
+                                    <th>الكمية<br/><span style="font-size:10px;font-weight:normal">Qty</span></th>
+                                    <th>سعر الوحدة<br/><span style="font-size:10px;font-weight:normal">Unit Price</span></th>
+                                    <th>الإجمالي<br/><span style="font-size:10px;font-weight:normal">Total</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.items.map(item => `
+                                    <tr>
+                                        <td style="text-align: right;">${item.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>${formatCurrency(item.price)}</td>
+                                        <td>${formatCurrency(item.total)}</td>
+                                    </tr>
+                                `).join('')}
+                                
+                                <tr>
+                                    <td colSpan="3" style="text-align: left; font-weight: 600;">
+                                        <div class="split-total">
+                                            <span>الإجمالي الفرعي</span>
+                                            <span class="en-text">Subtotal</span>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight: 600;">${formatCurrency(data.subtotal)}</td>
+                                </tr>
+                                ${data.discount > 0 ? `
+                                <tr>
+                                    <td colSpan="3" style="text-align: left; font-weight: 600; color: #e11d48;">
+                                        <div class="split-total">
+                                            <span>الخصم</span>
+                                            <span class="en-text">Discount</span>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight: 600; color: #e11d48;">-${formatCurrency(data.discount)}</td>
+                                </tr>
+                                ` : ''}
+                                <tr>
+                                    <td colSpan="3" style="text-align: left; font-weight: 600;">
+                                        <div class="split-total">
+                                            <span>ضريبة القيمة المضافة (${data.taxRate}%)</span>
+                                            <span class="en-text">VAT (${data.taxRate}%)</span>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight: 600;">${formatCurrency(data.taxAmount)}</td>
+                                </tr>
+                                <tr>
+                                    <td colSpan="3" style="text-align: left; font-size: 16px; font-weight: 900;">
+                                        <div class="split-total">
+                                            <span>الإجمالي الكلي</span>
+                                            <span class="en-text">Grand Total</span>
+                                        </div>
+                                    </td>
+                                    <td style="font-size: 16px; font-weight: 900;">${formatCurrency(data.grandTotal)} <svg width="12" height="12" viewBox="0 0 100 100" fill="#000" style="display:inline-block;vertical-align:middle;margin-right:2px"><path d="M42.5 10 L42.5 50 L20 55 L20 40 L30 37.5 L30 10 Z"></path><path d="M42.5 58 L42.5 75 C 42.5 85, 30 90, 15 90 L 15 78 C 25 78, 30 75, 30 65 L 30 60 L 20 62 L 20 48 Z"></path><path d="M57.5 10 L57.5 60 L80 55 L80 40 L67.5 42.5 L67.5 10 Z"></path><path d="M57.5 68 L57.5 90 L85 85 L85 75 L67.5 78 L67.5 68 Z"></path></svg></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 40px; display: flex; justify-content: center; align-items: center; width: 100%;">
+                            ${!isQuote && qrDataUrl ? `<img src="${qrDataUrl}" style="width: 150px; height: 150px;" />` : ''}
+                        </div>
+                    </div>
                 </body>
                 </html>
             `;
-            element.style.position = 'absolute';
-            element.style.left = '-9999px';
-            document.body.appendChild(element);
-
-            const isA4 = printerType.includes('A');
-            const format = isA4 ? (printerType === 'A4' ? 'a4' : 'a5') : [parseInt(ps.width.replace('mm', '')), 250];
 
             // @ts-ignore
-            window.html2pdf().from(element.firstElementChild || element).set({
-                margin: 5,
+            window.html2pdf().from(htmlString).set({
+                margin: 0,
                 filename: `Invoice_${invoiceData?.invoiceNumber || invoiceId || Date.now()}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: format, orientation: 'portrait' }
-            }).save().then(() => {
-                document.body.removeChild(element);
-            });
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).save();
         };
         document.body.appendChild(script);
-    }, [invoiceData, invoiceId, printerType, isQuote]);
+    }, [invoiceData, invoiceId, printerType, isQuote, companyName, companyCity, companyAddress, crNumber, vatNumber, cashierName, qrDataUrl]);
 
     const data = invoiceData;
     if (!data) return null;
@@ -292,72 +406,91 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         </div>
                     </div>
 
-                    {/* Invoice Info */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                        <span>{isQuote ? t('sys.str_83') : t('sys.str_84')} <strong>{data.invoiceNumber}</strong></span>
-                        <span>{new Date(data.date).toLocaleDateString('ar-SA')}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
-                        <span>{t('sys.str_57')}{data.customerName}</span>
-                        <span>{t('sys.str_58')}{paymentLabel(data.paymentMethod)}</span>
-                    </div>
-
-                    {/* Additional Customer Info (ZATCA Requirements for B2B) */}
-                    {(data.customerTaxNo || data.customerCrNo || data.customerAddress) && (
-                        <div style={{ fontSize: '10px', marginBottom: '8px', padding: '6px', border: '1px solid #ccc', borderRadius: '4px', background: '#fafafa' }}>
-                            {data.customerTaxNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_59')}</span> <span>{data.customerTaxNo}</span></div>}
-                            {data.customerCrNo && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_60')}</span> <span>{data.customerCrNo}</span></div>}
-                            {data.customerAddress && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>{t('sys.str_61')}</span> <span>{data.customerAddress}</span></div>}
-                        </div>
-                    )}
-
-                    <div style={{ fontSize: '10px', marginBottom: '8px', color: '#666' }}>
-                        {t('sys.str_62')}{new Date(data.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </div>
-
-                    {/* Items */}
+                    {/* Unified Invoice Table */}
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '8px', border: '1px solid #000', borderWidth: '1px' }}>
-                        <thead>
-                            <tr style={{ background: '#f9f9f9', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                                <th style={{ textAlign: 'right', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_63')}</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_64')}</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_65')}</th>
-                                <th style={{ textAlign: 'center', padding: '4px', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_66')}</th>
-                            </tr>
-                        </thead>
                         <tbody>
+                            {/* Invoice Info Rows */}
+                            <tr>
+                                <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
+                                    <strong>{t('sys.str_84')}:</strong> <span dir="ltr">{data.invoiceNumber}</span>
+                                </td>
+                                <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
+                                    <strong>التاريخ:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('ar-SA')}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
+                                    <strong>الكاشير:</strong> {cashierName}
+                                </td>
+                                <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
+                                    <strong>العميل:</strong> {data.customerName || 'عميل نقدي'}
+                                </td>
+                            </tr>
+
+                            {/* Additional Customer Info (ZATCA B2B requirements) */}
+                            {(data.customerTaxNo || data.customerCrNo || data.customerAddress) && (
+                                <tr>
+                                    <td colSpan={4} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px', background: '#fafafa' }}>
+                                        {data.customerTaxNo && <div><strong>{t('sys.str_59')}</strong> {data.customerTaxNo}</div>}
+                                        {data.customerCrNo && <div><strong>{t('sys.str_60')}</strong> {data.customerCrNo}</div>}
+                                        {data.customerAddress && <div><strong>{t('sys.str_61')}</strong> {data.customerAddress}</div>}
+                                    </td>
+                                </tr>
+                            )}
+
+                            {/* Items Header */}
+                            <tr style={{ background: '#f0f0f0', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                                <th style={{ textAlign: 'right', padding: '6px', fontWeight: '800', border: '1px solid #000', borderWidth: '1px' }}>{t('sys.str_63')}</th>
+                                <th style={{ textAlign: 'center', padding: '6px', fontWeight: '800', border: '1px solid #000', borderWidth: '1px', width: '40px' }}>{t('sys.str_64')}</th>
+                                <th style={{ textAlign: 'center', padding: '6px', fontWeight: '800', border: '1px solid #000', borderWidth: '1px', width: '60px' }}>{t('sys.str_65')}</th>
+                                <th style={{ textAlign: 'center', padding: '6px', fontWeight: '800', border: '1px solid #000', borderWidth: '1px', width: '70px' }}>{t('sys.str_66')}</th>
+                            </tr>
+
+                            {/* Items List */}
                             {data.items.map((item, i) => (
                                 <tr key={i}>
-                                    <td style={{ padding: '4px', border: '1px solid #000', borderWidth: '1px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</td>
+                                    <td style={{ padding: '4px 6px', border: '1px solid #000', borderWidth: '1px' }}>{item.name}</td>
                                     <td style={{ textAlign: 'center', padding: '4px', border: '1px solid #000', borderWidth: '1px' }}>{item.quantity}</td>
                                     <td style={{ textAlign: 'center', padding: '4px', border: '1px solid #000', borderWidth: '1px' }}>{formatCurrency(item.price)}</td>
                                     <td style={{ textAlign: 'center', padding: '4px', border: '1px solid #000', borderWidth: '1px' }}>{formatCurrency(item.total)}</td>
                                 </tr>
                             ))}
+
+                            {/* Totals */}
+                            <tr>
+                                <td colSpan={3} style={{ padding: '6px', textAlign: 'left', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>
+                                    {t('sys.str_67')}
+                                </td>
+                                <td style={{ padding: '6px', textAlign: 'center', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>
+                                    {formatCurrency(data.subtotal)}
+                                </td>
+                            </tr>
+                            {data.discount > 0 && (
+                                <tr>
+                                    <td colSpan={3} style={{ padding: '6px', textAlign: 'left', fontWeight: '600', color: '#e11d48', border: '1px solid #000', borderWidth: '1px' }}>
+                                        {t('sys.str_69')}
+                                    </td>
+                                    <td style={{ padding: '6px', textAlign: 'center', fontWeight: '600', color: '#e11d48', border: '1px solid #000', borderWidth: '1px' }}>
+                                        -{formatCurrency(data.discount)}
+                                    </td>
+                                </tr>
+                            )}
+                            <tr>
+                                <td colSpan={3} style={{ padding: '6px', textAlign: 'left', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>
+                                    {t('sys.str_70')}{data.taxRate}%):
+                                </td>
+                                <td style={{ padding: '6px', textAlign: 'center', fontWeight: '600', border: '1px solid #000', borderWidth: '1px' }}>
+                                    {formatCurrency(data.taxAmount)}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan={3} style={{ padding: '8px', textAlign: 'left', fontSize: '14px', fontWeight: '900', border: '1px solid #000', borderWidth: '1px', background: '#f9f9f9', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+                                    {t('sys.str_71')}
+                                </td>
+                                <td style={{ padding: '8px', textAlign: 'center', fontSize: '14px', fontWeight: '900', border: '1px solid #000', borderWidth: '1px', background: '#f9f9f9', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>{formatCurrency(data.grandTotal)} <RiyalLogo width={12} height={12} color="#000" /></td>
+                            </tr>
                         </tbody>
                     </table>
-
-                    {/* Totals */}
-                    <div style={{ paddingTop: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
-                            <span>{t('sys.str_67')}</span>
-                            <span>{formatCurrency(data.subtotal)} {t('sys.str_68')}</span>
-                        </div>
-                        {data.discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px', color: '#e11d48' }}>
-                                <span>{t('sys.str_69')}</span>
-                                <span>-{formatCurrency(data.discount)} {t('sys.str_68')}</span>
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
-                            <span>{t('sys.str_70')}{data.taxRate}%):</span>
-                            <span>{formatCurrency(data.taxAmount)} {t('sys.str_68')}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '800', borderTop: '1px solid #000', paddingTop: '6px', marginTop: '4px' }}>
-                            <span>{t('sys.str_71')}</span>
-                            <span>{formatCurrency(data.grandTotal)} {t('sys.str_68')}</span>
-                        </div>
-                    </div>
 
                     {/* ZATCA QR Code */}
                     {!isQuote && (

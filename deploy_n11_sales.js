@@ -18,7 +18,7 @@ c.on('ready', () => {
                     set -e
                     cd /www/wwwroot/n11.namainvist.com
                     npm run build
-                    pm2 restart nama-main || pm2 restart n11
+                    pm2 restart n11
                     rm -rf /usr/local/lsws/cachedata/* || true
                     rm -rf /www/server/nginx/proxy_cache_dir/* || true
                     nginx -s reload || true

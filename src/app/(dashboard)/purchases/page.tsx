@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n";
 interface Product { id: number; name: string; barcode: string; buyPrice: number; currentStock: number; unit?: { name: string }; }
 interface CartItem { productId: number; productName: string; quantity: number; price: number; discountRate: number; }
 interface Customer { id: number; name: string; taxNumber?: string; }
-interface PurchaseInvoice { id: number; invoiceNo: number; date: string; total: number; paid: number; remaining: number; status: string; paymentType: string; receiptStatus?: string; supplier?: { name: string } | null; }
+interface PurchaseInvoice { id: number; invoiceNo: number; isManual?: boolean; date: string; total: number; paid: number; remaining: number; status: string; paymentType: string; receiptStatus?: string; supplier?: { name: string } | null; }
 
 export default function PurchasesPage() {
     const { t } = useTranslation();
@@ -21,6 +21,9 @@ export default function PurchasesPage() {
     const [paymentType, setPaymentType] = useState('cash');
     const [paidAmount, setPaidAmount] = useState('');
     const [supplierInvoiceNo, setSupplierInvoiceNo] = useState('');
+    const [isManual, setIsManual] = useState(false);
+    const [manualSubtotal, setManualSubtotal] = useState('');
+    const [manualTaxValue, setManualTaxValue] = useState('');
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState('');
@@ -182,7 +185,7 @@ export default function PurchasesPage() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const res = await fetch('/api/purchases', {
                 method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ supplierId: supplierId || null, stockId: stockId || '1', items: cart, paymentType, supplierInvoiceNo, paid: actualPaid, userId: user.id, notes }),
+                body: JSON.stringify({ isManual, manualSubtotal: parseFloat(manualSubtotal) || 0, manualTaxValue: parseFloat(manualTaxValue) || 0, supplierId: supplierId || null, stockId: stockId || '1', items: cart, paymentType, supplierInvoiceNo, paid: actualPaid, userId: user.id, notes }),
             });
             if (res.ok) {
                 const inv = await res.json();
@@ -190,7 +193,7 @@ export default function PurchasesPage() {
                     ? `✅ تم حفظ فاتورة مشتريات آجلة #${inv.invoiceNo} - المتبقي: ${fmt(remaining)} ر.س`
                     : `✅ تم حفظ فاتورة المشتريات #${inv.invoiceNo}`;
                 setToast(msg);
-                setCart([]); setNotes(''); setSupplierId(''); setSupplierInvoiceNo(''); setPaidAmount(''); setPaymentType('cash'); fetchAll();
+                setCart([]); setNotes(''); setSupplierId(''); setSupplierInvoiceNo(''); setPaidAmount(''); setPaymentType('cash'); setIsManual(false); setManualSubtotal(''); setManualTaxValue(''); fetchAll();
             } else setToast(t('purchases.str_1020'));
         } catch { setToast(t('sys.str_592')); }
         finally { setSaving(false); setTimeout(() => setToast(''), 4000); }
@@ -347,7 +350,27 @@ export default function PurchasesPage() {
                             ) : null}
                         </div>
                         <div className="pos-invoice">
-                            <div className="pos-invoice-header">
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
+                                <button className={`btn ${!isManual ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setIsManual(false)} style={{ flex: 1, fontWeight: 'bold' }}>فاتورة المشتريات (القياسية)</button>
+                                <button className={`btn ${isManual ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setIsManual(true)} style={{ flex: 1, fontWeight: 'bold' }} title="لا يؤثر على أسعار وتقييم المنتجات المخزنية">فاتورة المشتريات (اليدوية)</button>
+                            </div>
+                            
+                            {isManual && (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '13px', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '6px' }}>إجمالي الفاتورة الصافي (قبل الضريبة)</label>
+                                        <input className="input" type="number" value={manualSubtotal} onChange={e => setManualSubtotal(e.target.value)} placeholder="0.00" dir="ltr" />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '13px', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '6px' }}>مبلغ الضريبة</label>
+                                        <input className="input" type="number" value={manualTaxValue} onChange={e => setManualTaxValue(e.target.value)} placeholder="0.00" dir="ltr" />
+                                    </div>
+                                    <div style={{ gridColumn: 'span 2', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                        * في الفاتورة اليدوية، سيتم إضافة كميات الأصناف المدرجة في الجدول إلى المخزون (بدون قيمة محاسبية)، وذلك للتسوية والجرد. سيتم احتساب قيمة الفاتورة الكلية فقط في حساب المورد.
+                                    </div>
+                                </div>
+                            )}
+<div className="pos-invoice-header">
                                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                     <select className="input" style={{ width: '170px' }} value={supplierId} onChange={e => setSupplierId(e.target.value)}>
                                         <option value="">{t('purchases.str_977')}</option>
@@ -379,7 +402,7 @@ export default function PurchasesPage() {
                             )}
                             <div className="pos-invoice-table">
                                 <table className="table">
-                                    <thead><tr><th>{t('sys.str_63')}</th><th style={{ width: '80px' }}>{t('sys.str_64')}</th><th style={{ width: '100px' }}>{t('sys.str_65')}</th><th style={{ width: '80px' }}>{t('sys.str_766')}</th><th style={{ width: '100px' }}>{t('sys.str_66')}</th><th style={{ width: '40px' }}></th></tr></thead>
+                                    <thead><tr><th>{t('sys.str_63')}</th><th style={{ width: '80px' }}>{t('sys.str_64')}</th>{!isManual && <th style={{ width: '100px' }}>{t('sys.str_65')}</th>}{!isManual && <th style={{ width: '80px' }}>{t('sys.str_766')}</th>}{!isManual && <th style={{ width: '100px' }}>{t('sys.str_66')}</th>}<th style={{ width: '40px' }}></th></tr></thead>
                                     <tbody>
                                         {cart.length === 0 ? (
                                             <tr><td colSpan={6}><div className="empty-state" style={{ padding: '40px' }}><div className="empty-state-icon">🛒</div><div className="empty-state-text">{t('purchases.str_981')}</div></div></td></tr>
@@ -401,6 +424,10 @@ export default function PurchasesPage() {
                             </div>
                             <div className="pos-invoice-footer">
                                 <div className="pos-totals">
+                                    <div className="pos-total-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '4px' }}>
+                                        <span>عداد الأصناف</span>
+                                        <span style={{ fontWeight: 'normal', fontSize: '13px' }}>{totalItems} أصناف / {totalUnits} حبة</span>
+                                    </div>
                                     <div className="pos-total-row"><span>{t('sys.str_947')}</span><span>{fmt(subtotal)} {t('sys.str_68')}</span></div>
                                     <div className="pos-total-row"><span>{t('purchases.str_982')}</span><span>{fmt(taxValue)} {t('sys.str_68')}</span></div>
                                     <div className="pos-total-row grand"><span>{t('sys.str_66')}</span><span style={{ color: 'var(--info-light)' }}>{fmt(total)} {t('sys.str_68')}</span></div>
@@ -454,7 +481,7 @@ export default function PurchasesPage() {
                                     <tbody>
                                         {pendingInvoices.map(inv => (
                                             <tr key={inv.id}>
-                                                <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
+                                                <td style={{ fontWeight: '700' }}>#{inv.invoiceNo} {inv.isManual && <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '10px', padding: '2px 4px', borderRadius: '4px', marginRight: '4px' }}>يدوي</span>}</td>
                                                 <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
                                                 <td>{inv.supplier?.name || t('purchases.str_1037')}</td>
                                                 <td>{fmt(inv.total)} {t('sys.str_68')}</td>
@@ -517,7 +544,7 @@ export default function PurchasesPage() {
                                     <tbody>
                                         {pendingReceipts.map(inv => (
                                             <tr key={inv.id}>
-                                                <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
+                                                <td style={{ fontWeight: '700' }}>#{inv.invoiceNo} {inv.isManual && <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '10px', padding: '2px 4px', borderRadius: '4px', marginRight: '4px' }}>يدوي</span>}</td>
                                                 <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
                                                 <td>{inv.supplier?.name || t('purchases.str_1037')}</td>
                                                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(inv.total)} {t('sys.str_68')}</td>
