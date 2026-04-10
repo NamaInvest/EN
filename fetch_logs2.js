@@ -2,11 +2,11 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/server/panel/vhost/nginx/n11.namainvist.com.conf', (err, s) => {
+    c.exec('pm2 logs nama-main --lines 100 --nostream', (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("NGINX:\n", o);
+            console.log("PM2 LOGS:\n", o);
             c.end();
         });
     });

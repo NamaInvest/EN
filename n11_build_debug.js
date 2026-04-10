@@ -2,11 +2,12 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/server/panel/vhost/nginx/n11.namainvist.com.conf', (err, s) => {
+    c.exec('cd /www/wwwroot/n11.namainvist.com && npm run build', { env: { HOME: '/root', PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.nvm/versions/node/v22.0.0/bin' } }, (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
+        s.stderr.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("NGINX:\n", o);
+            console.log("BUILD OUTPUT:\n", o);
             c.end();
         });
     });

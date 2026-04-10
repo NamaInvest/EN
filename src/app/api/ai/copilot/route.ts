@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify(geminiPayload)
         });
 
-        if (!geminiRes.ok) throw new Error('AI Engine failed');
+        if (!geminiRes.ok) {
+            const errorText = await geminiRes.text();
+            throw new Error(`AI Engine failed: ${geminiRes.status} ${errorText}`);
+        }
 
         const geminiData = await geminiRes.json();
         const rawReply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -62,6 +65,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(parsed);
 
     } catch (e: any) {
-        return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
+        console.error('AI Error:', e);
+        return NextResponse.json({ error: e.message || 'خطأ داخلي في الخادم الذكي' }, { status: 500 });
     }
 }

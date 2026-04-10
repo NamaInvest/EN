@@ -2,11 +2,11 @@ const { Client } = require('ssh2');
 
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cat /www/server/panel/vhost/nginx/n11.namainvist.com.conf', (err, s) => {
+    c.exec('cat /www/server/panel/vhost/nginx/proxy/n11.namainvist.com/*.conf', (err, s) => {
         let o = '';
         s.on('data', d => o += d.toString());
         s.on('close', () => {
-            console.log("NGINX:\n", o);
+            console.log("PROXY:\n", o);
             c.end();
         });
     });

@@ -15,6 +15,7 @@ c.on('ready', () => {
                 console.log('Uploaded successfully. Starting fast Turbopack rebuild for n1...');
                 
                 const cmd = `
+                    set -e
                     cd /www/wwwroot/n1.namainvist.com
                     npm run build
                     pm2 restart nama-main

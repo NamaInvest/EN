@@ -14,7 +14,7 @@ interface Product {
 }
 interface CartItem {
     productId: number; productName: string; quantity: number;
-    price: number; discountRate: number; taxRate: number;
+    price: number; discountRate: number; discountValue?: number; taxRate: number;
     stock: number; unitName: string;
 }
 interface Customer { id: number; name: string; phone?: string; taxNumber?: string | null; crNo?: string | null; address?: string | null; }
@@ -403,13 +403,17 @@ export default function SalesPage() {
     const addToCart = (p: Product) => {
         const existing = cart.find(c => c.productId === p.id);
         if (existing) {
-            setCart(cart.map(c => c.productId === p.id ? { ...c, quantity: c.quantity + 1 } : c));
+            // Update quantity AND move item to the top
+            setCart([
+                { ...existing, quantity: existing.quantity + 1 },
+                ...cart.filter(c => c.productId !== p.id)
+            ]);
         } else {
-            setCart([...cart, {
+            setCart([{
                 productId: p.id, productName: p.name, quantity: 1,
                 price: p.sellPrice, discountRate: 0, taxRate: p.taxRate || 15,
-                stock: p.currentStock, unitName: p.unit?.name || t('sys.str_813'),
-            }]);
+                discountValue: 0, stock: p.currentStock, unitName: p.unit?.name || t('sys.str_813'),
+            }, ...cart]);
         }
         setSearch('');
         searchRef.current?.focus();
@@ -426,8 +430,8 @@ export default function SalesPage() {
     // Calculations
     const subtotal = cart.reduce((sum, item) => {
         const itemTotal = item.quantity * item.price;
-        const disc = itemTotal * (item.discountRate / 100);
-        return sum + (itemTotal - disc);
+        const disc = itemTotal * (item.discountRate / 100) + (item.discountValue || 0);
+        return sum + Math.max(0, itemTotal - disc);
     }, 0);
     const regularDiscountValue = subtotal * (discountRate / 100);
     let afterDiscount = subtotal - regularDiscountValue;
@@ -929,8 +933,10 @@ export default function SalesPage() {
                 <div className="pos-layout" style={{ gridTemplateColumns: '1fr' }}>
                     {/* Invoice Panel */}
                     <div className="pos-invoice" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        {/* Smart Unified Search Bar */}
-                        <div style={{ position: 'relative', padding: '16px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', zIndex: 20, marginBottom: '8px', borderRadius: '8px' }}>
+                                                {/* Invoice Header */}
+                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
+                            {/* Smart Unified Search Bar */}
+                        <div style={{ position: 'relative', zIndex: 20, flex: '1 1 300px' }}>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     ref={searchRef}
@@ -963,20 +969,20 @@ export default function SalesPage() {
                                             }
                                         }
                                     }}
-                                    style={{ width: '100%', fontSize: '18px', padding: '16px 24px', fontWeight: 'bold', borderRadius: '12px', border: '2px solid var(--primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                                    style={{ width: '100%', fontSize: '15px', padding: '10px 16px', fontWeight: 'bold', borderRadius: '8px', border: '2px solid var(--primary)' }}
                                 />
                                 {/* Typeahead Dropdown */}
                                 {showTypeahead && search.trim() && (
                                     <div style={{
                                         position: 'absolute',
-                                        bottom: '100%',
+                                        top: '100%',
                                         left: 0,
                                         right: 0,
-                                        marginBottom: '8px',
+                                        marginTop: '4px',
                                         background: 'var(--bg-card)',
                                         border: '1px solid var(--border)',
                                         borderRadius: '8px',
-                                        boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                         maxHeight: '300px',
                                         overflowY: 'auto'
                                     }}>
@@ -1013,10 +1019,6 @@ export default function SalesPage() {
                                 )}
                             </div>
                         </div>
-
-                        
-                        {/* Invoice Header */}
-                        <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                 <select className="input" style={{ width: '180px' }}
                                     value={customerId} onChange={e => setCustomerId(e.target.value)}>
@@ -1069,6 +1071,7 @@ export default function SalesPage() {
                                         <th style={{ width: '80px' }}>{t('sys.str_64')}</th>
                                         <th style={{ width: '100px' }}>{t('sys.str_65')}</th>
                                         <th style={{ width: '80px' }}>{t('sys.str_766')}</th>
+                                        <th style={{ width: '90px' }}>خصم (ريال)</th>
                                         <th style={{ width: '100px' }}>{t('sys.str_66')}</th>
                                         <th style={{ width: '40px' }}></th>
                                     </tr>
@@ -1076,7 +1079,7 @@ export default function SalesPage() {
                                 <tbody>
                                     {cart.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6}>
+                                            <td colSpan={7}>
                                                 <div className="empty-state" style={{ padding: '40px' }}>
                                                     <div className="empty-state-icon">🧾</div>
                                                     <div className="empty-state-text">{t('purchases.str_981')}</div>
@@ -1085,8 +1088,8 @@ export default function SalesPage() {
                                         </tr>
                                     ) : cart.map((item, idx) => {
                                         const itemSub = item.quantity * item.price;
-                                        const itemDisc = itemSub * (item.discountRate / 100);
-                                        const itemTotal = itemSub - itemDisc;
+                                        const itemDisc = itemSub * (item.discountRate / 100) + (item.discountValue || 0);
+                                        const itemTotal = Math.max(0, itemSub - itemDisc);
                                         return (
                                             <tr key={idx} onClick={() => voidMode && removeCartItem(idx)}
                                                 style={{ cursor: voidMode ? 'pointer' : undefined, background: voidMode ? 'rgba(239,68,68,0.05)' : undefined, transition: 'all 0.2s' }}>
@@ -1106,6 +1109,11 @@ export default function SalesPage() {
                                                 <td>
                                                     <input className="input" type="number" min="0" max="100"
                                                         value={item.discountRate} onChange={e => updateCartItem(idx, 'discountRate', parseFloat(e.target.value) || 0)}
+                                                        style={{ textAlign: 'center', padding: '6px 8px' }} dir="ltr" />
+                                                </td>
+                                                <td>
+                                                    <input className="input" type="number" min="0"
+                                                        value={item.discountValue || 0} onChange={e => updateCartItem(idx, 'discountValue', parseFloat(e.target.value) || 0)}
                                                         style={{ textAlign: 'center', padding: '6px 8px' }} dir="ltr" />
                                                 </td>
                                                 <td style={{ fontWeight: '600' }}>{fmt(itemTotal)}</td>
