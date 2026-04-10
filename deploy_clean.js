@@ -17,7 +17,8 @@ const filesToUpload = [
     'src/locales/ar.json',
     'src/locales/en.json',
     'src/app/api/sales/route.ts',
-    'src/app/(dashboard)/sales/page.tsx'
+    'src/app/(dashboard)/sales/page.tsx',
+    'src/app/(dashboard)/reports/page.tsx'
 ];
 
 console.log('🔄 جاري الاتصال بخادم N11 الحقيقي (46.4.188.170)...');
@@ -28,7 +29,7 @@ conn.on('ready', () => {
     
     // First, create all required directories
     console.log('🔄 جاري التحقق من المجلدات...');
-    conn.exec(`mkdir -p /www/wwwroot/n11.namainvist.com/src/locales && mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/sales && mkdir -p "/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/sales"`, (err, stream) => {
+    conn.exec(`mkdir -p /www/wwwroot/n11.namainvist.com/src/locales && mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/sales && mkdir -p "/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/sales" && mkdir -p "/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/reports"`, (err, stream) => {
         if (err) throw err;
         stream.on('close', (code) => {
             console.log('✅ تم التحقق من إنشاء المجلدات.');

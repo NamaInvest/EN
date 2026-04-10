@@ -95,7 +95,8 @@ export default function ReportsPage() {
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0);
 
     const handlePrint = () => {
-        const reportTitle = REPORT_TYPES.find(r => r.key === selectedReport)?.label || t('sys.str_4316');
+        const labelKey = REPORT_TYPES.find(r => r.key === selectedReport)?.label;
+        const reportTitle = labelKey ? t(labelKey) : t('sys.str_4316');
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -151,7 +152,8 @@ export default function ReportsPage() {
             const ws = XLSX.utils.json_to_sheet(dataArr);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Report');
-            const reportTitle = REPORT_TYPES.find(r => r.key === selectedReport)?.label || 'report';
+            const labelKey = REPORT_TYPES.find(r => r.key === selectedReport)?.label;
+            const reportTitle = labelKey ? t(labelKey) : 'report';
             XLSX.writeFile(wb, `${reportTitle}.xlsx`);
         } catch (err) {
             console.error('Excel export error:', err);
@@ -246,14 +248,14 @@ export default function ReportsPage() {
                                 onClick={() => setDailyTab(tab.key)}
                                 style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                             >
-                                {tab.icon} {tab.label}
+                                {tab.icon} {t(tab.label)}
                                 {reportData[tab.key] && <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '1px 6px', fontSize: '11px', marginRight: '4px' }}>{reportData[tab.key].length}</span>}
                             </button>
                         ))}
                     </div>
                     <div className="card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <h3 style={{ fontWeight: '700', margin: 0 }}>{DAILY_TABS.find(t => t.key === dailyTab)?.icon} {DAILY_TABS.find(t => t.key === dailyTab)?.label}</h3>
+                            <h3 style={{ fontWeight: '700', margin: 0 }}>{DAILY_TABS.find(tObj => tObj.key === dailyTab)?.icon} {t(DAILY_TABS.find(tObj => tObj.key === dailyTab)?.label || '')}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button className="btn btn-ghost btn-sm" onClick={handlePrint}>{t('sys.str_4283')}</button>
                                 <button className="btn btn-ghost btn-sm" onClick={handleExportExcel}>📥 Excel</button>
@@ -354,7 +356,7 @@ export default function ReportsPage() {
             <div className="toolbar">
                 <button className="btn btn-ghost" onClick={() => { setSelectedReport(''); setReportData(null); }}>{t('sys.str_4278')}</button>
                 <h2 style={{ fontSize: '18px', fontWeight: '700' }}>
-                    {REPORT_TYPES.find(r => r.key === selectedReport)?.icon} {REPORT_TYPES.find(r => r.key === selectedReport)?.label}
+                    {REPORT_TYPES.find(r => r.key === selectedReport)?.icon} {t(REPORT_TYPES.find(r => r.key === selectedReport)?.label || '')}
                 </h2>
                 <div style={{ marginRight: '16px' }}>{renderBranchFilter()}</div>
                 <div className="toolbar-spacer" />
@@ -429,7 +431,7 @@ export default function ReportsPage() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                                         <div style={{ fontSize: '32px' }}>{r.icon}</div>
                                         <div>
-                                            <div style={{ fontSize: '15px', fontWeight: '700' }}>{r.label}</div>
+                                            <div style={{ fontSize: '15px', fontWeight: '700' }}>{t(r.label)}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{r.description}</div>
                                         </div>
                                         {r.special && <span style={{ marginRight: 'auto', fontSize: '10px', background: 'var(--primary)', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>{t('sys.str_4293')}</span>}

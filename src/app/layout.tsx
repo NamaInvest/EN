@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { I18nProvider } from "@/lib/i18n";
+import GlobalAuthGuard from "@/components/GlobalAuthGuard";
 
 export const metadata: Metadata = {
   title: "نما انفست (Nama Invest) - أفضل نظام ERP ونقاط بيع في السعودية",
@@ -181,7 +182,9 @@ export default function RootLayout({
         />
         <Providers>
           <I18nProvider>
-            {children}
+            <GlobalAuthGuard>
+              {children}
+            </GlobalAuthGuard>
           </I18nProvider>
         </Providers>
       </body>

@@ -1,1 +1,8 @@
-const { Client } = require('ssh2'); const conn = new Client(); conn.on('ready', () => { conn.exec(`head -n 20 /www/wwwroot/n2.namainvist.com/src/components/Sidebar.tsx`, (err, stream) => { stream.on('data', d => process.stdout.write(d)); stream.on('close', () => conn.end()); }); }).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});
+const { Client } = require('ssh2'); 
+const conn = new Client(); 
+conn.on('ready', () => { 
+  conn.exec(`grep -R "4292" /www/wwwroot/n11.namainvist.com/src/`, (err, stream) => { 
+      stream.on('close', () => conn.end()).on('data', d => process.stdout.write(d.toString())); 
+      stream.stderr.on('data', d => process.stderr.write(d.toString()));
+  }); 
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});

@@ -1,35 +1,45 @@
 const { Client } = require('ssh2');
+const fs = require('fs');
 
 const conn = new Client();
-console.log('🚀 Connecting to N11 to fix .env and missing section configurations...');
-
 conn.on('ready', () => {
-    // We will carefully read .env, replace n1 with n11 where appropriate, and restart
-    const bashScript = `
-cd /www/wwwroot/n11.namainvist.com
-if [ -f .env ]; then
-    echo "📄 Updating .env file for n11..."
-    sed -i 's/NEXT_PUBLIC_NODE_NAME="n1"/NEXT_PUBLIC_NODE_NAME="n11"/g' .env
-    sed -i 's/NEXT_PUBLIC_NODE_NAME=n1/NEXT_PUBLIC_NODE_NAME=n11/g' .env
-    # Usually public URLs might be named after the node
-    sed -i 's/n1.namainvist.com/n11.namainvist.com/g' .env
-    
-    echo "✅ Configuration fixed. Rebuilding quietly to apply node name..."
-    npm run build
-    pm2 restart n11
-    echo "🎉 Sections will now load properly for n11!"
-else
-    echo "⚠️ No .env file found!"
-fi
-    `;
-    
-    conn.exec(bashScript, (err, stream) => {
+    // 1. Read existing .env
+    conn.exec('cat /www/wwwroot/n11.namainvist.com/.env', (err, stream) => {
         if (err) throw err;
-        stream.on('data', d => process.stdout.write(d.toString()));
-        stream.stderr.on('data', d => process.stderr.write(d.toString()));
-        stream.on('close', (code) => {
-            console.log('Done with exit code: ' + code);
-            conn.end();
+        let envContent = '';
+        stream.on('data', d => envContent += d.toString());
+        stream.on('close', () => {
+            // 2. Modify .env
+            let newEnv = envContent;
+            
+            // Fix PORT
+            if (newEnv.includes('PORT=')) {
+                newEnv = newEnv.replace(/PORT=\d+/, 'PORT=3011');
+            } else {
+                newEnv += '\\nPORT=3011\\n';
+            }
+            
+            // Fix Database URL to use independent one
+            if (newEnv.includes('DATABASE_URL=')) {
+                // Example: mysql://root:pass@localhost:3306/old_db
+                // Let's replace the db name with n11_db
+                newEnv = newEnv.replace(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/, (match, user, pass, host, port, db) => {
+                    return `mysql://${user}:${pass}@${host}:${port}/n11_db`;
+                });
+            }
+
+            console.log('--- NEW .env ---');
+            console.log(newEnv);
+            console.log('--- END ENV ---');
+
+            // 3. Write back and restart
+            const scriptStr = `cat << 'EOF' > /www/wwwroot/n11.namainvist.com/.env\n${newEnv}\nEOF\n` + 
+                              `cd /www/wwwroot/n11.namainvist.com && pm2 restart n11`;
+
+            conn.exec(scriptStr, (err2, stream2) => {
+                stream2.on('data', d => process.stdout.write(d.toString()));
+                stream2.on('close', () => conn.end());
+            });
         });
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});

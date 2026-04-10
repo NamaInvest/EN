@@ -14,4 +14,5 @@ export function translate(key: string, lang: Language): string {
   return key;
 }
 
+// Trigger Hot Reload Dictionaries
 export default translations;

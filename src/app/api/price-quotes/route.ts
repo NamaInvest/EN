@@ -14,11 +14,16 @@ export async function POST(request: Request) {
         const last = await prisma.priceQuote.findFirst({ orderBy: { quoteNo: 'desc' } });
         const quoteNo = (last?.quoteNo || 0) + 1;
 
+        const isTaxInclusive = body.isTaxInclusive === true;
+
         let total = 0;
         const items = (body.items || []).map((item: { productId?: number; productName: string; quantity: number; price: number }) => {
-            const t = (item.quantity || 1) * (item.price || 0);
+            let p = item.price || 0;
+            if (isTaxInclusive) p = p / 1.15;
+            
+            const t = (item.quantity || 1) * p;
             total += t;
-            return { productId: item.productId || null, productName: item.productName || '', quantity: item.quantity || 1, price: item.price || 0, total: t };
+            return { productId: item.productId || null, productName: item.productName || '', quantity: item.quantity || 1, price: p, total: t };
         });
 
         const quote = await prisma.priceQuote.create({

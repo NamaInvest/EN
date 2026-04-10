@@ -1,7 +1,7 @@
 const { Client } = require('ssh2'); 
 const conn = new Client(); 
 conn.on('ready', () => { 
-  conn.exec(`cat /www/server/panel/vhost/nginx/n11.namainvist.com.conf`, (err, stream) => { 
+  conn.exec(`curl -H "Host: n11.namainvist.com" http://127.0.0.1/login`, (err, stream) => { 
       stream.on('close', () => conn.end()).on('data', d => process.stdout.write(d.toString())); 
       stream.stderr.on('data', d => process.stderr.write(d.toString()));
   }); 

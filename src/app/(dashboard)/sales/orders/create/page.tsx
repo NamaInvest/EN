@@ -2,23 +2,24 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useSettings } from '@/lib/SettingsContext';
 
-export default function CreateRecurringContractPage() {
+export default function CreateSalesOrderPage() {
+    const { getSetting } = useSettings();
     const { t } = useTranslation();
     const router = useRouter();
     const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     
-    // Form fields specific to Recurring Invoices as expected by /api/recurring-invoices
+    // Form fields specific to Sales Orders
     const [form, setForm] = useState({ 
         customerId: '', 
-        frequency: 'MONTHLY', 
-        startDate: new Date().toISOString().split('T')[0],
         notes: ''
     });
     
     const [items, setItems] = useState<any[]>([]);
+    const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
 
     useEffect(() => { loadData(); }, []);
 
@@ -60,8 +61,14 @@ export default function CreateRecurringContractPage() {
         setItems(items.filter((_, i) => i !== index));
     };
 
-    const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
-    const taxValue = subtotal * 0.15; // Assuming 15% VAT Standard NamaSoft
+    let subtotal = 0;
+    for (const item of items) {
+        let p = parseFloat(item.price) || 0;
+        if (isTaxInclusive) p = p / 1.15;
+        subtotal += (parseFloat(item.quantity) || 1) * p;
+    }
+    
+    const taxValue = subtotal * 0.15; // 15% VAT Standard NamaSoft
     const total = subtotal + taxValue;
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -78,14 +85,14 @@ export default function CreateRecurringContractPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token') || '';
-            const res = await fetch('/api/recurring-invoices', {
+            const res = await fetch('/api/sales-orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ ...form, items, subtotal, taxValue, total })
+                body: JSON.stringify({ ...form, items, subtotal, taxValue, total, isTaxInclusive })
             });
             
             if (res.ok) {
-                router.push('/recurring-invoices');
+                router.push('/sales/orders');
             } else {
                 const errData = await res.json();
                 alert(errData.error || t('sales.str_2915'));
@@ -101,33 +108,21 @@ export default function CreateRecurringContractPage() {
     return (
         <div className="page-content animate-fade-in p-6 max-w-5xl mx-auto" dir="rtl">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-white">{t('sales.str_2898')}</h1>
-                <button onClick={() => router.push('/recurring-invoices')} className="text-gray-400 hover:text-white">{t('sales.str_2899')}</button>
+                <h1 className="text-2xl font-bold text-white">{t('sys.str_1377')}</h1>
+                <button onClick={() => router.push('/sales/orders')} className="text-gray-400 hover:text-white">{t('sys.str_487')}</button>
             </div>
 
             <div className="bg-surface border border-divider rounded-xl p-6 shadow-lg">
                 <form onSubmit={handleCreate} className="space-y-6">
                     
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="input-group m-0">
                             <label className="text-sm text-gray-400 mb-1 block">{t('sales.str_2900')}</label>
                             <select required className="w-full bg-[#111] border border-gray-700 rounded-lg p-3 text-white" value={form.customerId} onChange={e => setForm({...form, customerId: e.target.value})}>
                                 <option value="">{t('sys.str_1811')}</option>
                                 {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
-                        </div>
-                        <div className="input-group m-0">
-                            <label className="text-sm text-gray-400 mb-1 block">{t('sales.str_2901')}</label>
-                            <select required className="w-full bg-[#111] border border-gray-700 rounded-lg p-3 text-white" value={form.frequency} onChange={e => setForm({...form, frequency: e.target.value})}>
-                                <option value="MONTHLY">{t('sales.str_2902')}</option>
-                                <option value="YEARLY">{t('sales.str_2903')}</option>
-                                <option value="WEEKLY">{t('sales.str_2904')}</option>
-                            </select>
-                        </div>
-                        <div className="input-group m-0">
-                            <label className="text-sm text-gray-400 mb-1 block">{t('sales.str_2905')}</label>
-                            <input required type="date" className="w-full bg-[#111] border border-gray-700 rounded-lg p-3 text-white" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
                         </div>
                     </div>
 
@@ -199,10 +194,10 @@ export default function CreateRecurringContractPage() {
                     </div>
 
                     <div className="flex justify-end gap-3 mt-6">
-                        <button type="button" onClick={() => router.push('/recurring-invoices')} className="px-6 py-3 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 transition">
-                            {t('sales.str_2912')}</button>
+                        <button type="button" onClick={() => router.push('/sales/orders')} className="px-6 py-3 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 transition">
+                            {t('sys.str_487')}</button>
                         <button type="submit" disabled={loading} className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 transition disabled:opacity-50">
-                            {loading ? t('sys.str_454') : t('sales.str_2918')}
+                            {loading ? t('sys.str_454') : t('sys.str_448')}
                         </button>
                     </div>
                 </form>

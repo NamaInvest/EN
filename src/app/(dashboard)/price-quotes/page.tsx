@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
@@ -80,14 +80,15 @@ export default function PriceQuotesPage() {
         setItems(updated);
     };
 
-    const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    const isTaxInclusive = settings['POS_TAX_INCLUSIVE'] !== 'false';
+    const total = items.reduce((sum, item) => { let p = item.price; if (isTaxInclusive) p = p / 1.15; return sum + item.quantity * p; }, 0);
 
     const handleSave = async () => {
         if (items.length === 0) return;
         const res = await fetch('/api/price-quotes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, notes }),
+            body: JSON.stringify({ items, notes, isTaxInclusive: settings['POS_TAX_INCLUSIVE'] !== 'false' }),
         });
         if (res.ok) {
             const saved = await res.json();
@@ -96,7 +97,7 @@ export default function PriceQuotesPage() {
             setNotes('');
             load();
             // Auto-print
-            handlePrint({ ...saved, date: saved.date || new Date().toISOString(), details: saved.details || items.map((it: QuoteItem) => ({ productName: it.productName, quantity: it.quantity, price: it.price, total: it.quantity * it.price })) });
+            handlePrint({ ...saved, date: saved.date || new Date().toISOString(), details: saved.details || items.map((it: QuoteItem) => ({ productName: it.productName, quantity: it.quantity, price: (isTaxInclusive ? it.price / 1.15 : it.price), total: it.quantity * (isTaxInclusive ? it.price / 1.15 : it.price) })) });
         }
     };
 
@@ -106,8 +107,8 @@ export default function PriceQuotesPage() {
         setLastQuoteData({
             invoiceNumber: quote.quoteNo.toString(),
             date: quote.date,
-            customerName: 'عميل نقدي',
-            paymentMethod: 'نقدي',
+            customerName: 'ط¹ظ…ظٹظ„ ظ†ظ‚ط¯ظٹ',
+            paymentMethod: 'ظ†ظ‚ط¯ظٹ',
             items: quote.details.map((d: any) => ({
                 name: d.productName,
                 quantity: d.quantity,
@@ -208,7 +209,7 @@ export default function PriceQuotesPage() {
                             </td>
                             <td style={{ padding: '4px' }}>
                                 <button onClick={() => removeItem(i)}
-                                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>âœ•</button>
                             </td>
                         </tr>
                     ))}</tbody>
@@ -234,7 +235,7 @@ export default function PriceQuotesPage() {
             {/* Quotes List */}
             <div className="card">
                 {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
-                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
+                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">ًں“„</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{quotes.map(q => (
                             <div key={q.id} className="card" style={{ padding: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -244,7 +245,7 @@ export default function PriceQuotesPage() {
                                     <div className="toolbar-spacer" />
                                     <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(q.total)} {t('sys.str_68')}</span>
                                     <button className="btn btn-sm" onClick={e => { e.stopPropagation(); handlePrint(q); }}
-                                        style={{ fontSize: '12px', padding: '4px 10px' }}>🖨️</button>
+                                        style={{ fontSize: '12px', padding: '4px 10px' }}>ًں–¨ï¸ڈ</button>
                                 </div>
                                 {expanded === q.id && q.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
                                     <thead><tr style={{ background: 'rgba(108,99,255,0.03)' }}>
@@ -275,3 +276,4 @@ export default function PriceQuotesPage() {
         )}
     </>);
 }
+

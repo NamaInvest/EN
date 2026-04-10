@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ export default function InactivityGuard() {
     const logout = useCallback(() => {
         document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         localStorage.removeItem('token');
+        document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         localStorage.removeItem('user');
         localStorage.removeItem('lastActivity');
         router.push('/login');
@@ -51,3 +52,4 @@ export default function InactivityGuard() {
 
     return null; // This component renders nothing
 }
+

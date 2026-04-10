@@ -1,18 +1,8 @@
-const { Client } = require('ssh2');
-const conn = new Client();
-
-conn.on('ready', () => {
-    const cmd = `
-        echo "=== N1 NGINX PROXY ==="
-        cat /www/server/panel/vhost/nginx/n1.namainvist.com.conf || cat /www/server/panel/vhost/nginx/node_n1.conf
-        echo "\n=== PM2 PROCESS LIST ==="
-        pm2 jlist | jq '.[] | {name: .name, port: .pm2_env.env.PORT, pwd: .pm2_env.pm_cwd}'
-    `;
-
-    conn.exec(cmd, (err, stream) => {
-        if (err) throw err;
-        stream.on('close', () => conn.end())
-              .on('data', data => console.log(data.toString()))
-              .stderr.on('data', data => console.error(data.toString()));
-    });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+const { Client } = require('ssh2'); 
+const conn = new Client(); 
+conn.on('ready', () => { 
+  conn.exec(`cat /www/server/panel/vhost/nginx/proxy/n11.namainvist.com/fa158786b05273549a18a5cd88342aac_n11.namainvist.com.conf`, (err, stream) => { 
+      stream.on('close', () => conn.end()).on('data', d => process.stdout.write(d.toString())); 
+      stream.stderr.on('data', d => process.stderr.write(d.toString()));
+  }); 
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});

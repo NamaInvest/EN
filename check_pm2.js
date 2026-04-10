@@ -1,14 +1,8 @@
-const { Client } = require('ssh2');
-const c = new Client();
-c.on('ready', () => {
-    c.exec('pm2 jlist', (err, stream) => {
-        let output = '';
-        stream.on('data', d => { output += d.toString(); });
-        stream.on('close', () => {
-            const list = JSON.parse(output);
-            const n11 = list.find(p => p.name === 'n11');
-            console.log('N11 path:', n11 ? n11.pm2_env.pm_cwd : 'NOT FOUND');
-            c.end();
-        });
-    });
-}).connect({host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b', readyTimeout:30000});
+const { Client } = require('ssh2'); 
+const conn = new Client(); 
+conn.on('ready', () => { 
+  conn.exec(`cat /root/ecosystem.config.js | grep n11 -A 5`, (err, stream) => { 
+      stream.on('close', () => conn.end()).on('data', d => process.stdout.write(d.toString())); 
+      stream.stderr.on('data', d => process.stderr.write(d.toString()));
+  }); 
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});

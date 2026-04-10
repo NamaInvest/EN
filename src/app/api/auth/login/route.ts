@@ -72,7 +72,7 @@ export async function POST(request: Request) {
             role: user.role,
         });
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             token,
             user: {
                 id: user.id,
@@ -82,6 +82,16 @@ export async function POST(request: Request) {
                 permissions: user.permissions,
             },
         });
+
+        // Set generic auth cookie for Next.js middleware routing
+        response.cookies.set('auth-token', token, {
+            httpOnly: false, // Must be readable by client script if needed, but primarily used for middleware checks
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7 // 7 days
+        });
+
+        return response;
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         const errStack = error instanceof Error ? error.stack : '';

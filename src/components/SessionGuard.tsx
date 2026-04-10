@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
- * SessionGuard — checks session validity every 30 seconds.
+ * SessionGuard â€” checks session validity every 30 seconds.
  * If user logged in on another device, this detects it and forces logout.
  */
 export default function SessionGuard() {
@@ -13,7 +13,10 @@ export default function SessionGuard() {
     useEffect(() => {
         const checkSession = async () => {
             const token = localStorage.getItem('token');
-            if (!token) return;
+            if (!token) {
+                router.replace('/login');
+                return;
+            }
 
             try {
                 const res = await fetch('/api/auth/session', {
@@ -22,6 +25,7 @@ export default function SessionGuard() {
                 const data = await res.json();
                 if (!data.valid && data.reason === 'session_replaced') {
                     localStorage.removeItem('token');
+                    document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                     localStorage.removeItem('user');
                     alert(t('sys.str_98'));
                     router.replace('/login');
@@ -37,3 +41,4 @@ export default function SessionGuard() {
 
     return null; // This component renders nothing
 }
+

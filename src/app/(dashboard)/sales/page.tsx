@@ -8,16 +8,17 @@ import VoucherReceipt from '../../../components/VoucherReceipt';
 import { QRCodeCanvas } from 'qrcode.react';
 import { RiyalLogo } from '@/components/RiyalLogo';
 import { useTranslation } from "@/lib/i18n";
+import { printRawESCPOS, connectQZ } from "@/lib/qz";
 import { useSettings } from '@/lib/SettingsContext';
 
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
-    currentStock: number; taxRate: number; unit?: { name: string };
+    currentStock: number; taxRate: number; unit?: { name: string }; categoryId?: number;
 }
 interface CartItem {
     productId: number; productName: string; quantity: number;
     price: number; discountRate: number; discountValue?: number; taxRate: number;
-    stock: number; unitName: string;
+    stock: number; unitName: string; categoryId?: number;
 }
 interface Customer { id: number; name: string; phone?: string; taxNumber?: string | null; crNo?: string | null; address?: string | null; }
 interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes: string; discountRate: number; paidAmount: string; paymentType: string; heldAt: string; label: string; }
@@ -26,6 +27,43 @@ export default function SalesPage() {
     const { t } = useTranslation();
     const { getSetting } = useSettings();
     const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
+    const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
+
+    const dispatchKitchenPrinters = async (invoice: any, cartItems: CartItem[]) => {
+        try {
+            const rawPrinters = getSetting('POS_KITCHEN_PRINTERS', '[]');
+            const printers = JSON.parse(rawPrinters);
+            if (!Array.isArray(printers) || printers.length === 0) return;
+
+            // Group items by printer
+            const printJobs = printers.map((printer: any) => {
+                const targets = printer.targetCategories || [];
+                const itemsToPrint = cartItems.filter(item => targets.includes(item.categoryId || 0) || targets.length === 0);
+                return { printer, items: itemsToPrint };
+            }).filter((job: any) => job.items.length > 0);
+
+            for (const job of printJobs) {
+                // Build ESC/POS payload for this kitchen ticket
+                const escpos = [
+                    '\x1B\x40', // Initialize
+                    '\x1B\x61\x01', // Center align
+                    '\x1B\x21\x30', // Double height & width
+                    'طلب مطبخ\n\n',
+                    '\x1B\x21\x00', // Normal font
+                    '\x1B\x61\x00', // Left align
+                    `تاريخ: ${new Date().toLocaleTimeString('ar-SA')}\n`,
+                    `فاتورة #: ${invoice.invoiceNo}\n`,
+                    '--------------------------------\n',
+                    ...job.items.map((i: any) => `${i.productName}  x  ${i.quantity}\n`),
+                    '--------------------------------\n\n\n\n\n',
+                    '\x1D\x56\x41\x00' // Cut paper
+                ];
+                await printRawESCPOS(job.printer, escpos);
+            }
+        } catch (e) {
+            console.error('Kitchen printing failed:', e);
+        }
+    };
     const taxEnabled = getSetting('POS_TAX_ENABLED', 'true') === 'true';
     const couponsEnabled = getSetting('POS_COUPONS_ENABLED', 'true') === 'true';
     const allowNegativeStock = getSetting('POS_ALLOW_NEGATIVE_STOCK', 'false') === 'true';
@@ -384,7 +422,7 @@ export default function SalesPage() {
             if (res.ok) {
                 const created = await res.json();
                 await fetchProducts();
-                addToCart({ id: created.id, name: created.name, barcode: created.barcode, sellPrice: created.sellPrice, currentStock: created.currentStock, taxRate: created.taxRate, unit: undefined });
+                addToCart({ id: created.id, name: created.name, barcode: created.barcode, sellPrice: created.sellPrice, currentStock: created.currentStock, taxRate: created.taxRate, unit: undefined, categoryId: created.categoryId });
                 setShowAddProduct(false);
                 setNewProd({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
             } else {
@@ -436,9 +474,15 @@ export default function SalesPage() {
             ]);
         } else {
             setCart([{
-                productId: p.id, productName: p.name, quantity: 1,
-                price: p.sellPrice, discountRate: 0, taxRate: p.taxRate || 15,
-                discountValue: 0, stock: p.currentStock, unitName: p.unit?.name || t('sys.str_813'),
+                productId: p.id,
+                productName: p.name,
+                price: p.sellPrice,
+                quantity: 1,
+                discountRate: 0,
+                taxRate: p.taxRate ?? 15,
+                stock: p.currentStock,
+                unitName: p.unit?.name || 'حبة',
+                categoryId: p.categoryId
             }, ...cart]);
         }
         setSearch('');
@@ -621,6 +665,7 @@ export default function SalesPage() {
                 setBnplOrderId(''); setBnplUrl(''); setBnplProvider(null); setBnplPolling(false);
                 setRetryPosAmount(null); setRetryInvoiceNo('');
                 if (print) {
+                    await dispatchKitchenPrinters(invoice, cart);
                     const cust = customers.find(c => c.id.toString() === customerId);
                     const customerName = cust?.name || t('sys.str_752');
                     setLastInvoiceData({

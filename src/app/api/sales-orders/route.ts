@@ -35,11 +35,24 @@ export async function POST(request: Request) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
-        const { customerId, salesRepId, notes, items, subtotal, taxValue, total } = body;
+        const { customerId, salesRepId, notes, items, subtotal, taxValue, total, isTaxInclusive } = body;
 
         // @ts-ignore
         const lastOrder = await prisma.salesOrder.findFirst({ orderBy: { orderNo: 'desc' } });
         const newOrderNo = lastOrder ? lastOrder.orderNo + 1 : 1000;
+
+        // Process items to respect inclusive tax
+        const finalItems = items.map((i: any) => {
+            let p = parseFloat(i.price);
+            if (isTaxInclusive) p = p / 1.15;
+            return {
+                productId: parseInt(i.productId),
+                productName: i.productName,
+                quantity: parseFloat(i.quantity),
+                price: p,
+                total: parseFloat(i.quantity) * p
+            };
+        });
 
         // @ts-ignore
         const order = await prisma.salesOrder.create({
@@ -54,13 +67,7 @@ export async function POST(request: Request) {
                 total: parseFloat(total),
                 status: 'pending',
                 details: {
-                    create: items.map((i: any) => ({
-                        productId: parseInt(i.productId),
-                        productName: i.productName,
-                        quantity: parseFloat(i.quantity),
-                        price: parseFloat(i.price),
-                        total: parseFloat(i.quantity) * parseFloat(i.price)
-                    }))
+                    create: finalItems
                 }
             },
             include: { details: true }
