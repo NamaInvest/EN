@@ -298,7 +298,7 @@ const menuItems = [
     { icon: '🔄', lk: 'i.recurring', href: '/recurring-invoices', module: 'sales_orders' },
     { icon: '🗺️', lk: 'i.routes', href: '/sales/routes', module: 'sales_routes' },
     { icon: '🎯', lk: 'i.commissions', href: '/sales/targets', module: 'sales_targets' },
-    { icon: '⚙️', lk: 'i.sales_options', href: '/sales/options', module: 'sales' },
+    { icon: '⚙️', lk: 'i.sales_options', href: '/sales/options?v=1', module: 'sales' },
   ]},
   { sk: 's.purchases', items: [
     { icon: '⚙️', lk: 'i.purchases_options', href: '/purchases/options', module: 'purchases' },

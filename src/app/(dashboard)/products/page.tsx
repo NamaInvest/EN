@@ -313,6 +313,17 @@ export default function ProductsPage() {
         } catch { showToast(t('sys.str_419')); }
     };
 
+    const handleDeleteAllCategories = async () => {
+        if (!confirm('هل أنت متأكد من رغبتك بحذف جميع التصنيفات؟')) return;
+        if (!confirm('تأكيد نهائي: بمجرد الحذف لا يمكن التراجع!')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/categories?action=delete_all', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) { const d = await res.json(); showToast(`✅ ${d.message}`); fetchCategories(); }
+            else { const d = await res.json(); showToast(`❌ ${d.error || 'حدث خطأ'}`); }
+        } catch { showToast('فشل في الاتصال'); }
+    };
+
     const paginatedProducts = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
     const totalPages = Math.ceil(products.length / PER_PAGE);
 
@@ -348,6 +359,7 @@ export default function ProductsPage() {
                     </button>
                     {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_871')}</button>}
                     {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_872')}</button>}
+                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllCategories} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>حذف كل التصنيفات</button>}
                     <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_873')}</button>
                 </div>
 

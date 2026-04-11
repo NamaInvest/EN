@@ -393,13 +393,38 @@ export async function DELETE(request: NextRequest) {
             const allowed = await hasPermission(auth.userId, 'delete_all_sales');
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كل الفواتير' }, { status: 403 });
 
-            // Delete all details, treasury entries, then invoices safely
+            // Reverse stock for ALL items before deleting
+            const allSales = await prisma.salesInvoice.findMany({ include: { details: true } });
+            
             const result = await prisma.$transaction(async (tx) => {
+                // Reverse stock
+                for (const inv of allSales) {
+                    for (const detail of inv.details) {
+                        try {
+                            await tx.product.update({
+                                where: { id: detail.productId },
+                                data: { currentStock: { increment: detail.quantity } }
+                            });
+                            await tx.productStock.upsert({
+                                where: { productId_stockId: { productId: detail.productId, stockId: inv.stockId } },
+                                update: { quantity: { increment: detail.quantity } },
+                                create: { productId: detail.productId, stockId: inv.stockId, quantity: detail.quantity },
+                            });
+                        } catch (e) {
+                            // Ignored (Product might have been deleted)
+                        }
+                    }
+                }
+                
+                await tx.journalEntry.deleteMany({
+                    where: { reference: { startsWith: 'SALE-' } }
+                });
+
                 await tx.salesInvoiceDetail.deleteMany({});
                 await tx.treasury.deleteMany({ where: { referenceType: 'sale' } });
                 return await tx.salesInvoice.deleteMany({});
             });
-            return NextResponse.json({ success: true, message: `تم حذف ${result.count} فاتورة مبيعات` });
+            return NextResponse.json({ success: true, message: `تم حذف ${result.count} فاتورة مبيعات مع عكس المخزون والقيود المحاسبية` });
         }
 
         // Single invoice delete
@@ -432,6 +457,10 @@ export async function DELETE(request: NextRequest) {
 
             // Remove related treasury entries
             await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
+
+            await tx.journalEntry.deleteMany({
+                where: { reference: `SALE-${invoice.invoiceNo}` }
+            });
 
             // Write to AuditLog for AI Fraud Engine
             await tx.auditLog.create({

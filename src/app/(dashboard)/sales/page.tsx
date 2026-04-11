@@ -1029,8 +1029,8 @@ export default function SalesPage() {
                                                 {/* Invoice Header */}
                         <div className="pos-invoice-header" style={{ flexWrap: 'wrap' }}>
                             {/* Smart Unified Search Bar */}
-                        <div style={{ position: 'relative', zIndex: 20, flex: '1 1 300px' }}>
-                            <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', zIndex: 20, flex: '1 1 300px', display: 'flex', gap: '8px' }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
                                 <input
                                     ref={searchRef}
                                     className="input"
@@ -1111,6 +1111,11 @@ export default function SalesPage() {
                                     </div>
                                 )}
                             </div>
+                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
+                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
+                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
+                            </button>
                         </div>
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                 <select className="input" style={{ width: '180px' }}
@@ -1147,11 +1152,6 @@ export default function SalesPage() {
                             </select>
                             <input className="input" type="number" placeholder={t('sys.str_4333')} value={manualInvoiceNo} onChange={e => setManualInvoiceNo(e.target.value)} style={{ width: '180px' }} title={t('sys.str_4334')} />
                             <input className="input" type="date" value={manualDate} onChange={e => setManualDate(e.target.value)} style={{ width: '150px' }} title={t('sys.str_4335')} />
-                            <button onClick={connectPosManual} title={posStatus === 'connected' ? t('sys.str_841') : posStatus === 'sending' ? t('sys.str_842') : t('sys.str_843')}
-                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: posStatus === 'connected' ? '#22c55e15' : posStatus === 'sending' ? '#f59e0b15' : 'transparent', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: posStatus === 'connected' ? '#22c55e' : posStatus === 'sending' ? '#f59e0b' : '#ef4444', display: 'inline-block' }}></span>
-                                {posStatus === 'connected' ? t('sys.str_844') : posStatus === 'sending' ? '⏳' : t('sys.str_845')}
-                            </button>
                         </div>
 
                         {/* Cart Table */}

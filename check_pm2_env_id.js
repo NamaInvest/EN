@@ -1,7 +1,7 @@
 const { Client } = require('ssh2'); 
 const conn = new Client(); 
 conn.on('ready', () => { 
-    conn.exec('cat /www/server/panel/vhost/nginx/proxy/n11.namainvist.com/*.conf', (err, stream) => { 
+    conn.exec('pm2 env 12 | grep DATABASE_URL && pm2 env 0 | grep DATABASE_URL', (err, stream) => { 
         if (err) throw err; 
         stream.on('data', (d) => process.stdout.write(d)); 
         stream.stderr.on('data', (d) => process.stderr.write(d)); 

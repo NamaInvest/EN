@@ -63,8 +63,8 @@ export async function hasPermission(userId: number, module: string): Promise<boo
     });
     if (!user) return false;
 
-    // Admin always has full access
-    if (user.role === 'admin') return true;
+    // Admin and Owner always have full access
+    if (user.role === 'admin' || user.role === 'owner') return true;
 
     // Explicit permissions override role
     if (user.permissions.length > 0) {

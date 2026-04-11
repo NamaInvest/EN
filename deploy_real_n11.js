@@ -21,7 +21,14 @@ const filesToUpload = [
     'src/components/SessionGuard.tsx',
     'src/components/InactivityGuard.tsx',
     'src/lib/qz.ts',
-    'src/app/(dashboard)/reports/73-modules/page.tsx'
+    'src/app/(dashboard)/reports/73-modules/page.tsx',
+    'src/lib/auth.ts',
+    'src/app/api/sales/route.ts',
+    'src/app/api/categories/route.ts',
+    'src/app/(dashboard)/products/page.tsx',
+    'src/app/(dashboard)/layout.tsx',
+    'src/app/(dashboard)/settings/page.tsx',
+    'src/app/api/system/reset/route.ts'
 ];
 
 console.log('🔄 Connecting to N11 Production Server (46.4.188.170)...');
@@ -30,7 +37,7 @@ const conn = new Client();
 conn.on('ready', () => {
     console.log('✅ Connected successfully to N11!');
     
-    conn.exec('mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/auth/login /www/wwwroot/n11.namainvist.com/src/components /www/wwwroot/n11.namainvist.com/src/lib /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/reports/73-modules', (err, stream) => {
+    conn.exec('mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/auth/login /www/wwwroot/n11.namainvist.com/src/components /www/wwwroot/n11.namainvist.com/src/lib /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/reports/73-modules /www/wwwroot/n11.namainvist.com/src/app/api/sales /www/wwwroot/n11.namainvist.com/src/app/api/categories /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/products /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/settings /www/wwwroot/n11.namainvist.com/src/app/api/system/reset', (err, stream) => {
         if (err) throw err;
         
         // Consume stream to prevent hang
@@ -64,7 +71,7 @@ conn.on('ready', () => {
                         
                         if (uploaded === filesToUpload.length) {
                             console.log('⏳ Starting remote build & NextJS restart on N11...');
-                            conn.exec('cd /www/wwwroot/n11.namainvist.com && rm -f src/proxy.ts && npm install qz-tray && npm run build && pm2 restart n11', (err, stream) => {
+                            conn.exec('cd /www/wwwroot/n11.namainvist.com && rm -rf .next && rm -f src/proxy.ts && npm install qz-tray && npm run build && pm2 restart n11', (err, stream) => {
                                 if (err) throw err;
                                 stream.on('close', (code, signal) => {
                                     console.log('🚀 N11 Deployment completed successfully!');

@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('grep -ri "WIPE_SYSTEM_N11" /www/wwwroot/n11.namainvist.com/.next/', (err, stream) => {
+    conn.exec('cat /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/layout.tsx | grep "نظام نما انفست"', (err, stream) => {
         stream.on('data', d => process.stdout.write(d));
         stream.on('close', () => conn.end());
     });

@@ -160,6 +160,7 @@ export default function SettingsPage() {
                 setCanResetPassword(isAdmin || perms.includes('reset_password'));
                 setCanDeleteAllSales(isAdmin || perms.includes('delete_all_sales'));
                 setCanClearZatca(isAdmin || perms.includes('clear_zatca'));
+                setIsOwner(u.role === 'admin' || u.role === 'owner');
             } else {
                 router.replace('/dashboard');
             }
@@ -182,6 +183,7 @@ export default function SettingsPage() {
     const [canResetPassword, setCanResetPassword] = useState(false);
     const [canDeleteAllSales, setCanDeleteAllSales] = useState(false);
     const [canClearZatca, setCanClearZatca] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
     const roleLabels: Record<string, string> = { owner: 'المالك', admin: 'مدير النظام', manager: 'مدير عام', auditor: 'مُراجع / مدقق', accountant: 'محاسب', cashier: 'كاشير', data_entry: 'مدخل بيانات', hr: 'موارد بشرية', sales_rep: 'مندوب مبيعات' };
     const ALL_MODULES = [
         { key: 'dashboard', label: t('sys.str_4445') },
@@ -1155,6 +1157,20 @@ export default function SettingsPage() {
                         {canClearZatca && (
                             <button className="btn" onClick={clearZatcaData} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>
                                 {t('sys.str_4388')}</button>
+                        )}
+                        {isOwner && (
+                            <button className="btn" onClick={async () => {
+                                const code = prompt('تنبيه خطير جداً!\nهذا الزر سيقوم بمسح كافة الفواتير، المخزون، المنتجات، التصنيفات والعملاء، والرجوع لوضع المصنع.\nاكتب WIPE_SYSTEM_N11 للتأكيد:');
+                                if (code !== 'WIPE_SYSTEM_N11') { if (code) alert('كلمة التأكيد غير صحيحة.'); return; }
+                                try {
+                                    const token = localStorage.getItem('token');
+                                    const res = await fetch('/api/system/reset', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ confirmation: code }) });
+                                    if (res.ok) { alert('✅ تم مسح وتهيئة النظام بنجاح!'); window.location.reload(); }
+                                    else { const d = await res.json(); alert(`❌ ${d.error}`); }
+                                } catch (e) { alert('فشل الاتصال الخادم'); }
+                            }} style={{ background: '#dc2626', color: '#fff', border: '1px solid #991b1b', fontWeight: '800' }}>
+                                فرمتة وتهيئة النظام بالكامل (الرجوع لضبط المصنع)
+                            </button>
                         )}
                     </div>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>{t('sys.str_4389')}</p>
