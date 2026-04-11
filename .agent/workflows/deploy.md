@@ -10,6 +10,7 @@ description: Deploy changes to the production server (Hetzner VPS)
 | Server 2a | 204.168.144.74 | `C:\Users\1\Desktop\namasoftkey\namasoft_key` | `/var/www/namasoft` | `namasoft` | 80 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
 | Server 2b | 204.168.144.74 | `C:\Users\1\Desktop\namasoftkey\namasoft_key` | `/var/www/namasoft2` | `namasoft2` | 3001 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
 | Server 3 | 185.197.195.202 | `C:\Users\1\.ssh\id_ed25519_deploy` | `/var/www/namasoft` | `namasoft` | 80 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
+| Server N11 | 46.4.188.170 | **Password:** `_ee4SWbxLVfH9b` | `/www/wwwroot/n11.namainvist.com` | `n11` | 3011 | `postgresql://namadb_o7u1:Nama2024!x@185.197.195.202:5432/namadb_o7u1` |
 
 **App Login**: admin / O_O772040030
 
@@ -89,4 +90,14 @@ C:\Windows\System32\OpenSSH\ssh.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_
 Server 3:
 ```powershell
 C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\id_ed25519_deploy -o StrictHostKeyChecking=no root@185.197.195.202 "<COMMAND>"
+```
+
+# Deploy to Server N11 (46.4.188.170)
+
+// turbo-all
+
+Since N11 uses a password (`_ee4SWbxLVfH9b`) instead of an SSH key, you should use the updated `deploy_real_n11.js` script to securely upload files via Node `ssh2` and restart the PM2 instance:
+
+```powershell
+node deploy_real_n11.js
 ```
