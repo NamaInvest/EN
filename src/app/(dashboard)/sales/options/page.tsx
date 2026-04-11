@@ -150,7 +150,7 @@ export default function SalesOptionsPage() {
                         يجب تثبيت برنامج QZ Tray على أجهزة الكمبيوتر لنجاح الاتصال.
                     </p>
 
-                    <div style={{ marginBottom: '20px', background: '#f8f9fa', padding: '16px', borderRadius: '8px' }}>
+                    <div style={{ marginBottom: '20px', background: 'var(--bg-body, #1a1b23)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         <h4 style={{ margin: '0 0 10px 0' }}>الطابعة الرئيسية (للكاشير)</h4>
                         <input
                             type="text"
@@ -162,7 +162,7 @@ export default function SalesOptionsPage() {
                         />
                     </div>
 
-                    <div style={{ background: '#f8f9fa', padding: '16px', borderRadius: '8px' }}>
+                    <div style={{ background: 'var(--bg-body, #1a1b23)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <h4 style={{ margin: 0 }}>طابعات الدعم الإضافية للمطبخ</h4>
                             <button
@@ -174,8 +174,12 @@ export default function SalesOptionsPage() {
                             </button>
                         </div>
 
+                        {kitchenPrinters.length === 0 && (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0, textAlign: 'center' }}>لا توجد طابعات مساعدة مضافة.</p>
+                        )}
+
                         {kitchenPrinters.map((printer, index) => (
-                            <div key={index} style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'flex-end', background: 'white', padding: '12px', border: '1px solid #ddd', borderRadius: '6px' }}>
+                            <div key={index} style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'flex-end', background: 'var(--bg-card)', padding: '12px', border: '1px solid var(--border)', borderRadius: '6px' }}>
                                 <div style={{ flex: '1 1 200px' }}>
                                     <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>اسم الطابعة (للتوضيح)</label>
                                     <input type="text" className="input" style={{ width: '100%' }} value={printer.name} onChange={e => { const updated = [...kitchenPrinters]; updated[index].name = e.target.value; setKitchenPrinters(updated); }} />
@@ -193,9 +197,9 @@ export default function SalesOptionsPage() {
                                 </div>
                                 <div style={{ flex: '2 1 200px' }}>
                                     <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>الأقسام المخصصة لهذه الطابعة</label>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', border: '1px solid #ddd', minHeight: '38px', padding: '4px', borderRadius: '4px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', border: '1px solid var(--border)', minHeight: '38px', padding: '4px', borderRadius: '4px', alignItems: 'center' }}>
                                         {categories && categories.map(cat => (
-                                            <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: printer.targetCategories.includes(cat.id) ? '#d4edda' : 'transparent', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}>
+                                            <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: printer.targetCategories.includes(cat.id) ? 'var(--primary-light, rgba(99,102,241,0.2))' : 'transparent', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}>
                                                 <input type="checkbox" checked={printer.targetCategories.includes(cat.id)} onChange={e => {
                                                     const updated = [...kitchenPrinters];
                                                     if(e.target.checked) updated[index].targetCategories.push(cat.id);

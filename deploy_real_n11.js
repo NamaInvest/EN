@@ -1,4 +1,4 @@
-﻿const { Client } = require('ssh2');
+const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
 
@@ -23,11 +23,11 @@ const filesToUpload = [
     'src/lib/qz.ts'
 ];
 
-console.log('ًں”„ ط¬ط§ط±ظٹ ط§ظ„ط§طھطµط§ظ„ ط¨ط®ط§ط¯ظ… N11 ط§ظ„ط­ظ‚ظٹظ‚ظٹ (46.4.188.170)...');
+console.log('🔄 Connecting to N11 Production Server (46.4.188.170)...');
 
 const conn = new Client();
 conn.on('ready', () => {
-    console.log('âœ… طھظ… ط§ظ„ط§طھطµط§ظ„ ط¨ظ†ط¬ط§ط­!');
+    console.log('✅ Connected successfully to N11!');
     
     conn.exec('mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/auth/login /www/wwwroot/n11.namainvist.com/src/components /www/wwwroot/n11.namainvist.com/src/lib', (err, stream) => {
         if (err) throw err;
@@ -37,7 +37,7 @@ conn.on('ready', () => {
         stream.stderr.on('data', () => {});
         
         stream.on('close', () => {
-            console.log('ًں“پ طھظ… طھط¬ظ‡ظٹط² ط§ظ„ظ…ط¬ظ„ط¯ط§طھ.');
+            console.log('📁 Remote directories are ready.');
             conn.sftp((err, sftp) => {
                 if (err) throw err;
                 
@@ -55,18 +55,18 @@ conn.on('ready', () => {
                     
                     sftp.fastPut(localFile, remoteFile, (err) => {
                         if (err) {
-                            console.error(`â‌Œ ط®ط·ط£ ظپظٹ ط±ظپط¹ ${relPath}`, err);
+                            console.error(`❌ Error uploading ${relPath}`, err);
                         } else {
-                            console.log(`âœ… طھظ… ط±ظپط¹ ${relPath}`);
+                            console.log(`✅ Uploaded: ${relPath}`);
                         }
                         uploaded++;
                         
                         if (uploaded === filesToUpload.length) {
-                            console.log('âڈ³ ط¬ط§ط±ظٹ طھط­ط¯ظٹط« ط§ظ„طھط·ط¨ظٹظ‚ (ط­ط°ظپ ProxyطŒ ط¨ظ†ط§ط،طŒ ط¥ط¹ط§ط¯ط© طھط´ط؛ظٹظ„)...');
+                            console.log('⏳ Starting remote build & NextJS restart on N11...');
                             conn.exec('cd /www/wwwroot/n11.namainvist.com && rm -f src/proxy.ts && npm install qz-tray && npm run build && pm2 restart n11', (err, stream) => {
                                 if (err) throw err;
                                 stream.on('close', (code, signal) => {
-                                    console.log('ًںڑ€ طھظ…طھ ط¹ظ…ظ„ظٹط© ط§ظ„طھط­ط¯ظٹط« ظˆط§ظ„ط¨ظ†ط§ط، ط¨ظ†ط¬ط§ط­ ظ…ط¯ظˆظٹ ط¹ظ„ظ‰ N11!');
+                                    console.log('🚀 N11 Deployment completed successfully!');
                                     conn.end();
                                 }).on('data', (data) => process.stdout.write(data.toString()))
                                   .stderr.on('data', (data) => process.stderr.write(data.toString()));
@@ -78,6 +78,6 @@ conn.on('ready', () => {
         });
     });
 }).on('error', (err) => {
-    console.error('â‌Œ ط®ط·ط£ ظپظٹ ط§ظ„ط§طھطµط§ظ„:', err);
+    console.error('❌ Connection Error:', err);
 }).connect(config);
 
