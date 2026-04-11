@@ -20,7 +20,8 @@ const filesToUpload = [
     'src/components/Sidebar.tsx',
     'src/components/SessionGuard.tsx',
     'src/components/InactivityGuard.tsx',
-    'src/lib/qz.ts'
+    'src/lib/qz.ts',
+    'src/app/(dashboard)/reports/73-modules/page.tsx'
 ];
 
 console.log('🔄 Connecting to N11 Production Server (46.4.188.170)...');
@@ -29,7 +30,7 @@ const conn = new Client();
 conn.on('ready', () => {
     console.log('✅ Connected successfully to N11!');
     
-    conn.exec('mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/auth/login /www/wwwroot/n11.namainvist.com/src/components /www/wwwroot/n11.namainvist.com/src/lib', (err, stream) => {
+    conn.exec('mkdir -p /www/wwwroot/n11.namainvist.com/src/app/api/auth/login /www/wwwroot/n11.namainvist.com/src/components /www/wwwroot/n11.namainvist.com/src/lib /www/wwwroot/n11.namainvist.com/src/app/\\(dashboard\\)/reports/73-modules', (err, stream) => {
         if (err) throw err;
         
         // Consume stream to prevent hang
