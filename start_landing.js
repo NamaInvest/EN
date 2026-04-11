@@ -8,7 +8,13 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `
+cd /www/wwwroot/namainvist.com
+npm install
+npm run build
+pm2 start npm --name "nama-landing" -- start -- -p 2999
+pm2 save
+`;
 
 const conn = new Client();
 conn.on('ready', () => {

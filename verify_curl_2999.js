@@ -8,7 +8,7 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `curl -s http://127.0.0.1:2999 | grep "73" -C 5`; // Looking for the text "73" which I put in Variant 5
 
 const conn = new Client();
 conn.on('ready', () => {

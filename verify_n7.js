@@ -8,7 +8,12 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `
+echo "=== namainvist.com directory ==="
+ls -la /www/wwwroot/namainvist.com || echo "Not found"
+echo "=== Nginx Config ==="
+cat /www/server/panel/vhost/nginx/namainvist.com.conf || echo "No nginx config"
+`;
 
 const conn = new Client();
 conn.on('ready', () => {

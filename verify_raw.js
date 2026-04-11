@@ -8,7 +8,10 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `
+echo "=== RAW FETCH ==="
+curl -s http://127.0.0.1:2999 | grep "sys.str" || echo "CLEAN!"
+`;
 
 const conn = new Client();
 conn.on('ready', () => {

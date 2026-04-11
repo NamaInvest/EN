@@ -8,7 +8,12 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `
+FILE=$(ls /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf | head -n 1)
+sed -i 's/3001/2999/g' $FILE
+/www/server/nginx/sbin/nginx -s reload
+echo "Reverted Nginx namainvist.com proxy back to 2999"
+`;
 
 const conn = new Client();
 conn.on('ready', () => {

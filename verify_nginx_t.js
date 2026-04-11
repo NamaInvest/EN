@@ -8,7 +8,7 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `nginx -T | grep -A 15 "server_name namainvist.com"`;
 
 const conn = new Client();
 conn.on('ready', () => {

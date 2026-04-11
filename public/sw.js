@@ -1,14 +1,17 @@
-// A minimal Service Worker to satisfy PWA requirements and clear 404 console errors.
-
-self.addEventListener('install', (event) => {
+self.addEventListener('install', function(e) {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-self.addEventListener('fetch', (event) => {
-  // Let the browser do its default thing
-  // for non-GET requests.
+self.addEventListener('activate', function(e) {
+  self.registration.unregister()
+    .then(function() {
+      return self.clients.matchAll();
+    })
+    .then(function(clients) {
+      clients.forEach(client => {
+        if (client.url && "navigate" in client) {
+          client.navigate(client.url);
+        }
+      });
+    });
 });

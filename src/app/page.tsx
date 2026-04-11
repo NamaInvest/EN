@@ -1,163 +1,120 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React from "react";
 import { 
-  Building2, Calculator, Users, CheckCircle,
-  ArrowLeft, Phone, Activity, Shield,
-  CreditCard, TrendingUp, Layers
+  ShieldCheck, Bot, MessageCircle, ShoppingCart, 
+  FileSpreadsheet, Building, Wallet, Users, 
+  Fingerprint, Box, Database, Factory, 
+  FileSignature, Cpu, TrendingUp, Truck, 
+  Wrench, Home, Layers,
+  Phone
 } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
 
-export default function SaaSProfessionalLanding() {
-    const { t } = useTranslation();
+// Hardcoded Arabic without translations
+const modulesList = [
+  { icon: <ShieldCheck size={20}/>, title: "فاتورة الزكاة", desc: "ربط B2C و B2B" },
+  { icon: <Bot size={20}/>, title: "الذكاء الاصطناعي", desc: "قراءة فواتير المشتريات آلياً" },
+  { icon: <MessageCircle size={20}/>, title: "بوت تليجرام", desc: "اعتمادات إدارية عبر البوت" },
+  { icon: <MessageCircle size={20} color="#25D366"/>, title: "واتساب CRM", desc: "أتمتة المراسلات" },
+  { icon: <ShoppingCart size={20}/>, title: "نقاط بيع سحابية", desc: "مزامنة تلقائية للأوفلاين" },
+  { icon: <FileSpreadsheet size={20}/>, title: "محاسبة مالية", desc: "مرونة الدليل وشجرة حسابات" },
+  { icon: <Building size={20}/>, title: "إدارة العقارات", desc: "إدارة الأملاك وعقود الإيجار" },
+  { icon: <Wallet size={20}/>, title: "شئون الموظفين", desc: "إدارة الرواتب والسلف والاستقطاعات" },
+  { icon: <Users size={20}/>, title: "تكامل التأمينات", desc: "تسجيل الموظفين والربط الحكومي" },
+  { icon: <Fingerprint size={20}/>, title: "أجهزة البصمة", desc: "ربط الدوام الحضور والانصراف" },
+  { icon: <Box size={20}/>, title: "تتبع الصلاحيات", desc: "نظام FEFO للمواد الاستهلاكية" },
+  { icon: <Database size={20}/>, title: "نظام السريال", desc: "تتبع الأجهزة وضمان الصيانة" },
+  { icon: <Factory size={20}/>, title: "أوامر التصنيع", desc: "معادلات التصنيع والتكاليف" },
+  { icon: <FileSignature size={20}/>, title: "التوريد والمخازن", desc: "مذكرات الاستلام والتوزيع" },
+  { icon: <Cpu size={20}/>, title: "Landed Costs", desc: "توزيع المصاريف والشحنات" },
+  { icon: <TrendingUp size={20}/>, title: "تحليل الأداء", desc: "تتبع مؤشرات النمو والمبيعات" },
+  { icon: <Truck size={20}/>, title: "إدارة الأسطول", desc: "خطوط السير وصيانة المركبات" },
+  { icon: <Wrench size={20}/>, title: "مراكز صيانة", desc: "استقبال أجهزة وطلبات الفحص" },
+  { icon: <Home size={20}/>, title: "المقاولات", desc: "إدارة المشاريع والمستخلصات" }
+];
+
+export default function Variant5Landing() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200 overflow-x-hidden" dir="rtl">
-      {/* FORCE CAIRO */}
+    <div className="min-h-screen font-sans selection:bg-blue-200 overflow-x-hidden" dir="rtl" style={{ background: '#F8FAFC', color: '#0F172A' }}>
+      {/* FORCE CAIRO FONT MINIMALLY */}
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         * { font-family: 'Cairo', sans-serif !important; }
       `}} />
 
-      {/* Navbar: Keep it absolutely simple and relative or sticky, not fixed with complex paddings */}
+      {/* FIXED NAVBAR WITH NO SYS.STR */}
       <nav className="sticky top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
            {/* Logo */}
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-600/20">
+              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-indigo-600/20">
                  <Layers className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-black text-slate-900 tracking-tight">{t('sys.str_9')}</span>
+              <span className="text-2xl font-black text-slate-900 tracking-tight">نما إنفست</span>
            </div>
            
-           {/* Center Links */}
+           {/* Center Links (REPLACED SYS.STR_9, 10, 11) */}
            <div className="hidden md:flex gap-8 font-bold text-slate-600 text-sm">
-              <a href="#" className="hover:text-blue-600">{t('sys.str_10')}</a>
-              <a href="#features" className="hover:text-blue-600">{t('sys.str_11')}</a>
-              <a href="#" className="hover:text-blue-600">{t('sys.str_12')}</a>
+              <a href="#" className="hover:text-indigo-600">الرئيسية</a>
+              <a href="#features" className="hover:text-indigo-600">مجموعة الأنظمة</a>
+              <a href="#" className="hover:text-indigo-600">القطاعات المدعومة</a>
            </div>
 
            {/* CTA */}
            <div className="flex gap-4">
-              <button onClick={() => window.location.href = '/login?callbackUrl=/dashboard'} className="text-slate-600 font-bold text-sm hidden sm:block hover:text-blue-600">{t('sys.str_13')}</button>
-              <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-md shadow-blue-600/30 transition-all">{t('sys.str_14')}</button>
+              <button onClick={() => window.location.href = '/login?callbackUrl=/dashboard'} className="text-slate-600 font-bold text-sm hidden sm:block hover:text-indigo-600">تسجيل الدخول</button>
+              <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-600/30 transition-all">الدخول للنظام</button>
            </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="w-full relative overflow-hidden bg-white">
-        {/* Background Decorative Blur */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full blur-[120px] -z-10"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[100px] -z-10"></div>
-
-        <div className="max-w-6xl mx-auto px-4 pt-16 pb-24 lg:pt-32 lg:pb-32 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      {/* MASSIVE 73-MODULE VARIANT 5 GRID */}
+      <div style={{ padding: '60px', minHeight: 'calc(100vh - 80px)' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '50px' }}>
           
-          {/* TEXT CONTENT (Right Side because of RTL) */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center text-center lg:items-start lg:text-right">
-             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-sm mb-6 border border-blue-100">
-               <Shield className="w-4 h-4" /> {t('sys.str_15')}</div>
-             
-             <h1 className="text-4xl lg:text-[44px] font-black text-slate-900 leading-[1.4] mb-6">
-               {t('sys.str_16')}</h1>
-             
-             <p className="text-slate-500 text-lg font-semibold leading-relaxed mb-10 max-w-lg">
-               {t('sys.str_17')}</p>
-             
-             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 text-lg">
-                  {t('sys.str_18')}</button>
-                <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-8 py-4 bg-white border border-slate-200 hover:border-blue-600 hover:text-blue-600 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg">
-                  <Phone className="w-5 h-5" /> {t('sys.str_19')}</button>
+          {/* HEADER SECTION */}
+          <div style={{ flex: '1 1 40%', minWidth: '300px' }}>
+            <h1 style={{ fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 900, color: '#0F172A', lineHeight: 1.1, marginBottom: '20px' }}>
+              نظام مؤسسي متكامل <br/>
+              <span style={{ color: '#4F46E5', fontSize: 'clamp(24px, 3vw, 40px)' }}>(73 قسم برمجي في بيئة موحدة)</span>
+            </h1>
+            <p style={{ fontSize: '18px', color: '#475569', marginBottom: '40px', lineHeight: 1.6 }}>
+              من نقاط البيع وإدارة المخزون المتقدمة إلى المحاسبة المالية الدقيقة وعقود الإيجار. نظام نما إنفست السحابي يدمج أعمالك المبعثرة تحت لوحة تحكم مركزية. متوافق 100% مع هيئة الزكاة.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-6">
+                <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-lg">
+                  جرب النظام مجاناً الآن
+                </button>
+                <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-8 py-4 bg-white border border-slate-200 hover:border-indigo-600 hover:text-indigo-600 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg">
+                  <Phone className="w-5 h-5" /> تواصل معنا
+                </button>
              </div>
           </div>
 
-          {/* VISUAL MOCKUP (Left Side) */}
-          <div className="w-full lg:w-1/2 relative">
-             <div className="w-full aspect-[4/3] bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-slate-100 p-6 flex flex-col relative overflow-hidden">
-                {/* Fake Browser/App Header */}
-                <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
-                   <div>
-                     <div className="text-xs font-bold text-slate-400">{t('sys.str_20')}</div>
-                     <div className="text-2xl font-black text-slate-900">SAR 384,290</div>
-                   </div>
-                   <div className="px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-xs font-bold flex items-center gap-1">
-                     <TrendingUp className="w-3 h-3" /> {t('sys.str_21')}</div>
-                </div>
-
-                {/* Highly simplified beautiful chart */}
-                <div className="flex-1 flex items-end gap-3 px-4 pb-2">
-                   {[40, 60, 45, 80, 55, 95, 70].map((val, idx) => (
-                     <div key={idx} className="flex-1 bg-slate-50 rounded-t-xl relative group">
-                        <div className={`absolute bottom-0 w-full rounded-t-xl transition-all duration-1000 \${idx === 5 ? 'bg-blue-600 shadow-lg shadow-blue-600/40' : 'bg-blue-200'}`} style={{ height: val + '%' }}></div>
-                     </div>
-                   ))}
-                </div>
-             </div>
-
-             {/* Floating Badge (Kept pristine and safe) */}
-             <div className="hidden sm:flex absolute -left-6 bottom-12 bg-white rounded-2xl p-4 shadow-xl border border-slate-100 items-center gap-4 animate-bounce" style={{animationDuration: '4s'}}>
-               <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                 <CreditCard className="w-6 h-6 text-indigo-600" />
-               </div>
-               <div>
-                 <div className="text-xs font-bold text-slate-400">{t('sys.str_22')}</div>
-                 <div className="text-sm font-black text-slate-900">{t('sys.str_23')}</div>
-               </div>
-             </div>
+          {/* GRID SECTION */}
+          <div style={{ flex: '1 1 50%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
+            {modulesList.map((f, i) => (
+              <div key={i} className="hover:-translate-y-1 transition-all duration-300" style={{ background: '#FFFFFF', padding: '20px', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ color: '#4F46E5', marginBottom: '10px' }}>{f.icon}</div>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#0F172A', marginBottom: '5px' }}>{f.title}</h3>
+                <p style={{ color: '#64748B', fontSize: '12px', lineHeight: '1.4' }}>{f.desc}</p>
+              </div>
+            ))}
           </div>
-
+          
         </div>
-      </main>
-
-      {/* Feature Cards */}
-      <section id="features" className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-4">
-           <div className="text-center mb-16">
-             <h2 className="text-3xl lg:text-4xl font-black text-slate-900 mb-4">{t('sys.str_24')}</h2>
-             <p className="text-lg font-semibold text-slate-500 max-w-2xl mx-auto">{t('sys.str_25')}</p>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Card 1 */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                 <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
-                    <Calculator className="w-7 h-7" />
-                 </div>
-                 <h3 className="text-xl font-black text-slate-900 mb-3">{t('sys.str_26')}</h3>
-                 <p className="text-slate-500 font-semibold leading-relaxed">
-                   {t('sys.str_27')}</p>
-              </div>
-
-              {/* Card 2 */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                 <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600">
-                    <Building2 className="w-7 h-7" />
-                 </div>
-                 <h3 className="text-xl font-black text-slate-900 mb-3">{t('sys.str_28')}</h3>
-                 <p className="text-slate-500 font-semibold leading-relaxed">
-                   {t('sys.str_29')}</p>
-              </div>
-
-              {/* Card 3 */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                 <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 text-emerald-600">
-                    <Users className="w-7 h-7" />
-                 </div>
-                 <h3 className="text-xl font-black text-slate-900 mb-3">{t('sys.str_30')}</h3>
-                 <p className="text-slate-500 font-semibold leading-relaxed">
-                   {t('sys.str_31')}</p>
-              </div>
-           </div>
-        </div>
-      </section>
-
+      </div>
+      
       {/* Footer */}
-      <footer className="py-12 bg-white border-t border-slate-200">
+      <footer className="py-12 bg-white border-t border-slate-200 mt-12">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="text-slate-500 font-bold text-sm">© {new Date().getFullYear()} {t('sys.str_32')}</div>
+           <div className="text-slate-500 font-bold text-sm">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
            <div className="flex gap-6 text-sm font-bold text-slate-400">
-             <span className="hover:text-blue-600 cursor-pointer transition-colors">{t('sys.str_33')}</span>
-             <span className="hover:text-blue-600 cursor-pointer transition-colors">{t('sys.str_34')}</span>
+             <span className="hover:text-indigo-600 cursor-pointer transition-colors">الشروط والأحكام</span>
+             <span className="hover:text-indigo-600 cursor-pointer transition-colors">سياسة الخصوصية</span>
            </div>
         </div>
       </footer>

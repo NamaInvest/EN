@@ -8,7 +8,9 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `grep -rn "sys.str_9" /www/wwwroot/n1.namainvist.com/src/ || echo "NONE"`;
+const cmd = `
+cat /www/wwwroot/namainvist.com/src/app/page.tsx | grep sys.str || echo "None"
+`;
 
 const conn = new Client();
 conn.on('ready', () => {
