@@ -3,10 +3,14 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('nginx -s reload', (err, stream) => {
+    // Read the actual NGINX config for namainvist.com to understand routing
+    conn.exec("cat /www/server/panel/vhost/nginx/namainvist.com.conf", (err, stream) => {
         if (err) throw err;
+        let out = '';
+        stream.on('data', d => out += d.toString());
         stream.on('close', () => {
-            console.log('NGINX reloaded');
+            console.log('NGINX CONFIG:');
+            console.log(out);
             conn.end();
         });
     });

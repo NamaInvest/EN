@@ -11,14 +11,17 @@ const config = {
 const cmd = `
 #!/bin/bash
 set -e
-# Remove the old bad line
-sed -i '/add_header Clear-Site-Data/d' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
+echo "🔎 VERIFICATION OF ISOLATION FOR ALL SERVERS"
+echo "============================================="
+nodes=(1 2 3 4 5 6 8 9 10 11)
 
-# Insert the proper line
-sed -i '/add_header Cache-Control no-cache;/a \\    add_header Clear-Site-Data \\"\\*\\";' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-nginx -s reload
-echo "Fixed headers."
+for i in "\${nodes[@]}"; do
+    env_file="/www/wwwroot/n\${i}.namainvist.com/.env"
+    db_url=$(grep DATABASE_URL "$env_file" || echo "MISSING")
+    port=$(grep PORT= "$env_file" || echo "MISSING")
+    echo "🔥 [N$i] -> DB: $db_url | PORT: $port"
+done
+echo "============================================="
 `;
 
 const conn = new Client();

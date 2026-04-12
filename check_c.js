@@ -8,18 +8,7 @@ const config = {
     readyTimeout: 30000
 };
 
-const cmd = `
-#!/bin/bash
-set -e
-# Remove the old bad line
-sed -i '/add_header Clear-Site-Data/d' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-# Insert the proper line
-sed -i '/add_header Cache-Control no-cache;/a \\    add_header Clear-Site-Data \\"\\*\\";' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-nginx -s reload
-echo "Fixed headers."
-`;
+const cmd = `curl -s http://127.0.0.1:2999 | grep -o 'sys.str_[0-9]*' || echo "No sys.str found"`;
 
 const conn = new Client();
 conn.on('ready', () => {

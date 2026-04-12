@@ -1,25 +1,24 @@
-﻿import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-export function middleware(request: NextRequest) {
-    const isLoginPage = request.nextUrl.pathname.startsWith('/login');
-    const isApiAuthRoute = request.nextUrl.pathname.startsWith('/api/auth');
-    const isPublicStatic = request.nextUrl.pathname.startsWith('/_next') || request.nextUrl.pathname.includes('.');
+const isPublicRoute = createRouteMatcher([
+  '/', 
+  '/sign-in(.*)', 
+  '/sign-up(.*)', 
+  '/api(.*)',
+  '/api/zatca/callbacks(.*)'
+]);
 
-    // For simplicity, we don't block static files or auth API routes
-    if (isLoginPage || isApiAuthRoute || isPublicStatic) {
-        return NextResponse.next();
-    }
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) {
+      await auth.protect();
+  }
+});
 
-
-    const token = request.cookies.get('auth-token')?.value;
-
-    if (!token) {
-        // Redirect to login preserving the requested URL
-        const loginUrl = new URL('/login', request.url);
-        return NextResponse.redirect(loginUrl);
-    }
-
-    return NextResponse.next();
-}
-
+export const config = {
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
+};

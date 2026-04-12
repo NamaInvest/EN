@@ -3,24 +3,23 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec("cat /www/wwwroot/namainvist.com/src/components/Sidebar.tsx | base64", (err, stream) => {
+    conn.exec("cat /www/wwwroot/namainvist.com/src/app/page.tsx | base64", (err, stream) => {
         if (err) throw err;
         let out = '';
         stream.on('data', d => out += d.toString());
         stream.on('close', () => {
             const decoded = Buffer.from(out, 'base64').toString('utf8');
-            // Find sys.str mentions
+            // look for sys.str in the decoded content
             const matches = [...decoded.matchAll(/sys\.str_\d+/g)];
             if (matches.length > 0) {
-                console.log('FOUND sys.str in Sidebar.tsx! Count:', matches.length);
-                // print unique ones
-                const unique = [...new Set(matches.map(m => m[0]))].slice(0, 20);
-                console.log('Unique keys:', unique);
+                console.log('FOUND sys.str KEYS IN SERVER page.tsx:');
+                matches.forEach(m => console.log(' -', m[0], 'at index', m.index));
             } else {
-                console.log('Sidebar.tsx is CLEAN');
+                console.log('NO sys.str in server page.tsx - file is CLEAN');
             }
-            console.log('\nFirst 500 chars:');
-            console.log(decoded.substring(0, 500));
+            // Also print first 200 chars to verify which file version it is
+            console.log('\nFirst 300 chars of server page.tsx:');
+            console.log(decoded.substring(0, 300));
             conn.end();
         });
     });

@@ -11,14 +11,16 @@ const config = {
 const cmd = `
 #!/bin/bash
 set -e
-# Remove the old bad line
-sed -i '/add_header Clear-Site-Data/d' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
+echo "Cleaning up namainvist.com (Landing Page) to remove internal ERP files..."
+cd /www/wwwroot/namainvist.com/src/app
+rm -rf "(dashboard)" api auth admin login pos restaurant-pos onboarding master-panel invoice billing-expired "~offline"
 
-# Insert the proper line
-sed -i '/add_header Cache-Control no-cache;/a \\    add_header Clear-Site-Data \\"\\*\\";' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-nginx -s reload
-echo "Fixed headers."
+echo "Rebuilding clean landing page..."
+cd /www/wwwroot/namainvist.com
+rm -rf .next
+npm run build
+pm2 restart nama-landing
+echo "Clean-up and restart completed successfully!"
 `;
 
 const conn = new Client();

@@ -396,7 +396,7 @@ export async function processVoice(fileId: string, chatId: number): Promise<void
         
         let parsedData;
         try { parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim()); } 
-        catch (e) { await sendMessage(chatId, '❌ فشل في فهم المقطع הצوتي بشكل صحيح.'); return; }
+        catch (e) { await sendMessage(chatId, '❌ فشل في فهم المقطع الصوتي بشكل صحيح.'); return; }
 
         const { transcript, intent, amount, description } = parsedData;
         let responseText = '';

@@ -3,10 +3,13 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('nginx -s reload', (err, stream) => {
+    conn.exec('systemctl reload nginx || service nginx reload || nginx -s stop && nginx', (err, stream) => {
         if (err) throw err;
+        let out = '';
+        stream.on('data', d => out += d.toString());
+        stream.stderr.on('data', d => out += 'ERR:' + d.toString());
         stream.on('close', () => {
-            console.log('NGINX reloaded');
+            console.log('NGINX:', out);
             conn.end();
         });
     });

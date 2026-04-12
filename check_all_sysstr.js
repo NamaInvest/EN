@@ -3,10 +3,14 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('nginx -s reload', (err, stream) => {
+    // Check ALL tsx files under namainvist.com/src for sys.str
+    conn.exec("grep -rn 'sys.str' /www/wwwroot/namainvist.com/src/ 2>&1 | head -30", (err, stream) => {
         if (err) throw err;
+        let out = '';
+        stream.on('data', d => out += d.toString());
         stream.on('close', () => {
-            console.log('NGINX reloaded');
+            console.log('ALL sys.str in namainvist.com/src:');
+            console.log(out || '(NONE - CLEAN!)');
             conn.end();
         });
     });

@@ -1,16 +1,21 @@
-const fs = require('fs');
-const glob = require('glob');
+const { Client } = require('ssh2');
 
-const files = glob.sync('src/**/*.ts*');
-for (const file of files) {
-    const text = fs.readFileSync(file, 'utf8');
-    if (text.includes('الحدود') || text.includes('الاقامة') || text.includes('الجواز') || text.includes('iqama') || text.includes('Iqama') || text.includes('border') || text.includes('nationality')) {
-        console.log(`Found in: ${file}`);
-        const lines = text.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('الحدود') || lines[i].includes('الاقامة') || lines[i].includes('الجواز') || lines[i].includes('iqama') || lines[i].includes('Iqama')) {
-                console.log(`  Line ${i + 1}: ${lines[i].trim()}`);
-            }
-        }
-    }
-}
+const config = {
+    host: '46.4.188.170',
+    port: 22,
+    username: 'root',
+    password: '_ee4SWbxLVfH9b',
+    readyTimeout: 30000
+};
+
+const cmd = `grep -r -l "فتح لوحة التحكم" /www/wwwroot/ || echo "Not found"`;
+
+const conn = new Client();
+conn.on('ready', () => {
+    conn.exec(cmd, (err, stream) => {
+        if (err) throw err;
+        stream.on('close', () => conn.end());
+        stream.on('data', d => process.stdout.write(d.toString()));
+        stream.stderr.on('data', d => process.stderr.write(d.toString()));
+    });
+}).on('error', console.error).connect(config);

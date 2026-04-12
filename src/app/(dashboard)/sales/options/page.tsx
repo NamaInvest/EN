@@ -12,7 +12,7 @@ interface DiscountRule {
 }
 
 export default function SalesOptionsPage() {
-    const { getSetting, refreshSettings } = useSettings();
+    const { getSetting, refreshSettings, loading: settingsLoading } = useSettings();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     
@@ -21,6 +21,7 @@ export default function SalesOptionsPage() {
     const [couponsEnabled, setCouponsEnabled] = useState(true);
     const [taxEnabled, setTaxEnabled] = useState(true);
     const [taxInclusive, setTaxInclusive] = useState(true);
+    const [taxRate, setTaxRate] = useState('15');
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
     const [allowAddProduct, setAllowAddProduct] = useState(true);
     const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
@@ -32,24 +33,29 @@ export default function SalesOptionsPage() {
     const [toast, setToast] = useState<{msg: string, type: 'success'|'error'} | null>(null);
 
     useEffect(() => {
-        loadData();
+        fetchCats();
     }, []);
 
-    const loadData = async () => {
-        setLoading(true);
+    const fetchCats = async () => {
         try {
             const token = localStorage.getItem('token');
             const catRes = await fetch('/api/categories', { headers: { 'Authorization': `Bearer ${token}` } });
             if (catRes.ok) setCategories(await catRes.json());
         } catch(e) { console.error('Failed to load categories', e) }
-        await refreshSettings();
+    };
+
+    useEffect(() => {
+        if (settingsLoading) return;
         
-        // Parse states
+        // Parse states after settings are completely loaded from context
         const enabledRaw = getSetting('POS_DISCOUNT_ENABLED', 'true');
         setDiscountEnabled(enabledRaw === 'true');
         
         const taxRaw = getSetting('POS_TAX_ENABLED', 'true');
         setTaxEnabled(taxRaw === 'true');
+
+        const rateRaw = getSetting('tax_rate', '15');
+        setTaxRate(rateRaw);
 
         const taxIncRaw = getSetting('POS_TAX_INCLUSIVE', 'true');
         setTaxInclusive(taxIncRaw === 'true');
@@ -80,7 +86,7 @@ export default function SalesOptionsPage() {
         } catch(e) {}
         
         setLoading(false);
-    };
+    }, [settingsLoading, getSetting]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -93,6 +99,7 @@ export default function SalesOptionsPage() {
                 POS_COUPONS_ENABLED: couponsEnabled ? 'true' : 'false',
                 POS_TAX_ENABLED: taxEnabled ? 'true' : 'false',
                 POS_TAX_INCLUSIVE: taxInclusive ? 'true' : 'false',
+                tax_rate: taxRate,
                 POS_ALLOW_NEGATIVE_STOCK: allowNegativeStock ? 'true' : 'false',
                 POS_ALLOW_ADD_PRODUCT: allowAddProduct ? 'true' : 'false',
                 POS_DISCOUNT_RULES: JSON.stringify(sortedRules),
@@ -280,6 +287,24 @@ export default function SalesOptionsPage() {
                         </label>
                     </div>
                 </div>
+
+                {taxEnabled && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)', background: 'rgba(99,102,241,0.05)', padding: '16px', borderRadius: '8px' }}>
+                        <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>نسبة القيمة المضافة الافتراضية (VAT)</h3>
+                            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                                النسبة المئوية المطبقة افتراضياً في شاشة نقاط البيع (POS).
+                            </p>
+                        </div>
+                        <div>
+                            <select className="input" style={{ width: '150px' }} value={taxRate} onChange={e => setTaxRate(e.target.value)}>
+                                <option value="15">15% (أساسية)</option>
+                                <option value="5">5% (مخفضة)</option>
+                                <option value="0">0% (معفاة/صفرية)</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {/* Tax Inclusive / Exclusive */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>

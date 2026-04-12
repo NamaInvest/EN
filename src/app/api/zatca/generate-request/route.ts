@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: 'تم استخراج طلب הـ API (الخطوة 4) بنجاح.',
+            message: 'تم استخراج طلب الـ API (الخطوة 4) بنجاح.',
             requestPayload: requestData, // يحتوي على الهاش، UUID، والـ XML (Base64)
             hash: requestData.invoiceHash,
             uuid: requestData.uuid

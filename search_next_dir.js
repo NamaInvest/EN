@@ -3,10 +3,14 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('nginx -s reload', (err, stream) => {
+    // Search in the SERVER-SIDE chunks (not static)
+    conn.exec("grep -r '\"sys.str_9\"' /www/wwwroot/namainvist.com/.next/ 2>/dev/null | head -5", (err, stream) => {
         if (err) throw err;
+        let out = '';
+        stream.on('data', d => out += d.toString());
         stream.on('close', () => {
-            console.log('NGINX reloaded');
+            console.log('sys.str_9 in .next dir:');
+            console.log(out.substring(0, 3000) || '(NONE)');
             conn.end();
         });
     });

@@ -11,14 +11,12 @@ const config = {
 const cmd = `
 #!/bin/bash
 set -e
-# Remove the old bad line
-sed -i '/add_header Clear-Site-Data/d' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-# Insert the proper line
-sed -i '/add_header Cache-Control no-cache;/a \\    add_header Clear-Site-Data \\"\\*\\";' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-nginx -s reload
-echo "Fixed headers."
+echo "Rebuilding namainvist.com..."
+cd /www/wwwroot/namainvist.com
+rm -rf .next
+npm run build
+pm2 restart nama-landing
+echo "Build and restart completed!"
 `;
 
 const conn = new Client();

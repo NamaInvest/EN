@@ -3,10 +3,14 @@ const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('nginx -s reload', (err, stream) => {
+    // Find the CWD of PID 1751536 (the process on port 2999)
+    conn.exec("ls -la /proc/1751536/cwd 2>/dev/null && ls -la /proc/1751525/cwd 2>/dev/null", (err, stream) => {
         if (err) throw err;
+        let out = '';
+        stream.on('data', d => out += d.toString());
         stream.on('close', () => {
-            console.log('NGINX reloaded');
+            console.log('CWD of processes on port 2999:');
+            console.log(out);
             conn.end();
         });
     });

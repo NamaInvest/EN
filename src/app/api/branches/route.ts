@@ -57,7 +57,16 @@ export async function POST(request: Request) {
                 name,
                 address: address || '',
                 phone: phone || '',
-                companyId: company.id
+                companyId: company.id,
+                stocks: {
+                    create: {
+                        name: 'مستودع ' + name,
+                        active: true
+                    }
+                }
+            },
+            include: {
+                stocks: true
             }
         });
 

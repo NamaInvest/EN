@@ -64,8 +64,8 @@ export default function Variant5Landing() {
 
            {/* CTA */}
            <div className="flex gap-4">
-              <button onClick={() => window.location.href = '/login?callbackUrl=/dashboard'} className="text-slate-600 font-bold text-sm hidden sm:block hover:text-indigo-600">تسجيل الدخول</button>
-              <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-600/30 transition-all">الدخول للنظام</button>
+              <button onClick={() => window.location.href = 'https://n1.namainvist.com/login'} className="text-slate-600 font-bold text-sm hidden sm:block hover:text-indigo-600">تسجيل الدخول</button>
+              <button onClick={() => window.location.href = 'https://n1.namainvist.com/login'} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-600/30 transition-all">الدخول للنظام</button>
            </div>
         </div>
       </nav>
@@ -85,7 +85,7 @@ export default function Variant5Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-6">
-                <button onClick={() => window.location.href = '/login?callbackUrl=/onboarding/zatca'} className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-lg">
+                <button onClick={() => window.location.href = 'https://n1.namainvist.com/login'} className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-lg">
                   جرب النظام مجاناً الآن
                 </button>
                 <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-8 py-4 bg-white border border-slate-200 hover:border-indigo-600 hover:text-indigo-600 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg">
