@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { currentUser } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await currentUser();
     
     // Safety check: Fallback to body-provided email if NextAuth is mocked locally
     const body = await req.json();
-    const userEmail = session?.user?.email || body.fallbackEmail;
+    const userEmail = user?.emailAddresses[0]?.emailAddress || body.fallbackEmail;
 
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized. Please login with Google." }, { status: 401 });

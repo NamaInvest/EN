@@ -1,34 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { CloudCog, Loader2 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 export default function AuthRouter() {
-    const { t } = useTranslation();
-  const { data: session, status } = useSession();
+  const { t } = useTranslation();
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [msg, setMsg] = useState(t('sys.str_1572'));
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
+    if (isLoaded && !isSignedIn) {
+      router.replace("/sign-in");
       return;
     }
 
-    if (status === "authenticated" && session?.user?.email) {
+    if (isLoaded && isSignedIn && user) {
+      const email = user.emailAddresses[0]?.emailAddress;
+      if(!email) return;
+
       const checkTenantStatus = async () => {
         try {
-          const res = await fetch(`/api/tenant/status?email=${encodeURIComponent(session.user.email!)}`);
+          const res = await fetch(`/api/tenant/status?email=${encodeURIComponent(email)}`);
           if (!res.ok) throw new Error("Failed to fetch tenant status");
           const data = await res.json();
 
           if (data.status === "active") {
             setMsg(`مرحباً بك مجدداً! جاري تحويلك إلى نطاقك المخصص: ${data.subdomain}.namainvist.com`);
             setTimeout(() => {
-              window.location.href = `https://${data.subdomain}.namainvist.com/login?token=${session.user.email}`;
+              window.location.href = `https://${data.subdomain}.namainvist.com/sign-in`;
             }, 1000);
           } else if (data.status === "pending") {
             setMsg(t('sys.str_1573'));
@@ -49,7 +52,7 @@ export default function AuthRouter() {
 
       checkTenantStatus();
     }
-  }, [status, session, router]);
+  }, [isLoaded, isSignedIn, user, router, t]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] flex flex-col items-center justify-center p-4 font-sans text-center" dir="rtl">

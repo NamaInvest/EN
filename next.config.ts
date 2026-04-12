@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: ['ssh2'],
   images: {
     remotePatterns: [
       {
@@ -17,6 +18,19 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/onboarding/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'CDN-Cache-Control', value: 'no-store' },
+          { key: 'Cloudflare-CDN-Cache-Control', value: 'no-store' },
+        ],
+      },
+    ];
   },
 };
 

@@ -51,6 +51,27 @@ export async function POST(request: Request) {
         const body = await request.json();
         console.log('Received sales payload:', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
 
+        // --- Trial Limitations Check ---
+        const trialSettings = await prisma.setting.findMany({
+            where: { key: { in: ['trialActive', 'trialEndsAt', 'maxTrialInvoices'] } }
+        });
+        const getSetting = (k: string) => trialSettings.find(s => s.key === k)?.value;
+        const isTrialActive = getSetting('trialActive') === 'true';
+        if (isTrialActive) {
+            const endsAt = parseInt(getSetting('trialEndsAt') || '0');
+            const maxInvoices = parseInt(getSetting('maxTrialInvoices') || '30');
+            
+            if (endsAt > 0 && Date.now() > endsAt) {
+                return NextResponse.json({ error: 'عذراً، انتهت فترة التجربة المجانية المحددة بـ 5 أيام. يرجى تفعيل الاشتراك.' }, { status: 403 });
+            }
+            
+            const currentInvoiceCount = await prisma.salesInvoice.count();
+            if (currentInvoiceCount >= maxInvoices) {
+                return NextResponse.json({ error: `عذراً، لقد استهلكت جميع الفواتير التجريبية المسموحة (${maxInvoices} فاتورة). يرجى تفعيل الاشتراك.` }, { status: 403 });
+            }
+        }
+        // -------------------------------
+
         // Get next invoice number
         const lastInvoice = await prisma.salesInvoice.findFirst({
             orderBy: { invoiceNo: 'desc' },

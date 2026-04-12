@@ -4,6 +4,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SessionGuard from '@/components/SessionGuard';
 import InactivityGuard from '@/components/InactivityGuard';
 import SubscriptionGuard from '@/components/SubscriptionGuard';
+import TrialBanner from '@/components/TrialBanner';
 import StockNotificationBell from '@/components/StockNotificationBell';
 import AICopilotButton from '@/components/AICopilotButton';
 import GlobalErrorBoundary from '@/components/GlobalErrorBoundary';
@@ -29,7 +30,7 @@ export default function DashboardLayout({
                         <SubscriptionGuard />
                         <AICopilotButton />
                         <Sidebar />
-                <main className="main-content">
+                <main className="main-content flex flex-col">
                     {/* Top bar with theme and language switchers */}
                     <div className="top-bar" style={{
                         background: 'var(--bg-darker)',
@@ -63,7 +64,13 @@ export default function DashboardLayout({
                             <ThemeSwitcher />
                         </div>
                     </div>
-                    {children}
+                    
+                    {/* Trial Tracking UI */}
+                    <TrialBanner />
+                    
+                    <div className="flex-1 overflow-auto">
+                        {children}
+                    </div>
                 </main>
             </div>
             </GlobalErrorBoundary>

@@ -1,7 +1,6 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
-
+// We no longer need next-auth SessionProvider since we use Clerk
 export function Providers({ children }: { children: React.ReactNode }) {
-    return <SessionProvider>{children}</SessionProvider>;
+    return <>{children}</>;
 }

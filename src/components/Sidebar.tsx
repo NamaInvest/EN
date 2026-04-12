@@ -383,7 +383,7 @@ const menuItems = [
     { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
   ]},
   { sk: 's.settings', items: [
-    { icon: '🌐', lk: 'i.saas', href: '/master-panel', module: 'master-panel' },
+    { icon: '🌐', lk: 'i.saas', href: '/ice', module: 'master-panel' },
     { icon: '🏢', lk: 'i.branches', href: '/branches', module: 'branches' },
     { icon: '💱', lk: 'i.currencies', href: '/settings/currencies', module: 'currencies' },
     { icon: '✅', lk: 'i.approvals', href: '/settings/approvals', module: 'approvals' },
@@ -455,6 +455,7 @@ export default function Sidebar() {
 
   const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });
   const [userModules, setUserModules] = useState<string[]>([]);
+  const [hiddenModules, setHiddenModules] = useState<string[]>([]);
   const [permLoaded, setPermLoaded] = useState(false);
   useEffect(() => {
     try {
@@ -464,7 +465,12 @@ export default function Sidebar() {
         setUserModules(u.permissions.map((p: { module: string }) => p.module));
       }
     } catch { }
-    setPermLoaded(true);
+    // Fetch hidden_modules from ICE settings
+    fetch('/api/tenant/hidden-modules')
+      .then(r => r.json())
+      .then(d => { if (d.hiddenModules) setHiddenModules(d.hiddenModules); })
+      .catch(() => {})
+      .finally(() => setPermLoaded(true));
   }, []);
 
   const isRTL = lang === 'ar' || lang === 'ur';
@@ -475,7 +481,19 @@ export default function Sidebar() {
       const mod = item.module || '';
       if (mod === 'dashboard' || mod === 'login') return true;
       if (mod === 'master-panel') return loggedUser.role === 'owner';
-      if (['admin', 'owner'].includes(loggedUser.role)) return true;
+      if (['admin', 'owner'].includes(loggedUser.role)) {
+        // Apply ICE hidden_modules filter
+        const moduleKey = Object.entries({
+          HR: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans'],
+          POS: ['pos', 'restaurant_pos', 'shifts'],
+          ZATCA: [], // ZATCA is a setting, not a sidebar module
+          Purchases: ['purchases', 'purchase_orders', 'purchase_returns', 'letters_of_credit'],
+          Manufacturing: ['manufacturing', 'mrp'],
+          Reports: ['reports'],
+        }).find(([, mods]) => mods.includes(mod))?.[0];
+        if (moduleKey && hiddenModules.includes(moduleKey)) return false;
+        return true;
+      }
       return userModules.includes(mod);
     }),
   })).filter(group => group.items.length > 0);

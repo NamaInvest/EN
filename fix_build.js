@@ -1,14 +1,27 @@
 const { Client } = require('ssh2');
+
+const bashCommand = `
+rm -f "/www/wwwroot/ice.namainvist.com/src/app/(dashboard)/sales/page_localized.tsx"
+rm -f "/www/wwwroot/namainvist.com/src/app/(dashboard)/sales/page_localized.tsx"
+rm -f "/www/wwwroot/n1.namainvist.com/src/app/(dashboard)/sales/page_localized.tsx"
+rm -f "/www/wwwroot/ice.namainvist.com/src/app/(dashboard)/sales/page_localized_backup.tsx"
+
+cd /www/wwwroot/ice.namainvist.com
+npm run build > build_fixed.log 2>&1
+`;
+
 const conn = new Client();
-const BASE = '/www/wwwroot/n3.namainvist.com';
 conn.on('ready', () => {
-    const cmd = `cd ${BASE} && \\
-rm -rf src/app/test-i18n && \\
-npm run build 2>&1 | tail -6 && \\
-pm2 restart n3`;
-    conn.exec(cmd, (err, stream) => {
-        let out = '';
-        stream.on('data', d => out += d.toString());
-        stream.on('close', () => { console.log(out); conn.end(); });
+    console.log('Fixing corrupted typescript and rebuilding...');
+    conn.exec(bashCommand, (err, stream) => {
+        if (err) throw err;
+        stream.on('data', (d) => process.stdout.write(d))
+              .on('error', (d) => process.stderr.write(d))
+              .on('close', () => conn.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 15000 });
+}).connect({
+    host: '46.4.188.170',
+    port: 22,
+    username: 'root',
+    password: '_ee4SWbxLVfH9b'
+});

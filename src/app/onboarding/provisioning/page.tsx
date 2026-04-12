@@ -1,151 +1,220 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Terminal, Database, Server, CheckSquare, Zap, CloudCog, ShieldCheck } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
+import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 
-export default function SaaSProvisioningTerminal() {
-    const { t } = useTranslation();
-  const [logs, setLogs] = useState<string[]>([]);
-  const [progress, setProgress] = useState(0);
-  const [tenantId, setTenantId] = useState("n11");
-  const [orgName, setOrgName] = useState(t('sys.str_1583'));
-  const [completed, setCompleted] = useState(false);
+export default function ProvisioningPage() {
+    const { user } = useUser(); // non-blocking - user may be null initially
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("zatca_pending_org");
-      if (saved) setOrgName(saved);
-      // Determine next node number (mock logic)
-      const mockNodeNumber = Math.floor(Math.random() * 5) + 11; // n11 to n15
-      setTenantId(`n${mockNodeNumber}`);
+    const [subdomain, setSubdomain] = useState('');
+    const [companyNameAr, setCompanyNameAr] = useState('');
+    const [businessDomain, setBusinessDomain] = useState('');
+    const [branchName, setBranchName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [address, setAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [buildingNo, setBuildingNo] = useState('');
+    const [district, setDistrict] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [vatNumber, setVatNumber] = useState('');
+    const [crnNumber, setCrnNumber] = useState('');
+
+    const [error, setError] = useState('');
+    const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS'>('IDLE');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        // Validation
+        const cleanSubdomain = subdomain.trim().toLowerCase();
+        if (!/^[a-z0-9]+$/.test(cleanSubdomain)) {
+            setError('اسم الموقع الفرعي يمكن أن يحتوي فقط على أحرف إنجليزية وأرقام.');
+            return;
+        }
+
+        if (!/^3\d{13}3$/.test(vatNumber)) {
+            setError('الرقم الضريبي يجب أن يتكون من 15 رقماً بالضبط، ويبدأ بـ 3 وينتهي بـ 3.');
+            return;
+        }
+
+        if (!/^7\d{9}$/.test(crnNumber)) {
+            setError('السجل التجاري يجب أن يتكون من 10 أرقام بالضبط، ويبدأ برقم 7.');
+            return;
+        }
+
+        setStatus('LOADING');
+
+        try {
+            const res = await fetch('/api/tenant/provision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subdomain: cleanSubdomain,
+                    companyNameAr,
+                    businessDomain,
+                    branchName,
+                    mobile,
+                    city,
+                    address,
+                    buildingNo,
+                    district,
+                    postalCode,
+                    vatNumber,
+                    crnNumber,
+                    clerkUserId: user?.id,
+                    clerkEmail: user?.primaryEmailAddress?.emailAddress
+                })
+            });
+
+            const data = await res.json();
+            if (!data.success) {
+                setError(data.message || 'حدث خطأ غير متوقع أثناء المعالجة!');
+                setStatus('IDLE');
+                return;
+            }
+
+            setStatus('SUCCESS');
+            
+            // Poll for readiness
+            const checkReadiness = setInterval(async () => {
+                try {
+                    const ping = await fetch(`https://${cleanSubdomain}.namainvist.com/api/health`);
+                    if (ping.ok) {
+                        clearInterval(checkReadiness);
+                        window.location.href = `https://${cleanSubdomain}.namainvist.com`; // Redirect to new ERP
+                    }
+                } catch {
+                    // still booting...
+                }
+            }, 3000);
+
+        } catch (err: any) {
+            setError('طراز غير متوقع: ' + err.message);
+            setStatus('IDLE');
+        }
+    };
+
+
+    if (status === 'SUCCESS' || status === 'LOADING') {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center font-cairo" dir="rtl">
+                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+                    <div className="mb-6 relative">
+                        <div className="w-20 h-20 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mx-auto"></div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                        {status === 'SUCCESS' ? 'تهيئة قاعدة البيانات جارية...' : 'جاري إنشاء المخدم الخاص بك...'}
+                    </h2>
+                    <p className="text-gray-500 mb-6 text-sm">
+                        يرجى الانتظار لحوالي دقيقة، نحن نقوم الآن بإنشاء قاعدة بياناتك السحابية، وترجمة البيانات، وإصدار شهادة الحماية ليكون نظامك جاهزاً بإعدادات مؤسستك.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
-    const sequence = [
-      { msg: "[SYSTEM] Authenticated via Google SSO. Master Context: OK.", delay: 500, pg: 5 },
-      { msg: `[ZATCA] Validated CRN & VAT 15-digit constraints for '${orgName}'.`, delay: 1200, pg: 15 },
-      { msg: `[ALLOCATOR] Querying Hetzner Cloud API for vacant bare-metal slots...`, delay: 2000, pg: 20 },
-      { msg: `[ALLOCATOR] Slot acquired. Binding virtual host: ${tenantId}.namainvist.com`, delay: 3500, pg: 35 },
-      { msg: `[DB_ENGINE] Bootstrapping isolated PostgreSQL schema 'tenant_${tenantId}'...`, delay: 5000, pg: 50 },
-      { msg: `[DB_ENGINE] Applying Prisma Migrations & Core Base Seed...`, delay: 6500, pg: 65 },
-      { msg: `[SECURITY] Injecting ZATCA Phase 2 ECDSA Private Key parameters...`, delay: 8000, pg: 75 },
-      { msg: `[NGINX] Writing Reverse Proxy configuration on port 80/443...`, delay: 9500, pg: 85 },
-      { msg: `[PM2] Spawning daemon process 'namasoft_${tenantId}' (Next.js 15)...`, delay: 11000, pg: 95 },
-      { msg: `[SYSTEM] Provisioning complete. Zero-Touch Deploy Success.`, delay: 12500, pg: 100 },
-    ];
-
-    sequence.forEach((item) => {
-      setTimeout(() => {
-        setLogs((prev) => [...prev, item.msg]);
-        setProgress(item.pg);
-        if (item.pg === 100) {
-          setTimeout(() => setCompleted(true), 1000);
-        }
-      }, item.delay);
-    });
-  }, [orgName]);
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0c] text-green-400 font-mono flex items-center justify-center p-6 relative overflow-hidden" dir="ltr">
-      
-      {/* Cinematic Hacker Background elements */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(10,10,12,0.9),rgba(10,10,12,0.9)),url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xIDEwYTkgOSAwIDExMTggMGE5IDkgMCAwMTgweiIgZmlsbD0icmdiYSgwLCAyNTUsIDAsIDAuMDUpIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=')]"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-green-500/10 animate-[spin_10s_linear_infinite]"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-green-500/20 animate-[spin_15s_linear_infinite_reverse]"></div>
-
-      <div className="w-full max-w-4xl relative z-10">
-        
-        {/* Modern Terminal Window */}
-        <div className="bg-[#0f1115] rounded-xl border border-green-500/30 shadow-[0_0_50px_rgba(34,197,94,0.15)] overflow-hidden backdrop-blur-3xl">
-          
-          {/* Mac-like Header */}
-          <div className="bg-[#1a1d24] px-4 py-3 border-b border-green-500/20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-            </div>
-            <div className="text-green-500/70 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
-              <CloudCog className="w-4 h-4" />
-              NamaSoft Automated Provisioner v9.3
-            </div>
-            <div className="w-10"></div> {/* Spacer */}
-          </div>
-
-          <div className="p-8">
-            <div className="flex items-center gap-6 mb-8">
-               <div className="relative">
-                 <Server className={`w-12 h-12 ${completed ? 'text-green-400' : 'text-blue-400 animate-pulse'}`} />
-                 {!completed && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span></span>}
-               </div>
-               <div>
-                 <h1 className="text-2xl font-black text-white tracking-tight mb-1">
-                   {completed ? `Cluster Node ${tenantId} Online` : `Allocating Cluster Node...`}
-                 </h1>
-                 <p className="text-sm text-green-500/70">{orgName} is being securely deployed to the Hetzner Grid.</p>
-               </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between text-xs mb-2 text-green-400/80 font-bold">
-                <span>SYSTEM ZERO-TOUCH PROGRESS</span>
-                <span>{progress}%</span>
-              </div>
-              <div className="h-2 w-full bg-black rounded-full overflow-hidden border border-green-500/20">
-                <div 
-                  className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300 ease-out relative"
-                  style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute top-0 right-0 bottom-0 left-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[slide_1s_linear_infinite]" />
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-cairo" dir="rtl">
+            <div className="max-w-2xl w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+                <div>
+                    <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
+                        مرحباً بك في نما إنفست!
+                    </h2>
+                    <p className="mt-3 text-center text-sm text-gray-600">
+                        لإكمال إعداد النظام المحاسبي السحابي الخاص بك، يرجى تعبئة التفاصيل بدقة. سيتم ترجمة الحقول المطلوبة باللغة الإنجليزية تلقائياً لتسهيل الأمر بفضل سياسة الصفر إنجليزي!
+                    </p>
                 </div>
-              </div>
-            </div>
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-sm">
+                            {error}
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">اسم الموقع (الدومين) الفرعي المطلوب *</label>
+                            <div className="flex rounded-md shadow-sm">
+                                <span className="inline-flex items-center px-4 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm dir-ltr">
+                                    .namainvist.com
+                                </span>
+                                <input
+                                    type="text"
+                                    required
+                                    className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-none rounded-l-md text-left dir-ltr focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                                    value={subdomain}
+                                    placeholder="naidi"
+                                    onChange={(e) => setSubdomain(e.target.value)}
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">حروف انجليزية وأرقام بدون فواصل.</p>
+                        </div>
 
-            {/* Logs Area */}
-            <div className="bg-black/50 rounded-lg p-4 font-mono text-sm leading-relaxed border border-green-500/10 min-h-[250px] shadow-inner">
-               {logs.map((log, index) => (
-                 <div key={index} className="flex gap-3 mb-1 opacity-90 animate-in slide-in-from-bottom-2 fade-in">
-                   <span className="text-slate-500 select-none">[{new Date().toISOString().split('T')[1].substring(0,8)}]</span>
-                   <span className={
-                     log.includes("Success") || !!log.match(/OK|complete/i) ? "text-green-400" :
-                     log.includes("ZATCA") ? "text-fuchsia-400" :
-                     log.includes("Allocating") || log.includes("tenant") ? "text-blue-400" :
-                     "text-emerald-300"
-                   }>{log}</span>
-                 </div>
-               ))}
-               {!completed && (
-                 <div className="flex gap-3 mt-2">
-                   <span className="text-slate-600 select-none">{'>'}</span>
-                   <span className="w-2 h-4 bg-green-400 animate-pulse inline-block"></span>
-                 </div>
-               )}
-            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنشأة بالعربية *</label>
+                            <input required type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={companyNameAr} onChange={e => setCompanyNameAr(e.target.value)} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">مجال العمل / الصناعة بالعربية *</label>
+                            <input required type="text" placeholder="مثال: متجر أدوات تجميل" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={businessDomain} onChange={e => setBusinessDomain(e.target.value)} />
+                        </div>
 
-            {/* Completion Actions */}
-            <div className={`mt-8 transition-all duration-1000 ${completed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-               <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 flex items-start justify-between">
-                 <div className="flex items-center gap-4">
-                   <div className="p-2 bg-green-500/20 rounded-lg"><ShieldCheck className="text-green-400 w-8 h-8" /></div>
-                   <div>
-                     <h3 className="text-white font-bold text-lg font-sans">Operation Successful</h3>
-                     <p className="text-green-500/80 text-sm font-sans">Your new administrative domain is resolving instantly.</p>
-                   </div>
-                 </div>
-                 <button 
-                   onClick={() => window.location.href = '/login'}
-                   className="px-6 py-3 rounded-lg bg-green-500 hover:bg-green-400 text-black font-extrabold font-sans transition-all transform hover:scale-105"
-                 >
-                   Login to {tenantId.toUpperCase()} Dashboard
-                 </button>
-               </div>
-            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الرقم الضريبي (VAT) *</label>
+                            <input required type="text" placeholder="3xxxxxxxxxxx003" maxLength={15} minLength={15} className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={vatNumber} onChange={e => setVatNumber(e.target.value)} />
+                            <p className="mt-1 text-xs text-gray-400">مثال: 311985620700003</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم السجل التجاري (CRN) *</label>
+                            <input required type="text" placeholder="7xxxxxxxxx" maxLength={10} minLength={10} className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={crnNumber} onChange={e => setCrnNumber(e.target.value)} />
+                            <p className="mt-1 text-xs text-gray-400">يجب أن يبدأ بـ 7</p>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم الجوال *</label>
+                            <input required type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={mobile} onChange={e => setMobile(e.target.value)} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">اسم الفرع بالعربية *</label>
+                            <input required type="text" placeholder="مثال: الفرع الرئيسي" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={branchName} onChange={e => setBranchName(e.target.value)} />
+                        </div>
 
-          </div>
+                        <div className="md:col-span-2 grid grid-cols-4 gap-6">
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">المدينة *</label>
+                                <input required type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={city} onChange={e => setCity(e.target.value)} />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">الحي</label>
+                                <input type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={district} onChange={e => setDistrict(e.target.value)} />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">الشارع/العنوان *</label>
+                                <input required type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={address} onChange={e => setAddress(e.target.value)} />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">رقم المبنى</label>
+                                <input type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={buildingNo} onChange={e => setBuildingNo(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="md:col-span-2">
+                            <div className="w-48">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">الرمز البريدي</label>
+                                <input type="text" className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" value={postalCode} onChange={e => setPostalCode(e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                        <button
+                            type="submit"
+                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                        >
+                            تأسيس قاعدة البيانات واستكمال التسجيل
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-      </div>
-
-    </div>
-  );
+    );
 }
