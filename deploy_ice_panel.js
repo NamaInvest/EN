@@ -13,7 +13,7 @@ const FILES_TO_UPLOAD = [
     { local: 'src/app/api/tenant/hidden-modules/route.ts', remote: '/www/wwwroot/n1.namainvist.com/src/app/api/tenant/hidden-modules/route.ts' },
 ];
 
-const OWNER_EMAIL = 'YOUR_EMAIL_HERE@gmail.com'; // سيُستبدل هذا
+const OWNER_EMAIL = 'ialqrashi62@gmail.com';
 
 const mkdirCmd = FILES_TO_UPLOAD
     .map(f => `mkdir -p "${path.dirname(f.remote)}"`)

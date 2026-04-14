@@ -475,6 +475,14 @@ export default function Sidebar() {
 
   const isRTL = lang === 'ar' || lang === 'ur';
 
+  const MODULE_MAP: Record<string, string[]> = {
+    HR: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans'],
+    POS: ['pos', 'restaurant_pos', 'shifts'],
+    Purchases: ['purchases', 'purchase_orders', 'purchase_returns', 'letters_of_credit'],
+    Manufacturing: ['manufacturing', 'mrp'],
+    Reports: ['reports'],
+  };
+
   const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({
     ...group,
     items: group.items.filter(item => {
@@ -482,21 +490,14 @@ export default function Sidebar() {
       if (mod === 'dashboard' || mod === 'login') return true;
       if (mod === 'master-panel') return loggedUser.role === 'owner';
       if (['admin', 'owner'].includes(loggedUser.role)) {
-        // Apply ICE hidden_modules filter
-        const moduleKey = Object.entries({
-          HR: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans'],
-          POS: ['pos', 'restaurant_pos', 'shifts'],
-          ZATCA: [], // ZATCA is a setting, not a sidebar module
-          Purchases: ['purchases', 'purchase_orders', 'purchase_returns', 'letters_of_credit'],
-          Manufacturing: ['manufacturing', 'mrp'],
-          Reports: ['reports'],
-        }).find(([, mods]) => mods.includes(mod))?.[0];
+        const moduleKey = Object.entries(MODULE_MAP).find(([, mods]) => (mods as string[]).includes(mod))?.[0];
         if (moduleKey && hiddenModules.includes(moduleKey)) return false;
         return true;
       }
       return userModules.includes(mod);
     }),
   })).filter(group => group.items.length > 0);
+
 
   if (!mounted) return <aside className="sidebar" style={{ width: '250px' }}></aside>;
 
