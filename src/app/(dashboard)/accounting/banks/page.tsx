@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface BankAccount {
     id: number;
@@ -19,6 +20,7 @@ interface BankAccount {
 
 export default function BanksPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [banks, setBanks] = useState<BankAccount[]>([]);
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,9 +49,7 @@ export default function BanksPage() {
 
             if (banksRes.ok) setBanks(await banksRes.json());
             if (branchesRes && branchesRes.ok) setBranches(await branchesRes.json());
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };
@@ -137,9 +137,7 @@ export default function BanksPage() {
                 const data = await res.json();
                 alert(data.error || t('fin.str_1683'));
             }
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
     };
 
     const fmt = (num: number) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

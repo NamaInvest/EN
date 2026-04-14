@@ -11,6 +11,7 @@ import GlobalErrorBoundary from '@/components/GlobalErrorBoundary';
 import PrintButton from '@/components/PrintButton';
 import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
+import { ToastProvider } from '@/components/Toast';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -23,6 +24,7 @@ export default function DashboardLayout({
     return (
         <I18nProvider>
             <SettingsProvider>
+                <ToastProvider>
                 <GlobalErrorBoundary>
                     <div className="app-layout">
                         <SessionGuard />
@@ -74,6 +76,7 @@ export default function DashboardLayout({
                 </main>
             </div>
             </GlobalErrorBoundary>
+                </ToastProvider>
             </SettingsProvider>
         </I18nProvider>
     );

@@ -1,20 +1,22 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Transfer { id: number; transferNo: number; date: string; fromStockId: number; toStockId: number; notes: string; details: { productName: string; quantity: number }[] }
 interface Stock { id: number; name: string }
 
 export default function StockTransfersPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); loadStocks(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/stock-transfers'); if (r.ok) setTransfers(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
-    async function loadStocks() { try { const r = await fetch('/api/products'); if (r.ok) { /* stocks from settings or hardcoded */ setStocks([{ id: 1, name: t('sys.str_3503') }, { id: 2, name: t('sys.str_3504') }]); } } catch (e) { console.error(e); } };
+    async function load() { setLoading(true); try { const r = await fetch('/api/stock-transfers'); if (r.ok) setTransfers(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
+    async function loadStocks() { try { const r = await fetch('/api/products'); if (r.ok) { /* stocks from settings or hardcoded */ setStocks([{ id: 1, name: t('sys.str_3503') }, { id: 2, name: t('sys.str_3504') }]); } } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } };
 
     const getStockName = (id: number) => stocks.find(s => s.id === id)?.name || `مخزن #${id}`;
 

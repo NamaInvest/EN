@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Shift {
     id: number;
@@ -17,6 +18,7 @@ interface Shift {
 
 export default function ShiftsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function ShiftsPage() {
         try {
             const res = await fetch('/api/shifts', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setShifts(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

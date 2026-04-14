@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function LandedCostsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const params = useParams();
     const router = useRouter();
     const orderId = params.id as string;
@@ -41,7 +43,7 @@ export default function LandedCostsPage() {
             if (actsRes.ok) setAccounts(await actsRes.json());
             if (currRes.ok) setCurrencies(await currRes.json());
             
-        } catch(e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
@@ -68,7 +70,7 @@ export default function LandedCostsPage() {
             } else {
                 alert(t('sys.str_961'));
             }
-        } catch(e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const deleteCost = async (id: number) => {
@@ -80,7 +82,7 @@ export default function LandedCostsPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) fetchData();
-        } catch(e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('sys.str_168')}</div>;

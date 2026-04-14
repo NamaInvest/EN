@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface CouponUsage { id: number; invoiceId: number | null; discountAmount: number; usedAt: string; }
 interface Coupon { id: number; code: string; discountType: string; discountValue: number; minOrder: number; maxUses: number; usedCount: number; startDate: string | null; endDate: string | null; isActive: boolean; createdAt: string; usages: CouponUsage[]; }
 
 export default function CouponsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -23,7 +25,7 @@ export default function CouponsPage() {
         try {
             const res = await fetch('/api/coupons', { headers: headers() });
             if (res.ok) setCoupons(await res.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

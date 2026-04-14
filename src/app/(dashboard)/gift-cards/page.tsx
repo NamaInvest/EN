@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface GiftCard { id: number; code: string; initialBalance: number; currentBalance: number; customerId: number | null; expiryDate: string | null; isActive: boolean; createdAt: string; }
 
 export default function GiftCardsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [cards, setCards] = useState<GiftCard[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -21,7 +23,7 @@ export default function GiftCardsPage() {
         try {
             const res = await fetch('/api/gift-cards', { headers: headers() });
             if (res.ok) setCards(await res.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

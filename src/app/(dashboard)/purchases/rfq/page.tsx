@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Mail, Plus, ShieldCheck, Inbox } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function RequestForQuotationPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [rfqs, setRfqs] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -28,9 +30,7 @@ export default function RequestForQuotationPage() {
             if (rRes.ok) setRfqs(await rRes.json());
             if (sRes.ok) setSuppliers(await sRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

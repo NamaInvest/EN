@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Route {
     id: number;
@@ -14,6 +15,7 @@ interface Route {
 
 export default function RoutesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [routes, setRoutes] = useState<Route[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,9 +35,7 @@ export default function RoutesPage() {
             ]);
             if (rtRes.ok) setRoutes(await rtRes.json());
             if (empRes.ok) setEmployees(await empRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

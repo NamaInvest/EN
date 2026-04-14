@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product {
     id: number;
@@ -37,6 +38,7 @@ interface Category {
 
 export default function ProductsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [units, setUnits] = useState<any[]>([]);
@@ -86,7 +88,7 @@ export default function ProductsPage() {
                 setNewCategoryName('');
                 setShowAddCategory(false);
             }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setSavingCategory(false); }
     };
 
@@ -105,7 +107,7 @@ export default function ProductsPage() {
                 setNewUnitName('');
                 setShowAddUnit(false);
             }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setSavingUnit(false); }
     };
 
@@ -130,7 +132,7 @@ export default function ProductsPage() {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) setProducts(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -139,7 +141,7 @@ export default function ProductsPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setCategories(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const fetchUnits = async () => {
@@ -147,7 +149,7 @@ export default function ProductsPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/units', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setUnits(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     useEffect(() => {
@@ -200,7 +202,7 @@ export default function ProductsPage() {
                 body: JSON.stringify({ ...form, productUnits: formUnits }),
             });
             if (res.ok) { setShowModal(false); fetchProducts(); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const handleDelete = async (id: number) => {
@@ -639,7 +641,7 @@ export default function ProductsPage() {
                                     <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>{t('sys.str_4265')}</label>
                                     <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : t('sys.str_4272')}</button>
                                 </div>
-                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '1', unitStock: '0', parentQty: '12', parentUnitId: '' }])}>{t('sys.str_4266')}</button>
+                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', buyPrice: '', factor: '1', unitStock: '0', parentQty: '12', parentUnitId: '' }])}>{t('sys.str_4266')}</button>
                             </div>
                             
                             {showAddUnit && (
@@ -743,6 +745,16 @@ export default function ProductsPage() {
                                                         value={fu.sellPrice}
                                                         onChange={e => {
                                                             const newArr = [...formUnits]; newArr[idx].sellPrice = e.target.value; setFormUnits(newArr);
+                                                        }} />
+                                                </div>
+
+                                                {/* سعر الشراء */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>🛒 سعر الشراء</label>
+                                                    <input className="input" type="number" step="0.01" style={{ width: '100%', padding: '6px' }}
+                                                        value={fu.buyPrice ?? ''}
+                                                        onChange={e => {
+                                                            const newArr = [...formUnits]; newArr[idx].buyPrice = e.target.value; setFormUnits(newArr);
                                                         }} />
                                                 </div>
 

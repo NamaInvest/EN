@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance' | 'cost_centers';
 
@@ -18,6 +19,7 @@ const TYPE_COLORS: Record<string, string> = { asset: '#22c55e', liability: '#ef4
 
 export default function AccountingPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [tab, setTab] = useState<Tab>('tree');
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [journals, setJournals] = useState<JournalEntry[]>([]);
@@ -48,11 +50,11 @@ export default function AccountingPage() {
         try {
             const res = await fetch('/api/accounting/accounts');
             if (res.ok) setAccounts(await res.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     }, []);
 
     const loadCostCenters = useCallback(async () => {
-        try { const res = await fetch('/api/accounting/cost-centers'); if (res.ok) setCostCenters(await res.json()); } catch (e) { console.error(e); }
+        try { const res = await fetch('/api/accounting/cost-centers'); if (res.ok) setCostCenters(await res.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     }, []);
 
     // Load data based on tab
@@ -67,14 +69,14 @@ export default function AccountingPage() {
 
     async function loadJournals() {
         setLoading(true);
-        try { const r = await fetch('/api/accounting/journal'); if (r.ok) setJournals(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/accounting/journal'); if (r.ok) setJournals(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
     const loadLedger = async (accountId: number) => {
         setLoading(true);
         setSelectedAccount(accountId);
-        try { const r = await fetch(`/api/accounting/ledger?accountId=${accountId}`); if (r.ok) setLedgerData(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch(`/api/accounting/ledger?accountId=${accountId}`); if (r.ok) setLedgerData(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
@@ -100,19 +102,19 @@ export default function AccountingPage() {
                     setTrialData(data);
                 }
             } 
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
     async function loadIncomeStatement() {
         setLoading(true);
-        try { const r = await fetch('/api/accounting/income-statement'); if (r.ok) setIncomeData(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/accounting/income-statement'); if (r.ok) setIncomeData(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
     async function loadBalanceSheet() {
         setLoading(true);
-        try { const r = await fetch('/api/accounting/balance-sheet'); if (r.ok) setBalanceData(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/accounting/balance-sheet'); if (r.ok) setBalanceData(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 

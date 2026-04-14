@@ -1,19 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Employee { id: number; name: string }
 interface Record { id: number; date: string; checkIn: string; checkOut: string; notes: string; employee: Employee }
 
 export default function AttendancePage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [records, setRecords] = useState<Record[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); loadEmployees(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/attendance'); if (r.ok) setRecords(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
-    async function loadEmployees() { try { const r = await fetch('/api/employees'); if (r.ok) setEmployees(await r.json()); } catch (e) { console.error(e); } };
+    async function load() { setLoading(true); try { const r = await fetch('/api/attendance'); if (r.ok) setRecords(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
+    async function loadEmployees() { try { const r = await fetch('/api/employees'); if (r.ok) setEmployees(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } };
 
     const checkIn = async (employeeId: number) => {
         const res = await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employeeId }) });

@@ -1,101 +1,88 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
 
 interface Product { id: number; name: string; sellPrice: number; barcode: string | null }
 interface QuoteItem { productId: number | null; productName: string; quantity: number; price: number }
-interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: { productName: string; quantity: number; price: number; total: number }[] }
+interface QuoteDetail { productName: string; quantity: number; price: number; total: number }
+interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: QuoteDetail[] }
 
 export default function PriceQuotesPage() {
     const { t } = useTranslation();
-    const [quotes, setQuotes] = useState<Quote[]>([]);
-    const [expanded, setExpanded] = useState<number | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [showReceipt, setShowReceipt] = useState(false);
-    const [lastQuoteData, setLastQuoteData] = useState<any>(null);
-    const [showAdd, setShowAdd] = useState(false);
-    const [items, setItems] = useState<QuoteItem[]>([]);
-    const [notes, setNotes] = useState('');
-    const [products, setProducts] = useState<Product[]>([]);
-    const [searchText, setSearchText] = useState('');
-    const [showSearch, setShowSearch] = useState(false);
-    const [activeRow, setActiveRow] = useState(-1);
+    const [quotes, setQuotes]           = useState<Quote[]>([]);
+    const [expanded, setExpanded]       = useState<number | null>(null);
+    const [loading, setLoading]         = useState(true);
+    const [showAdd, setShowAdd]         = useState(false);
+    const [items, setItems]             = useState<QuoteItem[]>([]);
+    const [notes, setNotes]             = useState('');
+    const [products, setProducts]       = useState<Product[]>([]);
+    const [searchText, setSearchText]   = useState('');
+    const [showSearch, setShowSearch]   = useState(false);
+    const [settings, setSettings]       = useState<Record<string, string>>({});
     const searchRef = useRef<HTMLInputElement>(null);
-    const [settings, setSettings] = useState<Record<string,string>>({});
+
+    // تحويل لفاتورة
+    const [convertingId, setConvertingId] = useState<number | null>(null);
+    const [paymentType, setPaymentType]   = useState('cash');
+    const [converting, setConverting]     = useState(false);
 
     useEffect(() => { load(); loadProducts(); loadSettings(); }, []);
 
     async function load() {
         setLoading(true);
-        try { const r = await fetch('/api/price-quotes'); if (r.ok) setQuotes(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/price-quotes'); if (r.ok) setQuotes(await r.json()); } catch { }
         setLoading(false);
-    };
+    }
 
     async function loadProducts() {
         try { const r = await fetch('/api/products'); if (r.ok) setProducts(await r.json()); } catch { }
-    };
+    }
 
     async function loadSettings() {
         try {
             const r = await fetch('/api/settings');
             if (r.ok) {
                 const data = await r.json();
-                const map: Record<string,string> = {};
-                if (Array.isArray(data)) data.forEach((s: {key:string;value:string}) => { map[s.key] = s.value; });
+                const map: Record<string, string> = {};
+                if (Array.isArray(data)) data.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
                 else Object.assign(map, data);
                 setSettings(map);
             }
         } catch { }
-    };
+    }
+
+    const isTaxInclusive = settings['POS_TAX_INCLUSIVE'] !== 'false';
+    const taxRate = parseFloat(settings['tax_rate'] || '15') || 15;
+
+    const subtotal = items.reduce((sum, item) => {
+        let p = item.price;
+        if (isTaxInclusive) p = p * 100 / (100 + taxRate);
+        return sum + item.quantity * p;
+    }, 0);
+    const taxValue   = subtotal * (taxRate / 100);
+    const total      = isTaxInclusive
+        ? items.reduce((s, i) => s + i.quantity * i.price, 0)
+        : subtotal + taxValue;
 
     const filteredProducts = products.filter(p =>
         p.name.includes(searchText) || (p.barcode && p.barcode.includes(searchText))
     ).slice(0, 10);
 
     const addProduct = (product: Product) => {
-        const existing = items.findIndex(it => it.productId === product.id);
-        if (existing >= 0) {
-            const updated = [...items];
-            updated[existing].quantity += 1;
-            setItems(updated);
+        const ex = items.findIndex(it => it.productId === product.id);
+        if (ex >= 0) {
+            const u = [...items]; u[ex].quantity += 1; setItems(u);
         } else {
             setItems([...items, { productId: product.id, productName: product.name, quantity: 1, price: product.sellPrice }]);
         }
-        setSearchText('');
-        setShowSearch(false);
+        setSearchText(''); setShowSearch(false);
     };
 
-    const addManualItem = () => {
-        setItems([...items, { productId: null, productName: '', quantity: 1, price: 0 }]);
+    const addManualItem = () => setItems([...items, { productId: null, productName: '', quantity: 1, price: 0 }]);
+    const removeItem    = (i: number) => setItems(items.filter((_, idx) => idx !== i));
+    const updateItem    = (i: number, field: keyof QuoteItem, value: string | number) => {
+        const u = [...items]; (u[i] as any)[field] = value; setItems(u);
     };
-
-    const removeItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
-    };
-
-    const updateItem = (index: number, field: keyof QuoteItem, value: string | number) => {
-        const updated = [...items];
-        (updated[index] as any)[field] = value;
-        setItems(updated);
-    };
-
-    // Tax settings — use dynamic rate from settings
-    const isTaxInclusive = settings['POS_TAX_INCLUSIVE'] !== 'false';
-    const taxRate = parseFloat(settings['tax_rate'] || '15') || 15;
-
-    // subtotal = prices excluding VAT
-    // If inclusive: extract VAT from price first, then sum
-    const subtotal = items.reduce((sum, item) => {
-        let p = item.price;
-        if (isTaxInclusive) p = p * 100 / (100 + taxRate);
-        return sum + item.quantity * p;
-    }, 0);
-
-    const taxValue = subtotal * (taxRate / 100);
-    const total = isTaxInclusive
-        ? items.reduce((s, i) => s + i.quantity * i.price, 0) // display: original prices (inclusive)
-        : subtotal + taxValue; // display: add tax on top
 
     const handleSave = async () => {
         if (items.length === 0) return;
@@ -106,192 +93,439 @@ export default function PriceQuotesPage() {
         });
         if (res.ok) {
             const saved = await res.json();
-            setShowAdd(false);
-            setItems([]);
-            setNotes('');
+            setShowAdd(false); setItems([]); setNotes('');
             load();
-            // Auto-print
-            const adjustedItems = items.map((it: QuoteItem) => {
-                const p = isTaxInclusive ? it.price * 100 / (100 + taxRate) : it.price;
-                return { productName: it.productName, quantity: it.quantity, price: p, total: it.quantity * p };
-            });
-            handlePrint({ ...saved, date: saved.date || new Date().toISOString(), details: saved.details || adjustedItems });
+            // طباعة تلقائية بعد الحفظ
+            setTimeout(() => printQuoteA4(saved), 300);
         }
     };
 
-    const handlePrint = (quote: Quote) => {
-        const quoteRate = parseFloat(settings['tax_rate'] || '15') || 15;
-        const taxAmt = quote.total * (quoteRate / 100);
-        const quotedGrandTotal = quote.total + taxAmt;
-        setLastQuoteData({
-            invoiceNumber: quote.quoteNo.toString(),
-            date: quote.date,
-            customerName: 'عميل نقدي',
-            paymentMethod: 'نقدي',
-            items: quote.details.map((d: any) => ({
-                name: d.productName,
-                quantity: d.quantity,
-                price: d.price,
-                total: d.total
-            })),
-            subtotal: quote.total,
-            discount: 0,
-            taxRate: quoteRate,
-            taxAmount: taxAmt,
-            grandTotal: quotedGrandTotal
-        });
-        setShowReceipt(true);
+    // ════════════════════════════════════════════
+    //  طباعة A4 احترافية بدون باركود
+    // ════════════════════════════════════════════
+    const printQuoteA4 = (quote: Quote) => {
+        const companyName    = settings['company_name']    || settings['company_name_ar'] || 'المنشأة';
+        const vatNumber      = settings['tax_number']      || '';
+        const crNumber       = settings['zatca_crn']       || settings['cr_number'] || '';
+        const companyAddress = settings['company_address'] || settings['company_address_ar'] || '';
+        const companyCity    = settings['zatca_city']      || settings['company_city'] || '';
+        const rate           = parseFloat(settings['tax_rate'] || '15') || 15;
+
+        // حساب الإجماليات
+        const sub   = quote.details.reduce((s, d) => s + d.total, 0);
+        const tax   = sub * (rate / 100);
+        const grand = sub + tax;
+
+        const rows = quote.details.map(d => `
+            <tr>
+                <td style="text-align:right; padding:8px; border:1px solid #ccc;">${d.productName}</td>
+                <td style="text-align:center; padding:8px; border:1px solid #ccc;">${d.quantity}</td>
+                <td style="text-align:center; padding:8px; border:1px solid #ccc;">${fmt(d.price)}</td>
+                <td style="text-align:center; padding:8px; border:1px solid #ccc;">${fmt(d.total)}</td>
+            </tr>`).join('');
+
+        const notesLine = quote.notes ? `<div style="margin-top:16px;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#555;"><strong>ملاحظات:</strong> ${quote.notes}</div>` : '';
+
+        const win = window.open('', '_blank', 'width=850,height=1100');
+        if (!win) return;
+        win.document.write(`<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>عرض سعر #${quote.quoteNo}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Cairo',sans-serif; padding:30px 40px; color:#000; background:#fff; direction:rtl; }
+    .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #1e293b; padding-bottom:16px; margin-bottom:20px; }
+    .company-info h1 { font-size:26px; font-weight:800; color:#1e293b; margin-bottom:4px; }
+    .company-info p  { font-size:12px; color:#555; margin-bottom:2px; }
+    .quote-info { text-align:left; background:#f8fafc; padding:16px 20px; border-radius:8px; border:1px solid #e2e8f0; min-width:220px; }
+    .quote-info .title { font-size:18px; font-weight:800; color:#1e293b; text-align:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; }
+    .quote-info .row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px; }
+    .quote-info .row span:first-child { color:#555; }
+    .quote-info .row span:last-child  { font-weight:700; }
+    table { width:100%; border-collapse:collapse; margin:20px 0; font-size:13px; }
+    thead tr { background:#1e293b; color:#fff; }
+    thead th { padding:10px 8px; text-align:center; font-weight:600; }
+    thead th:first-child { text-align:right; }
+    tbody tr:nth-child(even) { background:#f8fafc; }
+    tbody tr:hover { background:#f1f5f9; }
+    .totals { margin-top:8px; margin-right:auto; width:280px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
+    .totals .tot-row { display:flex; justify-content:space-between; padding:8px 14px; font-size:13px; border-bottom:1px solid #e2e8f0; }
+    .totals .tot-row:last-child { background:#1e293b; color:#fff; font-size:16px; font-weight:800; border-bottom:none; }
+    .footer { margin-top:40px; text-align:center; font-size:11px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:16px; }
+    .stamp-area { margin-top:40px; display:flex; justify-content:space-between; }
+    .stamp-box { border-top:1px solid #000; min-width:180px; padding-top:6px; font-size:12px; color:#555; text-align:center; }
+    @media print { body { padding:15px; } @page { margin:10mm; size:A4 portrait; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="company-info">
+      <h1>${companyName}</h1>
+      ${vatNumber      ? `<p>الرقم الضريبي: ${vatNumber}</p>` : ''}
+      ${crNumber       ? `<p>السجل التجاري: ${crNumber}</p>` : ''}
+      ${companyAddress ? `<p>العنوان: ${companyAddress}</p>` : ''}
+      ${companyCity    ? `<p>المدينة: ${companyCity}</p>` : ''}
+    </div>
+    <div class="quote-info">
+      <div class="title">عرض سعر / Quotation</div>
+      <div class="row"><span>رقم العرض:</span><span>#${quote.quoteNo}</span></div>
+      <div class="row"><span>التاريخ:</span><span>${new Date(quote.date).toLocaleDateString('ar-SA')}</span></div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:right; padding:10px 8px;">المنتج / Description</th>
+        <th>الكمية / Qty</th>
+        <th>سعر الوحدة / Unit Price</th>
+        <th>الإجمالي / Total</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="totals">
+    <div class="tot-row"><span>المجموع قبل الضريبة</span><span>${fmt(sub)}</span></div>
+    <div class="tot-row"><span>ضريبة القيمة المضافة (${rate}%)</span><span>${fmt(tax)}</span></div>
+    <div class="tot-row"><span>الإجمالي الكلي</span><span>${fmt(grand)} ريال</span></div>
+  </div>
+
+  ${notesLine}
+
+  <div class="stamp-area">
+    <div class="stamp-box">توقيع المورد / Supplier Signature</div>
+    <div class="stamp-box">توقيع العميل / Customer Signature</div>
+  </div>
+
+  <div class="footer">
+    هذا العرض صالح لمدة 30 يوماً من تاريخ الإصدار — This quotation is valid for 30 days from issue date
+  </div>
+
+  <script>window.onload = () => { setTimeout(() => { window.print(); }, 400); }</script>
+</body>
+</html>`);
+        win.document.close();
+    };
+
+    // ════════════════════════════════════════════
+    //  تحويل عرض السعر إلى فاتورة مبيعات
+    // ════════════════════════════════════════════
+    const convertToInvoice = async (quote: Quote) => {
+        setConverting(true);
+        try {
+            const token = window.localStorage.getItem('token');
+            const meRes = token ? await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } }) : null;
+            const me    = meRes?.ok ? await meRes.json() : null;
+            const userId = me?.user?.id || null;
+
+            const salesItems = quote.details.map(d => ({
+                productId:   null, // لا يوجد productId في عروض الأسعار
+                productName: d.productName,
+                quantity:    d.quantity,
+                price:       d.price,
+                discountRate: 0,
+            }));
+
+            const res = await fetch('/api/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: salesItems,
+                    paymentType,
+                    taxRate,
+                    isTaxInclusive: false, // الأسعار في DB مجردة بدون ضريبة
+                    notes: `محول من عرض سعر #${quote.quoteNo}`,
+                    userId,
+                    paid: quote.total * (1 + taxRate / 100),
+                }),
+            });
+
+            if (res.ok) {
+                const inv = await res.json();
+                setConvertingId(null);
+                alert(`✅ تم إنشاء الفاتورة رقم #${inv.invoiceNo} بنجاح!`);
+                // تحديث حالة العرض
+                await fetch(`/api/price-quotes?id=${quote.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'approved' }),
+                }).catch(() => {});
+                load();
+            } else {
+                const err = await res.json();
+                alert(`❌ فشل التحويل: ${err.error || 'خطأ غير معروف'}`);
+            }
+        } catch (e: any) {
+            alert(`❌ خطأ: ${e.message}`);
+        }
+        setConverting(false);
     };
 
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2 });
 
+    const statusBadge = (status: string) => {
+        const map: Record<string, { label: string; color: string; bg: string }> = {
+            pending:  { label: 'قيد الانتظار', color: '#d97706', bg: 'rgba(217,119,6,0.1)' },
+            approved: { label: 'معتمد',         color: '#16a34a', bg: 'rgba(22,163,74,0.1)' },
+            rejected: { label: 'مرفوض',         color: '#dc2626', bg: 'rgba(220,38,38,0.1)' },
+        };
+        const s = map[status] || { label: status, color: '#64748b', bg: 'rgba(100,116,139,0.1)' };
+        return (
+            <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px', color: s.color, background: s.bg }}>
+                {s.label}
+            </span>
+        );
+    };
+
     return (<>
-        <div className="page-header"><h1 className="page-title">{t('sys.str_1265')}</h1></div>
+        <div className="page-header">
+            <h1 className="page-title">📋 {t('sys.str_1265') || 'عروض الأسعار'}</h1>
+        </div>
         <div className="page-content animate-fade-in">
-            <div className="toolbar">
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} {t('sys.str_927')}</span>
+
+            {/* Toolbar */}
+            <div className="toolbar" style={{ marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} عرض</span>
                 <div className="toolbar-spacer" />
-                <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>{t('sys.str_4253')}</button>
+                <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>
+                    + عرض سعر جديد
+                </button>
             </div>
 
-            {showAdd && <div className="card" style={{ marginBottom: '16px', padding: '16px' }}>
-                <h3 style={{ marginBottom: '12px' }}>{t('sys.str_4254')}</h3>
+            {/* نموذج الإضافة */}
+            {showAdd && (
+                <div className="card" style={{ marginBottom: '16px', padding: '20px' }}>
+                    <h3 style={{ marginBottom: '14px', fontSize: '16px', fontWeight: '700' }}>📝 إنشاء عرض سعر جديد</h3>
 
-                {/* Product Search */}
-                <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <input
-                        ref={searchRef}
-                        value={searchText}
-                        onChange={e => { setSearchText(e.target.value); setShowSearch(true); }}
-                        onFocus={() => setShowSearch(true)}
-                        placeholder={t('sys.str_4257')}
-                        style={{
-                            width: '100%', padding: '10px 14px', borderRadius: '8px',
-                            border: '2px solid var(--primary)', fontSize: '14px',
-                            background: 'var(--card-bg)'
-                        }}
-                    />
-                    {showSearch && searchText && filteredProducts.length > 0 && (
-                        <div style={{
-                            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                            background: 'var(--card-bg)', border: '1px solid var(--border)',
-                            borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                            maxHeight: '250px', overflowY: 'auto'
-                        }}>
-                            {filteredProducts.map(p => (
-                                <div key={p.id} onClick={() => addProduct(p)}
-                                    style={{
-                                        padding: '10px 14px', cursor: 'pointer',
-                                        borderBottom: '1px solid var(--border)',
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                    }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(108,99,255,0.1)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <span>{p.name}</span>
-                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} {t('sys.str_68')}</span>
-                                </div>
-                            ))}
+                    {/* بحث عن المنتج */}
+                    <div style={{ position: 'relative', marginBottom: '12px' }}>
+                        <input
+                            ref={searchRef}
+                            value={searchText}
+                            onChange={e => { setSearchText(e.target.value); setShowSearch(true); }}
+                            onFocus={() => setShowSearch(true)}
+                            placeholder="🔍 ابحث عن منتج أو أدخل اسمه..."
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '2px solid var(--primary)', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text)' }}
+                        />
+                        {showSearch && searchText && filteredProducts.length > 0 && (
+                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', maxHeight: '250px', overflowY: 'auto' }}>
+                                {filteredProducts.map(p => (
+                                    <div key={p.id} onClick={() => addProduct(p)}
+                                        style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(108,99,255,0.1)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        <span>{p.name}</span>
+                                        <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ر.س</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* جدول الأصناف */}
+                    {items.length > 0 && (
+                        <div style={{ overflowX: 'auto', marginBottom: '12px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                <thead>
+                                    <tr style={{ background: 'rgba(108,99,255,0.08)' }}>
+                                        <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>الصنف</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '90px', color: 'var(--text-secondary)' }}>الكمية</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>السعر</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>الإجمالي</th>
+                                        <th style={{ width: '36px' }}></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((item, i) => (
+                                        <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                                            <td style={{ padding: '4px 6px' }}>
+                                                <input value={item.productName} onChange={e => updateItem(i, 'productName', e.target.value)}
+                                                    placeholder="اسم الصنف"
+                                                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)' }} />
+                                            </td>
+                                            <td style={{ padding: '4px' }}>
+                                                <input type="number" value={item.quantity} onChange={e => updateItem(i, 'quantity', parseFloat(e.target.value) || 0)}
+                                                    style={{ width: '70px', padding: '6px', borderRadius: '6px', border: '1px solid var(--border)', textAlign: 'center', background: 'var(--bg-card)', color: 'var(--text)' }} />
+                                            </td>
+                                            <td style={{ padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text)' }}>
+                                                <input type="number" value={item.price} onChange={e => updateItem(i, 'price', parseFloat(e.target.value) || 0)}
+                                                    style={{ width: '95px', padding: '6px', borderRadius: '6px', border: '1px solid var(--border)', textAlign: 'center', background: 'var(--bg-card)', color: 'var(--text)', fontFamily: 'monospace' }} />
+                                            </td>
+                                            <td style={{ padding: '6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: '700', color: 'var(--primary)' }}>
+                                                {fmt(item.quantity * item.price)}
+                                            </td>
+                                            <td style={{ padding: '4px' }}>
+                                                <button onClick={() => removeItem(i)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
-                </div>
 
-                {/* Items Table */}
-                {items.length > 0 && <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '12px' }}>
-                    <thead><tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                        <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_4255')}</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '80px' }}>{t('sys.str_64')}</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_65')}</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t('sys.str_947')}</th>
-                        <th style={{ width: '40px' }}></th>
-                    </tr></thead>
-                    <tbody>{items.map((item, i) => (
-                        <tr key={i}>
-                            <td style={{ padding: '4px' }}>
-                                <input value={item.productName}
-                                    onChange={e => updateItem(i, 'productName', e.target.value)}
-                                    placeholder={t('sys.str_4258')}
-                                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--card-bg)' }}
-                                />
-                            </td>
-                            <td style={{ padding: '4px' }}>
-                                <input type="number" value={item.quantity}
-                                    onChange={e => updateItem(i, 'quantity', parseFloat(e.target.value) || 0)}
-                                    style={{ width: '60px', padding: '6px', borderRadius: '6px', border: '1px solid var(--border)', textAlign: 'center', background: 'var(--card-bg)' }}
-                                />
-                            </td>
-                            <td style={{ padding: '4px', textAlign: 'center', fontFamily: 'monospace' }}>
-                                {fmt(item.price)}
-                            </td>
-                            <td style={{ padding: '6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                                {fmt(item.quantity * item.price)}
-                            </td>
-                            <td style={{ padding: '4px' }}>
-                                <button onClick={() => removeItem(i)}
-                                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
-                            </td>
-                        </tr>
-                    ))}</tbody>
-                </table>}
-
-                {/* Total */}
-                {items.length > 0 && <div style={{
-                    textAlign: 'left', padding: '8px 12px', background: 'rgba(108,99,255,0.05)',
-                    borderRadius: '8px', marginBottom: '12px', fontFamily: 'monospace', fontSize: '16px', fontWeight: 'bold'
-                }}>
-                    {t('sys.str_71')}{fmt(total)} {t('sys.str_68')}</div>}
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button className="btn btn-sm" onClick={addManualItem}>{t('sys.str_4256')}</button>
-                    <input value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('sys.str_465')}
-                        style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '150px', background: 'var(--card-bg)' }} />
-                    <button className="btn btn-sm" onClick={() => setShowAdd(false)}>{t('fin.str_206')}</button>
-                    <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>{t('sys.str_455')}</button>
-                </div>
-            </div>}
-
-            {/* Quotes List */}
-            <div className="card">
-                {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
-                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{quotes.map(q => (
-                            <div key={q.id} className="card" style={{ padding: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                                    onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
-                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 'bold' }}>#{q.quoteNo}</span>
-                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(q.date).toLocaleDateString('ar-SA')}</span>
-                                    <div className="toolbar-spacer" />
-                                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(q.total)} {t('sys.str_68')}</span>
-                                    <button className="btn btn-sm" onClick={e => { e.stopPropagation(); handlePrint(q); }}
-                                        style={{ fontSize: '12px', padding: '4px 10px' }}>🖨️</button>
-                                </div>
-                                {expanded === q.id && q.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
-                                    <thead><tr style={{ background: 'rgba(108,99,255,0.03)' }}>
-                                        <th style={{ padding: '6px', textAlign: 'right', fontSize: '12px' }}>{t('sys.str_63')}</th>
-                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>{t('sys.str_64')}</th>
-                                        <th style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>{t('sys.str_65')}</th>
-                                        <th style={{ padding: '6px', textAlign: 'left', fontSize: '12px' }}>{t('sys.str_947')}</th>
-                                    </tr></thead>
-                                    <tbody>{q.details.map((d, i) => <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '6px', fontSize: '12px' }}>{d.productName}</td>
-                                        <td style={{ padding: '6px', textAlign: 'center', fontSize: '12px' }}>{d.quantity}</td>
-                                        <td style={{ padding: '6px', fontFamily: 'monospace', textAlign: 'center' }}>{fmt(d.price)}</td>
-                                        <td style={{ padding: '6px', fontFamily: 'monospace', textAlign: 'left' }}>{fmt(d.total)}</td>
-                                    </tr>)}</tbody>
-                                </table>}
+                    {/* الإجمالي */}
+                    {items.length > 0 && (
+                        <div style={{ background: 'rgba(108,99,255,0.06)', borderRadius: '8px', padding: '12px 16px', marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+                                <span>المجموع قبل الضريبة</span><span style={{ fontFamily: 'monospace' }}>{fmt(subtotal)}</span>
                             </div>
-                        ))}</div>}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+                                <span>ضريبة القيمة المضافة ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(taxValue)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '800', color: 'var(--primary)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
+                                <span>الإجمالي الكلي</span><span style={{ fontFamily: 'monospace' }}>{fmt(total)} ر.س</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* الأزرار */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button className="btn btn-sm" onClick={addManualItem}>+ صنف يدوي</button>
+                        <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات..."
+                            style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '150px', background: 'var(--bg-card)', color: 'var(--text)' }} />
+                        <button className="btn btn-sm" style={{ background: 'var(--bg-card-hover)' }} onClick={() => setShowAdd(false)}>إلغاء</button>
+                        <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>💾 حفظ وطباعة</button>
+                    </div>
+                </div>
+            )}
+
+            {/* قائمة العروض */}
+            <div className="card" style={{ padding: '0' }}>
+                {loading ? (
+                    <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div>
+                ) : quotes.length === 0 ? (
+                    <div className="empty-state">
+                        <div className="empty-state-icon">📄</div>
+                        <div className="empty-state-text">لا توجد عروض أسعار بعد</div>
+                    </div>
+                ) : (
+                    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {quotes.map(q => (
+                            <div key={q.id} style={{ border: '1px solid var(--border)', borderRadius: '10px', overflow: 'hidden', background: 'var(--bg-card)' }}>
+                                {/* رأس العرض */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', cursor: 'pointer', borderBottom: expanded === q.id ? '1px solid var(--border)' : 'none' }}
+                                    onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
+                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: '800', fontSize: '15px' }}>#{q.quoteNo}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(q.date).toLocaleDateString('ar-SA')}</span>
+                                    {statusBadge(q.status)}
+                                    {q.notes && <span style={{ fontSize: '11px', color: 'var(--text-muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📝 {q.notes}</span>}
+                                    <div className="toolbar-spacer" />
+                                    <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '15px', color: 'var(--text)' }}>{fmt(q.total * (1 + taxRate / 100))} ر.س</span>
+
+                                    {/* زر الطباعة */}
+                                    <button onClick={e => { e.stopPropagation(); printQuoteA4(q); }}
+                                        title="طباعة عرض السعر A4"
+                                        style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Cairo' }}>
+                                        🖨️ طباعة
+                                    </button>
+
+                                    {/* زر تحويل لفاتورة */}
+                                    {q.status !== 'approved' && (
+                                        <button onClick={e => { e.stopPropagation(); setConvertingId(q.id); setPaymentType('cash'); }}
+                                            title="تحويل إلى فاتورة مبيعات"
+                                            style={{ padding: '6px 12px', background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Cairo' }}>
+                                            ✅ تحويل لفاتورة
+                                        </button>
+                                    )}
+
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', transition: 'transform 0.2s', transform: expanded === q.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>▼</span>
+                                </div>
+
+                                {/* تفاصيل العرض */}
+                                {expanded === q.id && q.details && (
+                                    <div style={{ padding: '12px 14px' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                            <thead>
+                                                <tr style={{ background: 'rgba(108,99,255,0.05)' }}>
+                                                    <th style={{ padding: '8px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: '600' }}>الصنف</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>الكمية</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>السعر</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>الإجمالي</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {q.details.map((d, i) => (
+                                                    <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                                                        <td style={{ padding: '8px', color: 'var(--text)' }}>{d.productName}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text)' }}>{d.quantity}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text)' }}>{fmt(d.price)}</td>
+                                                        <td style={{ padding: '8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: '700', color: 'var(--primary)' }}>{fmt(d.total)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {/* إجماليات داخل التفاصيل */}
+                                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>قبل الضريبة: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total)}</b></span>
+                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>الضريبة: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)}</b></span>
+                                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>الإجمالي: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * (1 + taxRate / 100))} ر.س</b></span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
 
-        {showReceipt && lastQuoteData && (
-            <InvoiceReceipt
-                invoiceData={lastQuoteData}
-                autoPrint={true}
-                isQuote={true}
-                onClose={() => setShowReceipt(false)}
-            />
-        )}
+        {/* ════ مودال تحويل لفاتورة ════ */}
+        {convertingId !== null && (() => {
+            const q = quotes.find(x => x.id === convertingId);
+            if (!q) return null;
+            const grand = q.total * (1 + taxRate / 100);
+            return (
+                <div className="modal-overlay" onClick={() => !converting && setConvertingId(null)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">✅ تحويل عرض سعر #${q.quoteNo} إلى فاتورة</h2>
+                            <button onClick={() => setConvertingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '20px' }}>✕</button>
+                        </div>
+
+                        {/* ملخص العرض */}
+                        <div style={{ background: 'rgba(108,99,255,0.06)', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
+                                <span>عدد الأصناف</span><span>{q.details.length} صنف</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
+                                <span>قبل الضريبة</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total)} ر.س</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
+                                <span>الضريبة ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)} ر.س</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '17px', fontWeight: '800', color: 'var(--primary)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
+                                <span>الإجمالي</span><span style={{ fontFamily: 'monospace' }}>{fmt(grand)} ر.س</span>
+                            </div>
+                        </div>
+
+                        {/* طريقة الدفع */}
+                        <div className="input-group">
+                            <label className="input-label">طريقة الدفع</label>
+                            <select className="input" value={paymentType} onChange={e => setPaymentType(e.target.value)}>
+                                <option value="cash">نقدي</option>
+                                <option value="card">بطاقة</option>
+                                <option value="transfer">تحويل بنكي</option>
+                                <option value="credit">آجل</option>
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                            <button onClick={() => setConvertingId(null)} className="btn btn-ghost" style={{ flex: 1 }} disabled={converting}>
+                                إلغاء
+                            </button>
+                            <button onClick={() => convertToInvoice(q)} className="btn btn-success" style={{ flex: 2 }} disabled={converting}>
+                                {converting ? '⏳ جاري التحويل...' : '✅ إنشاء الفاتورة'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        })()}
     </>);
 }

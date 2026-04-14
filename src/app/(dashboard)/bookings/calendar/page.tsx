@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Booking { id: number; bookingNo: number; date: string; total: number; deposit: number; status: string; customer?: { name: string } }
 
 export default function BookingsCalendarPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const router = useRouter();
@@ -21,9 +23,7 @@ export default function BookingsCalendarPage() {
         try {
             const r = await fetch('/api/bookings', { headers: { Authorization: `Bearer ${token}` } });
             if (r.ok) setBookings(await r.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));

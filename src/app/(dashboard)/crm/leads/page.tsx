@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, User, Phone, Mail, DollarSign, Target, Settings, X, Save } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function LeadsPipelineView() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [leads, setLeads] = useState<any[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -28,9 +30,7 @@ export default function LeadsPipelineView() {
                 const data = await res.json();
                 setLeads(data);
             }
-        } catch(e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setIsLoaded(true);
         }
     };
@@ -48,9 +48,7 @@ export default function LeadsPipelineView() {
                 setShowModal(false);
                 fetchLeads();
             }
-        } catch(e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const getStatusColor = (status: string) => {

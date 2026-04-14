@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Truck, PackageCheck, Send, ArrowRightLeft, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function SmartTransfersPage() {
     const { t, lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';
 
     const [activeTab, setActiveTab] = useState<'dispatch' | 'track'>('dispatch');
@@ -47,9 +49,7 @@ export default function SmartTransfersPage() {
             // Map properly handles both raw arrays or {products: []} structures seamlessly.
             setProducts(pData.products || pData || []);
             setStocks(sData.stocks || sData || []);
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const fetchTransits = async () => {
@@ -58,9 +58,7 @@ export default function SmartTransfersPage() {
             const data = await res.json();
             setActiveTransits(data.activeTransits || []);
             setCompletedTransits(data.completedTransits || []);
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const handleDispatch = async (e: React.FormEvent) => {

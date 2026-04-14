@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Box, Plus, CheckCircle, Package } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function GoodsReceiptNotePage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [grns, setGrns] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -31,9 +33,7 @@ export default function GoodsReceiptNotePage() {
             if (sRes.ok) setSuppliers(await sRes.json());
             if (pRes.ok) setProducts(await pRes.json());
             if (stRes.ok) setStocks(await stRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

@@ -7,9 +7,11 @@ import {
     Briefcase, Plus, Users, Search, Target, CheckCircle, 
     Clock, AlertTriangle, ChevronRight, Edit3, Trash2
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function EnterpriseProjects() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     const [projects, setProjects] = useState<any[]>([]);
     const [customers, setCustomers] = useState<any[]>([]);
@@ -45,9 +47,7 @@ export default function EnterpriseProjects() {
                 const custData = await custRes.json();
                 setCustomers(custData);
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

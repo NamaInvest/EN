@@ -6,9 +6,11 @@ import {
     Scale, ShieldAlert, FileText, Landmark, Search, 
     AlertTriangle, CheckCircle, Clock, Plus
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function EnterpriseLegal() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [data, setData] = useState({ notes: [], lgs: [] });
     const [customers, setCustomers] = useState<any[]>([]);
     const [banks, setBanks] = useState<any[]>([]);
@@ -40,7 +42,7 @@ export default function EnterpriseLegal() {
             const reqBanks = await fetch(`/api/banks`, { headers: { Authorization: `Bearer ${token}` } });
             if (reqBanks.ok) setBanks(await reqBanks.json());
 
-        } catch (error) { console.error(error); } 
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } 
         finally { setLoading(false); }
     };
 

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Check {
     id: number;
@@ -17,6 +18,7 @@ interface Check {
 
 export default function ChecksPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [checks, setChecks] = useState<Check[]>([]);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<'RECEIVABLE' | 'PAYABLE'>('RECEIVABLE');
@@ -49,9 +51,7 @@ export default function ChecksPage() {
         try {
             const res = await fetch(`/api/finance/checks?type=${tab}`);
             if (res.ok) setChecks(await res.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

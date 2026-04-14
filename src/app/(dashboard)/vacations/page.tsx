@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Employee { id: number; name: string }
 interface Vacation { id: number; type: string; dateFrom: string; dateTo: string; status: string; notes: string; employee: Employee }
 
 export default function VacationsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [vacations, setVacations] = useState<Vacation[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [showAdd, setShowAdd] = useState(false);
@@ -14,8 +16,8 @@ export default function VacationsPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); loadEmployees(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/vacations'); if (r.ok) setVacations(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
-    async function loadEmployees() { try { const r = await fetch('/api/employees'); if (r.ok) setEmployees(await r.json()); } catch (e) { console.error(e); } };
+    async function load() { setLoading(true); try { const r = await fetch('/api/vacations'); if (r.ok) setVacations(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
+    async function loadEmployees() { try { const r = await fetch('/api/employees'); if (r.ok) setEmployees(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } };
     const handleSave = async () => { const r = await fetch('/api/vacations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); if (r.ok) { setShowAdd(false); setForm({ employeeId: '', type: 'annual', dateFrom: '', dateTo: '', notes: '' }); load(); } };
     const updateStatus = async (id: number, status: string) => { await fetch('/api/vacations', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) }); load(); };
 

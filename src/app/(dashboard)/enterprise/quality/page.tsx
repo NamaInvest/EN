@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Settings, Plus, Beaker, CheckCircle2, XCircle, Search, X, Save, ScanBarcode, User } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function QualityControlView() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [inspections, setInspections] = useState<any[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -24,9 +26,7 @@ export default function QualityControlView() {
                 const data = await res.json();
                 setInspections(data);
             }
-        } catch(e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setIsLoaded(true);
         }
     };
@@ -42,9 +42,7 @@ export default function QualityControlView() {
                 setShowModal(false);
                 fetchInspections();
             }
-        } catch(e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     return (

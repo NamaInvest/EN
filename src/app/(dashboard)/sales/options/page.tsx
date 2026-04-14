@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/SettingsContext';
 
 import { QZPrinterConfig } from '@/lib/qz';
+import { useToast } from '@/components/Toast';
 
 interface DiscountRule {
     minAmount: number;
@@ -14,6 +15,7 @@ interface DiscountRule {
 export default function SalesOptionsPage() {
     const { getSetting, refreshSettings, loading: settingsLoading } = useSettings();
     const [loading, setLoading] = useState(true);
+    const { error: toastError, success: toastSuccess } = useToast();
     const [saving, setSaving] = useState(false);
     
     // States
@@ -75,9 +77,7 @@ export default function SalesOptionsPage() {
             if(Array.isArray(parsed)) {
                 setDiscountRules(parsed);
             }
-        } catch(e) {
-            console.error('Failed to parse discount rules', e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
 
         setMasterPrinter(getSetting('POS_MASTER_PRINTER', ''));
         try {

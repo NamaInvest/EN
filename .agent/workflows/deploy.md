@@ -67,7 +67,6 @@ C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\hetzner_key root@95.217.1
 ```
 
 ---
-
 # Deploy to Server 2 (204.168.144.74 — both instances)
 
 // turbo-all
@@ -88,6 +87,7 @@ C:\Windows\System32\OpenSSH\ssh.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_
 ```
 
 ---
+
 
 # Deploy to Server 3 (185.197.195.202)
 

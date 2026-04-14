@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { RefreshCw, Plus, Clock, PlayCircle } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function RecurringInvoicesPage() {
     const { t, lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';
 
     const [contracts, setContracts] = useState([]);
@@ -22,9 +24,7 @@ export default function RecurringInvoicesPage() {
             const res = await fetch('/api/recurring-invoices');
             const data = await res.json();
             setContracts(data || []);
-        } catch (e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

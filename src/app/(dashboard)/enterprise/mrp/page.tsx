@@ -6,9 +6,11 @@ import {
     Factory, Settings, PlayCircle, CheckCircle, Clock, 
     Wrench, Plus, ChevronRight, Activity
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function EnterpriseMRP() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [data, setData] = useState({ orders: [], machines: [], recipesCount: 0 });
     const [recipes, setRecipes] = useState<any[]>([]);
     const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -35,7 +37,7 @@ export default function EnterpriseMRP() {
             const wRes = await fetch('/api/stock', { headers: { Authorization: `Bearer ${token}` } });
             if (wRes.ok) setWarehouses(await wRes.json());
 
-        } catch (error) { console.error('Error fetching MRP data', error); } 
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } 
         finally { setLoading(false); }
     };
 

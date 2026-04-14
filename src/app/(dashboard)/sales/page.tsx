@@ -10,6 +10,7 @@ import { RiyalLogo } from '@/components/RiyalLogo';
 import { useTranslation } from "@/lib/i18n";
 import { printRawESCPOS, connectQZ } from "@/lib/qz";
 import { useSettings } from '@/lib/SettingsContext';
+import { useToast } from '@/components/Toast';
 
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
@@ -33,6 +34,7 @@ interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes:
 
 export default function SalesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const { getSetting } = useSettings();
     const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
     const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
@@ -68,9 +70,7 @@ export default function SalesPage() {
                 ];
                 await printRawESCPOS(job.printer, escpos);
             }
-        } catch (e) {
-            console.error('Kitchen printing failed:', e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
     const taxEnabled = getSetting('POS_TAX_ENABLED', 'true') === 'true';
     const couponsEnabled = getSetting('POS_COUPONS_ENABLED', 'true') === 'true';
@@ -189,9 +189,7 @@ export default function SalesPage() {
                         alert(t('sys.str_807'));
                         setBnplProvider(null); setBnplUrl(''); setBnplOrderId('');
                     }
-                } catch (e) {
-                    console.error('Polling Error', e);
-                } finally {
+                } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
                     setCheckingStatus(false);
                 }
             }, 3000); 
@@ -327,7 +325,7 @@ export default function SalesPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); setWarehouses(Array.isArray(d) ? d : []); }
-        } catch (err) { console.error('Error fetching warehouses:', err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     useEffect(() => {
@@ -448,7 +446,7 @@ export default function SalesPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const data = await res.json(); const arr = Array.isArray(data) ? data : []; setProducts(arr); setFilteredProducts(arr.slice(0, 20)); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const fetchCustomers = async () => {
@@ -456,7 +454,7 @@ export default function SalesPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/customers?type=0', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); setCustomers(Array.isArray(d) ? d : []); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     useEffect(() => {
@@ -889,7 +887,7 @@ export default function SalesPage() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/sales', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) { const d = await res.json(); setHistoryInvoices(Array.isArray(d) ? d : []); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setHistoryLoading(false); }
     };
 

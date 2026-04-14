@@ -5,6 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
     { id: 'default',       nameKey: 'sys.str_4003', name: 'الوضع الافتراضي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC' } },
+    { id: 'theme-white',   nameKey: 'sys.str_4008', name: 'أبيض نقي',        preview: { p: '#1E293B', b: '#FFFFFF',  t: '#000000' } },
     { id: 'theme-light',   nameKey: 'sys.str_4004', name: 'الوضع النهاري',   preview: { p: '#4F46E5', b: '#FFFFFF',  t: '#0F172A' } },
     { id: 'theme-luxury',  nameKey: 'sys.str_4005', name: 'الفاخر الداكن',   preview: { p: '#D4AF37', b: '#04060F',  t: '#FDFBF7' } },
     { id: 'theme-cyber',   nameKey: 'sys.str_4006', name: 'السيبراني',       preview: { p: '#00FFCC', b: '#050505',  t: '#E0FFFF' } },
@@ -58,8 +59,8 @@ export default function ThemeSwitcher() {
                 onClick={(e) => { e.stopPropagation(); setIsOpen(prev => !prev); }}
                 title={t('sys.str_110') || 'تغيير الثيم'}
                 style={{
-                    background: isOpen ? 'var(--primary, #6C63FF)' : 'var(--bg-card, #2a2d3e)',
-                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    background: isOpen ? 'var(--primary, #6C63FF)' : 'transparent',
+                    border: '2px solid var(--border-light, #94A3B8)',
                     color: 'var(--text, #f8fafc)',
                     width: '40px',
                     height: '40px',
@@ -85,17 +86,17 @@ export default function ThemeSwitcher() {
                         style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
                         onClick={() => setIsOpen(false)}
                     />
-                    {/* The actual panel — opens UPWARD */}
+                    {/* The actual panel — opens DOWNWARD */}
                     <div style={{
                         position: 'absolute',
-                        bottom: 'calc(100% + 8px)',
+                        top: 'calc(100% + 8px)',
                         left: 0,
                         minWidth: '230px',
-                        background: 'var(--bg-dark, #1a1d27)',
-                        border: '1px solid var(--border, rgba(255,255,255,0.12))',
+                        background: 'var(--bg-darker, #1a1d27)',
+                        border: '2px solid var(--border-light, #CBD5E1)',
                         borderRadius: '12px',
                         padding: '12px',
-                        boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
                         zIndex: 99999,
                         backdropFilter: 'blur(12px)',
                         direction: 'rtl',

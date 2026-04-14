@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface AuditLog {
     id: number;
@@ -19,6 +20,7 @@ interface AuditLog {
 
 export default function AuditLogsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +35,7 @@ export default function AuditLogsPage() {
                 // Not authorized
                 setLogs([]);
             }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     }
 

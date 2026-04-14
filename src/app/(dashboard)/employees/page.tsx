@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Employee { id: number; name: string; phone: string; position: string; salary: number; startDate: string; active: boolean; branchId?: number; branch?: { id: number; name: string } | null; housingAllowance?: number; transportAllowance?: number; otherAllowance?: number; bankName?: string; iban?: string; }
 
 export default function EmployeesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [branches, setBranches] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
@@ -25,7 +27,7 @@ export default function EmployeesPage() {
             ]);
             if (empRes.ok) setEmployees(await empRes.json());
             if (bRes && bRes.ok) setBranches(await bRes.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -42,13 +44,13 @@ export default function EmployeesPage() {
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(form) });
             if (res.ok) { setShowModal(false); fetchData(); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const handleDelete = async (id: number) => {
         if (!confirm(t('hr.str_567'))) return;
         const token = localStorage.getItem('token');
-        try { await fetch(`/api/employees/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); fetchData(); } catch (err) { console.error(err); }
+        try { await fetch(`/api/employees/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); fetchData(); } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);

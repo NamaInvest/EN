@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Customer {
     id: number; name: string; phone: string; type: number; balance: number;
@@ -12,6 +13,7 @@ interface Customer {
 
 export default function CustomersPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
@@ -37,7 +39,7 @@ export default function CustomersPage() {
             ]);
             if (cRes.ok) setCustomers(await cRes.json());
             if (rRes.ok) setRoutes(await rRes.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -77,7 +79,7 @@ export default function CustomersPage() {
                 body: JSON.stringify(form),
             });
             if (res.ok) { setShowModal(false); fetchData(); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const handleDelete = async (id: number) => {
@@ -86,7 +88,7 @@ export default function CustomersPage() {
         try {
             await fetch(`/api/customers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
             fetchData();
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const sendReminder = async (c: Customer) => {

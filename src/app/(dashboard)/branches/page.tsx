@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Branch {
     id: number;
@@ -20,6 +21,7 @@ interface Branch {
 
 export default function BranchesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [branches, setBranches] = useState<Branch[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -32,7 +34,7 @@ export default function BranchesPage() {
         try {
             const res = await fetch('/api/branches', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setBranches(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

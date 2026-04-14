@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Edit3, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function StockAdjustmentsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [adjustments, setAdjustments] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,9 +27,7 @@ export default function StockAdjustmentsPage() {
             ]);
             if (aRes.ok) setAdjustments(await aRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

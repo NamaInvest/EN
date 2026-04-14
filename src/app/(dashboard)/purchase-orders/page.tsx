@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface OrderDetail { 
     productId: number; 
@@ -28,6 +29,7 @@ interface Order {
 
 export default function PurchaseOrdersPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [orders, setOrders] = useState<Order[]>([]);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function PurchaseOrdersPage() {
         try { 
             const r = await fetch('/api/purchase-orders'); 
             if (r.ok) setOrders(await r.json()); 
-        } catch (e) { console.error(e); } 
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
         setLoading(false); 
     };
 
@@ -120,9 +122,7 @@ export default function PurchaseOrdersPage() {
             } else {
                 alert(t('sys.str_962'));
             }
-        } catch (err) {
-            console.error(err);
-        }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         setSaving(false);
     };
 

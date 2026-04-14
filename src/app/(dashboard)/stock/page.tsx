@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product { id: number; name: string; currentStock: number; minQuantity: number; buyPrice: number; unit?: { name: string }; category?: { name: string }; productStocks?: { id: number; quantity: number; location: string; stock: { name: string } }[]; }
 interface Movement { id: number; date: string; type: string; quantity: number; notes: string; product?: { name: string }; }
 
 export default function StockPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [tab, setTab] = useState<'report' | 'movements'>('report');
     const [products, setProducts] = useState<Product[]>([]);
     const [movements, setMovements] = useState<Movement[]>([]);
@@ -31,9 +33,7 @@ export default function StockPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ productStockId, location })
             });
-        } catch (e) {
-            console.error('Failed to update location');
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     return (

@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Building2, Plus, ArrowDownRight, Printer } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function FixedAssetsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -38,9 +40,7 @@ export default function FixedAssetsPage() {
             const token = localStorage.getItem('token') || '';
             const res = await fetch('/api/finance/assets', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setAssets(await res.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

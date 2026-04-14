@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Activity, ArrowDownRight, ArrowUpRight, Repeat, Edit3 } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function StockMovementsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [movements, setMovements] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -16,9 +18,7 @@ export default function StockMovementsPage() {
             const token = localStorage.getItem('token') || '';
             const res = await fetch('/api/stock/movements', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setMovements(await res.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

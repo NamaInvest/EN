@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Booking { id: number; bookingNo: number; date: string; total: number; deposit: number; status: string; notes: string; customerId: number; customer?: { name: string } }
 interface Customer { id: number; name: string }
 
 export default function BookingsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [showAdd, setShowAdd] = useState(false);
@@ -24,7 +26,7 @@ export default function BookingsPage() {
         try {
             const r = await fetch('/api/bookings', { headers: { Authorization: `Bearer ${getToken()}` } });
             if (r.ok) setBookings(await r.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
@@ -32,7 +34,7 @@ export default function BookingsPage() {
         try {
             const r = await fetch('/api/customers', { headers: { Authorization: `Bearer ${getToken()}` } });
             if (r.ok) { const data = await r.json(); setCustomers(Array.isArray(data) ? data : data.customers || []); }
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const handleSave = async () => {

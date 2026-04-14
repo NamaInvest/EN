@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Employee { id: number; name: string; }
 interface Loan { id: number; employeeId: number; amount: number; monthlyDeduction: number; remainingAmount: number; reason: string; status: string; startDate: string; employee: Employee; }
 
 export default function LoansPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [loans, setLoans] = useState<Loan[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ export default function LoansPage() {
         try { 
             const r = await fetch('/api/hr/loans'); 
             if (r.ok) setLoans(await r.json()); 
-        } catch (e) { console.error(e); } 
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
         setLoading(false); 
     };
     
@@ -28,7 +30,7 @@ export default function LoansPage() {
         try { 
             const r = await fetch('/api/employees'); 
             if (r.ok) setEmployees(await r.json()); 
-        } catch (e) { console.error(e); } 
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
     };
 
     const handleSave = async () => {
@@ -39,7 +41,7 @@ export default function LoansPage() {
             });
             if (res.ok) { alert(t('hr.str_2181')); setShowModal(false); load(); }
             else { const d = await res.json(); alert(d.error || t('hr.str_2182')); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     return (

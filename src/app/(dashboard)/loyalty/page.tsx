@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Customer { name: string; phone: string | null; }
 interface LoyaltyTransaction { id: number; invoiceId: number | null; points: number; type: string; description: string | null; createdAt: string; }
@@ -9,6 +10,7 @@ interface LoyaltyPoint { id: number; customerId: number; points: number; totalEa
 
 export default function LoyaltyPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [loyalties, setLoyalties] = useState<LoyaltyPoint[]>([]);
     const [loading, setLoading] = useState(true);
     
@@ -31,7 +33,7 @@ export default function LoyaltyPage() {
         try {
             const res = await fetch('/api/loyalty', { headers: headers() });
             if (res.ok) setLoyalties(await res.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -45,7 +47,7 @@ export default function LoyaltyPage() {
                 if (eRate && eRate.value) setEarnRate(eRate.value);
                 if (rRate && rRate.value) setRedeemRate(rRate.value);
             }
-        } catch (e) { console.error('Error fetching settings', e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     useEffect(() => { 

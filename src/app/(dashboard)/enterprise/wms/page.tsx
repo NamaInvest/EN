@@ -6,9 +6,11 @@ import {
     Box, Maximize, Target, Grid, LayoutDashboard, Plus, 
     ChevronDown, ChevronRight, Share2, Layers, MapPin
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function EnterpriseWMS() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [wmsData, setWmsData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedStock, setExpandedStock] = useState<number | null>(null);
@@ -39,7 +41,7 @@ export default function EnterpriseWMS() {
                 setWmsData(data);
                 if (data.length > 0 && !expandedStock) setExpandedStock(data[0].id);
             }
-        } catch (error) { console.error(error); } 
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } 
         finally { setLoading(false); }
     };
 

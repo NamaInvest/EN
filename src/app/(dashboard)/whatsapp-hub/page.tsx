@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface ChatMessage {
     role: 'user' | 'model';
@@ -16,6 +17,7 @@ interface ChatSession {
 
 export default function WhatsAppHubPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [sessions, setSessions] = useState<ChatSession[]>([]);
     const [activePhone, setActivePhone] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -30,9 +32,7 @@ export default function WhatsAppHubPage() {
                 const data = await res.json();
                 setSessions(data);
             }
-        } catch (e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

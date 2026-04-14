@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import DocumentUploader from '@/components/DocumentUploader';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function LettersOfCreditPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [lcs, setLcs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [banks, setBanks] = useState<any[]>([]);
@@ -38,9 +40,7 @@ export default function LettersOfCreditPage() {
             if(banksRes.ok) setBanks((await banksRes.json()).filter((b: any) => b.isActive !== false));
             if(suppliersRes.ok) setSuppliers((await suppliersRes.json()).filter((s:any) => s.type === 'supplier'));
             if(currenciesRes.ok) setCurrencies(await currenciesRes.json());
-        } catch (error) {
-            console.error('Failed to fetch data', error);
-        }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 
@@ -67,9 +67,7 @@ export default function LettersOfCreditPage() {
             } else {
                 alert(t('purchases.str_2293'));
             }
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
     };
 
     const handleDelete = async (id: number) => {
@@ -85,9 +83,7 @@ export default function LettersOfCreditPage() {
             } else {
                 alert(t('purchases.str_2294'));
             }
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
     };
 
     const openCreateModal = () => {

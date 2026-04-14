@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Expense { id: number; date: string; category: string; description: string; amount: number; notes: string; costCenterId?: number; costCenter?: { name: string } }
 
@@ -9,6 +10,7 @@ const CATEGORIES = ['رواتب وأجور', 'إيجارات', 'مشتريات',
 
 export default function ExpensesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function ExpensesPage() {
         try {
             const res = await fetch(`/api/expenses?${params}`, { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setExpenses(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -67,7 +69,7 @@ export default function ExpensesPage() {
                 });
                 if (res.ok) { showToast(t('sys.str_4196')); setShowModal(false); setForm({ category: 'أخرى', description: '', amount: '', notes: '', costCenterId: '' }); fetchData(); }
             }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);

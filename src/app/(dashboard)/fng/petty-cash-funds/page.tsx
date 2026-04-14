@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit3, Trash2, Wallet, Banknote, ShieldAlert } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function PettyCashFundsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [funds, setFunds] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -32,9 +34,7 @@ export default function PettyCashFundsPage() {
                 const data = await res.json();
                 setFunds(data);
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };
@@ -49,9 +49,7 @@ export default function PettyCashFundsPage() {
                 const data = await res.json();
                 setEmployees(data);
             }
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
     };
 
     const handleSave = async (e: React.FormEvent) => {

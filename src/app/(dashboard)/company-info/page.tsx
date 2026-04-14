@@ -4,9 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { translate } from '@/lib/translations';
 import { useSettings } from '@/lib/SettingsContext';
+import { useToast } from '@/components/Toast';
 
 export default function CompanyInfoPage() {
     const { lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
     const { refreshSettings } = useSettings();
 
@@ -33,7 +35,7 @@ export default function CompanyInfoPage() {
                     setOriginal(map);
                     if (map['company_logo']) setLogoPreview(map['company_logo']);
                 }
-            } catch (err) { console.error(err); }
+            } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
             finally { setLoading(false); }
         };
         fetchData();

@@ -1,18 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Payment { id: number; dueDate: string; amount: number; paid: boolean; paidDate: string }
 interface Installment { id: number; totalAmount: number; paidAmount: number; remaining: number; installmentCount: number; status: string; customer: { name: string }; payments: Payment[] }
 
 export default function InstallmentsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [list, setList] = useState<Installment[]>([]);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/installments'); if (r.ok) setList(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
+    async function load() { setLoading(true); try { const r = await fetch('/api/installments'); if (r.ok) setList(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
 
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2 });
 

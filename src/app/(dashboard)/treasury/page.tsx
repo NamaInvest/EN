@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface TreasuryEntry { id: number; date: string; type: string; amount: number; description: string; referenceType: string; }
 
 export default function TreasuryPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [entries, setEntries] = useState<TreasuryEntry[]>([]);
     const [balance, setBalance] = useState(0);
     const [showModal, setShowModal] = useState(false);
@@ -27,7 +29,7 @@ export default function TreasuryPage() {
             ]);
             if (eRes.ok) setEntries(await eRes.json());
             if (bRes.ok) { const d = await bRes.json(); setBalance(d.balance); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 
@@ -42,7 +44,7 @@ export default function TreasuryPage() {
                 body: JSON.stringify({ ...form, amount: parseFloat(form.amount), userId: user.id }),
             });
             if (res.ok) { setShowModal(false); setForm({ type: 'in', amount: '', description: '' }); fetchData(); }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const fmt = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 const REPORT_TYPES = [
     { key: 'daily-report', label: 'sys.str_4294', icon: '📅', description: 'ملخص يومي بالتاريخ والمستخدم', special: true },
@@ -33,6 +34,7 @@ const DAILY_TABS = [
 
 export default function ReportsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [selectedReport, setSelectedReport] = useState('');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
@@ -88,7 +90,7 @@ export default function ReportsPage() {
             }
             const res = await fetch(`/api/reports/${key}?${params}`, { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setReportData(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

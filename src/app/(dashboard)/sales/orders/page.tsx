@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function SalesOrdersPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [orders, setOrders] = useState<any[]>([]);
     const [customers, setCustomers] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
@@ -30,9 +32,7 @@ export default function SalesOrdersPage() {
             if (cRes.ok) setCustomers(await cRes.json());
             if (eRes.ok) setEmployees(await eRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

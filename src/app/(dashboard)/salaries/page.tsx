@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Calculator, FileText, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Employee { id: number; name: string; salary: number; housingAllowance: number; transportAllowance: number }
 interface Salary { id: number; month: number; year: number; basicSalary: number; additions: number; deductions: number; netSalary: number; notes: string; paidDate: string; employee: Employee }
 
 export default function SalariesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [salaries, setSalaries] = useState<Salary[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function SalariesPage() {
         try { 
             const r = await fetch('/api/salaries'); 
             if (r.ok) setSalaries(await r.json()); 
-        } catch (e) { console.error(e); } 
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
         setLoading(false); 
     };
     
@@ -32,7 +34,7 @@ export default function SalariesPage() {
         try { 
             const r = await fetch('/api/employees'); 
             if (r.ok) { const data = await r.json(); setEmployees(data); } 
-        } catch (e) { console.error(e); } 
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
     };
 
     const handleGeneratePayroll = async () => {

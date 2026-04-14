@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Save, ScanFace, Check, AlertCircle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function AIEnrollmentPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
   const [faceapiObj, setFaceapiObj] = useState<any>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmp, setSelectedEmp] = useState('');

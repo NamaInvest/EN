@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product { id: number; name: string; currentStock: number; barcode: string }
 interface StocktakeItem { productId: number; productName: string; systemQty: number; actualQty: number; difference: number; status: string }
@@ -8,6 +9,7 @@ interface Stocktake { id: number; stocktakeDate: string; totalItems: number; mat
 
 export default function StocktakePage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [stocktakes, setStocktakes] = useState<Stocktake[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [showNew, setShowNew] = useState(false);
@@ -18,11 +20,11 @@ export default function StocktakePage() {
     useEffect(() => { loadStocktakes(); loadProducts(); }, []);
 
     async function loadStocktakes() {
-        try { const r = await fetch('/api/stocktake'); if (r.ok) setStocktakes(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/stocktake'); if (r.ok) setStocktakes(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     async function loadProducts() {
-        try { const r = await fetch('/api/products'); if (r.ok) setProducts(await r.json()); } catch (e) { console.error(e); }
+        try { const r = await fetch('/api/products'); if (r.ok) setProducts(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const startNewStocktake = () => {
@@ -39,7 +41,7 @@ export default function StocktakePage() {
             });
             if (res.ok) { setShowNew(false); loadStocktakes(); if (apply) loadProducts(); }
             else { const e = await res.json(); alert(e.error); }
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 

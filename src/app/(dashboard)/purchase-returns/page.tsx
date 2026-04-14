@@ -1,18 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Return { id: number; returnNo: number; date: string; subtotal: number; taxValue: number; total: number; notes: string }
 
 export default function PurchaseReturnsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [returns, setReturns] = useState<Return[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [form, setForm] = useState({ subtotal: '', notes: '', originalInvoiceId: '' });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/purchase-returns'); if (r.ok) setReturns(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
+    async function load() { setLoading(true); try { const r = await fetch('/api/purchase-returns'); if (r.ok) setReturns(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
     const handleSave = async () => { const r = await fetch('/api/purchase-returns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); if (r.ok) { setShowAdd(false); setForm({ subtotal: '', notes: '', originalInvoiceId: '' }); load(); } };
 
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2 });

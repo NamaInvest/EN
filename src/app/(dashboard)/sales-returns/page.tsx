@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 // Interfaces for new Returns flow
 interface InvoiceDetail {
@@ -46,6 +47,7 @@ interface Return {
 
 export default function SalesReturnsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [returns, setReturns] = useState<Return[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -65,9 +67,7 @@ export default function SalesReturnsPage() {
         try {
             const r = await fetch('/api/sales-returns');
             if (r.ok) setReturns(await r.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

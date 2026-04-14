@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Account { id: number; name: string; code: string; }
 interface Line {
@@ -21,6 +22,7 @@ interface ReconSession {
 
 export default function BankReconciliationPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [form, setForm] = useState({ bankAccountId: '', statementDate: new Date().toISOString().split('T')[0], statementBalance: '' });
     const [session, setSession] = useState<ReconSession | null>(null);
@@ -53,7 +55,7 @@ export default function BankReconciliationPage() {
                 const err = await res.json();
                 alert(t('sys.str_2720') + err.error);
             }
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     };
 

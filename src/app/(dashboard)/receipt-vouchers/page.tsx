@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import VoucherReceipt from '@/components/VoucherReceipt';
+import { useToast } from '@/components/Toast';
 
 interface Invoice {
     id: number;
@@ -15,6 +16,7 @@ interface Invoice {
 
 export default function ReceiptVouchersPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [showVoucher, setShowVoucher] = useState(false);
@@ -29,9 +31,7 @@ export default function ReceiptVouchersPage() {
                 // Filter only completed and non-zero total
                 setInvoices(data.invoices.filter((inv: any) => inv.total > 0 && inv.status === 'completed'));
             }
-        } catch (err) {
-            console.error('Error fetching invoices:', err);
-        } finally {
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

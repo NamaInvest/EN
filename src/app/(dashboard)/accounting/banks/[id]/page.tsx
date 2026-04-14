@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function BankStatementPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const params = useParams();
     const router = useRouter();
     const [bank, setBank] = useState<any>(null);
@@ -41,9 +43,7 @@ export default function BankStatementPage() {
                 }
                 setTransactions(await txRes.json());
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

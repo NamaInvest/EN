@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Truck, Plus, PackageOpen } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function DeliveryNotesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [notes, setNotes] = useState<any[]>([]);
     const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -28,9 +30,7 @@ export default function DeliveryNotesPage() {
             if (nRes.ok) setNotes(await nRes.json());
             if (cRes.ok) setCustomers(await cRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

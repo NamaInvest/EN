@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Target {
     id: number;
@@ -14,6 +15,7 @@ interface Target {
 
 export default function SalesTargetsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const d = new Date();
     const [year, setYear] = useState(d.getFullYear());
     const [month, setMonth] = useState(d.getMonth() + 1);
@@ -40,9 +42,7 @@ export default function SalesTargetsPage() {
                 setTargets(data.targets || []);
             }
             if (empRes.ok) setEmployees(await empRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

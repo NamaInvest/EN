@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function EmployeeEvaluationsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
   const [evaluations, setEvaluations] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +32,7 @@ export default function EmployeeEvaluationsPage() {
       const empRes = await fetch('/api/employees');
       const empData = await empRes.json();
       if (Array.isArray(empData)) setEmployees(empData);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     setLoading(false);
   };
 
@@ -56,9 +56,7 @@ export default function EmployeeEvaluationsPage() {
       } else {
         alert(t('sys.str_4627'));
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
   };
 
   return (

@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
 import { useSettings } from '@/lib/SettingsContext';
+import { useToast } from '@/components/Toast';
 
 export default function CreateSalesOrderPage() {
     const { getSetting } = useSettings();
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -33,9 +35,7 @@ export default function CreateSalesOrderPage() {
             ]);
             if (cRes.ok) setCustomers(await cRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error('Error loading data', e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     }
 
     const addItem = () => setItems([...items, { productId: '', productName: '', quantity: 1, price: 0, total: 0 }]);

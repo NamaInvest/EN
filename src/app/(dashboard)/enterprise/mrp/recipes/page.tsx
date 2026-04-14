@@ -7,9 +7,11 @@ import {
     ScrollText, Plus, Search, ArrowRight, Save, 
     Trash2, PackageOpen, ListChecks
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function BOMRecipes() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     const [recipes, setRecipes] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -36,7 +38,7 @@ export default function BOMRecipes() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/manufacturing/recipes', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setRecipes(await res.json());
-        } catch (error) { console.error(error); } 
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } 
         finally { setLoading(false); }
     };
 
@@ -45,7 +47,7 @@ export default function BOMRecipes() {
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setProducts(await res.json());
-        } catch (error) { console.error(error); }
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
     };
 
     const addIngredientRow = () => {

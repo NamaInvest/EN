@@ -3,7 +3,7 @@ const conn = new Client();
 
 conn.on('ready', () => {
     console.log('--- EXECUTING FLEET SYNCHRONIZATION ALGORITHM ---');
-    
+
     const bashScript = `
 #!/bin/bash
 echo "1. Distributing Master Panel exclusively to namainvist.com..."
@@ -41,7 +41,7 @@ echo "✅ Root Domain SYNCHRONIZED."
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => {
             console.log('✅ SYNCHRONIZATION PHASE 1 COMPLETE.');
-            
+
             // Kick off background sequential builds for N2-N10 so we don't block the AI agent
             const backgroundBuilds = `
 nohup bash -c '

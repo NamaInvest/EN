@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { FileText, Plus, CheckCircle, Clock } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function PurchaseRequisitionsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [prs, setPrs] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,9 +27,7 @@ export default function PurchaseRequisitionsPage() {
             ]);
             if (prRes.ok) setPrs(await prRes.json());
             if (pRes.ok) setProducts(await pRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

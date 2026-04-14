@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Currency {
     id: number;
@@ -16,6 +17,7 @@ interface Currency {
 
 export default function CurrenciesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -28,7 +30,7 @@ export default function CurrenciesPage() {
         try {
             const res = await fetch('/api/settings/currencies', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setCurrencies(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     }
 

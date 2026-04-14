@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 interface DashboardData {
     todaySales: number;
@@ -25,6 +26,7 @@ interface AiAlert {
 
 export default function DashboardPage() {
     const [data, setData] = useState<DashboardData | null>(null);
+    const { error: toastError, success: toastSuccess } = useToast();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     
@@ -44,9 +46,7 @@ export default function DashboardPage() {
             if (res.ok) {
                 setData(await res.json());
             }
-        } catch (err) {
-            console.error('Dashboard fetch error:', err);
-        } finally {
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); } finally {
             setLoading(false);
             setRefreshing(false);
         }
@@ -75,9 +75,7 @@ export default function DashboardPage() {
                 const result = await res.json();
                 if (result.alerts) setAiAlerts(result.alerts);
             }
-        } catch (err) {
-            console.error('AI CFO fetch error:', err);
-        } finally {
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); } finally {
             setLoadingAi(false);
         }
     };

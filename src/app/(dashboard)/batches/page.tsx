@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product { id: number; name: string; barcode: string | null; }
 interface ProductBatch { id: number; productId: number; batchNumber: string; productionDate: string | null; expiryDate: string | null; initialQuantity: number; currentQuantity: number; unitCost: number; createdAt: string; product: Product; }
 
 export default function BatchesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [batches, setBatches] = useState<ProductBatch[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ export default function BatchesPage() {
                 const pData = await pRes.json();
                 setProducts(Array.isArray(pData) ? pData : pData.products || []);
             }
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

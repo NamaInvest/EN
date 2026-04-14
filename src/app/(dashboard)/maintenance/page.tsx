@@ -1,18 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Item { id: number; date: string; customerName: string; phone: string; deviceType: string; problem: string; cost: number; status: string; notes: string }
 
 export default function MaintenancePage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [items, setItems] = useState<Item[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [form, setForm] = useState({ customerName: '', phone: '', deviceType: '', problem: '', cost: '', notes: '' });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/maintenance'); if (r.ok) setItems(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
+    async function load() { setLoading(true); try { const r = await fetch('/api/maintenance'); if (r.ok) setItems(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
     const handleSave = async () => { const r = await fetch('/api/maintenance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); if (r.ok) { setShowAdd(false); setForm({ customerName: '', phone: '', deviceType: '', problem: '', cost: '', notes: '' }); load(); } };
     const updateStatus = async (id: number, status: string) => { await fetch('/api/maintenance', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) }); load(); };
 

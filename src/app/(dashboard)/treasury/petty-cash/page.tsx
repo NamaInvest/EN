@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface PettyCash {
     id: number;
@@ -15,6 +16,7 @@ interface PettyCash {
 
 export default function PettyCashPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [records, setRecords] = useState<PettyCash[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -35,9 +37,7 @@ export default function PettyCashPage() {
             ]);
             if (pcRes.ok) setRecords(await pcRes.json());
             if (empRes.ok) setEmployees(await empRes.json());
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
 

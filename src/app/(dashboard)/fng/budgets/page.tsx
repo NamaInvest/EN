@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit3, Trash2, PieChart, Calendar, CheckCircle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function FinancialBudgetsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [budgets, setBudgets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -31,9 +33,7 @@ export default function FinancialBudgetsPage() {
                 const data = await res.json();
                 setBudgets(data);
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

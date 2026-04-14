@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Settings, Plus, Building2, Key, Home, MapPin, Search, X, Save } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function PropertyManagementView() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [properties, setProperties] = useState<any[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -27,9 +29,7 @@ export default function PropertyManagementView() {
                 const data = await res.json();
                 setProperties(data);
             }
-        } catch(e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setIsLoaded(true);
         }
     };
@@ -45,9 +45,7 @@ export default function PropertyManagementView() {
                 setShowModal(false);
                 fetchProperties();
             }
-        } catch(e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     return (

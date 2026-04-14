@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
 
 interface Supplier { id: number; name: string; }
 interface PurchaseInvoice { id: number; invoiceNo: number; date: string; total: number; subtotal: number; taxValue: number; paid: number; remaining: number; status: string; paymentType: string; isManual: boolean; supplier?: { name: string } | null; }
 
 export default function ManualPurchasesReport() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [from, setFrom] = useState('');
@@ -31,9 +33,7 @@ export default function ManualPurchasesReport() {
                 // Filter only manual invoices
                 setInvoices((data || []).filter((inv: PurchaseInvoice) => inv.isManual === true));
             }
-        } catch (err) {
-            console.error(err);
-        } finally {
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

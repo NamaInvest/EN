@@ -6,6 +6,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { useSettings } from '@/lib/SettingsContext';
 import { useTranslation } from "@/lib/i18n";
 import { translate } from "@/lib/translations";
+import { useToast } from '@/components/Toast';
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
 
@@ -75,6 +76,7 @@ export function getSettingGroups(t: (key: string) => string) {
 }
 export default function SettingsPage() {
     const { lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     // Create fresh t fn from translate + lang every render - bypasses any context reference issues
     const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
@@ -293,7 +295,7 @@ export default function SettingsPage() {
 
             const bRes = await fetch('/api/branches', { headers: { Authorization: `Bearer ${token}` } });
             if (bRes.ok) setBranches(await bRes.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const saveUser = async () => {
@@ -409,7 +411,7 @@ export default function SettingsPage() {
                         }
                     }
                 } catch { /* ZATCA status check failed, ignore */ }
-            } catch (err) { console.error(err); }
+            } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
             finally { setLoading(false); }
         };
         fetchSettingsLocal();
@@ -428,7 +430,7 @@ export default function SettingsPage() {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ value: newVal }),
             });
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const handleSaveAll = async () => {
@@ -511,7 +513,7 @@ export default function SettingsPage() {
             });
             setLogoPreview(null);
             showToast(t('sys.str_4530'));
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
     const hasChanges = Object.keys(settings).some(key => settings[key] !== originalSettings[key]);

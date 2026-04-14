@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface DepreciationRecord { id: number; depreciationDate: string; amount: number; }
 interface FixedAssetItem { id: number; assetName: string; assetType: string; purchaseDate: string; purchaseCost: number; salvageValue: number; usefulLifeYears: number; currentValue: number; location: string | null; status: string; depreciations: DepreciationRecord[]; }
@@ -19,6 +20,7 @@ const ASSET_TYPES = [
 
 export default function FixedAssetsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [assets, setAssets] = useState<FixedAssetItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -38,7 +40,7 @@ export default function FixedAssetsPage() {
         try {
             const res = await fetch('/api/fixed-assets', { headers: headers() });
             if (res.ok) setAssets(await res.json());
-        } catch (e) { console.error(e); }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface ApprovalRule {
     id: number;
@@ -21,6 +22,7 @@ interface ApprovalRule {
 
 export default function ApprovalsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [rules, setRules] = useState<ApprovalRule[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -33,7 +35,7 @@ export default function ApprovalsPage() {
         try {
             const res = await fetch('/api/settings/approvals', { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setRules(await res.json());
-        } catch (err) { console.error(err); }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setLoading(false); }
     }
 

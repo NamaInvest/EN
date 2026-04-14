@@ -8,9 +8,11 @@ import {
     Clock, CheckCircle, AlertTriangle, PlayCircle,
     TrendingUp, AlignLeft, DollarSign, Target
 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function ProjectDetails({ params }: { params: { id: string } }) {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     const [project, setProject] = useState<any>(null);
     const [tasks, setTasks] = useState<any[]>([]);
@@ -35,7 +37,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
                 setTasks(data.tasks);
                 setProject(data.project);
             }
-        } catch (error) { console.error(error); } 
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } 
         finally { setLoading(false); }
     };
 

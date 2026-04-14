@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Printer, Calendar, RefreshCcw, FileText } from 'lucide-react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Invoice {
     id: number;
@@ -20,6 +21,7 @@ interface Invoice {
 
 export default function SalesHistoryPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(false);
     
@@ -48,9 +50,7 @@ export default function SalesHistoryPage() {
                 const data = await res.json();
                 setInvoices(Array.isArray(data) ? data : []);
             }
-        } catch (error) {
-            console.error('Failed to fetch invoices', error);
-        } finally {
+        } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
             setLoading(false);
         }
     };

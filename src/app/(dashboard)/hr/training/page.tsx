@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function TrainingCoursesPage() {
   const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,9 +29,7 @@ export default function TrainingCoursesPage() {
       const res = await fetch('/api/hr/training');
       const data = await res.json();
       if (Array.isArray(data)) setCourses(data);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     setLoading(false);
   };
 
@@ -61,9 +61,7 @@ export default function TrainingCoursesPage() {
       } else {
         alert(t('sys.str_4646'));
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
   };
 
   return (

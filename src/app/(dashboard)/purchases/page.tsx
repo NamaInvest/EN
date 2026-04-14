@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product { id: number; name: string; barcode: string; buyPrice: number; currentStock: number; unit?: { name: string }; }
 interface CartItem { productId: number; productName: string; quantity: number; price: number; discountRate: number; }
@@ -10,6 +11,7 @@ interface PurchaseInvoice { id: number; invoiceNo: number; isManual?: boolean; d
 
 export default function PurchasesPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [products, setProducts] = useState<Product[]>([]);
     const [suppliers, setSuppliers] = useState<Customer[]>([]);
     const [search, setSearch] = useState('');

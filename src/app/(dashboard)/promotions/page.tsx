@@ -1,18 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Promo { id: number; name: string; type: string; discountType: string; discountValue: number; startDate: string; endDate: string; isActive: boolean }
 
 export default function PromotionsPage() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [promos, setPromos] = useState<Promo[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [form, setForm] = useState({ name: '', type: 'percentage', discountType: 'percentage', discountValue: '', startDate: '', endDate: '' });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { load(); }, []);
-    async function load() { setLoading(true); try { const r = await fetch('/api/promotions'); if (r.ok) setPromos(await r.json()); } catch (e) { console.error(e); } setLoading(false); };
+    async function load() { setLoading(true); try { const r = await fetch('/api/promotions'); if (r.ok) setPromos(await r.json()); } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } setLoading(false); };
     const handleSave = async () => { const r = await fetch('/api/promotions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); if (r.ok) { setShowAdd(false); setForm({ name: '', type: 'percentage', discountType: 'percentage', discountValue: '', startDate: '', endDate: '' }); load(); } };
     const toggleActive = async (id: number, isActive: boolean) => { await fetch('/api/promotions', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, isActive: !isActive }) }); load(); };
 

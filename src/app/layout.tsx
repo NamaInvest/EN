@@ -39,7 +39,7 @@ export default async function RootLayout({
   // ── MARKETING LAYOUT: No Clerk, No SessionProvider → instant SSR ────────
   if (isMarketing) {
     return (
-      <html lang="ar" dir="rtl">
+      <html lang="ar" dir="rtl" suppressHydrationWarning>
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -145,7 +145,10 @@ export default async function RootLayout({
             `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){for(let e of r){e.unregister();}});}`
           }} />
           <script dangerouslySetInnerHTML={{ __html:
-            `try{var t=localStorage.getItem('namainvest-theme-premium');if(t&&t!=='default')document.documentElement.classList.add(t);}catch(e){}`
+            `try{var t=localStorage.getItem('namainvest-theme-premium');if(t&&t!=='default'){document.documentElement.classList.add(t);}else if(!t){document.documentElement.classList.add('theme-white');localStorage.setItem('namainvest-theme-premium','theme-white');}}catch(e){}`
+          }} />
+          <script dangerouslySetInnerHTML={{ __html:
+            `document.addEventListener('focusin',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.select();}});`
           }} />
         </head>
         <body>

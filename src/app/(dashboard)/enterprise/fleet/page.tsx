@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Settings, Plus, Truck, Calendar, MapPin, GaugeCircle, X, Save } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function FleetManagementView() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -27,9 +29,7 @@ export default function FleetManagementView() {
                 const data = await res.json();
                 setVehicles(data);
             }
-        } catch(e) {
-            console.error(e);
-        } finally {
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
             setIsLoaded(true);
         }
     };
@@ -45,9 +45,7 @@ export default function FleetManagementView() {
                 setShowModal(false);
                 fetchVehicles();
             }
-        } catch(e) {
-            console.error(e);
-        }
+        } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
     };
 
     const getStatusStyle = (status: string) => {
