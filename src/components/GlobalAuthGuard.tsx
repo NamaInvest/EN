@@ -13,6 +13,7 @@ export default function GlobalAuthGuard() {
     useEffect(() => {
         // Define exact public routes or prefixes
         const publicRoutes = [
+            '/',            // ← الصفحة الرئيسية عامة دائماً
             '/sign-in', 
             '/sign-up', 
             '/onboarding', 
@@ -26,7 +27,7 @@ export default function GlobalAuthGuard() {
         ];
         
         // Allow public routes immediately
-        if (!pathname || publicRoutes.some(r => pathname.startsWith(r))) {
+        if (!pathname || publicRoutes.some(r => pathname === r || (r !== '/' && pathname.startsWith(r)))) {
             return;
         }
 
@@ -37,9 +38,12 @@ export default function GlobalAuthGuard() {
                    if(data.success) {
                        setSynced(true);
                        
-                       // Redirect to provisioning ONLY on the central landing domain (if they just signed in)
+                       // Redirect to provisioning ONLY from non-landing pages on the central domain
                        const host = typeof window !== 'undefined' ? window.location.hostname : '';
-                       if ((host === 'namainvist.com' || host === 'www.namainvist.com') && !pathname?.startsWith('/onboarding/provisioning')) {
+                       const isMainSite = host === 'namainvist.com' || host === 'www.namainvist.com';
+                       const isLandingPath = pathname === '/' || pathname === '';
+                       
+                       if (isMainSite && !isLandingPath && !pathname?.startsWith('/onboarding/provisioning')) {
                            window.location.href = '/onboarding/provisioning';
                        }
                    }

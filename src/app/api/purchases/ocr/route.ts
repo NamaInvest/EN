@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 `;
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const result = await model.generateContent([
             promptText,
@@ -69,17 +69,26 @@ export async function POST(req: NextRequest) {
                 : 'تم استخراج بيانات الفاتورة لكن لم يتم التعرف على الأصناف بوضوح',
         });
     } catch (error: any) {
-        console.error('OCR Error:', error.message || error);
+        const errMsg = error?.message || String(error);
+        console.error('OCR Error:', errMsg);
         
-        let msg = 'فشل في قراءة الملف';
-        if (error?.message?.includes('not found') || error?.message?.includes('API version')) {
-            msg = 'المفتاح محظور من جوجل (Generative Language API غير مفعل).';
-        } else if (error?.message?.includes('API key not valid')) {
-            msg = 'المفتاح غير صحيح أو تم حذفه.';
-        } else if (error?.message?.includes('Too Many Requests') || error?.message?.includes('exhausted') || error?.message?.includes('quota')) {
-            msg = '⚠️ عذراً، وصلت للحد الأقصى المسموح من جوجل (مؤقتاً). يرجى الانتظار لمدة دقيقة والمحاولة مرة أخرى.';
+        let msg = 'فشل في قراءة الفاتورة';
+
+        if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('API key not valid')) {
+            msg = '❌ مفتاح Gemini غير صحيح. تحقق من المفتاح في الإعدادات.';
+        } else if (
+            errMsg.includes('PERMISSION_DENIED') ||
+            errMsg.includes('has not been used') ||
+            errMsg.includes('is not enabled') ||
+            errMsg.includes('disabled')
+        ) {
+            msg = '🔒 Generative Language API غير مفعّل في Google Cloud.\nالحل: افتح console.cloud.google.com ← APIs & Services ← Enable APIs ← Generative Language API\nأو استخدم مفتاحاً من aistudio.google.com مباشرة.';
+        } else if (errMsg.includes('no longer available') || errMsg.includes('404')) {
+            msg = '⚠️ النموذج المستخدم غير متاح. تواصل مع الدعم.';
+        } else if (errMsg.includes('quota') || errMsg.includes('exhausted') || errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+            msg = '⚠️ وصلت للحد الأقصى المجاني من Google. انتظر دقيقة وأعد المحاولة.';
         }
         
-        return NextResponse.json({ error: msg }, { status: 500 });
+        return NextResponse.json({ error: msg, debug: errMsg.slice(0, 300) }, { status: 500 });
     }
 }

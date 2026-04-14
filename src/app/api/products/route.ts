@@ -110,8 +110,13 @@ export async function POST(request: Request) {
                         barcode: pu.barcode || null,
                         sellPrice: parseFloat(pu.sellPrice) || 0,
                         buyPrice: parseFloat(pu.buyPrice) || 0,
-                        factor: parseFloat(pu.factor) || 1,
-                        isBase: Boolean(pu.isBase)
+                        // factor = parentQty × parentUnit.factor ( أو مباشرة إذا حبة)
+                        factor: parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
+                        isBase: Boolean(pu.isBase),
+                        unitStock: parseFloat(pu.unitStock) || 0,
+                        parentQty: parseFloat(pu.parentQty) || 1,
+                        parentUnitId: pu.parentUnitId ? parseInt(pu.parentUnitId) : null,
+                        sortOrder: parseInt(pu.sortOrder) || 0,
                     }))
                 } : undefined,
             },

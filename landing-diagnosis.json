@@ -1,0 +1,14 @@
+{
+  "server": {
+    "status": 0,
+    "hasOld": false,
+    "hasNew": false
+  },
+  "cloudflare": {
+    "status": 200,
+    "cfCache": "DYNAMIC",
+    "age": "0",
+    "servesOld": false,
+    "servesNew": false
+  }
+}

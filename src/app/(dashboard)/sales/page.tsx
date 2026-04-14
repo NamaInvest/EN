@@ -14,11 +14,19 @@ import { useSettings } from '@/lib/SettingsContext';
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
     currentStock: number; taxRate: number; unit?: { name: string }; categoryId?: number;
+    productUnits?: {
+        id: number; unitId: number; unitStock: number; factor: number;
+        sellPrice: number; parentQty: number; parentUnitId: number | null;
+        unit: { name: string };
+    }[];
 }
 interface CartItem {
     productId: number; productName: string; quantity: number;
     price: number; discountRate: number; discountValue?: number; taxRate: number;
     stock: number; unitName: string; categoryId?: number;
+    productUnitId?: number;   // معرّف الوحدة المختارة (درزن/كرتون)
+    unitFactor?: number;      // كم حبة = وحدة واحدة
+    totalUnitStock?: number;  // إجمالي المخزون المتاح (بالحبة)
 }
 interface Customer { id: number; name: string; phone?: string; taxNumber?: string | null; crNo?: string | null; address?: string | null; }
 interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes: string; discountRate: number; paidAmount: string; paymentType: string; heldAt: string; label: string; }
@@ -209,6 +217,9 @@ export default function SalesPage() {
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [newProd, setNewProd] = useState({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
     const [savingProd, setSavingProd] = useState(false);
+
+    // اختيار الوحدة عند إضافة الصنف
+    const [unitPickerProduct, setUnitPickerProduct] = useState<Product | null>(null);
 
     // Invoice History
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -456,38 +467,73 @@ export default function SalesPage() {
         ).slice(0, 20));
     }, [search, products]);
 
-    const addToCart = (p: Product) => {
-        if (!allowNegativeStock && p.currentStock <= 0) {
-            showToast('الكمية نافذة ولا يمكن البيع بالسالب حسب الإعدادات');
+    const addToCart = (p: Product, selectedUnitId?: number) => {
+        // حساب إجمالي المخزون (حبة + وحدات محولة لحبة)
+        const unitsTotal = (p.productUnits || []).reduce((s, u) => s + (u.unitStock * u.factor), 0);
+        const totalStock = p.currentStock + unitsTotal;
+
+        // تحقق إجمالي أولاّ
+        if (!allowNegativeStock && totalStock <= 0) {
+            showToast('الكمية نافذة بجميع المستويات ولا يمكن البيع');
             return;
         }
-        const existing = cart.find(c => c.productId === p.id);
+
+        // فلترة الوحدات السليمة فقط (التي لها unit مرتبطة)
+        const validUnits = (p.productUnits || []).filter(u => u.unit && u.unitId);
+
+        // إذا لم يختر وحدة وجاء بمنتج مع وحدات صالحة → اعرض مختار الوحدة
+        if (!selectedUnitId && validUnits.length > 0) {
+            setUnitPickerProduct(p);
+            return;
+        }
+
+        // تحديد سعر واسم وعامل الوحدة
+        let price = p.sellPrice;
+        let unitName = p.unit?.name || 'حبة';
+        let unitFactor = 1;
+        let productUnitId: number | undefined = undefined;
+
+        if (selectedUnitId && selectedUnitId > 0) {
+            const pu = (p.productUnits || []).find(u => u.id === selectedUnitId);
+            if (pu) {
+                price = pu.sellPrice > 0 ? pu.sellPrice : p.sellPrice;
+                unitName = pu.unit?.name || 'وحدة';
+                unitFactor = pu.factor;
+                productUnitId = pu.id;
+            }
+        }
+
+        const existing = cart.find(c => c.productId === p.id && c.productUnitId === productUnitId);
         if (existing) {
-            if (!allowNegativeStock && existing.quantity + 1 > p.currentStock) {
+            if (!allowNegativeStock && existing.quantity + 1 > totalStock / unitFactor) {
                 showToast('الكمية المطلوبة تتجاوز المخزون المتاح');
                 return;
             }
-            // Update quantity AND move item to the top
             setCart([
                 { ...existing, quantity: existing.quantity + 1 },
-                ...cart.filter(c => c.productId !== p.id)
+                ...cart.filter(c => !(c.productId === p.id && c.productUnitId === productUnitId))
             ]);
         } else {
             setCart([{
                 productId: p.id,
                 productName: p.name,
-                price: p.sellPrice,
+                price,
                 quantity: 1,
                 discountRate: 0,
                 taxRate: p.taxRate ?? 15,
-                stock: p.currentStock,
-                unitName: p.unit?.name || 'حبة',
-                categoryId: p.categoryId
+                stock: totalStock,
+                unitName,
+                categoryId: p.categoryId,
+                productUnitId,
+                unitFactor,
+                totalUnitStock: totalStock,
             }, ...cart]);
         }
+        setUnitPickerProduct(null);
         setSearch('');
         searchRef.current?.focus();
     };
+
 
     const updateCartItem = (idx: number, field: string, value: number) => {
         if (!allowNegativeStock && field === 'quantity') {
@@ -539,9 +585,20 @@ export default function SalesPage() {
     afterDiscount = afterDiscount - couponDiscountValue;
 
     const actualTaxRate = taxEnabled ? taxRate : 0;
-    const taxValue = afterDiscount * (actualTaxRate / 100);
-    const total = afterDiscount + taxValue;
+    // Tax Inclusive (شاملة): الضريبة مدمجة في السعر — نستخرجها
+    // Tax Exclusive (غير شاملة): نضيف الضريبة فوق السعر
+    const taxValue = isTaxInclusive
+        ? afterDiscount * actualTaxRate / (100 + actualTaxRate)
+        : afterDiscount * (actualTaxRate / 100);
+    const total = isTaxInclusive ? afterDiscount : afterDiscount + taxValue;
     const totalDiscountValue = regularDiscountValue + couponDiscountValue;
+
+    // قيمة عرض المجموع الفرعي:
+    // عند الشاملة: نعرض السعر قبل الضريبة (مُستخرج) = afterDiscount - taxValue
+    // عند غير الشاملة: نعرض المجموع العادي = subtotal
+    const displaySubtotal = (isTaxInclusive && taxEnabled && actualTaxRate > 0)
+        ? afterDiscount - taxValue   // السعر قبل الضريبة (ينقص عن السعر الأصلي)
+        : subtotal;
 
     const applyCoupon = async () => {
         if (!couponCode) return;
@@ -641,9 +698,13 @@ export default function SalesPage() {
                     items: cart.map(c => ({
                         productId: c.productId, productName: c.productName,
                         quantity: c.quantity, price: c.price, discountRate: c.discountRate,
+                        productUnitId: c.productUnitId,
+                        unitFactor: c.unitFactor,
                     })),
                     discountRate,
                     paymentType,
+                    isTaxInclusive,
+                    taxRate: actualTaxRate,
                     splitCash: paymentType === 'split' ? parseFloat(splitCash) || 0 : undefined,
                     splitCard: paymentType === 'split' ? parseFloat(splitCard) || 0 : undefined,
                     paid: paymentType === 'split' ? (parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0) : (paidAmount ? parseFloat(paidAmount) : total),
@@ -1215,8 +1276,13 @@ export default function SalesPage() {
                         <div className="pos-invoice-footer">
                             <div className="pos-totals">
                                 <div className="pos-total-row">
-                                    <span>{t('sys.str_768')}</span>
-                                    <span>{fmt(subtotal)} {t('sys.str_68')}</span>
+                                    <span>
+                                        {t('sys.str_768')}
+                                        {isTaxInclusive && taxEnabled && actualTaxRate > 0 && (
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginRight: '6px', fontWeight: 'normal' }}>(قبل الضريبة)</span>
+                                        )}
+                                    </span>
+                                    <span>{fmt(displaySubtotal)} {t('sys.str_68')}</span>
                                 </div>
                                 {discountEnabled && (
                                     <div className="pos-total-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -1285,7 +1351,12 @@ export default function SalesPage() {
                                 )}
                                 {taxEnabled && (
                                 <div className="pos-total-row">
-                                    <span>{t('sys.str_773')}</span>
+                                    <span>
+                                        {t('sys.str_773')} ({actualTaxRate}%)
+                                        {isTaxInclusive && (
+                                            <span style={{ fontSize: '11px', color: '#f59e0b', marginRight: '6px', fontWeight: '600' }}>مستخرجة</span>
+                                        )}
+                                    </span>
                                     <span>{fmt(taxValue)} {t('sys.str_68')}</span>
                                 </div>
                                 )}
@@ -1637,6 +1708,68 @@ export default function SalesPage() {
                     autoPrint={true}
                     onClose={() => setShowVoucher(false)}
                 />
+            )}
+            {/* مختار الوحدة عند إضافة صنف بوحدات متعددة */}
+            {unitPickerProduct && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+                    zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }} onClick={() => setUnitPickerProduct(null)}>
+                    <div style={{
+                        background: 'var(--bg-card)', borderRadius: '16px', padding: '24px',
+                        minWidth: '320px', maxWidth: '440px', width: '90%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                        border: '1px solid var(--border)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px' }}>
+                            📦 اختر وحدة البيع
+                        </h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                            {unitPickerProduct.name}
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {/* بيع بالحبة (الوحدة الأساسية) */}
+                            <button
+                                className="btn btn-outline"
+                                style={{ justifyContent: 'space-between', padding: '12px 16px', fontSize: '15px' }}
+                                onClick={() => { addToCart(unitPickerProduct, -1); }}
+                            >
+                                <span>حبة (وحدة أساسية)</span>
+                                <span style={{ color: 'var(--primary)', fontWeight: '700' }}>
+                                    {unitPickerProduct.sellPrice.toFixed(2)} ر.س
+                                </span>
+                            </button>
+                            {/* وحدات التعبئة الصالحة فقط */}
+                            {(unitPickerProduct.productUnits || []).filter(pu => pu.unit && pu.factor > 0).map(pu => {
+                                const totalAvail = unitPickerProduct.currentStock +
+                                    (unitPickerProduct.productUnits || []).reduce((s,u) => s+u.unitStock*u.factor, 0);
+                                const unitAvailQty = Math.floor(totalAvail / pu.factor);
+                                return (
+                                    <button
+                                        key={pu.id}
+                                        className="btn btn-outline"
+                                        style={{ justifyContent: 'space-between', padding: '12px 16px', fontSize: '15px',
+                                            opacity: unitAvailQty <= 0 && !allowNegativeStock ? 0.4 : 1 }}
+                                        disabled={unitAvailQty <= 0 && !allowNegativeStock}
+                                        onClick={() => addToCart(unitPickerProduct, pu.id)}
+                                    >
+                                        <span>
+                                            📦 {pu.unit?.name || 'وحدة'}
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginRight: '6px' }}>
+                                                ({pu.factor} حبة) • متاح: {unitAvailQty}
+                                            </span>
+                                        </span>
+                                        <span style={{ color: 'var(--success)', fontWeight: '700' }}>
+                                            {pu.sellPrice > 0 ? pu.sellPrice.toFixed(2) : unitPickerProduct.sellPrice.toFixed(2)} ر.س
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <button className="btn btn-ghost" style={{ width: '100%', marginTop: '12px', color: 'var(--text-muted)' }}
+                            onClick={() => setUnitPickerProduct(null)}>إلغاء</button>
+                    </div>
+                </div>
             )}
         </>
 

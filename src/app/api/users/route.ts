@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const users = await prisma.user.findMany({
-            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, deviceToken: true, deviceName: true, deviceBoundAt: true, branchId: true, branch: { select: { id: true, name: true } } },
+            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, deviceToken: true, deviceName: true, deviceBoundAt: true, branchId: true, defaultPage: true, branch: { select: { id: true, name: true } } },
             orderBy: { id: 'asc' },
         });
         return NextResponse.json(users);
@@ -55,8 +55,9 @@ export async function POST(request: NextRequest) {
                 phone: body.phone?.trim() || null,
                 active: true,
                 branchId: body.branchId ? parseInt(body.branchId) : null,
+                defaultPage: body.defaultPage || null,
             },
-            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, branchId: true },
+            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, branchId: true, defaultPage: true },
         });
 
         if (body.modules && Array.isArray(body.modules)) {
@@ -100,11 +101,12 @@ export async function PUT(request: NextRequest) {
         if (body.active !== undefined) data.active = Boolean(body.active);
         if (body.password) data.passwordHash = hashPassword(String(body.password).trim());
         if (body.branchId !== undefined) data.branchId = body.branchId ? parseInt(body.branchId) : null;
+        if (body.defaultPage !== undefined) data.defaultPage = body.defaultPage || null;
 
         const user = await prisma.user.update({
             where: { id: body.id },
             data,
-            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, branchId: true },
+            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, branchId: true, defaultPage: true },
         });
 
         if (body.modules && Array.isArray(body.modules)) {

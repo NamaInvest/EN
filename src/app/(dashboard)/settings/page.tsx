@@ -12,55 +12,6 @@ interface SettingItem { id: number; key: string; value: string; description: str
 export function getSettingGroups(t: (key: string) => string) {
     return [
     {
-        title: t('sys.str_4390'), keys: [
-            { key: 'company_name', label: t('sys.str_4391'), type: 'text' },
-            { key: 'company_name_en', label: t('sys.str_4392'), type: 'text' },
-            { key: 'company_phone', label: t('sys.str_4393'), type: 'text' },
-            { key: 'company_address', label: t('sys.str_4394'), type: 'text' },
-            { key: 'tax_number', label: t('sys.str_4395'), type: 'text' },
-            { key: 'currency', label: t('sys.str_4396'), type: 'text' },
-        ]
-    },
-    {
-        title: t('sys.str_4397'), keys: [
-            { key: 'tax_rate', label: t('sys.str_4398'), type: 'number' },
-            { key: 'zatca_enabled', label: t('sys.str_4399'), type: 'toggle' },
-        ]
-    },
-    {
-        title: t('sys.str_4400'), keys: [
-            { key: 'zatca_crn', label: t('sys.str_4401'), type: 'text' },
-            { key: 'zatca_industry', label: t('sys.str_4402'), type: 'text' },
-            { key: 'branch_name_en', label: t('sys.str_4403'), type: 'text' },
-            { key: 'zatca_street', label: t('sys.str_4404'), type: 'text' },
-            { key: 'zatca_building', label: t('sys.str_4405'), type: 'text' },
-            { key: 'zatca_district', label: t('sys.str_4406'), type: 'text' },
-            { key: 'zatca_city', label: t('sys.str_4407'), type: 'text' },
-            { key: 'zatca_city_en', label: t('sys.str_4408'), type: 'text' },
-            { key: 'zatca_postal_code', label: t('sys.str_4409'), type: 'text' },
-        ]
-    },
-    {
-        title: t('sys.str_4410'), keys: [
-            { key: 'printer_type', label: t('sys.str_4411'), type: 'select', options: [
-                { value: '58mm', label: t('sys.str_4412') },
-                { value: '76mm', label: t('sys.str_4413') },
-                { value: '80mm', label: t('sys.str_4414') },
-                { value: 'A4', label: '📄 A4 (210mm)' },
-                { value: 'A5', label: '📄 A5 (148mm)' },
-            ]},
-            { key: 'receipt_header', label: t('sys.str_4415'), type: 'text' },
-            { key: 'receipt_footer', label: t('sys.str_4416'), type: 'text' },
-            { key: 'barcode_label_size', label: t('sys.str_4417'), type: 'select', options: [
-                { value: '30x20', label: '🏷️ 30×20mm' },
-                { value: '40x30', label: '🏷️ 40×30mm' },
-                { value: '50x25', label: '🏷️ 50×25mm' },
-                { value: '50x30', label: '🏷️ 50×30mm (مخصص)' },
-                { value: '100x50', label: '🏷️ 100×50mm' },
-            ]},
-        ]
-    },
-    {
         title: t('sys.str_4418'), id: 'whatsapp', keys: [
             { key: 'whatsapp_enabled', label: t('sys.str_4419'), type: 'toggle' },
             { key: 'whatsapp_token', label: 'WhatsApp Access Token', type: 'text' },
@@ -172,8 +123,10 @@ export default function SettingsPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [showAddUser, setShowAddUser] = useState(false);
     const [branches, setBranches] = useState<any[]>([]);
-    const [newUser, setNewUser] = useState({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '' as string | number });
+    const [newUser, setNewUser] = useState({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '' as string | number, defaultPage: '' });
     const [newUserModules, setNewUserModules] = useState<string[]>([]);
+    const [moduleSearch, setModuleSearch] = useState('');
+    const [editModuleSearch, setEditModuleSearch] = useState('');
     const [savingUser, setSavingUser] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [editPermUser, setEditPermUser] = useState<any>(null);
@@ -186,79 +139,150 @@ export default function SettingsPage() {
     const [isOwner, setIsOwner] = useState(false);
     const roleLabels: Record<string, string> = { owner: 'المالك', admin: 'مدير النظام', manager: 'مدير عام', auditor: 'مُراجع / مدقق', accountant: 'محاسب', cashier: 'كاشير', data_entry: 'مدخل بيانات', hr: 'موارد بشرية', sales_rep: 'مندوب مبيعات' };
     const ALL_MODULES = [
-        { key: 'dashboard', label: t('sys.str_4445') },
-        { key: 'pos', label: t('sys.str_4446') },
-        { key: 'restaurant_pos', label: t('sys.str_4447') },
-        { key: 'shifts', label: t('sys.str_4448') },
-        { key: 'sales_orders', label: t('sys.str_4449') },
-        { key: 'sales', label: t('sys.str_4450') },
-        { key: 'sales_routes', label: t('sys.str_4451') },
-        { key: 'sales_targets', label: t('sys.str_4452') },
-        { key: 'purchases', label: t('sys.str_4453') },
-        { key: 'purchase_orders', label: t('sys.str_4454') },
-        { key: 'letters_of_credit', label: t('sys.str_4455') },
-        { key: 'sales_returns', label: t('sys.str_4456') },
-        { key: 'purchase_returns', label: t('sys.str_4457') },
-        { key: 'bookings', label: t('sys.str_4458') },
-        { key: 'price_quotes', label: t('sys.str_4459') },
-        { key: 'coupons', label: t('sys.str_4460') },
-        { key: 'products', label: t('sys.str_4461') },
-        { key: 'stock', label: t('sys.str_4462') },
-        { key: 'manufacturing', label: t('sys.str_4463') },
-        { key: 'warehouses', label: t('sys.str_4464') },
-        { key: 'stock_transfers', label: t('sys.str_4465') },
-        { key: 'barcode', label: t('sys.str_4466') },
-        { key: 'batches', label: t('sys.str_4467') },
-        { key: 'customers', label: t('sys.str_4468') },
-        { key: 'loyalty', label: t('sys.str_4469') },
-        { key: 'treasury', label: t('sys.str_4470') },
-        { key: 'treasury_checks', label: t('sys.str_4471') },
-        { key: 'bank_reconciliation', label: t('sys.str_4472') },
-        { key: 'petty_cash', label: t('sys.str_4473') },
-        { key: 'banks', label: t('sys.str_4474') },
-        { key: 'receipt_vouchers', label: t('sys.str_4475') },
-        { key: 'expenses', label: t('sys.str_4169') },
-        { key: 'reports', label: t('sys.str_4476') },
-        { key: 'installments', label: t('sys.str_4477') },
-        { key: 'gift_cards', label: t('sys.str_4478') },
-        { key: 'employees', label: t('sys.str_4479') },
-        { key: 'attendance', label: t('sys.str_4480') },
-        { key: 'hr_loans', label: t('sys.str_4481') },
-        { key: 'salaries', label: t('sys.str_4482') },
-        { key: 'vacations', label: t('sys.str_4483') },
-        { key: 'whatsapp', label: t('sys.str_4484') },
-        { key: 'salla', label: t('sys.str_4485') },
-        { key: 'maintenance', label: t('sys.str_4486') },
-        { key: 'promotions', label: t('sys.str_4487') },
-        { key: 'stocktake', label: t('sys.str_4488') },
-        { key: 'vision_inventory', label: t('sys.str_4489') },
-        { key: 'master-panel', label: t('sys.str_4490') },
-        { key: 'mrp', label: t('sys.str_4491') },
-        { key: 'projects', label: t('sys.str_4492') },
-        { key: 'wms', label: t('sys.str_4493') },
-        { key: 'legal', label: t('sys.str_4494') },
-        { key: 'accounting', label: t('sys.str_4495') },
-        { key: 'fixed_assets', label: t('sys.str_4496') },
-        { key: 'crm_leads', label: t('sys.str_4497') },
-        { key: 'fleet', label: t('sys.str_4498') },
-        { key: 'property', label: t('sys.str_4499') },
-        { key: 'quality', label: t('sys.str_4500') },
-        { key: 'branches', label: t('sys.str_4501') },
-        { key: 'currencies', label: t('sys.str_4502') },
-        { key: 'approvals', label: t('sys.str_4503') },
-        { key: 'settings', label: t('sys.str_4504') },
-        { key: 'audit_logs', label: t('sys.str_4505') },
-        { key: 'manage_users', label: t('sys.str_4506') },
-        { key: 'manage_permissions', label: t('sys.str_4507') },
-        { key: 'delete_invoices', label: t('sys.str_4508') },
-        { key: 'delete_expense', label: t('sys.str_4509') },
-        { key: 'delete_all_expenses', label: t('sys.str_4510') },
-        { key: 'edit_expense', label: t('sys.str_4511') },
-        { key: 'delete_products', label: t('sys.str_4512') },
-        { key: 'reset_stock', label: t('sys.str_4513') },
-        { key: 'delete_all_sales', label: t('sys.str_4514') },
-        { key: 'reset_password', label: t('sys.str_4515') },
-        { key: 'clear_zatca', label: t('sys.str_4516') },
+        // ═══ الرئيسية ═══
+        { key: 'dashboard', label: '🏠 لوحة التحكم' },
+
+        // ═══ المبيعات ═══
+        { key: 'pos', label: '🛒 نقطة البيع (POS)' },
+        { key: 'restaurant_pos', label: '🍽️ POS المطاعم' },
+        { key: 'shifts', label: '🕐 الوردات' },
+        { key: 'sales_orders', label: '📋 أوامر البيع' },
+        { key: 'sales', label: '🧾 فواتير المبيعات' },
+        { key: 'sales_history', label: '📜 تاريخ فواتير المبيعات' },
+        { key: 'sales_routes', label: '🚚 مسارات التوزيع' },
+        { key: 'sales_targets', label: '🎯 أهداف المبيعات' },
+        { key: 'delivery_notes', label: '📦 مذكرات التسليم' },
+        { key: 'sales_returns', label: '↩️ مرتجعات المبيعات' },
+        { key: 'price_quotes', label: '💬 عروض الأسعار' },
+        { key: 'recurring_invoices', label: '🔄 الفواتير المتكررة' },
+
+        // ═══ المشتريات ═══
+        { key: 'purchases', label: '🛍️ فواتير المشتريات' },
+        { key: 'purchase_orders', label: '📋 أوامر الشراء' },
+        { key: 'purchase_rfq', label: '📨 طلبات عروض الأسعار (RFQ)' },
+        { key: 'purchase_requisitions', label: '📝 طلبات الشراء' },
+        { key: 'purchase_grn', label: '📥 استلام البضاعة (GRN)' },
+        { key: 'letters_of_credit', label: '🏦 خطابات الاعتماد' },
+        { key: 'purchase_returns', label: '↩️ مرتجعات المشتريات' },
+
+        // ═══ المنتجات والمخزون ═══
+        { key: 'products', label: '📦 المنتجات' },
+        { key: 'stock', label: '🏭 المخزون' },
+        { key: 'stock_movements', label: '📊 حركات المخزون' },
+        { key: 'stock_adjustments', label: '⚖️ تسويات المخزون' },
+        { key: 'stock_transfers', label: '🔀 تحويلات المخزون' },
+        { key: 'stocktake', label: '📋 الجرد' },
+        { key: 'vision_inventory', label: '👁️ جرد الرؤية الذكية' },
+        { key: 'warehouses', label: '🏪 المستودعات' },
+        { key: 'warehouses_alerts', label: '🔔 تنبيهات المستودعات' },
+        { key: 'barcode', label: '🏷️ الباركود' },
+        { key: 'batches', label: '📦 الدفعات' },
+        { key: 'inv_serials', label: '🔢 الأرقام التسلسلية' },
+
+        // ═══ المحاسبة والمالية ═══
+        { key: 'accounting', label: '📒 الحسابات العامة' },
+        { key: 'accounting_banks', label: '🏦 بنوك المحاسبة' },
+        { key: 'accounting_lc', label: '📜 خطابات اعتماد المحاسبة' },
+        { key: 'accounting_trial_balance', label: '⚖️ ميزان المراجعة' },
+        { key: 'treasury', label: '💰 الخزينة' },
+        { key: 'treasury_checks', label: '📝 الشيكات' },
+        { key: 'bank_reconciliation', label: '🏦 مطابقة البنك' },
+        { key: 'petty_cash', label: '💵 الصندوق الصغير' },
+        { key: 'fng_petty_cash', label: '💵 صناديق الصرف' },
+        { key: 'banks', label: '🏦 البنوك' },
+        { key: 'receipt_vouchers', label: '🧾 سندات القبض' },
+        { key: 'expenses', label: '💸 المصروفات' },
+        { key: 'fixed_assets', label: '🏗️ الأصول الثابتة' },
+        { key: 'finance_assets', label: '📈 الأصول المالية' },
+        { key: 'fng_budgets', label: '📊 الميزانيات' },
+        { key: 'smart_transfers', label: '💸 الحوالات الذكية' },
+        { key: 'installments', label: '📅 الأقساط' },
+
+        // ═══ العملاء ═══
+        { key: 'customers', label: '👤 العملاء' },
+        { key: 'crm_leads', label: '🎯 العملاء المحتملون (CRM)' },
+        { key: 'loyalty', label: '⭐ نقاط الولاء' },
+        { key: 'coupons', label: '🎟️ الكوبونات' },
+        { key: 'promotions', label: '🎁 العروض الترويجية' },
+        { key: 'gift_cards', label: '🎴 بطاقات الهدايا' },
+        { key: 'affiliates', label: '🤝 التسويق بالعمولة' },
+        { key: 'bookings', label: '📅 الحجوزات' },
+        { key: 'bookings_calendar', label: '📆 تقويم الحجوزات' },
+
+        // ═══ الموارد البشرية ═══
+        { key: 'employees', label: '👥 الموظفون' },
+        { key: 'attendance', label: '⏰ الحضور والانصراف' },
+        { key: 'hr_loans', label: '💳 قروض الموظفين' },
+        { key: 'hr_jobs', label: '💼 الوظائف' },
+        { key: 'hr_training', label: '📚 التدريب' },
+        { key: 'hr_evaluations', label: '📊 تقييم الأداء' },
+        { key: 'hr_ai_enrollment', label: '🤖 التسجيل الذكي' },
+        { key: 'salaries', label: '💰 الرواتب' },
+        { key: 'vacations', label: '🏖️ الإجازات' },
+
+        // ═══ الأصول والأسطول ═══
+        { key: 'assets', label: '🏗️ الأصول' },
+        { key: 'fleet', label: '🚗 أسطول المركبات' },
+        { key: 'fleet_fuel', label: '⛽ الوقود' },
+        { key: 'fleet_trips', label: '🗺️ الرحلات' },
+        { key: 'maintenance', label: '🔧 الصيانة' },
+
+        // ═══ التصنيع والمشاريع ═══
+        { key: 'manufacturing', label: '🏭 التصنيع' },
+        { key: 'mrp', label: '📋 تخطيط الموارد (MRP)' },
+        { key: 'mrp_recipes', label: '📖 وصفات التصنيع' },
+        { key: 'projects', label: '📁 المشاريع' },
+        { key: 'quality', label: '✅ ضبط الجودة' },
+        { key: 'wms', label: '🏪 إدارة المستودعات المتقدمة (WMS)' },
+        { key: 'enterprise_fleet', label: '🚛 أسطول المنشأة' },
+        { key: 'legal', label: '⚖️ الشؤون القانونية' },
+        { key: 'property', label: '🏢 إدارة العقارات' },
+        { key: 'rem_installments', label: '📅 أقساط الإيجار' },
+        { key: 'rem_leases', label: '📜 عقود الإيجار' },
+
+        // ═══ الذكاء الاصطناعي ═══
+        { key: 'ai_bank', label: '🤖 البنك الذكي' },
+        { key: 'ai_cfo', label: '🤖 المدير المالي الذكي' },
+        { key: 'ai_copilot', label: '🤖 المساعد الذكي' },
+        { key: 'ai_scm', label: '🤖 سلسلة التوريد الذكية' },
+
+        // ═══ التعليم ═══
+        { key: 'shl_classes', label: '🎓 الفصول الدراسية' },
+        { key: 'shl_students', label: '👨‍🎓 الطلاب' },
+
+        // ═══ التقارير ═══
+        { key: 'reports', label: '📊 التقارير' },
+        { key: 'reports_73', label: '📈 تقارير 73 وحدة' },
+        { key: 'reports_fraud', label: '🔍 كشف الاحتيال بالذكاء الاصطناعي' },
+
+        // ═══ التواصل ═══
+        { key: 'whatsapp', label: '💬 مركز واتساب' },
+        { key: 'com_rules', label: '📋 قواعد التواصل' },
+        { key: 'salla', label: '🛒 متجر سلة' },
+
+        // ═══ النظام والإعدادات ═══
+        { key: 'settings', label: '⚙️ الإعدادات' },
+        { key: 'settings_approvals', label: '✅ إعدادات الموافقات' },
+        { key: 'settings_currencies', label: '💱 العملات' },
+        { key: 'settings_whatsapp', label: '📱 إعدادات واتساب' },
+        { key: 'branches', label: '🏢 الفروع' },
+        { key: 'audit_logs', label: '📋 سجل المراجعة' },
+        { key: 'sys_alerts', label: '🔔 تنبيهات النظام' },
+        { key: 'sys_health', label: '💊 صحة النظام' },
+        { key: 'master-panel', label: '🎛️ لوحة المدير' },
+
+        // ═══ صلاحيات خاصة ═══
+        { key: 'manage_users', label: '👥 إدارة المستخدمين' },
+        { key: 'manage_permissions', label: '🔐 إدارة الصلاحيات' },
+        { key: 'delete_invoices', label: '🗑️ حذف الفواتير' },
+        { key: 'delete_expense', label: '🗑️ حذف مصروف' },
+        { key: 'delete_all_expenses', label: '🗑️ حذف كل المصروفات' },
+        { key: 'edit_expense', label: '✏️ تعديل المصروفات' },
+        { key: 'delete_products', label: '🗑️ حذف المنتجات' },
+        { key: 'reset_stock', label: '🔄 تصفير المخزون' },
+        { key: 'delete_all_sales', label: '🗑️ حذف كل المبيعات' },
+        { key: 'reset_password', label: '🔑 تغيير كلمة المرور' },
+        { key: 'clear_zatca', label: '🧹 مسح بيانات زاتكا' },
     ];
 
     const fetchUsers = async () => {
@@ -280,7 +304,7 @@ export default function SettingsPage() {
             const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...newUser, modules: newUserModules }) });
             if (res.ok) {
                 showToast(t('sys.str_4518'));
-                setNewUser({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '' });
+                setNewUser({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '', defaultPage: '' });
                 setNewUserModules([]);
                 setShowAddUser(false);
                 fetchUsers();
@@ -578,28 +602,6 @@ export default function SettingsPage() {
                 {settingGroups.map((group, gi) => (
                     <div key={gi} className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>{group.title}</h3>
-                        {gi === 0 && (
-                            <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
-                                <label className="input-label" style={{ marginBottom: '12px', display: 'block' }}>{t('sys.str_4339')}</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                                    {logoPreview ? (
-                                        <img src={logoPreview} alt={t('sys.str_4538')} style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '12px', background: '#fff', padding: '4px', border: '1px solid var(--border)' }} />
-                                    ) : (
-                                        <div style={{ width: '80px', height: '80px', borderRadius: '12px', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', border: '1px solid var(--border)' }}>🏢</div>
-                                    )}
-                                    <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
-                                        <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                            {uploadingLogo ? t('sys.str_4539') : t('sys.str_4540')}
-                                            <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} disabled={uploadingLogo} />
-                                        </label>
-                                        {logoPreview && (
-                                            <button className="btn btn-ghost btn-sm" onClick={handleLogoDelete} style={{ color: 'var(--danger)', fontSize: '12px' }}>{t('sys.str_4340')}</button>
-                                        )}
-                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('sys.str_4341')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                         <div className="grid-2">
                             {group.keys.map(k => (
                                 <div key={k.key} className="input-group" style={k.type === 'textarea' ? { gridColumn: '1 / -1' } : {}}>
@@ -662,77 +664,6 @@ export default function SettingsPage() {
                                 </div>
                             ))}
                         </div>
-                        {group.title.includes(t('sys.str_4543')) && (
-                            <div style={{ marginTop: '16px', padding: '20px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>{t('sys.str_4139')}</h3>
-                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4344')}</p>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                                    <div style={{ flex: '1', minWidth: '200px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>{t('sys.str_4345')}</label>
-                                        <input
-                                            className="input"
-                                            id="barcode-label-input"
-                                            placeholder={t('sys.str_4544')}
-                                            dir="ltr"
-                                        />
-                                    </div>
-                                    <div style={{ minWidth: '80px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>{t('sys.str_4093')}</label>
-                                        <input className="input" id="barcode-label-qty" type="number" defaultValue="1" min="1" max="100" style={{ width: '80px' }} dir="ltr" />
-                                    </div>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={() => {
-                                            const barcodeInput = (document.getElementById('barcode-label-input') as HTMLInputElement)?.value;
-                                            const qty = parseInt((document.getElementById('barcode-label-qty') as HTMLInputElement)?.value || '1');
-                                            const labelSize = settings['barcode_label_size'] || '50x30';
-                                            if (!barcodeInput) { showToast(t('sys.str_4545')); return; }
-                                            const sizes: Record<string, { w: string; h: string; fontSize: string; barcodeH: string }> = {
-                                                '30x20': { w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
-                                                '40x30': { w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
-                                                '50x25': { w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
-                                                '50x30': { w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
-                                                '100x50': { w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
-                                            };
-                                            const sz = sizes[labelSize] || sizes['50x30'];
-                                            // Generate barcode bars using Code128-like pattern
-                                            const barSvg = barcodeInput.split('').map((ch, i) => {
-                                                const code = ch.charCodeAt(0);
-                                                const widths = [(code >> 6) & 1, (code >> 5) & 1, (code >> 4) & 1, (code >> 3) & 1, (code >> 2) & 1, (code >> 1) & 1, code & 1, 0];
-                                                return widths.map((w, j) => `<rect x="${(i * 8 + j) * 2}" y="0" width="${w ? 2 : 1}" height="100" fill="${j % 2 === 0 ? '#000' : '#fff'}"/>`).join('');
-                                            }).join('');
-                                            const totalBars = barcodeInput.length * 8 * 2;
-                                            let labels = '';
-                                            for (let i = 0; i < qty; i++) {
-                                                labels += `<div class="label">
-                                                    <div class="company">${settings['company_name'] || ''}</div>
-                                                    <svg class="barcode" viewBox="0 0 ${totalBars} 100" preserveAspectRatio="none">${barSvg}<rect x="0" y="0" width="2" height="100" fill="#000"/><rect x="${totalBars - 2}" y="0" width="2" height="100" fill="#000"/></svg>
-                                                    <div class="code">${barcodeInput}</div>
-                                                </div>`;
-                                            }
-                                            const pw = window.open('', '_blank', 'width=400,height=400');
-                                            if (!pw) return;
-                                            pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>باركود</title>
-                                            <style>
-                                                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap');
-                                                * { margin: 0; padding: 0; box-sizing: border-box; }
-                                                body { font-family: 'Cairo', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; padding: 2mm; }
-                                                .label { width: ${sz.w}; height: ${sz.h}; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1mm; overflow: hidden; page-break-inside: avoid; }
-                                                .company { font-size: ${sz.fontSize}; font-weight: 600; text-align: center; line-height: 1.1; max-height: 3mm; overflow: hidden; }
-                                                .barcode { width: 90%; height: ${sz.barcodeH}; margin: 1mm 0; }
-                                                .code { font-size: ${sz.fontSize}; font-weight: 600; letter-spacing: 1px; text-align: center; }
-                                                @media print { @page { margin: 0; size: ${sz.w} ${sz.h}; } body { padding: 0; } }
-                                            </style></head><body>${labels}
-                                            <script>window.onload=function(){setTimeout(function(){window.print();window.close();},400);};</script>
-                                            </body></html>`);
-                                            pw.document.close();
-                                        }}
-                                        style={{ minWidth: '120px' }}
-                                    >
-                                        {t('sys.str_4346')}</button>
-                                </div>
-                            </div>
-                        )}
                         {group.title.includes(t('sys.str_4546')) && (
                             <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
@@ -963,14 +894,48 @@ export default function SettingsPage() {
                                     ))}
                                 </select>
                             </div>
+                            {/* الصفحة الافتراضية بعد تسجيل الدخول */}
                             <div>
-                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>{t('sys.str_4365')}</label>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                <label className="input-label" style={{ marginBottom: '6px', display: 'block' }}>🏠 الصفحة الافتراضية بعد الدخول</label>
+                                <select className="input" value={newUser.defaultPage || ''} onChange={e => setNewUser({ ...newUser, defaultPage: e.target.value })}>
+                                    <option value="">-- لوحة التحكم (افتراضي) --</option>
+                                    <option value="/sales">🛒 نقطة البيع (POS)</option>
+                                    <option value="/pos">🛒 POS المفتوح</option>
+                                    <option value="/purchases">🛍️ فواتير المشتريات</option>
+                                    <option value="/products">📦 المنتجات</option>
+                                    <option value="/stock">🏭 المخزون</option>
+                                    <option value="/customers">👤 العملاء</option>
+                                    <option value="/expenses">💸 المصروفات</option>
+                                    <option value="/employees">👥 الموظفون</option>
+                                    <option value="/attendance">⏰ الحضور والانصراف</option>
+                                    <option value="/salaries">💰 الرواتب</option>
+                                    <option value="/reports">📊 التقارير</option>
+                                    <option value="/treasury">💰 الخزينة</option>
+                                    <option value="/warehouses">🏪 المستودعات</option>
+                                    <option value="/accounting">📒 الحسابات</option>
+                                    <option value="/bookings">📅 الحجوزات</option>
+                                    <option value="/shifts">🕐 الوردات</option>
+                                    <option value="/receipt-vouchers">🧾 سندات القبض</option>
+                                    <option value="/sales-returns">↩️ مرتجعات المبيعات</option>
+                                    <option value="/manufacturing">🏭 التصنيع</option>
+                                    <option value="/maintenance">🔧 الصيانة</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الصلاحيات ({newUserModules.length}/{ALL_MODULES.length})</label>
+                                <input
+                                    className="input" type="text" placeholder="🔍 ابحث في الصلاحيات..."
+                                    value={moduleSearch} onChange={e => setModuleSearch(e.target.value)}
+                                    style={{ marginBottom: '8px', fontSize: '13px' }}
+                                />
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '200px', overflowY: 'auto', padding: '4px', border: '1px solid var(--border)', borderRadius: '8px' }}>
                                     <button type="button" className={`btn btn-sm ${newUserModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
                                         onClick={() => setNewUserModules(newUserModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                        {newUserModules.length === ALL_MODULES.length ? t('sys.str_4578') : t('sys.str_4579')}
+                                        {newUserModules.length === ALL_MODULES.length ? '✗ إلغاء الكل' : '✓ تحديد الكل'}
                                     </button>
-                                    {ALL_MODULES.map(m => (
+                                    {ALL_MODULES.filter(m =>
+                                        !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
+                                    ).map(m => (
                                         <button key={m.key} type="button"
                                             className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
                                             onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}

@@ -180,8 +180,12 @@ export default function ProductsPage() {
         });
         setFormUnits(p.productUnits ? p.productUnits.map((u: any) => ({
             id: u.id, unitId: u.unitId?.toString(),
-            barcode: u.barcode || '', sellPrice: u.sellPrice?.toString() || '0', 
-            buyPrice: u.buyPrice?.toString() || '0', factor: u.factor?.toString() || '1'
+            barcode: u.barcode || '', sellPrice: u.sellPrice?.toString() || '0',
+            buyPrice: u.buyPrice?.toString() || '0', factor: u.factor?.toString() || '1',
+            unitStock: u.unitStock?.toString() || '0',
+            parentQty: u.parentQty?.toString() || '1',
+            parentUnitId: u.parentUnitId?.toString() || '',
+            sortOrder: u.sortOrder?.toString() || '0',
         })) : []);
         setShowModal(true);
     };
@@ -335,9 +339,10 @@ export default function ProductsPage() {
             </div>
             <div className="page-content animate-fade-in">
                 <div className="toolbar">
-                    <div className="search-bar">
+                    <div className="search-bar" style={{ minWidth: '340px', flex: '1', maxWidth: '520px' }}>
                         <input
                             className="input"
+                            style={{ width: '100%' }}
                             placeholder={t('sys.str_913')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -634,7 +639,7 @@ export default function ProductsPage() {
                                     <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>{t('sys.str_4265')}</label>
                                     <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : t('sys.str_4272')}</button>
                                 </div>
-                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '12' }])}>{t('sys.str_4266')}</button>
+                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', factor: '1', unitStock: '0', parentQty: '12', parentUnitId: '' }])}>{t('sys.str_4266')}</button>
                             </div>
                             
                             {showAddUnit && (
@@ -655,41 +660,117 @@ export default function ProductsPage() {
                             )}
 
                             {formUnits.length === 0 ? <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('sys.str_4267')}</div> : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {formUnits.map((fu, idx) => (
-                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', alignItems: 'end', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4268')}</label>
-                                                <select className="input" style={{ width: '100%', padding: '6px' }} value={fu.unitId} onChange={e => {
-                                                    const newArr = [...formUnits]; newArr[idx].unitId = e.target.value; setFormUnits(newArr);
-                                                }}>
-                                                    <option value="">{t('sys.str_4269')}</option>
-                                                    {units.map((u:any) => <option key={u.id} value={u.id}>{u.name}</option>)}
-                                                </select>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {formUnits.map((fu, idx) => {
+                                        // الوحدات السابقة لاستخدامها كمرجع (أب)
+                                        const prevUnits = formUnits.slice(0, idx);
+                                        // اسم الوحدة الأب: إذا اختار وحدة سابقة أو الحبة الأساسية
+                                        const parentName = fu.parentUnitId
+                                            ? (units.find((u: any) => u.id === parseInt(fu.parentUnitId))?.name || 'وحدة')
+                                            : 'حبة (أساسية)';
+                                        return (
+                                        <div key={idx} style={{ background: 'var(--bg-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                            {/* عنوان الصف */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)' }}>
+                                                    📦 وحدة #{idx + 1}
+                                                    {fu.unitId && units.find((u:any) => u.id === parseInt(fu.unitId))
+                                                        ? ` — ${units.find((u:any) => u.id === parseInt(fu.unitId))?.name}`
+                                                        : ''}
+                                                </span>
+                                                <button type="button" className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => {
+                                                    const newArr = formUnits.filter((_, i) => i !== idx); setFormUnits(newArr);
+                                                }}>🗑️</button>
                                             </div>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4270')}</label>
-                                                <input className="input" type="number" style={{ width: '100%', padding: '6px' }} placeholder="12" value={fu.factor} onChange={e => {
-                                                    const newArr = [...formUnits]; newArr[idx].factor = e.target.value; setFormUnits(newArr);
-                                                }} />
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+
+                                                {/* اسم الوحدة */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>🏷️ اسم الوحدة</label>
+                                                    <select className="input" style={{ width: '100%', padding: '6px' }} value={fu.unitId} onChange={e => {
+                                                        const newArr = [...formUnits]; newArr[idx].unitId = e.target.value; setFormUnits(newArr);
+                                                    }}>
+                                                        <option value="">-- اختر --</option>
+                                                        {units.map((u:any) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                                    </select>
+                                                </div>
+
+                                                {/* كم عندي من هذه الوحدة */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>📊 كم عندي ({fu.unitId ? units.find((u:any)=>u.id===parseInt(fu.unitId))?.name || '؟' : '؟'})</label>
+                                                    <input className="input" type="number" min="0" style={{ width: '100%', padding: '6px' }}
+                                                        placeholder="0"
+                                                        value={fu.unitStock ?? '0'}
+                                                        onChange={e => {
+                                                            const newArr = [...formUnits]; newArr[idx].unitStock = e.target.value; setFormUnits(newArr);
+                                                        }} />
+                                                </div>
+
+                                                {/* كم فيها من الوحدة الأدنى */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>🔢 كم {parentName} في الواحدة؟</label>
+                                                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                                        <input className="input" type="number" min="1" style={{ flex: 1, padding: '6px' }}
+                                                            placeholder="12"
+                                                            value={fu.parentQty ?? '12'}
+                                                            onChange={e => {
+                                                                const newArr = [...formUnits]; newArr[idx].parentQty = e.target.value; setFormUnits(newArr);
+                                                            }} />
+                                                        {/* إذا وجدت وحدات سابقة، اسمح باختيار المرجع */}
+                                                        {prevUnits.length > 0 && (
+                                                            <select className="input" style={{ flex: 1, padding: '6px', fontSize: '12px' }}
+                                                                value={fu.parentUnitId || ''}
+                                                                onChange={e => {
+                                                                    const newArr = [...formUnits];
+                                                                    newArr[idx].parentUnitId = e.target.value;
+                                                                    setFormUnits(newArr);
+                                                                }}>
+                                                                <option value="">حبة (أساسية)</option>
+                                                                {prevUnits.map((pu, pi) => {
+                                                                    const pUnit = units.find((u:any) => u.id === parseInt(pu.unitId));
+                                                                    return pUnit ? <option key={pi} value={pu.unitId}>{pUnit.name}</option> : null;
+                                                                })}
+                                                            </select>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* سعر البيع */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>💰 سعر البيع</label>
+                                                    <input className="input" type="number" step="0.01" style={{ width: '100%', padding: '6px' }}
+                                                        value={fu.sellPrice}
+                                                        onChange={e => {
+                                                            const newArr = [...formUnits]; newArr[idx].sellPrice = e.target.value; setFormUnits(newArr);
+                                                        }} />
+                                                </div>
+
+                                                {/* الباركود */}
+                                                <div>
+                                                    <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>🔖 باركود (اختياري)</label>
+                                                    <input className="input" style={{ width: '100%', padding: '6px' }} dir="ltr"
+                                                        value={fu.barcode}
+                                                        onChange={e => {
+                                                            const newArr = [...formUnits]; newArr[idx].barcode = e.target.value; setFormUnits(newArr);
+                                                        }} />
+                                                </div>
+
                                             </div>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_877')}</label>
-                                                <input className="input" type="number" step="0.01" style={{ width: '100%', padding: '6px' }} value={fu.sellPrice} onChange={e => {
-                                                    const newArr = [...formUnits]; newArr[idx].sellPrice = e.target.value; setFormUnits(newArr);
-                                                }} />
-                                            </div>
-                                            <div>
-                                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>{t('sys.str_4271')}</label>
-                                                <input className="input" style={{ width: '100%', padding: '6px' }} value={fu.barcode} onChange={e => {
-                                                    const newArr = [...formUnits]; newArr[idx].barcode = e.target.value; setFormUnits(newArr);
-                                                }} />
-                                            </div>
-                                            <button type="button" className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', height: '36px', minWidth: '40px' }} onClick={() => {
-                                                const newArr = formUnits.filter((_, i) => i !== idx); setFormUnits(newArr);
-                                            }}>🗑️</button>
+
+                                            {/* ملخص تلقائي */}
+                                            {fu.parentQty && fu.unitId && (
+                                                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(108,99,255,0.08)', borderRadius: '8px', border: '1px solid rgba(108,99,255,0.2)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                                    📊 {fu.unitStock || '0'} {units.find((u:any)=>u.id===parseInt(fu.unitId))?.name || '؟'}
+                                                    {' '}&times;{' '}{fu.parentQty} {parentName} = لديك{' '}
+                                                    <strong style={{ color: 'var(--primary)' }}>
+                                                        {((parseFloat(fu.unitStock||'0')||0) * (parseFloat(fu.parentQty||'12')||12)).toLocaleString()}
+                                                    </strong> {parentName}
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

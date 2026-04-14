@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+// GET all units (used as packaging unit names)
+export async function GET() {
     try {
         const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } });
         return NextResponse.json(units);
@@ -12,18 +12,29 @@ export async function GET(request: NextRequest) {
     }
 }
 
+// POST create new unit name
 export async function POST(request: NextRequest) {
     try {
-        const auth = getUserFromRequest(request);
-        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
         const body = await request.json();
-        const unit = await prisma.unit.create({
-            data: { name: body.name }
-        });
+        if (!body.name?.trim()) return NextResponse.json({ error: 'الاسم مطلوب' }, { status: 400 });
+        const unit = await prisma.unit.create({ data: { name: body.name.trim() } });
         return NextResponse.json(unit, { status: 201 });
     } catch (error) {
         console.error('Unit POST error:', error);
-        return NextResponse.json({ error: 'فشل الإنشاء' }, { status: 500 });
+        return NextResponse.json({ error: 'فشل في الإضافة' }, { status: 500 });
+    }
+}
+
+// DELETE a unit by id
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = parseInt(searchParams.get('id') || '');
+        if (!id) return NextResponse.json({ error: 'المعرف مطلوب' }, { status: 400 });
+        await prisma.unit.delete({ where: { id } });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Unit DELETE error:', error);
+        return NextResponse.json({ error: 'فشل في الحذف' }, { status: 500 });
     }
 }

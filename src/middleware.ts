@@ -1,63 +1,70 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-const OWNER_EMAIL = process.env.ICE_OWNER_EMAIL || 'admin@namainvist.com';
+const OWNER_EMAIL = process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';
 
 const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)', 
-  '/sign-up(.*)', 
+  '/sign-in(.*)',
+  '/sign-up(.*)',
   '/api(.*)',
-  '/api/zatca/callbacks(.*)'
 ]);
 
 const isIceRoute = createRouteMatcher(['/ice(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';
-  
-  // Determine if this is the main landing site or localhost
-  const isLandingSite = hostname === 'namainvist.com' || hostname === 'www.namainvist.com' || hostname.startsWith('localhost');
 
+  const isMainSite =
+    hostname === 'namainvist.com' ||
+    hostname === 'www.namainvist.com' ||
+    hostname.startsWith('localhost');
+
+  // N1-N11 subdomains → pass through without Clerk
+  if (!isMainSite) {
+    return;
+  }
+
+  // ── ROOT '/' = Marketing page — skip Clerk entirely ──
+  // Inject x-is-marketing header so layout.tsx skips ClerkProvider/SessionProvider
+  if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '') {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-is-marketing', '1');
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.headers.set('CDN-Cache-Control', 'no-store');
+    res.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+    return res;
+  }
+
+  // Public auth routes
   if (isPublicRoute(req)) {
-      return;
+    return;
   }
 
-  // ── ICE Panel: Owner-only guard ───────────────────────────────────────────
+  // ── ICE Panel: المالك فقط ──────────────────────────────────────────────────
   if (isIceRoute(req)) {
-      const { userId } = await auth();
-      if (!userId) {
-          return NextResponse.redirect(new URL('/', req.url));
-      }
-      // Verify owner email via Clerk
-      const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-          headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-      });
-      const clerkUser = await clerkRes.json().catch(() => ({}));
-      const email: string = clerkUser?.email_addresses?.[0]?.email_address || '';
-      if (email !== OWNER_EMAIL) {
-          return NextResponse.redirect(new URL('/', req.url));
-      }
-      return; // ✅ Owner is allowed
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+      headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+    });
+    const clerkUser = await clerkRes.json().catch(() => ({}));
+    const email: string = clerkUser?.email_addresses?.[0]?.email_address || '';
+    if (email !== OWNER_EMAIL) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    return; // ✅ المالك مسموح له
   }
 
-  // If path is exactly '/', only allow it publicly if it's the landing site
-  if (req.nextUrl.pathname === '/') {
-      if (!isLandingSite) {
-          // If it's an ERP node (e.g. n2.namainvist.com), protect '/' so they are forced to login
-          await auth.protect();
-      }
-      return;
-  }
-
-  // Protect all other routes
+  // باقي مسارات الموقع الرئيسي (/onboarding, /dashboard...) → Clerk
   await auth.protect();
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
     '/(api|trpc)(.*)',
   ],
 };

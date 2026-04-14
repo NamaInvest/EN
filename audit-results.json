@@ -1,0 +1,435 @@
+[
+  {
+    "name": "main-site",
+    "url": "https://namainvist.com/",
+    "port": 2999,
+    "pm2": "main-site",
+    "info": {
+      "pm2": "online",
+      "pid": "354475",
+      "restarts": "23",
+      "portListening": true,
+      "pageLines": 7,
+      "pageType": "LANDING_WRAPPER",
+      "staticHtml": "OK",
+      "buildId": "124hvUF1rLN5",
+      "sidebar104": false,
+      "has104Page": false,
+      "httpStatus": 200,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": null,
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Sidebar still references old 73 labels"
+      }
+    ]
+  },
+  {
+    "name": "n1",
+    "url": "https://n1.namainvist.com/",
+    "port": 3001,
+    "pm2": "n1-main",
+    "info": {
+      "pm2": "online",
+      "pid": "339192",
+      "restarts": "19",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "CPfxLX039gog",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n2",
+    "url": "https://n2.namainvist.com/",
+    "port": 3002,
+    "pm2": "n2",
+    "info": {
+      "pm2": "online",
+      "pid": "338379",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "kKfGp_-QzW5q",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n3",
+    "url": "https://n3.namainvist.com/",
+    "port": 3003,
+    "pm2": "n3",
+    "info": {
+      "pm2": "online",
+      "pid": "339156",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "MogsPDPCpTlw",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n4",
+    "url": "https://n4.namainvist.com/",
+    "port": 3004,
+    "pm2": "n4",
+    "info": {
+      "pm2": "online",
+      "pid": "339203",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "PvqRG8d6rtk1",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 200,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": null,
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n5",
+    "url": "https://n5.namainvist.com/",
+    "port": 3005,
+    "pm2": "n5",
+    "info": {
+      "pm2": "online",
+      "pid": "344418",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "InFNq6iY0qRq",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n6",
+    "url": "https://n6.namainvist.com/",
+    "port": 3006,
+    "pm2": "n6",
+    "info": {
+      "pm2": "online",
+      "pid": "345386",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "cnUbULxdPqrX",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n7",
+    "url": "https://n7.namainvist.com/",
+    "port": 3007,
+    "pm2": "n7",
+    "info": {
+      "pm2": "online",
+      "pid": "345366",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "ZxiklN4PSRT4",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n8",
+    "url": "https://n8.namainvist.com/",
+    "port": 3008,
+    "pm2": "n8",
+    "info": {
+      "pm2": "online",
+      "pid": "345379",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "AFTQ9wHK-CVL",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n9",
+    "url": "https://n9.namainvist.com/",
+    "port": 3009,
+    "pm2": "n9",
+    "info": {
+      "pm2": "online",
+      "pid": "351172",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "sLSW6sJH0z1V",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n10",
+    "url": "https://n10.namainvist.com/",
+    "port": 3010,
+    "pm2": "n10",
+    "info": {
+      "pm2": "online",
+      "pid": "351208",
+      "restarts": "18",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "WvK1V35XLulK",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 307,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": "/dashboard",
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "n11",
+    "url": "https://n11.namainvist.com/",
+    "port": 3011,
+    "pm2": "n11",
+    "info": {
+      "pm2": "online",
+      "pid": "351196",
+      "restarts": "23",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "n4phfeA3FKJh",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 200,
+      "cfCache": "DYNAMIC",
+      "nextCache": "HIT",
+      "redirect": null,
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      }
+    ]
+  },
+  {
+    "name": "ice",
+    "url": "https://ice.namainvist.com/",
+    "port": 3012,
+    "pm2": "ice",
+    "info": {
+      "pm2": "NOT_FOUND",
+      "pid": "-",
+      "restarts": "-",
+      "portListening": true,
+      "pageLines": 5,
+      "pageType": "ERP_REDIRECT",
+      "staticHtml": "PRESENT(BAD)",
+      "buildId": "aws2AZoL-q6V",
+      "sidebar104": true,
+      "has104Page": false,
+      "httpStatus": 502,
+      "cfCache": "-",
+      "nextCache": "-",
+      "redirect": null,
+      "nginxFound": true
+    },
+    "issues": [
+      {
+        "sev": "🔴 CRITICAL",
+        "msg": "PM2 process \"ice\" is NOT_FOUND"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Static index.html present - may serve stale content"
+      },
+      {
+        "sev": "🟡 WARN",
+        "msg": "Missing /reports/104-modules route"
+      },
+      {
+        "sev": "🔴 CRITICAL",
+        "msg": "HTTP 502 error"
+      }
+    ]
+  }
+]

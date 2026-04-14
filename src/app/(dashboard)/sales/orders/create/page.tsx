@@ -20,6 +20,7 @@ export default function CreateSalesOrderPage() {
     
     const [items, setItems] = useState<any[]>([]);
     const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
+    const taxRate = parseFloat(getSetting('tax_rate', '15')) || 15;
 
     useEffect(() => { loadData(); }, []);
 
@@ -64,11 +65,11 @@ export default function CreateSalesOrderPage() {
     let subtotal = 0;
     for (const item of items) {
         let p = parseFloat(item.price) || 0;
-        if (isTaxInclusive) p = p / 1.15;
+        if (isTaxInclusive) p = p * 100 / (100 + taxRate);
         subtotal += (parseFloat(item.quantity) || 1) * p;
     }
     
-    const taxValue = subtotal * 0.15; // 15% VAT Standard NamaSoft
+    const taxValue = subtotal * (taxRate / 100);
     const total = subtotal + taxValue;
 
     const handleCreate = async (e: React.FormEvent) => {

@@ -108,7 +108,7 @@ ${JSON.stringify(financialData, null, 2)}
 `;
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const result = await model.generateContent(promptText);
         let text = result.response.text();

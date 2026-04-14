@@ -1,0 +1,762 @@
+{
+  "timestamp": "2026-04-13T06:09:08.976Z",
+  "server": {
+    "disk": "/dev/md2        437G   52G  363G  13% /",
+    "memory": "4213/63338 MB (7%)",
+    "load": "0.25, 0.33, 2.31",
+    "pm2DumpAge": "2026-04-13 01:46:09.709421325",
+    "pm2Startup": "not-found\nNOT_CONFIGURED"
+  },
+  "nodes": [
+    {
+      "name": "main-site",
+      "url": "https://namainvist.com/",
+      "port": 2999,
+      "pm2": "main-site",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 23,
+        "pm2MemMB": 194,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 12,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "124hvUF1rLN5",
+        "staticHtmlTrap": false,
+        "pageLines": 7,
+        "pageType": "LANDING",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": false,
+        "has104ModulePage": false,
+        "httpStatus": 200,
+        "httpRedirect": null,
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 200,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "Sidebar still has old 73 labels"
+        }
+      ],
+      "criticals": 0,
+      "warns": 2
+    },
+    {
+      "name": "n1",
+      "url": "https://n1.namainvist.com/",
+      "port": 3001,
+      "pm2": "n1-main",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 19,
+        "pm2MemMB": 342,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 16,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "CPfxLX039gog",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 200,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        }
+      ],
+      "criticals": 0,
+      "warns": 3
+    },
+    {
+      "name": "n2",
+      "url": "https://n2.namainvist.com/",
+      "port": 3002,
+      "pm2": "n2",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 282,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 9,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "kKfGp_-QzW5q",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n3",
+      "url": "https://n3.namainvist.com/",
+      "port": 3003,
+      "pm2": "n3",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 284,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 8,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "MogsPDPCpTlw",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n4",
+      "url": "https://n4.namainvist.com/",
+      "port": 3004,
+      "pm2": "n4",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 273,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "PvqRG8d6rtk1",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 200,
+        "httpRedirect": null,
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "Root returns 200 without auth redirect"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 5
+    },
+    {
+      "name": "n5",
+      "url": "https://n5.namainvist.com/",
+      "port": 3005,
+      "pm2": "n5",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 283,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "InFNq6iY0qRq",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n6",
+      "url": "https://n6.namainvist.com/",
+      "port": 3006,
+      "pm2": "n6",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 283,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "cnUbULxdPqrX",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n7",
+      "url": "https://n7.namainvist.com/",
+      "port": 3007,
+      "pm2": "n7",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 281,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "ZxiklN4PSRT4",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n8",
+      "url": "https://n8.namainvist.com/",
+      "port": 3008,
+      "pm2": "n8",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 282,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "AFTQ9wHK-CVL",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n9",
+      "url": "https://n9.namainvist.com/",
+      "port": 3009,
+      "pm2": "n9",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 283,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "sLSW6sJH0z1V",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n10",
+      "url": "https://n10.namainvist.com/",
+      "port": 3010,
+      "pm2": "n10",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 18,
+        "pm2MemMB": 273,
+        "pm2CPU": 0.1,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "WvK1V35XLulK",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 307,
+        "httpRedirect": "/dashboard",
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 4
+    },
+    {
+      "name": "n11",
+      "url": "https://n11.namainvist.com/",
+      "port": 3011,
+      "pm2": "n11",
+      "checks": {
+        "pm2Status": "online",
+        "pm2Restarts": 23,
+        "pm2MemMB": 272,
+        "pm2CPU": 0,
+        "portListening": true,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 10,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "n4phfeA3FKJh",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 200,
+        "httpRedirect": null,
+        "cfCache": "DYNAMIC",
+        "sslCert": "N/A",
+        "apiHealthStatus": 404,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": true
+      },
+      "issues": [
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "WARN",
+          "msg": "Root returns 200 without auth redirect"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 404"
+        }
+      ],
+      "criticals": 0,
+      "warns": 5
+    },
+    {
+      "name": "ice",
+      "url": "https://ice.namainvist.com/",
+      "port": 3012,
+      "pm2": "ice",
+      "checks": {
+        "pm2Status": "NOT_FOUND",
+        "pm2Restarts": 0,
+        "pm2MemMB": 0,
+        "pm2CPU": 0,
+        "portListening": false,
+        "diskUsed": "13",
+        "nodeVersion": "v22.22.1",
+        "envExists": true,
+        "envClerkKeys": true,
+        "envDbKeys": true,
+        "envLines": 7,
+        "middlewareExists": true,
+        "middlewareAuthLines": 3,
+        "buildId": "aws2AZoL-q6V",
+        "staticHtmlTrap": true,
+        "pageLines": 5,
+        "pageType": "ERP_REDIRECT",
+        "translationsExists": false,
+        "translationsLines": 0,
+        "sidebar104": true,
+        "has104ModulePage": false,
+        "httpStatus": 502,
+        "httpRedirect": null,
+        "cfCache": "-",
+        "sslCert": "N/A",
+        "apiHealthStatus": 502,
+        "sslExpiry": "Jul 11 01:34:58 2026 GMT",
+        "sslDaysLeft": 88,
+        "pm2SavedInDump": false
+      },
+      "issues": [
+        {
+          "sev": "CRITICAL",
+          "msg": "PM2 \"ice\" offline: NOT_FOUND"
+        },
+        {
+          "sev": "CRITICAL",
+          "msg": "Port 3012 not responding"
+        },
+        {
+          "sev": "WARN",
+          "msg": "Static index.html may serve stale content"
+        },
+        {
+          "sev": "WARN",
+          "msg": "translations.ts missing"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/reports/104-modules not found (404)"
+        },
+        {
+          "sev": "CRITICAL",
+          "msg": "HTTP 502 Server Error"
+        },
+        {
+          "sev": "WARN",
+          "msg": "/api/health returned 502"
+        }
+      ],
+      "criticals": 3,
+      "warns": 4
+    }
+  ],
+  "duration": 126450
+}

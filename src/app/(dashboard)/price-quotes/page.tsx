@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect, useRef } from 'react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
@@ -80,15 +80,29 @@ export default function PriceQuotesPage() {
         setItems(updated);
     };
 
+    // Tax settings — use dynamic rate from settings
     const isTaxInclusive = settings['POS_TAX_INCLUSIVE'] !== 'false';
-    const total = items.reduce((sum, item) => { let p = item.price; if (isTaxInclusive) p = p / 1.15; return sum + item.quantity * p; }, 0);
+    const taxRate = parseFloat(settings['tax_rate'] || '15') || 15;
+
+    // subtotal = prices excluding VAT
+    // If inclusive: extract VAT from price first, then sum
+    const subtotal = items.reduce((sum, item) => {
+        let p = item.price;
+        if (isTaxInclusive) p = p * 100 / (100 + taxRate);
+        return sum + item.quantity * p;
+    }, 0);
+
+    const taxValue = subtotal * (taxRate / 100);
+    const total = isTaxInclusive
+        ? items.reduce((s, i) => s + i.quantity * i.price, 0) // display: original prices (inclusive)
+        : subtotal + taxValue; // display: add tax on top
 
     const handleSave = async () => {
         if (items.length === 0) return;
         const res = await fetch('/api/price-quotes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, notes, isTaxInclusive: settings['POS_TAX_INCLUSIVE'] !== 'false' }),
+            body: JSON.stringify({ items, notes, isTaxInclusive, taxRate }),
         });
         if (res.ok) {
             const saved = await res.json();
@@ -97,18 +111,23 @@ export default function PriceQuotesPage() {
             setNotes('');
             load();
             // Auto-print
-            handlePrint({ ...saved, date: saved.date || new Date().toISOString(), details: saved.details || items.map((it: QuoteItem) => ({ productName: it.productName, quantity: it.quantity, price: (isTaxInclusive ? it.price / 1.15 : it.price), total: it.quantity * (isTaxInclusive ? it.price / 1.15 : it.price) })) });
+            const adjustedItems = items.map((it: QuoteItem) => {
+                const p = isTaxInclusive ? it.price * 100 / (100 + taxRate) : it.price;
+                return { productName: it.productName, quantity: it.quantity, price: p, total: it.quantity * p };
+            });
+            handlePrint({ ...saved, date: saved.date || new Date().toISOString(), details: saved.details || adjustedItems });
         }
     };
 
     const handlePrint = (quote: Quote) => {
-        const taxAmt = quote.total * 0.15;
-        const grandTotal = quote.total + taxAmt;
+        const quoteRate = parseFloat(settings['tax_rate'] || '15') || 15;
+        const taxAmt = quote.total * (quoteRate / 100);
+        const quotedGrandTotal = quote.total + taxAmt;
         setLastQuoteData({
             invoiceNumber: quote.quoteNo.toString(),
             date: quote.date,
-            customerName: 'ط¹ظ…ظٹظ„ ظ†ظ‚ط¯ظٹ',
-            paymentMethod: 'ظ†ظ‚ط¯ظٹ',
+            customerName: 'عميل نقدي',
+            paymentMethod: 'نقدي',
             items: quote.details.map((d: any) => ({
                 name: d.productName,
                 quantity: d.quantity,
@@ -117,9 +136,9 @@ export default function PriceQuotesPage() {
             })),
             subtotal: quote.total,
             discount: 0,
-            taxRate: 15,
+            taxRate: quoteRate,
             taxAmount: taxAmt,
-            grandTotal: grandTotal
+            grandTotal: quotedGrandTotal
         });
         setShowReceipt(true);
     };
@@ -209,7 +228,7 @@ export default function PriceQuotesPage() {
                             </td>
                             <td style={{ padding: '4px' }}>
                                 <button onClick={() => removeItem(i)}
-                                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>âœ•</button>
+                                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
                             </td>
                         </tr>
                     ))}</tbody>
@@ -235,7 +254,7 @@ export default function PriceQuotesPage() {
             {/* Quotes List */}
             <div className="card">
                 {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
-                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">ًں“„</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
+                    quotes.length === 0 ? <div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">{t('sys.str_793')}</div></div> :
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{quotes.map(q => (
                             <div key={q.id} className="card" style={{ padding: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -245,7 +264,7 @@ export default function PriceQuotesPage() {
                                     <div className="toolbar-spacer" />
                                     <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(q.total)} {t('sys.str_68')}</span>
                                     <button className="btn btn-sm" onClick={e => { e.stopPropagation(); handlePrint(q); }}
-                                        style={{ fontSize: '12px', padding: '4px 10px' }}>ًں–¨ï¸ڈ</button>
+                                        style={{ fontSize: '12px', padding: '4px 10px' }}>🖨️</button>
                                 </div>
                                 {expanded === q.id && q.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
                                     <thead><tr style={{ background: 'rgba(108,99,255,0.03)' }}>
@@ -276,4 +295,3 @@ export default function PriceQuotesPage() {
         )}
     </>);
 }
-

@@ -5,6 +5,7 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
 import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -79,14 +80,17 @@ export async function POST(request: Request) {
         const invoiceNo = body.manualInvoiceNo ? parseInt(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
         const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
 
-        // Calculate totals
+        // Calculate totals — support dynamic tax rate and inclusive/exclusive VAT mode
+        const bodyTaxRate = parseFloat(body.taxRate) || 15; // rate sent from frontend settings
+        const bodyTaxInclusive = body.isTaxInclusive === true || body.isTaxInclusive === 'true';
         let subtotal = 0;
         const items = body.items || [];
         for (const item of items) {
             let price = parseFloat(item.price as string) || 0;
-            if (body.isTaxInclusive) {
-                 price = price / 1.15;
-                 item.price = price; // update in place for details creation
+            if (bodyTaxInclusive) {
+                // Extract VAT from the price: priceExclVat = price * 100 / (100 + rate)
+                price = price * 100 / (100 + bodyTaxRate);
+                item.price = price; // update in place for details creation
             }
             const itemTotal = (item.quantity || 1) * price;
             const itemDiscount = itemTotal * ((item.discountRate || 0) / 100);
@@ -96,7 +100,7 @@ export async function POST(request: Request) {
         const discountRate = parseFloat(body.discountRate) || 0;
         const discountValue = subtotal * (discountRate / 100);
         const afterDiscount = subtotal - discountValue;
-        const taxValue = afterDiscount * 0.15;
+        const taxValue = afterDiscount * (bodyTaxRate / 100);
         const total = afterDiscount + taxValue;
         const paid = parseFloat(body.paid) || total;
         const remaining = total - paid;
@@ -134,12 +138,12 @@ export async function POST(request: Request) {
                     details: {
                         create: items.map((item: Record<string, unknown>) => {
                             const qty = parseFloat(item.quantity as string) || 1;
-                            const price = parseFloat(item.price as string) || 0;
+                            const price = parseFloat(item.price as string) || 0; // already adjusted for inclusive above
                             const dRate = parseFloat(item.discountRate as string) || 0;
                             const itemSubtotal = qty * price;
                             const dValue = itemSubtotal * (dRate / 100);
                             const afterD = itemSubtotal - dValue;
-                            const tax = afterD * 0.15;
+                            const tax = afterD * (bodyTaxRate / 100);
                             return {
                                 productId: parseInt(item.productId as string),
                                 productName: item.productName as string || '',
@@ -147,7 +151,7 @@ export async function POST(request: Request) {
                                 price,
                                 discountRate: dRate,
                                 discountValue: dValue,
-                                taxRate: 15,
+                                taxRate: bodyTaxRate,
                                 taxValue: tax,
                                 total: afterD + tax,
                             };
@@ -157,24 +161,66 @@ export async function POST(request: Request) {
                 include: { details: true, customer: true },
             });
 
-            // Update stock (safely within transaction)
+            // Update stock with smart auto-decompose
+            const allowNegativeStock = await prisma.setting.findUnique({ where: { key: 'POS_ALLOW_NEGATIVE_STOCK' } });
+            const canGoNegative = allowNegativeStock?.value === 'true';
+
             for (const item of items) {
                 const qty = parseFloat(item.quantity) || 1;
-                await tx.product.update({
-                    where: { id: parseInt(item.productId) },
-                    data: { currentStock: { decrement: qty } },
+                const productId = parseInt(item.productId);
+                const unitFactor = parseFloat(item.unitFactor) || 1;
+                const qtyInBase = qty * unitFactor; // الكمية بالحبة
+
+                // جلب وحدات المنتج مرتبة (factor صغير لكبير)
+                const pUnits = await tx.productUnit.findMany({
+                    where: { productId },
+                    include: { unit: true },
+                    orderBy: { factor: 'asc' },
                 });
-                
-                // Also update ProductStock for the specific warehouse
+
+                // إجمالي المخزون (حبة + وحدات محولة)
+                const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
+                const baseStock = prod?.currentStock || 0;
+                const unitsStock = pUnits.reduce((s, u) => s + u.unitStock * u.factor, 0);
+                const totalBase = baseStock + unitsStock;
+
+                if (!canGoNegative && qtyInBase > totalBase) {
+                    throw new Error(`نفد مخزون الصنف ${item.productName}`);
+                }
+
+                // 1. اخصم من الحبة أولاً
+                await tx.product.update({
+                    where: { id: productId },
+                    data: { currentStock: { decrement: qtyInBase } },
+                });
+
+                // 2. كسر تلقائي إذا أصبح المخزون سالباً
+                let refreshed = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
+                let deficit = Math.abs(Math.min(0, refreshed?.currentStock || 0));
+
+                for (const pu of pUnits) {
+                    if (deficit <= 0) break;
+                    if (pu.unitStock <= 0) continue;
+                    const toBreak = Math.min(Math.ceil(deficit / pu.factor), pu.unitStock);
+                    await tx.productUnit.update({
+                        where: { id: pu.id },
+                        data: { unitStock: { decrement: toBreak } },
+                    });
+                    await tx.product.update({
+                        where: { id: productId },
+                        data: { currentStock: { increment: toBreak * pu.factor } },
+                    });
+                    deficit = Math.max(0, deficit - toBreak * pu.factor);
+                }
+
+                // 3. تحديث مخزون المستودع
                 try {
                     await tx.productStock.upsert({
-                        where: { productId_stockId: { productId: parseInt(item.productId), stockId: createdInvoice.stockId } },
-                        update: { quantity: { decrement: qty } },
-                        create: { productId: parseInt(item.productId), stockId: createdInvoice.stockId, quantity: -qty },
+                        where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
+                        update: { quantity: { decrement: qtyInBase } },
+                        create: { productId, stockId: createdInvoice.stockId, quantity: -qtyInBase },
                     });
-                } catch (e) {
-                    console.error('Failed to update productStock for sale inside tx:', e);
-                }
+                } catch (e) { console.error('ProductStock update failed:', e); }
 
                 // --- PHASE 1 AUTOMATION: RECIPE & MANUFACTURING AUTO-DEDUCTION ---
                 try {

@@ -95,7 +95,7 @@ ${JSON.stringify(rawData, null, 2)}
 ولا تتجاوز 150 كلمة. كن عملياً (بدون تنظير). إذا كانت الحسابات سليمة، أرسل رسالة إيجابية ومحفزة. وإذا كانت هناك كارثة، أرسلها بنداء عاجل!
 `;
 
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
