@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { apiError } from '@/lib/api-error';
 
 const prisma = new PrismaClient();
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ tasks, project });
     } catch (error: any) {
         console.error('Fetch Project Tasks Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'تم إضافة مهمة المشروع بنجاح', task });
     } catch (error: any) {
         console.error('Create Project Task Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }
 
@@ -71,7 +72,7 @@ export async function PUT(request: Request) {
         return NextResponse.json({ message: 'تم تحديث حالة/تكلفة المهمة', task: updatedTask });
     } catch (error: any) {
         console.error('Update Project Task Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }
 
@@ -86,6 +87,6 @@ export async function DELETE(request: Request) {
 
         return NextResponse.json({ message: 'تم الحذف' });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }

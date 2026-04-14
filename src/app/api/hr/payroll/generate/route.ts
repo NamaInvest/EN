@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function POST(request: Request) {
     try {
@@ -156,6 +157,6 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         console.error("Payroll Error:", error);
-        return NextResponse.json({ error: error.message || 'فشل توليد مسير الرواتب' }, { status: 500 });
+        return apiError(error, 'فشل توليد مسير الرواتب', { context: 'hr/payroll/generate' });
     }
 }

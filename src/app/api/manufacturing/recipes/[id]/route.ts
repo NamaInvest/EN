@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -43,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json(recipe);
     } catch (error: any) {
         console.error(error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/recipes/[id]' });
     }
 }
 
@@ -60,6 +61,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error(error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/recipes/[id]' });
     }
 }

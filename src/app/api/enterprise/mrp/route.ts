@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { apiError } from '@/lib/api-error';
 
 const prisma = new PrismaClient();
 
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ orders, machines, recipesCount: recipes });
     } catch (error: any) {
         console.error('MRP Fetch Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/mrp' });
     }
 }
 
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid operation' }, { status: 400 });
     } catch (error: any) {
         console.error('Create MRP Entity Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/mrp' });
     }
 }
 
@@ -118,6 +119,6 @@ export async function PUT(request: Request) {
         return NextResponse.json({ message: `تم تحديث حالة الأمر إلى ${newStatus}` });
     } catch (error: any) {
         console.error('Update MRP Entity Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/mrp' });
     }
 }

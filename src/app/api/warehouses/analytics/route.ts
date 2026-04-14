@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,6 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Analytics Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError(error, 'حدث خطأ في المعالجة', { context: 'warehouses/analytics' });
   }
 }

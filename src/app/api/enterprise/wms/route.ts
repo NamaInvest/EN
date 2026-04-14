@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { apiError } from '@/lib/api-error';
 
 const prisma = new PrismaClient();
 
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
         return NextResponse.json(enrichedWMS);
     } catch (error: any) {
         console.error('WMS Fetch Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/wms' });
     }
 }
 
@@ -89,6 +90,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid type specificed' }, { status: 400 });
     } catch (error: any) {
         console.error('Create WMS Entity Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/wms' });
     }
 }

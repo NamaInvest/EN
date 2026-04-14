@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ orders, recipes, machines }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'فشل جلب أوامر التصنيع' }, { status: 500 });
+        return apiError(error, 'فشل جلب أوامر التصنيع', { context: 'manufacturing/orders' });
     }
 }
 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(newOrder, { status: 201 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Error creating Manufacturing Order' }, { status: 500 });
+        return apiError(error, 'Error creating Manufacturing Order', { context: 'manufacturing/orders' });
     }
 }
 
@@ -166,6 +167,6 @@ export async function PUT(request: NextRequest) {
         }
     } catch (error: any) {
         console.error("Manufacturing Validation Error:", error);
-        return NextResponse.json({ error: error.message || 'Error altering order matrix' }, { status: 500 });
+        return apiError(error, 'Error altering order matrix', { context: 'manufacturing/orders' });
     }
 }

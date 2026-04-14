@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ lcs, banks, suppliers }, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'فشل جلب الاعتمادات المستندية' }, { status: 500 });
+        return apiError(error, 'فشل جلب الاعتمادات المستندية', { context: 'accounting/lc' });
     }
 }
 
@@ -63,6 +64,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(newLc, { status: 201 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Error opening LC' }, { status: 500 });
+        return apiError(error, 'Error opening LC', { context: 'accounting/lc' });
     }
 }

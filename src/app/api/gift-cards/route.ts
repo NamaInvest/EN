@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function GET() {
     try {
@@ -42,6 +43,6 @@ export async function POST(request: Request) {
         return NextResponse.json(card, { status: 201 });
     } catch (error: any) {
         console.error('Error creating gift card:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'gift-cards' });
     }
 }

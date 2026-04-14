@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
         });
         return NextResponse.json(assets, { status: 200 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'فشل جلب الأصول' }, { status: 500 });
+        return apiError(error, 'فشل جلب الأصول', { context: 'assets' });
     }
 }
 
@@ -34,6 +35,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(newAsset, { status: 201 });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Error registering Fixed Asset' }, { status: 500 });
+        return apiError(error, 'Error registering Fixed Asset', { context: 'assets' });
     }
 }

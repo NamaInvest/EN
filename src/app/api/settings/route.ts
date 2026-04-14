@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -68,6 +69,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'تم حفظ الإعدادات' });
     } catch (error: any) {
         console.error('Settings POST error:', error);
-        return NextResponse.json({ error: error.message || 'فشل في حفظ الإعدادات' }, { status: 500 });
+        return apiError(error, 'فشل في حفظ الإعدادات', { context: 'settings' });
     }
 }

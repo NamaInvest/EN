@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function POST(request: NextRequest) {
     try {
@@ -77,6 +78,6 @@ export async function POST(request: NextRequest) {
         
     } catch (error: any) {
         console.error("Depreciation Error:", error);
-        return NextResponse.json({ error: error.message || 'فشل إجراء دورة الإهلاك الشهرية.' }, { status: 500 });
+        return apiError(error, 'فشل إجراء دورة الإهلاك الشهرية.', { context: 'assets/depreciate' });
     }
 }

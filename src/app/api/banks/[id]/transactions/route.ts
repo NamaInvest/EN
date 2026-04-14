@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -87,6 +88,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         return NextResponse.json(result);
     } catch (error: any) { 
         console.error(error); 
-        return NextResponse.json({ error: error.message }, { status: 500 }); 
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks/[id]/transactions' }); 
     }
 }

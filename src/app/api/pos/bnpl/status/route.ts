@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getBnplKeys, getTabbyPaymentStatus, getTamaraOrderStatus } from '@/lib/bnpl';
 import { getUserFromRequest } from '@/lib/auth';
+import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -43,6 +44,6 @@ export async function GET(request: NextRequest) {
         });
     } catch (error: any) {
         console.error('BNPL Status Error:', error);
-        return NextResponse.json({ error: error.message || 'فشل في استرداد حالة الدفع' }, { status: 500 });
+        return apiError(error, 'فشل في استرداد حالة الدفع', { context: 'pos/bnpl/status' });
     }
 }

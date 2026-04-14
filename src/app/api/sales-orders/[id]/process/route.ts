@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { apiError } from '@/lib/api-error';
 
 export async function PUT(
     request: NextRequest,
@@ -95,6 +96,6 @@ export async function PUT(
         return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'sales-orders/[id]/process' });
     }
 }
