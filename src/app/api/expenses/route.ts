@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
     try {
@@ -30,6 +31,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
+
+        // ── التحقق من صحة المدخلات المالية ──
+        if (body.amount !== undefined) {
+            const amount = parseFloat(String(body.amount));
+            if (isNaN(amount) || amount < 0) return NextResponse.json({ error: 'المبلغ يجب أن يكون رقماً موجباً' }, { status: 400 });
+            body.amount = amount;
+        }
+
         const userId = body.userId ? parseInt(body.userId) : null;
         let branchId = body.branchId ? parseInt(body.branchId) : null;
         if (!branchId && userId) {
