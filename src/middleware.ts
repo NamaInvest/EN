@@ -24,9 +24,10 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // ── ROOT '/' = Marketing page — skip Clerk entirely ──
+  // ── MARKETING PAGES — skip Clerk entirely ──
   // Inject x-is-marketing header so layout.tsx skips ClerkProvider/SessionProvider
-  if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '') {
+  const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services'];
+  if (marketingRoutes.includes(req.nextUrl.pathname)) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-is-marketing', '1');
     const res = NextResponse.next({ request: { headers: requestHeaders } });

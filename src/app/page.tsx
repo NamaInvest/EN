@@ -1,22 +1,24 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import React, { useState } from "react";
+import Link from 'next/link';
 import {
   ShieldCheck, Bot, MessageCircle, ShoppingCart,
   Building, Wallet, Users, Fingerprint, Database, Factory,
   Cpu, TrendingUp, Truck, Wrench, Home, Layers, Phone,
   Calculator, CreditCard, FileText, Clock, Archive,
   Package, BellRing, Barcode, Hash, CheckSquare, Camera,
-  UserCheck, Award, Megaphone, Gift, Link, Star, BookOpen,
+  UserCheck, Award, Megaphone, Gift, Link as LinkIcon, Star, BookOpen,
   Eye, GitMerge, Map, Target, Settings, Inbox, RefreshCcw,
   CalendarDays, DollarSign, Activity, Network, BarChart3,
   FileEdit, Receipt, Sliders, FileCheck, History, Repeat,
   CheckCircle, LineChart, Briefcase, Globe, ClipboardList,
-  LayoutDashboard, BarChart2, Hourglass
+  LayoutDashboard, BarChart2, Hourglass,
+  Pill, ShoppingBag, UtensilsCrossed, Cog, Brain,
+  ChevronDown, ChevronUp, ArrowLeft, Menu, X
 } from "lucide-react";
 
+// ─── Data ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id: 'all', label: 'الكل', emoji: '🌐' },
   { id: 'finance', label: 'المالية', emoji: '💰' },
@@ -31,7 +33,6 @@ const CATEGORIES = [
 ];
 
 const modulesList = [
-  // ── المالية والمحاسبة ──
   { cat: 'finance', icon: <Calculator size={18}/>, title: "المحاسبة المالية", desc: "قيود يومية وشجرة حسابات متعددة المستويات" },
   { cat: 'finance', icon: <Building size={18}/>, title: "الحسابات البنكية", desc: "تتبع الأرصدة والتسويات البنكية" },
   { cat: 'finance', icon: <BarChart2 size={18}/>, title: "ميزان المراجعة", desc: "Drill-Down حتى القيد الأصلي" },
@@ -45,7 +46,6 @@ const modulesList = [
   { cat: 'finance', icon: <CheckSquare size={18}/>, title: "الشيكات", desc: "تتبع أوراق القبض والدفع كاملاً" },
   { cat: 'finance', icon: <History size={18}/>, title: "أقساط العملاء", desc: "جدولة التمويل ومتابعة التحصيل" },
   { cat: 'finance', icon: <FileText size={18}/>, title: "سندات القبض والدفع", desc: "سند واحد يسدد فواتير متعددة" },
-  // ── المبيعات ──
   { cat: 'sales', icon: <ShoppingCart size={18}/>, title: "المبيعات B2B", desc: "فوترة ZATCA Phase 2 كاملة" },
   { cat: 'sales', icon: <LayoutDashboard size={18}/>, title: "نقطة البيع POS", desc: "باركود سريع وأوفلاين مزامن" },
   { cat: 'sales', icon: <Clock size={18}/>, title: "الورديات والإغلاق", desc: "حماية مالية لنهاية الدوام" },
@@ -58,7 +58,6 @@ const modulesList = [
   { cat: 'sales', icon: <RefreshCcw size={18}/>, title: "مرتجعات المبيعات", desc: "إشعارات دائنة وإعادة للمخزون" },
   { cat: 'sales', icon: <Repeat size={18}/>, title: "الفواتير المتكررة", desc: "أتمتة فواتير الاشتراكات" },
   { cat: 'sales', icon: <Receipt size={18}/>, title: "عروض الأسعار", desc: "تحويل العرض لفاتورة بنقرة" },
-  // ── المشتريات ──
   { cat: 'purchases', icon: <FileEdit size={18}/>, title: "طلبات الشراء (PR)", desc: "دورة اعتماد احتياجات الأقسام" },
   { cat: 'purchases', icon: <Inbox size={18}/>, title: "عروض الموردين (RFQ)", desc: "مقارنة عمياء بين الموردين" },
   { cat: 'purchases', icon: <Receipt size={18}/>, title: "أوامر الشراء (PO)", desc: "تأكيد الكميات والأسعار للمورد" },
@@ -66,7 +65,6 @@ const modulesList = [
   { cat: 'purchases', icon: <CheckSquare size={18}/>, title: "استلام البضاعة (GRN)", desc: "مطابقة الكميات وفحص الجودة" },
   { cat: 'purchases', icon: <RefreshCcw size={18}/>, title: "مرتجعات المشتريات", desc: "إشعار مدين للمورد وتسوية" },
   { cat: 'purchases', icon: <Settings size={18}/>, title: "خيارات المشتريات", desc: "سياسات الموافقات والحدود المالية" },
-  // ── المخزون ──
   { cat: 'stock', icon: <Package size={18}/>, title: "بطاقات المنتجات", desc: "Matrix + وحدات تحويل متعددة" },
   { cat: 'stock', icon: <Building size={18}/>, title: "المستودعات والفروع", desc: "هيكل شجري + صلاحيات معزولة" },
   { cat: 'stock', icon: <BellRing size={18}/>, title: "تنبيهات النقص", desc: "رادار مخزون ذكي ومتابعة" },
@@ -82,7 +80,6 @@ const modulesList = [
   { cat: 'stock', icon: <LayoutDashboard size={18}/>, title: "WMS المتقدم", desc: "أرفف ومواقع وتوجيه العمال" },
   { cat: 'stock', icon: <GitMerge size={18}/>, title: "التحويلات الذكية", desc: "توازن المخزون تلقائياً بين الفروع" },
   { cat: 'stock', icon: <Settings size={18}/>, title: "خيارات المستودعات", desc: "FIFO/متوسط والبيع بلا مخزون" },
-  // ── الموارد البشرية ──
   { cat: 'hr', icon: <Users size={18}/>, title: "إدارة الموظفين", desc: "ملف متكامل من التعيين للتقاعد" },
   { cat: 'hr', icon: <DollarSign size={18}/>, title: "مسيرات الرواتب", desc: "WPS متوافق وقيد محاسبي آلي" },
   { cat: 'hr', icon: <Fingerprint size={18}/>, title: "الحضور والانصراف", desc: "ربط ZKTeco والبصمة الوجهية" },
@@ -92,23 +89,20 @@ const modulesList = [
   { cat: 'hr', icon: <Star size={18}/>, title: "تقييم الأداء KPI", desc: "مؤشرات موضوعية مرتبطة بالحوافز" },
   { cat: 'hr', icon: <Briefcase size={18}/>, title: "الوظائف والتوظيف", desc: "إعلان الوظائف واستقبال الطلبات" },
   { cat: 'hr', icon: <Cpu size={18}/>, title: "التسجيل الوجهي AI", desc: "بصمة الوجه بدقة 99.9%" },
-  // ── العملاء والتسويق ──
   { cat: 'crm', icon: <UserCheck size={18}/>, title: "العملاء وكبار المشترين", desc: "ملف ائتماني كامل وحد المديونية" },
   { cat: 'crm', icon: <Target size={18}/>, title: "فرص البيع (CRM Leads)", desc: "قمع مبيعات من الاهتمام للإغلاق" },
   { cat: 'crm', icon: <Award size={18}/>, title: "برنامج نقاط الولاء", desc: "مكافآت تحفيز تلقائية للعملاء" },
   { cat: 'crm', icon: <Gift size={18}/>, title: "بطاقات الهدايا", desc: "إصدار وتتبع رصيد البطاقات" },
   { cat: 'crm', icon: <CheckSquare size={18}/>, title: "الكوبونات وأكواد الخصم", desc: "استهداف شرائح بعروض حصرية" },
   { cat: 'crm', icon: <Megaphone size={18}/>, title: "العروض الترويجية", desc: "اشتري 2 واحصل على 1 تلقائياً" },
-  { cat: 'crm', icon: <Link size={18}/>, title: "التسويق بالعمولة", desc: "شبكة شركاء تعمل على الأداء" },
+  { cat: 'crm', icon: <LinkIcon size={18}/>, title: "التسويق بالعمولة", desc: "شبكة شركاء تعمل على الأداء" },
   { cat: 'crm', icon: <History size={18}/>, title: "أقساط ومديونيات", desc: "جداول سداد وتنبيهات تلقائية" },
-  // ── الذكاء الاصطناعي ──
   { cat: 'ai', icon: <TrendingUp size={18}/>, title: "المدير المالي الذكي", desc: "تشخيص مالي وتوصيات استراتيجية" },
   { cat: 'ai', icon: <Building size={18}/>, title: "محلل كشف البنك AI", desc: "تصنيف المعاملات تلقائياً" },
   { cat: 'ai', icon: <Eye size={18}/>, title: "كشف الاحتيال AI", desc: "رادار ذكي للتلاعب والشذوذ" },
   { cat: 'ai', icon: <Network size={18}/>, title: "سلسلة التوريد AI", desc: "تنبؤ الطلب وتحسين الشراء" },
   { cat: 'ai', icon: <Bot size={18}/>, title: "المساعد الذكي AI", desc: "Copilot داخل كل شاشة" },
   { cat: 'ai', icon: <MessageCircle size={18}/>, title: "بوت تيليجرام", desc: "تقارير وموافقات عبر البوت" },
-  // ── القطاعات المتخصصة ──
   { cat: 'enterprise', icon: <Factory size={18}/>, title: "أوامر التصنيع", desc: "تتبع الإنتاج واحتساب التكلفة" },
   { cat: 'enterprise', icon: <Cpu size={18}/>, title: "تخطيط الموارد MRP", desc: "حساب الاحتياج وتوليد طلبات الشراء" },
   { cat: 'enterprise', icon: <BookOpen size={18}/>, title: "وصفات التصنيع (BOM)", desc: "مكونات كل منتج بالكميات الدقيقة" },
@@ -125,7 +119,6 @@ const modulesList = [
   { cat: 'enterprise', icon: <Users size={18}/>, title: "الطلاب والرسوم", desc: "ملفات الطلاب وتحصيل المديونيات" },
   { cat: 'enterprise', icon: <CalendarDays size={18}/>, title: "الحجوزات والمواعيد", desc: "جدولة بلا تداخل وتأكيدات تلقائية" },
   { cat: 'enterprise', icon: <Clock size={18}/>, title: "تقويم الحجوزات", desc: "عرض بصري يومي وأسبوعي وشهري" },
-  // ── الإدارة والأمن ──
   { cat: 'admin', icon: <LayoutDashboard size={18}/>, title: "لوحة التحكم الرئيسية", desc: "مؤشرات الأداء والتنبيهات لحظياً" },
   { cat: 'admin', icon: <Settings size={18}/>, title: "مركز القيادة والإعدادات", desc: "سياسات الشركة والمظهر والمستخدمين" },
   { cat: 'admin', icon: <Building size={18}/>, title: "بيانات المنشأة", desc: "تسجيل ZATCA ومعلومات قانونية" },
@@ -140,161 +133,382 @@ const modulesList = [
   { cat: 'admin', icon: <ShieldCheck size={18}/>, title: "الصلاحيات المتقدمة", desc: "104 قسم × مستخدم × صلاحية" },
 ];
 
+const INDUSTRIES = [
+  {
+    id: 'pharmacy', emoji: '💊', icon: <Pill size={26}/>,
+    title: 'الصيدليات', titleEn: 'Pharmacies',
+    color: 'from-emerald-500 to-teal-600',
+    bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700',
+    features: ['تتبع تواريخ الصلاحية (FEFO)', 'منع بيع الدواء المنتهي', 'إدارة البدائل الطبية', 'الأرقام التسلسلية للأدوية', 'تقارير مخزون دوائي متخصصة'],
+    url: '/pharmacy'
+  },
+  {
+    id: 'retail', emoji: '🛒', icon: <ShoppingBag size={26}/>,
+    title: 'التموينات والحلويات', titleEn: 'Grocery & Sweets',
+    color: 'from-amber-500 to-orange-600',
+    bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700',
+    features: ['إدارة آلاف الأصناف', 'ربط الموازين الإلكترونية', 'نظام ولاء وخصومات ذكية', 'جرد وتنبيهات النقص', 'باركود وملصقات جماعية'],
+    url: '/retail'
+  },
+  {
+    id: 'restaurant', emoji: '🍽️', icon: <UtensilsCrossed size={26}/>,
+    title: 'المطاعم والكافيهات', titleEn: 'Restaurants & Cafes',
+    color: 'from-rose-500 to-pink-600',
+    bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700',
+    features: ['خريطة طاولات تفاعلية', 'شاشة مطبخ رقمية (KDS)', 'منيو إلكتروني لحظي', 'إدارة الوجبات المركبة', 'دعم التوصيل والطلبات'],
+    url: '/restaurant'
+  },
+  {
+    id: 'factory', emoji: '🏭', icon: <Factory size={26}/>,
+    title: 'المصانع والإنتاج', titleEn: 'Manufacturing',
+    color: 'from-blue-500 to-indigo-600',
+    bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700',
+    features: ['قائمة المواد BOM', 'تتبع مراحل الإنتاج', 'حساب تكلفة التصنيع', 'إدارة الهالك والمواد الخام', 'تخطيط موارد الإنتاج MRP'],
+    url: '/factory'
+  },
+  {
+    id: 'services', emoji: '🔧', icon: <Cog size={26}/>,
+    title: 'الخدمات والصيانة', titleEn: 'Services & Maintenance',
+    color: 'from-violet-500 to-purple-600',
+    bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700',
+    features: ['كارد الدخول Job Card', 'تتبع حالة الأجهزة', 'جدولة المواعيد الذكية', 'إدارة قطع الغيار', 'تنبيه العميل بواتساب'],
+    url: '/services'
+  },
+];
+
+const POWER_CLUSTERS = [
+  {
+    emoji: '💰', icon: <Calculator size={22}/>,
+    title: 'السيطرة المالية', titleEn: 'Financial Mastery',
+    color: 'from-emerald-600 to-teal-700', count: 13,
+    desc: 'وداعاً للأخطاء الحسابية. نظام محاسبي دقيق مع تقارير ضريبية فورية.',
+    highlights: ['قيود مزدوجة آلية', 'مطابقة بنكية Auto-Match', 'شجرة حسابات متعددة', 'تقارير ZATCA', 'الموازنات التقديرية'],
+  },
+  {
+    emoji: '📦', icon: <Package size={22}/>,
+    title: 'قوة المخزون', titleEn: 'Inventory Powerhouse',
+    color: 'from-blue-600 to-indigo-700', count: 14,
+    desc: 'تحكم كامل بالكميات وتواريخ الانتهاء ومواقع الأرفف.',
+    highlights: ['جرد متعدد المستودعات', 'FEFO تلقائي', 'WMS بالأرفف والمواقع', 'تنبيهات النقص الذكية', 'جرد بالكاميرا AI'],
+  },
+  {
+    emoji: '🛒', icon: <ShoppingCart size={22}/>,
+    title: 'تجربة البيع', titleEn: 'Customer & POS',
+    color: 'from-amber-600 to-orange-700', count: 19,
+    desc: 'POS فائق السرعة مع نظام ولاء يبني علاقة طويلة مع عملائك.',
+    highlights: ['POS أوفلاين مزامن', 'نقاط الولاء والمكافآت', 'بطاقات الهدايا', 'CRM Leads', 'تابي وتمارا وسلة وزد'],
+  },
+  {
+    emoji: '⚙️', icon: <Cog size={22}/>,
+    title: 'كفاءة التشغيل', titleEn: 'Operational Excellence',
+    color: 'from-rose-600 to-pink-700', count: 25,
+    desc: 'أتمتة كاملة من المادة الخام للمنتج النهائي.',
+    highlights: ['BOM وأوامر التصنيع', 'إدارة الأسطول والوقود', 'رواتب WPS وبصمة ZKTeco', 'تتبع المشاريع', 'Job Cards الصيانة'],
+  },
+  {
+    emoji: '🧠', icon: <Brain size={22}/>,
+    title: 'الذكاء الاصطناعي', titleEn: 'AI & Analytics',
+    color: 'from-violet-600 to-purple-700', count: 6,
+    desc: 'قرر بناءً على البيانات. AI يكشف التلاعب ويتنبأ بالمبيعات.',
+    highlights: ['كشف الاحتيال AI', 'تنبؤ الطلب AI', 'مدير مالي ذكي', 'بوت تيليجرام', 'Copilot داخل كل شاشة'],
+  },
+];
+
+// ─── Component ─────────────────────────────────────────────────────────────
 export default function NamaInvestLanding() {
   const [activeTab, setActiveTab] = useState('all');
+  const [activeIndustry, setActiveIndustry] = useState<string | null>(null);
+  const [expandedCluster, setExpandedCluster] = useState<number | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const filtered = activeTab === 'all'
-    ? modulesList
-    : modulesList.filter(m => m.cat === activeTab);
+  const filtered = activeTab === 'all' ? modulesList : modulesList.filter(m => m.cat === activeTab);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <div className="min-h-screen font-sans overflow-x-hidden" dir="rtl" style={{ background: '#F8FAFC', color: '#0F172A' }}>
+    <div className="w-full m-0 p-0 min-h-screen font-sans overflow-x-hidden bg-slate-50 text-slate-900" dir="rtl">
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        * { font-family: 'Cairo', sans-serif !important; }
         .tab-scroll::-webkit-scrollbar { height: 0; }
+        .ind-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .ind-card:hover { transform: translateY(-5px); }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
+        .fade-in { animation: fadeIn 0.25s ease forwards; }
       `}} />
 
       {/* NAV */}
-      <nav className="sticky top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto w-full px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-600/20">
-              <Layers className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-black text-slate-900">نما إنفست</span>
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
+                <Layers className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <span className="text-xl font-black text-slate-900">نما إنفست</span>
+                <span className="text-xs text-indigo-500 font-bold block leading-none">Nama Invest ERP</span>
+              </div>
+            </Link>
           </div>
-          <div className="hidden md:flex gap-8 font-bold text-slate-600 text-sm">
-            <a href="#" className="hover:text-indigo-600">الرئيسية</a>
-            <a href="#modules" className="hover:text-indigo-600">الأنظمة الـ 104</a>
-            <a href="#" className="hover:text-indigo-600">القطاعات</a>
+          
+          {/* Desktop Links */}
+          <div className="hidden md:flex gap-6 font-bold text-slate-600 text-sm">
+            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="hover:text-indigo-600 transition-colors">القطاعات</a>
+            <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="hover:text-indigo-600 transition-colors">المجموعات</a>
+            <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="hover:text-indigo-600 transition-colors">الـ 104 وحدة</a>
           </div>
-          <div className="flex gap-3">
-            <button onClick={() => window.location.href = '/login'} className="text-slate-600 font-bold text-sm hidden sm:block hover:text-indigo-600 transition-colors">تسجيل الدخول</button>
-            <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-600/30 transition-all flex items-center gap-2">
+
+          {/* Action Buttons */}
+          <div className="hidden md:flex gap-3 items-center">
+            <Link href="/login" className="text-slate-600 font-bold text-sm hover:text-indigo-600 transition-colors">تسجيل الدخول</Link>
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
               <Phone className="w-4 h-4" /> تواصل معنا
-            </button>
+            </a>
+          </div>
+
+          {/* Mobile Hamburger Toggle */}
+          <div className="md:hidden flex items-center">
+             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-600 hover:text-indigo-600 p-2">
+               {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+             </button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-xl fade-in flex flex-col p-4 gap-4">
+            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="font-bold text-slate-700 hover:text-indigo-600">القطاعات التي نخدمها</a>
+            <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="font-bold text-slate-700 hover:text-indigo-600">المجموعات الخمس الاستراتيجية</a>
+            <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="font-bold text-slate-700 hover:text-indigo-600">قائمة الـ 104 وحدة برمجية</a>
+            <div className="h-px bg-slate-100 my-2"></div>
+            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-slate-700 text-center py-2">تسجيل الدخول</Link>
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-3 text-center bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+               <Phone className="w-5 h-5" /> تواصل معنا الآن
+            </a>
+          </div>
+        )}
       </nav>
 
       {/* HERO */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white py-20 px-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}/>
         <div className="absolute -top-40 right-0 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-3xl"/>
         <div className="absolute -bottom-40 left-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-3xl"/>
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
+        <div className="max-w-7xl mx-auto w-full relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            🚀 النظام المؤسسي الأول في المملكة — متوافق 100% مع هيئة الزكاة
+            🚀 نظام تشغيل الأعمال — متوافق 100% مع هيئة الزكاة (ZATCA Phase 2)
           </div>
-          <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-            نظام <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-emerald-300">نما إنفست</span>
+          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-emerald-300">نما إنفست</span>
             <br/>
-            <span className="text-3xl md:text-4xl font-bold text-slate-300">
-              104 وحدة برمجية في بيئة واحدة
-            </span>
+            <span className="text-3xl md:text-4xl font-bold text-slate-300">نظام واحد · لكل الأعمال</span>
           </h1>
-          <p className="text-slate-300 text-lg md:text-xl max-w-3xl mx-auto mb-10 leading-relaxed">
-            من نقاط البيع وإدارة المخزون المتقدمة إلى المحاسبة المالية وعقود الإيجار والذكاء الاصطناعي.
-            نظام نما إنفست السحابي يدمج أعمالك تحت لوحة تحكم مركزية واحدة.
+          <p className="text-slate-300 text-lg md:text-xl max-w-3xl mx-auto mb-3 leading-relaxed">
+            NamaInvest — Comprehensive cloud ERP for Pharmacies, Grocery, Restaurants, Factories & Services. 104 integrated modules.
           </p>
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-6 mb-10">
+          <p className="text-slate-400 text-base max-w-2xl mx-auto mb-10 leading-relaxed">
+            من نقاط البيع والمخزون المتقدم إلى المحاسبة والموارد البشرية والذكاء الاصطناعي — كل ما تحتاجه في منصة سحابية واحدة.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 mb-10">
             {[
               { num: '104+', label: 'وحدة برمجية' },
-              { num: '10', label: 'قطاع أعمال' },
+              { num: '15', label: 'قطاع أعمال' },
               { num: '100%', label: 'متوافق ZATCA' },
               { num: '24/7', label: 'دعم فني' },
             ].map((s,i) => (
-              <div key={i} className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[110px]">
+              <div key={s.label} className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[110px]">
                 <div className="text-3xl font-black text-white">{s.num}</div>
                 <div className="text-xs text-slate-400 font-bold mt-1">{s.label}</div>
               </div>
             ))}
           </div>
           <div className="flex flex-wrap justify-center gap-4">
-            <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg">
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg">
               🚀 جرب النظام مجاناً
-            </button>
-            <button onClick={() => document.getElementById('modules')?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg">
-              استعرض الـ 104 وحدة ↓
-            </button>
+            </a>
+            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg cursor-pointer">
+              اكتشف قطاعك ↓
+            </a>
           </div>
         </div>
       </div>
 
-      {/* MODULES SECTION */}
-      <div id="modules" className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-black text-slate-900 mb-3">موسوعة أنظمة نما إنفست</h2>
-          <p className="text-slate-500 text-lg">104 وحدة برمجية متكاملة — اضغط على أي قسم للتصفية</p>
+      {/* ── INDUSTRIES ───────────────────────────────────────────────────── */}
+      <section id="industries" className="max-w-7xl mx-auto w-full px-4 py-20">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+            🏪 القطاعات التي نخدمها — Industries We Serve
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-3">مهما كان نشاطك.. نما إنفست يناسبك</h2>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+            بنية وحداتية مرنة (Modular Architecture) تتكيف مع كل قطاع تجاري
+          </p>
         </div>
-
-        {/* TABS */}
-        <div className="tab-scroll flex gap-2 overflow-x-auto pb-3 mb-8">
-          {CATEGORIES.map(c => (
-            <button
-              key={c.id}
-              onClick={() => setActiveTab(c.id)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                activeTab === c.id
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {INDUSTRIES.map(ind => (
+            <div
+              key={ind.id}
+              className={`ind-card rounded-2xl border-2 p-5 cursor-pointer ${
+                activeIndustry === ind.id
+                  ? `${ind.bg} ${ind.border} shadow-xl`
+                  : 'bg-white border-slate-200 hover:shadow-lg hover:border-slate-300'
               }`}
+              onClick={() => setActiveIndustry(activeIndustry === ind.id ? null : ind.id)}
             >
-              {c.emoji} {c.label} {activeTab === c.id && `(${filtered.length})`}
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br ${ind.color} text-white shadow-md`}>
+                {ind.icon}
+              </div>
+              <h3 className={`font-black text-base mb-0.5 ${activeIndustry === ind.id ? ind.text : 'text-slate-800'}`}>
+                {ind.emoji} {ind.title}
+              </h3>
+              <p className="text-xs text-slate-400 font-bold mb-3">{ind.titleEn}</p>
+              {activeIndustry === ind.id && (
+                <div className="fade-in mt-2 pt-2 border-t border-slate-200">
+                  <ul className="space-y-1.5 mb-3">
+                    {ind.features.map((f, i) => (
+                      <li key={f} className={`text-xs font-bold flex items-start gap-1.5 ${ind.text}`}>
+                        <CheckCircle size={11} className="mt-0.5 flex-shrink-0" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link 
+                    href={ind.url} 
+                    onClick={(e) => e.stopPropagation()}
+                    className={`w-full flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r ${ind.color}`}
+                  >
+                    اعرف أكثر <ArrowLeft size={11} />
+                  </Link>
+                </div>
+              )}
+              {activeIndustry !== ind.id && (
+                <p className="text-xs text-slate-400 font-bold flex items-center gap-1">
+                  اضغط لعرض المميزات <ChevronDown size={11} />
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── POWER CLUSTERS ───────────────────────────────────────────────── */}
+      <section id="clusters" className="bg-slate-900 py-20 px-4">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+              ⚡ مجموعات القوة الخمس — 5 Power Clusters
+            </div>
+            <h2 className="text-4xl font-black text-white mb-3">الـ 104 وحدة.. منظّمة بذكاء</h2>
+            <p className="text-slate-400 text-lg">Five strategic clusters covering every aspect of your business</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {POWER_CLUSTERS.map((c, i) => (
+              <div key={c.titleEn} className={`rounded-2xl overflow-hidden cursor-pointer transition-all ${expandedCluster===i?'ring-2 ring-white/30 scale-[1.02]':''}`}
+                onClick={() => setExpandedCluster(expandedCluster===i ? null : i)}>
+                <div className={`bg-gradient-to-br ${c.color} p-5 text-white`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">{c.icon}</div>
+                    <span className="text-2xl font-black opacity-80">{c.count}</span>
+                  </div>
+                  <h3 className="font-black text-sm leading-tight mb-0.5">{c.title}</h3>
+                  <p className="text-xs opacity-75 font-bold">{c.titleEn}</p>
+                </div>
+                <div className="bg-slate-800 p-4">
+                  <p className="text-slate-300 text-xs leading-relaxed mb-3">{c.desc}</p>
+                  {expandedCluster === i ? (
+                    <div className="fade-in">
+                      <ul className="space-y-1.5 mb-3">
+                        {c.highlights.map((h, j) => (
+                          <li key={h} className="flex items-start gap-1.5 text-xs text-slate-200 font-bold">
+                            <CheckCircle size={11} className="mt-0.5 flex-shrink-0 text-emerald-400" /> {h}
+                          </li>
+                        ))}
+                      </ul>
+                      <span className="text-xs text-slate-400 flex items-center gap-1 font-bold"><ChevronUp size={11}/> إخفاء</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 flex items-center gap-1 font-bold hover:text-white transition-colors"><ChevronDown size={11}/> عرض الميزات</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 104 MODULES ──────────────────────────────────────────────────── */}
+      <section id="modules" className="max-w-7xl mx-auto w-full px-4 py-20">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+            🗂️ الموسوعة الكاملة — Complete Feature Matrix
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-3">104 وحدة برمجية متكاملة</h2>
+          <p className="text-slate-500 text-lg">اضغط على أي قسم للتصفية</p>
+        </div>
+        <div className="tab-scroll flex flex-wrap justify-center items-center gap-2 pb-3 mb-8">
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => setActiveTab(cat.id)}
+              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab===cat.id ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
+              }`}>
+              {cat.emoji} {cat.label} {activeTab===cat.id && `(${filtered.length})`}
             </button>
           ))}
         </div>
-
-        {/* GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filtered.map((m, i) => (
-            <div
-              key={i}
-              className="group bg-white border border-slate-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-200 cursor-default"
-            >
-              <div className="w-10 h-10 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">
-                {m.icon}
-              </div>
+          {filtered.map((m) => (
+            <div key={m.title} className="group bg-white border border-slate-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-200">
+              <div className="w-10 h-10 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">{m.icon}</div>
               <h3 className="text-sm font-bold text-slate-800 mb-1 leading-tight group-hover:text-indigo-700 transition-colors">{m.title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
             </div>
           ))}
         </div>
-
         <div className="text-center mt-8 text-slate-400 text-sm font-bold">
-          عرض {filtered.length} من {modulesList.length} وحدة • {activeTab === 'all' ? 'جميع الأقسام' : CATEGORIES.find(c=>c.id===activeTab)?.label}
+          عرض {filtered.length} من {modulesList.length} وحدة
         </div>
-      </div>
+      </section>
 
-      {/* CTA SECTION */}
-      <div className="bg-gradient-to-l from-indigo-900 to-slate-900 text-white py-16 px-4 text-center">
-        <h2 className="text-4xl font-black mb-4">جاهز لتحويل عملك رقمياً؟</h2>
-        <p className="text-slate-300 text-lg mb-8 max-w-xl mx-auto">ابدأ اليوم مجاناً مع كامل الدعم الفني والتدريب</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <button onClick={() => window.open('https://wa.me/966531206628', '_blank')} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
-            <Phone className="w-5 h-5"/> تواصل عبر واتساب
-          </button>
-          <button onClick={() => window.location.href = '/login'} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg">
-            تسجيل الدخول للنظام
-          </button>
+      {/* CTA */}
+      <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white py-20 px-4 text-center">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-5xl mb-4">🚀</div>
+          <h2 className="text-4xl font-black mb-4">جاهز لتحويل عملك رقمياً؟</h2>
+          <p className="text-slate-300 text-lg mb-2 max-w-xl mx-auto">ابدأ اليوم مجاناً مع كامل الدعم الفني والتدريب</p>
+          <p className="text-slate-400 text-sm mb-8">Ready to modernize your business? Start free with full support.</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
+              <Phone className="w-5 h-5"/> تواصل عبر واتساب
+            </a>
+            <Link href="/login" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg">
+              تسجيل الدخول للنظام
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* FOOTER */}
       <footer className="py-8 bg-white border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-7xl mx-auto w-full px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Layers className="w-4 h-4 text-white"/>
-            </div>
-            <span className="font-black text-slate-800">نما إنفست</span>
+            <Link href="/" className="flex items-center gap-2">
+               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-lg flex items-center justify-center">
+                 <Layers className="w-4 h-4 text-white"/>
+               </div>
+               <div>
+                 <span className="font-black text-slate-800">نما إنفست</span>
+                 <span className="text-xs text-slate-400 font-bold block leading-none">Nama Invest ERP</span>
+               </div>
+            </Link>
           </div>
           <div className="text-slate-400 text-sm font-bold">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
-          <div className="flex gap-6 text-sm font-bold text-slate-400">
-            <span className="hover:text-indigo-600 cursor-pointer transition-colors">الشروط والأحكام</span>
-            <span className="hover:text-indigo-600 cursor-pointer transition-colors">سياسة الخصوصية</span>
+          <div className="flex flex-wrap justify-center gap-4 text-sm font-bold">
+            <Link href="/pharmacy" className="text-slate-400 hover:text-indigo-600 transition-colors">الصيدليات</Link>
+            <Link href="/retail" className="text-slate-400 hover:text-indigo-600 transition-colors">التموينات</Link>
+            <Link href="/restaurant" className="text-slate-400 hover:text-indigo-600 transition-colors">المطاعم</Link>
+            <Link href="/factory" className="text-slate-400 hover:text-indigo-600 transition-colors">المصانع</Link>
           </div>
         </div>
       </footer>

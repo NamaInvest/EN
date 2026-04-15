@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import { apiError } from '@/lib/api-error';
 
+const StockTransferItemSchema = z.object({
+    productId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))),
+    productName: z.string().optional().nullable(),
+    quantity: z.union([z.string(), z.number()]).transform(v => parseFloat(String(v))),
+});
+
+const StockTransferSchema = z.object({
+    fromStockId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
+    toStockId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
+    userId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
+    notes: z.string().optional().nullable(),
+    items: z.array(StockTransferItemSchema).min(1, 'يجب تحديد صنف واحد على الأقل للتحويل'),
+});
 export async function GET() {
     try {
         const transfers = await prisma.stockTransfer.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
@@ -13,12 +28,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+        const rawBody = await request.json();
+        const parsed = StockTransferSchema.safeParse(rawBody);
+        if (!parsed.success) {
+            return apiError({ message: 'بيانات التحويل غير صالحة', errors: parsed.error.format() }, 'الرجاء التأكد من إدخال كافة حقول التحويل بشكل صحيح', { status: 400 });
+        }
+        const body = parsed.data;
         const last = await prisma.stockTransfer.findFirst({ orderBy: { transferNo: 'desc' } });
         const transferNo = (last?.transferNo || 0) + 1;
 
-        const fromStockId = body.fromStockId ? parseInt(body.fromStockId) : null;
-        const toStockId = body.toStockId ? parseInt(body.toStockId) : null;
+        const fromStockId = body.fromStockId ? Number(body.fromStockId) : null;
+        const toStockId = body.toStockId ? Number(body.toStockId) : null;
         const items = body.items || [];
 
         if (fromStockId && toStockId) {

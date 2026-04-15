@@ -5,7 +5,36 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
 import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { z } from 'zod';
 
+const SalesItemSchema = z.object({
+    productId: z.union([z.string(), z.number()]),
+    productName: z.string().optional(),
+    quantity: z.union([z.string(), z.number()]),
+    price: z.union([z.string(), z.number()]),
+    discountRate: z.union([z.string(), z.number()]).optional().default(0),
+    unitFactor: z.union([z.string(), z.number()]).optional().default(1),
+});
+
+const SalesInvoiceSchema = z.object({
+    manualDate: z.string().optional().nullable(),
+    manualInvoiceNo: z.union([z.string(), z.number()]).optional().nullable(),
+    customerId: z.union([z.string(), z.number()]).optional().nullable(),
+    stockId: z.union([z.string(), z.number()]).optional().nullable(),
+    taxRate: z.union([z.string(), z.number()]).optional().default(15),
+    isTaxInclusive: z.union([z.boolean(), z.string()]).transform(v => v === true || v === 'true').optional().default(false),
+    discountRate: z.union([z.string(), z.number()]).optional().default(0),
+    paid: z.union([z.string(), z.number()]).optional(),
+    paymentType: z.string().optional().default('cash'),
+    splitCash: z.union([z.string(), z.number()]).optional().default(0),
+    splitCard: z.union([z.string(), z.number()]).optional().default(0),
+    userId: z.union([z.string(), z.number()]).optional().nullable(),
+    branchId: z.union([z.string(), z.number()]).optional().nullable(),
+    notes: z.string().optional().nullable(),
+    currencyId: z.union([z.string(), z.number()]).optional().nullable(),
+    exchangeRate: z.union([z.string(), z.number()]).optional().default(1.0),
+    items: z.array(SalesItemSchema).min(1, 'يجب إضافة منتج واحد على الأقل'),
+});
 
 export async function GET(request: NextRequest) {
     try {
@@ -50,7 +79,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+        const rawBody = await request.json();
+        
+        const parsed = SalesInvoiceSchema.safeParse(rawBody);
+        if (!parsed.success) {
+            return apiError({ message: 'بيانات غير صالحة', errors: parsed.error.format() }, 'تأكد من إدخال جميع الحقول بشكل صحيح', { status: 400 });
+        }
+        const body = parsed.data;
+
         console.log('Received sales payload:', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
 
         // --- Trial Limitations Check ---
@@ -78,12 +114,12 @@ export async function POST(request: Request) {
         const lastInvoice = await prisma.salesInvoice.findFirst({
             orderBy: { invoiceNo: 'desc' },
         });
-        const invoiceNo = body.manualInvoiceNo ? parseInt(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
+        const invoiceNo = body.manualInvoiceNo ? Number(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
         const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
 
         // Calculate totals — support dynamic tax rate and inclusive/exclusive VAT mode
-        const bodyTaxRate = parseFloat(body.taxRate) || 15; // rate sent from frontend settings
-        const bodyTaxInclusive = body.isTaxInclusive === true || body.isTaxInclusive === 'true';
+        const bodyTaxRate = Number(body.taxRate) || 15; // rate sent from frontend settings
+        const bodyTaxInclusive = body.isTaxInclusive === true || String(body.isTaxInclusive) === 'true';
         let subtotal = 0;
         const items = body.items || [];
         for (const item of items) {
@@ -93,21 +129,21 @@ export async function POST(request: Request) {
                 price = price * 100 / (100 + bodyTaxRate);
                 item.price = price; // update in place for details creation
             }
-            const itemTotal = (item.quantity || 1) * price;
-            const itemDiscount = itemTotal * ((item.discountRate || 0) / 100);
+            const itemTotal = (Number(item.quantity) || 1) * price;
+            const itemDiscount = itemTotal * ((Number(item.discountRate) || 0) / 100);
             subtotal += itemTotal - itemDiscount;
         }
 
-        const discountRate = parseFloat(body.discountRate) || 0;
+        const discountRate = Number(body.discountRate) || 0;
         const discountValue = subtotal * (discountRate / 100);
         const afterDiscount = subtotal - discountValue;
         const taxValue = afterDiscount * (bodyTaxRate / 100);
         const total = afterDiscount + taxValue;
-        const paid = parseFloat(body.paid) || total;
+        const paid = body.paid !== undefined ? Number(body.paid) : total;
         const remaining = total - paid;
 
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        const userId = body.userId ? Number(body.userId) : null;
+        let branchId = body.branchId ? Number(body.branchId) : null;
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
             branchId = user?.branchId || null;
@@ -119,8 +155,8 @@ export async function POST(request: Request) {
                     date: invoiceDate,
                     branchId,
                     invoiceNo,
-                    customerId: body.customerId ? parseInt(body.customerId) : null,
-                    stockId: body.stockId ? parseInt(body.stockId) : 1,
+                    customerId: body.customerId ? Number(body.customerId) : null,
+                    stockId: body.stockId ? Number(body.stockId) : 1,
                     subtotal,
                     discountRate,
                     discountValue,
@@ -129,13 +165,13 @@ export async function POST(request: Request) {
                     paid,
                     remaining,
                     paymentType: body.paymentType || 'cash',
-                    splitCash: body.splitCash ? parseFloat(body.splitCash) : 0,
-                    splitCard: body.splitCard ? parseFloat(body.splitCard) : 0,
+                    splitCash: body.splitCash ? Number(body.splitCash) : 0,
+                    splitCard: body.splitCard ? Number(body.splitCard) : 0,
                     status: remaining > 0 ? 'pending' : 'completed',
-                    userId: body.userId || null,
+                    userId: userId,
                     notes: body.notes || null,
-                    currencyId: body.currencyId ? parseInt(body.currencyId) : null,
-                    exchangeRate: body.exchangeRate ? parseFloat(body.exchangeRate) : 1.0,
+                    currencyId: body.currencyId ? Number(body.currencyId) : null,
+                    exchangeRate: body.exchangeRate ? Number(body.exchangeRate) : 1.0,
                     details: {
                         create: items.map((item: Record<string, unknown>) => {
                             const qty = parseFloat(item.quantity as string) || 1;
@@ -167,9 +203,9 @@ export async function POST(request: Request) {
             const canGoNegative = allowNegativeStock?.value === 'true';
 
             for (const item of items) {
-                const qty = parseFloat(item.quantity) || 1;
-                const productId = parseInt(item.productId);
-                const unitFactor = parseFloat(item.unitFactor) || 1;
+                const qty = Number(item.quantity) || 1;
+                const productId = Number(item.productId);
+                const unitFactor = Number(item.unitFactor) || 1;
                 const qtyInBase = qty * unitFactor; // الكمية بالحبة
 
                 // جلب وحدات المنتج مرتبة (factor صغير لكبير)
@@ -182,7 +218,7 @@ export async function POST(request: Request) {
                 // إجمالي المخزون (حبة + وحدات محولة)
                 const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
                 const baseStock = prod?.currentStock || 0;
-                const unitsStock = pUnits.reduce((s, u) => s + u.unitStock * u.factor, 0);
+                const unitsStock = pUnits.reduce((s, u) => s + Number((u as any).unitStock || 0) * u.factor, 0);
                 const totalBase = baseStock + unitsStock;
 
                 if (!canGoNegative && qtyInBase > totalBase) {
@@ -201,11 +237,11 @@ export async function POST(request: Request) {
 
                 for (const pu of pUnits) {
                     if (deficit <= 0) break;
-                    if (pu.unitStock <= 0) continue;
-                    const toBreak = Math.min(Math.ceil(deficit / pu.factor), pu.unitStock);
+                    if ((pu as any).unitStock <= 0) continue;
+                    const toBreak = Math.min(Math.ceil(deficit / pu.factor), Number((pu as any).unitStock || 0));
                     await tx.productUnit.update({
                         where: { id: pu.id },
-                        data: { unitStock: { decrement: toBreak } },
+                        data: { unitStock: { decrement: toBreak } } as any,
                     });
                     await tx.product.update({
                         where: { id: productId },
@@ -226,7 +262,7 @@ export async function POST(request: Request) {
                 // --- PHASE 1 AUTOMATION: RECIPE & MANUFACTURING AUTO-DEDUCTION ---
                 try {
                     const activeRecipe = await tx.recipe.findFirst({
-                        where: { finishedProductId: parseInt(item.productId), isActive: true },
+                        where: { finishedProductId: Number(item.productId), isActive: true },
                         include: { ingredients: true }
                     });
 
@@ -257,8 +293,8 @@ export async function POST(request: Request) {
             // Treasury entry (safely within transaction)
             if (paid > 0) {
                 if (body.paymentType === 'split') {
-                    const sCash = parseFloat(body.splitCash) || 0;
-                    const sCard = parseFloat(body.splitCard) || 0;
+                    const sCash = Number(body.splitCash) || 0;
+                    const sCard = Number(body.splitCard) || 0;
                     if (sCash > 0) {
                         await tx.treasury.create({
                             data: { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id, userId, branchId },
@@ -295,8 +331,8 @@ export async function POST(request: Request) {
                 taxValue,
                 total,
                 paymentType: body.paymentType || 'cash',
-                splitCash: body.splitCash ? parseFloat(body.splitCash) : 0,
-                splitCard: body.splitCard ? parseFloat(body.splitCard) : 0,
+                splitCash: body.splitCash ? Number(body.splitCash) : 0,
+                splitCard: body.splitCard ? Number(body.splitCard) : 0,
                 userId: userId || undefined,
                 branchId: branchId || undefined,
                 discountValue,

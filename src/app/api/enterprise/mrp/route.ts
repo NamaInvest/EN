@@ -24,8 +24,7 @@ export async function GET(request: Request) {
                     }
                 },
                 // @ts-ignore
-                machine: { select: { name: true, status: true } },
-                stock: { select: { name: true } }
+                machine: { select: { name: true, status: true } }
             },
             orderBy: { id: 'desc' },
         });
