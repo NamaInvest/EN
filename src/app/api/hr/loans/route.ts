@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
         const loans = await prisma.employeeLoan.findMany({
             where: employeeId ? { employeeId: parseInt(employeeId) } : {},
-            include: { employee: true },
+            include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } },
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(loans);

@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
-import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
     try {
@@ -23,34 +24,59 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const expenses = await prisma.expense.findMany({ where, include: { user: true, costCenter: true }, orderBy: { date: 'desc' } });
+        const expenses = await prisma.expense.findMany({ 
+            where, 
+            include: { user: { select: { id: true, username: true, fullName: true, role: true } }, costCenter: true }, 
+            orderBy: { date: 'desc' } 
+        });
         return NextResponse.json(expenses);
-    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error) { 
+        return handleApiError(error); 
+    }
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+        const rawBody = await request.json();
+        
+        // Zod Runtime Validation & mass-assignment protection
+        const body = expenseCreateSchema.parse(rawBody);
 
-        // ── التحقق من صحة المدخلات المالية ──
-        if (body.amount !== undefined) {
-            const amount = parseFloat(String(body.amount));
-            if (isNaN(amount) || amount < 0) return NextResponse.json({ error: 'المبلغ يجب أن يكون رقماً موجباً' }, { status: 400 });
-            body.amount = amount;
-        }
-
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        const userId = body.userId || null;
+        let branchId = body.branchId || null;
+        
         if (!branchId && userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
+            const user = await prisma.user.findUnique({ where: { id: Number(userId) }, select: { branchId: true } });
             branchId = user?.branchId || null;
         }
 
-        const expense = await prisma.expense.create({
-            data: { category: body.category, description: body.description, amount: parseFloat(body.amount) || 0, userId, branchId, notes: body.notes || undefined, costCenterId: body.costCenterId ? parseInt(body.costCenterId) : null },
-        });
-        await prisma.treasury.create({
-            data: { type: 'out', amount: expense.amount, description: `مصروف: ${body.description}`, referenceType: 'expense', referenceId: expense.id, userId, branchId },
+        // --- Database Transaction for Atomicity (Atomic Operation) ---
+        const expense = await prisma.$transaction(async (tx) => {
+            const newExpense = await tx.expense.create({
+                data: { 
+                    category: body.category, 
+                    description: body.description, 
+                    amount: body.amount, 
+                    userId: userId ? Number(userId) : null, 
+                    branchId: branchId ? Number(branchId) : null, 
+                    notes: body.notes || undefined, 
+                    costCenterId: body.costCenterId ? Number(body.costCenterId) : null 
+                },
+            });
+            
+            await tx.treasury.create({
+                data: { 
+                    type: 'out', 
+                    amount: newExpense.amount, 
+                    description: `مصروف: ${body.description}`, 
+                    referenceType: 'expense', 
+                    referenceId: newExpense.id, 
+                    userId: userId ? Number(userId) : null, 
+                    branchId: branchId ? Number(branchId) : null 
+                },
+            });
+            
+            return newExpense;
         });
 
         // Auto-journal entry
@@ -61,8 +87,8 @@ export async function POST(request: Request) {
                 category: expense.category || 'عام',
                 amount: expense.amount,
                 description: expense.description,
-                userId: userId || undefined,
-                branchId: branchId || undefined,
+                userId: userId ? Number(userId) : undefined,
+                branchId: branchId ? Number(branchId) : undefined,
                 costCenterId: expense.costCenterId || undefined,
                 date: new Date().toISOString().split('T')[0],
             });
@@ -71,7 +97,9 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(expense, { status: 201 });
-    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error) { 
+        return handleApiError(error); 
+    }
 }
 
 export async function PUT(request: NextRequest) {
@@ -81,33 +109,39 @@ export async function PUT(request: NextRequest) {
         const allowed = await hasPermission(auth.userId, 'edit_expense');
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تعديل المصروفات' }, { status: 403 });
 
-        const body = await request.json();
-        if (!body.id) return NextResponse.json({ error: 'معرف المصروف مطلوب' }, { status: 400 });
+        const rawBody = await request.json();
+        
+        // Zod Validation
+        const body = expenseUpdateSchema.parse(rawBody);
 
-        const oldExpense = await prisma.expense.findUnique({ where: { id: body.id } });
+        const oldExpense = await prisma.expense.findUnique({ where: { id: Number(body.id) } });
         if (!oldExpense) return NextResponse.json({ error: 'المصروف غير موجود' }, { status: 404 });
 
-        const expense = await prisma.expense.update({
-            where: { id: body.id },
-            data: {
-                category: body.category || oldExpense.category,
-                description: body.description || oldExpense.description,
-                amount: body.amount ? parseFloat(body.amount) : oldExpense.amount,
-                notes: body.notes !== undefined ? body.notes : oldExpense.notes,
-                costCenterId: body.costCenterId !== undefined ? (body.costCenterId ? parseInt(body.costCenterId) : null) : oldExpense.costCenterId,
-            },
-        });
+        // Transaction updates
+        const expense = await prisma.$transaction(async (tx) => {
+            const updatedExpense = await tx.expense.update({
+                where: { id: Number(body.id) },
+                data: {
+                    category: body.category || oldExpense.category,
+                    description: body.description || oldExpense.description,
+                    amount: body.amount ?? oldExpense.amount,
+                    notes: body.notes !== undefined ? body.notes : oldExpense.notes,
+                    costCenterId: body.costCenterId !== undefined ? (body.costCenterId ? Number(body.costCenterId) : null) : oldExpense.costCenterId,
+                },
+            });
 
-        // Update related treasury entry amount
-        await prisma.treasury.updateMany({
-            where: { referenceType: 'expense', referenceId: body.id },
-            data: { amount: expense.amount, description: `مصروف: ${expense.description}` },
+            // Sync treasury
+            await tx.treasury.updateMany({
+                where: { referenceType: 'expense', referenceId: Number(body.id) },
+                data: { amount: updatedExpense.amount, description: `مصروف: ${updatedExpense.description}` },
+            });
+            
+            return updatedExpense;
         });
 
         return NextResponse.json(expense);
     } catch (error) {
-        console.error('Expenses PUT error:', error);
-        return NextResponse.json({ error: 'فشل في تعديل المصروف' }, { status: 500 });
+        return handleApiError(error);
     }
 }
 
@@ -125,11 +159,13 @@ export async function DELETE(request: NextRequest) {
             const allowed = await hasPermission(auth.userId, 'delete_all_expenses');
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كافة المصروفات' }, { status: 403 });
 
-            const count = await prisma.expense.count();
-            // Delete related treasury entries
-            await prisma.treasury.deleteMany({ where: { referenceType: 'expense' } });
-            // Delete all expenses
-            await prisma.expense.deleteMany({});
+            const count = await prisma.$transaction(async (tx) => {
+                const total = await tx.expense.count();
+                await tx.treasury.deleteMany({ where: { referenceType: 'expense' } });
+                await tx.expense.deleteMany({});
+                return total;
+            });
+            
             return NextResponse.json({ success: true, message: `تم حذف ${count} مصروف بنجاح`, count });
         }
 
@@ -142,12 +178,13 @@ export async function DELETE(request: NextRequest) {
         const expense = await prisma.expense.findUnique({ where: { id } });
         if (!expense) return NextResponse.json({ error: 'المصروف غير موجود' }, { status: 404 });
 
-        await prisma.treasury.deleteMany({ where: { referenceType: 'expense', referenceId: id } });
-        await prisma.expense.delete({ where: { id } });
+        await prisma.$transaction(async (tx) => {
+            await tx.treasury.deleteMany({ where: { referenceType: 'expense', referenceId: id } });
+            await tx.expense.delete({ where: { id } });
+        });
 
         return NextResponse.json({ success: true, message: 'تم حذف المصروف بنجاح' });
     } catch (error) {
-        console.error('Expenses DELETE error:', error);
-        return NextResponse.json({ error: 'فشل في حذف المصروف' }, { status: 500 });
+        return handleApiError(error);
     }
 }

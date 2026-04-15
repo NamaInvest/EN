@@ -10,7 +10,7 @@ export async function GET(request: Request) {
         if (employeeId) where.employeeId = parseInt(employeeId);
         if (month) where.date = month; // format: 2025-03
 
-        const records = await prisma.attendance.findMany({ where, include: { employee: true }, orderBy: { id: 'desc' }, take: 200 });
+        const records = await prisma.attendance.findMany({ where, include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } }, orderBy: { id: 'desc' }, take: 200 });
         return NextResponse.json(records);
     } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
                 checkOut: body.checkOut || null,
                 notes: body.notes || null,
             },
-            include: { employee: true },
+            include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } },
         });
         return NextResponse.json(record, { status: 201 });
     } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }

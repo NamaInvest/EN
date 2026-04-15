@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
     try {
@@ -9,5 +10,5 @@ export async function GET() {
         ]);
         const balance = (inAgg._sum.amount || 0) - (outAgg._sum.amount || 0);
         return NextResponse.json({ balance });
-    } catch (error) { console.error(error); return NextResponse.json({ balance: 0 }, { status: 500 }); }
+    } catch (error) { return handleApiError(error); }
 }

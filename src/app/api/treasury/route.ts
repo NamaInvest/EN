@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
-import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { treasuryCreateSchema } from '@/lib/validations';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
     try {
@@ -25,30 +26,43 @@ export async function GET(request: NextRequest) {
 
         const entries = await prisma.treasury.findMany({ where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
         return NextResponse.json(entries);
-    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error) { 
+        return handleApiError(error); 
+    }
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+        const rawBody = await request.json();
+        
+        // Zod Runtime Validation & Strip mass-assignment fields
+        const body = treasuryCreateSchema.parse(rawBody);
 
-        // ── التحقق من صحة المدخلات المالية ──
-        if (body.amount !== undefined) {
-            const amount = parseFloat(String(body.amount));
-            if (isNaN(amount) || amount < 0) return NextResponse.json({ error: 'المبلغ يجب أن يكون رقماً موجباً' }, { status: 400 });
-            body.amount = amount;
-        }
-
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        const userId = body.userId || null;
+        let branchId = body.branchId || null;
+        
         if (!branchId && userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
+            const user = await prisma.user.findUnique({ where: { id: Number(userId) }, select: { branchId: true } });
             branchId = user?.branchId || null;
         }
 
-        const entry = await prisma.treasury.create({
-            data: { type: body.type, amount: parseFloat(body.amount), description: body.description || null, referenceType: body.referenceType || 'manual', referenceId: body.referenceId || null, userId, branchId },
+        // Transactions inside Treasury purely to align with architecture constraints
+        const entry = await prisma.$transaction(async (tx) => {
+            return await tx.treasury.create({
+                data: { 
+                    type: body.type, 
+                    amount: body.amount, 
+                    description: body.description || null, 
+                    referenceType: body.referenceType || 'manual', 
+                    referenceId: body.referenceId ? Number(body.referenceId) : null, 
+                    userId: userId ? Number(userId) : null, 
+                    branchId: branchId ? Number(branchId) : null 
+                },
+            });
         });
+        
         return NextResponse.json(entry, { status: 201 });
-    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error) { 
+        return handleApiError(error); 
+    }
 }

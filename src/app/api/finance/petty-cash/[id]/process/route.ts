@@ -23,7 +23,7 @@ export async function PUT(
         }
 
         // @ts-ignore
-        const pc = await prisma.pettyCashTransaction.findUnique({ where: { id }, include: { employee: true } });
+        const pc = await prisma.pettyCashTransaction.findUnique({ where: { id }, include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } } });
         if (!pc) return NextResponse.json({ error: 'العهدة غير موجودة' }, { status: 404 });
 
         let updateData: any = { status };

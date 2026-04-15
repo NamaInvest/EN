@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         // @ts-ignore
         const targets = await prisma.salesTarget.findMany({
             where: { year, month },
-            include: { employee: true },
+            include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } },
             orderBy: { targetAmount: 'desc' }
         });
 

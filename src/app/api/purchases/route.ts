@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
-import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { purchaseCreateSchema, purchasePaymentSchema } from '@/lib/validations';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
     try {
@@ -27,16 +28,19 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const invoices = await prisma.purchaseInvoice.findMany({ where, include: { supplier: true, user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { id: 'desc' } });
+        const invoices = await prisma.purchaseInvoice.findMany({ where, include: { supplier: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } }, user: { select: { id: true, username: true, fullName: true, role: true } } }, orderBy: { id: 'desc' } });
         return NextResponse.json(invoices);
-    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error) { return handleApiError(error); }
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        const rawBody = await request.json();
+        // Zod validation + strip unknown fields (mass-assignment protection)
+        const body = purchaseCreateSchema.parse(rawBody);
+
+        const userId = body.userId ? Number(body.userId) : null;
+        let branchId = body.branchId ? Number(body.branchId) : null;
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
             branchId = user?.branchId || null;
@@ -46,16 +50,16 @@ export async function POST(request: Request) {
         const invoiceNo = (last?.invoiceNo || 0) + 1;
         const items = body.items || [];
         const isManual = body.isManual === true;
-        let subtotal = isManual ? (parseFloat(body.manualSubtotal) || 0) : 0;
+        let subtotal = isManual ? (Number(body.manualSubtotal) || 0) : 0;
         
         if (!isManual) {
-            for (const item of items) { const t = (item.quantity || 1) * (item.price || 0); subtotal += t - t * ((item.discountRate || 0) / 100); }
+            for (const item of items) { const t = (Number(item.quantity) || 1) * (Number(item.price) || 0); subtotal += t - t * ((Number(item.discountRate) || 0) / 100); }
         }
         
-        const taxValue = isManual ? (parseFloat(body.manualTaxValue) || 0) : subtotal * 0.15;
+        const taxValue = isManual ? (Number(body.manualTaxValue) || 0) : subtotal * 0.15;
         const total = subtotal + taxValue;
         const paymentType = body.paymentType || 'cash';
-        const paid = paymentType === 'credit' ? (parseFloat(body.paid) || 0) : (parseFloat(body.paid) || total);
+        const paid = paymentType === 'credit' ? (Number(body.paid) || 0) : (Number(body.paid) || total);
         const remaining = total - paid;
         const status = remaining > 0 ? 'pending' : 'completed';
         const receiptStatus = body.receiptStatus || 'received';
@@ -63,24 +67,24 @@ export async function POST(request: Request) {
         const invoice = await prisma.$transaction(async (tx) => {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
-                    invoiceNo, isManual, supplierId: body.supplierId ? parseInt(body.supplierId) : null,
-                    stockId: body.stockId ? parseInt(body.stockId) : 1,
+                    invoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
+                    stockId: body.stockId ? Number(body.stockId) : 1,
                     subtotal, taxValue, total, paid, remaining,
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
                     paymentType,
                     status, receiptStatus, userId, branchId, notes: body.notes || null,
                     details: {
-                        create: items.map((item: Record<string, unknown>) => {
-                            const qty = parseFloat(item.quantity as string) || 1;
-                            let price = parseFloat(item.price as string) || 0;
-                            let dRate = parseFloat(item.discountRate as string) || 0;
+                        create: items.map((item: { productId: number; productName: string; quantity: number; price: number; discountRate: number }) => {
+                            const qty = Number(item.quantity) || 1;
+                            let price = Number(item.price) || 0;
+                            let dRate = Number(item.discountRate) || 0;
                             
                             // 🛑 Override for manual invoices to prevent inventory valuation disruption
                             if (isManual) { price = 0; dRate = 0; }
                             
                             const iSub = qty * price; const dVal = iSub * (dRate / 100);
                             const afterD = iSub - dVal; const tax = afterD * 0.15;
-                            return { productId: parseInt(item.productId as string), productName: item.productName || '', quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: isManual ? 0 : 15, taxValue: tax, total: afterD + tax };
+                            return { productId: Number(item.productId), productName: String(item.productName || ''), quantity: qty, price, discountRate: dRate, discountValue: dVal, taxRate: isManual ? 0 : 15, taxValue: tax, total: afterD + tax };
                         }),
                     },
                 },
@@ -89,17 +93,18 @@ export async function POST(request: Request) {
 
             if (receiptStatus === 'received') {
                 for (const item of items) {
-                    const qty = parseFloat(item.quantity) || 1;
+                    const qty = Number(item.quantity) || 1;
+                    const productId = Number(item.productId);
                     await tx.product.update({
-                        where: { id: parseInt(item.productId) },
+                        where: { id: productId },
                         data: { currentStock: { increment: qty } },
                     });
                     
                     try {
                         await tx.productStock.upsert({
-                            where: { productId_stockId: { productId: parseInt(item.productId), stockId: createdInvoice.stockId } },
+                            where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
                             update: { quantity: { increment: qty } },
-                            create: { productId: parseInt(item.productId), stockId: createdInvoice.stockId, quantity: qty },
+                            create: { productId, stockId: createdInvoice.stockId, quantity: qty },
                         });
                     } catch (e) {
                          console.error('Failed to update productStock for purchase inside tx:', e);
@@ -133,20 +138,18 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(invoice, { status: 201 });
-    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error) { return handleApiError(error); }
 }
 
-// تسديد دفعة على فاتورة مشتريات آجلة
 export async function PUT(request: Request) {
     try {
-        const body = await request.json();
-        const { invoiceId, amount, userId } = body;
-        if (!invoiceId || !amount) return NextResponse.json({ error: 'invoiceId و amount مطلوبين' }, { status: 400 });
+        const rawBody = await request.json();
+        const { invoiceId, amount, userId } = purchasePaymentSchema.parse(rawBody);
 
-        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: parseInt(invoiceId) } });
+        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: Number(invoiceId) } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        const payAmount = Math.min(parseFloat(amount), invoice.remaining);
+        const payAmount = Math.min(Number(amount), invoice.remaining);
         if (payAmount <= 0) return NextResponse.json({ error: 'لا يوجد رصيد مستحق' }, { status: 400 });
 
         const newPaid = invoice.paid + payAmount;
@@ -154,7 +157,7 @@ export async function PUT(request: Request) {
 
         const updated = await prisma.$transaction(async (tx) => {
             const updatedInvoice = await tx.purchaseInvoice.update({
-                where: { id: parseInt(invoiceId) },
+                where: { id: Number(invoiceId) },
                 data: {
                     paid: newPaid,
                     remaining: newRemaining,
@@ -162,7 +165,7 @@ export async function PUT(request: Request) {
                 },
             });
 
-            const parsedUserId = userId ? parseInt(userId) : null;
+            const parsedUserId = userId ? Number(userId) : null;
             let branchId = invoice.branchId; // use invoice's original branch
 
             await tx.treasury.create({
@@ -181,7 +184,7 @@ export async function PUT(request: Request) {
         });
 
         return NextResponse.json(updated);
-    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل في تسديد الدفعة' }, { status: 500 }); }
+    } catch (error) { return handleApiError(error); }
 }
 
 export async function DELETE(request: NextRequest) {
@@ -228,7 +231,6 @@ export async function DELETE(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
     } catch (error) {
-        console.error('Purchases DELETE error:', error);
-        return NextResponse.json({ error: 'فشل في حذف الفاتورة' }, { status: 500 });
+        return handleApiError(error);
     }
 }

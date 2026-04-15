@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { salesReturnCreateSchema } from '@/lib/validations';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
     try {
         const returns = await prisma.salesReturn.findMany({ orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
-    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e) { return handleApiError(e); }
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
+        const rawBody = await request.json();
+        // Zod validation + strip mass-assignment fields
+        const body = salesReturnCreateSchema.parse(rawBody);
+
+        const userId = body.userId ? Number(body.userId) : null;
+        let branchId = body.branchId ? Number(body.branchId) : null;
         
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
         let originalInvoice = null;
         if (body.originalInvoiceId) {
             originalInvoice = await prisma.salesInvoice.findUnique({
-                where: { id: parseInt(body.originalInvoiceId) },
+                where: { id: Number(body.originalInvoiceId) },
                 include: { details: true }
             });
 
@@ -38,14 +42,12 @@ export async function POST(request: Request) {
 
             // STRICT RMA VALIDATION: Ensure returned quantities don't exceed sold quantities
             for (const item of items) {
-                const soldItem = originalInvoice.details.find(d => d.productId === parseInt(item.productId));
+                const soldItem = originalInvoice.details.find(d => d.productId === Number(item.productId));
                 if (!soldItem) {
                     return NextResponse.json({ error: `المنتج ${item.productName} غير موجود في الفاتورة الأصلية` }, { status: 400 });
                 }
 
-                // Ideally, we'd also check previously returned quantities here for full strictness,
-                // but as a Phase 8 baseline, we ensure it doesn't exceed the initial sale.
-                if (parseFloat(item.quantity) > soldItem.quantity) {
+                if (Number(item.quantity) > soldItem.quantity) {
                     return NextResponse.json({ error: `الكمية المرتجعة للمنتج ${item.productName} تتجاوز الكمية المباعة (${soldItem.quantity})` }, { status: 400 });
                 }
             }
@@ -156,7 +158,6 @@ export async function POST(request: Request) {
 
         return NextResponse.json(ret, { status: 201 });
     } catch (e) { 
-        console.error('Sales return error:', e); 
-        return NextResponse.json({ error: 'فشل في حفظ المرتجع' }, { status: 500 }); 
+        return handleApiError(e); 
     }
 }

@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function GET() {
     try {
-        const installments = await prisma.installment.findMany({ include: { customer: true, payments: true }, orderBy: { id: 'desc' } });
+        const installments = await prisma.installment.findMany({ include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } }, payments: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(installments);
     } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
                 status: 'active',
                 payments: { create: payments },
             },
-            include: { payments: true, customer: true },
+            include: { payments: true, customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } },
         });
         return NextResponse.json(installment, { status: 201 });
     } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }

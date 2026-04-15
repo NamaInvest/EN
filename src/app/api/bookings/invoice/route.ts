@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
         const booking = await prisma.booking.findUnique({
             where: { id: parseInt(bookingId) },
-            include: { customer: true }
+            include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } }
         });
 
         if (!booking) {
