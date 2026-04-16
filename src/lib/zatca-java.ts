@@ -42,6 +42,7 @@ export class ZatcaJavaAdapter {
         const env = { 
             ...process.env, 
             JAVA_HOME: this.javaHome, 
+            FATOORA_HOME: path.dirname(this.sdkPath),
             PATH: `${binPath}${pathSeparator}${process.env.PATH}` 
         };
 
@@ -101,6 +102,7 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
         const env = { 
             ...process.env, 
             JAVA_HOME: this.javaHome, 
+            FATOORA_HOME: path.dirname(this.sdkPath),
             PATH: `${binPath}${pathSeparator}${process.env.PATH}` 
         };
 
@@ -133,6 +135,8 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
         const pemPk = `-----BEGIN EC PRIVATE KEY-----\n${privateKeyBase64}\n-----END EC PRIVATE KEY-----`;
 
         try {
+            await this.initWorkspace();
+            
             // Write payload and inject Tenant cryptographic material into SDK directory
             await fs.writeFile(invoicePath, xmlContent, 'utf8');
             await fs.writeFile(path.join(dataCertsDir, 'cert.pem'), pemCert, 'utf8');
@@ -140,7 +144,7 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
 
             const pathSeparator = os.platform() === 'win32' ? ';' : ':';
             const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-            const env = { ...process.env, JAVA_HOME: this.javaHome, PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
+            const env = { ...process.env, JAVA_HOME: this.javaHome, FATOORA_HOME: path.dirname(this.sdkPath), PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
             
             const exeName = os.platform() === 'win32' ? 'fatoora.bat' : './fatoora';
 
@@ -181,10 +185,11 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
         const timestamp = Date.now();
         const invoicePath = path.join(this.workspace, `validate-${timestamp}.xml`);
         try {
+            await this.initWorkspace();
             await fs.writeFile(invoicePath, xmlContent, 'utf8');
             const pathSeparator = os.platform() === 'win32' ? ';' : ':';
             const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-            const env = { ...process.env, JAVA_HOME: this.javaHome, PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
+            const env = { ...process.env, JAVA_HOME: this.javaHome, FATOORA_HOME: path.dirname(this.sdkPath), PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
             
             const exeName = os.platform() === 'win32' ? 'fatoora.bat' : './fatoora';
             const validateCmd = `${exeName} -validate -invoice "${invoicePath}"`;

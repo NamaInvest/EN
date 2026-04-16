@@ -42,31 +42,53 @@ async function generateZatcaQRData(
 
         if (hasProductionToken || hasComplianceToken) {
             try {
+                // Formatting Private Key correctly for Node.js Crypto
+                let rawKey = settingsDict['zatca_private_key'];
+                let pemKey = rawKey;
+                if (!pemKey.includes('BEGIN')) {
+                    // Try SECP256K1 EC Header
+                    pemKey = `-----BEGIN EC PRIVATE KEY-----\n${rawKey}\n-----END EC PRIVATE KEY-----`;
+                }
+                
+                // Formatting Certificate correctly
+                let certificateData = '';
+                if (hasProductionToken) {
+                    // ZATCA Production tokens are usually double base64 encoded
+                    const certBase64 = settingsDict['zatca_production_token'];
+                    certificateData = Buffer.from(certBase64, 'base64').toString('ascii');
+                } else if (hasComplianceToken) {
+                    const certBase64 = settingsDict['zatca_compliance_token'];
+                    certificateData = Buffer.from(certBase64, 'base64').toString('ascii');
+                }
+                
+                if (!certificateData.includes('BEGIN CERTIFICATE')) {
+                    certificateData = `-----BEGIN CERTIFICATE-----\n${certificateData}\n-----END CERTIFICATE-----`;
+                }
+
                 // Tag 6: Invoice Hash (SHA-256)
                 const invoiceContent = `${invoice.id}|${invoice.invoiceNumber || invoice.id}|${new Date(date).toISOString()}|${total}|${tax}|${taxNumber}`;
                 const invoiceHashBuf = crypto.createHash('sha256').update(invoiceContent).digest();
                 parts.push(tlvEncode(6, invoiceHashBuf));
 
                 // Tag 7: ECDSA Signature
-                const privateKey = settingsDict['zatca_private_key'];
                 const sign = crypto.createSign('SHA256');
                 sign.update(invoiceContent);
-                const signature = sign.sign(privateKey);
+                const signature = sign.sign(pemKey);
                 parts.push(tlvEncode(7, signature));
 
                 // Tag 8: Public Key DER
-                const keyObj = crypto.createPublicKey(privateKey);
+                const keyObj = crypto.createPublicKey(pemKey);
                 const pubKeyDer = keyObj.export({ type: 'spki', format: 'der' });
                 parts.push(tlvEncode(8, pubKeyDer));
 
                 // Tag 9: Certificate Stamp (SHA-256)
-                const certificate = settingsDict['zatca_certificate'];
-                if (certificate) {
-                    const certStamp = crypto.createHash('sha256').update(certificate).digest();
+                if (certificateData) {
+                    const certStamp = crypto.createHash('sha256').update(certificateData).digest();
                     parts.push(tlvEncode(9, certStamp));
                 }
             } catch (e: any) {
                 console.error("Phase 2 Cryptographic QR error:", e.message);
+                // Fallback: Don't break the entire QR generation if Phase 2 Crypto fails
             }
         }
     }

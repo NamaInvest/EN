@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
                     'OTP': otpClean,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ csr: settingCsr.value.replace(/[\r\n\s]/g, '') })
+                body: JSON.stringify({ csr: (settingCsr.value || '').replace(/[\r\n\s]/g, '') })
             });
 
             if (!response.ok) {
@@ -189,9 +189,16 @@ export async function POST(req: NextRequest) {
             const simplCrnXml = generateZATCAXml(simplCrnInvoice);
             const simplDrnXml = generateZATCAXml(simplDrnInvoice);
 
-            const certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('utf8');
-            const pkParsed = (pkSet?.value as string) || '';
+            let certParsed = Buffer.from((tokenSet?.value as string) || '', 'base64').toString('ascii');
+            
+            // If the cert was double base64, decoding it gives the PEM body. If it was already a PEM body, it might look odd, but actually zatca returns pure base64.
+            // Let's strip any PEM headers if they exist by accident, and put them cleanly.
+            certParsed = certParsed.replace(/-----[^-]+-----/g, '').replace(/\r?\n/g, '').trim();
             const certPem = '-----BEGIN CERTIFICATE-----\n' + certParsed + '\n-----END CERTIFICATE-----';
+
+            let pkParsed = (pkSet?.value as string) || '';
+            pkParsed = pkParsed.replace(/-----[^-]+-----/g, '').replace(/\r?\n/g, '').trim();
+            const pkPem = '-----BEGIN EC PRIVATE KEY-----\n' + pkParsed + '\n-----END EC PRIVATE KEY-----';
 
             const signNode = (xml: string) => {
                 const { XMLDocument } = require('zatca-xml-js/lib/parser');
@@ -199,7 +206,7 @@ export async function POST(req: NextRequest) {
                 const res = generateSignedXMLString({
                     invoice_xml: xmlDoc as any,
                     certificate_string: certPem,
-                    private_key_string: pkParsed
+                    private_key_string: pkPem
                 } as any);
                 return { signedXml: (res as any).signed_invoice_string, hash: (res as any).invoice_hash };
             };
