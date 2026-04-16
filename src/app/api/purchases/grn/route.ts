@@ -73,7 +73,7 @@ export async function POST(req: Request) {
                 const accepted = parseFloat(item.acceptedQty) || parseFloat(item.quantity);
                 if (accepted > 0) {
                     const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
-                    totalGrnCost += accepted * (productObj?.buyPrice || productObj?.cost || 0);
+                    totalGrnCost += accepted * (productObj?.buyPrice || productObj?.buyPrice || 0);
 
                     await tx.product.update({
                         where: { id: parseInt(item.productId) },

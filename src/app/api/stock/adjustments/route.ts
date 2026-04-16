@@ -18,7 +18,7 @@ export async function GET(req: Request) {
                 type: { in: ['adjustment', 'adjustment_in', 'adjustment_out'] }
             },
             include: {
-                product: { select: { name: true, sku: true } },
+                product: { select: { name: true, } },
                 user: { select: { fullName: true } }
             },
             orderBy: { date: 'desc' }
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
             });
 
             // Post to Auto Journal
-            const diffCost = diff * (product.buyPrice || product.cost || 0);
+            const diffCost = diff * (product.buyPrice || product.buyPrice || 0);
             if (diffCost !== 0) {
                 try {
                     await postInventoryAdjustment({

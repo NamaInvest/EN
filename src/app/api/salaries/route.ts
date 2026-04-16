@@ -6,7 +6,7 @@ import { handleApiError } from '@/lib/api-handler';
 export async function GET() {
     try {
         const salaries = await prisma.salary.findMany({ 
-            include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } }, 
+            include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, 
             orderBy: { id: 'desc' } 
         });
         return NextResponse.json(salaries);
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
                     netSalary: net,
                     notes: body.notes || null,
                 },
-                include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } },
+                include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             });
 
             // Treasury out - only if net > 0

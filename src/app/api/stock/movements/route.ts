@@ -21,7 +21,7 @@ export async function GET(req: Request) {
                 ...(type ? { type } : {})
             },
             include: {
-                product: { select: { name: true, sku: true } },
+                product: { select: { name: true, } },
                 stock: { select: { name: true } },
                 user: { select: { fullName: true } }
             },

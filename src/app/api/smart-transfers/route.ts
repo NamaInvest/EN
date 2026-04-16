@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
                 movementId: movementId,
                 reference: transferRef,
                 type: 'transit_out',
-                totalCost: (product.cost || 0) * Number(quantity),
+                totalCost: (product.buyPrice || 0) * Number(quantity),
                 productName: product.name,
                 userId: (user as any).id || 1,
             });
@@ -198,7 +198,7 @@ export async function PUT(req: NextRequest) {
                 movementId: tr.id,
                 reference: meta.transferRef,
                 type: 'transit_in',
-                totalCost: (tr.product?.cost || 0) * qty,
+                totalCost: (tr.product?.buyPrice || 0) * qty,
                 productName: tr.product?.name || 'Unknown',
                 userId: (user as any).id || 1,
             });

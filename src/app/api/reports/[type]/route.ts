@@ -29,26 +29,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             case 'sales': {
                 const invoices = await prisma.salesInvoice.findMany({
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
-                    include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } },
+                    include: { customer: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
                 });
                 const totalSales = invoices.reduce((s, i) => s + i.total, 0);
                 const totalTax = invoices.reduce((s, i) => s + i.taxValue, 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المبيعات': totalSales, 'الضريبة': totalTax, 'عدد الفواتير': invoices.length },
-                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'العميل': i.customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
+                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'العميل': (i as any).customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
                 });
             }
             case 'purchases': {
                 const invoices = await prisma.purchaseInvoice.findMany({
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
-                    include: { supplier: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } },
+                    include: { supplier: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
                 });
                 const total = invoices.reduce((s, i) => s + i.total, 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المشتريات': total, 'عدد الفواتير': invoices.length },
-                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'المورد': i.supplier?.name || '-', 'الإجمالي': i.total })),
+                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'المورد': (i as any).supplier?.name || '-', 'الإجمالي': i.total })),
                 });
             }
             case 'stock': {
@@ -121,8 +121,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const hasDayDate = Object.keys(dayDate).length > 0;
                 const dayWhere = { ...(hasDayDate ? { date: dayDate } : {}), ...userFilter, ...branchFilter };
 
-                const sales = await prisma.salesInvoice.findMany({ where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const purchases = await prisma.purchaseInvoice.findMany({ where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const sales = await prisma.salesInvoice.findMany({ where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const purchases = await prisma.purchaseInvoice.findMany({ where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
                 const expenses = await prisma.expense.findMany({ where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
                 const treasury = await prisma.treasury.findMany({ where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
                 const salesReturns = await prisma.salesReturn.findMany({ where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
@@ -146,10 +146,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         'مرتجعات المبيعات': totalSalesReturns,
                         'مرتجعات المشتريات': totalPurchaseReturns,
                     },
-                    sales: sales.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'العميل': i.customer?.name || 'نقدي', 'المستخدم': i.user?.fullName || '-', 'الإجمالي': i.total, 'الدفع': i.paymentType === 'cash' ? 'نقدي' : 'آجل' })),
-                    purchases: purchases.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'المورد': i.supplier?.name || '-', 'المستخدم': i.user?.fullName || '-', 'الإجمالي': i.total })),
-                    expenses: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المستخدم': e.user?.fullName || '-', 'المبلغ': e.amount })),
-                    treasury: treasury.map(t => ({ 'التاريخ': new Date(t.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(t.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'النوع': t.type === 'in' ? 'وارد' : 'صادر', 'الوصف': t.description || '-', 'المستخدم': t.user?.fullName || '-', 'المبلغ': t.amount })),
+                    sales: sales.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'العميل': (i as any).customer?.name || 'نقدي', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total, 'الدفع': i.paymentType === 'cash' ? 'نقدي' : 'آجل' })),
+                    purchases: purchases.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'المورد': (i as any).supplier?.name || '-', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total })),
+                    expenses: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المستخدم': (e as any).user?.fullName || '-', 'المبلغ': e.amount })),
+                    treasury: treasury.map(t => ({ 'التاريخ': new Date(t.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(t.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'النوع': t.type === 'in' ? 'وارد' : 'صادر', 'الوصف': t.description || '-', 'المستخدم': (t as any).user?.fullName || '-', 'المبلغ': t.amount })),
                     salesReturns: salesReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('ar-SA'), 'الإجمالي': r.total })),
                     purchaseReturns: purchaseReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('ar-SA'), 'الإجمالي': r.total })),
                 });
@@ -170,11 +170,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 return NextResponse.json({
                     summary: { 'عدد الحركات': movements.length, 'إدخال': movements.filter(m => m.type === 'in').length, 'إخراج': movements.filter(m => m.type === 'out').length, 'تعديل': movements.filter(m => m.type === 'adjustment').length },
                     data: movements.map(m => ({
-                        'المنتج': m.product?.name || '-',
-                        'المستخدم': m.user?.fullName || '-',
+                        'المنتج': (m as any).product?.name || '-',
+                        'المستخدم': (m as any).user?.fullName || '-',
                         'النوع': typeLabels[m.type] || m.type,
                         'الكمية': m.quantity,
-                        'المخزن': m.stock?.name || '-',
+                        'المخزن': (m as any).stock?.name || '-',
                         'التاريخ': new Date(m.date).toLocaleDateString('ar-SA'),
                         'الوقت': new Date(m.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         'ملاحظات': m.notes || '-',
@@ -225,7 +225,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
                 const invoices = await prisma.salesInvoice.findMany({
                     where,
-                    include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } }, user: { select: { fullName: true } } },
+                    include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } },
                     orderBy: { date: 'desc' },
                     take: 500,
                 });
@@ -234,8 +234,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     summary: { 'عدد الفواتير بتخفيض': invoices.length, 'إجمالي التخفيضات': totalDiscount },
                     data: invoices.map(i => ({
                         '#': i.invoiceNo,
-                        'المستخدم': i.user?.fullName || '-',
-                        'العميل': i.customer?.name || 'نقدي',
+                        'المستخدم': (i as any).user?.fullName || '-',
+                        'العميل': (i as any).customer?.name || 'نقدي',
                         'نسبة التخفيض': `${i.discountRate}%`,
                         'قيمة التخفيض': i.discountValue,
                         'إجمالي الفاتورة': i.total,

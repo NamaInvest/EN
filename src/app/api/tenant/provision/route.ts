@@ -129,7 +129,7 @@ run().catch(console.error).finally(() => prisma.$disconnect());
             conn.on('ready', () => {
 
                 // Step 1: Check domain availability first (synchronous SSH check)
-                conn.exec(`[ -d "${TARGET_DIR}" ] && echo "TAKEN" || echo "FREE"`, (err, stream) => {
+                conn.exec(`[ -d "${TARGET_DIR}" ] && echo "TAKEN" || echo "FREE"`, (err: any, stream: any) => {
                     if (err) {
                         conn.end();
                         return resolve(NextResponse.json({ success: false, message: 'فشل الاتصال بالخادم.' }, { status: 500 }));
@@ -227,7 +227,7 @@ echo "[DONE] Provisioning complete for $DOMAIN on port $NEXT_PORT"
 `;
 
                         const escaped = orchScript.replace(/'/g, "'\\''");
-                        conn.exec(`nohup bash -c '${escaped}' > /tmp/provision_${subdomain}.log 2>&1 &`, (e2) => {
+                        conn.exec(`nohup bash -c '${escaped}' > /tmp/provision_${subdomain}.log 2>&1 &`, (e2: any) => {
                             conn.end();
                             if (e2) {
                                 return resolve(NextResponse.json({ success: false, message: 'فشل إطلاق سكربت التأسيس.' }, { status: 500 }));

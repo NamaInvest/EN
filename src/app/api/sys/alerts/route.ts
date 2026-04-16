@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     const alerts = await prisma.systemAlert.findMany({
       where: {
-        userId: parseInt(session.user?.id as string) || 1
+        userId: parseInt((auth as any).id) || 1
       },
       orderBy: { createdAt: 'desc' },
       take: 50

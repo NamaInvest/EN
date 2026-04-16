@@ -12,7 +12,7 @@ export function handleApiError(error: unknown) {
   
   // Zod Validation Errors
   if (error instanceof ZodError) {
-    const errorMessages = error.errors.map((issue) => `${issue.message}`).join(', ');
+    const errorMessages = (error as any).errors.map((issue: any) => `${issue.message}`).join(', ');
     return NextResponse.json({ error: `الرجاء التحقق من صحة البيانات: ${errorMessages}` }, { status: 400 });
   }
 

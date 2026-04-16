@@ -1,13 +1,17 @@
-﻿'use client';
+'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
- * SessionGuard â€” checks session validity every 30 seconds.
+ * SessionGuard — checks session validity every 30 seconds.
  * If user logged in on another device, this detects it and forces logout.
  */
+
+import { useTranslation } from '@/lib/i18n';
+
 export default function SessionGuard() {
+    const { t } = useTranslation();
     const router = useRouter();
 
     useEffect(() => {
