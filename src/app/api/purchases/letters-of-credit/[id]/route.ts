@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const allowed = await hasPermission(auth.userId, 'purchases');
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         const body = await request.json();
 
         const lc = await prisma.letterOfCredit.update({
@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -49,7 +49,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         const allowed = await hasPermission(auth.userId, 'purchases');
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         await prisma.letterOfCredit.delete({ where: { id } });
 
         return NextResponse.json({ success: true });

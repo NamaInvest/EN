@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { salesReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET() {
     try {
@@ -12,11 +13,14 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        // Securely extract user from authenticated token
+        const auth = getUserFromRequest(request as any);
+        const userId = auth?.userId || null;
+        
         const rawBody = await request.json();
         // Zod validation + strip mass-assignment fields
         const body = salesReturnCreateSchema.parse(rawBody);
 
-        const userId = body.userId ? Number(body.userId) : null;
         let branchId = body.branchId ? Number(body.branchId) : null;
         
         if (!branchId && userId) {

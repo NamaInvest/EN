@@ -4,13 +4,13 @@ import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const orderId = parseInt(params.id);
+        const orderId = parseInt((await params).id);
         // @ts-ignore - VSCode lock bypass
         const costs = await prisma.landedCost.findMany({
             where: { purchaseOrderId: orderId },
@@ -26,7 +26,7 @@ export async function GET(
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const auth = getUserFromRequest(request);
@@ -35,7 +35,7 @@ export async function POST(
         const allowed = await hasPermission(auth.userId, 'purchases');
         if (!allowed && auth.role !== 'admin') return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
-        const orderId = parseInt(params.id);
+        const orderId = parseInt((await params).id);
         const body = await request.json();
         
         const order = await prisma.purchaseOrder.findUnique({

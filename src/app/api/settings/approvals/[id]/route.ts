@@ -2,12 +2,12 @@ import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         const data = await request.json();
         
         const updated = await prisma.approvalRule.update({
@@ -30,12 +30,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         await prisma.approvalRule.delete({ where: { id } });
         
         return NextResponse.json({ success: true });

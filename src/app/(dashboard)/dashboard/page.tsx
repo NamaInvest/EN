@@ -127,7 +127,7 @@ export default function DashboardPage() {
         treasuryBalance: 0, totalCustomers: 0, salesChart: [], topProducts: [], recentInvoices: []
     };
 
-    const dateLocale = lang === 'ar' || lang === 'ur' ? 'ar-SA' : lang === 'hi' ? 'hi-IN' : lang === 'bn' ? 'bn-BD' : 'en-US';
+    const dateLocale = lang === 'ar' || false ? 'ar-SA' : false ? 'hi-IN' : false ? 'bn-BD' : 'en-US';
 
     return (
         <>

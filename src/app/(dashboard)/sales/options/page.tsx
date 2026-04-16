@@ -28,7 +28,7 @@ export default function SalesOptionsPage() {
     const [allowAddProduct, setAllowAddProduct] = useState(true);
     const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
     const [masterPrinter, setMasterPrinter] = useState('');
-    const [kitchenPrinters, setKitchenPrinters] = useState<QZPrinterConfig[]>([]);
+    const [kitchenPrinters, setKitchenPrinters] = useState<any[]>([]);
     const [categories, setCategories] = useState<{id:number, name:string}[]>([]);
     
     // Toasts

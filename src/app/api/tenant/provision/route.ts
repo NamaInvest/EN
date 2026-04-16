@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Client } from 'ssh2';
+// import { Client } from 'ssh2';
 
 const SSH_HOST = '46.4.188.170';
 const SSH_USER = 'root';
@@ -20,6 +20,8 @@ async function translateArToEn(text: string): Promise<string> {
 }
 
 export async function POST(req: Request) {
+    const mod = 'ss' + 'h2';
+    const { Client } = require(mod);
     try {
         const body = await req.json();
         const {

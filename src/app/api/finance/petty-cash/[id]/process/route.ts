@@ -13,7 +13,7 @@ export async function PUT(
         if (!(await hasPermission(auth.userId, 'treasury'))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const params = 'then' in context.params ? await context.params : context.params;
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
 
         const body = await request.json();
         const { status, settlementAmount } = body; 
@@ -37,7 +37,7 @@ export async function PUT(
         if (pc.status === 'PENDING' && status === 'DISBURSED') {
             debitAccount = '1230'; // سلف أو عهد موظفين (Employee Advances/Petty Cash Asset)
             creditAccount = '1110'; // الصندوق (Cash in safe)
-            description = `صرف عهدة للموظف ${pc.employee.name} رقم ${pc.id}`;
+            description = `صرف عهدة للموظف ${pc.employeeId.name} رقم ${pc.id}`;
         } 
         // Settling the petty cash (employee brings receipts)
         else if (pc.status === 'DISBURSED' && status === 'SETTLED') {
@@ -47,7 +47,7 @@ export async function PUT(
 
             debitAccount = '5200'; // مصروف (Simplification, usually you map expenses)
             creditAccount = '1230'; // عهد موظفين
-            description = `تصفية عهدة موظف ${pc.employee.name} وإقفال الباقی للصندوق`;
+            description = `تصفية عهدة موظف ${pc.employeeId.name} وإقفال الباقی للصندوق`;
             // Advanced: If difference > 0, cash is returned.
             // But we keep it simple for now and just journal the initial amount out of employee account.
             // If they spent less, they return cash. If they spent more, we owe them.

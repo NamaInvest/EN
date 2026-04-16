@@ -12,7 +12,7 @@ export async function PUT(
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const params = 'then' in context.params ? await context.params : context.params;
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
 
         const { action } = await request.json();
 

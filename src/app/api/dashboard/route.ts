@@ -33,9 +33,17 @@ export async function GET(request: NextRequest) {
             ? { date: { gte: today, lt: tomorrow }, status: 'completed' as const }
             : { date: { gte: today, lt: tomorrow }, status: 'completed' as const, userId };
 
-        const [todaySalesAgg, todayPurchasesAgg, todayExpensesAgg, totalProducts, treasuryIn, treasuryOut, totalCustomers, recentInvoices] = await Promise.all([
+        const returnsWhere = isAdmin
+            ? { date: { gte: today, lt: tomorrow } }
+            : { date: { gte: today, lt: tomorrow }, userId };
+
+        const [todaySalesAgg, todayReturnsAgg, todayPurchasesAgg, todayExpensesAgg, totalProducts, treasuryIn, treasuryOut, totalCustomers, recentInvoices] = await Promise.all([
             prisma.salesInvoice.aggregate({
                 where: salesWhere,
+                _sum: { total: true },
+            }),
+            prisma.salesReturn.aggregate({
+                where: returnsWhere,
                 _sum: { total: true },
             }),
             prisma.purchaseInvoice.aggregate({
@@ -57,10 +65,13 @@ export async function GET(request: NextRequest) {
             }),
         ]);
 
-        const todaySales = todaySalesAgg._sum.total || 0;
+        const todaySalesRaw = todaySalesAgg._sum.total || 0;
+        const todayReturns = todayReturnsAgg._sum.total || 0;
+        const todaySales = Math.max(0, todaySalesRaw - todayReturns);
+        
         const todayPurchases = todayPurchasesAgg._sum.total || 0;
         const todayExpenses = todayExpensesAgg._sum.amount || 0;
-        const todayProfit = todaySales - todayPurchases - todayExpenses;
+        const todayProfit = todaySalesRaw - todayReturns - todayPurchases - todayExpenses;
         const treasuryBalance = (treasuryIn._sum.amount || 0) - (treasuryOut._sum.amount || 0);
 
         // Sales chart (last 7 days)

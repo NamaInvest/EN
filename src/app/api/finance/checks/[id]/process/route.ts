@@ -14,7 +14,7 @@ export async function PUT(
 
         // Await params correctly for Next.js 15
         const params = 'then' in context.params ? await context.params : context.params;
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
 
         const body = await request.json();
         const { status } = body; // UNDER_COLLECTION, CLEARED, BOUNCED

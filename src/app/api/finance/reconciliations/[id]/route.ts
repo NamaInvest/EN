@@ -12,7 +12,7 @@ export async function PUT(
         if (!(await hasPermission(auth.userId, 'treasury'))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const params = 'then' in context.params ? await context.params : context.params;
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
 
         const body = await request.json();
         const { reconciledLineIds } = body; 

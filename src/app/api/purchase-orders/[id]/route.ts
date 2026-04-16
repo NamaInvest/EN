@@ -4,10 +4,10 @@ import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         const order = await prisma.purchaseOrder.findUnique({
             where: { id },
             // @ts-ignore - VSCode lock bypass
