@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   allowedDevOrigins: ['http://192.168.1.21:3000', 'http://localhost:3000', 'http://188.55.192.62:3000'],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   serverExternalPackages: ['ssh2'],
   images: {

@@ -12,9 +12,9 @@ async function main() {
             const https = require('https');
             const req = https.request(`https://generativelanguage.googleapis.com/v1beta/models?key=${setting.value}`, {
                 method: 'GET'
-            }, (res) => {
+            }, (res: any) => {
                 let data = '';
-                res.on('data', chunk => data += chunk);
+                res.on('data', (chunk: any) => data += chunk);
                 res.on('end', () => {
                     console.log(`\nGoogle API Verification for this key:\nStatus: ${res.statusCode}`);
                     const json = JSON.parse(data);

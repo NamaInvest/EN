@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
         // Find all SalesOrders flagged as Recurring with a due date passing NOW
         const activeContracts = await prisma.salesOrder.findMany({
             where: { status: { startsWith: 'RECURRING_' } },
-            include: { details: true, customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } }
+            include: { details: true, customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
         const today = new Date();

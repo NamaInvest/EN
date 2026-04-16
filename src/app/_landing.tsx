@@ -420,7 +420,7 @@ export default function LandingPage() {
       </section>
 
       {/* MODULES (Client Component — only this part needs JS for filter) */}
-      <ModuleFilter modules={MODULES_DATA} categories={CATEGORIES} />
+      <ModuleFilter modules={MODULES_DATA as any} categories={CATEGORIES as any} />
 
       {/* FINAL CTA */}
       <section style={S.ctaSection}>

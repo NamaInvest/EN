@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
         const booking = await prisma.booking.findUnique({
             where: { id: parseInt(bookingId) },
-            include: { customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } }
+            include: { customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
         if (!booking) {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
                 total: newInvoice.total,
                 paymentType: 'cash',
                 userId: newInvoice.userId || undefined,
-                branchId: booking.branchId || null
+                branchId: 1
             });
         } catch (je) {
             console.error("Auto Journal Error (Bookings - Invoice Conversion):", je);

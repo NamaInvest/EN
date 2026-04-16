@@ -32,7 +32,7 @@ export async function GET(request: Request) {
                         { lgNumber: { contains: search, mode: 'insensitive' } }
                     ]
                 },
-                include: { bank: { select: { name: true, currency: true } } },
+                include: { bank: { select: { bankName: true, currency: true } } },
                 orderBy: { expiryDate: 'asc' },
             });
         }
@@ -105,7 +105,8 @@ export async function PUT(request: Request) {
                         amount: note.amount,
                         dueDate: note.dueDate,
                         type: 'RECEIVABLE',
-                        status: 'PENDING' // Treasury will clear it when banked
+                        status: 'PENDING', // Treasury will clear it when banked
+                        bankName: 'System'
                     }
                 });
             }

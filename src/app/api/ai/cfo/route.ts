@@ -28,8 +28,8 @@ export async function POST(req: Request) {
     const today = new Date();
     today.setHours(0,0,0,0);
     const todaySales = await prisma.salesInvoice.aggregate({
-      where: { createdAt: { gte: today } },
-      _sum: { finalTotal: true }
+      where: { date: { gte: today } },
+      _sum: { total: true }
     });
 
     const systemContext = `
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       
       Here is the LIVE real-time snapshot of the company's Database Operations:
       - Total Invoices Generated Globally: ${salesCount}
-      - Today's Sales Revenue (SAR): Mismatched calculation / or ${todaySales._sum.finalTotal || 0}
+      - Today's Sales Revenue (SAR): Mismatched calculation / or ${todaySales._sum?.total || 0}
       - Real Estate: ${activeLeases} Active Leases, ${expiredLeases} Expired (Needs Renewal Follow-up!).
       - Supply Chain & Fleet: ${totalVehicles} Vehicles in fleet. ${activeTrips} Trips currently active on the road.
       - HR: ${totalEmployees} active employees currently drawing salaries.
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     // 2. Also return the raw metrics for the React frontend to chart them!
     return NextResponse.json({ 
         answer: responseText, 
-        metrics: { salesCount, todaySales: todaySales._sum.finalTotal || 0, activeLeases, expiredLeases, activeTrips, totalEmployees, totalStudents } 
+        metrics: { salesCount, todaySales: todaySales._sum?.total || 0, activeLeases, expiredLeases, activeTrips, totalEmployees, totalStudents } 
     });
   } catch (error: any) {
     console.error('AI CFO Error:', error);

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
                 bankId: parseInt(body.bankId),
                 supplierId: parseInt(body.supplierId),
                 amount: parseFloat(body.amount),
-                currency: body.currency || 'USD',
+                currencyId: body.currencyId ? parseInt(body.currencyId) : 1,
                 exchangeRate: parseFloat(body.exchangeRate) || 3.75,
                 openDate: body.openDate ? new Date(body.openDate) : new Date(),
                 expiryDate: new Date(body.expiryDate),

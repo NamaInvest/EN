@@ -87,26 +87,26 @@ export default function SalesTargetsPage() {
             </div>
 
             <div className="grid-3" style={{ marginTop: '20px' }}>
-                {loading ? <div style={{ padding: '20px' }}>{t('sales.str_2472')}</div> : targets.length === 0 ? <div style={{ padding: '20px', color: 'var(--text-muted)' }}>{t('sales.str_2473')}</div> : targets.map(t => {
-                    const isSuper = t.achievementPct >= 100;
-                    const isMid = t.achievementPct >= 50 && t.achievementPct < 100;
+                {loading ? <div style={{ padding: '20px' }}>{t('sales.str_2472')}</div> : targets.length === 0 ? <div style={{ padding: '20px', color: 'var(--text-muted)' }}>{t('sales.str_2473')}</div> : targets.map((target: any) => {
+                    const isSuper = target.achievementPct >= 100;
+                    const isMid = target.achievementPct >= 50 && target.achievementPct < 100;
                     const color = isSuper ? '#10b981' : isMid ? '#f59e0b' : '#ef4444';
                     
                     return (
-                        <div key={t.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div key={target.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h3>{t.employee.name}</h3>
+                                <h3>{target.employee.name}</h3>
                                 {isSuper && <span title={t('sales.str_2483')} style={{ fontSize: '20px' }}>⭐</span>}
                             </div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '13px' }}>
-                                <span>{t('sales.str_2474')}<strong>{fmt(t.targetAmount)}</strong></span>
-                                <span>{t('sales.str_2475')}<strong style={{color: 'var(--text)'}}>{fmt(t.actualAmount)}</strong></span>
+                                <span>{t('sales.str_2474')}<strong>{fmt(target.targetAmount)}</strong></span>
+                                <span>{t('sales.str_2475')}<strong style={{color: 'var(--text)'}}>{fmt(target.actualAmount)}</strong></span>
                             </div>
                             
                             <div style={{ width: '100%', backgroundColor: 'var(--border)', height: '12px', borderRadius: '6px', overflow: 'hidden' }}>
                                 <div style={{
-                                    width: `${Math.min(t.achievementPct, 100)}%`,
+                                    width: `${Math.min(target.achievementPct, 100)}%`,
                                     height: '100%',
                                     backgroundColor: color,
                                     transition: 'width 1s ease-in-out'
@@ -114,9 +114,9 @@ export default function SalesTargetsPage() {
                             </div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-                                <span style={{ fontWeight: 'bold', color: color }}>{t.achievementPct.toFixed(1)}{t('sales.str_2476')}</span>
+                                <span style={{ fontWeight: 'bold', color: color }}>{target.achievementPct.toFixed(1)}{t('sales.str_2476')}</span>
                                 <span style={{ fontSize: '12px', backgroundColor: 'var(--bg)', padding: '2px 6px', borderRadius: '4px' }}>
-                                    {t('sales.str_2477')}<strong style={{ color: '#10b981' }}>{isSuper ? fmt(t.actualAmount * 0.05) : isMid ? fmt(t.actualAmount * 0.02) : '0'} {t('sys.str_68')}</strong>
+                                    {t('sales.str_2477')}<strong style={{ color: '#10b981' }}>{isSuper ? fmt(target.actualAmount * 0.05) : isMid ? fmt(target.actualAmount * 0.02) : '0'} {t('sys.str_68')}</strong>
                                 </span>
                             </div>
                         </div>

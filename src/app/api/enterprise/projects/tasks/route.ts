@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
         const tasks = await prisma.projectTask.findMany({
             where: { projectId: parseInt(projectId) },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { id: 'asc' },
         });
 
         // Calculate Project Total rollup
@@ -36,13 +36,9 @@ export async function POST(request: Request) {
         const task = await prisma.projectTask.create({
             data: {
                 projectId: parseInt(data.projectId),
-                taskName: data.taskName,
+                name: data.taskName,
                 description: data.description,
-                assignedTo: data.assignedTo,
-                budget: parseFloat(data.budget) || 0,
-                actualCost: parseFloat(data.actualCost) || 0,
-                startDate: data.startDate ? new Date(data.startDate) : undefined,
-                endDate: data.endDate ? new Date(data.endDate) : undefined,
+                cost: parseFloat(data.actualCost) || 0,
                 status: data.status || 'PENDING'
             }
         });
@@ -63,9 +59,9 @@ export async function PUT(request: Request) {
         const updatedTask = await prisma.projectTask.update({
             where: { id: parseInt(data.id) },
             data: {
-                actualCost: data.actualCost ? parseFloat(data.actualCost) : undefined,
+                cost: data.actualCost ? parseFloat(data.actualCost) : undefined,
                 status: data.status,
-                assignedTo: data.assignedTo
+                // assignedTo: data.assignedTo
             }
         });
 

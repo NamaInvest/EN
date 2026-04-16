@@ -227,6 +227,17 @@ export default function CompanyInfoPage() {
                         {t('sys.str_4400')} <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '400' }}>(ZATCA Branch Data)</span>
                     </h3>
                     <div className="grid-2">
+                        <div className="input-group">
+                            <label className="input-label">{t('sys.str_4435')}</label>
+                            <select className="input" value={settings['zatca_environment'] || 'simulation'} onChange={e => set('zatca_environment', e.target.value)} style={inputStyle('zatca_environment')}>
+                                <option value="simulation">{t('sys.str_4342') || 'مرحلة المحاكاة (Simulation)'}</option>
+                                <option value="production">{t('sys.str_4343') || 'مرحلة الإنتاج (Production)'}</option>
+                            </select>
+                        </div>
+                        <div className="input-group">
+                            <label className="input-label">{t('sys.str_4436')}</label>
+                            <input className="input" type="text" value={settings['zatca_otp'] || ''} onChange={e => set('zatca_otp', e.target.value)} style={inputStyle('zatca_otp')} />
+                        </div>
                         {[
                             { key: 'zatca_crn', label: t('sys.str_4401') },
                             { key: 'zatca_industry', label: t('sys.str_4402') },

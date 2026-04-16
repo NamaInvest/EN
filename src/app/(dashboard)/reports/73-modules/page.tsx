@@ -163,10 +163,10 @@ export default function AllModulesDashboard() {
       Target, Undo, Repeat, FileQuestion, FileEdit, Inbox, Receipt, ShoppingBag,
       Download, RefreshCcw, Settings, Package, Building, BellRing, Database,
       Activity, Layers, CheckSquare, Camera, Barcode, Hourglass, Hash, Monitor,
-      GitMerge, Users, DollarSign, CalendarDays, CreditCard: CreditCard,
+      GitMerge, Users, DollarSign, CalendarDays,
       BookOpen, Star, Cpu, UserCheck, Award, Megaphone, Gift, Link, Calendar,
       TrendingUp, Eye, Network, Zap, Factory, Wrench, CheckCircle, Book,
-      Home, MessageCircle, BarChart3, Ticket: Ticket
+      Home, MessageCircle, BarChart3
     };
     const SelectedIcon = Icons[iconName] || Settings;
     return <SelectedIcon size={20} />;

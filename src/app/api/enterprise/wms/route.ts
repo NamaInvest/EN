@@ -14,7 +14,6 @@ export async function GET(request: Request) {
             where: {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },
-                    { code: { contains: search, mode: 'insensitive' } }
                 ]
             },
             include: {

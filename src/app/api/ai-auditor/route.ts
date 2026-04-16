@@ -17,12 +17,12 @@ export async function GET(req: NextRequest) {
         // Fetch today's transactions
         const sales = await prisma.salesInvoice.findMany({
             where: { date: { gte: today } },
-            include: { details: true, customer: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } }
+            include: { details: true, customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
         const purchases = await prisma.purchaseInvoice.findMany({
             where: { date: { gte: today } },
-            include: { details: true, supplier: { select: { id: true, name: true, phone: true, email: true, vatNumber: true } } }
+            include: { details: true, supplier: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
         const expenses = await prisma.expense.findMany({

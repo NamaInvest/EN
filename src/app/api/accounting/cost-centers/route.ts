@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth'; // Adjust based on your auth pattern
+import { getUserFromRequest } from '@/lib/auth'; // Adjust based on your auth pattern
 
 const prisma = new PrismaClient();
 

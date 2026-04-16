@@ -215,7 +215,7 @@ export default function SalesOptionsPage() {
                                                 <input type="checkbox" checked={printer.targetCategories.includes(cat.id)} onChange={e => {
                                                     const updated = [...kitchenPrinters];
                                                     if(e.target.checked) updated[index].targetCategories.push(cat.id);
-                                                    else updated[index].targetCategories = updated[index].targetCategories.filter(id => id !== cat.id);
+                                                    else updated[index].targetCategories = updated[index].targetCategories.filter((id: any) => id !== cat.id);
                                                     setKitchenPrinters(updated);
                                                 }} />
                                                 {cat.name}

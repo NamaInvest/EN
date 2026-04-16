@@ -23,7 +23,7 @@ export async function PUT(
         }
 
         // @ts-ignore
-        const pc = await prisma.pettyCashTransaction.findUnique({ where: { id }, include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } } });
+        const pc: any = await prisma.pettyCashTransaction.findUnique({ where: { id }, include: { employee: { select: { id: true, name: true, position: true, department: true, phone: true } } } });
         if (!pc) return NextResponse.json({ error: 'العهدة غير موجودة' }, { status: 404 });
 
         let updateData: any = { status };
@@ -37,7 +37,7 @@ export async function PUT(
         if (pc.status === 'PENDING' && status === 'DISBURSED') {
             debitAccount = '1230'; // سلف أو عهد موظفين (Employee Advances/Petty Cash Asset)
             creditAccount = '1110'; // الصندوق (Cash in safe)
-            description = `صرف عهدة للموظف ${pc.employeeId.name} رقم ${pc.id}`;
+            description = `صرف عهدة للموظف ${pc.employee.name} رقم ${pc.id}`;
         } 
         // Settling the petty cash (employee brings receipts)
         else if (pc.status === 'DISBURSED' && status === 'SETTLED') {
@@ -47,7 +47,7 @@ export async function PUT(
 
             debitAccount = '5200'; // مصروف (Simplification, usually you map expenses)
             creditAccount = '1230'; // عهد موظفين
-            description = `تصفية عهدة موظف ${pc.employeeId.name} وإقفال الباقی للصندوق`;
+            description = `تصفية عهدة موظف ${pc.employee.name} وإقفال الباقی للصندوق`;
             // Advanced: If difference > 0, cash is returned.
             // But we keep it simple for now and just journal the initial amount out of employee account.
             // If they spent less, they return cash. If they spent more, we owe them.

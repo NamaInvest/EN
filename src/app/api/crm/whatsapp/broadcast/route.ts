@@ -28,14 +28,14 @@ export async function POST(request: Request) {
         let targetPhones = [];
         try {
             const customers = await prisma.customer.findMany({
-                where: { phone: { not: null, not: "" } },
+                where: { phone: { not: null } },
                 select: { phone: true, name: true }
             });
             targetPhones = customers.map(c => ({ phone: c.phone, name: c.name }));
         } catch (e) {
             // Fallback to Users table if customer table is isolated
             const users = await prisma.user.findMany({
-                where: { phone: { not: null, not: "" } },
+                where: { phone: { not: null } },
                 select: { phone: true, fullName: true }
             });
             targetPhones = users.map(u => ({ phone: u.phone, name: u.fullName }));
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
         // Broadcast Loop
         for (const target of targetPhones) {
-            let formattedPhone = target.phone.replace(/\\D/g, ''); 
+            let formattedPhone = (target.phone ?? '').replace(/\\D/g, ''); 
             if (formattedPhone.startsWith('05')) formattedPhone = '966' + formattedPhone.substring(1);
             else if (formattedPhone.startsWith('5')) formattedPhone = '966' + formattedPhone;
 

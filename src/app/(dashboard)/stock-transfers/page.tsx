@@ -26,18 +26,18 @@ export default function StockTransfersPage() {
             <div className="card">
                 {loading ? <div className="empty-state"><div className="empty-state-text">{t('sys.str_168')}</div></div> :
                     transfers.length === 0 ? <div className="empty-state"><div className="empty-state-icon">🔀</div><div className="empty-state-text">{t('stock.str_1455')}</div></div> :
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{transfers.map(t => (
-                            <div key={t.id} className="card" style={{ padding: '12px', cursor: 'pointer' }} onClick={() => setExpanded(expanded === t.id ? null : t.id)}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{transfers.map((tr: any) => (
+                            <div key={tr.id} className="card" style={{ padding: '12px', cursor: 'pointer' }} onClick={() => setExpanded(expanded === tr.id ? null : tr.id)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>#{t.transferNo}</span>
-                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(t.date).toLocaleDateString('ar-SA')}</span>
-                                    <span style={{ fontSize: '12px' }}>{getStockName(t.fromStockId)} ← {getStockName(t.toStockId)}</span>
+                                    <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>#{tr.transferNo}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(tr.date).toLocaleDateString('ar-SA')}</span>
+                                    <span style={{ fontSize: '12px' }}>{getStockName(tr.fromStockId)} ← {getStockName(tr.toStockId)}</span>
                                     <div className="toolbar-spacer" />
-                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.details?.length || 0} {t('stock.str_1456')}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{tr.details?.length || 0} {t('stock.str_1456')}</span>
                                 </div>
-                                {expanded === t.id && t.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
+                                {expanded === tr.id && tr.details && <table style={{ width: '100%', marginTop: '10px', borderCollapse: 'collapse' }}>
                                     <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>{t('sys.str_63')}</th><th style={{ padding: '6px', textAlign: 'center' }}>{t('sys.str_64')}</th></tr></thead>
-                                    <tbody>{t.details.map((d, i) => <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}><td style={{ padding: '6px', fontSize: '12px' }}>{d.productName}</td><td style={{ padding: '6px', textAlign: 'center', fontFamily: 'monospace' }}>{d.quantity}</td></tr>)}</tbody>
+                                    <tbody>{tr.details.map((d: any, i: number) => <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}><td style={{ padding: '6px', fontSize: '12px' }}>{d.productName}</td><td style={{ padding: '6px', textAlign: 'center', fontFamily: 'monospace' }}>{d.quantity}</td></tr>)}</tbody>
                                 </table>}
                             </div>
                         ))}</div>}
