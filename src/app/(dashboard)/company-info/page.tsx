@@ -19,6 +19,11 @@ export default function CompanyInfoPage() {
     const [toast, setToast] = useState('');
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [uploadingLogo, setUploadingLogo] = useState(false);
+    
+    // Fatoora States
+    const [fatooraStep, setFatooraStep] = useState(0);
+    const [fatooraLoading, setFatooraLoading] = useState(false);
+    const [fatooraMessage, setFatooraMessage] = useState('');
 
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
@@ -35,6 +40,21 @@ export default function CompanyInfoPage() {
                     setOriginal(map);
                     if (map['company_logo']) setLogoPreview(map['company_logo']);
                 }
+
+                // Check ZATCA connection status
+                try {
+                    const zatcaRes = await fetch('/api/zatca?type=status', { headers: { Authorization: `Bearer ${token}` } });
+                    if (zatcaRes.ok) {
+                        const zatcaStatus = await zatcaRes.json();
+                        if (zatcaStatus.status === 'connected' || zatcaStatus.has_production_csid) {
+                            setFatooraStep(3);
+                        } else if (zatcaStatus.status === 'compliance_passed') {
+                            setFatooraStep(2);
+                        } else if (zatcaStatus.status === 'compliance_csid') {
+                            setFatooraStep(1);
+                        }
+                    }
+                } catch { }
             } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
             finally { setLoading(false); }
         };
@@ -95,6 +115,37 @@ export default function CompanyInfoPage() {
             } else { showToast('❌ فشل رفع الشعار'); }
         } catch { showToast('❌ خطأ في الرفع'); }
         finally { setUploadingLogo(false); e.target.value = ''; }
+    };
+
+    const handleFatooraAction = async (action: string) => {
+        setFatooraLoading(true);
+        setFatooraMessage('');
+        try {
+            const token = localStorage.getItem('token');
+            const bodyData: any = { action };
+            if (action === 'compliance-csid') {
+                const otp = settings['zatca_otp'] || '';
+                if (!otp) { showToast(t('sys.str_4534') || 'OTP مطلوب'); setFatooraLoading(false); return; }
+                bodyData.otp = otp;
+            }
+            const res = await fetch('/api/zatca', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(bodyData),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setFatooraMessage(data.message);
+                showToast(data.message);
+                if (action === 'compliance-csid') setFatooraStep(1);
+                if (action === 'compliance-invoice') setFatooraStep(2);
+                if (action === 'production-csid') setFatooraStep(3);
+            } else {
+                setFatooraMessage(`❌ ${data.error || data.message}`);
+                showToast(`❌ ${data.error || data.message}`);
+            }
+        } catch (err) { setFatooraMessage('❌ خطأ في الاتصال'); }
+        finally { setFatooraLoading(false); }
     };
 
     const handleLogoDelete = async () => {
@@ -219,6 +270,46 @@ export default function CompanyInfoPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* ── المعالج (ZATCA Wizard) ──────────── */}
+                <div className="card" style={{ marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderRadius: '10px', marginBottom: '16px', background: fatooraStep >= 3 ? 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))' : 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))', border: `2px solid ${fatooraStep >= 3 ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)'}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', background: fatooraStep >= 3 ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)', boxShadow: fatooraStep >= 3 ? '0 0 20px rgba(34,197,94,0.4)' : '0 0 20px rgba(239,68,68,0.4)' }}>
+                                {fatooraStep >= 3 ? '🟢' : '🔴'}
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: '700', fontSize: '16px' }}>{fatooraStep >= 3 ? t('sys.str_4552') : t('sys.str_4553')}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{fatooraStep >= 3 ? t('sys.str_4554') : t('sys.str_4555')}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[
+                            { step: 1, label: t('sys.str_4556'), action: 'compliance-csid' },
+                            { step: 2, label: t('sys.str_4557'), action: 'compliance-invoice' },
+                            { step: 3, label: t('sys.str_4558'), action: 'production-csid' },
+                        ].map(s => (
+                            <div key={s.step} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: fatooraStep >= s.step ? 'rgba(34,197,94,0.08)' : 'var(--bg-card)', border: `1px solid ${fatooraStep >= s.step ? 'var(--success-light)' : 'var(--border)'}` }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', background: fatooraStep >= s.step ? 'var(--success-light)' : 'var(--bg-card-hover)', color: fatooraStep >= s.step ? '#fff' : 'var(--text-muted)' }}>
+                                    {fatooraStep >= s.step ? '✓' : s.step}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: '600', fontSize: '13px' }}>{s.label}</div>
+                                </div>
+                                <button className={`btn btn-sm ${fatooraStep >= s.step ? 'btn-success' : 'btn-primary'}`} onClick={() => handleFatooraAction(s.action)} disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)} style={{ minWidth: '80px' }}>
+                                    {fatooraLoading ? '⏳' : (fatooraStep >= s.step ? t('sys.str_4559') : t('sys.str_4560'))}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    {fatooraMessage && (
+                        <div style={{ marginTop: '12px', padding: '10px', borderRadius: '8px', background: fatooraMessage.includes('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', fontSize: '13px', fontWeight: '600' }}>
+                            {fatooraMessage}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── 3. بيانات منصة فاتورة المتقدمة (ZATCA) ──────────── */}

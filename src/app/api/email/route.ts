@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/email';
+
+export async function POST(request: NextRequest) {
+    try {
+        const auth = getUserFromRequest(request);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
+        const allowed = await hasPermission(auth.userId, 'manage_users');
+        if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
+        const body = await request.json();
+        const { type, to, ...data } = body;
+
+        let emailData: { subject: string; html: string } | null = null;
+
+        if (type === 'welcome') {
+            emailData = welcomeEmailTemplate(data.fullName, data.username, data.password, data.systemUrl || process.env.NEXTAUTH_URL || 'https://namainvist.com');
+        } else if (type === 'password-reset') {
+            emailData = passwordResetTemplate(data.fullName, data.newPassword);
+        } else if (type === 'custom') {
+            emailData = { subject: data.subject, html: data.html };
+        } else {
+            return NextResponse.json({ error: 'نوع البريد غير صحيح' }, { status: 400 });
+        }
+
+        const success = await sendEmail({ to, ...emailData });
+
+        if (success) {
+            return NextResponse.json({ success: true, message: `✅ تم إرسال البريد إلى ${to}` });
+        } else {
+            return NextResponse.json({ error: 'فشل إرسال البريد الإلكتروني' }, { status: 500 });
+        }
+    } catch (err: any) {
+        console.error('[API Email]', err);
+        return NextResponse.json({ error: err.message || 'حدث خطأ' }, { status: 500 });
+    }
+}
+
+// Test endpoint (GET)
+export async function GET(request: NextRequest) {
+    try {
+        const auth = getUserFromRequest(request);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
+        const { sendEmail } = await import('@/lib/email');
+        const success = await sendEmail({
+            to: process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com',
+            subject: '✅ اختبار البريد الإلكتروني - نما انفست',
+            html: '<div dir="rtl" style="font-family:Arial;padding:20px"><h2>🎉 نجح الاختبار!</h2><p>تم ربط ZeptoMail بنجاح مع نظام نما انفست.</p></div>',
+        });
+
+        return NextResponse.json({ success, message: success ? '✅ تم إرسال بريد الاختبار بنجاح!' : '❌ فشل إرسال البريد' });
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
