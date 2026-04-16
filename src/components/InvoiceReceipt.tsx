@@ -148,16 +148,12 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         'A5':   { width: '148mm', padding: '10mm', fontSize: '13px', companySize: '20px', qrSize: '140px', windowWidth: 580 },
     };
 
-    const handlePrint = useCallback(() => {
+    const handlePrint = useCallback((forceSystemDialog: boolean = false) => {
         const ps = paperSizes[printerType] || paperSizes['80mm'];
         const windowTitle = isQuote ? t('sys.str_79') : (['A4', 'A5'].includes(printerType) ? t('sys.str_80') : t('sys.str_81'));
-        const printWindow = window.open('', '_blank', `width=${ps.windowWidth},height=600`);
-        if (!printWindow || !receiptRef.current) {
-            window.print();
-            return;
-        }
+        if (!receiptRef.current) return;
 
-        printWindow.document.write(`
+        const htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
@@ -206,16 +202,38 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
       </head>
       <body>
         ${receiptRef.current.innerHTML}
+      </body>
+      </html>
+        `;
+
+        if (forceSystemDialog === true) {
+            const printWindow = window.open('', '_blank', `width=${ps.windowWidth},height=600`);
+            if (!printWindow) {
+                window.print();
+                return;
+            }
+            printWindow.document.write(htmlContent);
+            printWindow.document.write(`
         <script>
           window.onload = function() {
             setTimeout(function() { window.print(); window.close(); }, 300);
           };
         </script>
-      </body>
-      </html>
-    `);
-        printWindow.document.close();
-    }, [printerType]);
+            `);
+            printWindow.document.close();
+        } else {
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed'; iframe.style.right = '-9999px'; iframe.style.bottom = '-9999px';
+            iframe.style.width = ps.windowWidth + 'px'; iframe.style.height = '600px';
+            document.body.appendChild(iframe);
+            const doc = iframe.contentWindow?.document;
+            if (doc) { doc.open(); doc.write(htmlContent); doc.close(); }
+            setTimeout(() => {
+                if (iframe.contentWindow) { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+                setTimeout(() => { try { document.body.removeChild(iframe); } catch(e){} }, 5000);
+            }, 800);
+        }
+    }, [printerType, isQuote, t, paperSizes]);
 
     const handleExportPDF = useCallback(() => {
         const script = document.createElement('script');
@@ -514,14 +532,23 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 {/* Action buttons (screen only) */}
                 <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid #eee', flexWrap: 'wrap' }} className="no-print">
                     <button
-                        onClick={handlePrint}
+                        onClick={() => handlePrint(false)}
                         style={{
                             flex: 1, padding: '12px', background: '#6C63FF', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
                             cursor: 'pointer', fontFamily: 'Cairo',
                         }}
                     >
-                        {t('sys.str_75')}</button>
+                        طباعة فورية</button>
+                    <button
+                        onClick={() => handlePrint(true)}
+                        style={{
+                            flex: 1, padding: '12px', background: '#3b82f6', color: '#fff',
+                            border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
+                            cursor: 'pointer', fontFamily: 'Cairo',
+                        }}
+                    >
+                        خيارات الطباعة</button>
                     <button
                         onClick={handleExportPDF}
                         style={{

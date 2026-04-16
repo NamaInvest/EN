@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ 
             success: true, 
             invoice: { 
+                id: invoice.id,
                 invoiceNumber: `INV-${invoice.invoiceNo}`,
                 zatcaQr 
             } 

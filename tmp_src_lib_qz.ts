@@ -1,4 +1,3 @@
-// @ts-ignore
 import qz from 'qz-tray';
 
 export interface QZPrinterConfig {

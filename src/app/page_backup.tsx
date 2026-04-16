@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Link from 'next/link';
 import {
   ShieldCheck, Bot, MessageCircle, ShoppingCart,
@@ -15,7 +15,7 @@ import {
   CheckCircle, LineChart, Briefcase, Globe, ClipboardList,
   LayoutDashboard, BarChart2, Hourglass,
   Pill, ShoppingBag, UtensilsCrossed, Cog, Brain,
-  ChevronDown, ChevronUp, ArrowLeft, Menu, X, Search
+  ChevronDown, ChevronUp, ArrowLeft, Menu, X
 } from "lucide-react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────
@@ -217,19 +217,11 @@ const POWER_CLUSTERS = [
 // ─── Component ─────────────────────────────────────────────────────────────
 export default function NamaInvestLanding() {
   const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeIndustry, setActiveIndustry] = useState<string | null>(null);
   const [expandedCluster, setExpandedCluster] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const filteredModules = useMemo(() => {
-    return modulesList.filter(m => {
-      const matchesTab = activeTab === 'all' || m.cat === activeTab;
-      const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            m.desc.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesTab && matchesSearch;
-    });
-  }, [activeTab, searchQuery]);
+  const filtered = activeTab === 'all' ? modulesList : modulesList.filter(m => m.cat === activeTab);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -300,9 +292,8 @@ export default function NamaInvestLanding() {
         )}
       </nav>
 
-      <main>
       {/* HERO */}
-      <section className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white py-24 px-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}/>
         <div className="absolute -top-40 right-0 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-3xl"/>
         <div className="absolute -bottom-40 left-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-3xl"/>
@@ -343,10 +334,10 @@ export default function NamaInvestLanding() {
             </a>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ── INDUSTRIES ───────────────────────────────────────────────────── */}
-      <section id="industries" className="max-w-7xl mx-auto px-4 py-24 flex flex-col items-center">
+      <section id="industries" className="max-w-7xl mx-auto w-full px-4 py-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
             🏪 القطاعات التي نخدمها — Industries We Serve
@@ -360,7 +351,7 @@ export default function NamaInvestLanding() {
           {INDUSTRIES.map(ind => (
             <div
               key={ind.id}
-              className={`ind-card rounded-2xl border-2 p-5 cursor-pointer flex flex-col items-center text-center ${
+              className={`ind-card rounded-2xl border-2 p-5 cursor-pointer ${
                 activeIndustry === ind.id
                   ? `${ind.bg} ${ind.border} shadow-xl`
                   : 'bg-white border-slate-200 hover:shadow-lg hover:border-slate-300'
@@ -375,25 +366,25 @@ export default function NamaInvestLanding() {
               </h3>
               <p className="text-xs text-slate-400 font-bold mb-3">{ind.titleEn}</p>
               {activeIndustry === ind.id && (
-                <div className="fade-in mt-2 pt-2 border-t border-slate-200 w-full flex flex-col items-center">
-                  <ul className="space-y-1.5 mb-3 flex flex-col items-center text-center">
+                <div className="fade-in mt-2 pt-2 border-t border-slate-200">
+                  <ul className="space-y-1.5 mb-3">
                     {ind.features.map((f, i) => (
-                      <li key={f} className={`text-xs font-bold flex items-center justify-center gap-1.5 ${ind.text}`}>
-                        <CheckCircle size={11} className="flex-shrink-0" /> {f}
+                      <li key={f} className={`text-xs font-bold flex items-start gap-1.5 ${ind.text}`}>
+                        <CheckCircle size={11} className="mt-0.5 flex-shrink-0" /> {f}
                       </li>
                     ))}
                   </ul>
                   <Link 
                     href={ind.url} 
                     onClick={(e) => e.stopPropagation()}
-                    className={`w-full max-w-[200px] mx-auto flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r ${ind.color}`}
+                    className={`w-full flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r ${ind.color}`}
                   >
                     اعرف أكثر <ArrowLeft size={11} />
                   </Link>
                 </div>
               )}
               {activeIndustry !== ind.id && (
-                <p className="text-xs text-slate-400 font-bold flex items-center justify-center gap-1 w-full mt-2">
+                <p className="text-xs text-slate-400 font-bold flex items-center gap-1">
                   اضغط لعرض المميزات <ChevronDown size={11} />
                 </p>
               )}
@@ -405,40 +396,40 @@ export default function NamaInvestLanding() {
       {/* ── POWER CLUSTERS ───────────────────────────────────────────────── */}
       <section id="clusters" className="bg-slate-900 py-20 px-4">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="text-center mb-12 flex flex-col items-center justify-center">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
               ⚡ مجموعات القوة الخمس — 5 Power Clusters
             </div>
-            <h2 className="text-4xl font-black text-white mb-3 text-center">الـ 104 وحدة.. منظّمة بذكاء</h2>
-            <p className="text-slate-400 text-lg text-center">Five strategic clusters covering every aspect of your business</p>
+            <h2 className="text-4xl font-black text-white mb-3">الـ 104 وحدة.. منظّمة بذكاء</h2>
+            <p className="text-slate-400 text-lg">Five strategic clusters covering every aspect of your business</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {POWER_CLUSTERS.map((c, i) => (
-              <div key={c.titleEn} className={`rounded-2xl overflow-hidden cursor-pointer transition-all w-full flex flex-col text-center ${expandedCluster===i?'ring-2 ring-white/30 scale-[1.02]':''}`}
+              <div key={c.titleEn} className={`rounded-2xl overflow-hidden cursor-pointer transition-all ${expandedCluster===i?'ring-2 ring-white/30 scale-[1.02]':''}`}
                 onClick={() => setExpandedCluster(expandedCluster===i ? null : i)}>
-                <div className={`bg-gradient-to-br ${c.color} p-5 text-white flex flex-col items-center`}>
-                  <div className="flex items-center justify-between w-full mb-3">
-                    <span className="text-2xl font-black opacity-80">{c.count}</span>
+                <div className={`bg-gradient-to-br ${c.color} p-5 text-white`}>
+                  <div className="flex items-start justify-between mb-3">
                     <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">{c.icon}</div>
+                    <span className="text-2xl font-black opacity-80">{c.count}</span>
                   </div>
-                  <h3 className="font-black text-base leading-tight mb-0.5 text-center">{c.title}</h3>
-                  <p className="text-xs opacity-75 font-bold text-center">{c.titleEn}</p>
+                  <h3 className="font-black text-sm leading-tight mb-0.5">{c.title}</h3>
+                  <p className="text-xs opacity-75 font-bold">{c.titleEn}</p>
                 </div>
-                <div className="bg-slate-800 p-4 w-full flex flex-col items-center">
-                  <p className="text-slate-300 text-xs leading-relaxed mb-3 text-center w-full">{c.desc}</p>
+                <div className="bg-slate-800 p-4">
+                  <p className="text-slate-300 text-xs leading-relaxed mb-3">{c.desc}</p>
                   {expandedCluster === i ? (
-                    <div className="fade-in w-full flex flex-col items-center">
-                      <ul className="space-y-1.5 mb-3 flex flex-col items-center text-center">
+                    <div className="fade-in">
+                      <ul className="space-y-1.5 mb-3">
                         {c.highlights.map((h, j) => (
-                          <li key={h} className="flex items-center justify-center gap-1.5 text-xs text-slate-200 font-bold">
-                            <CheckCircle size={11} className="flex-shrink-0 text-emerald-400" /> {h}
+                          <li key={h} className="flex items-start gap-1.5 text-xs text-slate-200 font-bold">
+                            <CheckCircle size={11} className="mt-0.5 flex-shrink-0 text-emerald-400" /> {h}
                           </li>
                         ))}
                       </ul>
-                      <span className="text-xs text-slate-400 flex items-center justify-center gap-1 font-bold w-full"><ChevronUp size={11}/> إخفاء</span>
+                      <span className="text-xs text-slate-400 flex items-center gap-1 font-bold"><ChevronUp size={11}/> إخفاء</span>
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-400 flex items-center justify-center gap-1 font-bold hover:text-white transition-colors w-full"><ChevronDown size={11}/> عرض الميزات</span>
+                    <span className="text-xs text-slate-400 flex items-center gap-1 font-bold hover:text-white transition-colors"><ChevronDown size={11}/> عرض الميزات</span>
                   )}
                 </div>
               </div>
@@ -448,24 +439,13 @@ export default function NamaInvestLanding() {
       </section>
 
       {/* ── 104 MODULES ──────────────────────────────────────────────────── */}
-      <section id="modules" className="max-w-7xl mx-auto px-4 py-24 flex flex-col items-center">
-        <div className="text-center mb-12">
+      <section id="modules" className="max-w-7xl mx-auto w-full px-4 py-20">
+        <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
-            🗂️ الموسوعة الكاملة
+            🗂️ الموسوعة الكاملة — Complete Feature Matrix
           </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-4">104 وحدة برمجية متكاملة</h2>
-          
-          {/* البحث الذكي الجديد */}
-          <div className="relative max-w-md mx-auto mt-8 mb-12">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="ابحث عن ميزة، وحدة، أو وظيفة..." 
-              className="w-full pr-12 pl-4 py-4 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none shadow-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-3">104 وحدة برمجية متكاملة</h2>
+          <p className="text-slate-500 text-lg">اضغط على أي قسم للتصفية</p>
         </div>
         <div className="tab-scroll flex flex-wrap justify-center items-center gap-2 pb-3 mb-8">
           {CATEGORIES.map(cat => (
@@ -473,31 +453,23 @@ export default function NamaInvestLanding() {
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab===cat.id ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
               }`}>
-              {cat.emoji} {cat.label} {activeTab===cat.id && `(${filteredModules.length})`}
+              {cat.emoji} {cat.label} {activeTab===cat.id && `(${filtered.length})`}
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-items-center">
-                    {filteredModules.map((m) => (
-            <div key={m.title} className="group bg-white w-full border border-slate-100 rounded-2xl p-4 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">{m.icon}</div>
-              <h3 className="text-sm font-bold text-slate-800 mb-2 leading-tight group-hover:text-indigo-700 transition-colors">{m.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed text-center">{m.desc}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {filtered.map((m) => (
+            <div key={m.title} className="group bg-white border border-slate-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-200">
+              <div className="w-10 h-10 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">{m.icon}</div>
+              <h3 className="text-sm font-bold text-slate-800 mb-1 leading-tight group-hover:text-indigo-700 transition-colors">{m.title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
             </div>
           ))}
         </div>
-        
-        {filteredModules.length === 0 && (
-          <div className="text-center py-20 w-full">
-            <p className="text-slate-400 font-bold">لا توجد نتائج تطابق بحثك 🔍</p>
-          </div>
-        )}
         <div className="text-center mt-8 text-slate-400 text-sm font-bold">
-          عرض {filteredModules.length} من {modulesList.length} وحدة
+          عرض {filtered.length} من {modulesList.length} وحدة
         </div>
       </section>
-
-      </main>
 
       {/* CTA */}
       <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white py-20 px-4 text-center">
@@ -518,26 +490,26 @@ export default function NamaInvestLanding() {
       </div>
 
       {/* FOOTER */}
-      <footer className="py-12 bg-white border-t border-slate-200 text-center">
-        <div className="max-w-7xl mx-auto w-full px-4 flex flex-col items-center justify-center gap-6">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <Link href="/" className="flex flex-col items-center justify-center gap-2">
-               <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-lg flex items-center justify-center">
-                 <Layers className="w-6 h-6 text-white"/>
+      <footer className="py-8 bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto w-full px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
+               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-lg flex items-center justify-center">
+                 <Layers className="w-4 h-4 text-white"/>
                </div>
-               <div className="text-center">
-                 <span className="font-black text-xl text-slate-800">نما إنفست</span>
-                 <span className="text-xs text-slate-400 font-bold block leading-none mt-1">Nama Invest ERP</span>
+               <div>
+                 <span className="font-black text-slate-800">نما إنفست</span>
+                 <span className="text-xs text-slate-400 font-bold block leading-none">Nama Invest ERP</span>
                </div>
             </Link>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-bold">
+          <div className="text-slate-400 text-sm font-bold">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
+          <div className="flex flex-wrap justify-center gap-4 text-sm font-bold">
             <Link href="/pharmacy" className="text-slate-400 hover:text-indigo-600 transition-colors">الصيدليات</Link>
             <Link href="/retail" className="text-slate-400 hover:text-indigo-600 transition-colors">التموينات</Link>
             <Link href="/restaurant" className="text-slate-400 hover:text-indigo-600 transition-colors">المطاعم</Link>
             <Link href="/factory" className="text-slate-400 hover:text-indigo-600 transition-colors">المصانع</Link>
           </div>
-          <div className="text-slate-400 text-sm font-bold w-full text-center border-t border-slate-100 pt-6">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
         </div>
       </footer>
     </div>

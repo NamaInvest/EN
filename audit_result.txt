@@ -1,214 +1,375 @@
-=========================================
-    COMPREHENSIVE SITE AUDIT
-=========================================
-✅ Login OK
+﻿
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[1] FULL TYPESCRIPT ERRORS
 
-=== 1. API ENDPOINTS ===
-✅ GET /api/users (HTTP 200)
-✅ GET /api/products (HTTP 200)
-✅ GET /api/categories (HTTP 200)
-✅ GET /api/customers (HTTP 200)
-✅ GET /api/sales (HTTP 200)
-✅ GET /api/purchases (HTTP 200)
-✅ GET /api/expenses (HTTP 200)
-✅ GET /api/treasury (HTTP 200)
-✅ GET /api/treasury/balance (HTTP 200)
-✅ GET /api/settings (HTTP 200)
-✅ GET /api/dashboard (HTTP 200)
-✅ GET /api/employees (HTTP 200)
-✅ GET /api/attendance (HTTP 200)
-✅ GET /api/salaries (HTTP 200)
-✅ GET /api/vacations (HTTP 200)
-✅ GET /api/promotions (HTTP 200)
-✅ GET /api/installments (HTTP 200)
-✅ GET /api/maintenance (HTTP 200)
-✅ GET /api/bookings (HTTP 200)
-✅ GET /api/price-quotes (HTTP 200)
-✅ GET /api/purchase-orders (HTTP 200)
-✅ GET /api/sales-returns (HTTP 200)
-✅ GET /api/purchase-returns (HTTP 200)
-✅ GET /api/stock-movements (HTTP 200)
-✅ GET /api/stock-transfers (HTTP 200)
-✅ GET /api/stocktake (HTTP 200)
-✅ GET /api/accounting/accounts (HTTP 200)
-✅ GET /api/accounting/journal (HTTP 200)
-✅ GET /api/accounting/trial-balance (HTTP 200)
-✅ GET /api/accounting/balance-sheet (HTTP 200)
-✅ GET /api/accounting/income-statement (HTTP 200)
-❌ GET /api/accounting/ledger (HTTP 400)
-❌ GET /api/zatca (HTTP 500)
-✅ GET /api/zatca/qr (HTTP 200)
-✅ GET /api/auth/session (HTTP 200)
-✅ GET /api/reports/sales (HTTP 200)
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+.next/types/validator.ts(2403,31): error TS2344: Type 'typeof import("src/app/api/purchase-orders/[id]/landed-costs/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/purchase-orders/[id]/landed-costs">'.
+.next/types/validator.ts(2412,31): error TS2344: Type 'typeof import("src/app/api/purchase-orders/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/purchase-orders/[id]">'.
+.next/types/validator.ts(2457,31): error TS2344: Type 'typeof import("src/app/api/purchases/letters-of-credit/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/purchases/letters-of-credit/[id]">'.
+.next/types/validator.ts(2637,31): error TS2344: Type 'typeof import("src/app/api/settings/approvals/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/settings/approvals/[id]">'.
+.next/types/validator.ts(2655,31): error TS2344: Type 'typeof import("src/app/api/settings/currencies/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/settings/currencies/[id]">'.
+.next/types/validator.ts(2673,31): error TS2344: Type 'typeof import("src/app/api/settings/exchange-rates/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/settings/exchange-rates/[id]">'.
+debug_key.ts(15,17): error TS7006: Parameter 'res' implicitly has an 'any' type.
+debug_key.ts(17,32): error TS7006: Parameter 'chunk' implicitly has an 'any' type.
+src/app/(dashboard)/dashboard/page.tsx(130,41): error TS2367: This comparison appears to be unintentional because the types '"en"' and '"ur"' have no overlap.
+src/app/(dashboard)/dashboard/page.tsx(130,67): error TS2367: This comparison appears to be unintentional because the types '"en"' and '"hi"' have no overlap.
+src/app/(dashboard)/dashboard/page.tsx(130,93): error TS2367: This comparison appears to be unintentional because the types '"en"' and '"bn"' have no overlap.
+src/app/(dashboard)/reports/104-modules/page.tsx(166,50): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/(dashboard)/reports/104-modules/page.tsx(169,39): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/(dashboard)/reports/73-modules/page.tsx(166,50): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/(dashboard)/reports/73-modules/page.tsx(169,39): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/(dashboard)/sales/options/page.tsx(181,100): error TS2322: Type 'QZPrinterConfig | { name: string; connectionType: string; connectionString: string; targetCategories: never[]; }' is not assignable to type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(181,100): error TS2353: Object literal may only specify known properties, and 'connectionType' does not exist in type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(201,104): error TS2339: Property 'connectionType' does not exist on type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(201,190): error TS2339: Property 'connectionType' does not exist on type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(208,115): error TS2339: Property 'connectionString' does not exist on type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(208,203): error TS2339: Property 'connectionString' does not exist on type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(208,291): error TS2339: Property 'connectionType' does not exist on type 'QZPrinterConfig'.
+src/app/(dashboard)/sales/options/page.tsx(214,137): error TS18048: 'printer.targetCategories' is possibly 'undefined'.
+src/app/(dashboard)/sales/options/page.tsx(215,81): error TS18048: 'printer.targetCategories' is possibly 'undefined'.
+src/app/(dashboard)/sales/options/page.tsx(217,74): error TS2532: Object is possibly 'undefined'.
+src/app/(dashboard)/sales/options/page.tsx(218,92): error TS2532: Object is possibly 'undefined'.
+src/app/(dashboard)/sales/targets/page.tsx(99,58): error TS2349: This expression is not callable.
+src/app/(dashboard)/sales/targets/page.tsx(103,40): error TS2349: This expression is not callable.
+src/app/(dashboard)/sales/targets/page.tsx(104,40): error TS2349: This expression is not callable.
+src/app/(dashboard)/sales/targets/page.tsx(117,114): error TS2349: This expression is not callable.
+src/app/(dashboard)/sales/targets/page.tsx(119,38): error TS2349: This expression is not callable.
+src/app/(dashboard)/sales/targets/page.tsx(119,178): error TS2349: This expression is not callable.
+src/app/(dashboard)/stock-transfers/page.tsx(36,126): error TS2349: This expression is not callable.
+src/app/(dashboard)/stock-transfers/page.tsx(39,166): error TS2349: This expression is not callable.
+src/app/(dashboard)/stock-transfers/page.tsx(39,240): error TS2349: This expression is not callable.
+src/app/api/accounting/cost-centers/route.ts(3,10): error TS2305: Module '"@/lib/auth"' has no exported member 'verifyAuth'.
+src/app/api/accounting/lc/route.ts(27,13): error TS2322: Type '{ lcNumber: any; bankId: number; supplierId: number; amount: number; currency: any; exchangeRate: number; openDate: Date; expiryDate: Date; marginPercent: number; marginPaid: number; portOfLoading: any; portOfDischarge: any; notes: any; status: string; }' is not assignable to type '(Without<LetterOfCreditCreateInput, LetterOfCreditUncheckedCreateInput> & LetterOfCreditUncheckedCreateInput) | (Without<...> & LetterOfCreditCreateInput)'.
+src/app/api/ai/cfo/route.ts(31,16): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'SalesInvoiceWhereInput'.
+src/app/api/ai/cfo/route.ts(32,15): error TS2353: Object literal may only specify known properties, and 'finalTotal' does not exist in type 'SalesInvoiceSumAggregateInputType'.
+src/app/api/ai/cfo/route.ts(41,68): error TS18048: 'todaySales._sum' is possibly 'undefined'.
+src/app/api/ai/cfo/route.ts(41,84): error TS2339: Property 'finalTotal' does not exist on type '{ id?: number | null | undefined; invoiceNo?: number | null | undefined; customerId?: number | null | undefined; stockId?: number | null | undefined; subtotal?: number | null | undefined; ... 14 more ...; costCenterId?: number | ... 1 more ... | undefined; }'.
+src/app/api/ai/cfo/route.ts(59,44): error TS18048: 'todaySales._sum' is possibly 'undefined'.
+src/app/api/ai/cfo/route.ts(59,60): error TS2339: Property 'finalTotal' does not exist on type '{ id?: number | null | undefined; invoiceNo?: number | null | undefined; customerId?: number | null | undefined; stockId?: number | null | undefined; subtotal?: number | null | undefined; ... 14 more ...; costCenterId?: number | ... 1 more ... | undefined; }'.
+src/app/api/bookings/invoice/route.ts(94,35): error TS2339: Property 'branchId' does not exist on type '{ customer: { id: number; type: number; notes: string | null; name: string; active: boolean; createdAt: Date; phone: string | null; address: string | null; balance: number; street: string | null; ... 9 more ...; routeId: number | null; } | null; } & { ...; }'.
+src/app/api/crm/whatsapp/broadcast/route.ts(31,46): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/api/crm/whatsapp/broadcast/route.ts(38,46): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/api/crm/whatsapp/broadcast/route.ts(53,34): error TS18047: 'target.phone' is possibly 'null'.
+src/app/api/enterprise/legal/route.ts(35,46): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'BankAccountSelect<DefaultArgs>'.
+src/app/api/enterprise/legal/route.ts(103,21): error TS2322: Type '{ checkNumber: string; amount: number; dueDate: Date; type: string; status: string; }' is not assignable to type '(Without<CheckTransactionCreateInput, CheckTransactionUncheckedCreateInput> & CheckTransactionUncheckedCreateInput) | (Without<...> & CheckTransactionCreateInput)'.
+src/app/api/enterprise/projects/tasks/route.ts(16,24): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'ProjectTaskOrderByWithRelationInput | ProjectTaskOrderByWithRelationInput[]'.
+src/app/api/enterprise/projects/tasks/route.ts(39,17): error TS2353: Object literal may only specify known properties, and 'taskName' does not exist in type 'Without<ProjectTaskCreateInput, ProjectTaskUncheckedCreateInput> & ProjectTaskUncheckedCreateInput'.
+src/app/api/enterprise/projects/tasks/route.ts(66,17): error TS2353: Object literal may only specify known properties, and 'actualCost' does not exist in type '(Without<ProjectTaskUpdateInput, ProjectTaskUncheckedUpdateInput> & ProjectTaskUncheckedUpdateInput) | (Without<...> & ProjectTaskUpdateInput)'.
+src/app/api/enterprise/quality/route.ts(7,7): error TS2322: Type '{ product: true; }' is not assignable to type 'never'.
+src/app/api/enterprise/quality/route.ts(24,9): error TS2353: Object literal may only specify known properties, and 'productId' does not exist in type '(Without<QualityInspectionCreateInput, QualityInspectionUncheckedCreateInput> & QualityInspectionUncheckedCreateInput) | (Without<...> & QualityInspectionCreateInput)'.
+src/app/api/enterprise/wms/route.ts(17,23): error TS2353: Object literal may only specify known properties, and 'code' does not exist in type 'StockWhereInput'.
+src/app/api/enterprise/wms/route.ts(38,36): error TS2339: Property 'warehouseZones' does not exist on type '{ id: number; name: string; active: boolean; branchId: number | null; address: string | null; }'.
+src/app/api/enterprise/wms/route.ts(42,19): error TS2339: Property 'warehouseZones' does not exist on type '{ id: number; name: string; active: boolean; branchId: number | null; address: string | null; }'.
+src/app/api/enterprise/wms/route.ts(42,42): error TS7006: Parameter 'zone' implicitly has an 'any' type.
+src/app/api/enterprise/wms/route.ts(44,36): error TS7006: Parameter 'rack' implicitly has an 'any' type.
+src/app/api/recurring-invoices/route.ts(41,30): error TS2339: Property 'id' does not exist on type 'JWTPayload'.
+src/app/api/sys/alerts/route.ts(12,22): error TS2339: Property 'id' does not exist on type 'JWTPayload'.
+src/app/api/zatca/route.ts(46,45): error TS18047: 'settingCsr.value' is possibly 'null'.
+src/app/auth/routing/page.tsx(24,82): error TS18048: 'session.user' is possibly 'undefined'.
+src/app/auth/routing/page.tsx(31,94): error TS18048: 'session.user' is possibly 'undefined'.
+src/app/login/page.tsx(182,29): error TS2304: Cannot find name 'signIn'.
+src/components/SessionGuard.tsx(30,27): error TS2304: Cannot find name 't'.
+src/lib/qz.ts(1,16): error TS7016: Could not find a declaration file for module 'qz-tray'. 'node_modules/qz-tray/qz-tray.js' implicitly has an 'any' type.
+update_key.ts(23,21): error TS2353: Object literal may only specify known properties, and 'group' does not exist in type '(Without<SettingCreateInput, SettingUncheckedCreateInput> & SettingUncheckedCreateInput) | (Without<...> & SettingCreateInput)'.
 
-=== 2. PAGE LOADING ===
-❌ Login (HTTP 307)
-✅ Dashboard
-✅ Products
-✅ Sales
-✅ Purchases
-✅ Customers
-✅ Expenses
-✅ Treasury
-✅ Stock
-✅ Settings
-✅ Employees
-✅ Reports
-✅ Accounting
-✅ Barcode
-✅ Sales Returns
-✅ Purchase Returns
-✅ Promotions
-✅ Vacations
-✅ Attendance
-✅ Salaries
-✅ Maintenance
-✅ Bookings
-✅ Installments
-✅ Price Quotes
-✅ Purchase Orders
-✅ Stock Transfers
-✅ Stocktake
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[2] ERROR COUNT BY FILE
 
-=== 3. DATABASE SCHEMA COMPARISON ===
---- Tables on NEW server ---
-accounts
-attendance
-audit_log
-bookings
-categories
-coupon_usage
-coupons
-customers
-employees
-expenses
-gift_cards
-installment_payments
-installments
-journal_entries
-journal_lines
-loyalty_points
-loyalty_transactions
-maintenance
-price_quote_details
-price_quotes
-products
-promotions
-purchase_invoice_details
-purchase_invoices
-purchase_order_items
-purchase_orders
-purchase_returns
-quotation_items
-quotations
-salaries
-sales_invoice_details
-sales_invoices
-sales_returns
-settings
-stock_movements
-stock_transfer_details
-stock_transfers
-stocks
-stocktake_items
-stocktakes
-treasury
-units
-user_permissions
-users
-vacations
-zatca_settings
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+11 src/app/(dashboard)/sales/options/page.tsx
+      6 src/app/(dashboard)/sales/targets/page.tsx
+      6 src/app/api/ai/cfo/route.ts
+      6 .next/types/validator.ts
+      5 src/app/api/enterprise/wms/route.ts
+      3 src/app/(dashboard)/stock-transfers/page.tsx
+      3 src/app/(dashboard)/dashboard/page.tsx
+      3 src/app/api/enterprise/projects/tasks/route.ts
+      3 src/app/api/crm/whatsapp/broadcast/route.ts
+      2 src/app/(dashboard)/reports/73-modules/page.tsx
+      2 src/app/(dashboard)/reports/104-modules/page.tsx
+      2 src/app/auth/routing/page.tsx
+      2 src/app/api/enterprise/quality/route.ts
+      2 src/app/api/enterprise/legal/route.ts
+      2 debug_key.ts
+      1 update_key.ts
+      1 src/lib/qz.ts
+      1 src/components/SessionGuard.tsx
+      1 src/app/login/page.tsx
+      1 src/app/api/zatca/route.ts
+      1 src/app/api/sys/alerts/route.ts
+      1 src/app/api/recurring-invoices/route.ts
+      1 src/app/api/bookings/invoice/route.ts
+      1 src/app/api/accounting/lc/route.ts
+      1 src/app/api/accounting/cost-centers/route.ts
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[3] ALL API ROUTES HEALTH
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+Total API routes found: 207
+/api/products ظْ 401
+/api/sales ظْ 200
+/api/purchases ظْ 200
+/api/customers ظْ 200
+/api/employees ظْ 200
+/api/dashboard ظْ 200
+/api/settings ظْ 401
+/api/auth/me ظْ 401
+/api/salaries ظْ 200
+/api/vacations ظْ 200
+/api/categories ظْ 401
+/api/units ظْ 200
+/api/stock ظْ 404
+/api/reports/sales ظْ 200
+/api/treasury ظْ 200
+/api/expenses ظْ 200
+/api/manufacturing/orders ظْ 200
+/api/pos/sessions ظْ 404
+/api/sys/health ظْ 200
+/api/accounting/accounts ظْ 200
+/api/smart-transfers ظْ 401
+/api/stock/adjustments ظْ 401
+/api/stock/movements ظْ 401
+/api/notifications ظْ 404
+/api/attendances ظْ 404
+/api/whatsapp/send ظْ 404
+/api/zatca/config ظْ 404
+/api/auth/session ظْ 200
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[4] PRISMA SCHEMA ظ¤ ALL MODELS
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+model AcademicClass {
+model Account {
+model ApprovalRequest {
+model ApprovalRule {
+model ApprovalStep {
+model Asset {
+model Attendance {
+model AuditLog {
+model BankAccount {
+model BankReconciliation {
+model BankTransaction {
+model Booking {
+model Branch {
+model Budget {
+model BudgetLine {
+model Category {
+model CheckTransaction {
+model ClassEnrollment {
+model CommissionRule {
+model Company {
+model CostCenter {
+model Coupon {
+model CouponUsage {
+model Currency {
+model Customer {
+model DeliveryNote {
+model DeliveryNoteDetail {
+model Depreciation {
+model DocumentArchive {
+model Employee {
+model EmployeeEvaluation {
+model EmployeeLoan {
+model ExchangeRate {
+model Expense {
+model FixedAsset {
+model FleetTrip {
+model FuelLog {
+model GiftCard {
+model GoodsReceiptNote {
+model GoodsReceiptNoteDetail {
+model Installment {
+model InstallmentPayment {
+model JobApplicant {
+model JobPosting {
+model JournalEntry {
+model JournalLine {
+model LandedCost {
+model Lead {
+model LeaseContract {
+model LetterOfCredit {
+model LetterOfGuarantee {
+model LoyaltyPoint {
+model LoyaltyTransaction {
+model Machine {
+model Maintenance {
+model ManufacturingOrder {
+model ManufacturingWastage {
+model PettyCashFund {
+model PettyCashTransaction {
+model PriceQuote {
+model PriceQuoteDetail {
+model Product {
+model ProductBatch {
+model ProductSerialNumber {
+model ProductStock {
+model ProductUnit {
+model Project {
+model ProjectTask {
+model PromissoryNote {
+model Promotion {
+model Property {
+model PropertyUnit {
+model PurchaseInvoice {
+model PurchaseInvoiceDetail {
+model PurchaseOrder {
+model PurchaseOrderDetail {
+model PurchaseRequisition {
+model PurchaseRequisitionDetail {
+model PurchaseReturn {
+model QualityInspection {
+model Quotation {
+model QuotationItem {
+model Recipe {
+model RecipeIngredient {
+model RentInstallment {
+model RequestForQuotation {
+model RequestForQuotationDetail {
+model Route {
+model Salary {
+model SalesInvoice {
+model SalesInvoiceDetail {
+model SalesmanCommission {
+model SalesOrder {
+model SalesOrderDetail {
+model SalesReturn {
+model SalesReturnDetail {
+model SalesTarget {
+model Setting {
+model Shift {
+model Stock {
+model StockMovement {
+model Stocktake {
+model StocktakeItem {
+model StockTransfer {
+model StockTransferDetail {
+model Student {
+model Subscription {
+model SubscriptionPayment {
+model SystemAlert {
+model TenantAccount {
+model TrainingCourse {
+model TrainingEnrollment {
+model Treasury {
+model Unit {
+model User {
+model UserPermission {
+model Vacation {
+model Vehicle {
+model WarehouseBin {
+model WarehouseRack {
+model WarehouseZone {
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[5] PRISMA MODEL USAGE ISSUES
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+prisma.purchaseInvoice: used 19 times ظْ Schema: ظ£à exists
+prisma.salesTarget: used 2 times ظْ Schema: ظ£à exists
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[6] BROKEN IMPORTS SCAN
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+from 'child_process'
+from 'crypto'
+from 'fs'
+from 'fs/promises'
+from '@google/generative-ai'
+from 'os'
+from 'path'
+from '@prisma/client'
+from 'qrcode'
+from '../units/route'
+from 'util'
+from 'zatca-xml-js/lib/zatca/signing'
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[7] RUNTIME ERRORS (last 24h)
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+at async y (.next/server/chunks/[root-of-the-server]__223259d4._.js:1:2215)
+    at async d (.next/server/chunks/[root-of-the-server]__223259d4._.js:1:7518) {
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+    at ignore-listed frames
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[8] ENV VARS CHECK
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+ظ£à DATABASE_URL
+ظ£à NEXTAUTH_SECRET
+ظ£à NEXTAUTH_URL
+ظ£à JWT_SECRET
+ظ£à NEXT_PUBLIC_API_URL
+ظ£à CLERK_SECRET_KEY
+ظإî MISSING: TELEGRAM_BOT_TOKEN
+ظإî MISSING: ZATCA_API_URL
+ظإî MISSING: SMTP_HOST
+ظإî MISSING: SMS_API_KEY
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[9] PRISMA SCHEMA COMPLETENESS
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+ظ£à All Prisma models used in APIs are defined in schema
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[10] FRONTEND PAGES STATUS
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+/dashboard ظْ 200
+/pos ظْ 200
+/sales ظْ 200
+/purchases ظْ 200
+/products ظْ 200
+/customers ظْ 200
+/employees ظْ 200
+/settings ظْ 200
+/reports/sales ظْ 404
+/treasury ظْ 200
+/accounting ظْ 200
+/manufacturing ظْ 200
+/hr ظْ 404
+/smart-transfers ظْ 200
+/stock ظْ 200
+/whatsapp-hub ظْ 200
+/vacations ظْ 200
+/salaries ظْ 200
+/zatca ظْ 404
+/kiosk ظْ 404
+/restaurant-pos ظْ 200
+/b2b ظْ 404
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+[11] BUILD WARNINGS SUMMARY
+
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+ظأب The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 
 
-=== 4. SCHEMA COLUMNS CHECK ===
---- users table ---
-                                            Table "public.users"
-     Column      |              Type              | Collation | Nullable |              Default              
------------------+--------------------------------+-----------+----------+-----------------------------------
- id              | integer                        |           | not null | nextval('users_id_seq'::regclass)
- username        | text                           |           | not null | 
- password_hash   | text                           |           | not null | 
- full_name       | text                           |           | not null | 
- role            | text                           |           | not null | 'cashier'::text
- phone           | text                           |           |          | 
- active          | boolean                        |           | not null | true
- session_token   | text                           |           |          | 
- device_token    | text                           |           |          | 
- device_name     | text                           |           |          | 
- device_bound_at | timestamp(3) without time zone |           |          | 
- created_at      | timestamp(3) without time zone |           | not null | CURRENT_TIMESTAMP
-    TABLE "audit_log" CONSTRAINT "audit_log_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "expenses" CONSTRAINT "expenses_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "purchase_invoices" CONSTRAINT "purchase_invoices_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "sales_invoices" CONSTRAINT "sales_invoices_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "stock_movements" CONSTRAINT "stock_movements_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "treasury" CONSTRAINT "treasury_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
-    TABLE "user_permissions" CONSTRAINT "user_permissions_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE RESTRICT
---- products table ---
-                                            Table "public.products"
-     Column     |              Type              | Collation | Nullable |               Default                
-----------------+--------------------------------+-----------+----------+--------------------------------------
- id             | integer                        |           | not null | nextval('products_id_seq'::regclass)
- name           | text                           |           | not null | 
- barcode        | text                           |           |          | 
- category_id    | integer                        |           |          | 
- unit_id        | integer                        |           | not null | 1
- buy_price      | double precision               |           | not null | 0
- sell_price     | double precision               |           | not null | 0
- tax_rate       | double precision               |           | not null | 15
- min_quantity   | double precision               |           | not null | 0
- current_stock  | double precision               |           | not null | 0
- description    | text                           |           |          | 
- active         | boolean                        |           | not null | true
- created_at     | timestamp(3) without time zone |           | not null | CURRENT_TIMESTAMP
- name_en        | text                           |           | not null | ''::text
- brand_ar       | text                           |           | not null | ''::text
- brand_en       | text                           |           | not null | ''::text
- size_info      | text                           |           | not null | ''::text
- image_path     | text                           |           | not null | ''::text
- sell_by_weight | boolean                        |           | not null | false
-    TABLE "purchase_invoice_details" CONSTRAINT "purchase_invoice_details_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE RESTRICT
-    TABLE "sales_invoice_details" CONSTRAINT "sales_invoice_details_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE RESTRICT
-    TABLE "stock_movements" CONSTRAINT "stock_movements_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE RESTRICT
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ
+ظ£à DEEP AUDIT COMPLETE
 
-=== 5. ENVIRONMENT ===
-Node: v20.20.1
-NPM: 10.8.2
-Disk: 6.0G/484G used (2%)
-RAM: 1076MB/48174MB used
-Swap: 0MB/2047MB used
-
-=== 6. SECURITY ===
---- Open Ports ---
-*:3000
-0.0.0.0:22
-0.0.0.0:80
-127.0.0.1:5432
-127.0.0.53%lo:53
-127.0.0.54:53
-[::1]:5432
-[::]:22
---- .env exposed? ---
-307  (should be 404)
-
-=== 7. PM2 ERRORS (last 10) ===
-[TAILING] Tailing last 10 lines for [namasoft] process (change the value with --lines option)
-/root/.pm2/logs/namasoft-error.log last 10 lines:
-0|namasoft | 
-0|namasoft | 
-0|namasoft | Raw query failed. Code: `42501`. Message: `ERROR: permission denied for table zatca_settings`
-0|namasoft |     at async M (.next/server/chunks/[root-of-the-server]__30395afa._.js:228:9712)
-0|namasoft |     at async E (.next/server/chunks/[root-of-the-server]__30395afa._.js:237:1222)
-0|namasoft |     at async u (.next/server/chunks/[root-of-the-server]__30395afa._.js:248:9136) {
-0|namasoft |   code: 'P2010',
-0|namasoft |   clientVersion: '5.22.0',
-0|namasoft |   meta: [Object]
-0|namasoft | }
-
-
-=== 8. LOGO/UPLOAD DIRECTORY ===
-No uploads directory
-
-=========================================
-    AUDIT COMPLETE
-=========================================
+ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـ

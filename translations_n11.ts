@@ -1,4 +1,6 @@
+// @ts-ignore
 import ar from '../locales/ar.json';
+// @ts-ignore
 import en from '../locales/en.json';
 
 export type Language = 'ar' | 'en';

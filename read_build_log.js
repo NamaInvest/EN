@@ -1,21 +1,23 @@
 const { Client } = require('ssh2');
 
-const bashCommand = `
-echo "=== build_clerk.log from namainvist.com ==="
-cat /www/wwwroot/namainvist.com/build_clerk.log
-`;
+function ssh(cmd, timeout = 30000) {
+  return new Promise(r => {
+    const c = new Client();
+    let out = '';
+    const timer = setTimeout(() => { c.end(); r(out + '[TIMEOUT]'); }, timeout);
+    c.on('ready', () => c.exec(cmd, (err, stream) => {
+      if (err) { clearTimeout(timer); r('[ERROR]'); return; }
+      stream.on('data', d => out += d);
+      stream.stderr.on('data', d => out += d);
+      stream.on('close', () => { clearTimeout(timer); c.end(); r(out.trim()); });
+    })).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+  });
+}
 
-const conn = new Client();
-conn.on('ready', () => {
-    conn.exec(bashCommand, (err, stream) => {
-        if (err) throw err;
-        stream.on('data', (d) => process.stdout.write(d));
-        stream.stderr.on('data', (d) => process.stdout.write(d));
-        stream.on('close', () => conn.end());
-    });
-}).connect({
-    host: '46.4.188.170',
-    port: 22,
-    username: 'root',
-    password: '_ee4SWbxLVfH9b'
-});
+const N11 = '/www/wwwroot/n11.namainvist.com';
+
+(async () => {
+  // قراءة build log للحصول على الخطأ الحقيقي
+  console.log('=== FULL BUILD LOG ===');
+  console.log(await ssh(`cat /tmp/n11_build.log 2>&1`));
+})();

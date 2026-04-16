@@ -1,9 +1,1 @@
-const {Client} = require('ssh2');
-const conn = new Client();
-conn.on('ready', () => {
-    conn.exec('pm2 status n11 && curl -s -I http://localhost:3011', (err, stream) => {
-        stream.on('data', (d) => process.stdout.write(d));
-        stream.stderr.on('data', (d) => process.stderr.write(d));
-        stream.on('close', () => conn.end());
-    });
-}).connect({ host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b' });
+const {Client}=require('ssh2'); const c=new Client(); c.on('ready', ()=> c.exec('pm2 jlist', (e,s)=>{let o=""; s.on('data',d=>o+=d).on('close',()=> {console.log(JSON.parse(o).find(x=>x.name==="ice").pm2_env.pm_cwd, JSON.parse(o).find(x=>x.name==="ice").pm2_env.args.join(' ')); c.end()})})).connect({host:'46.4.188.170',port:22,username:'root',password:'_ee4SWbxLVfH9b'})

@@ -5,6 +5,7 @@ import PosReturnsModal from '@/components/PosReturnsModal';
 import { useMadaTerminal } from '@/hooks/useMadaTerminal';
 import Link from 'next/link';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2 } from 'lucide-react';
+import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
 
 export default function RestaurantPOS() {
@@ -17,6 +18,7 @@ export default function RestaurantPOS() {
     const { status: madaTermStatus, connect: connectMada, disconnect: disconnectMada, sendPayment: sendMadaPayment } = useMadaTerminal();
     const [cart, setCart] = useState<any[]>([]);
     const [showReturnsModal, setShowReturnsModal] = useState(false);
+    const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
 
     
     // Coupons Engine State
@@ -186,97 +188,7 @@ export default function RestaurantPOS() {
         }).filter(Boolean));
     };
 
-    const generateReceiptContent = (invoice: any, renderCart: any[], renderTotal: number, renderTax: number, renderDiscount: number) => {
-        return `
-            <div dir="rtl" style="font-family: 'Courier New', Courier, monospace; padding: 10px; font-size: 13px; margin: 0 auto; max-width: 300px; text-align: center; color: #000; background: #fff;">
-                <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${t('resto.company_name')}</div>
-                <div style="font-size: 11px; margin-bottom: 10px;">${t('resto.invoice_title')}</div>
-                <div style="font-size: 12px">${t('resto.invoice_no')}${invoice?.invoiceNumber || '-'}</div>
-                <div style="font-size: 12px">${t('resto.date')}${new Date().toLocaleString('ar-SA')}</div>
-                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-                <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 4px 0;"></th>
-                            <th style="width: 30px; text-align: center; padding: 4px 0;"></th>
-                            <th style="width: 60px; text-align: left; padding: 4px 0;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${renderCart.map((item: any) => `
-                            <tr>
-                                <td style="padding: 4px 0;">${item.name}</td>
-                                <td style="width: 30px; text-align: center; padding: 4px 0;">${item.qty}</td>
-                                <td style="width: 60px; text-align: left; padding: 4px 0;">${(item.price * item.qty).toLocaleString()}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-                <table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 5px; font-weight: bold;">
-                    <tr><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderTotal.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderDiscount.toLocaleString()}</td></tr>
-                    <tr style="font-weight: normal;"><td style="padding: 4px 0;"></td><td style="text-align: left; padding: 4px 0;">${renderTax.toLocaleString()}</td></tr>
-                    <tr style="font-size: 16px;"><th style="padding: 4px 0;"></th><th style="text-align: left; padding: 4px 0;">${Math.max(0, renderTotal + renderTax - renderDiscount).toLocaleString()}</th></tr>
-                </table>
-                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-                ${invoice?.zatcaQr ? `<img src="${invoice.zatcaQr}" style="width: 120px; height: 120px; margin-top: 10px;" />` : ''}
-                <div style="font-size: 11px; margin-top: 15px;">${t('resto.thanks')}</div>
-            </div>
-        `;
-    };
 
-    const printReceipt = (invoice: any, printCart: any[], printTotal: number, printTax: number, printDiscount: number) => {
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '-9999px';
-        iframe.style.bottom = '-9999px';
-        iframe.style.width = '400px';
-        iframe.style.height = '600px';
-        document.body.appendChild(iframe);
-        
-        const content = generateReceiptContent(invoice, printCart, printTotal, printTax, printDiscount);
-        
-        const doc = iframe.contentWindow?.document;
-        if (doc) {
-            doc.open();
-            doc.write(t('sys.str_4113') + content + '</body></html>');
-            doc.close();
-        }
-
-        setTimeout(() => {
-            if (iframe.contentWindow) {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            }
-            setTimeout(() => { document.body.removeChild(iframe); }, 5000);
-        }, 800);
-    };
-
-    const exportToPDF = (invoice: any, exportCart: any[], exportTotal: number, exportTax: number, exportDiscount: number) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        script.onload = () => {
-            const content = generateReceiptContent(invoice, exportCart, exportTotal, exportTax, exportDiscount);
-            const element = document.createElement('div');
-            element.innerHTML = content;
-            element.style.position = 'absolute';
-            element.style.left = '-9999px';
-            document.body.appendChild(element);
-            
-            // @ts-ignore
-            window.html2pdf().from(element.firstElementChild).set({
-                margin: 5,
-                filename: `Invoice_${invoice?.invoiceNumber || Date.now()}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: [80, 250], orientation: 'portrait' }
-            }).save().then(() => {
-                document.body.removeChild(element);
-            });
-        };
-        document.body.appendChild(script);
-    };
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [showMadaModal, setShowMadaModal] = useState(false);
@@ -323,8 +235,7 @@ export default function RestaurantPOS() {
             });
             const data = await res.json();
             if (data.success) {
-                // Trigger localized thermal receipt printing engine immediately
-                printReceipt(data.invoice, cart, total, tax, finalDiscountValue);
+                setCompletedInvoiceId(data.invoice.id);
                 
                 setCart([]); // clear cart
                 removeCoupon(); // clear active coupon
@@ -740,35 +651,7 @@ export default function RestaurantPOS() {
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_4105')}</div>
-                                        <button onClick={() => { 
-                                            const printCart = (inv.details || []).map((d: any) => ({
-                                                name: d.productName,
-                                                qty: d.quantity,
-                                                price: d.price
-                                            }));
-                                            printReceipt(
-                                                { invoiceNumber: `INV-${inv.invoiceNo}`, zatcaQr: inv.zatcaQr },
-                                                printCart,
-                                                inv.subtotal,
-                                                inv.taxValue,
-                                                inv.discountValue
-                                            );
-                                        }} style={{ background: '#22c55e', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4108')}</button>
-                                        
-                                        <button onClick={() => { 
-                                            const printCart = (inv.details || []).map((d: any) => ({
-                                                name: d.productName,
-                                                qty: d.quantity,
-                                                price: d.price
-                                            }));
-                                            exportToPDF(
-                                                { invoiceNumber: `INV-${inv.invoiceNo}`, zatcaQr: inv.zatcaQr },
-                                                printCart,
-                                                inv.subtotal,
-                                                inv.taxValue,
-                                                inv.discountValue
-                                            );
-                                        }} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>{t('sys.str_4109')}</button>
+                                        <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: '#22c55e', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>طباعة / عرض الفاتورة</button>
                                     </div>
                                 </div>
                             ))}
@@ -819,6 +702,15 @@ export default function RestaurantPOS() {
                 </div>
             )}
             <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
+            
+            {/* Unified POS Invoice Receipt Modal */}
+            {completedInvoiceId && (
+                <InvoiceReceipt 
+                    invoiceId={completedInvoiceId} 
+                    autoPrint={true} 
+                    onClose={() => setCompletedInvoiceId(null)} 
+                />
+            )}
             </>
             )}
         </div>

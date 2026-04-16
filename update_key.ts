@@ -20,7 +20,7 @@ async function main() {
                 data: {
                     key,
                     value,
-                    group: 'general'
+                    // group: 'general'
                 }
             });
             console.log('✅ Created new Gemini API Key in Database.');
