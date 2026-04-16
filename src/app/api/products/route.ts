@@ -137,6 +137,21 @@ export async function POST(request: Request) {
                         quantity: product.currentStock,
                     }
                 });
+                
+                // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                const auth = getUserFromRequest(request as any);
+                await prisma.stockMovement.create({
+                    data: {
+                        productId: product.id,
+                        stockId: defaultStockId,
+                        type: 'adjustment_in',
+                        quantity: product.currentStock,
+                        referenceType: 'initial_stock',
+                        referenceId: product.id,
+                        userId: auth?.userId || null,
+                        notes: 'رصيد افتتاحي عند الإنشاء'
+                    }
+                });
             }
         } catch (e) {
             console.error('Failed to initialize product stock:', e);

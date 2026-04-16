@@ -257,6 +257,20 @@ export async function POST(request: Request) {
                         update: { quantity: { decrement: qtyInBase } },
                         create: { productId, stockId: createdInvoice.stockId, quantity: -qtyInBase },
                     });
+                    
+                    // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: productId,
+                            stockId: createdInvoice.stockId,
+                            type: 'out',
+                            quantity: qtyInBase,
+                            referenceType: 'sales_invoice',
+                            referenceId: createdInvoice.id,
+                            userId: userId,
+                            notes: `فاتورة مبيعات #${invoiceNo}`
+                        }
+                    });
                 } catch (e) { console.error('ProductStock update failed:', e); }
 
                 // --- PHASE 1 AUTOMATION: RECIPE & MANUFACTURING AUTO-DEDUCTION ---

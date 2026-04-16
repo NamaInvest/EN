@@ -106,6 +106,20 @@ export async function POST(request: Request) {
                             update: { quantity: { increment: qty } },
                             create: { productId, stockId: createdInvoice.stockId, quantity: qty },
                         });
+                        
+                        // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                        await tx.stockMovement.create({
+                            data: {
+                                productId: productId,
+                                stockId: createdInvoice.stockId,
+                                type: 'in',
+                                quantity: qty,
+                                referenceType: 'purchase_invoice',
+                                referenceId: createdInvoice.id,
+                                userId: userId,
+                                notes: `فاتورة مشتريات #${invoiceNo}`
+                            }
+                        });
                     } catch (e) {
                          console.error('Failed to update productStock for purchase inside tx:', e);
                     }

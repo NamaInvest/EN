@@ -123,6 +123,20 @@ export async function POST(request: Request) {
                         update: { quantity: { increment: item.quantity } },
                         create: { productId: item.productId, stockId: targetStockId, quantity: item.quantity },
                     });
+                    
+                    // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            stockId: targetStockId,
+                            type: 'in',
+                            quantity: item.quantity,
+                            referenceType: 'sales_return',
+                            referenceId: createdReturn.id,
+                            userId: userId,
+                            notes: `مرتجع مبيعات #${returnNo}`
+                        }
+                    });
                 } catch (e) {
                     console.error('Failed to restock returned item to productStock inside tx:', e);
                 }
