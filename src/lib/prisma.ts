@@ -72,6 +72,11 @@ export function resolveTenant(req?: {
                     ? req.headers.get('x-tenant')
                     : (req.headers as Record<string, string>)['x-tenant'];
             if (h) return h;
+        } else {
+            // App Router global context override
+            const { headers } = require('next/headers');
+            const h = headers().get('x-tenant');
+            if (h) return h;
         }
     } catch { /* ignore */ }
 

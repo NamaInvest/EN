@@ -143,6 +143,33 @@ async function run() {
         }
     });
 
+    const isExistingBranch = await prisma.branch.findFirst();
+    if (!isExistingBranch) {
+        const defaultBranch = await prisma.branch.create({
+            data: { name: 'الفرع الرئيسي', nameEn: 'Main Branch', code: 'BR001', isActive: true, city: ${JSON.stringify(city || 'الرياض')}, address: ${JSON.stringify(address || 'المركز الرئيسي')} }
+        });
+        
+        await prisma.stock.create({
+            data: { name: 'المستودع الرئيسي', nameEn: 'Main Warehouse', code: 'WH001', branchId: defaultBranch.id, isActive: true }
+        });
+
+        await prisma.treasury.create({
+            data: { name: 'الخزينة الرئيسية', nameEn: 'Main Safe', type: 'CASH', balance: 0, branchId: defaultBranch.id, isActive: true }
+        });
+
+        await prisma.customer.create({
+            data: { name: 'عميل نقدي', nameEn: 'Cash Customer', phone: '0000000000', isActive: true }
+        });
+
+        await prisma.unit.createMany({
+            data: [
+                { name: 'حبة', nameEn: 'Piece' },
+                { name: 'كرتون', nameEn: 'Box' }
+            ],
+            skipDuplicates: true
+        });
+    }
+
     console.log('Settings Injected Successfully!');
 }
 run().catch(console.error).finally(() => prisma.$disconnect());
@@ -214,18 +241,19 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                                 '',
                                 'echo "[1] Creating PostgreSQL database..."',
                                 `sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "DB already exists"`,
-                                `sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO postgres;" 2>/dev/null || true`,
+                                `sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO n11_db;" 2>/dev/null || true`,
+                                `sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO n11_db;" 2>/dev/null || true`,
                                 '',
                                 'echo "[2] Running Prisma schema push (DB_NAME=${DB_NAME})..."',
-                                // نستخدم DATABASE_URL مؤقتاً للـ prisma push
-                                `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/$DB_NAME?schema=public" npx --prefix $MASTER_APP prisma db push --schema=$MASTER_APP/prisma/schema.prisma --accept-data-loss`,
+                                `DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/$DB_NAME?schema=public" npx --prefix $MASTER_APP prisma db push --schema=$MASTER_APP/prisma/schema.prisma --accept-data-loss`,
                                 '',
                                 'echo "[3] Injecting company settings..."',
                                 `cat > /tmp/inject_${subdomain}.js << 'JSEOF'`,
+                                `process.env.DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/${dbName}?schema=public";`,
                                 injectSettingsJs,
                                 'JSEOF',
                                 `cd $MASTER_APP`,
-                                `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/$DB_NAME?schema=public" node /tmp/inject_${subdomain}.js`,
+                                `DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/$DB_NAME?schema=public" node /tmp/inject_${subdomain}.js`,
                                 `rm -f /tmp/inject_${subdomain}.js`,
                                 '',
                                 'echo "[4] Skipping Nginx vhost... wildcard already routes to n11!"',
