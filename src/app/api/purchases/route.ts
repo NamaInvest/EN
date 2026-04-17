@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { purchaseCreateSchema, purchasePaymentSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
+import { resolveStockAndBranch } from '@/lib/getDefaults';
 
 export async function GET(request: NextRequest) {
     try {
@@ -40,11 +41,15 @@ export async function POST(request: Request) {
         const body = purchaseCreateSchema.parse(rawBody);
 
         const userId = body.userId ? Number(body.userId) : null;
-        let branchId = body.branchId ? Number(body.branchId) : null;
-        if (!branchId && userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
-            branchId = user?.branchId || null;
-        }
+
+        // ── Auto-resolve stockId + branchId from warehouse ─────────────────
+        const userBranchFallback = body.branchId ? Number(body.branchId) : (
+            userId ? (await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
+        );
+        const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
+            body.stockId,
+            userBranchFallback
+        );
 
         const last = await prisma.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
         const invoiceNo = (last?.invoiceNo || 0) + 1;
@@ -68,7 +73,7 @@ export async function POST(request: Request) {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
                     invoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
-                    stockId: body.stockId ? Number(body.stockId) : 1,
+                    stockId: resolvedStockId,
                     subtotal, taxValue, total, paid, remaining,
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
                     paymentType,

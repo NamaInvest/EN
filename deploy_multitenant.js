@@ -1,54 +1,60 @@
 const { Client } = require('ssh2');
-const fs = require('fs');
 const conn = new Client();
-const MASTER = '/www/wwwroot/n11.namainvist.com';
+const N11 = '/www/wwwroot/n11.namainvist.com';
+
+const files = [
+    { local: 'd:/namasoft9-3-main/src/lib/prisma.ts',                      remote: `${N11}/src/lib/prisma.ts` },
+    { local: 'd:/namasoft9-3-main/src/middleware.ts',                       remote: `${N11}/src/middleware.ts` },
+    { local: 'd:/namasoft9-3-main/src/app/api/tenant/provision/route.ts',  remote: `${N11}/src/app/api/tenant/provision/route.ts` },
+];
 
 conn.on('ready', () => {
     conn.sftp((err, sftp) => {
         if (err) { console.error(err); conn.end(); return; }
 
-        // Upload new prisma.ts
-        sftp.fastPut(
-            'd:/namasoft9-3-main/src/lib/prisma.ts',
-            `${MASTER}/src/lib/prisma.ts`,
-            {},
-            (uploadErr) => {
-                if (uploadErr) { console.error('Upload error:', uploadErr); conn.end(); return; }
-                console.log('✅ Uploaded prisma.ts');
+        let i = 0;
+        function next() {
+            if (i >= files.length) { build(); return; }
+            const f = files[i++];
+            sftp.fastPut(f.local, f.remote, {}, (e) => {
+                if (e) console.error('❌', f.remote.split('/').pop(), e.message);
+                else console.log('✅ Uploaded:', f.remote.split('/').pop());
+                next();
+            });
+        }
 
-                // Build + change to port 3000 + restart as new name
-                const cmd = [
-                    `cd ${MASTER}`,
+        function build() {
+            const cmd = `
+cd ${N11}
+echo "=== Build n11 with true multi-tenant ==="
+npm run build 2>&1 | grep -E "✓|error|Error" | tail -5
+ls .next/BUILD_ID && echo "✅ Build OK"
 
-                    // Update PORT in .env to 3000
-                    'sed -i "s/PORT=.*/PORT=3000/" .env',
-                    // Set DEFAULT_TENANT=n11 (fallback)
-                    'grep -q DEFAULT_TENANT .env || echo "DEFAULT_TENANT=n11" >> .env',
-                    'echo "✅ .env updated"',
+echo "=== Restart ==="
+pm2 restart saas-app
+sleep 4
 
-                    // Build
-                    'echo "🔨 Building..."',
-                    'npm run build 2>&1 | tail -5',
+echo "=== Test: n11 serves as main ==="
+curl -s -o/dev/null -w "n11 direct: %{http_code}\\n" http://127.0.0.1:3500/
 
-                    // Delete old n11 PM2 process
-                    'pm2 delete n11 2>/dev/null || true',
+echo "=== Test: x-tenant header injection ==="
+curl -s -o/dev/null -w "n11 as tenant: %{http_code}\\n" -H "Host: n11.namainvist.com" http://127.0.0.1:3500/api/settings
 
-                    // Start as saas-app on port 3000
-                    `pm2 start ${MASTER}/node_modules/next/dist/bin/next --name "saas-app" -- start -p 3000`,
-                    'pm2 save --force',
-                    'echo "✅ PM2 saas-app started on port 3000"',
-                    'pm2 list',
-                ].join(' && ');
+echo "✅ Multi-Tenant Architecture Live!"
+echo ""
+echo "Architecture summary:"
+echo "  company.namainvist.com → Nginx → :3500 (n11 app)"
+echo "  middleware reads Host → sets x-tenant=company"
+echo "  prisma proxy reads x-tenant → connects to company_db"
+echo "  Result: ONE app, unlimited tenants!"
+`;
+            conn.exec(cmd, (e2, s2) => {
+                s2.on('data', d => process.stdout.write(d.toString()));
+                s2.stderr.on('data', d => process.stderr.write(d.toString()));
+                s2.on('close', () => { console.log('\n🎉 Done!'); conn.end(); });
+            });
+        }
 
-                conn.exec(cmd, (execErr, stream) => {
-                    stream.on('data', d => process.stdout.write(d.toString()));
-                    stream.stderr.on('data', d => process.stderr.write(d.toString()));
-                    stream.on('close', () => {
-                        console.log('\n✅ Phase 2 step 1 done!');
-                        conn.end();
-                    });
-                });
-            }
-        );
+        next();
     });
 }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });

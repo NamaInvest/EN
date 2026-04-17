@@ -87,6 +87,8 @@ export default function SettingsPage() {
     const [generatingKeys, setGeneratingKeys] = useState(false);
     
     const [webhookLoading, setWebhookLoading] = useState(false);
+    const [fatooraStep, setFatooraStep] = useState(0);
+
 
     // Permission guard - redirect if no access
     // If user has permissions defined → use those (role ignored)
@@ -880,63 +882,7 @@ export default function SettingsPage() {
                 </div>
             )}
 
-            {/* Device Management Section */}
-            {canManageUsers && (
-                <div className="card" style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>{t('sys.str_4376')}</h3>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                        {t('sys.str_4377')}</p>
-                    <table className="table" style={{ fontSize: '13px' }}>
-                        <thead><tr><th>{t('sys.str_4378')}</th><th>{t('sys.str_4379')}</th><th>{t('sys.str_4380')}</th><th>{t('sys.str_4215')}</th><th></th></tr></thead>
-                        <tbody>
-                            {users.filter(u => u.role !== 'admin').map(u => (
-                                <tr key={u.id}>
-                                    <td style={{ fontWeight: '600' }}>{u.fullName}</td>
-                                    <td style={{ fontSize: '11px', color: 'var(--text-muted)', direction: 'ltr', textAlign: 'left' }}>
-                                        {u.deviceName || '—'}
-                                    </td>
-                                    <td style={{ fontSize: '12px' }}>
-                                        {u.deviceBoundAt ? new Date(u.deviceBoundAt).toLocaleDateString('ar-SA') + ' ' + new Date(u.deviceBoundAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '—'}
-                                    </td>
-                                    <td>
-                                        {u.deviceToken ? (
-                                            <span style={{ color: 'var(--success-light)', fontSize: '12px', fontWeight: '600' }}>{t('sys.str_4381')}</span>
-                                        ) : (
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{t('sys.str_4382')}</span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        {u.deviceToken && (
-                                            <button
-                                                className="btn btn-sm"
-                                                onClick={async () => {
-                                                    if (!confirm(`هل تريد فك ربط الجهاز عن "${u.fullName}"؟\nسيتمكن من الدخول من جهاز جديد.`)) return;
-                                                    try {
-                                                        const token = localStorage.getItem('token');
-                                                        const res = await fetch(`/api/users?action=unbind-device&userId=${u.id}`, {
-                                                            method: 'PATCH',
-                                                            headers: { Authorization: `Bearer ${token}` },
-                                                        });
-                                                        if (res.ok) {
-                                                            showToast(`✅ تم فك ربط الجهاز عن ${u.fullName}`);
-                                                            fetchUsers();
-                                                        } else {
-                                                            const d = await res.json();
-                                                            showToast(`❌ ${d.error}`);
-                                                        }
-                                                    } catch { showToast(t('sys.str_4162')); }
-                                                }}
-                                                style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}
-                                            >
-                                                {t('sys.str_4383')}</button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+
 
             {/* Edit Permissions Modal */}
             {editPermUser && (

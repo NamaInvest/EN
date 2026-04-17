@@ -1,13 +1,14 @@
 const { Client } = require('ssh2');
 const conn = new Client();
+
 conn.on('ready', () => {
     conn.exec(`
-pm2 logs saas-app --nostream --lines 20 2>/dev/null
-echo "---status---"
-pm2 show saas-app | grep -E "status|pid|restart"
-echo "---curl---"
-sleep 3
-curl -s -o/dev/null -w "n11: %{http_code}\\n" http://127.0.0.1:3500/
+pm2 list --no-color | grep -v "^$"
+echo "=== cwds ==="
+pm2 show ice 2>/dev/null | grep "exec cwd"
+pm2 show main-site 2>/dev/null | grep "exec cwd"
+pm2 show saas-app 2>/dev/null | grep "exec cwd"
+pm2 show saas-dev 2>/dev/null | grep "exec cwd"
 `, (err, s) => {
         s.on('data', d => process.stdout.write(d.toString()));
         s.stderr.on('data', d => process.stderr.write(d.toString()));

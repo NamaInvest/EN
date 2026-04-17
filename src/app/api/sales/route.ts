@@ -5,6 +5,7 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
 import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { resolveStockAndBranch } from '@/lib/getDefaults';
 import { z } from 'zod';
 
 const SalesItemSchema = z.object({
@@ -143,11 +144,16 @@ export async function POST(request: Request) {
         const remaining = total - paid;
 
         const userId = body.userId ? Number(body.userId) : null;
-        let branchId = body.branchId ? Number(body.branchId) : null;
-        if (!branchId && userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
-            branchId = user?.branchId || null;
-        }
+
+        // ── Auto-resolve stockId + branchId from warehouse ─────────────────
+        // branchId is always derived from Stock.branchId to prevent accounting mix-ups
+        const userBranchFallback = body.branchId ? Number(body.branchId) : (
+            userId ? (await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
+        );
+        const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
+            body.stockId,
+            userBranchFallback
+        );
 
         const invoice = await prisma.$transaction(async (tx) => {
             const createdInvoice = await tx.salesInvoice.create({
@@ -156,7 +162,7 @@ export async function POST(request: Request) {
                     branchId,
                     invoiceNo,
                     customerId: body.customerId ? Number(body.customerId) : null,
-                    stockId: body.stockId ? Number(body.stockId) : 1,
+                    stockId: resolvedStockId,
                     subtotal,
                     discountRate,
                     discountValue,

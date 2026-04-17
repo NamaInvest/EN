@@ -1,26 +1,44 @@
 /**
- * Multi-Tenant Prisma Client (v2 — Safe Build)
- * يستخدم X-Tenant header الذي يضيفه middleware.ts تلقائياً
- * بدون أي استدعاء لـ headers() داخل الـ Proxy (آمن وقت البناء)
+ * Multi-Tenant Prisma Client — True Multi-Tenant Edition
+ * ════════════════════════════════════════════════════════
+ *
+ * كيف يعمل:
+ *   1. middleware.ts يقرأ الـ subdomain من الـ Host header
+ *   2. يحقن x-tenant header في كل request (مثلاً: "n11", "ice", "company123")
+ *   3. الـ API routes تستخدم `import prisma from '@/lib/prisma'` كما هو
+ *   4. لكن الـ default export أصبح Proxy يقرأ AsyncLocalStorage لمعرفة الـ tenant
+ *   5. كل tenant يحصل على Prisma client مستقل متصل بـ DB الخاص به
+ *
+ * Database convention:
+ *   tenant "n11"       → postgresql://...@localhost:5432/n11_db
+ *   tenant "company1"  → postgresql://...@localhost:5432/company1_db
+ *   tenant "ice"       → postgresql://...@localhost:5432/ice_db
  */
+
 import { PrismaClient } from '@prisma/client';
+import { AsyncLocalStorage } from 'async_hooks';
 
-// Connection pool — one client per tenant
-const tenantPool = new Map<string, PrismaClient>();
+// ── Tenant context store ─────────────────────────────────────────
+// يخزّن اسم الـ tenant الحالي عبر Stack الطلب
+export const tenantContext = new AsyncLocalStorage<string>();
 
-/** Build the DB URL for a given tenant slug */
+// ── Connection pool ─────────────────────────────────────────────
+// Client واحد لكل tenant — لا نُعيد الإنشاء في كل طلب
+const pool = new Map<string, PrismaClient>();
+
+// ── DB URL builder ──────────────────────────────────────────────
 export function getDbUrl(tenant: string): string {
     const base =
         process.env.DATABASE_URL ||
         'postgresql://postgres:RootPassNama123@localhost:5432/n11_db?schema=public';
-    // Replace only the DB name part: /n11_db → /company_db
+    // يبدّل اسم الـ DB فقط: /n11_db → /company_db
     return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
-/** Get or create a Prisma client for a tenant */
+// ── Get or create Prisma client for tenant ──────────────────────
 export function getClient(tenant: string): PrismaClient {
-    if (!tenantPool.has(tenant)) {
-        tenantPool.set(
+    if (!pool.has(tenant)) {
+        pool.set(
             tenant,
             new PrismaClient({
                 datasources: { db: { url: getDbUrl(tenant) } },
@@ -28,54 +46,98 @@ export function getClient(tenant: string): PrismaClient {
             })
         );
     }
-    return tenantPool.get(tenant)!;
+    return pool.get(tenant)!;
 }
 
-/** 
- * Resolve tenant from:
- * 1. x-tenant header (set by middleware)
- * 2. TENANT env var (for single-tenant pm2 mode)
+// ── Resolve active tenant ───────────────────────────────────────
+/**
+ * الأولوية:
+ * 1. AsyncLocalStorage (يُعيَّن بواسطة withTenant() في كل API handler)
+ * 2. TENANT env var (لـ PM2 single-tenant، أي n11 / ice / n7)
  * 3. DEFAULT_TENANT env var
- * 4. 'n11' hardcoded fallback
+ * 4. 'n11' كـ fallback آمن
  */
-export function resolveTenant(req?: { headers?: { get?: (k:string)=>string|null, [k:string]: any } }): string {
-    // From request-level header (added by middleware)
+export function resolveTenant(req?: {
+    headers?: { get?: (k: string) => string | null; [k: string]: unknown };
+}): string {
+    // 1. من الـ context (الأسرع والأدق)
+    const ctx = tenantContext.getStore();
+    if (ctx) return ctx;
+
+    // 2. من header (يضعه middleware.ts)
     try {
         if (req?.headers) {
-            const h = typeof req.headers.get === 'function'
-                ? req.headers.get('x-tenant')
-                : (req.headers as any)['x-tenant'];
-            if (h) return h as string;
+            const h =
+                typeof req.headers.get === 'function'
+                    ? req.headers.get('x-tenant')
+                    : (req.headers as Record<string, string>)['x-tenant'];
+            if (h) return h;
         }
     } catch { /* ignore */ }
 
-    // From process environment (per-process tenant override)
+    // 3. من البيئة (PM2 per-process mode)
     if (process.env.TENANT) return process.env.TENANT;
     if (process.env.DEFAULT_TENANT) return process.env.DEFAULT_TENANT;
 
     return 'n11';
 }
 
+// ── Main helper for API routes ──────────────────────────────────
 /**
- * Factory function to get tenant-specific prisma client from a request.
- * Use this in API route handlers:
- *   const prisma = getTenantPrisma(request);
+ * استخدم هذه الدالة في أي API route يحتاج Prisma ديناميكي:
+ *
+ *   export async function GET(req: NextRequest) {
+ *     const prisma = getPrisma(req);
+ *     const items = await prisma.product.findMany();
+ *   }
  */
-export function getTenantPrisma(req?: Request | { headers?: any }): PrismaClient {
-    const tenant = resolveTenant(req as any);
-    return getClient(tenant);
+export function getPrisma(req?: Request | { headers?: unknown }): PrismaClient {
+    return getClient(resolveTenant(req as Parameters<typeof resolveTenant>[0]));
 }
 
-// ────────────────────────────────────────────────────────────────
-// Default export: a single prisma client using TENANT env var.
-// Works for single-tenant PM2 processes (current deployment model)
-// and as a safe fallback.
-// ────────────────────────────────────────────────────────────────
-const defaultTenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
+// Alias للتوافق مع الكود القديم
+export const getTenantPrisma = getPrisma;
 
-// Named export — supports: import { prisma } from '@/lib/prisma'
-export const prisma = getClient(defaultTenant);
+// ── withTenant: run a callback in a tenant context ──────────────
+/**
+ * يُغلّف الكود بـ AsyncLocalStorage context لضمان صحة الـ tenant
+ * مفيد جداً في الـ background jobs والـ cron tasks
+ *
+ * مثال:
+ *   await withTenant('company123', async () => {
+ *     await prisma.salesInvoice.findMany(); // → company123_db تلقائياً
+ *   });
+ */
+export async function withTenant<T>(
+    tenant: string,
+    fn: () => Promise<T>
+): Promise<T> {
+    return tenantContext.run(tenant, fn);
+}
 
-// Default export  — supports: import prisma from '@/lib/prisma'
-export default prisma;
+// ── Default export: Smart Proxy ─────────────────────────────────
+/**
+ * الـ Proxy يعترض كل استدعاء على `prisma` ويوجّهه للـ tenant الصحيح.
+ * هذا يعني أن `import prisma from '@/lib/prisma'` يعمل لكل الـ API routes
+ * بدون تعديل — فقط يحتاج x-tenant header أو TENANT env var.
+ *
+ * ملاحظة: يعمل في Node.js runtime فقط (مش edge).
+ */
+const smartPrisma = new Proxy({} as PrismaClient, {
+    get(_target, prop) {
+        const tenant = resolveTenant();
+        const client = getClient(tenant);
+        const value = (client as unknown as Record<string | symbol, unknown>)[prop];
+        if (typeof value === 'function') {
+            return value.bind(client);
+        }
+        return value;
+    },
+});
 
+// ── Exports ─────────────────────────────────────────────────────
+// Named export (for: import { prisma } from '@/lib/prisma')
+export { smartPrisma as prisma };
+
+// Default export (for: import prisma from '@/lib/prisma')
+export default smartPrisma;

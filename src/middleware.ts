@@ -12,20 +12,26 @@ const isPublicRoute = createRouteMatcher([
 const isIceRoute = createRouteMatcher(['/ice(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
+  // ── استخراج الـ tenant من الـ subdomain ──────────────────────────
+  // namainvist.com            → الموقع الرئيسي (لا tenant)
+  // n11.namainvist.com        → tenant: 'n11'
+  // company123.namainvist.com → tenant: 'company123'
   const hostname = req.headers.get('host') || '';
-
+  const MAIN_HOSTS = ['namainvist.com', 'www.namainvist.com'];
   const isMainSite =
-    hostname === 'namainvist.com' ||
-    hostname === 'www.namainvist.com' ||
-    hostname.startsWith('localhost');
+    MAIN_HOSTS.includes(hostname) ||
+    hostname.startsWith('localhost') ||
+    hostname.startsWith('127.0.0.1');
 
-  // Tenant subdomains (*.namainvist.com) → inject x-tenant header + pass through
-  if (!isMainSite) {
-    const tenant = hostname.split('.')[0]; // "company" from "company.namainvist.com"
+
+  // Tenant subdomains (*.namainvist.com) → inject x-tenant header
+  if (!isMainSite && hostname.endsWith('.namainvist.com')) {
+    const tenant = hostname.replace('.namainvist.com', ''); // 'n11', 'ice', etc.
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-tenant', tenant);
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
+
 
   // ── MARKETING PAGES ────────────────────────────────────────────────────────
   // الصفحات التسويقية متاحة للجميع (مسجل أو غير مسجل) — التوجيه بعد التسجيل

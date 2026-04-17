@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
+import { getMainBranchId } from '@/lib/getDefaults';
 
 export async function GET(request: NextRequest) {
     try {
@@ -43,12 +44,14 @@ export async function POST(request: Request) {
         const body = expenseCreateSchema.parse(rawBody);
 
         const userId = body.userId || null;
-        let branchId = body.branchId || null;
-        
+        let branchId: number | null = body.branchId ? Number(body.branchId) : null;
+
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: Number(userId) }, select: { branchId: true } });
-            branchId = user?.branchId || null;
+            branchId = user?.branchId ?? null;
         }
+        // Fallback → الفرع الرئيسي إذا لم يتحدد فرع
+        if (!branchId) branchId = await getMainBranchId();
 
         // --- Database Transaction for Atomicity (Atomic Operation) ---
         const expense = await prisma.$transaction(async (tx) => {

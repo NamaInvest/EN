@@ -49,9 +49,10 @@ type Status = 'IDLE' | 'SUBMITTING' | 'PROVISIONING' | 'READY' | 'ERROR';
 const STEP_LABELS = ['بيانات المنشأة', 'بيانات الموقع', 'التأكيد والإرسال'];
 
 export default function CompanyInfoPage() {
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
 
     // ── Form State ─────────────────────────────────────────────────────────
+    const [checkingExisting, setCheckingExisting] = useState(true);
     const [step, setStep] = useState<Step>(1);
     const [status, setStatus] = useState<Status>('IDLE');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +74,25 @@ export default function CompanyInfoPage() {
     const [postalCode, setPostalCode] = useState('');
 
     const isSaudi = country === 'SA';
+
+    // ── Check if already provisioned ───────────────────────────────────────
+    useEffect(() => {
+        if (!isLoaded) return;
+        if (!user) {
+            setCheckingExisting(false);
+            return;
+        }
+        fetch(`/api/tenant/check-status?userId=${user.id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.provisioned && data.subdomain) {
+                    window.location.href = `https://${data.subdomain}.namainvist.com/login`;
+                } else {
+                    setCheckingExisting(false);
+                }
+            })
+            .catch(() => setCheckingExisting(false));
+    }, [user, isLoaded]);
 
     // Live subdomain preview
     const [previewSubdomain, setPreviewSubdomain] = useState('');
@@ -97,6 +117,14 @@ export default function CompanyInfoPage() {
             }
         }, 600);
     }, [companyNameAr]);
+
+    if (checkingExisting) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+                <Loader2 size={40} className="text-white animate-spin" />
+            </div>
+        );
+    }
 
     // ── Validation per step ───────────────────────────────────────────────
     const validateStep = (s: Step): string => {

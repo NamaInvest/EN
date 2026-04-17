@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 
+// Force Node.js runtime (ssh2 uses native crypto — not compatible with Edge)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+
 const SSH_HOST = '46.4.188.170';
 const SSH_USER = 'root';
 const SSH_PASS = '_ee4SWbxLVfH9b';
@@ -177,85 +182,54 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                             const dbName     = `${subdomain}_db`;
                             const TARGET_DIR = `/www/wwwroot/${domainUrl}`;
 
-                            // Step 2: Build provisioning script as array to avoid escaping issues
+                            // ══════════════════════════════════════════════════════
+                            // TRUE MULTI-TENANT PROVISIONING
+                            // ──────────────────────────────────────────────────────
+                            // بدلاً من نسخ كامل الـ Next.js app وبنائه (15 دقيقة):
+                            //  1. إنشاء DB جديد                     (~2 ثانية)
+                            //  2. Prisma DB Push (schema فقط)        (~10 ثانية)
+                            //  3. حقن بيانات الشركة (Seed)           (~5 ثانية)
+                            //  4. إضافة Nginx vhost → نفس التطبيق   (~3 ثانية)
+                            //  5. middleware يوجّه الـ subdomain      (0 ثانية)
+                            // المجموع: ~30 ثانية بدلاً من 15 دقيقة!
+                            // ══════════════════════════════════════════════════════
+                            const MASTER_APP = '/www/wwwroot/n11.namainvist.com';
+                            const MASTER_PORT = '3500'; // n11 يخدم كل الـ tenants
+
                             const scriptLines = [
                                 '#!/bin/bash',
                                 'set -e',
                                 `DOMAIN="${domainUrl}"`,
                                 `SUBDOMAIN="${subdomain}"`,
                                 `DB_NAME="${dbName}"`,
-                                `TARGET_DIR="${TARGET_DIR}"`,
-                                'MASTER_DIR="/www/wwwroot/n11.namainvist.com"',
-
+                                `MASTER_APP="${MASTER_APP}"`,
+                                `MASTER_PORT="${MASTER_PORT}"`,
+                                '',
                                 'NGINX_VHOST="/www/server/panel/vhost/nginx"',
                                 'AAPANEL_NGINX="/www/server/nginx/sbin/nginx"',
                                 'NGINX_CONF="/www/server/nginx/conf/nginx.conf"',
-                                'N1_CERT="/www/server/panel/vhost/cert/n1"',
                                 '',
-                                'echo "[1] Discovering next available port..."',
-                                'USED_PORTS=$(for d in /www/wwwroot/*/; do [ -f "$d/.env" ] && grep "^PORT=" "$d/.env" | cut -d= -f2; done | sort -nu)',
-                                'NEXT_PORT=3013',
-                                'while echo "$USED_PORTS" | grep -qx "$NEXT_PORT"; do',
-                                '  NEXT_PORT=$((NEXT_PORT + 1))',
-                                'done',
-                                'echo "Selected PORT: $NEXT_PORT"',
+                                'echo "[1] Creating PostgreSQL database..."',
+                                `sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "DB already exists"`,
+                                `sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO postgres;" 2>/dev/null || true`,
                                 '',
-                                'echo "[2] Setting up PostgreSQL..."',
-                                'sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || true',
-                                'sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO postgres;" 2>/dev/null || true',
+                                'echo "[2] Running Prisma schema push (DB_NAME=${DB_NAME})..."',
+                                // نستخدم DATABASE_URL مؤقتاً للـ prisma push
+                                `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/$DB_NAME?schema=public" npx --prefix $MASTER_APP prisma db push --schema=$MASTER_APP/prisma/schema.prisma --accept-data-loss`,
                                 '',
-                                'echo "[3] Cloning master N1..."',
-                                'rm -rf "$TARGET_DIR"',
-                                'cp -r "$MASTER_DIR" "$TARGET_DIR"',
-                                '',
-                                'echo "[4] Writing .env..."',
-                                `cat > "$TARGET_DIR/.env" << 'ENVEOF'`,
-                                `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/${dbName}?schema=public"`,
-                                `NEXT_PUBLIC_API_URL="https://${domainUrl}"`,
-                                'PORT=__PORT__',
-                                'JWT_SECRET="namainvest-secret"',
-                                'SSO_SECRET="namainvest-sso-2024"',
-                                `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="${pubKey}"`,
-                                `CLERK_SECRET_KEY="${secKey}"`,
-                                'NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"',
-                                'NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"',
-                                'ENVEOF',
-                                'sed -i "s/__PORT__/$NEXT_PORT/" "$TARGET_DIR/.env"',
-                                '',
-                                'echo "[5] Copy auto-login files from N1..."',
-                                'mkdir -p "$TARGET_DIR/src/app/api/auth/auto-login"',
-                                'mkdir -p "$TARGET_DIR/src/app/auto-login"',
-                                'cp "$MASTER_DIR/src/app/api/auth/auto-login/route.ts" "$TARGET_DIR/src/app/api/auth/auto-login/" 2>/dev/null || true',
-                                'cp "$MASTER_DIR/src/app/auto-login/page.tsx" "$TARGET_DIR/src/app/auto-login/" 2>/dev/null || true',
-                                '',
-                                'echo "[6] Prisma DB Push..."',
-                                'cd "$TARGET_DIR"',
-                                'npx prisma db push --accept-data-loss',
-                                '',
-                                'echo "[7] Injecting company settings..."',
-                                `cat > "$TARGET_DIR/inject_settings.js" << 'JSEOF'`,
+                                'echo "[3] Injecting company settings..."',
+                                `cat > /tmp/inject_${subdomain}.js << 'JSEOF'`,
                                 injectSettingsJs,
                                 'JSEOF',
-                                'node "$TARGET_DIR/inject_settings.js"',
-                                'rm -f "$TARGET_DIR/inject_settings.js"',
+                                `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/$DB_NAME?schema=public" node /tmp/inject_${subdomain}.js`,
+                                `rm -f /tmp/inject_${subdomain}.js`,
                                 '',
-                                'echo "[8] Building Next.js..."',
-                                'rm -rf .next',
-                                'npm run build',
-                                '',
-                                'echo "[9] Starting PM2..."',
-                                'pm2 delete "$SUBDOMAIN" 2>/dev/null || true',
-                                'pm2 start node_modules/next/dist/bin/next --name "$SUBDOMAIN" -- start -p $NEXT_PORT',
-                                'pm2 save',
-                                '',
-                                'echo "[10] Writing aaPanel nginx vhost config..."',
+                                'echo "[4] Writing Nginx vhost (→ same app on port ${MASTER_PORT})..."',
                                 'mkdir -p "$NGINX_VHOST/well-known"',
-                                `echo 'location /.well-known/ { root $TARGET_DIR; }' > "$NGINX_VHOST/well-known/${subdomain}.conf"`,
+                                `echo 'location /.well-known/ { root $MASTER_APP; }' > "$NGINX_VHOST/well-known/${subdomain}.conf"`,
                                 '',
-                                // Write nginx conf using tee to avoid heredoc issues with variables
                                 `cat > "$NGINX_VHOST/$DOMAIN.conf" << 'NGINXEOF'`,
-                                'server',
-                                '{',
+                                'server {',
                                 '    listen 80;',
                                 '    listen 443 ssl http2;',
                                 `    server_name ${domainUrl};`,
@@ -263,20 +237,20 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                                 '    ssl_certificate    /www/server/panel/vhost/cert/n1/fullchain.pem;',
                                 '    ssl_certificate_key    /www/server/panel/vhost/cert/n1/privkey.pem;',
                                 '    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;',
-                                '    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;',
+                                '    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:!MD5;',
                                 '    ssl_prefer_server_ciphers on;',
                                 '    ssl_session_cache shared:SSL:10m;',
                                 '    ssl_session_timeout 10m;',
-                                '    error_page 497  https://$host$request_uri;',
+                                '    error_page 497 https://$host$request_uri;',
                                 '',
                                 `    include /www/server/panel/vhost/nginx/well-known/${subdomain}.conf;`,
                                 '',
-                                '    location ~ ^/(\\.user.ini|\\.htaccess|\\.git|\\.env|node_modules) {',
-                                '        return 404;',
-                                '    }',
+                                '    location ~ ^/(\\.user.ini|\\.htaccess|\\.git|\\.env|node_modules) { return 404; }',
                                 '',
                                 '    location / {',
-                                '        proxy_pass http://127.0.0.1:__NGINX_PORT__;',
+                                // ← كل الـ subdomains تذهب لنفس التطبيق (n11 port 3500)
+                                // middleware يقرأ Host header ويضع x-tenant تلقائياً
+                                `        proxy_pass http://127.0.0.1:${MASTER_PORT};`,
                                 '        proxy_set_header Host $host;',
                                 '        proxy_set_header X-Real-IP $remote_addr;',
                                 '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;',
@@ -295,14 +269,13 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                                 `    error_log   /www/wwwlogs/${subdomain}.error.log;`,
                                 '}',
                                 'NGINXEOF',
-                                // Replace __NGINX_PORT__ with actual port (since heredoc uses 'NGINXEOF' single quotes, $NEXT_PORT won't expand)
-                                'sed -i "s/__NGINX_PORT__/$NEXT_PORT/" "$NGINX_VHOST/$DOMAIN.conf"',
                                 '',
-                                'echo "[11] Reloading aaPanel Nginx..."',
+                                'echo "[5] Reloading Nginx..."',
                                 '$AAPANEL_NGINX -t -c $NGINX_CONF 2>&1 && $AAPANEL_NGINX -s reload -c $NGINX_CONF',
                                 '',
-                                'echo "[DONE] Provisioning complete for $DOMAIN on port $NEXT_PORT"',
+                                `echo "[DONE] Tenant '${subdomain}' provisioned → routes to n11 app on port ${MASTER_PORT}"`,
                             ];
+
 
                             const orchScript = scriptLines.join('\n');
                             const escaped = orchScript.replace(/'/g, "'\\''");

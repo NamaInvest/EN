@@ -33,13 +33,31 @@ async function main() {
     }
     console.log('✅ تم إنشاء وحدات القياس');
 
-    // 3. Default Stock (Warehouse)
-    await prisma.stock.upsert({
+    // 3. Default Company (required for Branch FK)
+    const company = await prisma.company.upsert({
         where: { id: 1 },
         update: {},
-        create: { name: 'المستودع الرئيسي', address: '' },
+        create: { id: 1, name: 'الشركة الرئيسية', subdomain: 'main', email: 'admin@main.local' },
+    }).catch(() => null); // ignore if Company model doesn't exist in older schemas
+
+    // 3.1 Default Branch
+    let mainBranch = await prisma.branch.findFirst({ where: { id: 1 } });
+    if (!mainBranch) {
+        mainBranch = await prisma.branch.create({
+            data: { id: 1, companyId: 1, name: 'الفرع الرئيسي', isActive: true },
+        }).catch(() => null);
+    }
+    const mainBranchId = mainBranch?.id ?? null;
+    if (mainBranch) console.log('✅ تم إنشاء الفرع الرئيسي');
+
+    // 3.2 Default Stock (Warehouse) — مرتبط بالفرع الرئيسي
+    await prisma.stock.upsert({
+        where: { id: 1 },
+        update: { branchId: mainBranchId },   // ← ربط المستودع بالفرع دائماً
+        create: { name: 'المستودع الرئيسي', address: '', branchId: mainBranchId },
     });
-    console.log('✅ تم إنشاء المستودع الرئيسي');
+    console.log('✅ تم إنشاء المستودع الرئيسي ومرتبط بالفرع الرئيسي');
+
 
     // 4. Default Settings
     const settings = [

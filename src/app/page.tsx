@@ -270,11 +270,11 @@ export default function NamaInvestLanding() {
           </div>
 
           {/* Action Buttons */}
-          <div className="hidden md:flex gap-3 items-center">
-            <Link href="/sign-in" className="text-slate-600 font-bold text-sm hover:text-indigo-600 transition-colors">تسجيل الدخول</Link>
-            <Link href="/sign-up" className="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-bold rounded-xl transition-all">تسجيل</Link>
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
-              <Phone className="w-4 h-4" /> تواصل معنا
+          <div className="hidden lg:flex gap-4 items-center">
+            <Link href="/sign-in" className="text-slate-600 font-bold hover:text-indigo-600 transition-colors">تسجيل الدخول</Link>
+            <Link href="/sign-up" className="px-5 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold rounded-xl transition-all">تسجيل</Link>
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+              <Phone className="w-5 h-5" /> تواصل معنا
             </a>
           </div>
 
@@ -336,11 +336,11 @@ export default function NamaInvestLanding() {
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg">
+          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-4 w-full mt-4">
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[240px]">
               🚀 جرب النظام مجاناً
             </a>
-            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg cursor-pointer">
+            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg cursor-pointer min-w-[240px]">
               اكتشف قطاعك ↓
             </a>
           </div>
