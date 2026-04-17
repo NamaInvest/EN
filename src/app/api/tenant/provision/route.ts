@@ -185,7 +185,8 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                                 `SUBDOMAIN="${subdomain}"`,
                                 `DB_NAME="${dbName}"`,
                                 `TARGET_DIR="${TARGET_DIR}"`,
-                                'MASTER_DIR="/www/wwwroot/n1.namainvist.com"',
+                                'MASTER_DIR="/www/wwwroot/n11.namainvist.com"',
+
                                 'NGINX_VHOST="/www/server/panel/vhost/nginx"',
                                 'AAPANEL_NGINX="/www/server/nginx/sbin/nginx"',
                                 'NGINX_CONF="/www/server/nginx/conf/nginx.conf"',
