@@ -1,64 +1,81 @@
 /**
- * Multi-Tenant Prisma Client
- * يقرأ الـ subdomain تلقائياً من Host header لكل طلب
- * وفتح قاعدة البيانات الصحيحة بدون أي تغيير في باقي الملفات
+ * Multi-Tenant Prisma Client (v2 — Safe Build)
+ * يستخدم X-Tenant header الذي يضيفه middleware.ts تلقائياً
+ * بدون أي استدعاء لـ headers() داخل الـ Proxy (آمن وقت البناء)
  */
 import { PrismaClient } from '@prisma/client';
-import { headers } from 'next/headers';
 
-// Pool of database connections (one per tenant)
+// Connection pool — one client per tenant
 const tenantPool = new Map<string, PrismaClient>();
 
-// Build DB URL for a specific tenant
-function getDbUrl(tenant: string): string {
+/** Build the DB URL for a given tenant slug */
+export function getDbUrl(tenant: string): string {
     const base =
         process.env.DATABASE_URL ||
         'postgresql://postgres:RootPassNama123@localhost:5432/n11_db?schema=public';
-    // Replace the DB name: n11_db → company_db
+    // Replace only the DB name part: /n11_db → /company_db
     return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
-// Get or create Prisma client for a tenant
-function getClient(tenant: string): PrismaClient {
+/** Get or create a Prisma client for a tenant */
+export function getClient(tenant: string): PrismaClient {
     if (!tenantPool.has(tenant)) {
         tenantPool.set(
             tenant,
             new PrismaClient({
                 datasources: { db: { url: getDbUrl(tenant) } },
+                log: process.env.NODE_ENV === 'development' ? ['error'] : [],
             })
         );
     }
     return tenantPool.get(tenant)!;
 }
 
-// Extract tenant name from Host header
-function getCurrentTenant(): string {
+/** 
+ * Resolve tenant from:
+ * 1. x-tenant header (set by middleware)
+ * 2. TENANT env var (for single-tenant pm2 mode)
+ * 3. DEFAULT_TENANT env var
+ * 4. 'n11' hardcoded fallback
+ */
+export function resolveTenant(req?: { headers?: { get?: (k:string)=>string|null, [k:string]: any } }): string {
+    // From request-level header (added by middleware)
     try {
-        const host = headers().get('host') || '';
-        // n11.namainvist.com  → "n11"
-        // company.namainvist.com → "company"
-        // localhost:3000 → fallback
-        const sub = host.split('.')[0];
-        return sub && !sub.includes('localhost') ? sub : (process.env.DEFAULT_TENANT || 'n11');
-    } catch {
-        // Outside request context (build time, seed scripts, etc.)
-        return process.env.DEFAULT_TENANT || 'n11';
-    }
+        if (req?.headers) {
+            const h = typeof req.headers.get === 'function'
+                ? req.headers.get('x-tenant')
+                : (req.headers as any)['x-tenant'];
+            if (h) return h as string;
+        }
+    } catch { /* ignore */ }
+
+    // From process environment (per-process tenant override)
+    if (process.env.TENANT) return process.env.TENANT;
+    if (process.env.DEFAULT_TENANT) return process.env.DEFAULT_TENANT;
+
+    return 'n11';
 }
 
 /**
- * Proxy prisma client — automatically routes to the correct tenant DB
- * All existing: import prisma from '@/lib/prisma' — WORK WITHOUT CHANGES ✅
+ * Factory function to get tenant-specific prisma client from a request.
+ * Use this in API route handlers:
+ *   const prisma = getTenantPrisma(request);
  */
-const prisma = new Proxy({} as PrismaClient, {
-    get(_, prop: string | symbol) {
-        const tenant = getCurrentTenant();
-        const client = getClient(tenant);
-        const val = (client as any)[prop];
-        // Bind functions to their client so `this` context is correct
-        return typeof val === 'function' ? val.bind(client) : val;
-    },
-});
+export function getTenantPrisma(req?: Request | { headers?: any }): PrismaClient {
+    const tenant = resolveTenant(req as any);
+    return getClient(tenant);
+}
 
-export { tenantPool, getClient, getCurrentTenant };
+// ────────────────────────────────────────────────────────────────
+// Default export: a single prisma client using TENANT env var.
+// Works for single-tenant PM2 processes (current deployment model)
+// and as a safe fallback.
+// ────────────────────────────────────────────────────────────────
+const defaultTenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
+
+// Named export — supports: import { prisma } from '@/lib/prisma'
+export const prisma = getClient(defaultTenant);
+
+// Default export  — supports: import prisma from '@/lib/prisma'
 export default prisma;
+

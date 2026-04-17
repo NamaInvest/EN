@@ -19,9 +19,12 @@ export default clerkMiddleware(async (auth, req) => {
     hostname === 'www.namainvist.com' ||
     hostname.startsWith('localhost');
 
-  // N1-N11 subdomains → pass through without Clerk
+  // Tenant subdomains (*.namainvist.com) → inject x-tenant header + pass through
   if (!isMainSite) {
-    return;
+    const tenant = hostname.split('.')[0]; // "company" from "company.namainvist.com"
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-tenant', tenant);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ── MARKETING PAGES ────────────────────────────────────────────────────────
