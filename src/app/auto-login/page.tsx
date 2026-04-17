@@ -23,7 +23,7 @@ function AutoLoginContent() {
             .then(data => {
                 if (data.success && data.token) {
                     localStorage.setItem('token', data.token);
-                    router.replace('/auth/routing');
+                    router.replace('/dashboard');
                 } else {
                     setError(data.error || 'فشل تسجيل الدخول التلقائي.');
                     setStatus('error');

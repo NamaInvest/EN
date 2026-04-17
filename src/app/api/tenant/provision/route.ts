@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 
         // ─── inject_settings.js content ───────────────────────────────────
         const injectSettingsJs = `
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require(process.cwd() + '/node_modules/@prisma/client');
 const prisma = new PrismaClient();
 
 async function upsertSetting(key, value) {
@@ -105,28 +105,31 @@ async function upsertSetting(key, value) {
 }
 
 async function run() {
-    await upsertSetting('companyNameAr', ${JSON.stringify(companyNameAr)});
-    await upsertSetting('companyNameEn', ${JSON.stringify(companyNameEn)});
-    await upsertSetting('vatNumber',     ${JSON.stringify(vatNumber || '')});
-    await upsertSetting('crNumber',      ${JSON.stringify(crnNumber || '')});
-    await upsertSetting('mobile',        ${JSON.stringify(mobile || '')});
-    await upsertSetting('address',       ${JSON.stringify(`${city || ''} ${district || ''} ${address || ''} ${buildingNo || ''}`.trim())});
-    await upsertSetting('posFooterText', ${JSON.stringify(`Thank you for visiting ${companyNameEn}`)});
-    await upsertSetting('zatcaIndustry',     ${JSON.stringify(zatcaIndustry)});
-    await upsertSetting('zatcaBranchNameEn', ${JSON.stringify(zatcaBranchNameEn)});
-    await upsertSetting('zatcaCityEn',       ${JSON.stringify(zatcaCityEn)});
-    await upsertSetting('zatcaCityAr',       ${JSON.stringify(city || '')});
-    await upsertSetting('zatcaDistrict',     ${JSON.stringify(district || '')});
-    await upsertSetting('zatcaStreet',       ${JSON.stringify(address || '')});
-    await upsertSetting('zatcaBuildingNo',   ${JSON.stringify(buildingNo || '')});
-    await upsertSetting('zatcaPostalCode',   ${JSON.stringify(postalCode || '')});
+    await upsertSetting('company_name',      ${JSON.stringify(companyNameAr)});
+    await upsertSetting('company_name_en',   ${JSON.stringify(companyNameEn)});
+    await upsertSetting('tax_number',        ${JSON.stringify(vatNumber || '')});
+    await upsertSetting('zatca_crn',         ${JSON.stringify(crnNumber || '')});
+    await upsertSetting('company_phone',     ${JSON.stringify(mobile || '')});
+    await upsertSetting('company_address',   ${JSON.stringify(`${city || ''} ${district || ''} ${address || ''} ${buildingNo || ''}`.trim())});
+    await upsertSetting('posFooterText',     ${JSON.stringify(`Thank you for visiting ${companyNameEn}`)});
+    await upsertSetting('zatca_industry',    ${JSON.stringify(zatcaIndustry)});
+    await upsertSetting('branch_name_en',    ${JSON.stringify(zatcaBranchNameEn)});
+    await upsertSetting('zatca_city_en',     ${JSON.stringify(zatcaCityEn)});
+    await upsertSetting('zatca_city',        ${JSON.stringify(city || '')});
+    await upsertSetting('zatca_district',    ${JSON.stringify(district || '')});
+    await upsertSetting('zatca_street',      ${JSON.stringify(address || '')});
+    await upsertSetting('zatca_building',    ${JSON.stringify(buildingNo || '')});
+    await upsertSetting('zatca_postal_code', ${JSON.stringify(postalCode || '')});
 
     const trialEndMs = Date.now() + (5 * 24 * 60 * 60 * 1000);
     await upsertSetting('trialActive',      'true');
     await upsertSetting('trialEndsAt',      trialEndMs.toString());
     await upsertSetting('maxTrialInvoices', '30');
+    await upsertSetting('tax_rate',         '15');
+    await upsertSetting('POS_TAX_ENABLED',  'true');
+    await upsertSetting('POS_TAX_INCLUSIVE', 'true');
 
-    const bcrypt = require('bcryptjs');
+    const bcrypt = require(process.cwd() + '/node_modules/bcryptjs');
     const adminHash = bcrypt.hashSync('admin', 10);
     await prisma.user.upsert({
         where:  { username: 'admin' },
@@ -221,57 +224,13 @@ run().catch(console.error).finally(() => prisma.$disconnect());
                                 `cat > /tmp/inject_${subdomain}.js << 'JSEOF'`,
                                 injectSettingsJs,
                                 'JSEOF',
+                                `cd $MASTER_APP`,
                                 `DATABASE_URL="postgresql://postgres:RootPassNama123@localhost:5432/$DB_NAME?schema=public" node /tmp/inject_${subdomain}.js`,
                                 `rm -f /tmp/inject_${subdomain}.js`,
                                 '',
-                                'echo "[4] Writing Nginx vhost (→ same app on port ${MASTER_PORT})..."',
-                                'mkdir -p "$NGINX_VHOST/well-known"',
-                                `echo 'location /.well-known/ { root $MASTER_APP; }' > "$NGINX_VHOST/well-known/${subdomain}.conf"`,
-                                '',
-                                `cat > "$NGINX_VHOST/$DOMAIN.conf" << 'NGINXEOF'`,
-                                'server {',
-                                '    listen 80;',
-                                '    listen 443 ssl http2;',
-                                `    server_name ${domainUrl};`,
-                                '',
-                                '    ssl_certificate    /www/server/panel/vhost/cert/n1/fullchain.pem;',
-                                '    ssl_certificate_key    /www/server/panel/vhost/cert/n1/privkey.pem;',
-                                '    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;',
-                                '    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:!MD5;',
-                                '    ssl_prefer_server_ciphers on;',
-                                '    ssl_session_cache shared:SSL:10m;',
-                                '    ssl_session_timeout 10m;',
-                                '    error_page 497 https://$host$request_uri;',
-                                '',
-                                `    include /www/server/panel/vhost/nginx/well-known/${subdomain}.conf;`,
-                                '',
-                                '    location ~ ^/(\\.user.ini|\\.htaccess|\\.git|\\.env|node_modules) { return 404; }',
-                                '',
-                                '    location / {',
-                                // ← كل الـ subdomains تذهب لنفس التطبيق (n11 port 3500)
-                                // middleware يقرأ Host header ويضع x-tenant تلقائياً
-                                `        proxy_pass http://127.0.0.1:${MASTER_PORT};`,
-                                '        proxy_set_header Host $host;',
-                                '        proxy_set_header X-Real-IP $remote_addr;',
-                                '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;',
-                                '        proxy_set_header REMOTE-HOST $remote_addr;',
-                                '        proxy_no_cache 1;',
-                                '        proxy_cache_bypass 1;',
-                                '        proxy_connect_timeout 30s;',
-                                '        proxy_read_timeout 86400s;',
-                                '        proxy_send_timeout 30s;',
-                                '        proxy_http_version 1.1;',
-                                '        proxy_set_header Upgrade $http_upgrade;',
-                                '        proxy_set_header Connection "upgrade";',
-                                '    }',
-                                '',
-                                `    access_log  /www/wwwlogs/${subdomain}.log;`,
-                                `    error_log   /www/wwwlogs/${subdomain}.error.log;`,
-                                '}',
-                                'NGINXEOF',
-                                '',
-                                'echo "[5] Reloading Nginx..."',
-                                '$AAPANEL_NGINX -t -c $NGINX_CONF 2>&1 && $AAPANEL_NGINX -s reload -c $NGINX_CONF',
+                                'echo "[4] Skipping Nginx vhost... wildcard already routes to n11!"',
+                                
+                                'echo "[5] Provisioning completed successfully!"',
                                 '',
                                 `echo "[DONE] Tenant '${subdomain}' provisioned → routes to n11 app on port ${MASTER_PORT}"`,
                             ];

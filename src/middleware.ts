@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api(.*)',
+  '/auto-login(.*)',
 ]);
 
 const isIceRoute = createRouteMatcher(['/ice(.*)']);
