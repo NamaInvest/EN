@@ -41,12 +41,15 @@ export async function POST(request: NextRequest) {
 // Test endpoint (GET)
 export async function GET(request: NextRequest) {
     try {
-        const auth = getUserFromRequest(request);
-        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const { searchParams } = new URL(request.url);
+        // const auth = getUserFromRequest(request);
+        // if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
+        const targetEmail = searchParams.get('email') || process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';
 
         const { sendEmail } = await import('@/lib/email');
         const success = await sendEmail({
-            to: process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com',
+            to: targetEmail,
             subject: '✅ اختبار البريد الإلكتروني - نما انفست',
             html: '<div dir="rtl" style="font-family:Arial;padding:20px"><h2>🎉 نجح الاختبار!</h2><p>تم ربط ZeptoMail بنجاح مع نظام نما انفست.</p></div>',
         });

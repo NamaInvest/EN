@@ -271,7 +271,8 @@ export default function NamaInvestLanding() {
 
           {/* Action Buttons */}
           <div className="hidden md:flex gap-3 items-center">
-            <Link href="/login" className="text-slate-600 font-bold text-sm hover:text-indigo-600 transition-colors">تسجيل الدخول</Link>
+            <Link href="/sign-in" className="text-slate-600 font-bold text-sm hover:text-indigo-600 transition-colors">تسجيل الدخول</Link>
+            <Link href="/sign-up" className="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-bold rounded-xl transition-all">تسجيل</Link>
             <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
               <Phone className="w-4 h-4" /> تواصل معنا
             </a>
@@ -292,7 +293,8 @@ export default function NamaInvestLanding() {
             <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="font-bold text-slate-700 hover:text-indigo-600">المجموعات الخمس الاستراتيجية</a>
             <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="font-bold text-slate-700 hover:text-indigo-600">قائمة الـ 104 وحدة برمجية</a>
             <div className="h-px bg-slate-100 my-2"></div>
-            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-slate-700 text-center py-2">تسجيل الدخول</Link>
+            <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-slate-700 text-center py-2">تسجيل الدخول</Link>
+            <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-center border border-indigo-600 text-indigo-600 font-bold rounded-xl">تسجيل حساب جديد</Link>
             <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-3 text-center bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
                <Phone className="w-5 h-5" /> تواصل معنا الآن
             </a>
@@ -356,7 +358,7 @@ export default function NamaInvestLanding() {
             بنية وحداتية مرنة (Modular Architecture) تتكيف مع كل قطاع تجاري
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
           {INDUSTRIES.map(ind => (
             <div
               key={ind.id}
@@ -412,7 +414,7 @@ export default function NamaInvestLanding() {
             <h2 className="text-4xl font-black text-white mb-3 text-center">الـ 104 وحدة.. منظّمة بذكاء</h2>
             <p className="text-slate-400 text-lg text-center">Five strategic clusters covering every aspect of your business</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 justify-items-center w-full">
             {POWER_CLUSTERS.map((c, i) => (
               <div key={c.titleEn} className={`rounded-2xl overflow-hidden cursor-pointer transition-all w-full flex flex-col text-center ${expandedCluster===i?'ring-2 ring-white/30 scale-[1.02]':''}`}
                 onClick={() => setExpandedCluster(expandedCluster===i ? null : i)}>
@@ -477,7 +479,7 @@ export default function NamaInvestLanding() {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-items-center w-full">
                     {filteredModules.map((m) => (
             <div key={m.title} className="group bg-white w-full border border-slate-100 rounded-2xl p-4 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">{m.icon}</div>

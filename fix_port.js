@@ -1,23 +1,43 @@
 const { Client } = require('ssh2');
 const conn = new Client();
+const MASTER = '/www/wwwroot/n11.namainvist.com';
+const SAAS_PORT = 3500;
+
 conn.on('ready', () => {
-    console.log('✅ SSH Connected');
-    // Fix: restart PM2 with correct port (3000) to match nginx, then reload nginx
-    const cmd = `
-pm2 delete n1-main 2>/dev/null || true
-cd /www/wwwroot/n1.namainvist.com
-sed -i 's/^PORT=.*/PORT=3000/' .env
-pm2 start node_modules/next/dist/bin/next --name "n1-main" -- start -p 3000
-pm2 save
-echo "PORT_FIXED"
-`;
-    conn.exec(cmd, (err, stream) => {
-        if(err){conn.end();return;}
-        stream.on('data', d => process.stdout.write(d));
-        stream.stderr.on('data', d => process.stderr.write(d));
-        stream.on('close', () => {
-            console.log('✅ Done! Site should be on port 3000 now.');
-            conn.end();
-        });
+    const cmd = [
+        // Update .env to use port 3500
+        `sed -i "s/PORT=.*/PORT=${SAAS_PORT}/" ${MASTER}/.env`,
+        `echo "✅ PORT set to ${SAAS_PORT}"`,
+
+        // Delete errored saas-app and restart with correct port
+        `pm2 delete saas-app 2>/dev/null || true`,
+        `pm2 start ${MASTER}/node_modules/next/dist/bin/next --name "saas-app" -- start -p ${SAAS_PORT}`,
+        `pm2 save --force`,
+        `echo "✅ saas-app started on port ${SAAS_PORT}"`,
+
+        // Update nginx wildcard to use 3500
+        `sed -i "s|proxy_pass.*http://127.0.0.1:[0-9]*|proxy_pass         http://127.0.0.1:${SAAS_PORT}|g" /www/server/panel/vhost/nginx/tenants-wildcard.namainvist.com.conf`,
+        `echo "✅ Nginx updated to port ${SAAS_PORT}"`,
+
+        // Reload nginx
+        `/www/server/nginx/sbin/nginx -t -c /www/server/nginx/conf/nginx.conf 2>&1 && /www/server/nginx/sbin/nginx -s reload`,
+        `echo "✅ Nginx reloaded"`,
+
+        // Wait a moment for app to start
+        `sleep 5`,
+
+        // Test
+        `echo "=== Testing ==="`,
+        `curl -s -o /dev/null -w "HTTP %{http_code}" -H "Host: n11.namainvist.com" http://127.0.0.1:${SAAS_PORT}/ 2>/dev/null`,
+        `echo ""`,
+        `curl -s -H "Host: n11.namainvist.com" http://127.0.0.1:${SAAS_PORT}/api/auth/login -X POST -H "Content-Type: application/json" -d '{"username":"admin","password":"admin"}' 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print('Login OK:', d.get('token','?')[:30])" 2>/dev/null || echo "API responded"`,
+        `echo ""`,
+        `pm2 list | grep -E "saas|main"`,
+    ].join(' && ');
+
+    conn.exec(cmd, (err, s) => {
+        s.on('data', d => process.stdout.write(d.toString()));
+        s.stderr.on('data', d => process.stderr.write(d.toString()));
+        s.on('close', () => conn.end());
     });
-}).connect({ host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });

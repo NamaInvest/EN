@@ -1,12 +1,13 @@
 const { Client } = require('ssh2');
 const conn = new Client();
+
 conn.on('ready', () => {
     const cmd = [
-        'echo "=== ما الذي يشغل port 3000؟ ==="',
-        'fuser 3000/tcp 2>/dev/null && lsof -i :3000 | head -5',
-        'echo "=== جميع البورتات المستخدمة ==="',
-        'ss -tlnp | grep -E "3[0-9]{3,}"',
+        'cat /www/wwwroot/namainvest.namainvist.com/.env | grep -E "DATABASE_URL|PORT|JWT"',
+        'echo ---',
+        'curl -s -X POST https://namainvest.namainvist.com/api/auth/login -H "Content-Type: application/json" -d \'{"username":"admin","password":"admin"}\''
     ].join(' && ');
+
     conn.exec(cmd, (err, s) => {
         s.on('data', d => process.stdout.write(d.toString()));
         s.stderr.on('data', d => process.stderr.write(d.toString()));

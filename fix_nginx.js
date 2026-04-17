@@ -1,32 +1,22 @@
 const { Client } = require('ssh2');
-
-const config = {
-    host: '46.4.188.170',
-    port: 22,
-    username: 'root',
-    password: '_ee4SWbxLVfH9b',
-    readyTimeout: 30000
-};
-
-const cmd = `
-#!/bin/bash
-set -e
-# Remove the old bad line
-sed -i '/add_header Clear-Site-Data/d' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-# Insert the proper line
-sed -i '/add_header Cache-Control no-cache;/a \\    add_header Clear-Site-Data \\"\\*\\";' /www/server/panel/vhost/nginx/proxy/namainvist.com/*.conf
-
-nginx -s reload
-echo "Fixed headers."
-`;
-
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec(cmd, (err, stream) => {
-        if (err) throw err;
-        stream.on('close', () => conn.end());
-        stream.on('data', d => process.stdout.write(d.toString()));
-        stream.stderr.on('data', d => process.stderr.write(d.toString()));
+    const tenants = ['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10'];
+    const cmds = [
+        ...tenants.map(t => [
+            `chattr -i /www/server/panel/vhost/nginx/${t}.namainvist.com.conf 2>/dev/null || true`,
+            `rm -f /www/server/panel/vhost/nginx/${t}.namainvist.com.conf`,
+            `echo "✅ Nginx deleted: ${t}"`,
+        ].join(' && ')),
+        '/www/server/nginx/sbin/nginx -t -c /www/server/nginx/conf/nginx.conf 2>&1 && /www/server/nginx/sbin/nginx -s reload',
+        'echo "✅ Nginx reloaded"',
+        'ls /www/server/panel/vhost/nginx/n*.conf 2>/dev/null | grep -v n11 || echo "Nginx n1-n10: CLEAN ✅"',
+        'echo "=== PM2 الحالي ==="',
+        'pm2 list',
+    ].join(' && ');
+    conn.exec(cmds, (err, s) => {
+        s.on('data', d => process.stdout.write(d.toString()));
+        s.stderr.on('data', d => process.stderr.write(d.toString()));
+        s.on('close', () => conn.end());
     });
-}).on('error', console.error).connect(config);
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });

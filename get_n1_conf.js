@@ -1,11 +1,13 @@
 const { Client } = require('ssh2');
 const conn = new Client();
+
 conn.on('ready', () => {
     const cmd = [
-        'echo "=== ما الذي يشغل port 3000؟ ==="',
-        'fuser 3000/tcp 2>/dev/null && lsof -i :3000 | head -5',
-        'echo "=== جميع البورتات المستخدمة ==="',
-        'ss -tlnp | grep -E "3[0-9]{3,}"',
+        'cat /www/server/panel/vhost/rewrite/node_n1.conf 2>/dev/null',
+        'echo ---certs---',
+        'ls /www/server/panel/vhost/cert/ | grep -i "nama\\|wild"',
+        'echo ---n1 full conf---',
+        'cat /www/server/panel/vhost/nginx/n1.namainvist.com.conf',
     ].join(' && ');
     conn.exec(cmd, (err, s) => {
         s.on('data', d => process.stdout.write(d.toString()));

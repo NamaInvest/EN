@@ -3,18 +3,17 @@ const conn = new Client();
 
 conn.on('ready', () => {
     const cmd = [
-        // Find THE actual nginx binary
-        'which nginx && nginx -v',
+        // Where is n1 nginx served from?
+        'grep -r "n1.namainvist.com" /etc/nginx/ 2>/dev/null | grep "server_name" | head -5',
         'echo ---',
-        // aaPanel might use its own nginx
-        'ls /www/server/nginx/ 2>/dev/null | head -5',
-        '/www/server/nginx/sbin/nginx -v 2>&1 || echo "no aapanel nginx"',
+        'ls /etc/nginx/conf.d/',
         'echo ---',
-        '/www/server/nginx/sbin/nginx -T 2>/dev/null | grep "Configuration file" | head -5',
+        'cat /etc/nginx/conf.d/default.conf 2>/dev/null | head -5 || echo "no default.conf"',
         'echo ---',
-        '/www/server/nginx/sbin/nginx -T 2>/dev/null | grep -c "n1.namainvist"',
+        // Try ALL directories that could have nginx configs
+        'find /etc/nginx/ -name "*.conf" | xargs grep -l "n1.namainvist.com" 2>/dev/null',
         'echo ---',
-        'ps aux | grep nginx | head -5',
+        'nginx -T 2>/dev/null | grep "Configuration file" | head -20',
     ].join(' && ');
     conn.exec(cmd, (err, s) => {
         s.on('data', d => process.stdout.write(d.toString()));

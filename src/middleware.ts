@@ -24,8 +24,9 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // ── MARKETING PAGES — skip Clerk entirely ──
-  // Inject x-is-marketing header so layout.tsx skips ClerkProvider/SessionProvider
+  // ── MARKETING PAGES ────────────────────────────────────────────────────────
+  // الصفحات التسويقية متاحة للجميع (مسجل أو غير مسجل) — التوجيه بعد التسجيل
+  // يتم عبر NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/company-info في .env
   const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services'];
   if (marketingRoutes.includes(req.nextUrl.pathname)) {
     const requestHeaders = new Headers(req.headers);
@@ -39,6 +40,12 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Public auth routes
   if (isPublicRoute(req)) {
+    return;
+  }
+
+  // /company-info is accessible to all authenticated users (no provisioning check)
+  if (req.nextUrl.pathname.startsWith('/company-info')) {
+    await auth.protect();
     return;
   }
 
@@ -59,8 +66,27 @@ export default clerkMiddleware(async (auth, req) => {
     return; // ✅ المالك مسموح له
   }
 
-  // باقي مسارات الموقع الرئيسي (/onboarding, /dashboard...) → Clerk
+  // باقي مسارات الموقع الرئيسي → Clerk protect أولاً
   await auth.protect();
+  const { userId } = await auth();
+
+  // ── Onboarding Guard: هل المستخدم مؤسَّس؟ ──────────────────────────────
+  if (userId) {
+    try {
+      const host = req.headers.get('host') || 'namainvist.com';
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      const checkRes = await fetch(
+        `${protocol}://${host}/api/tenant/check-status?userId=${userId}`,
+        { signal: AbortSignal.timeout(3000) }
+      );
+      const { provisioned } = await checkRes.json().catch(() => ({ provisioned: false }));
+      if (!provisioned) {
+        return NextResponse.redirect(new URL('/company-info', req.url));
+      }
+    } catch {
+      // إذا فشل الفحص → اسمح بالمرور (لا نريد حجب المستخدمين بسبب خطأ شبكة)
+    }
+  }
 });
 
 export const config = {
