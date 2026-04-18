@@ -2,15 +2,11 @@ const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
     conn.exec(`
-echo "=== Testing login API ==="
-curl -v -s -X POST http://127.0.0.1:3500/api/auth/login \
-  -H "Content-Type: application/json" \
-  -H "Host: namainvest.namainvist.com" \
-  -d '{"username":"admin","password":"admin"}' 2>&1 | head -40
+pm2 logs saas-app --lines 30 --nostream 2>&1
 
 echo ""
-echo "=== Checking login route first few lines ==="
-head -20 /www/wwwroot/n11.namainvist.com/src/app/api/auth/login/route.ts
+echo "=== saas-app env ==="
+pm2 env 25 2>&1 | grep -E "PORT|HOST|NODE_ENV" | head -10
     `, (err, stream) => {
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));

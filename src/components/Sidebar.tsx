@@ -388,7 +388,7 @@ const menuItems = [
     { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
   ]},
   { sk: 's.settings', items: [
-    { icon: '🏢', lk: 'i.company_info', href: '/company-info', module: 'settings' },
+    { icon: '🏢', lk: 'i.company_info', href: '/settings/company', module: 'settings' },
     { icon: '🌐', lk: 'i.saas', href: '/ice', module: 'master-panel' },
     { icon: '🏢', lk: 'i.branches', href: '/branches', module: 'branches' },
     { icon: '💱', lk: 'i.currencies', href: '/settings/currencies', module: 'currencies' },

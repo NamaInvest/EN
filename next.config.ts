@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 
-  serverExternalPackages: ['ssh2'],
+  serverExternalPackages: ['ssh2', 'nodemailer'],
   images: {
     remotePatterns: [
       {

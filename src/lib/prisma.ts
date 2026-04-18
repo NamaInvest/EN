@@ -139,27 +139,13 @@ export async function withTenant<T>(
 // ── Helper: sync read of x-tenant from Next.js internal context ──
 function getTenantFromNextContext(): string | null {
     try {
-        // Next.js 15 internal: WorkUnitAsyncStorage stores request context
-        // نقرأ الـ headers من الـ context بدون await
+        // Next.js 16 stores request context in a global
         const workUnitStore = (globalThis as any).__NEXT_REQUEST_CONTEXT__?.get?.();
         if (workUnitStore?.headers) {
             const h = workUnitStore.headers.get?.('x-tenant') || workUnitStore.headers['x-tenant'];
             if (h && typeof h === 'string') return h;
         }
     } catch { /* ignore */ }
-
-    try {
-        // محاولة ثانية: RequestStore من Next.js
-        const mod = require('next/dist/server/async-storage/request-async-storage.external');
-        const store = mod?.requestAsyncStorage?.getStore?.() || mod?.getRequestAsyncStorage?.()?.getStore?.();
-        if (store?.headers) {
-            const h = typeof store.headers.get === 'function'
-                ? store.headers.get('x-tenant')
-                : store.headers['x-tenant'];
-            if (h && typeof h === 'string') return h;
-        }
-    } catch { /* ignore */ }
-
     return null;
 }
 
