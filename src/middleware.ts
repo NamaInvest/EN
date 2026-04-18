@@ -53,9 +53,31 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // /company-info is accessible to all authenticated users (no provisioning check)
+  // /company-info — إذا كان المستخدم مؤسَّساً بالفعل وجّهه للـ dashboard مباشرة
   if (req.nextUrl.pathname.startsWith('/company-info')) {
     await auth.protect();
+    const { userId } = await auth();
+    if (userId) {
+      try {
+        const SAAS_INTERNAL = process.env.SAAS_INTERNAL_URL || 'http://127.0.0.1:3500';
+        const checkRes = await fetch(
+          `${SAAS_INTERNAL}/api/tenant/check-status?userId=${userId}`,
+          { signal: AbortSignal.timeout(4000) }
+        );
+        const { provisioned, subdomain } = await checkRes.json().catch(() => ({ provisioned: false }));
+        if (provisioned && subdomain) {
+          // المستخدم مؤسَّس → وجّهه لـ subdomain dashboard
+          const host = req.headers.get('host') || '';
+          const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+          const targetUrl = isLocal
+            ? `http://localhost:3500/dashboard`
+            : `https://${subdomain}.namainvist.com/dashboard`;
+          return NextResponse.redirect(targetUrl);
+        }
+      } catch {
+        // فشل الفحص → اسمح له بصفحة company-info
+      }
+    }
     return;
   }
 
@@ -83,15 +105,24 @@ export default clerkMiddleware(async (auth, req) => {
   // ── Onboarding Guard: هل المستخدم مؤسَّس؟ ──────────────────────────────
   if (userId) {
     try {
-      const host = req.headers.get('host') || 'namainvist.com';
-      const protocol = host.includes('localhost') ? 'http' : 'https';
+      // دائماً نستعلم من saas-app (port 3500) الذي يملك السجل الكامل للـ tenants
+      // هذا يجنب مشكلة اختلاف قواعد البيانات بين main-site و saas-app
+      const SAAS_INTERNAL = process.env.SAAS_INTERNAL_URL || 'http://127.0.0.1:3500';
       const checkRes = await fetch(
-        `${protocol}://${host}/api/tenant/check-status?userId=${userId}`,
-        { signal: AbortSignal.timeout(3000) }
+        `${SAAS_INTERNAL}/api/tenant/check-status?userId=${userId}`,
+        { signal: AbortSignal.timeout(4000) }
       );
-      const { provisioned } = await checkRes.json().catch(() => ({ provisioned: false }));
+      const { provisioned, subdomain } = await checkRes.json().catch(() => ({ provisioned: false }));
       if (!provisioned) {
         return NextResponse.redirect(new URL('/company-info', req.url));
+      }
+      // إذا كان المستخدم مؤسَّساً وعلى الموقع الرئيسي → وجّهه للـ subdomain
+      const host = req.headers.get('host') || '';
+      const isMain = ['namainvist.com', 'www.namainvist.com'].includes(host) || host.startsWith('localhost') || host.startsWith('127.0.0.1');
+      if (isMain && subdomain) {
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const base = host.includes('localhost') ? `${protocol}://localhost:3500` : `${protocol}://${subdomain}.namainvist.com`;
+        return NextResponse.redirect(new URL('/dashboard', base));
       }
     } catch {
       // إذا فشل الفحص → اسمح بالمرور (لا نريد حجب المستخدمين بسبب خطأ شبكة)
