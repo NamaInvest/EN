@@ -1,60 +1,56 @@
 const { Client } = require('ssh2');
-const fs = require('fs');
-const path = require('path');
-
 const conn = new Client();
 conn.on('ready', () => {
     conn.sftp((err, sftp) => {
-        if (err) throw err;
-        
-        // Upload lib/email.ts
+        if (err) { console.error(err); conn.end(); return; }
         sftp.fastPut(
-            'd:/namasoft9-3-main/src/lib/email.ts',
-            '/www/wwwroot/n11.namainvist.com/src/lib/email.ts',
+            'd:/namasoft9-3-main/src/lib/quotaGuard.ts',
+            '/www/wwwroot/n11.namainvist.com/src/lib/quotaGuard.ts',
             {},
-            putErr => {
-                if (putErr) console.error('Failed to upload email.ts:', putErr.message);
-                else console.log('✅ Uploaded: src/lib/email.ts');
-                
-                // Upload lib/prisma.ts (with fixes)
-                sftp.fastPut(
-                    'd:/namasoft9-3-main/src/lib/prisma.ts',
-                    '/www/wwwroot/n11.namainvist.com/src/lib/prisma.ts',
-                    {},
-                    putErr2 => {
-                        if (putErr2) console.error('Failed to upload prisma.ts:', putErr2.message);
-                        else console.log('✅ Uploaded: src/lib/prisma.ts');
-                        
-                        // Upload settings/company page
-                        conn.exec(`mkdir -p "/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/settings/company"`, (e, stream) => {
-                            stream.on('close', () => {
-                                sftp.fastPut(
-                                    'd:/namasoft9-3-main/src/app/(dashboard)/settings/company/page.tsx',
-                                    '/www/wwwroot/n11.namainvist.com/src/app/(dashboard)/settings/company/page.tsx',
-                                    {},
-                                    putErr3 => {
-                                        if (putErr3) console.error('Failed to upload settings/company:', putErr3.message);
-                                        else console.log('✅ Uploaded: settings/company/page.tsx');
-                                        
-                                        // Now rebuild
-                                        console.log('\n🔨 Rebuilding...');
-                                        conn.exec(
-                                            'cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -50 && pm2 restart saas-app && echo "✅ DONE"',
-                                            (buildErr, buildStream) => {
-                                                buildStream.on('data', d => process.stdout.write(d.toString()));
-                                                buildStream.stderr.on('data', d => process.stderr.write(d.toString()));
-                                                buildStream.on('close', () => { console.log('\n🎉 Complete!'); conn.end(); });
-                                            }
-                                        );
-                                    }
-                                );
-                            });
-                            stream.on('data', () => {});
-                            stream.stderr.on('data', () => {});
+            (err) => {
+                if (err) { console.error('❌ Upload failed:', err.message); conn.end(); return; }
+                console.log('✅ quotaGuard.ts uploaded!');
+
+                // تحقق
+                conn.exec('cat /www/wwwroot/n11.namainvist.com/src/lib/quotaGuard.ts | head -5', (e, s) => {
+                    s.on('data', d => process.stdout.write(d.toString()));
+                    s.on('close', () => {
+                        // الآن أعِد البناء
+                        console.log('\n🔨 Rebuilding saas-app...');
+                        conn.exec(`
+rm -f /tmp/build_done.flag /tmp/build_error.flag
+nohup bash -c 'cd /www/wwwroot/n11.namainvist.com && npm run build > /tmp/saas_build.log 2>&1 && pm2 start saas-app && touch /tmp/build_done.flag || touch /tmp/build_error.flag' &
+echo "PID: $!"
+                        `, (e2, s2) => {
+                            s2.on('data', d => process.stdout.write(d.toString()));
+                            s2.on('close', () => { console.log('\n⏳ Build started. Polling...'); conn.end(); });
                         });
-                    }
-                );
+                    });
+                });
             }
         );
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+
+// Poll
+let tries = 0;
+const poll = () => {
+    tries++;
+    const c = new Client();
+    c.on('ready', () => {
+        c.exec(`
+if [ -f /tmp/build_done.flag ]; then echo "✅ DONE"; pm2 list | grep saas;
+elif [ -f /tmp/build_error.flag ]; then echo "❌ FAILED"; tail -15 /tmp/saas_build.log;
+else echo "⏳ Building... (${tries*15}s)"; tail -2 /tmp/saas_build.log 2>/dev/null; fi
+        `, (e, s) => {
+            let out = '';
+            s.on('data', d => { out += d; process.stdout.write(d.toString()); });
+            s.on('close', () => {
+                c.end();
+                if (out.includes('DONE') || out.includes('FAILED')) return;
+                if (tries < 40) setTimeout(poll, 15000);
+            });
+        });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+};
+setTimeout(poll, 20000);

@@ -494,11 +494,30 @@ export default function Sidebar() {
   const isRTL = lang === 'ar' || lang === 'ur';
 
   const MODULE_MAP: Record<string, string[]> = {
+    // ── الموارد البشرية ──────────────────────────
     HR: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans'],
+    // ── نقطة البيع ──────────────────────────────
     POS: ['pos', 'restaurant_pos', 'shifts'],
+    // ── المشتريات ───────────────────────────────
     Purchases: ['purchases', 'purchase_orders', 'purchase_returns', 'letters_of_credit'],
+    // ── التصنيع ─────────────────────────────────
     Manufacturing: ['manufacturing', 'mrp'],
+    // ── التقارير ────────────────────────────────
     Reports: ['reports'],
+    // ── المبيعات (بدون POS) ──────────────────────
+    Sales: ['sales', 'price_quotes', 'sales_orders', 'sales_returns', 'sales_routes', 'sales_targets'],
+    // ── المخزون والمستودعات ──────────────────────
+    Inventory: ['products', 'stock', 'stock_transfers', 'warehouses', 'wms', 'barcode', 'batches', 'vision_inventory'],
+    // ── المالية والحسابات ────────────────────────
+    Finance: ['accounting', 'treasury', 'banks', 'treasury_checks', 'receipt_vouchers', 'expenses', 'petty_cash', 'fixed_assets', 'installments'],
+    // ── العملاء والتسويق ────────────────────────
+    CRM: ['customers', 'loyalty', 'gift_cards', 'coupons', 'promotions', 'bookings', 'affiliates'],
+    // ── الأنظمة المتخصصة ────────────────────────
+    Enterprise: ['projects', 'legal', 'schools'],
+    // ── الذكاء الاصطناعي ────────────────────────
+    AI: ['ai_bank', 'ai_copilot', 'ai_cfo', 'ai_scm'],
+    // ── الإعدادات ───────────────────────────────
+    Settings: ['branches', 'currencies', 'approvals', 'whatsapp', 'salla', 'settings', 'audit_logs', 'maintenance'],
   };
 
   const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({

@@ -16,7 +16,7 @@ export interface QuotaResult {
  * @param tenant اسم الـ subdomain (x-tenant header)
  * @param resource نوع العملية: 'invoice' | 'product'
  */
-export async function checkQuota(tenant: string, resource: 'invoice' | 'product'): Promise<QuotaResult> {
+export async function checkQuota(tenant: string, resource: 'invoice' | 'product' | 'user'): Promise<QuotaResult> {
     try {
         // جلب بيانات الاشتراك من n11_db
         const { Pool } = require('pg');
@@ -82,6 +82,12 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
                     'SELECT COUNT(*) as cnt FROM products WHERE active = true'
                 );
                 current = parseInt(r.rows[0]?.cnt || '0');
+            } else if (resource === 'user') {
+                limit = row.user_quota ?? 1; // افتراضي: مستخدم واحد فقط
+                const r = await tenantPool.query(
+                    'SELECT COUNT(*) as cnt FROM "User"'
+                );
+                current = parseInt(r.rows[0]?.cnt || '0');
             }
         } finally {
             await tenantPool.end();
@@ -97,7 +103,9 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
                 plan,
                 message: resource === 'invoice'
                     ? `وصلت للحد الأقصى من الفواتير (${limit}). قم بالترقية لإصدار فواتير غير محدودة.`
-                    : `وصلت للحد الأقصى من الأصناف (${limit}). قم بالترقية لإضافة أصناف غير محدودة.`,
+                    : resource === 'product'
+                    ? `وصلت للحد الأقصى من الأصناف (${limit}). قم بالترقية لإضافة أصناف غير محدودة.`
+                    : `وصلت للحد الأقصى من المستخدمين (${limit}). قم بالترقية لإضافة مستخدمين إضافيين.`,
             };
         }
 

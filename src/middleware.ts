@@ -38,7 +38,7 @@ export default clerkMiddleware(async (auth, req) => {
   // ── MARKETING PAGES ────────────────────────────────────────────────────────
   // الصفحات التسويقية متاحة للجميع (مسجل أو غير مسجل) — التوجيه بعد التسجيل
   // يتم عبر NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/company-info في .env
-  const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services'];
+  const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services', '/pricing', '/features'];
   if (marketingRoutes.includes(req.nextUrl.pathname)) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-is-marketing', '1');
@@ -85,18 +85,27 @@ export default clerkMiddleware(async (auth, req) => {
   // ── ICE Panel: المالك فقط ──────────────────────────────────────────────────
   if (isIceRoute(req)) {
     const { userId } = await auth();
+    // غير مسجّل → وجّهه لتسجيل الدخول ثم يرجع لـ /ice
     if (!userId) {
-      return NextResponse.redirect(new URL('/', req.url));
+      const signInUrl = new URL('/sign-in', req.url);
+      signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+      return NextResponse.redirect(signInUrl);
     }
-    const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-      headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-    });
-    const clerkUser = await clerkRes.json().catch(() => ({}));
-    const email: string = clerkUser?.email_addresses?.[0]?.email_address || '';
-    if (email !== OWNER_EMAIL) {
-      return NextResponse.redirect(new URL('/', req.url));
+    try {
+      const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+        headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+        signal: AbortSignal.timeout(5000),
+      });
+      const clerkUser = await clerkRes.json().catch(() => ({}));
+      const email: string = clerkUser?.email_addresses?.[0]?.email_address || '';
+      console.log(`[ICE] userId=${userId} email=${email} owner=${OWNER_EMAIL}`);
+      if (email === OWNER_EMAIL) {
+        return NextResponse.next(); // ✅ المالك مسموح له
+      }
+    } catch (e) {
+      console.error('[ICE] Clerk fetch error:', e);
     }
-    return; // ✅ المالك مسموح له
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   // باقي مسارات الموقع الرئيسي → Clerk protect أولاً

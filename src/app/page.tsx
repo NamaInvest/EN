@@ -267,6 +267,7 @@ export default function NamaInvestLanding() {
             <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="hover:text-indigo-600 transition-colors">القطاعات</a>
             <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="hover:text-indigo-600 transition-colors">المجموعات</a>
             <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="hover:text-indigo-600 transition-colors">الـ 104 وحدة</a>
+            <Link href="/pricing" className="hover:text-indigo-600 transition-colors text-indigo-600 font-black">💎 الأسعار</Link>
           </div>
 
           {/* Action Buttons */}
@@ -292,9 +293,11 @@ export default function NamaInvestLanding() {
             <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="font-bold text-slate-700 hover:text-indigo-600">القطاعات التي نخدمها</a>
             <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="font-bold text-slate-700 hover:text-indigo-600">المجموعات الخمس الاستراتيجية</a>
             <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="font-bold text-slate-700 hover:text-indigo-600">قائمة الـ 104 وحدة برمجية</a>
+            <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-indigo-600 hover:text-indigo-700">💎 الباقات والأسعار</Link>
             <div className="h-px bg-slate-100 my-2"></div>
             <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-slate-700 text-center py-2">تسجيل الدخول</Link>
             <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-center border border-indigo-600 text-indigo-600 font-bold rounded-xl">تسجيل حساب جديد</Link>
+            <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-center bg-amber-500 text-white font-bold rounded-xl">💎 عرض الأسعار والباقات</Link>
             <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-3 text-center bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
                <Phone className="w-5 h-5" /> تواصل معنا الآن
             </a>
@@ -337,10 +340,13 @@ export default function NamaInvestLanding() {
             ))}
           </div>
           <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-4 w-full mt-4">
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[240px]">
+            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[220px]">
               🚀 جرب النظام مجاناً
             </a>
-            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg cursor-pointer min-w-[240px]">
+            <Link href="/pricing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/40 transition-all text-lg min-w-[220px]">
+              💎 عرض الباقات والأسعار
+            </Link>
+            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg cursor-pointer min-w-[220px]">
               اكتشف قطاعك ↓
             </a>
           </div>
@@ -509,10 +515,13 @@ export default function NamaInvestLanding() {
           <p className="text-slate-300 text-lg mb-2 max-w-xl mx-auto">ابدأ اليوم مجاناً مع كامل الدعم الفني والتدريب</p>
           <p className="text-slate-400 text-sm mb-8">Ready to modernize your business? Start free with full support.</p>
           <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/pricing" className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
+              💎 شاهد الباقات والأسعار
+            </Link>
             <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
               <Phone className="w-5 h-5"/> تواصل عبر واتساب
             </a>
-            <Link href="/login" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg">
+            <Link href="/sign-in" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg">
               تسجيل الدخول للنظام
             </Link>
           </div>
@@ -538,6 +547,8 @@ export default function NamaInvestLanding() {
             <Link href="/retail" className="text-slate-400 hover:text-indigo-600 transition-colors">التموينات</Link>
             <Link href="/restaurant" className="text-slate-400 hover:text-indigo-600 transition-colors">المطاعم</Link>
             <Link href="/factory" className="text-slate-400 hover:text-indigo-600 transition-colors">المصانع</Link>
+            <Link href="/pricing" className="text-indigo-500 hover:text-indigo-700 transition-colors font-black">💎 الأسعار</Link>
+            <Link href="/sign-up" className="text-slate-400 hover:text-indigo-600 transition-colors">سجّل مجاناً</Link>
           </div>
           <div className="text-slate-400 text-sm font-bold w-full text-center border-t border-slate-100 pt-6">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
         </div>
