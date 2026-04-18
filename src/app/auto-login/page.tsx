@@ -1,30 +1,57 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import { Suspense } from 'react';
 
 function AutoLoginContent() {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const [msg, setMsg] = useState('جاري تسجيل الدخول تلقائياً...');
+    const { user: clerkUser, isLoaded } = useUser();
+    const [msg, setMsg] = useState('جاري تسجيل الدخول...');
 
     useEffect(() => {
+        if (!isLoaded) return; // انتظر تحميل Clerk
+
         const token = searchParams.get('token');
         const redirect = searchParams.get('redirect') || '/dashboard';
 
         const goToDashboard = (jwtToken: string, user?: any) => {
+            // إذا يوجد مستخدم Clerk، استخدم بياناته للعرض
+            const displayUser = {
+                ...(user || {}),
+                fullName: clerkUser?.fullName || clerkUser?.emailAddresses?.[0]?.emailAddress || user?.fullName || 'Admin',
+                email: clerkUser?.emailAddresses?.[0]?.emailAddress || user?.email || '',
+                role: user?.role || 'admin',
+            };
             localStorage.setItem('token', jwtToken);
-            if (user) localStorage.setItem('user', JSON.stringify(user));
-            // Set cookie for middleware
+            localStorage.setItem('user', JSON.stringify(displayUser));
             document.cookie = `token=${jwtToken}; path=/; max-age=${60 * 60 * 24 * 7}`;
             window.location.replace(redirect);
         };
 
-        const tryDirectLogin = async () => {
-            // محاولة تسجيل دخول مباشر بـ admin
-            setMsg('جاري تسجيل الدخول...');
+        const tryAutoLogin = async () => {
+            setMsg('جاري التحقق من هويتك...');
+
+            // محاولة 1: تسجيل الدخول بالبريد من Clerk
+            const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+            if (userEmail) {
+                try {
+                    const res = await fetch('/api/auth/login-by-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: userEmail }),
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.token) { goToDashboard(data.token, data.user); return; }
+                    }
+                } catch { /* متابعة */ }
+            }
+
+            // محاولة 2: تسجيل الدخول كـ admin
             try {
+                setMsg('جاري الدخول كمدير النظام...');
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -34,33 +61,29 @@ function AutoLoginContent() {
                     const data = await res.json();
                     if (data.token) { goToDashboard(data.token, data.user); return; }
                 }
-            } catch { /* ignore */ }
+            } catch { /* متابعة */ }
 
-            // fallback: توجيه لصفحة الدخول اليدوي
-            window.location.replace('/login');
+            // إذا فشل كل شيء → الـ dashboard مباشرة
+            window.location.replace(redirect);
         };
 
         const run = async () => {
-            // الخطوة 1: إذا يوجد SSO token جرّبه أولاً
+            // إذا يوجد SSO token صريح جرّبه
             if (token) {
                 try {
                     const res = await fetch(`/api/auth/auto-login?token=${encodeURIComponent(token)}`);
                     if (res.ok) {
                         const data = await res.json();
-                        if (data.success && data.token) {
-                            goToDashboard(data.token, data.user);
-                            return;
-                        }
+                        if (data.success && data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* SSO failed, try direct login */ }
+                } catch { /* تابع */ }
             }
 
-            // الخطوة 2: SSO فشل أو لا يوجد token → تسجيل دخول مباشر
-            await tryDirectLogin();
+            await tryAutoLogin();
         };
 
         run();
-    }, [searchParams, router]);
+    }, [isLoaded, clerkUser, searchParams]);
 
     return (
         <div style={{

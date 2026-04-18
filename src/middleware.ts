@@ -116,13 +116,14 @@ export default clerkMiddleware(async (auth, req) => {
       if (!provisioned) {
         return NextResponse.redirect(new URL('/company-info', req.url));
       }
-      // إذا كان المستخدم مؤسَّساً وعلى الموقع الرئيسي → وجّهه للـ subdomain
+      // إذا كان المستخدم مؤسَّساً وعلى الموقع الرئيسي → وجّهه للـ auto-login أولاً
       const host = req.headers.get('host') || '';
       const isMain = ['namainvist.com', 'www.namainvist.com'].includes(host) || host.startsWith('localhost') || host.startsWith('127.0.0.1');
       if (isMain && subdomain) {
         const protocol = host.includes('localhost') ? 'http' : 'https';
         const base = host.includes('localhost') ? `${protocol}://localhost:3500` : `${protocol}://${subdomain}.namainvist.com`;
-        return NextResponse.redirect(new URL('/dashboard', base));
+        // /auto-login سيُنشئ الـ session الداخلي للـ ERP باستخدام بيانات Clerk ثم يُوجَّه للـ dashboard
+        return NextResponse.redirect(new URL('/auto-login', base));
       }
     } catch {
       // إذا فشل الفحص → اسمح بالمرور (لا نريد حجب المستخدمين بسبب خطأ شبكة)
