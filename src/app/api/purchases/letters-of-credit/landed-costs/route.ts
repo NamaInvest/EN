@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // Smart Landed Costs (LC) Distribution Engine
 // Automatically allocates Shipping, Customs, and Insurance costs to imported products
 // to calculate the TRUE `buyPrice` (Cost of Goods Sold - COGS)
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     const { orderId } = await req.json();
 

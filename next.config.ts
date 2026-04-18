@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
     // تجاهل أخطاء TypeScript مؤقتاً (سيتم إصلاحها تدريجياً)
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   serverExternalPackages: ['ssh2'],
   images: {

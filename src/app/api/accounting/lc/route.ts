@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const lcs = await prisma.letterOfCredit.findMany({
             include: { bank: true, supplier: true },
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         

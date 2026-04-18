@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { apiError } from '@/lib/api-error';
 
@@ -17,6 +17,7 @@ const StockTransferSchema = z.object({
     items: z.array(StockTransferItemSchema).min(1, 'يجب تحديد صنف واحد على الأقل للتحويل'),
 });
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const transfers = await prisma.stockTransfer.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(transfers);
@@ -27,6 +28,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         const parsed = StockTransferSchema.safeParse(rawBody);

@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const orders = await prisma.manufacturingOrder.findMany({
             include: {
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         const body = await request.json();
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { id, status, wastageData } = body;

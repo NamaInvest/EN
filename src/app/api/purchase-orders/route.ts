@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const userId = body.userId ? parseInt(body.userId) : null;

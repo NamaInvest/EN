@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const promos = await prisma.promotion.findMany({ orderBy: { id: 'desc' } });
         return NextResponse.json(promos);
@@ -9,6 +10,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const promo = await prisma.promotion.create({
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const promo = await prisma.promotion.update({ where: { id: body.id }, data: { isActive: body.isActive ?? true, name: body.name, discountValue: body.discountValue } });

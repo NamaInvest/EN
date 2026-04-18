@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
 
 // إرسال رسالة واتساب مع خيار إرفاق الفاتورة أو التذكير
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { phone, message, invoiceId, type = 'invoice' } = body;

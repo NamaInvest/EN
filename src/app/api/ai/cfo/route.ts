@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

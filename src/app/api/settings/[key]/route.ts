@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request, { params }: { params: Promise<{ key: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const { key } = await params;
         const setting = await prisma.setting.findUnique({ where: { key } });
@@ -10,6 +11,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ key:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ key: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const { key } = await params;
         const body = await request.json();

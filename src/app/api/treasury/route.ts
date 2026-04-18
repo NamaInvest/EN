@@ -1,10 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { treasuryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from');
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         

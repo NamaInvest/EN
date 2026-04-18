@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // This Webhook receives messages sent back by employees/managers to the Official WhatsApp Number
 // It allows for interactive DB mutations via text (e.g., "1" = approve, "2" = reject)
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     const payload = await req.json();
     

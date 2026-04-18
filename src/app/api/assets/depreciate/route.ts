@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const assets = await prisma.fixedAsset.findMany({
             where: { status: 'active', currentValue: { gt: 0 } }

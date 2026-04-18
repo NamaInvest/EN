@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // Advanced AI Vision Middleware for Facial Recognition
 // Mocks connecting to AWS Rekognition or local Python OpenCV Daemon
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     const { image } = await req.json();
 

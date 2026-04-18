@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const quotes = await prisma.priceQuote.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(quotes);
@@ -10,6 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const last = await prisma.priceQuote.findFirst({ orderBy: { quoteNo: 'desc' } });

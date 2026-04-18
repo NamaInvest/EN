@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;

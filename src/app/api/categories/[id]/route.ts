@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -24,6 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

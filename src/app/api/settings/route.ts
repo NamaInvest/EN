@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        const prisma = getPrisma(request);
         const settings = await prisma.setting.findMany();
         // Filter out sensitive ZATCA keys from public response
         const sensitiveKeys = ['zatca_private_key', 'zatca_certificate', 'zatca_compliance_token', 'zatca_compliance_secret', 'zatca_production_token', 'zatca_production_secret'];

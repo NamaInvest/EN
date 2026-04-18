@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // GET - قائمة الدخل (Revenue - Expenses = Net Profit)
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from') || new Date().getFullYear() + '-01-01';

@@ -120,6 +120,7 @@ async function seedCompanyData(params: {
     branchName: string;
     zatcaBranchNameEn: string;
     zatcaCityEn: string;
+    clerkEmail: string;  // ← البريد الإلكتروني للمستخدم الرئيسي
 }): Promise<{ ok: boolean; error?: string }> {
     let prisma: PrismaClient | null = null;
     try {
@@ -161,14 +162,21 @@ async function seedCompanyData(params: {
         await upsertSetting('POS_TAX_ENABLED', 'true');
         await upsertSetting('POS_TAX_INCLUSIVE', 'true');
 
-        // مستخدم admin
+        // مستخدم رئيسي — البريد الإلكتروني من Clerk كـ username
         const bcryptjs = require('bcryptjs');
         const adminHash = bcryptjs.hashSync('admin', 10);
+
+        // توليد username من البريد: user@example.com → user
+        const emailUsername = params.clerkEmail
+            ? params.clerkEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase() || 'admin'
+            : 'admin';
+
+        // إنشاء المستخدم الرئيسي بالبريد كـ username (مع admin كـ fallback إضافي)
         await prisma.user.upsert({
-            where: { username: 'admin' },
+            where: { username: emailUsername },
             update: { passwordHash: adminHash, role: 'admin', active: true },
             create: {
-                username: 'admin',
+                username: emailUsername,
                 fullName: `${params.companyNameAr} - مدير النظام`,
                 passwordHash: adminHash,
                 role: 'admin',
@@ -176,7 +184,23 @@ async function seedCompanyData(params: {
             },
         });
 
+        // أيضاً ننشئ مستخدم admin قياسي إذا لم يكن emailUsername هو admin
+        if (emailUsername !== 'admin') {
+            await prisma.user.upsert({
+                where: { username: 'admin' },
+                update: {},  // لا نغير إذا كان موجوداً
+                create: {
+                    username: 'admin',
+                    fullName: `${params.companyNameAr} - مدير النظام`,
+                    passwordHash: adminHash,
+                    role: 'admin',
+                    active: true,
+                },
+            }).catch(() => { /* قد يكون موجوداً */ });
+        }
+
         // الكيانات الأساسية (إذا لم تكن موجودة)
+
         // إنشاء سجل الشركة أولاً (مطلوب لـ Branch FK)
         const existingCompany = await prisma.company.findFirst();
         const company = existingCompany ?? await prisma.company.create({
@@ -238,8 +262,10 @@ export async function POST(req: Request) {
         const body = await req.json();
         const {
             companyNameAr,
+            companyNameEn: companyNameEnFromClient,
             businessDomain,
             branchName,
+            branchNameEn: branchNameEnFromClient,
             mobile,
             address,
             district,
@@ -250,6 +276,7 @@ export async function POST(req: Request) {
             clerkUserId,
             clerkEmail,
             city,
+            cityEn: cityEnFromClient,
         } = body;
 
         if (!companyNameAr || !city || !mobile) {
@@ -272,11 +299,11 @@ export async function POST(req: Request) {
             );
         }
 
-        // ─── ترجمة الأسماء ────────────────────────────────────────────────────
-        const companyNameEn     = await translateArToEn(companyNameAr);
+        // ─── ترجمة الأسماء (يفضل القيم القادمة من الـ form، والترجمة كـ fallback) ──────
+        const companyNameEn     = companyNameEnFromClient?.trim() || await translateArToEn(companyNameAr);
         const zatcaIndustry     = businessDomain || '';
-        const zatcaBranchNameEn = await translateArToEn(branchName || '');
-        const zatcaCityEn       = await translateArToEn(city || '');
+        const zatcaBranchNameEn = branchNameEnFromClient?.trim() || await translateArToEn(branchName || '');
+        const zatcaCityEn       = cityEnFromClient?.trim() || await translateArToEn(city || '');
         const baseSlug          = toSlug(companyNameEn);
 
         // ─── Step A: إيجاد subdomain فريد عبر SSH ─────────────────────────────
@@ -340,6 +367,7 @@ export async function POST(req: Request) {
             branchName: branchName || 'الفرع الرئيسي',
             zatcaBranchNameEn,
             zatcaCityEn,
+            clerkEmail: clerkEmail || '',  // ← البريد الإلكتروني للمستخدم الرئيسي
         });
 
         if (!seedResult.ok) {

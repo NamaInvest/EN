@@ -1,8 +1,9 @@
 // /api/hr/employees — proxy to /api/employees for backwards compatibility
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
@@ -20,6 +21,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         body.salary = typeof body.salary === 'string' ? body.salary.replace(/,/g, '') : body.salary;

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const vacations = await prisma.vacation.findMany({ include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, orderBy: { id: 'desc' } });
         return NextResponse.json(vacations);
@@ -9,6 +10,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const vacation = await prisma.vacation.create({
@@ -26,6 +28,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const vacation = await prisma.vacation.update({ where: { id: body.id }, data: { status: body.status, notes: body.notes } });

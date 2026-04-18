@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { getMainBranchId } from '@/lib/getDefaults';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from');
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         
@@ -106,6 +108,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
@@ -149,6 +152,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });

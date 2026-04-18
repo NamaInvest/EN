@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const customer = await prisma.customer.create({
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
+    const prisma = getPrisma(request);
     try {
         await prisma.customer.deleteMany();
         return NextResponse.json({ message: 'تم حذف الكل' });

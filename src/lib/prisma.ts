@@ -49,22 +49,31 @@ export function getClient(tenant: string): PrismaClient {
     return pool.get(tenant)!;
 }
 
+// ── Global request store (set by middleware wrapper) ─────────────
+// يُخزَّن هنا الـ tenant الحالي من كل request عبر patch في middleware
+export const currentRequestStore = new AsyncLocalStorage<string>();
+
 // ── Resolve active tenant ───────────────────────────────────────
 /**
  * الأولوية:
- * 1. AsyncLocalStorage (يُعيَّن بواسطة withTenant() في كل API handler)
- * 2. TENANT env var (لـ PM2 single-tenant، أي n11 / ice / n7)
- * 3. DEFAULT_TENANT env var
- * 4. 'n11' كـ fallback آمن
+ * 1. AsyncLocalStorage من withTenant()
+ * 2. AsyncLocalStorage من middleware wrapper
+ * 3. x-tenant header من الـ req المُمرَّر
+ * 4. TENANT / DEFAULT_TENANT env var
+ * 5. 'n11' fallback
  */
 export function resolveTenant(req?: {
     headers?: { get?: (k: string) => string | null; [k: string]: unknown };
 }): string {
-    // 1. من الـ context (الأسرع والأدق)
+    // 1. من الـ context الصريح (withTenant)
     const ctx = tenantContext.getStore();
     if (ctx) return ctx;
 
-    // 2. من header (يضعه middleware.ts)
+    // 2. من الـ middleware request store
+    const reqCtx = currentRequestStore.getStore();
+    if (reqCtx) return reqCtx;
+
+    // 3. من header المُمرَّر صراحةً (getPrisma(req))
     try {
         if (req?.headers) {
             const h =
@@ -72,15 +81,22 @@ export function resolveTenant(req?: {
                     ? req.headers.get('x-tenant')
                     : (req.headers as Record<string, string>)['x-tenant'];
             if (h) return h;
-        } else {
-            // App Router global context override
-            const { headers } = require('next/headers');
-            const h = headers().get('x-tenant');
-            if (h) return h;
         }
     } catch { /* ignore */ }
 
-    // 3. من البيئة (PM2 per-process mode)
+    // 4. محاولة قراءة next/headers (Next.js 14 sync headers)
+    try {
+        // @ts-ignore
+        const { headers } = require('next/headers');
+        const hObj = headers();
+        // في Next.js 15: headers() تُرجع Promise — نتجاهلها
+        if (hObj && typeof hObj.get === 'function') {
+            const h = hObj.get('x-tenant');
+            if (h && typeof h === 'string') return h;
+        }
+    } catch { /* ignore */ }
+
+    // 5. من البيئة (PM2 per-process mode)
     if (process.env.TENANT) return process.env.TENANT;
     if (process.env.DEFAULT_TENANT) return process.env.DEFAULT_TENANT;
 
@@ -120,6 +136,33 @@ export async function withTenant<T>(
     return tenantContext.run(tenant, fn);
 }
 
+// ── Helper: sync read of x-tenant from Next.js internal context ──
+function getTenantFromNextContext(): string | null {
+    try {
+        // Next.js 15 internal: WorkUnitAsyncStorage stores request context
+        // نقرأ الـ headers من الـ context بدون await
+        const workUnitStore = (globalThis as any).__NEXT_REQUEST_CONTEXT__?.get?.();
+        if (workUnitStore?.headers) {
+            const h = workUnitStore.headers.get?.('x-tenant') || workUnitStore.headers['x-tenant'];
+            if (h && typeof h === 'string') return h;
+        }
+    } catch { /* ignore */ }
+
+    try {
+        // محاولة ثانية: RequestStore من Next.js
+        const mod = require('next/dist/server/async-storage/request-async-storage.external');
+        const store = mod?.requestAsyncStorage?.getStore?.() || mod?.getRequestAsyncStorage?.()?.getStore?.();
+        if (store?.headers) {
+            const h = typeof store.headers.get === 'function'
+                ? store.headers.get('x-tenant')
+                : store.headers['x-tenant'];
+            if (h && typeof h === 'string') return h;
+        }
+    } catch { /* ignore */ }
+
+    return null;
+}
+
 // ── Default export: Smart Proxy ─────────────────────────────────
 /**
  * الـ Proxy يعترض كل استدعاء على `prisma` ويوجّهه للـ tenant الصحيح.
@@ -130,7 +173,10 @@ export async function withTenant<T>(
  */
 const smartPrisma = new Proxy({} as PrismaClient, {
     get(_target, prop) {
-        const tenant = resolveTenant();
+        // أولوية: tenantContext → Next.js internal context → env → n11
+        let tenant = tenantContext.getStore() || currentRequestStore.getStore();
+        if (!tenant) tenant = getTenantFromNextContext();
+        if (!tenant) tenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
         const client = getClient(tenant);
         const value = (client as unknown as Record<string | symbol, unknown>)[prop];
         if (typeof value === 'function') {
@@ -139,6 +185,7 @@ const smartPrisma = new Proxy({} as PrismaClient, {
         return value;
     },
 });
+
 
 // ── Exports ─────────────────────────────────────────────────────
 // Named export (for: import { prisma } from '@/lib/prisma')

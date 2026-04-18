@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // GET - الميزانية العمومية (Assets = Liabilities + Equity)
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const asOf = searchParams.get('date') || new Date().toISOString().split('T')[0];

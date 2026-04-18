@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { bookingId } = await request.json();
 

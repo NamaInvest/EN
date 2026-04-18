@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import QRCode from 'qrcode'; // if missing we will just use dummy or skip phase 1 qr generation text
 
 // This endpoint is meant to be called daily (e.g. at 00:01 AM) by a Cron Job
 export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         // Find all SalesOrders flagged as Recurring with a due date passing NOW
         const activeContracts = await prisma.salesOrder.findMany({

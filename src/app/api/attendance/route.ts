@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const employeeId = searchParams.get('employeeId');
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const record = await prisma.attendance.create({
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const record = await prisma.attendance.update({

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     // 1. Fetch Leases that expire in Exactly 7 Days or are overdue Payment!
     const today = new Date();

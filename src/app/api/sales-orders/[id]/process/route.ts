@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
@@ -7,6 +7,7 @@ export async function PUT(
     request: NextRequest,
     context: { params: Promise<{ id: string }> } | { params: { id: string } }
 ) {
+    const prisma = getPrisma(request);
     try {
         const auth = await getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

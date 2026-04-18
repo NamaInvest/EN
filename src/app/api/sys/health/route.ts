@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import os from 'os';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
   try {
     // 1. Database Health
     const dbStart = performance.now();

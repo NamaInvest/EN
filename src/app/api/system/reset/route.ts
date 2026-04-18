@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request);
         if (!user || (user.role !== 'admin' && user.role !== 'owner')) {

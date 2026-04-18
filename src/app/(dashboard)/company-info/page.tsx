@@ -35,16 +35,41 @@ export default function CompanyInfoPage() {
             // هذا يحدث عندما يُحوَّل المستخدم الجديد لهذه الصفحة بدون المرور بـ auto-login
             const tryAutoLogin = async (): Promise<string | null> => {
                 try {
-                    const res = await fetch('/api/auth/login', {
+                    // أولاً: حاول عبر /api/auth/login بحساب admin (الأكثر موثوقية)
+                    const loginRes = await fetch('/api/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: 'admin', password: 'admin' }),
+                        body: JSON.stringify({
+                            username: 'admin',
+                            password: 'admin',
+                            deviceToken: 'auto-setup',
+                            deviceName: 'Setup',
+                        }),
                     });
-                    if (res.ok) {
-                        const data = await res.json();
+                    if (loginRes.ok) {
+                        const data = await loginRes.json();
                         if (data.token) {
                             localStorage.setItem('token', data.token);
+                            if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
                             return data.token;
+                        }
+                    }
+                    // ثانياً: حاول عبر /api/auth/login بالـ username المشتق من البريد
+                    const savedEmail = localStorage.getItem('clerkEmail') || '';
+                    if (savedEmail) {
+                        const emailUser = savedEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase();
+                        const emailRes = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: emailUser, password: 'admin', deviceToken: 'auto-setup', deviceName: 'Setup' }),
+                        });
+                        if (emailRes.ok) {
+                            const data = await emailRes.json();
+                            if (data.token) {
+                                localStorage.setItem('token', data.token);
+                                if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+                                return data.token;
+                            }
                         }
                     }
                 } catch { /* ignore */ }
@@ -290,10 +315,78 @@ export default function CompanyInfoPage() {
                         {t('sys.str_4397')}
                     </h3>
                     <div className="grid-2">
+                        {/* نسبة الضريبة — مقفولة على 15% للسعودية */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4398')}</label>
-                            <input className="input" type="number" value={settings['tax_rate'] || ''} onChange={e => set('tax_rate', e.target.value)} dir="ltr" style={inputStyle('tax_rate')} />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    className="input"
+                                    type="number"
+                                    value={settings['tax_rate'] ?? '15'}
+                                    onChange={e => set('tax_rate', e.target.value)}
+                                    dir="ltr"
+                                    readOnly
+                                    style={{
+                                        ...inputStyle('tax_rate'),
+                                        background: 'rgba(234,179,8,0.08)',
+                                        color: 'var(--warning)',
+                                        fontWeight: '700',
+                                        cursor: 'not-allowed',
+                                    }}
+                                />
+                                <span style={{
+                                    position: 'absolute', left: '12px', top: '50%',
+                                    transform: 'translateY(-50%)', fontSize: '11px',
+                                    color: 'var(--text-muted)', pointerEvents: 'none'
+                                }}>🇸🇦 ثابتة للسعودية</span>
+                            </div>
                         </div>
+
+                        {/* تفعيل ضريبة القيمة المضافة */}
+                        <div className="input-group">
+                            <label className="input-label">ضريبة القيمة المضافة (VAT)</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '6px' }}>
+                                <button
+                                    className={`btn btn-sm ${settings['POS_TAX_ENABLED'] !== 'false' ? 'btn-success' : 'btn-ghost'}`}
+                                    onClick={async () => {
+                                        const newVal = settings['POS_TAX_ENABLED'] === 'false' ? 'true' : 'false';
+                                        set('POS_TAX_ENABLED', newVal);
+                                        const token = localStorage.getItem('token');
+                                        await fetch('/api/settings/POS_TAX_ENABLED', {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                            body: JSON.stringify({ value: newVal }),
+                                        }).catch(() => {});
+                                    }}
+                                >
+                                    {settings['POS_TAX_ENABLED'] !== 'false' ? '✅ مفعّلة (15%)' : '⭕ معطّلة'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* شمول الضريبة في السعر */}
+                        <div className="input-group">
+                            <label className="input-label">الأسعار شاملة الضريبة</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '6px' }}>
+                                <button
+                                    className={`btn btn-sm ${settings['POS_TAX_INCLUSIVE'] !== 'false' ? 'btn-primary' : 'btn-ghost'}`}
+                                    onClick={async () => {
+                                        const newVal = settings['POS_TAX_INCLUSIVE'] === 'false' ? 'true' : 'false';
+                                        set('POS_TAX_INCLUSIVE', newVal);
+                                        const token = localStorage.getItem('token');
+                                        await fetch('/api/settings/POS_TAX_INCLUSIVE', {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                            body: JSON.stringify({ value: newVal }),
+                                        }).catch(() => {});
+                                    }}
+                                >
+                                    {settings['POS_TAX_INCLUSIVE'] !== 'false' ? '✅ نعم (شامل)' : '⭕ لا (غير شامل)'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* تفعيل منصة فاتورة */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4399')}</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '6px' }}>

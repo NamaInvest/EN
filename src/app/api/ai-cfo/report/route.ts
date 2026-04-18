@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const auth = getUserFromRequest(req);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

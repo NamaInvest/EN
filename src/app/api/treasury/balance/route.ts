@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const [inAgg, outAgg] = await Promise.all([
             prisma.treasury.aggregate({ where: { type: 'in' }, _sum: { amount: true } }),

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // Meta Webhook Verification
 export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const { searchParams } = new URL(req.url);
         const mode = searchParams.get('hub.mode');
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
 
 // Meta Webhook Incoming Messages (Customer Text -> Gemini -> WhatsApp)
 export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const body = await req.json();
 

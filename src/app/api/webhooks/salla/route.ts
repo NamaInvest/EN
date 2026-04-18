@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import crypto from 'crypto';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
 function verifySallaSignature(bodyStr: string, secret: string, signature: string) {
@@ -9,6 +9,7 @@ function verifySallaSignature(bodyStr: string, secret: string, signature: string
 }
 
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const signature = request.headers.get('x-salla-signature');
         if (!signature) {

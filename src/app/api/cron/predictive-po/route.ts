@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     // Analytics logic: If product quantity is below 10 across all branches, create a Draft PO
     // 1. Group by ProductID and SUM their quantities across all locations (ProductLocation) or ProductStock

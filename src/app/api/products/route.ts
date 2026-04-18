@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { syncProductToSalla } from '@/lib/salla';
 
@@ -12,6 +12,7 @@ async function hasPermission(userId: number, module: string): Promise<boolean> {
 }
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
 
@@ -169,6 +171,7 @@ export async function POST(request: Request) {
 
 // Stock reset: set all products' currentStock to 0
 export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });

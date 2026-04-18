@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         body.salary = typeof body.salary === 'string' ? body.salary.replace(/,/g, '') : body.salary;
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
 
 // Update Employee Biometrics (Face Descriptor)
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         if (!body.employeeId || !body.faceDescriptor) {

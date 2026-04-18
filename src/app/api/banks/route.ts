@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const banks = await prisma.bankAccount.findMany({ 
             include: { branch: true },
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         

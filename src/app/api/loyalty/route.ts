@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const loyalties = await prisma.loyaltyPoint.findMany({
             include: { customer: { select: { name: true, phone: true } } },

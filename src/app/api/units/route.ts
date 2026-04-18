@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // GET all units (used as packaging unit names)
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } });
         return NextResponse.json(units);
@@ -14,6 +15,7 @@ export async function GET() {
 
 // POST create new unit name
 export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         if (!body.name?.trim()) return NextResponse.json({ error: 'الاسم مطلوب' }, { status: 400 });
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
 
 // DELETE a unit by id
 export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const id = parseInt(searchParams.get('id') || '');

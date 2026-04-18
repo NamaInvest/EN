@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const stocktakes = await prisma.stocktake.findMany({
             include: { items: true },
@@ -12,6 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const products = await prisma.product.findMany({ where: { active: true }, select: { id: true, name: true, currentStock: true } });

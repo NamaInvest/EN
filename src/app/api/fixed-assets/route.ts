@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const assets = await prisma.fixedAsset.findMany({
             include: { depreciations: { orderBy: { depreciationDate: 'desc' } } },
@@ -16,6 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         if (!body.assetName || !body.assetType || !body.purchaseCost) {

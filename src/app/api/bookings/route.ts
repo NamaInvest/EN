@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const bookings = await prisma.booking.findMany({ orderBy: { id: 'desc' }, include: { customer: { select: { name: true } } } });
         return NextResponse.json(bookings);
@@ -9,6 +10,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const last = await prisma.booking.findFirst({ orderBy: { bookingNo: 'desc' } });
@@ -32,6 +34,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const booking = await prisma.booking.update({ where: { id: body.id }, data: { status: body.status, notes: body.notes } });

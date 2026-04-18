@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
 import { generateSignedXMLString } from 'zatca-xml-js/lib/zatca/signing';
@@ -8,6 +8,7 @@ const ZATCA_SIMULATION_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simula
 const ZATCA_CORE_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core';
 
 export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const user = getUserFromRequest(req);
         if (!user || user.role !== 'admin') {
@@ -299,6 +300,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const { searchParams } = new URL(req.url);
         const type = searchParams.get('type');

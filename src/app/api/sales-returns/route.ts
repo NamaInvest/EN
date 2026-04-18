@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { salesReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const returns = await prisma.salesReturn.findMany({ orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
@@ -12,6 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         // Securely extract user from authenticated token
         const auth = getUserFromRequest(request as any);

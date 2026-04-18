@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { postPurchaseReturn } from '@/lib/auto-journal';
 import { purchaseReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const returns = await prisma.purchaseReturn.findMany({ orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
@@ -12,6 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         // Zod runtime validation + mass-assignment protection

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { salaryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const salaries = await prisma.salary.findMany({ 
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, 
@@ -14,6 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         // Zod validation - no negative amounts, valid IDs, no mass assignment

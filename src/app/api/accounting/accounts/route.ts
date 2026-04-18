@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 // GET - شجرة الحسابات
 export async function GET() {
+    const prisma = getPrisma(request);
     try {
         const accounts = await prisma.account.findMany({
             orderBy: { code: 'asc' },
@@ -16,6 +17,7 @@ export async function GET() {
 
 // POST - إضافة حساب جديد
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { code, name, nameEn, type, parentId, level } = body;
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
 
 // PUT - تعديل حساب
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { id, name, nameEn, isActive } = body;
@@ -76,6 +79,7 @@ export async function PUT(request: Request) {
 
 // DELETE - حذف حساب (فقط إذا لم يكن له حركات)
 export async function DELETE(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const id = parseInt(searchParams.get('id') || '0');

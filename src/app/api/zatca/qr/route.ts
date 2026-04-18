@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import QRCode from 'qrcode';
 import * as crypto from 'crypto';
 
@@ -99,6 +99,7 @@ async function generateZatcaQRData(
 }
 
 export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const { searchParams } = new URL(req.url);
         const invoiceId = searchParams.get('invoiceId');
@@ -138,6 +139,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req);
     try {
         const body = await req.json();
         const invoiceId = body.invoiceId;

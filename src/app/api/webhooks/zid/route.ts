@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
 // زد ويب هوك - استقبال الطلبات الجديدة
 // الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const bodyText = await request.text();
         const signature = request.headers.get('Authorization') || request.headers.get('authorization');

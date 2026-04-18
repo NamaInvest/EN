@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const prisma = getPrisma(request);
     try {
         const id = parseInt((await params).id);
         const order = await prisma.purchaseOrder.findUnique({
@@ -25,6 +26,7 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const prisma = getPrisma(request);
     try {
         const id = parseInt((await params).id);
         const { status } = await request.json();

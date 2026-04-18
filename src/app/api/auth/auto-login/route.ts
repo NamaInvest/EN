@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
 

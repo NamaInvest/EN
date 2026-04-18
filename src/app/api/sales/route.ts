@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
@@ -38,6 +38,7 @@ const SalesInvoiceSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from');
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         
@@ -504,6 +506,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });

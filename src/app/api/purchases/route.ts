@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { purchaseCreateSchema, purchasePaymentSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { resolveStockAndBranch } from '@/lib/getDefaults';
 
 export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from');
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         // Zod validation + strip unknown fields (mass-assignment protection)
@@ -161,6 +163,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
         const { invoiceId, amount, userId } = purchasePaymentSchema.parse(rawBody);
@@ -207,6 +210,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });

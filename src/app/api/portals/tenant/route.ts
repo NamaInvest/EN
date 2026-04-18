@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req);
   try {
     const { phone } = await req.json();
     if (!phone) return NextResponse.json({ error: 'رقم الجوال مطلوب' }, { status: 400 });

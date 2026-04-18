@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 
 // GET - القيود اليومية
 export async function GET(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
         const from = searchParams.get('from');
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
 
 // POST - إضافة قيد يدوي
 export async function POST(request: Request) {
+    const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { description, reference, date, lines, userId } = body;

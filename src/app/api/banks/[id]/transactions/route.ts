@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const resolvedParams = await params;
         const id = parseInt(resolvedParams.id);
@@ -21,6 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const prisma = getPrisma(request);
     try {
         const resolvedParams = await params;
         const bankAccountId = parseInt(resolvedParams.id);

@@ -408,7 +408,7 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const { getSetting } = useSettings();
-  const companyName = getSetting('company_name', 'NamaaSoft ERP');
+  const companyName = getSetting('company_name', 'Nama Invest ERP');
 
   // Manage language locally - reads from localStorage, no SSR risk
   const [lang, setLangLocal] = useState<Lang>('ar');
