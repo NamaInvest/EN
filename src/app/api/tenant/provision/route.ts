@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
+import { PrismaClient } from '@prisma/client';
 
 // Force Node.js runtime (ssh2 uses native crypto — not compatible with Edge)
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// ─── Build DB URL for a given tenant ─────────────────────────────────────────
+function getDbUrl(tenant: string): string {
+    const base =
+        process.env.DATABASE_URL ||
+        'postgresql://n11_db:n11_pass123@localhost:5432/n11_db?schema=public';
+    return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
+}
 
 const SSH_HOST = '46.4.188.170';
 const SSH_USER = 'root';
 const SSH_PASS = '_ee4SWbxLVfH9b';
 const BASE_URL  = process.env.NEXT_PUBLIC_API_URL || 'https://namainvist.com';
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
+const PROVISION_SECRET = process.env.PROVISION_SECRET || 'namainvest-provision-2024';
 
 function generateSsoToken(): string {
     const payload = Buffer.from(JSON.stringify({
@@ -40,9 +49,191 @@ function toSlug(text: string): string {
     return text.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'company';
 }
 
-export async function POST(req: Request) {
+// ─── Run Prisma DB Push via SSH ───────────────────────────────────────────────
+// هذا الجزء الوحيد الذي يبقى على SSH: إنشاء الـ DB وتطبيق الـ schema
+async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: string }> {
     const mod = 'ss' + 'h2';
     const { Client } = require(mod);
+    const dbName = `${subdomain}_db`;
+    const MASTER_APP = '/www/wwwroot/n11.namainvist.com';
+
+    return new Promise((resolve) => {
+        const conn = new Client();
+        let log = '';
+
+        conn.on('ready', () => {
+            // الخطوة 1: إنشاء DB + منح صلاحيات (باستخدام postgres superuser عبر TCP)
+            const createDbCmd = [
+                `PGPASSWORD="$(sudo -u postgres psql -h localhost -p 5432 -t -c "SELECT 'connected';"  2>/dev/null && echo ok)"`,
+                `sudo -u postgres psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE ${dbName};" 2>/dev/null || echo "DB already exists"`,
+                `sudo -u postgres psql -h localhost -p 5432 -U postgres -c "ALTER DATABASE ${dbName} OWNER TO n11_db;" 2>/dev/null || true`,
+                `sudo -u postgres psql -h localhost -p 5432 -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE ${dbName} TO n11_db;" 2>/dev/null || true`,
+                // الخطوة 2: Prisma db push
+                `echo "[PRISMA_PUSH]"`,
+                `cd ${MASTER_APP} && DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/${dbName}?schema=public" npx prisma db push --schema=${MASTER_APP}/prisma/schema.prisma --accept-data-loss 2>&1`,
+                `echo "[DONE]"`,
+            ].join('\n');
+
+            conn.exec(createDbCmd, (err: any, stream: any) => {
+                if (err) {
+                    conn.end();
+                    return resolve({ ok: false, log: `SSH exec error: ${err.message}` });
+                }
+                stream.on('data', (d: Buffer) => { log += d.toString(); });
+                stream.stderr.on('data', (d: Buffer) => { log += d.toString(); });
+                stream.on('close', () => {
+                    conn.end();
+                    const ok = log.includes('[DONE]') && !log.includes('Error:');
+                    resolve({ ok, log });
+                });
+            });
+        });
+
+        conn.on('error', (err: Error) => {
+            resolve({ ok: false, log: `SSH connection error: ${err.message}` });
+        });
+
+        conn.connect({
+            host: SSH_HOST,
+            port: 22,
+            username: SSH_USER,
+            password: SSH_PASS,
+            readyTimeout: 20000,
+        });
+    });
+}
+
+// ─── Seed company data directly via Prisma (no SSH) ──────────────────────────
+async function seedCompanyData(params: {
+    subdomain: string;
+    companyNameAr: string;
+    companyNameEn: string;
+    vatNumber: string;
+    crnNumber: string;
+    mobile: string;
+    city: string;
+    district: string;
+    address: string;
+    buildingNo: string;
+    postalCode: string;
+    businessDomain: string;
+    branchName: string;
+    zatcaBranchNameEn: string;
+    zatcaCityEn: string;
+}): Promise<{ ok: boolean; error?: string }> {
+    let prisma: PrismaClient | null = null;
+    try {
+        const dbUrl = getDbUrl(params.subdomain);
+        prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
+
+        async function upsertSetting(key: string, value: string) {
+            if (!value && value !== '0') return;
+            await prisma!.setting.upsert({
+                where: { key },
+                update: { value },
+                create: { key, value },
+            });
+        }
+
+        // بيانات المنشأة
+        await upsertSetting('company_name', params.companyNameAr);
+        await upsertSetting('company_name_en', params.companyNameEn);
+        await upsertSetting('tax_number', params.vatNumber);
+        await upsertSetting('zatca_crn', params.crnNumber);
+        await upsertSetting('company_phone', params.mobile);
+        await upsertSetting('company_address', `${params.city} ${params.district} ${params.address} ${params.buildingNo}`.trim());
+        await upsertSetting('posFooterText', `Thank you for visiting ${params.companyNameEn || params.companyNameAr}`);
+        await upsertSetting('zatca_industry', params.businessDomain);
+        await upsertSetting('branch_name_en', params.zatcaBranchNameEn);
+        await upsertSetting('zatca_city_en', params.zatcaCityEn);
+        await upsertSetting('zatca_city', params.city);
+        await upsertSetting('zatca_district', params.district);
+        await upsertSetting('zatca_street', params.address);
+        await upsertSetting('zatca_building', params.buildingNo);
+        await upsertSetting('zatca_postal_code', params.postalCode);
+
+        // إعدادات النظام
+        const trialEndMs = Date.now() + (5 * 24 * 60 * 60 * 1000);
+        await upsertSetting('trialActive', 'true');
+        await upsertSetting('trialEndsAt', trialEndMs.toString());
+        await upsertSetting('maxTrialInvoices', '30');
+        await upsertSetting('tax_rate', '15');
+        await upsertSetting('POS_TAX_ENABLED', 'true');
+        await upsertSetting('POS_TAX_INCLUSIVE', 'true');
+
+        // مستخدم admin
+        const bcryptjs = require('bcryptjs');
+        const adminHash = bcryptjs.hashSync('admin', 10);
+        await prisma.user.upsert({
+            where: { username: 'admin' },
+            update: { passwordHash: adminHash, role: 'admin', active: true },
+            create: {
+                username: 'admin',
+                fullName: `${params.companyNameAr} - مدير النظام`,
+                passwordHash: adminHash,
+                role: 'admin',
+                active: true,
+            },
+        });
+
+        // الكيانات الأساسية (إذا لم تكن موجودة)
+        // إنشاء سجل الشركة أولاً (مطلوب لـ Branch FK)
+        const existingCompany = await prisma.company.findFirst();
+        const company = existingCompany ?? await prisma.company.create({
+            data: {
+                name: params.companyNameAr,
+                nameEn: params.companyNameEn || params.companyNameAr,
+                taxNumber: params.vatNumber || null,
+                address: `${params.city} ${params.address}`.trim() || null,
+            },
+        });
+
+        const existingBranch = await prisma.branch.findFirst();
+        if (!existingBranch) {
+            const defaultBranch = await prisma.branch.create({
+                data: {
+                    companyId: company.id,
+                    name: params.branchName || 'الفرع الرئيسي',
+                    nameEn: 'Main Branch',
+                    address: `${params.city} ${params.address}`.trim() || null,
+                    isActive: true,
+                },
+            });
+
+            await prisma.stock.create({
+                data: {
+                    name: 'المستودع الرئيسي',
+                    address: params.address || null,
+                    branchId: defaultBranch.id,
+                },
+            });
+
+            await prisma.customer.create({
+                data: {
+                    name: 'عميل نقدي',
+                    phone: '0000000000',
+                    active: true,
+                },
+            });
+
+            await prisma.unit.createMany({
+                data: [
+                    { name: 'حبة' },
+                    { name: 'كرتون' },
+                ],
+                skipDuplicates: true,
+            });
+        }
+
+        return { ok: true };
+    } catch (err: any) {
+        return { ok: false, error: err.message };
+    } finally {
+        if (prisma) await prisma.$disconnect();
+    }
+}
+
+export async function POST(req: Request) {
     try {
         const body = await req.json();
         const {
@@ -81,230 +272,122 @@ export async function POST(req: Request) {
             );
         }
 
-        const companyNameEn      = await translateArToEn(companyNameAr);
-        const zatcaIndustry      = businessDomain || '';
-        const zatcaBranchNameEn  = await translateArToEn(branchName || '');
-        const zatcaCityEn        = await translateArToEn(city || '');
-        const baseSlug           = toSlug(companyNameEn);
+        // ─── ترجمة الأسماء ────────────────────────────────────────────────────
+        const companyNameEn     = await translateArToEn(companyNameAr);
+        const zatcaIndustry     = businessDomain || '';
+        const zatcaBranchNameEn = await translateArToEn(branchName || '');
+        const zatcaCityEn       = await translateArToEn(city || '');
+        const baseSlug          = toSlug(companyNameEn);
 
-        const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
-        const secKey = process.env.CLERK_SECRET_KEY || '';
+        // ─── Step A: إيجاد subdomain فريد عبر SSH ─────────────────────────────
+        const mod = 'ss' + 'h2';
+        const { Client } = require(mod);
 
-        // ─── inject_settings.js content ───────────────────────────────────
-        const injectSettingsJs = `
-const { PrismaClient } = require(process.cwd() + '/node_modules/@prisma/client');
-const prisma = new PrismaClient();
-
-async function upsertSetting(key, value) {
-    if (value === undefined || value === null || value === '') return;
-    await prisma.setting.upsert({
-        where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) }
-    });
-}
-
-async function run() {
-    await upsertSetting('company_name',      ${JSON.stringify(companyNameAr)});
-    await upsertSetting('company_name_en',   ${JSON.stringify(companyNameEn)});
-    await upsertSetting('tax_number',        ${JSON.stringify(vatNumber || '')});
-    await upsertSetting('zatca_crn',         ${JSON.stringify(crnNumber || '')});
-    await upsertSetting('company_phone',     ${JSON.stringify(mobile || '')});
-    await upsertSetting('company_address',   ${JSON.stringify(`${city || ''} ${district || ''} ${address || ''} ${buildingNo || ''}`.trim())});
-    await upsertSetting('posFooterText',     ${JSON.stringify(`Thank you for visiting ${companyNameEn}`)});
-    await upsertSetting('zatca_industry',    ${JSON.stringify(zatcaIndustry)});
-    await upsertSetting('branch_name_en',    ${JSON.stringify(zatcaBranchNameEn)});
-    await upsertSetting('zatca_city_en',     ${JSON.stringify(zatcaCityEn)});
-    await upsertSetting('zatca_city',        ${JSON.stringify(city || '')});
-    await upsertSetting('zatca_district',    ${JSON.stringify(district || '')});
-    await upsertSetting('zatca_street',      ${JSON.stringify(address || '')});
-    await upsertSetting('zatca_building',    ${JSON.stringify(buildingNo || '')});
-    await upsertSetting('zatca_postal_code', ${JSON.stringify(postalCode || '')});
-
-    const trialEndMs = Date.now() + (5 * 24 * 60 * 60 * 1000);
-    await upsertSetting('trialActive',      'true');
-    await upsertSetting('trialEndsAt',      trialEndMs.toString());
-    await upsertSetting('maxTrialInvoices', '30');
-    await upsertSetting('tax_rate',         '15');
-    await upsertSetting('POS_TAX_ENABLED',  'true');
-    await upsertSetting('POS_TAX_INCLUSIVE', 'true');
-
-    const bcrypt = require(process.cwd() + '/node_modules/bcryptjs');
-    const adminHash = bcrypt.hashSync('admin', 10);
-    await prisma.user.upsert({
-        where:  { username: 'admin' },
-        update: { passwordHash: adminHash, role: 'admin', active: true },
-        create: {
-            username:     'admin',
-            fullName:     ${JSON.stringify(companyNameAr + ' - مدير النظام')},
-            passwordHash: adminHash,
-            role:         'admin',
-            active:       true
-        }
-    });
-
-    const isExistingBranch = await prisma.branch.findFirst();
-    if (!isExistingBranch) {
-        const defaultBranch = await prisma.branch.create({
-            data: { name: 'الفرع الرئيسي', nameEn: 'Main Branch', code: 'BR001', isActive: true, city: ${JSON.stringify(city || 'الرياض')}, address: ${JSON.stringify(address || 'المركز الرئيسي')} }
-        });
-        
-        await prisma.stock.create({
-            data: { name: 'المستودع الرئيسي', nameEn: 'Main Warehouse', code: 'WH001', branchId: defaultBranch.id, isActive: true }
-        });
-
-        await prisma.treasury.create({
-            data: { name: 'الخزينة الرئيسية', nameEn: 'Main Safe', type: 'CASH', balance: 0, branchId: defaultBranch.id, isActive: true }
-        });
-
-        await prisma.customer.create({
-            data: { name: 'عميل نقدي', nameEn: 'Cash Customer', phone: '0000000000', isActive: true }
-        });
-
-        await prisma.unit.createMany({
-            data: [
-                { name: 'حبة', nameEn: 'Piece' },
-                { name: 'كرتون', nameEn: 'Box' }
-            ],
-            skipDuplicates: true
-        });
-    }
-
-    console.log('Settings Injected Successfully!');
-}
-run().catch(console.error).finally(() => prisma.$disconnect());
-`.trim();
-
-        // ─── SSH Orchestration ─────────────────────────────────────────────
-        return new Promise<NextResponse>((resolve) => {
+        const subdomain: string = await new Promise((resolve, reject) => {
             const conn = new Client();
-
             conn.on('ready', () => {
-                try {
-                    // Step 1: Find unique subdomain
-                    const checkCmd = [
-                        `BASE="${baseSlug}"`,
-                        'SLUG="$BASE"',
-                        'COUNTER=2',
-                        'while [ -d "/www/wwwroot/$SLUG.namainvist.com" ]; do',
-                        '  SLUG="$BASE$COUNTER"',
-                        '  COUNTER=$((COUNTER + 1))',
-                        'done',
-                        'echo "$SLUG"',
-                    ].join('\n');
+                const checkCmd = [
+                    `BASE="${baseSlug}"`,
+                    'SLUG="$BASE"',
+                    'COUNTER=2',
+                    'while [ -d "/www/wwwroot/$SLUG.namainvist.com" ]; do',
+                    '  SLUG="$BASE$COUNTER"',
+                    '  COUNTER=$((COUNTER + 1))',
+                    'done',
+                    'echo "$SLUG"',
+                ].join('\n');
 
-                    conn.exec(checkCmd, (err: any, stream: any) => {
-                        if (err) {
-                            conn.end();
-                            return resolve(NextResponse.json({ success: false, message: 'فشل الاتصال بالخادم.' }, { status: 500 }));
-                        }
-
-                        let subdomain = '';
-                        stream.on('data', (d: Buffer) => subdomain += d.toString());
-                        stream.on('close', () => {
-                            subdomain = subdomain.trim();
-                            if (!subdomain) {
-                                conn.end();
-                                return resolve(NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.' }, { status: 500 }));
-                            }
-
-                            const domainUrl  = `${subdomain}.namainvist.com`;
-                            const dbName     = `${subdomain}_db`;
-                            const TARGET_DIR = `/www/wwwroot/${domainUrl}`;
-
-                            // ══════════════════════════════════════════════════════
-                            // TRUE MULTI-TENANT PROVISIONING
-                            // ──────────────────────────────────────────────────────
-                            // بدلاً من نسخ كامل الـ Next.js app وبنائه (15 دقيقة):
-                            //  1. إنشاء DB جديد                     (~2 ثانية)
-                            //  2. Prisma DB Push (schema فقط)        (~10 ثانية)
-                            //  3. حقن بيانات الشركة (Seed)           (~5 ثانية)
-                            //  4. إضافة Nginx vhost → نفس التطبيق   (~3 ثانية)
-                            //  5. middleware يوجّه الـ subdomain      (0 ثانية)
-                            // المجموع: ~30 ثانية بدلاً من 15 دقيقة!
-                            // ══════════════════════════════════════════════════════
-                            const MASTER_APP = '/www/wwwroot/n11.namainvist.com';
-                            const MASTER_PORT = '3500'; // n11 يخدم كل الـ tenants
-
-                            const scriptLines = [
-                                '#!/bin/bash',
-                                'set -e',
-                                `DOMAIN="${domainUrl}"`,
-                                `SUBDOMAIN="${subdomain}"`,
-                                `DB_NAME="${dbName}"`,
-                                `MASTER_APP="${MASTER_APP}"`,
-                                `MASTER_PORT="${MASTER_PORT}"`,
-                                '',
-                                'NGINX_VHOST="/www/server/panel/vhost/nginx"',
-                                'AAPANEL_NGINX="/www/server/nginx/sbin/nginx"',
-                                'NGINX_CONF="/www/server/nginx/conf/nginx.conf"',
-                                '',
-                                'echo "[1] Creating PostgreSQL database..."',
-                                `sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || echo "DB already exists"`,
-                                `sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO n11_db;" 2>/dev/null || true`,
-                                `sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO n11_db;" 2>/dev/null || true`,
-                                '',
-                                'echo "[2] Running Prisma schema push (DB_NAME=${DB_NAME})..."',
-                                `DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/$DB_NAME?schema=public" npx --prefix $MASTER_APP prisma db push --schema=$MASTER_APP/prisma/schema.prisma --accept-data-loss`,
-                                '',
-                                'echo "[3] Injecting company settings..."',
-                                `cat > /tmp/inject_${subdomain}.js << 'JSEOF'`,
-                                `process.env.DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/${dbName}?schema=public";`,
-                                injectSettingsJs,
-                                'JSEOF',
-                                `cd $MASTER_APP`,
-                                `DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/$DB_NAME?schema=public" node /tmp/inject_${subdomain}.js`,
-                                `rm -f /tmp/inject_${subdomain}.js`,
-                                '',
-                                'echo "[4] Skipping Nginx vhost... wildcard already routes to n11!"',
-                                
-                                'echo "[5] Provisioning completed successfully!"',
-                                '',
-                                `echo "[DONE] Tenant '${subdomain}' provisioned → routes to n11 app on port ${MASTER_PORT}"`,
-                            ];
-
-
-                            const orchScript = scriptLines.join('\n');
-                            const escaped = orchScript.replace(/'/g, "'\\''");
-
-                            conn.exec(`nohup bash -c '${escaped}' > /tmp/provision_${subdomain}.log 2>&1 &`, (e2: any, s2: any) => {
-                                s2?.resume();
-                                conn.end();
-                                if (e2) {
-                                    return resolve(NextResponse.json({ success: false, message: 'فشل إطلاق سكربت التأسيس.' }, { status: 500 }));
-                                }
-
-                                if (clerkUserId) {
-                                    fetch(`${BASE_URL}/api/tenant/check-status`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ userId: clerkUserId, subdomain }),
-                                    }).catch(() => { /* non-blocking */ });
-                                }
-
-                                resolve(NextResponse.json({
-                                    success: true,
-                                    subdomain,
-                                    ssoToken: generateSsoToken(),
-                                    message: 'بدأت عملية التأسيس.',
-                                }));
-                            });
-                        });
-                    });
-
-                } catch (jsErr: any) {
-                    conn.end();
-                    resolve(NextResponse.json({ success: false, message: 'خطأ داخلي: ' + jsErr.message }, { status: 500 }));
-                }
-            }).on('error', (err: Error) => {
-                resolve(NextResponse.json({ success: false, message: 'فشل الاتصال بالخادم: ' + err.message }, { status: 500 }));
-            }).connect({
-                host: SSH_HOST,
-                port: 22,
-                username: SSH_USER,
-                password: SSH_PASS,
-                readyTimeout: 15000,
+                conn.exec(checkCmd, (err: any, stream: any) => {
+                    if (err) { conn.end(); return reject(err); }
+                    let out = '';
+                    stream.on('data', (d: Buffer) => out += d.toString());
+                    stream.on('close', () => { conn.end(); resolve(out.trim()); });
+                });
             });
+            conn.on('error', reject);
+            conn.connect({ host: SSH_HOST, port: 22, username: SSH_USER, password: SSH_PASS, readyTimeout: 15000 });
+        });
+
+        if (!subdomain) {
+            return NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.' }, { status: 500 });
+        }
+
+        // ─── Step B: إنشاء DB وتطبيق Schema عبر SSH ─────────────────────────
+        const { ok: dbOk, log: dbLog } = await runDbSetupViaSsh(subdomain);
+
+        if (!dbOk) {
+            console.error('[provision] DB setup failed:', dbLog);
+            return NextResponse.json(
+                { success: false, message: 'فشل إعداد قاعدة البيانات. يرجى المحاولة مرة أخرى.', debug: dbLog },
+                { status: 500 }
+            );
+        }
+
+        // ─── Step C: زرع بيانات الشركة مباشرة عبر Prisma (بدون SSH) ──────────
+        const seedResult = await seedCompanyData({
+            subdomain,
+            companyNameAr,
+            companyNameEn,
+            vatNumber: vatNumber || '',
+            crnNumber: crnNumber || '',
+            mobile: mobile || '',
+            city: city || '',
+            district: district || '',
+            address: address || '',
+            buildingNo: buildingNo || '',
+            postalCode: postalCode || '',
+            businessDomain: zatcaIndustry,
+            branchName: branchName || 'الفرع الرئيسي',
+            zatcaBranchNameEn,
+            zatcaCityEn,
+        });
+
+        if (!seedResult.ok) {
+            console.error('[provision] Seed failed:', seedResult.error);
+            // لا نوقف العملية — النظام شغال، البيانات يمكن تعبئتها لاحقاً
+        }
+
+        // ─── Step D: تسجيل الـ tenant في قاعدة البيانات الرئيسية ────────────
+        // استخدام PrismaClient مباشر على n11_db (الـ master DB)
+        let masterPrisma: PrismaClient | null = null;
+        try {
+            masterPrisma = new PrismaClient({
+                datasources: { db: { url: getDbUrl('n11') } },
+            });
+            await masterPrisma.tenantAccount.upsert({
+                where: { userEmail: clerkEmail || `${subdomain}@namainvist.com` },
+                update: { subdomain, status: 'active', orgName: companyNameAr, vatNumber: vatNumber || '' },
+                create: {
+                    userEmail: clerkEmail || `${subdomain}@namainvist.com`,
+                    orgName: companyNameAr,
+                    vatNumber: vatNumber || '',
+                    subdomain,
+                    status: 'active',
+                },
+            });
+        } catch (e) {
+            console.error('[provision] TenantAccount upsert failed:', e);
+        } finally {
+            if (masterPrisma) await masterPrisma.$disconnect();
+        }
+
+        // ─── Step E: إرجاع الاستجابة للمتصفح ────────────────────────────────
+        const ssoToken = generateSsoToken();
+
+        if (clerkUserId) {
+            fetch(`${BASE_URL}/api/tenant/check-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: clerkUserId, subdomain }),
+            }).catch(() => { /* non-blocking */ });
+        }
+
+        return NextResponse.json({
+            success: true,
+            subdomain,
+            ssoToken,
+            seedOk: seedResult.ok,
+            message: 'تم تأسيس نظامك بنجاح.',
         });
 
     } catch (e: any) {

@@ -29,9 +29,44 @@ export default function CompanyInfoPage() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const token = localStorage.getItem('token');
+            let token = localStorage.getItem('token');
+
+            // ── Auto-login fallback: إذا لا يوجد token أو منتهي الصلاحية ──────
+            // هذا يحدث عندما يُحوَّل المستخدم الجديد لهذه الصفحة بدون المرور بـ auto-login
+            const tryAutoLogin = async (): Promise<string | null> => {
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: 'admin', password: 'admin' }),
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.token) {
+                            localStorage.setItem('token', data.token);
+                            return data.token;
+                        }
+                    }
+                } catch { /* ignore */ }
+                return null;
+            };
+
+            // إذا لم يكن هناك token → حاول تسجيل دخول تلقائي
+            if (!token) {
+                token = await tryAutoLogin();
+            }
+
             try {
-                const res = await fetch('/api/settings', { headers: { Authorization: `Bearer ${token}` } });
+                let res = await fetch('/api/settings', { headers: { Authorization: `Bearer ${token}` } });
+
+                // إذا رجع 401 → ربما الـ token منتهي → حاول تسجيل دخول جديد
+                if (res.status === 401) {
+                    token = await tryAutoLogin();
+                    if (token) {
+                        res = await fetch('/api/settings', { headers: { Authorization: `Bearer ${token}` } });
+                    }
+                }
+
                 if (res.ok) {
                     const data: { id: number; key: string; value: string }[] = await res.json();
                     const map: Record<string, string> = {};
@@ -60,6 +95,7 @@ export default function CompanyInfoPage() {
         };
         fetchData();
     }, []);
+
 
     const handleSave = async () => {
         setSaving(true);

@@ -1,7 +1,12 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec("PGPASSWORD=\"n11_pass123\" psql -h 127.0.0.1 -p 5432 -U n11_db -d postgres -c 'SELECT rolname, rolcreatedb FROM pg_roles;'", (err, stream) => {
+    conn.exec(`
+curl -s -X POST http://127.0.0.1:3500/api/auth/login \
+  -H "Content-Type: application/json" \
+  -H "Host: yessip.namainvist.com" \
+  -d '{"username":"admin","password":"admin","deviceToken":"test-device","deviceName":"test"}'
+    `, (err, stream) => {
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => conn.end());

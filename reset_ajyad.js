@@ -2,8 +2,10 @@ const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
     conn.exec(`
-sudo -u postgres psql -d n11_db -c "DELETE FROM \\"TenantAccount\\" WHERE subdomain='namainvest';"
-sudo -u postgres psql -c "DROP DATABASE namainvest_db;" 2>/dev/null || echo 'DB already dropped'
+sudo -u postgres psql -p 5432 -d n11_db -c "DELETE FROM tenant_accounts WHERE subdomain='ajyad';"
+sudo -u postgres psql -p 5432 -c "DROP DATABASE ajyad_db;" 2>/dev/null || echo 'DB already dropped'
+sudo -u postgres psql -d n11_db -c "DELETE FROM tenant_accounts WHERE subdomain='ajyad';"
+sudo -u postgres psql -c "DROP DATABASE ajyad_db;" 2>/dev/null || echo 'DB already dropped'
     `, (err, stream) => {
         stream.on('data', d => process.stdout.write(d.toString()));
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
