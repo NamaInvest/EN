@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSettings } from '@/lib/SettingsContext';
+import { useClerk } from '@clerk/nextjs';
 
 // ── All 5 language labels ─────────────────────────────────────────────────────
 type Lang = 'ar' | 'en' | 'hi' | 'bn' | 'ur';
@@ -458,12 +459,16 @@ export default function Sidebar() {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const handleLogout = () => {
+  const { signOut } = useClerk();
+
+  const handleLogout = async () => {
+    // مسح بيانات الجلسة المحلية
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
-    router.push('/login');
+    // تسجيل الخروج من Clerk مع التوجيه لصفحة تسجيل الدخول الرئيسية
+    await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
   };
 
   const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });
