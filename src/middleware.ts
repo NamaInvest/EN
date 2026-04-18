@@ -6,6 +6,7 @@ const OWNER_EMAIL = process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/sso-callback(.*)',
   '/api(.*)',
   '/auto-login(.*)',
 ]);

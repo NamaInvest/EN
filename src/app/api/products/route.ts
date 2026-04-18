@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { syncProductToSalla } from '@/lib/salla';
+import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
 async function hasPermission(userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
@@ -71,6 +72,15 @@ export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        // --- Quota Guard (Product Limit) ---
+        const tenant = (request as any).headers?.get?.('x-tenant') ||
+            (request instanceof Request ? request.headers.get('x-tenant') : null);
+        if (tenant) {
+            const quotaCheck = await checkQuota(tenant, 'product');
+            if (!quotaCheck.allowed) return quotaErrorResponse(quotaCheck);
+        }
+        // -----------------------------------
 
         // Auto-generate barcode if not provided
         let barcode = body.barcode || null;
