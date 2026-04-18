@@ -384,13 +384,22 @@ export async function POST(req: Request) {
             });
             await masterPrisma.tenantAccount.upsert({
                 where: { userEmail: clerkEmail || `${subdomain}@namainvist.com` },
-                update: { subdomain, status: 'active', orgName: companyNameAr, vatNumber: vatNumber || '' },
+                update: {
+                    subdomain,
+                    status: 'active',
+                    orgName: companyNameAr,
+                    vatNumber: vatNumber || '',
+                    // ← حفظ clerkUserId دائماً لضمان check-status يعمل
+                    ...(clerkUserId ? { clerkUserId } : {}),
+                },
                 create: {
                     userEmail: clerkEmail || `${subdomain}@namainvist.com`,
                     orgName: companyNameAr,
                     vatNumber: vatNumber || '',
                     subdomain,
                     status: 'active',
+                    // ← clerkUserId ضروري لربط الجلسة بالـ tenant
+                    ...(clerkUserId ? { clerkUserId } : {}),
                 },
             });
         } catch (e) {

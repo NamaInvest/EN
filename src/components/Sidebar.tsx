@@ -70,6 +70,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     'i.stocktake': 'عمليات الجرد المخزني',
     'i.warehouse_opts': 'خيارات المستودعات',
     'i.company_info': 'معلومات المنشأة',
+    's.company_info': '🏢 معلومات المنشأة',
 'logout': 'تسجيل الخروج',
   },
   en: {
@@ -84,6 +85,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     's.enterprise': 'Enterprise Modules',
     's.settings': 'System Settings',
     'i.company_info': 'Company Info',
+    's.company_info': '🏢 Company Info',
     'i.warehouse_opts': 'Warehouse Options',
     'i.dashboard': 'Home Dashboard', 'i.copilot': 'AI Copilot', 'i.cfo': 'AI CFO',
     'i.scm': 'AI SCM', 'i.alerts': 'Inbox & Alerts',
@@ -136,6 +138,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
 'logout': 'Logout',
   },
   hi: {
+    's.company_info': '🏢 कंपनी जानकारी',
     's.dashboard': 'डैशबोर्ड', 's.sales': 'बिक्री और POS', 's.purchases': 'खरीद',
     's.inventory': 'इन्वेंटरी', 's.manufacturing': 'विनिर्माण', 's.finance': 'वित्त और लेखा',
     's.crm': 'ग्राहक और CRM', 's.hr': 'मानव संसाधन', 's.enterprise': 'उद्यम', 's.settings': 'सेटिंग्स',
@@ -182,6 +185,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
 'logout': 'लॉगआउट',
   },
   bn: {
+    's.company_info': '🏢 কোম্পানি তথ্য',
     's.dashboard': 'ড্যাশবোর্ড', 's.sales': 'বিক্রয় এবং POS', 's.purchases': 'ক্রয়',
     's.inventory': 'ইনভেন্টরি', 's.manufacturing': 'উৎপাদন', 's.finance': 'অর্থ ও হিসাব',
     's.crm': 'গ্রাহক এবং CRM', 's.hr': 'মানব সম্পদ', 's.enterprise': 'এন্টারপ্রাইজ', 's.settings': 'সেটিংস',
@@ -228,6 +232,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
 'logout': 'লগআউট',
   },
   ur: {
+    's.company_info': '🏢 کمپنی کی معلومات',
     's.dashboard': 'ڈیش بورڈ', 's.sales': 'فروخت اور POS', 's.purchases': 'خریداری',
     's.inventory': 'انوینٹری', 's.manufacturing': 'مینوفیکچرنگ', 's.finance': 'مالیات',
     's.crm': 'کسٹمرز اور CRM', 's.hr': 'انسانی وسائل', 's.enterprise': 'انٹرپرائز', 's.settings': 'ترتیبات',
@@ -387,8 +392,10 @@ const menuItems = [
     { icon: '📚', lk: 'i.classes', href: '/shl/classes', module: 'schools' },
     { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
   ]},
-  { sk: 's.settings', items: [
+  { sk: 's.company_info', items: [
     { icon: '🏢', lk: 'i.company_info', href: '/settings/company', module: 'settings' },
+  ]},
+  { sk: 's.settings', items: [
     { icon: '🌐', lk: 'i.saas', href: '/ice', module: 'master-panel' },
     { icon: '🏢', lk: 'i.branches', href: '/branches', module: 'branches' },
     { icon: '💱', lk: 'i.currencies', href: '/settings/currencies', module: 'currencies' },

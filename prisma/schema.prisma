@@ -2218,6 +2218,7 @@ model SystemAlert {
 // ==================== 101. Master SaaS Routing (Tenant Tracking) ====================
 model TenantAccount {
   id          Int      @id @default(autoincrement())
+  clerkUserId String?  @unique @map("clerk_user_id") // Clerk user ID for fast lookup
   userEmail   String   @unique @map("user_email")
   orgName     String   @map("org_name")
   vatNumber   String   @map("vat_number")
