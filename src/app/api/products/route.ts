@@ -4,7 +4,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { syncProductToSalla } from '@/lib/salla';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
-async function hasPermission(userId: number, module: string): Promise<boolean> {
+async function hasPermission(prisma: any, userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
     if (!user) return false;
     if (user.role === 'admin') return true;
@@ -190,7 +190,7 @@ export async function DELETE(request: NextRequest) {
         const action = searchParams.get('action');
 
         if (action === 'delete_all') {
-            const allowed = await hasPermission(auth.userId, 'delete_products');
+            const allowed = await hasPermission(prisma, auth.userId, 'delete_products');
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف المنتجات' }, { status: 403 });
 
             await prisma.productStock.deleteMany({});
@@ -204,7 +204,7 @@ export async function DELETE(request: NextRequest) {
             }
         }
 
-        const allowed = await hasPermission(auth.userId, 'reset_stock');
+        const allowed = await hasPermission(prisma, auth.userId, 'reset_stock');
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تصفير المخزون' }, { status: 403 });
 
         const result = await prisma.product.updateMany({ data: { currentStock: 0 } });
