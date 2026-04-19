@@ -31,6 +31,10 @@ export function getDbUrl(tenant: string): string {
     const base =
         process.env.DATABASE_URL ||
         'postgresql://postgres:RootPassNama123@localhost:5432/n11_db?schema=public';
+    // Desktop mode: use DATABASE_URL directly (single local DB, no multi-tenant)
+    if (process.env.DESKTOP_MODE === 'true') {
+        return base;
+    }
     // يبدّل اسم الـ DB فقط: /n11_db → /company_db
     return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
@@ -65,6 +69,9 @@ export const currentRequestStore = new AsyncLocalStorage<string>();
 export function resolveTenant(req?: {
     headers?: { get?: (k: string) => string | null; [k: string]: unknown };
 }): string {
+    // Desktop mode: single database, no tenant resolution needed
+    if (process.env.DESKTOP_MODE === 'true') return 'local';
+
     // 1. من الـ context الصريح (withTenant)
     const ctx = tenantContext.getStore();
     if (ctx) return ctx;

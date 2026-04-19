@@ -16,14 +16,20 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/auth/routing";
 
   useEffect(() => {
-    // Detect if we're on a tenant subdomain
+    // Detect if we're on a tenant subdomain or desktop (Electron)
     const host = window.location.hostname;
-    if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+    const isDesktopMode = isLocalhost || !!(window as any).namaDesktop;
+    if (isDesktopMode) {
+      setIsDesktop(true);
+      setIsSubdomain(true); // Desktop uses JWT auth like subdomains
+    } else if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
       setIsSubdomain(true);
     }
 
@@ -231,7 +237,7 @@ function LoginForm() {
             <span
               style={{ margin: "0 10px", fontSize: "14px", fontWeight: 600 }}
             >
-              {isSubdomain ? "تسجيل دخول صاحب الحساب" : t("sys.str_4015")}
+              {isDesktop ? "تطبيق سطح المكتب" : isSubdomain ? "تسجيل دخول صاحب الحساب" : t("sys.str_4015")}
             </span>
             <div
               style={{
@@ -242,7 +248,23 @@ function LoginForm() {
             ></div>
           </div>
 
-          {isSubdomain ? (
+          {isDesktop ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '16px',
+              background: 'rgba(99, 102, 241, 0.1)',
+              borderRadius: '12px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+            }}>
+              <div style={{ fontSize: '28px', marginBottom: '8px' }}>🖥️</div>
+              <div style={{ color: '#6366f1', fontWeight: 600, fontSize: '14px' }}>
+                وضع سطح المكتب — يعمل بدون إنترنت
+              </div>
+              <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>
+                سجّل الدخول باسم المستخدم وكلمة المرور (admin / admin)
+              </div>
+            </div>
+          ) : isSubdomain ? (
             <div style={{ 
               width: '100%', 
               display: 'flex', 

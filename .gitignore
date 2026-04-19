@@ -45,3 +45,6 @@ next-env.d.ts
 *.zip
 *.log
 *.txt
+
+# clerk configuration (can include secrets)
+/.clerk/

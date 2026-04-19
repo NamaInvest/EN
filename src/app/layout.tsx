@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { I18nProvider } from "@/lib/i18n";
 import GlobalAuthGuard from "@/components/GlobalAuthGuard";
+import DesktopBanner from "@/components/DesktopBanner";
 import { ClerkProvider, ClerkLoaded } from "@clerk/nextjs";
 import { arSA } from "@clerk/localizations";
 import { headers } from "next/headers";
@@ -267,6 +268,7 @@ export default async function RootLayout({
           />
           <Providers>
             <I18nProvider>
+              <DesktopBanner />
               <ClerkLoaded>
                 <GlobalAuthGuard />
               </ClerkLoaded>

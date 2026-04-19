@@ -22,6 +22,49 @@ const isIceRoute = createRouteMatcher(['/ice']);
 
 export default clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';
+  const isDesktopMode = process.env.DESKTOP_MODE === 'true';
+
+  // ══════════════════════════════════════════════════════════════════
+  // DESKTOP MODE — bypass Clerk, use ERP token auth (like subdomains)
+  // ══════════════════════════════════════════════════════════════════
+  if (isDesktopMode) {
+    const pathname = req.nextUrl.pathname;
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-desktop-mode', '1');
+
+    // Root → redirect based on token
+    if (pathname === '/' || pathname === '') {
+      const token = req.cookies.get('token')?.value;
+      if (!token) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+
+    // Public routes — always pass through
+    if (
+      pathname === '/login' ||
+      pathname.startsWith('/api/') ||
+      pathname.startsWith('/_next/') ||
+      pathname.startsWith('/uploads/') ||
+      pathname.startsWith('/sign-in') ||
+      pathname.startsWith('/sign-up') ||
+      pathname.startsWith('/sso-callback')
+    ) {
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+
+    // Protected routes — check ERP token (not Clerk)
+    const token = req.cookies.get('token')?.value;
+    if (!token) {
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   const isMainSite =
     MAIN_HOSTS.includes(hostname) ||
     hostname.startsWith('localhost') ||

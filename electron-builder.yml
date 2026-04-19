@@ -1,0 +1,65 @@
+appId: com.namainvest.erp
+productName: "Nama Invest ERP"
+copyright: "Copyright © 2026 Nama Invest. All rights reserved."
+
+directories:
+  output: dist
+  buildResources: electron/assets
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "**/sharp/**"
+
+files:
+  - "electron/**/*"
+  - ".next/standalone/**/*"
+  - ".next/static/**/*"
+  - "public/**/*"
+  - "prisma/**/*"
+  - "package.json"
+  - "!node_modules/.cache"
+  - "!**/*.map"
+  - "!**/*.ts"
+  - "!**/test/**"
+  - "!**/tests/**"
+
+extraResources:
+  - from: ".next/standalone"
+    to: "standalone"
+  - from: ".next/static"
+    to: "standalone/.next/static"
+  - from: "public"
+    to: "standalone/public"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: electron/assets/icon.ico
+  publisherName: "Nama Invest Technology"
+  legalTrademarks: "Nama Invest ERP is a trademark of Nama Invest Technology"
+  signingHashAlgorithms:
+    - sha256
+  signDlls: false
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: electron/assets/icon.ico
+  uninstallerIcon: electron/assets/icon.ico
+  installerHeaderIcon: electron/assets/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Nama Invest ERP"
+  license: LICENSE.txt
+  installerLanguages:
+    - ar
+    - en
+  language: 1025
+  perMachine: false
+  artifactName: "NamaInvest-Setup-${version}.${ext}"
+
+# Code Protection
+afterPack: scripts/after-pack.js
