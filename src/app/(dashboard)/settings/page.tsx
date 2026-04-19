@@ -120,8 +120,28 @@ export default function SettingsPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [showAddUser, setShowAddUser] = useState(false);
     const [branches, setBranches] = useState<any[]>([]);
+    // ── Default modules per role (must match backend DEFAULT_ROLE_MODULES) ──
+    const DEFAULT_ROLE_MODULES: Record<string, string[]> = {
+        cashier: ['pos', 'sales', 'products', 'customers', 'shifts'],
+        owner: [],
+        general_manager: ['pos', 'sales', 'products', 'customers', 'shifts', 'purchases', 'purchase_orders',
+            'stock', 'warehouses', 'employees', 'attendance', 'salaries', 'vacations', 'reports',
+            'accounting', 'treasury', 'banks', 'expenses', 'manufacturing', 'loyalty', 'settings'],
+        system_admin: [],
+        auditor: ['accounting', 'treasury', 'banks', 'expenses', 'reports', 'fixed_assets', 'petty_cash'],
+        accountant: ['accounting', 'treasury', 'banks', 'expenses', 'petty_cash', 'receipt_vouchers',
+            'fixed_assets', 'installments', 'reports'],
+        hr: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans', 'reports'],
+        sales_rep: ['pos', 'sales', 'price_quotes', 'sales_orders', 'products', 'customers',
+            'loyalty', 'sales_routes', 'sales_targets'],
+        data_entry: ['products', 'stock', 'warehouses', 'purchases', 'purchase_orders', 'barcode', 'batches'],
+        manager: ['pos', 'sales', 'products', 'customers', 'shifts', 'purchases', 'stock', 'warehouses',
+            'employees', 'reports', 'accounting', 'treasury', 'banks', 'expenses'],
+        admin: [],
+    };
+    const FULL_ACCESS_ROLES = ['owner', 'admin', 'system_admin'];
     const [newUser, setNewUser] = useState({ username: '', password: '', fullName: '', role: 'cashier', phone: '', branchId: '' as string | number, defaultPage: '' });
-    const [newUserModules, setNewUserModules] = useState<string[]>([]);
+    const [newUserModules, setNewUserModules] = useState<string[]>(DEFAULT_ROLE_MODULES['cashier'] || []);
     const [moduleSearch, setModuleSearch] = useState('');
     const [editModuleSearch, setEditModuleSearch] = useState('');
     const [savingUser, setSavingUser] = useState(false);
@@ -748,7 +768,16 @@ export default function SettingsPage() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
                                 <input className="input" placeholder={t('sys.str_4576')} value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} />
                                 <input className="input" placeholder={t('sys.str_4577')} value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} dir="ltr" />
-                                <select className="input" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
+                                <select className="input" value={newUser.role} onChange={e => {
+                                    const role = e.target.value;
+                                    setNewUser({ ...newUser, role });
+                                    // Auto-assign default modules for the selected role
+                                    if (FULL_ACCESS_ROLES.includes(role)) {
+                                        setNewUserModules(ALL_MODULES.map(m => m.key));
+                                    } else {
+                                        setNewUserModules(DEFAULT_ROLE_MODULES[role] || []);
+                                    }
+                                }}>
                                     <option value="owner">{t('sys.str_4355')}</option>
                                     <option value="manager">{t('sys.str_4356')}</option>
                                     <option value="admin">{t('sys.str_4357')}</option>
@@ -771,10 +800,10 @@ export default function SettingsPage() {
                                 <label className="input-label" style={{ marginBottom: '6px', display: 'block' }}>🏠 الصفحة الافتراضية بعد الدخول</label>
                                 <select className="input" value={newUser.defaultPage || ''} onChange={e => setNewUser({ ...newUser, defaultPage: e.target.value })}>
                                     <option value="">-- لوحة التحكم (افتراضي) --</option>
-                                    <option value="/sales">🛒 نقطة البيع (POS)</option>
-                                    <option value="/pos">🛒 POS المفتوح</option>
-                                    <option value="/purchases">🛍️ فواتير المشتريات</option>
-                                    <option value="/products">📦 المنتجات</option>
+                                    <option value="/pos">🛒 نقطة البيع (POS)</option>
+                                    <option value="/sales">🧾 فواتير المبيعات</option>
+                                    <option value="/purchases">🛍️ المشتريات</option>
+                                    <option value="/products">📦 الأصناف والمنتجات</option>
                                     <option value="/stock">🏭 المخزون</option>
                                     <option value="/customers">👤 العملاء</option>
                                     <option value="/expenses">💸 المصروفات</option>
@@ -782,37 +811,60 @@ export default function SettingsPage() {
                                     <option value="/attendance">⏰ الحضور والانصراف</option>
                                     <option value="/salaries">💰 الرواتب</option>
                                     <option value="/reports">📊 التقارير</option>
-                                    <option value="/treasury">💰 الخزينة</option>
+                                    <option value="/treasury">💵 الخزينة</option>
                                     <option value="/warehouses">🏪 المستودعات</option>
-                                    <option value="/accounting">📒 الحسابات</option>
-                                    <option value="/bookings">📅 الحجوزات</option>
-                                    <option value="/shifts">🕐 الوردات</option>
+                                    <option value="/accounting">📒 شجرة الحسابات</option>
+                                    <option value="/shifts">🕐 الورديات</option>
                                     <option value="/receipt-vouchers">🧾 سندات القبض</option>
                                     <option value="/sales-returns">↩️ مرتجعات المبيعات</option>
                                     <option value="/manufacturing">🏭 التصنيع</option>
-                                    <option value="/maintenance">🔧 الصيانة</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الصلاحيات ({newUserModules.length}/{ALL_MODULES.length})</label>
+                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الصلاحيات ({newUserModules.length}/{ALL_MODULES.length})
+                                    {FULL_ACCESS_ROLES.includes(newUser.role) && <span style={{ fontSize: '11px', color: 'var(--success)', marginRight: '8px' }}>✅ وصول كامل</span>}
+                                    {!FULL_ACCESS_ROLES.includes(newUser.role) && <span style={{ fontSize: '11px', color: 'var(--primary)', marginRight: '8px' }}>⚡ محددة تلقائياً — يمكنك إلغاء صلاحيات فقط</span>}
+                                </label>
                                 <input
                                     className="input" type="text" placeholder="🔍 ابحث في الصلاحيات..."
                                     value={moduleSearch} onChange={e => setModuleSearch(e.target.value)}
                                     style={{ marginBottom: '8px', fontSize: '13px' }}
                                 />
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '200px', overflowY: 'auto', padding: '4px', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                                    <button type="button" className={`btn btn-sm ${newUserModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
-                                        onClick={() => setNewUserModules(newUserModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                        {newUserModules.length === ALL_MODULES.length ? '✗ إلغاء الكل' : '✓ تحديد الكل'}
-                                    </button>
-                                    {ALL_MODULES.filter(m =>
-                                        !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
-                                    ).map(m => (
-                                        <button key={m.key} type="button"
-                                            className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
-                                            onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
-                                            style={{ fontSize: '11px' }}>{m.label}</button>
-                                    ))}
+                                    {FULL_ACCESS_ROLES.includes(newUser.role) ? (
+                                        /* ── أدوار الوصول الكامل: عرض كل الوحدات ── */
+                                        <>
+                                            <button type="button" className={`btn btn-sm ${newUserModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
+                                                onClick={() => setNewUserModules(newUserModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
+                                                {newUserModules.length === ALL_MODULES.length ? '✗ إلغاء الكل' : '✓ تحديد الكل'}
+                                            </button>
+                                            {ALL_MODULES.filter(m =>
+                                                !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
+                                            ).map(m => (
+                                                <button key={m.key} type="button"
+                                                    className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
+                                                    onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
+                                                    style={{ fontSize: '11px' }}>{m.label}</button>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        /* ── أدوار محدودة: عرض صلاحيات الدور فقط — يمكن إلغاء لا إضافة ── */
+                                        <>
+                                            {(() => {
+                                                const roleModuleKeys = DEFAULT_ROLE_MODULES[newUser.role] || [];
+                                                const roleModules = ALL_MODULES.filter(m => roleModuleKeys.includes(m.key));
+                                                const filtered = roleModules.filter(m =>
+                                                    !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
+                                                );
+                                                return filtered.map(m => (
+                                                    <button key={m.key} type="button"
+                                                        className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
+                                                        onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
+                                                        style={{ fontSize: '11px' }}>{m.label}</button>
+                                                ));
+                                            })()}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <button className="btn btn-primary" onClick={saveUser} disabled={savingUser}>{savingUser ? t('sys.str_4536') : t('sys.str_4580')}</button>

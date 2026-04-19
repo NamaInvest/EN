@@ -56,30 +56,43 @@ export function generateSessionToken(): string {
 // Logic: if user role is admin → grant full access
 //        if user has explicit permission records → use those
 //        otherwise → deny
-export async function hasPermission(userId: number, module: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { permissions: true },
-    });
-    if (!user) return false;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function hasPermission(userId: number, module: string, prismaClient?: any): Promise<boolean> {
+    const db = prismaClient || prisma;
+    try {
+        const user = await db.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true, permissions: true },
+        });
+        if (!user) return false;
 
-    // Admin and Owner always have full access
-    if (user.role === 'admin' || user.role === 'owner') return true;
+        // Admin and Owner always have full access
+        if (user.role === 'admin' || user.role === 'owner') return true;
 
-    // Explicit permissions override role
-    if (user.permissions.length > 0) {
-        return user.permissions.some(p => p.module === module);
+        // Explicit permissions override role
+        if (user.permissions.length > 0) {
+            return user.permissions.some((p: any) => p.module === module);
+        }
+
+        return false;
+    } catch (err) {
+        console.error('hasPermission error:', err);
+        return false;
     }
-
-    return false;
 }
 
 // Check if user is a legacy admin (admin role with zero permission records)
-export async function isLegacyAdmin(userId: number): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { permissions: true },
-    });
-    if (!user) return false;
-    return user.permissions.length === 0 && user.role === 'admin';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function isLegacyAdmin(userId: number, prismaClient?: any): Promise<boolean> {
+    const db = prismaClient || prisma;
+    try {
+        const user = await db.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true, permissions: true },
+        });
+        if (!user) return false;
+        return user.permissions.length === 0 && user.role === 'admin';
+    } catch {
+        return false;
+    }
 }

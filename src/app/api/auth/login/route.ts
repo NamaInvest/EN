@@ -64,6 +64,7 @@ export async function POST(request: Request) {
                 username: user.username,
                 fullName: user.fullName,
                 role: user.role,
+                defaultPage: (user as any).defaultPage || '',
                 permissions: (user as any).permissions ?? [],
             },
         });

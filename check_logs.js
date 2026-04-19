@@ -1,10 +1,13 @@
 const {Client} = require('ssh2');
 const c = new Client();
 c.on('ready', () => {
-    c.exec('cd /www/wwwroot/n11.namainvist.com && npx prisma generate 2>&1 | tail -5 && npm run build 2>&1 | tail -5 && pm2 restart saas-app --silent && echo "SAAS OK"', (e, s) => {
+    c.exec([
+        // Delete test user
+        'PGPASSWORD=n11_pass123 psql -U n11_db -h localhost -d mgmg_db -c "DELETE FROM user_permissions WHERE user_id = 3; DELETE FROM users WHERE username = \'cashier01\';" 2>&1',
+        'echo "Test user cleaned"',
+    ].join(' && '), (e, s) => {
         let out = '';
         s.on('data', d => out += d.toString());
-        s.stderr.on('data', d => out += d.toString());
         s.on('close', () => { console.log(out); c.end(); });
     });
 });

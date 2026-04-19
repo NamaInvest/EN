@@ -588,7 +588,12 @@ export default function Sidebar() {
     ...group,
     items: group.items.filter(item => {
       const mod = item.module || '';
-      if (mod === 'dashboard' || mod === 'login') return true;
+      if (mod === 'login') return true;
+      // لوحة القيادة والذكاء الاصطناعي — فقط مالك/admin/مدير نظام
+      const ADMIN_ONLY_MODULES = ['dashboard', 'ai_bank', 'ai_copilot', 'ai_cfo', 'ai_scm'];
+      if (ADMIN_ONLY_MODULES.includes(mod)) {
+        return ['admin', 'owner', 'system_admin'].includes(loggedUser.role);
+      }
       if (mod === 'master-panel') return loggedUser.role === 'owner';
       if (['admin', 'owner'].includes(loggedUser.role)) {
         // 1️⃣ تحقق من إخفاء الوحدة الرئيسية بالكامل

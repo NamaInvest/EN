@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'manage_users');
+        const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const users = await prisma.user.findMany({
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'manage_users');
+        const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية إدارة المستخدمين' }, { status: 403 });
 
         const body = await request.json();
@@ -143,10 +143,10 @@ export async function PUT(request: NextRequest) {
         }
 
         if (body.modules) {
-            const canPerm = await hasPermission(auth.userId, 'manage_permissions');
+            const canPerm = await hasPermission(auth.userId, 'manage_permissions', prisma);
             if (!canPerm) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تعديل الصلاحيات' }, { status: 403 });
         } else {
-            const canUser = await hasPermission(auth.userId, 'manage_users');
+            const canUser = await hasPermission(auth.userId, 'manage_users', prisma);
             if (!canUser) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية إدارة المستخدمين' }, { status: 403 });
         }
 
@@ -187,7 +187,7 @@ export async function PATCH(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'manage_users');
+        const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
@@ -214,7 +214,7 @@ export async function DELETE(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'manage_users');
+        const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
