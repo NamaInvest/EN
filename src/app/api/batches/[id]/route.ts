@@ -42,14 +42,17 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         // Must reverse the stock and delete movement if we delete it
         if (batch) {
-            await prisma.product.update({
-                where: { id: batch.productId },
-                data: { currentStock: { decrement: batch.currentQuantity } }
+            await prisma.$transaction(async (tx) => {
+                await tx.product.update({
+                    where: { id: batch.productId },
+                    data: { currentStock: { decrement: batch.currentQuantity } }
+                });
+                await tx.stockMovement.deleteMany({ where: { referenceType: 'batch_entry', referenceId: batchId } });
+                await tx.productBatch.delete({ where: { id: batchId } });
             });
-            await prisma.stockMovement.deleteMany({ where: { referenceType: 'batch_entry', referenceId: batchId } });
+        } else {
+            await prisma.productBatch.delete({ where: { id: batchId } });
         }
-
-        await prisma.productBatch.delete({ where: { id: batchId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error(error);

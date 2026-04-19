@@ -465,22 +465,28 @@ export default function Sidebar() {
     // مسح بيانات الجلسة المحلية
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // مسح جميع كوكيز Clerk لمنع إعادة تسجيل الدخول التلقائي
+    document.cookie.split(';').forEach(c => {
+      const name = c.split('=')[0].trim();
+      if (name.startsWith('__clerk') || name.startsWith('__session') || name.startsWith('__client')) {
+        document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        document.cookie = `${name}=; path=/; domain=.namainvist.com; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
+    });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
     const host = window.location.hostname;
     const isSubdomain = host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com');
+    // دائماً ننهي جلسة Clerk أولاً لمنع auto-login
+    try {
+      await signOut();
+    } catch { /* ignore if no Clerk session */ }
     if (isSubdomain) {
-      // Subdomain: redirect directly (ERP token auth, Clerk may not have a session)
       window.location.href = `${window.location.origin}/login`;
       return;
     }
-    // Main site: use Clerk signOut
-    try {
-      await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
-    } catch {
-      window.location.href = 'https://namainvist.com/sign-in';
-    }
+    window.location.href = 'https://namainvist.com/';
   };
 
   const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });

@@ -3,7 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { generateZatcaQRContent } from '@/lib/zatca';
-import { round2 } from '@/lib/money';
+import { round2, validateMoney } from '@/lib/money';
 
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -18,7 +18,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'السلة فارغة' }, { status: 400 });
         }
 
-        const finalTotal = round2(total + tax - (discount || 0));
+        // Validate monetary amounts
+        const vTotal = validateMoney(total, 'الإجمالي');
+        const vTax = validateMoney(tax, 'الضريبة');
+        const vDiscount = validateMoney(discount || 0, 'الخصم');
+
+        const finalTotal = round2(vTotal + vTax - vDiscount);
 
         // 2. Transaction to ensure atomicity: Create Invoice + Deduct Stock
         const invoice = await prisma.$transaction(async (tx) => {

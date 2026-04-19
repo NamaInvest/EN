@@ -131,6 +131,7 @@ model Product {
   serialNumbers        ProductSerialNumber[]
   productUnits         ProductUnit[]
 
+  @@index([name])
   @@map("products")
 }
 
@@ -198,6 +199,8 @@ model Customer {
   goodsReceipts    GoodsReceiptNote[]
   leaseContracts   LeaseContract[]
 
+  @@index([phone])
+  @@index([name])
   @@map("customers")
 }
 

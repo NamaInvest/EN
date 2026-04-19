@@ -1,33 +1,35 @@
 const {Client} = require('ssh2');
 const fs = require('fs');
-const c = new Client();
-const FILES = [
-  'src/app/api/branches/route.ts',
-  'src/app/api/purchases/grn/route.ts',
-  'src/app/api/purchases/rfq/route.ts',
-  'src/app/api/shifts/route.ts',
-  'src/app/api/stock/adjustments/route.ts',
-  'src/app/api/enterprise/wms/route.ts',
+const path = require('path');
+
+const files = ['src/components/Sidebar.tsx', 'src/app/layout.tsx'];
+const servers = [
+    { name: 'main-site', path: '/www/wwwroot/namainvist.com', pm2: 'main-site' },
+    { name: 'saas-app', path: '/www/wwwroot/n11.namainvist.com', pm2: 'saas-app' },
 ];
-c.on('ready', () => {
-    c.sftp((e, sftp) => {
-        let done = 0;
-        const next = (i) => {
-            if (i >= FILES.length) {
-                sftp.end();
-                console.log('✅ ' + done + '/' + FILES.length + ' uploaded');
-                c.exec('cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -5 && pm2 restart saas-app --silent && echo "=== DONE ==="', (e, s) => {
-                    s.on('data', d => process.stdout.write(d.toString()));
-                    s.stderr.on('data', d => process.stderr.write(d.toString()));
-                    s.on('close', () => { console.log('\nOK!'); c.end(); });
+
+let done = 0;
+servers.forEach(srv => {
+    const c = new Client();
+    c.on('ready', () => {
+        c.sftp((e, sftp) => {
+            let uploaded = 0;
+            files.forEach(f => {
+                const remote = srv.path + '/' + f;
+                sftp.writeFile(remote, fs.readFileSync(f), () => {
+                    console.log(`✅ [${srv.name}] ${path.basename(f)}`);
+                    uploaded++;
+                    if (uploaded === files.length) {
+                        sftp.end();
+                        c.exec(`cd ${srv.path} && npm run build 2>&1 | tail -3 && pm2 restart ${srv.pm2} --silent && echo "[${srv.name}] DONE"`, (e, s) => {
+                            s.on('data', d => process.stdout.write(d.toString()));
+                            s.stderr.on('data', d => process.stderr.write(d.toString()));
+                            s.on('close', () => { c.end(); done++; if (done === servers.length) console.log('\n🏁 All done!'); });
+                        });
+                    }
                 });
-                return;
-            }
-            try {
-                sftp.writeFile('/www/wwwroot/n11.namainvist.com/' + FILES[i], fs.readFileSync(FILES[i]), () => { done++; next(i+1); });
-            } catch(e) { next(i+1); }
-        };
-        next(0);
+            });
+        });
     });
+    c.connect({host:'46.4.188.170',port:22,username:'root',password:'_ee4SWbxLVfH9b'});
 });
-c.connect({host:'46.4.188.170',port:22,username:'root',password:'_ee4SWbxLVfH9b'});
