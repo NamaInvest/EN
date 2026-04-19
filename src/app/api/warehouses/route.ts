@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
 // GET all warehouses (Stocks)
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
@@ -27,7 +28,9 @@ export async function GET(request: Request) {
 }
 
 // POST: Create a new warehouse
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const data = await request.json();
     

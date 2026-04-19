@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth'; // Adjust based on your auth pattern
 
-const prisma = new PrismaClient();
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
 
-export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get('branchId');
@@ -23,7 +23,9 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const data = await request.json();
     const { name, code, nameEn, isActive, branchId } = data;
@@ -55,7 +57,9 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const data = await request.json();
     const { id, name, code, nameEn, isActive, branchId } = data;
@@ -82,7 +86,9 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req as any);
 
-export async function GET(req: Request) {
     try {
         const data = await prisma.pettyCashFund.findMany({
             include: { custodian: true },
@@ -13,7 +14,9 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req as any);
+
     try {
         const body = await req.json();
         
@@ -47,7 +50,9 @@ export async function POST(req: Request) {
     }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
+    const prisma = getPrisma(req as any);
+
     try {
         const body = await req.json();
         const data = await prisma.pettyCashFund.update({
@@ -67,7 +72,9 @@ export async function PUT(req: Request) {
     }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
+    const prisma = getPrisma(req as any);
+
     try {
         const url = new URL(req.url);
         const id = parseInt(url.searchParams.get('id') || '0');

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
 
-export async function GET() {
   try {
     const properties = await prisma.property.findMany({
       include: {
@@ -15,7 +16,9 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
   try {
     const data = await request.json();
     const property = await prisma.property.create({

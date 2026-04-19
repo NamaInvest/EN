@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
-const prisma = new PrismaClient();
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
 
-export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
@@ -45,7 +45,9 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const data = await request.json();
         
@@ -73,7 +75,9 @@ export async function POST(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -91,7 +95,9 @@ export async function DELETE(request: Request) {
     }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const data = await request.json();
         const { id, ...updateData } = data;
