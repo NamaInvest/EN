@@ -322,8 +322,8 @@ export default function POSPage() {
                             try {
                                 const u = JSON.parse(localStorage.getItem('user') || '{}');
                                 const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
-                                window.location.href = ADMIN_ROLES.includes(u.role) ? '/dashboard' : (u.defaultPage || '/pos');
-                            } catch { window.location.href = '/pos'; }
+                                window.location.href = ADMIN_ROLES.includes(u.role) ? '/dashboard' : '/sales';
+                            } catch { window.location.href = '/sales'; }
                         }}>
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
                             {t('sys.str_4028')}</button>

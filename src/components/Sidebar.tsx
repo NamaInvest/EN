@@ -468,15 +468,18 @@ export default function Sidebar() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
-    // Determine redirect: subdomain → /login, main site → /sign-in
     const host = window.location.hostname;
     const isSubdomain = host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com');
-    const redirectUrl = isSubdomain ? `${window.location.origin}/login` : 'https://namainvist.com/sign-in';
+    if (isSubdomain) {
+      // Subdomain: redirect directly (ERP token auth, Clerk may not have a session)
+      window.location.href = `${window.location.origin}/login`;
+      return;
+    }
+    // Main site: use Clerk signOut
     try {
-      await signOut({ redirectUrl });
+      await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
     } catch {
-      // Clerk signOut fails if user has no Clerk session (ERP-only login)
-      window.location.href = redirectUrl;
+      window.location.href = 'https://namainvist.com/sign-in';
     }
   };
 
