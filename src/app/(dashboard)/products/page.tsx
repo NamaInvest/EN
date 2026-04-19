@@ -70,6 +70,8 @@ export default function ProductsPage() {
     const [toast, setToast] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isImporting, setIsImporting] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
 
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) return;
@@ -167,6 +169,8 @@ export default function ProductsPage() {
             addVat: true, expiryDate: '', binLocation: '', taxType: 'VAT'
         });
         setFormUnits([]);
+        setImageFile(null);
+        setImagePreview('');
         setShowModal(true);
     };
 
@@ -190,6 +194,8 @@ export default function ProductsPage() {
             sortOrder: u.sortOrder?.toString() || '0',
         })) : []);
         setShowModal(true);
+        setImageFile(null);
+        setImagePreview(p.imagePath || '');
     };
 
     const handleSave = async () => {
@@ -197,9 +203,24 @@ export default function ProductsPage() {
         const url = editProduct ? `/api/products/${editProduct.id}` : '/api/products';
         const method = editProduct ? 'PUT' : 'POST';
         try {
+            // Upload image first if exists
+            let imagePath = editProduct?.imagePath || '';
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+                const upRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                });
+                if (upRes.ok) {
+                    const upData = await upRes.json();
+                    imagePath = upData.url;
+                }
+            }
             const res = await fetch(url, {
                 method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ ...form, productUnits: formUnits }),
+                body: JSON.stringify({ ...form, imagePath, productUnits: formUnits }),
             });
             if (res.ok) { setShowModal(false); fetchProducts(); }
         } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
@@ -785,6 +806,42 @@ export default function ProductsPage() {
                                     })}
                                 </div>
                             )}
+                        </div>
+
+                        {/* ── صورة الصنف ── */}
+                        <div className="input-group" style={{ gridColumn: '1 / -1', padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-card-hover)', marginTop: '16px' }}>
+                            <label className="input-label" style={{ fontSize: '15px', color: 'var(--primary)', marginBottom: '10px' }}>📷 صورة الصنف</label>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                {(imagePreview || (editProduct?.imagePath)) && (
+                                    <img
+                                        src={imagePreview || editProduct?.imagePath}
+                                        alt="صورة الصنف"
+                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', border: '2px solid var(--border)' }}
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                    />
+                                )}
+                                <div style={{ flex: 1 }}>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setImageFile(file);
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => setImagePreview(reader.result as string);
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                        style={{ fontSize: '13px' }}
+                                    />
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>PNG, JPG أو WEBP — الحد الأقصى 2MB</div>
+                                </div>
+                                {imagePreview && (
+                                    <button type="button" className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }}
+                                        onClick={() => { setImageFile(null); setImagePreview(''); }}>🗑️ إزالة</button>
+                                )}
+                            </div>
                         </div>
 
                         <div className="input-group">

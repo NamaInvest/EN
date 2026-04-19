@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from 'next/link';
 import {
   ShieldCheck, Bot, MessageCircle, ShoppingCart,
@@ -221,6 +221,15 @@ export default function NamaInvestLanding() {
   const [activeIndustry, setActiveIndustry] = useState<string | null>(null);
   const [expandedCluster, setExpandedCluster] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Client-side fallback: redirect subdomain visitors to /login or /dashboard
+  useEffect(() => {
+    const host = window.location.hostname;
+    if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
+      const token = document.cookie.split(';').some(c => c.trim().startsWith('token='));
+      window.location.href = token ? '/dashboard' : '/login';
+    }
+  }, []);
 
   const filteredModules = useMemo(() => {
     return modulesList.filter(m => {

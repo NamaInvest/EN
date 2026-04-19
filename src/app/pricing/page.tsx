@@ -1,98 +1,104 @@
-﻿import Link from 'next/link';
+'use client';
 
-export const metadata = {
-    title: 'ط®ط·ط· ط§ظ„ط£ط³ط¹ط§ط± â€” ظ†ظ…ط§ ط§ظ†ظپط³طھ',
-    description: 'ط§ط®طھط± ط§ظ„ط®ط·ط© ط§ظ„ظ…ظ†ط§ط³ط¨ط© ظ„ط´ط±ظƒطھظƒ. ظ…ظ† ط§ظ„ظ…ط¬ط§ظ†ظٹ ط¥ظ„ظ‰ ط§ظ„ط§ط­طھط±ط§ظپظٹ ظ…ط¹ ط¯ط¹ظ… ظƒط§ظ…ظ„ ظ„ظ€ ZATCA.',
-};
+import Link from 'next/link';
+import { useState } from 'react';
 
 const plans = [
     {
-        name: 'ط§ظ„طھط¬ط±ظٹط¨ظٹ',
+        name: 'التجريبي',
         nameEn: 'Free Trial',
-        price: 'ظ…ط¬ط§ظ†ظٹ',
-        period: '7 ط£ظٹط§ظ…',
+        priceMonthly: 'مجاني',
+        priceYearly: 'مجاني',
+        period: '7 أيام',
         color: 'from-slate-700 to-slate-900',
         badge: null,
         features: [
-            { text: '30 ظپط§طھظˆط±ط©', included: true },
-            { text: '1,000 طµظ†ظپ', included: true },
-            { text: 'ظ…ط³طھط®ط¯ظ… ظˆط§ط­ط¯', included: true },
-            { text: 'طھظ‚ط§ط±ظٹط± ط£ط³ط§ط³ظٹط©', included: true },
+            { text: '30 فاتورة', included: true },
+            { text: '1,000 صنف', included: true },
+            { text: 'مستخدم واحد', included: true },
+            { text: 'كل الأقسام مفتوحة للتقييم', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
             { text: 'ZATCA Phase 2', included: false },
-            { text: 'ط¯ط¹ظ… ظپظ†ظٹ', included: false },
-            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: false },
+            { text: 'دعم فني', included: false },
+            { text: 'نسخ احتياطية يومية', included: false },
         ],
-        cta: 'ط§ظ„ط®ط·ط© ط§ظ„ط­ط§ظ„ظٹط©',
-        ctaHref: '/dashboard',
-        disabled: true,
+        cta: 'ابدأ مجاناً',
+        ctaHref: '/sign-up',
+        disabled: false,
     },
     {
-        name: 'ط§ظ„ط£ط³ط§ط³ظٹط©',
+        name: 'الأساسية',
         nameEn: 'Basic',
-        price: '99',
-        period: 'ط´ظ‡ط±ظٹط§ظ‹',
+        priceMonthly: '99',
+        priceYearly: '950',
+        period: 'شهرياً',
+        periodYearly: 'سنوياً',
         color: 'from-indigo-600 to-indigo-800',
-        badge: 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹',
+        badge: '⭐ الأكثر شيوعاً',
         features: [
-            { text: 'ظپظˆط§طھظٹط± ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
-            { text: '5,000 طµظ†ظپ', included: true },
-            { text: '3 ظ…ط³طھط®ط¯ظ…ظٹظ†', included: true },
-            { text: 'طھظ‚ط§ط±ظٹط± ظ…طھظ‚ط¯ظ…ط©', included: true },
+            { text: 'فواتير غير محدودة', included: true },
+            { text: '19,900 صنف', included: true },
+            { text: '3 مستخدمين', included: true },
+            { text: 'تقارير متقدمة', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
             { text: 'ZATCA Phase 2', included: true },
-            { text: 'ط¯ط¹ظ… ط¨ط±ظٹط¯ ط¥ظ„ظƒطھط±ظˆظ†ظٹ', included: true },
-            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: false },
+            { text: 'دعم بريد إلكتروني', included: true },
+            { text: 'نسخ احتياطية يومية', included: false },
         ],
-        cta: 'ط§ط´طھط±ظƒ ط§ظ„ط¢ظ†',
-        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ط§ظ„ط®ط·ط© ط§ظ„ط£ط³ط§ط³ظٹط©',
+        cta: 'اشترك الآن',
+        ctaHref: 'https://wa.me/966531206628?text=أريد الاشتراك في الخطة الأساسية',
         disabled: false,
     },
     {
-        name: 'ط§ظ„ط§ط­طھط±ط§ظپظٹط©',
+        name: 'الاحترافية',
         nameEn: 'Professional',
-        price: '299',
-        period: 'ط´ظ‡ط±ظٹط§ظ‹',
+        priceMonthly: '299',
+        priceYearly: '2,870',
+        period: 'شهرياً',
+        periodYearly: 'سنوياً',
         color: 'from-violet-600 to-purple-800',
-        badge: 'ظ…ظˆطµظ‰ ط¨ظ‡ ظ„ظ„ط´ط±ظƒط§طھ',
+        badge: '🚀 موصى به للشركات',
         features: [
-            { text: 'ظپظˆط§طھظٹط± ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
-            { text: 'ط£طµظ†ط§ظپ ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
-            { text: '10 ظ…ط³طھط®ط¯ظ…ظٹظ†', included: true },
-            { text: 'طھظ‚ط§ط±ظٹط± ظ…طھظ‚ط¯ظ…ط© + BI', included: true },
+            { text: 'فواتير غير محدودة', included: true },
+            { text: 'أصناف غير محدودة', included: true },
+            { text: '10 مستخدمين', included: true },
+            { text: 'تقارير متقدمة + BI', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
-            { text: 'ZATCA Phase 2 ظƒط§ظ…ظ„ط©', included: true },
-            { text: 'ط¯ط¹ظ… ط£ظˆظ„ظˆظٹط© 24/7', included: true },
-            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: true },
+            { text: 'ZATCA Phase 2 كاملة', included: true },
+            { text: 'دعم أولوية 24/7', included: true },
+            { text: 'نسخ احتياطية يومية', included: true },
         ],
-        cta: 'ط§ط´طھط±ظƒ ط§ظ„ط¢ظ†',
-        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ط§ظ„ط®ط·ط© ط§ظ„ط§ط­طھط±ط§ظپظٹط©',
+        cta: 'اشترك الآن',
+        ctaHref: 'https://wa.me/966531206628?text=أريد الاشتراك في الخطة الاحترافية',
         disabled: false,
     },
     {
-        name: 'ط§ظ„ظ…ط¤ط³ط³ط§طھ',
+        name: 'المؤسسات',
         nameEn: 'Enterprise',
-        price: 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§',
+        priceMonthly: 'تواصل معنا',
+        priceYearly: 'تواصل معنا',
         period: '',
         color: 'from-amber-600 to-orange-700',
-        badge: 'ظ„ظ„ط´ط±ظƒط§طھ ط§ظ„ظƒط¨ط±ظ‰',
+        badge: '🏢 للشركات الكبرى',
         features: [
-            { text: 'ظƒظ„ ط´ظٹط، ظپظٹ ط§ظ„ط§ط­طھط±ط§ظپظٹ', included: true },
-            { text: 'ظ…ط³طھط®ط¯ظ…ظˆظ† ط؛ظٹط± ظ…ط­ط¯ظˆط¯ظˆظ†', included: true },
-            { text: 'ظپط±ظˆط¹ ظ…طھط¹ط¯ط¯ط©', included: true },
-            { text: 'طھظƒط§ظ…ظ„ API ظ…ط®طµطµ', included: true },
-            { text: 'SLA ظ…ط¶ظ…ظˆظ† 99.9%', included: true },
-            { text: 'طھط¯ط±ظٹط¨ ظˆطھط£ظ‡ظٹظ„ ط§ظ„ظپط±ظٹظ‚', included: true },
-            { text: 'ظ…ط¯ظٹط± ط­ط³ط§ط¨ ظ…ط®طµطµ', included: true },
-            { text: 'طھط®طµظٹطµ ظƒط§ظ…ظ„ ظ„ظ„ظ†ط¸ط§ظ…', included: true },
+            { text: 'كل شيء في الاحترافي', included: true },
+            { text: 'مستخدمون غير محدودون', included: true },
+            { text: 'فروع متعددة', included: true },
+            { text: 'تكامل API مخصص', included: true },
+            { text: 'SLA مضمون 99.9%', included: true },
+            { text: 'تدريب وتأهيل الفريق', included: true },
+            { text: 'مدير حساب مخصص', included: true },
+            { text: 'تخصيص كامل للنظام', included: true },
         ],
-        cta: 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§',
-        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ظ…ط¹ط±ظپط© ط§ظ„ظ…ط²ظٹط¯ ط¹ظ† ط®ط·ط© ط§ظ„ظ…ط¤ط³ط³ط§طھ',
+        cta: 'تواصل معنا',
+        ctaHref: 'https://wa.me/966531206628?text=أريد معرفة المزيد عن خطة المؤسسات',
         disabled: false,
     },
 ];
 
 export default function PricingPage() {
+    const [isYearly, setIsYearly] = useState(false);
+
     return (
         <div
             dir="rtl"
@@ -104,7 +110,7 @@ export default function PricingPage() {
             }}
         >
             {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                 <Link href="/" style={{ textDecoration: 'none' }}>
                     <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: '10px',
@@ -112,7 +118,7 @@ export default function PricingPage() {
                         borderRadius: '50px', padding: '6px 20px', marginBottom: '24px',
                         color: '#a5b4fc', fontSize: '14px', cursor: 'pointer',
                     }}>
-                        â†گ ط§ظ„ط¹ظˆط¯ط© ظ„ظ„ط±ط¦ظٹط³ظٹط©
+                        ← العودة للرئيسية
                     </div>
                 </Link>
 
@@ -122,11 +128,57 @@ export default function PricingPage() {
                     background: 'linear-gradient(to right, #c7d2fe, #818cf8, #6366f1)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 }}>
-                    ط®ط·ط· ط¨ط³ظٹط·ط© ظˆط´ظپط§ظپط© ًں’ژ
+                    خطط بسيطة وشفافة 💎
                 </h1>
-                <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '600px', margin: '0 auto' }}>
-                    ط§ط¨ط¯ط£ ظ…ط¬ط§ظ†ط§ظ‹ ظ„ظ…ط¯ط© 7 ط£ظٹط§ظ…طŒ ط«ظ… ط§ط®طھط± ط§ظ„ط®ط·ط© ط§ظ„طھظٹ طھظ†ط§ط³ط¨ ظ†ظ…ظˆ ط´ط±ظƒطھظƒ
+                <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '600px', margin: '0 auto 32px' }}>
+                    ابدأ مجاناً لمدة 7 أيام مع كل الأقسام مفتوحة، ثم اختر الخطة التي تناسب نمو شركتك
                 </p>
+
+                {/* Monthly/Yearly Toggle */}
+                <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '50px', padding: '6px 8px',
+                }}>
+                    <button
+                        onClick={() => setIsYearly(false)}
+                        style={{
+                            padding: '8px 24px', borderRadius: '40px',
+                            background: !isYearly ? '#6366f1' : 'transparent',
+                            color: !isYearly ? 'white' : '#94a3b8',
+                            border: 'none', cursor: 'pointer',
+                            fontWeight: '700', fontSize: '14px',
+                            transition: 'all 0.3s',
+                            fontFamily: "'Lateef', sans-serif",
+                        }}
+                    >
+                        شهري
+                    </button>
+                    <button
+                        onClick={() => setIsYearly(true)}
+                        style={{
+                            padding: '8px 24px', borderRadius: '40px',
+                            background: isYearly ? '#6366f1' : 'transparent',
+                            color: isYearly ? 'white' : '#94a3b8',
+                            border: 'none', cursor: 'pointer',
+                            fontWeight: '700', fontSize: '14px',
+                            transition: 'all 0.3s',
+                            fontFamily: "'Lateef', sans-serif",
+                        }}
+                    >
+                        سنوي
+                    </button>
+                    {isYearly && (
+                        <span style={{
+                            background: 'rgba(34,197,94,0.2)', color: '#4ade80',
+                            padding: '4px 12px', borderRadius: '20px',
+                            fontSize: '12px', fontWeight: '700',
+                        }}>
+                            وفّر 20%
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Plans Grid */}
@@ -137,100 +189,112 @@ export default function PricingPage() {
                 maxWidth: '1200px',
                 margin: '0 auto',
             }}>
-                {plans.map((plan) => (
-                    <div key={plan.name} style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹'
-                            ? '2px solid #6366f1'
-                            : '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        position: 'relative',
-                        transition: 'transform 0.2s',
-                    }}>
-                        {/* Badge */}
-                        {plan.badge && (
-                            <div style={{
-                                background: plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹' ? '#6366f1' : 'rgba(255,255,255,0.1)',
-                                color: 'white', textAlign: 'center',
-                                padding: '6px', fontSize: '12px', fontWeight: '700',
-                            }}>
-                                â­گ {plan.badge}
-                            </div>
-                        )}
+                {plans.map((plan) => {
+                    const price = isYearly ? plan.priceYearly : plan.priceMonthly;
+                    const isNumeric = !isNaN(Number(price.replace(/,/g, '')));
+                    const period = isYearly ? (plan.periodYearly || plan.period) : plan.period;
 
-                        {/* Plan Header */}
-                        <div style={{
-                            background: `linear-gradient(135deg, ${plan.color})`,
-                            padding: '28px 24px',
+                    return (
+                        <div key={plan.name} style={{
+                            background: plan.badge === '⭐ الأكثر شيوعاً'
+                                ? 'rgba(99,102,241,0.08)'
+                                : 'rgba(255,255,255,0.04)',
+                            border: plan.badge === '⭐ الأكثر شيوعاً'
+                                ? '2px solid #6366f1'
+                                : '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '20px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            position: 'relative',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
                         }}>
-                            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '4px' }}>
-                                {plan.nameEn}
-                            </div>
-                            <div style={{ color: 'white', fontSize: '22px', fontWeight: '800', marginBottom: '12px' }}>
-                                {plan.name}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                                {plan.price === 'ظ…ط¬ط§ظ†ظٹ' || plan.price === 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§' ? (
-                                    <span style={{ color: 'white', fontSize: '28px', fontWeight: '800' }}>{plan.price}</span>
-                                ) : (
-                                    <>
-                                        <span style={{ color: 'white', fontSize: '40px', fontWeight: '800' }}>{plan.price}</span>
-                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>ط±.ط³</span>
-                                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {plan.period}</span>
-                                    </>
-                                )}
-                                {plan.period === '7 ط£ظٹط§ظ…' && (
-                                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {plan.period}</span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Features */}
-                        <div style={{ padding: '24px', flex: 1 }}>
-                            {plan.features.map((f, i) => (
-                                <div key={i} style={{
-                                    display: 'flex', alignItems: 'center', gap: '10px',
-                                    padding: '8px 0',
-                                    borderBottom: i < plan.features.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                                    color: f.included ? '#e2e8f0' : '#475569',
-                                    fontSize: '14px',
+                            {/* Badge */}
+                            {plan.badge && (
+                                <div style={{
+                                    background: plan.badge.includes('الأكثر') ? '#6366f1' : 'rgba(255,255,255,0.1)',
+                                    color: 'white', textAlign: 'center',
+                                    padding: '6px', fontSize: '12px', fontWeight: '700',
                                 }}>
-                                    <span style={{ fontSize: '16px' }}>{f.included ? 'âœ…' : 'â‌Œ'}</span>
-                                    <span style={{ textDecoration: f.included ? 'none' : 'line-through' }}>{f.text}</span>
+                                    {plan.badge}
                                 </div>
-                            ))}
-                        </div>
+                            )}
 
-                        {/* CTA */}
-                        <div style={{ padding: '20px 24px 28px' }}>
-                            <a
-                                href={plan.ctaHref}
-                                style={{
-                                    display: 'block', textAlign: 'center',
-                                    padding: '14px',
-                                    borderRadius: '12px',
-                                    background: plan.disabled
-                                        ? 'rgba(255,255,255,0.05)'
-                                        : plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹'
+                            {/* Plan Header */}
+                            <div style={{
+                                background: `linear-gradient(135deg, ${plan.color})`,
+                                padding: '28px 24px',
+                            }}>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '4px' }}>
+                                    {plan.nameEn}
+                                </div>
+                                <div style={{ color: 'white', fontSize: '22px', fontWeight: '800', marginBottom: '12px' }}>
+                                    {plan.name}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                    {!isNumeric ? (
+                                        <span style={{ color: 'white', fontSize: '28px', fontWeight: '800' }}>{price}</span>
+                                    ) : (
+                                        <>
+                                            <span style={{ color: 'white', fontSize: '40px', fontWeight: '800' }}>{price}</span>
+                                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>ر.س</span>
+                                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {period}</span>
+                                        </>
+                                    )}
+                                    {plan.period === '7 أيام' && (
+                                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {plan.period}</span>
+                                    )}
+                                </div>
+                                {isYearly && isNumeric && (
+                                    <div style={{ marginTop: '8px', color: 'rgba(255,255,255,0.5)', fontSize: '12px', textDecoration: 'line-through' }}>
+                                        {plan.priceMonthly === '99' ? '1,188' : '3,588'} ر.س / سنوياً
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Features */}
+                            <div style={{ padding: '24px', flex: 1 }}>
+                                {plan.features.map((f, i) => (
+                                    <div key={i} style={{
+                                        display: 'flex', alignItems: 'center', gap: '10px',
+                                        padding: '8px 0',
+                                        borderBottom: i < plan.features.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                        color: f.included ? '#e2e8f0' : '#475569',
+                                        fontSize: '14px',
+                                    }}>
+                                        <span style={{ fontSize: '16px' }}>{f.included ? '✅' : '❌'}</span>
+                                        <span style={{ textDecoration: f.included ? 'none' : 'line-through' }}>{f.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* CTA */}
+                            <div style={{ padding: '20px 24px 28px' }}>
+                                <a
+                                    href={plan.ctaHref}
+                                    style={{
+                                        display: 'block', textAlign: 'center',
+                                        padding: '14px',
+                                        borderRadius: '12px',
+                                        background: plan.badge?.includes('الأكثر')
                                             ? 'linear-gradient(135deg, #6366f1, #4f46e5)'
-                                            : 'rgba(255,255,255,0.1)',
-                                    border: plan.disabled ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.2)',
-                                    color: plan.disabled ? '#64748b' : 'white',
-                                    fontWeight: '700', fontSize: '15px',
-                                    textDecoration: 'none',
-                                    cursor: plan.disabled ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.2s',
-                                    pointerEvents: plan.disabled ? 'none' : 'auto',
-                                }}
-                            >
-                                {plan.cta} {!plan.disabled && 'ًںڑ€'}
-                            </a>
+                                            : plan.badge?.includes('موصى')
+                                                ? 'linear-gradient(135deg, #7c3aed, #6d28d9)'
+                                                : 'rgba(255,255,255,0.1)',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        color: 'white',
+                                        fontWeight: '700', fontSize: '15px',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    {plan.cta} 🚀
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* FAQ / Bottom Note */}
@@ -242,13 +306,13 @@ export default function PricingPage() {
                 textAlign: 'center',
             }}>
                 <p style={{ color: '#94a3b8', fontSize: '15px', margin: 0 }}>
-                    ًں’¬ ظ‡ظ„ طھط­طھط§ط¬ ظ…ط³ط§ط¹ط¯ط© ظپظٹ ط§ط®طھظٹط§ط± ط§ظ„ط®ط·ط© ط§ظ„ظ…ظ†ط§ط³ط¨ط©طں
+                    💬 هل تحتاج مساعدة في اختيار الخطة المناسبة؟
                     <br />
                     <a
-                        href="https://wa.me/966500000000"
+                        href="https://wa.me/966531206628"
                         style={{ color: '#818cf8', textDecoration: 'none', fontWeight: '700', marginTop: '8px', display: 'inline-block' }}
                     >
-                        طھظˆط§طµظ„ ظ…ط¹ظ†ط§ ط¹ط¨ط± ظˆط§طھط³ط§ط¨ â†گ
+                        تواصل معنا عبر واتساب ←
                     </a>
                 </p>
             </div>
@@ -260,4 +324,3 @@ export default function PricingPage() {
         </div>
     );
 }
-

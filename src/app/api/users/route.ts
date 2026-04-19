@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { hashPassword, getUserFromRequest, hasPermission } from '@/lib/auth';
+import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const users = await prisma.user.findMany({
+            where: { username: { not: 'admin' } },  // Hide system admin user
             select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, deviceToken: true, deviceName: true, deviceBoundAt: true, branchId: true, branch: { select: { id: true, name: true } } },
             orderBy: { id: 'asc' },
         });
@@ -48,6 +50,15 @@ export async function POST(request: NextRequest) {
         if (existing) {
             return NextResponse.json({ error: 'اسم المستخدم موجود مسبقاً' }, { status: 409 });
         }
+
+        // --- Quota Guard (User Limit) ---
+        const tenant = request.headers.get('x-tenant');
+        if (tenant) {
+            const quotaCheck = await checkQuota(tenant, 'user');
+            if (!quotaCheck.allowed) return quotaErrorResponse(quotaCheck);
+        }
+        // -----------------------------------
+
         const user = await prisma.user.create({
             data: {
                 username: username,

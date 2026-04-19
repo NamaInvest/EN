@@ -28,7 +28,7 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
         let row: any = null;
         try {
             const result = await masterPool.query(
-                `SELECT subscription_status, plan, trial_ends_at, invoice_quota, product_quota
+                `SELECT subscription_status, plan, trial_ends_at, invoice_quota, product_quota, user_quota
                  FROM tenant_accounts WHERE subdomain = $1 LIMIT 1`,
                 [tenant]
             );
@@ -42,8 +42,10 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
         const status = row.subscription_status;
         const plan = row.plan || 'free';
 
-        // ── الباقات المدفوعة: لا قيود ──────────────────────────────────
-        if (plan === 'basic' || plan === 'pro' || plan === 'enterprise') {
+        // ── الباقات المدفوعة مع فواتير/أصناف غير محدودة ─────────────
+        // لا تتخطى - لا بد من فحص حد المستخدمين لكل الباقات
+        // invoices/products لا تحتاج فحص للباقات المدفوعة
+        if ((plan === 'basic' || plan === 'professional' || plan === 'enterprise') && resource !== 'user') {
             return { allowed: true, reason: 'ok', plan };
         }
 

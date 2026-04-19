@@ -1,13 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-const OWNER_EMAIL = process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';
+const MAIN_HOSTS = ['namainvist.com', 'www.namainvist.com'];
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/sso-callback(.*)',
-  // APIs that handle their own auth internally
   '/api/ice(.*)',
   '/api/tenant/provision(.*)',
   '/api/tenant/hidden-modules(.*)',
@@ -19,34 +18,57 @@ const isPublicRoute = createRouteMatcher([
   '/auto-login(.*)',
 ]);
 
-// ICE Panel UI — المالك فقط (redirect to sign-in if not authenticated)
 const isIceRoute = createRouteMatcher(['/ice']);
 
 export default clerkMiddleware(async (auth, req) => {
-  // ── استخراج الـ tenant من الـ subdomain ──────────────────────────
-  // namainvist.com            → الموقع الرئيسي (لا tenant)
-  // n11.namainvist.com        → tenant: 'n11'
-  // company123.namainvist.com → tenant: 'company123'
   const hostname = req.headers.get('host') || '';
-  const MAIN_HOSTS = ['namainvist.com', 'www.namainvist.com'];
   const isMainSite =
     MAIN_HOSTS.includes(hostname) ||
     hostname.startsWith('localhost') ||
     hostname.startsWith('127.0.0.1');
 
-
-  // Tenant subdomains (*.namainvist.com) → inject x-tenant header
+  // ══════════════════════════════════════════════════════════════════
+  // TENANT SUBDOMAINS — bypass Clerk auth, use ERP token
+  // ══════════════════════════════════════════════════════════════════
   if (!isMainSite && hostname.endsWith('.namainvist.com')) {
-    const tenant = hostname.replace('.namainvist.com', ''); // 'n11', 'ice', etc.
+    const tenant = hostname.replace('.namainvist.com', '');
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-tenant', tenant);
+    const pathname = req.nextUrl.pathname;
+
+    // Root → redirect
+    if (pathname === '/' || pathname === '') {
+      const token = req.cookies.get('token')?.value;
+      return NextResponse.redirect(new URL(token ? '/dashboard' : '/login', req.url));
+    }
+
+    // Public tenant routes — pass through
+    if (
+      pathname === '/login' ||
+      pathname.startsWith('/api/') ||
+      pathname.startsWith('/auto-login') ||
+      pathname.startsWith('/_next/') ||
+      pathname.startsWith('/uploads/')
+    ) {
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+
+    // Protected routes — check ERP token
+    const token = req.cookies.get('token')?.value;
+    if (!token) {
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
+  // ══════════════════════════════════════════════════════════════════
+  // MAIN SITE — Clerk auth
+  // ══════════════════════════════════════════════════════════════════
 
-  // ── MARKETING PAGES ────────────────────────────────────────────────────────
-  // الصفحات التسويقية متاحة للجميع (مسجل أو غير مسجل) — التوجيه بعد التسجيل
-  // يتم عبر NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/company-info في .env
+  // Marketing pages
   const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services', '/pricing', '/features'];
   if (marketingRoutes.includes(req.nextUrl.pathname)) {
     const requestHeaders = new Headers(req.headers);
@@ -59,11 +81,9 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Public auth routes
-  if (isPublicRoute(req)) {
-    return;
-  }
+  if (isPublicRoute(req)) return;
 
-  // /company-info — إذا كان المستخدم مؤسَّساً بالفعل وجّهه للـ dashboard مباشرة
+  // /company-info
   if (req.nextUrl.pathname.startsWith('/company-info')) {
     await auth.protect();
     const { userId } = await auth();
@@ -76,56 +96,26 @@ export default clerkMiddleware(async (auth, req) => {
         );
         const { provisioned, subdomain } = await checkRes.json().catch(() => ({ provisioned: false }));
         if (provisioned && subdomain) {
-          // المستخدم مؤسَّس → وجّهه لـ subdomain dashboard
           const host = req.headers.get('host') || '';
           const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
-          const targetUrl = isLocal
-            ? `http://localhost:3500/dashboard`
-            : `https://${subdomain}.namainvist.com/dashboard`;
-          return NextResponse.redirect(targetUrl);
+          return NextResponse.redirect(
+            isLocal ? 'http://localhost:3500/dashboard' : `https://${subdomain}.namainvist.com/dashboard`
+          );
         }
-      } catch {
-        // فشل الفحص → اسمح له بصفحة company-info
-      }
+      } catch {}
     }
     return;
   }
 
-  // ── ICE Panel: تسجيل دخول مخصّص (بدون Clerk) ──────────────────────────────
-  if (isIceRoute(req)) {
-    const iceToken = req.cookies.get('ice_token')?.value;
-    if (!iceToken) {
-      // لا يوجد token → الصفحة ستعرض نموذج تسجيل الدخول
-      return NextResponse.next();
-    }
-    // التحقق من صلاحية الـ token
-    try {
-      const [data, sig] = iceToken.split('.');
-      const crypto = require('crypto');
-      const secret = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
-      const expectedSig = crypto.createHmac('sha256', secret).update(data).digest('hex');
-      if (sig === expectedSig) {
-        const payload = JSON.parse(Buffer.from(data, 'base64').toString());
-        if (payload.exp > Date.now()) {
-          return NextResponse.next(); // ✅ مصادق عليه
-        }
-      }
-    } catch (e) {
-      console.error('[ICE] Token verify error:', e);
-    }
-    // Token غير صالح → الصفحة ستعرض نموذج تسجيل الدخول
-    return NextResponse.next();
-  }
+  // ICE Panel
+  if (isIceRoute(req)) return NextResponse.next();
 
-  // باقي مسارات الموقع الرئيسي → Clerk protect أولاً
+  // All other main site routes → Clerk protect
   await auth.protect();
   const { userId } = await auth();
 
-  // ── Onboarding Guard: هل المستخدم مؤسَّس؟ ──────────────────────────────
   if (userId) {
     try {
-      // دائماً نستعلم من saas-app (port 3500) الذي يملك السجل الكامل للـ tenants
-      // هذا يجنب مشكلة اختلاف قواعد البيانات بين main-site و saas-app
       const SAAS_INTERNAL = process.env.SAAS_INTERNAL_URL || 'http://127.0.0.1:3500';
       const checkRes = await fetch(
         `${SAAS_INTERNAL}/api/tenant/check-status?userId=${userId}`,
@@ -135,18 +125,14 @@ export default clerkMiddleware(async (auth, req) => {
       if (!provisioned) {
         return NextResponse.redirect(new URL('/company-info', req.url));
       }
-      // إذا كان المستخدم مؤسَّساً وعلى الموقع الرئيسي → وجّهه للـ auto-login أولاً
       const host = req.headers.get('host') || '';
-      const isMain = ['namainvist.com', 'www.namainvist.com'].includes(host) || host.startsWith('localhost') || host.startsWith('127.0.0.1');
+      const isMain = MAIN_HOSTS.includes(host) || host.startsWith('localhost') || host.startsWith('127.0.0.1');
       if (isMain && subdomain) {
         const protocol = host.includes('localhost') ? 'http' : 'https';
         const base = host.includes('localhost') ? `${protocol}://localhost:3500` : `${protocol}://${subdomain}.namainvist.com`;
-        // /auto-login سيُنشئ الـ session الداخلي للـ ERP باستخدام بيانات Clerk ثم يُوجَّه للـ dashboard
         return NextResponse.redirect(new URL('/auto-login', base));
       }
-    } catch {
-      // إذا فشل الفحص → اسمح بالمرور (لا نريد حجب المستخدمين بسبب خطأ شبكة)
-    }
+    } catch {}
   }
 });
 

@@ -1,200 +1,71 @@
 const fs = require('fs');
-let c = fs.readFileSync('src/app/ice/page.tsx', 'utf8');
-let fixes = 0;
+let lines = fs.readFileSync('src/app/ice/page.tsx', 'utf8').split('\n');
 
-// ====== FIX 1: doAction - refresh selected tenant from updated list ======
-const oldDoAction = `            if (data.success) {
-                await fetchTenants();
-                if (isDelete) {
-                    setSelected(null);
-                    alert('✅ تم حذف الحساب بنجاح');
-                } else {
-                    setSelected(prev => prev ? { ...prev, ...extra } : prev);
-                }`;
+// Replace lines 651-679 (0-indexed: 650-678) with new header
+const newHeader = `                            {/* Toast */}
+                            {toast && (
+                                <div className={\`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-sm font-black shadow-2xl \${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}\`}>
+                                    {toast.msg}
+                                </div>
+                            )}
 
-const newDoAction = `            if (data.success) {
-                const freshRes = await fetch('/api/ice/tenants');
-                const freshData = await freshRes.json();
-                if (freshData.success) {
-                    setTenants(freshData.tenants);
-                    if (isDelete) {
-                        setSelected(null);
-                    } else {
-                        // Re-select from fresh data
-                        const fresh = freshData.tenants.find((t: any) => t.subdomain === selected.subdomain);
-                        if (fresh) {
-                            setSelected(fresh);
-                            setNewPlan(fresh.plan || 'basic');
-                            setQuotaInv(String(fresh.invoiceQuota));
-                            setQuotaProd(String(fresh.productQuota));
-                            setQuotaUser(String(fresh.userQuota));
-                        }
-                    }
-                }
-                setLoading(false);`;
-
-if (c.includes(oldDoAction)) {
-    c = c.replace(oldDoAction, newDoAction);
-    fixes++;
-    console.log('✅ Fix 1: doAction now refreshes selected tenant');
-}
-
-// ====== FIX 2: Replace prompt-based delete with state-based confirmation ======
-// Add deleteConfirm state
-c = c.replace(
-    "const [expandedSection, setExpandedSection] = useState<string | null>(null);",
-    `const [expandedSection, setExpandedSection] = useState<string | null>(null);
-    const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);`
-);
-fixes++;
-console.log('✅ Fix 2: Added delete confirmation states');
-
-// ====== FIX 3: Replace the old Danger Zone with working one ======
-// Find and replace the entire danger zone section
-const dangerZoneOld = `                                        {/* Danger Zone */}
-                                        <div className={\`pt-6 mt-4 border-t space-y-3 \${isLight ? 'border-slate-100' : 'border-white/10'}\`}>
-                                            <label className={\`text-[10px] font-black uppercase tracking-widest text-rose-500\`}>منطقة الخطر</label>
-                                            <button
-                                                disabled={!!busy}
-                                                onClick={() => { if (confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
-                                                className={\`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 \${isLight ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-amber-800 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40'}\`}>
-                                                {busy === 'suspend' ? <RefreshCw className="w-4 h-4 animate-spin" /> : '⛔'}
-                                                تعليق الوصول الكامل
-                                            </button>
-                                            <button
-                                                disabled={!!busy}
-                                                onClick={() => {
-                                                    const name = prompt(\`⚠️ لحذف الحساب نهائياً، اكتب اسم النطاق: \${selected.subdomain}\`);
-                                                    if (name === selected.subdomain) {
-                                                        if (confirm(\`🗑️ سيتم حذف:\\n- قاعدة البيانات (\${selected.dbName})\\n- حساب Clerk المرتبط\\n- سجل المستأجر\\n\\nهل أنت متأكد؟ لا يمكن التراجع!\`)) {
-                                                            doAction('delete');
-                                                        }
-                                                    } else if (name !== null) {
-                                                        alert('❌ الاسم غير مطابق. تم إلغاء الحذف.');
-                                                    }
-                                                }}
-                                                className={\`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 \${isLight ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : 'border-rose-800 bg-rose-900/20 text-rose-400 hover:bg-rose-900/40'}\`}>
-                                                {busy === 'delete' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                                🗑️ حذف الحساب نهائياً
-                                            </button>
-                                        </div>`;
-
-const dangerZoneNew = `                                        {/* Danger Zone */}
-                                        <div className={\`pt-6 mt-4 border-t space-y-3 \${isLight ? 'border-slate-100' : 'border-white/10'}\`}>
-                                            <label className={\`text-[10px] font-black uppercase tracking-widest text-rose-500\`}>منطقة الخطر</label>
-                                            <button
-                                                disabled={!!busy}
-                                                onClick={() => { if (window.confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
-                                                className={\`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 \${isLight ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-amber-800 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40'}\`}>
-                                                {busy === 'suspend' ? <RefreshCw className="w-4 h-4 animate-spin" /> : '⛔'}
-                                                تعليق الوصول الكامل
-                                            </button>
-                                            {!showDeleteConfirm ? (
-                                                <button
-                                                    disabled={!!busy || ['n7','n11'].includes(selected.subdomain)}
-                                                    onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmInput(''); }}
-                                                    className={\`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 \${['n7','n11'].includes(selected.subdomain) ? 'opacity-30 cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400' : isLight ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : 'border-rose-800 bg-rose-900/20 text-rose-400 hover:bg-rose-900/40'}\`}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                    {['n7','n11'].includes(selected.subdomain) ? '🔒 محمي - لا يمكن حذفه' : '🗑️ حذف الحساب نهائياً'}
+                            {/* Company Header Card */}
+                            <div className={\`rounded-3xl p-8 \${T.card} relative overflow-hidden\`}>
+                                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-l from-indigo-600 to-indigo-400" />
+                                <div className="flex flex-col lg:flex-row justify-between gap-8">
+                                    <div className="space-y-4 flex-1 min-w-0">
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                            {editMode ? (
+                                                <input value={editOrgName} onChange={e => setEditOrgName(e.target.value)}
+                                                    className={\`text-2xl font-black rounded-xl px-3 py-1 border w-64 \${T.input}\`} />
+                                            ) : (
+                                                <h2 className="text-3xl font-black">{selected.companyNameAr}</h2>
+                                            )}
+                                            <Link href={\`https://\${selected.domainUrl}\`} target="_blank"
+                                                className={\`p-2.5 rounded-xl transition-all border \${isLight ? 'bg-indigo-50 border-indigo-100 hover:bg-white' : 'bg-white/10 border-white/10 hover:bg-white/20'}\`}>
+                                                <ExternalLink className="w-5 h-5 text-indigo-600" />
+                                            </Link>
+                                            {!editMode ? (
+                                                <button onClick={() => setEditMode(true)}
+                                                    className={\`p-2.5 rounded-xl transition-all border \${isLight ? 'bg-amber-50 border-amber-200 hover:bg-amber-100' : 'bg-amber-900/20 border-amber-800 hover:bg-amber-900/40'}\`}>
+                                                    <Pencil className="w-4 h-4 text-amber-600" />
                                                 </button>
                                             ) : (
-                                                <div className={\`p-4 rounded-2xl border space-y-3 \${isLight ? 'border-rose-200 bg-rose-50' : 'border-rose-800 bg-rose-900/20'}\`}>
-                                                    <p className="text-sm font-bold text-rose-600">⚠️ لتأكيد الحذف، اكتب اسم النطاق: <strong className="font-outfit">{selected.subdomain}</strong></p>
-                                                    <input
-                                                        type="text"
-                                                        value={deleteConfirmInput}
-                                                        onChange={e => setDeleteConfirmInput(e.target.value)}
-                                                        placeholder={\`اكتب \${selected.subdomain} هنا...\`}
-                                                        className={\`w-full rounded-xl px-4 py-2.5 text-sm font-outfit border focus:outline-none focus:ring-2 focus:ring-rose-400/30 \${isLight ? 'bg-white border-rose-200' : 'bg-slate-900 border-rose-800 text-white'}\`}
-                                                        autoFocus
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmInput(''); }}
-                                                            className={\`flex-1 py-2.5 rounded-xl text-sm font-black border \${isLight ? 'border-slate-200 hover:bg-slate-100' : 'border-white/10 hover:bg-white/10 text-white'}\`}>
-                                                            إلغاء
-                                                        </button>
-                                                        <button
-                                                            disabled={deleteConfirmInput !== selected.subdomain || !!busy}
-                                                            onClick={() => { doAction('delete'); setShowDeleteConfirm(false); }}
-                                                            className="flex-1 py-2.5 rounded-xl text-sm font-black bg-rose-600 hover:bg-rose-500 disabled:opacity-30 disabled:hover:bg-rose-600 text-white flex items-center justify-center gap-2">
-                                                            {busy === 'delete' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                                            تأكيد الحذف
-                                                        </button>
-                                                    </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={doUpdateInfo} disabled={!!busy}
+                                                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">
+                                                        {busy === 'update_info' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                                    </button>
+                                                    <button onClick={() => { setEditMode(false); setEditEmail(selected.email); setEditOrgName(selected.companyNameAr); setEditVat(selected.vatNumber); }}
+                                                        className={\`p-2.5 rounded-xl border \${isLight ? 'border-slate-200 hover:bg-slate-100' : 'border-white/10 hover:bg-white/10'}\`}>
+                                                        <X className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             )}
+                                        </div>
+                                        <div className={\`flex flex-wrap gap-6 pt-4 border-t \${isLight ? 'border-slate-100' : 'border-white/10'}\`}>
+                                            {editMode ? (<>
+                                                <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-indigo-600" />
+                                                    <input value={editEmail} onChange={e => setEditEmail(e.target.value)} className={\`text-xs font-bold rounded-lg px-2 py-1 border w-48 \${T.input}\`} /></div>
+                                                <div className="flex items-center gap-2"><Hash className="w-3.5 h-3.5 text-indigo-600" />
+                                                    <input value={editVat} onChange={e => setEditVat(e.target.value)} className={\`text-xs font-bold rounded-lg px-2 py-1 border w-40 \${T.input}\`} /></div>
+                                            </>) : (<>
+                                                <span className={\`flex items-center gap-2 text-xs font-bold \${T.textMuted}\`}><Mail className="w-3.5 h-3.5 text-indigo-600" />{selected.email}</span>
+                                                <span className={\`flex items-center gap-2 text-xs font-bold \${T.textMuted}\`}><Hash className="w-3.5 h-3.5 text-indigo-600" />{selected.vatNumber}</span>
+                                            </>)}
+                                            <span className={\`flex items-center gap-2 text-xs font-black text-indigo-600 \${isLight ? 'bg-indigo-50' : 'bg-indigo-900/40'} px-3 py-1 rounded-xl\`}><Database className="w-3.5 h-3.5" />{selected.dbName}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 flex-shrink-0">
+                                        <div className={\`px-6 py-4 rounded-2xl text-center \${PLAN_CONFIGS[selected.plan]?.colorBg || 'bg-slate-50'} border \${isLight ? 'border-slate-200' : 'border-white/10'}\`}>
+                                            <div className={\`text-[9px] font-black uppercase tracking-widest mb-1 \${T.textMuted}\`}>الباقة</div>
+                                            <div className={\`text-lg font-black \${selected.plan === 'enterprise' ? 'text-slate-800' : 'text-indigo-600'}\`}>{PLAN_CONFIGS[selected.plan]?.label || selected.plan}</div>
                                         </div>`;
 
-if (c.includes(dangerZoneOld)) {
-    c = c.replace(dangerZoneOld, dangerZoneNew);
-    fixes++;
-    console.log('✅ Fix 3: Replaced prompt-based delete with inline confirmation');
-} else {
-    console.log('⚠️ Fix 3: Danger zone not found by exact match, searching...');
-    // Try to find it by partial match
-    const dzIdx = c.indexOf('{/* Danger Zone */}');
-    if (dzIdx > -1) {
-        // Find the end of this section (next </div> that closes the outer)
-        let depth = 0;
-        let start = dzIdx;
-        let end = dzIdx;
-        let foundStart = false;
-        for (let i = dzIdx; i < c.length; i++) {
-            if (c.substring(i, i + 4) === '<div') { depth++; foundStart = true; }
-            if (c.substring(i, i + 6) === '</div>') {
-                depth--;
-                if (foundStart && depth === 0) {
-                    end = i + 6;
-                    break;
-                }
-            }
-        }
-        c = c.substring(0, start) + dangerZoneNew + c.substring(end);
-        fixes++;
-        console.log('✅ Fix 3: Replaced danger zone via partial match');
-    }
-}
+// Replace lines 651-679 (29 lines → remove, insert new)
+const newLines = newHeader.split('\n');
+lines.splice(650, 29, ...newLines);
+console.log(`✅ Header replaced: removed 29 lines, inserted ${newLines.length} lines`);
 
-// ====== FIX 4: Remove the old "Global Access Suspension" at the bottom if it exists ======
-const oldGlobalSuspension = `                                        <div className={\`pt-4 border-t text-center \${isLight ? 'border-slate-100' : 'border-white/10'}\`}>
-                                            <button
-                                                disabled={!!busy}
-                                                onClick={() => { if (confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
-                                                className="text-[10px] font-black uppercase tracking-widest text-rose-300 hover:text-rose-600 transition-all disabled:opacity-50">
-                                                ⛔ Global Access Suspension
-                                            </button>
-                                        </div>`;
-
-if (c.includes(oldGlobalSuspension)) {
-    c = c.replace(oldGlobalSuspension, '');
-    fixes++;
-    console.log('✅ Fix 4: Removed old Global Access Suspension');
-}
-
-// ====== FIX 5: Reset delete confirm when selecting a different tenant ======
-c = c.replace(
-    `const pickTenant = (t: Tenant) => {
-        setSelected(t);`,
-    `const pickTenant = (t: Tenant) => {
-        setSelected(t);
-        setShowDeleteConfirm(false);
-        setDeleteConfirmInput('');`
-);
-fixes++;
-console.log('✅ Fix 5: Reset delete confirm on tenant switch');
-
-// ====== FIX 6: Translate remaining English labels in the header ======
-// "Plan" label 
-c = c.replace('>Plan</div>', '>الباقة</div>');
-c = c.replace('>Status</div>', '>الحالة</div>');
-c = c.replace('>Days Left</span>', '>أيام متبقية</span>');
-c = c.replace('>INVOICES</span>', '>فواتير</span>');
-c = c.replace('>PRODUCTS</span>', '>أصناف</span>');
-c = c.replace('>USERS</span>', '>مستخدمين</span>');
-fixes++;
-console.log('✅ Fix 6: Translated English labels to Arabic');
-
-fs.writeFileSync('src/app/ice/page.tsx', c, 'utf8');
-console.log(`\nTotal fixes applied: ${fixes}`);
+fs.writeFileSync('src/app/ice/page.tsx', lines.join('\n'), 'utf8');
+console.log('Done!');

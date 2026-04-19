@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect } from 'react';
 
@@ -142,7 +142,7 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                 {/* WhatsApp CTA */}
                 <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
                     <a
-                        href="https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ظ†ظ…ط§ ط¥ظ†ظپط³طھ"
+                        href="https://wa.me/966531206628?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ظ†ظ…ط§ ط¥ظ†ظپط³طھ"
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: '#22c55e', fontSize: 13, textDecoration: 'none' }}

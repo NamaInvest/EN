@@ -11,12 +11,11 @@ const masterPool = new Pool({
     max: 3,
 });
 
-const tenantPool = (dbName: string) => new Pool({
+const TENANT_DB_BASE = {
     host: 'localhost', port: 5432,
     user: 'postgres',
     password: process.env.POSTGRES_ROOT_PASSWORD || 'RootPassNama123',
-    database: dbName, max: 2,
-});
+};
 
 function verifyIceToken(token: string): boolean {
     try {
@@ -46,13 +45,11 @@ export async function GET() {
             ORDER BY created_at DESC
         `);
 
-        const tenants = [];
+        const { Client } = require('pg');
 
-        for (const acc of accounts) {
+        const tenants = await Promise.all(accounts.map(async (acc: any) => {
             const subdomain = acc.subdomain;
             const dbName = `${subdomain}_db`;
-
-            // حساب الأيام المتبقية
             const trialEndsAt = acc.trial_ends_at ? new Date(acc.trial_ends_at) : null;
             const now = new Date();
             const daysRemaining = trialEndsAt
@@ -60,23 +57,21 @@ export async function GET() {
                 : 999;
             const isExpired = acc.subscription_status === 'trial' && daysRemaining <= 0;
 
-            // جلب بيانات من tenant DB
-            let invoiceCount = 0;
-            let productCount = 0;
-            let userCount = 0;
+            let invoiceCount = 0, productCount = 0, userCount = 0;
             let companyNameAr = acc.org_name || subdomain;
             let companyNameEn = subdomain;
             let hiddenModules: string[] = [];
 
             try {
-                const pool = tenantPool(dbName);
-        const [invoiceRes, productRes, userRes, settingsRes] = await Promise.all([
-                    pool.query(`SELECT COUNT(*) as cnt FROM "SalesInvoice"`).catch(() => ({ rows: [{ cnt: '0' }] })),
-                    pool.query(`SELECT COUNT(*) as cnt FROM "Product"`).catch(() => ({ rows: [{ cnt: '0' }] })),
-                    pool.query(`SELECT COUNT(*) as cnt FROM "User"`).catch(() => ({ rows: [{ cnt: '0' }] })),
-                    pool.query(`SELECT key, value FROM "Setting" WHERE key IN ('companyNameAr','companyNameEn','hidden_modules')`).catch(() => ({ rows: [] })),
+                const client = new Client({ ...TENANT_DB_BASE, database: dbName, connectionTimeoutMillis: 3000 });
+                await client.connect();
+                const [invoiceRes, productRes, userRes, settingsRes] = await Promise.all([
+                    client.query(`SELECT COUNT(*) as cnt FROM "SalesInvoice"`).catch(() => ({ rows: [{ cnt: '0' }] })),
+                    client.query(`SELECT COUNT(*) as cnt FROM "Product"`).catch(() => ({ rows: [{ cnt: '0' }] })),
+                    client.query(`SELECT COUNT(*) as cnt FROM "User"`).catch(() => ({ rows: [{ cnt: '0' }] })),
+                    client.query(`SELECT key, value FROM "Setting" WHERE key IN ('companyNameAr','companyNameEn','hidden_modules')`).catch(() => ({ rows: [] })),
                 ]);
-                await pool.end().catch(() => {});
+                await client.end().catch(() => {});
 
                 invoiceCount = parseInt(invoiceRes.rows[0]?.cnt || '0');
                 productCount = parseInt(productRes.rows[0]?.cnt || '0');
@@ -89,24 +84,19 @@ export async function GET() {
                         try { hiddenModules = JSON.parse(s.value); } catch {}
                     }
                 }
-            } catch { /* DB لم تُهيَّأ بعد */ }
+            } catch { /* DB not ready */ }
 
-            tenants.push({
-                id: acc.id,
-                subdomain,
-                dbName,
+            return {
+                id: acc.id, subdomain, dbName,
                 domainUrl: `${subdomain}.namainvist.com`,
-                companyNameAr,
-                companyNameEn,
+                companyNameAr, companyNameEn,
                 email: acc.user_email,
                 vatNumber: acc.vat_number || '—',
                 status: acc.status,
                 subscriptionStatus: acc.subscription_status,
                 plan: acc.plan || 'free',
                 trialEndsAt: trialEndsAt?.toISOString().split('T')[0] || null,
-                daysRemaining,
-                isExpired,
-                invoiceCount,
+                daysRemaining, isExpired, invoiceCount,
                 invoiceQuota: acc.invoice_quota || 30,
                 productCount,
                 productQuota: acc.product_quota || 1000,
@@ -114,8 +104,8 @@ export async function GET() {
                 userQuota: acc.user_quota ?? 1,
                 hiddenModules,
                 createdAt: acc.created_at,
-            });
-        }
+            };
+        }));
 
         return NextResponse.json({ success: true, tenants });
     } catch (err: any) {

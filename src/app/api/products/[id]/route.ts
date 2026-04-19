@@ -42,6 +42,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
                 binLocation: body.binLocation || null,
+                imagePath: body.imagePath !== undefined ? (body.imagePath || '') : undefined,
                 active: body.active !== undefined ? Boolean(body.active) : undefined,
                 productUnits: {
                     deleteMany: {},

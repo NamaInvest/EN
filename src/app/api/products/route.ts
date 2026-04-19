@@ -116,6 +116,7 @@ export async function POST(request: Request) {
                 sellByWeight: body.sellByWeight || false,
                 expiryDate: body.expiryDate || null,
                 binLocation: body.binLocation || null,
+                imagePath: body.imagePath || '',
                 productUnits: body.productUnits && Array.isArray(body.productUnits) ? {
                     create: body.productUnits.map((pu: any) => ({
                         unitId: parseInt(pu.unitId),

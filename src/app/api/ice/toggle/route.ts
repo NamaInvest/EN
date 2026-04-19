@@ -40,17 +40,25 @@ export async function POST(req: Request) {
     const { subdomain, moduleName, enabled } = await req.json();
     if (!subdomain || !moduleName) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
 
-    const pool = new Pool({ ...DB_BASE, database: `${subdomain}_db` });
+    const { Client } = require('pg');
+    const client = new Client({ ...DB_BASE, database: `${subdomain}_db` });
     try {
-        await pool.connect();
-        const { rows } = await pool.query(`SELECT value FROM "Setting" WHERE key = 'hidden_modules'`);
+        await client.connect();
+        // Ensure Setting table exists
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS "Setting" (
+                key TEXT PRIMARY KEY,
+                value TEXT DEFAULT ''
+            )
+        `);
+        const { rows } = await client.query(`SELECT value FROM "Setting" WHERE key = 'hidden_modules'`);
         let hidden: string[] = [];
         try { hidden = JSON.parse(rows[0]?.value || '[]'); } catch {}
 
-        if (enabled) hidden = hidden.filter(m => m !== moduleName);
+        if (enabled) hidden = hidden.filter((m: string) => m !== moduleName);
         else if (!hidden.includes(moduleName)) hidden.push(moduleName);
 
-        await pool.query(`
+        await client.query(`
             INSERT INTO "Setting" (key, value) VALUES ('hidden_modules', $1)
             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
         `, [JSON.stringify(hidden)]);
@@ -58,7 +66,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, hiddenModules: hidden });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
-    } finally { await pool.end().catch(() => {}); }
+    } finally { await client.end().catch(() => {}); }
 }
 
 // PATCH: subscription management (extend trial, change plan, update quota)
@@ -118,6 +126,59 @@ export async function PATCH(req: Request) {
                 UPDATE tenant_accounts SET subscription_status = 'suspended' WHERE subdomain = $1
             `, [subdomain]);
 
+        } else if (action === 'update_info') {
+            // تحديث بيانات المستأجر (بريد، اسم، ضريبي)
+            const updates: string[] = [];
+            const vals: any[] = [subdomain];
+            if (body.email) { vals.push(body.email); updates.push(`user_email = $${vals.length}`); }
+            if (body.orgName) { vals.push(body.orgName); updates.push(`org_name = $${vals.length}`); }
+            if (body.vatNumber) { vals.push(body.vatNumber); updates.push(`vat_number = $${vals.length}`); }
+            if (updates.length > 0) {
+                await masterPool.query(
+                    `UPDATE tenant_accounts SET ${updates.join(', ')} WHERE subdomain = $1`,
+                    vals
+                );
+                // أيضاً حدّث اسم الشركة في قاعدة بيانات الـ tenant
+                if (body.orgName) {
+                    const { Client: PgClient } = require('pg');
+                    const tc = new PgClient({ ...DB_BASE, database: `${subdomain}_db` });
+                    try {
+                        await tc.connect();
+                        await tc.query(`
+                            INSERT INTO "Setting" (key, value) VALUES ('companyNameAr', $1)
+                            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+                        `, [body.orgName]);
+                    } catch {} finally { await tc.end().catch(() => {}); }
+                }
+            }
+
+        } else if (action === 'apply_plan') {
+            // تطبيق باقة مع تحديث الحدود والوحدات تلقائياً
+            const { plan: newPlan, invoiceQuota: iq, productQuota: pq, userQuota: uq, allowedModules } = body;
+            const subStatus = newPlan === 'free' ? 'trial' : 'active';
+            await masterPool.query(`
+                UPDATE tenant_accounts
+                SET plan = $2, invoice_quota = $3, product_quota = $4, user_quota = $5,
+                    subscription_status = $6
+                WHERE subdomain = $1
+            `, [subdomain, newPlan, iq || 999999, pq || 999999, uq || 999999, subStatus]);
+
+            // تحديث الوحدات المخفية في قاعدة بيانات الـ tenant
+            if (allowedModules && Array.isArray(allowedModules)) {
+                const ALL_MODULES = ['Sales','POS','Purchases','Inventory','Finance','HR','Manufacturing','CRM','Enterprise','AI','Reports','Settings'];
+                const hiddenModules = ALL_MODULES.filter(m => !allowedModules.includes(m));
+                const { Client: PgClient } = require('pg');
+                const tc = new PgClient({ ...DB_BASE, database: `${subdomain}_db` });
+                try {
+                    await tc.connect();
+                    await tc.query(`CREATE TABLE IF NOT EXISTS "Setting" (key TEXT PRIMARY KEY, value TEXT DEFAULT '')`);
+                    await tc.query(`
+                        INSERT INTO "Setting" (key, value) VALUES ('hidden_modules', $1)
+                        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+                    `, [JSON.stringify(hiddenModules)]);
+                } catch {} finally { await tc.end().catch(() => {}); }
+            }
+
         } else {
             return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
         }
@@ -135,6 +196,11 @@ export async function DELETE(req: Request) {
     const { subdomain } = await req.json();
     if (!subdomain) return NextResponse.json({ error: 'subdomain required' }, { status: 400 });
 
+    // حماية الأنظمة الأساسية
+    if (['n7', 'n11'].includes(subdomain)) {
+        return NextResponse.json({ error: 'محمي - لا يمكن حذف هذا الحساب' }, { status: 403 });
+    }
+
     try {
         // 1. جلب بيانات المستأجر (clerk_user_id, email)
         const { rows } = await masterPool.query(
@@ -143,20 +209,27 @@ export async function DELETE(req: Request) {
         );
         const tenant = rows[0];
 
-        // 2. حذف قاعدة بيانات الـ tenant
+        // 2. حذف قاعدة بيانات الـ tenant باستخدام superuser
         const dbName = `${subdomain}_db`;
+        const superPool = new Pool({
+            host: DB_BASE.host, port: DB_BASE.port,
+            user: DB_BASE.user, password: DB_BASE.password,
+            database: 'postgres', max: 2,
+        });
         try {
             // قطع أي اتصالات نشطة
-            await masterPool.query(`
+            await superPool.query(`
                 SELECT pg_terminate_backend(pg_stat_activity.pid)
                 FROM pg_stat_activity
                 WHERE pg_stat_activity.datname = '${dbName}'
                 AND pid <> pg_backend_pid()
             `);
-            await masterPool.query(`DROP DATABASE IF EXISTS "${dbName}"`);
+            await superPool.query(`DROP DATABASE IF EXISTS "${dbName}"`);
             console.log(`[ICE DELETE] Dropped database: ${dbName}`);
         } catch (dbErr: any) {
             console.error(`[ICE DELETE] DB drop error: ${dbErr.message}`);
+        } finally {
+            await superPool.end().catch(() => {});
         }
 
         // 3. حذف حساب Clerk المرتبط

@@ -51,6 +51,10 @@ export default async function RootLayout({
           <script dangerouslySetInnerHTML={{ __html:
             `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>{r.forEach(e=>e.unregister())});}`
           }} />
+          {/* Subdomain guard: redirect to /login if on tenant subdomain */}
+          <script dangerouslySetInnerHTML={{ __html:
+            `(function(){var h=location.hostname;if(h!=='namainvist.com'&&h!=='www.namainvist.com'&&h.indexOf('.namainvist.com')>0){var t=document.cookie.indexOf('token=')>=0;location.replace(t?'/dashboard':'/login');}})();`
+          }} />
         </head>
         <body style={{ fontFamily: "'Lateef', sans-serif", margin: 0, padding: 0, backgroundColor: '#f8fafc' }}>
           <style dangerouslySetInnerHTML={{ __html: `
@@ -240,6 +244,10 @@ export default async function RootLayout({
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
           <script dangerouslySetInnerHTML={{ __html:
             `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){for(let e of r){e.unregister();}});}`
+          }} />
+          {/* Subdomain guard: redirect to /login if no ERP token */}
+          <script dangerouslySetInnerHTML={{ __html:
+            `(function(){var h=location.hostname;if(h!=='namainvist.com'&&h!=='www.namainvist.com'&&h.indexOf('.namainvist.com')>0&&location.pathname!=='/login'&&location.pathname!=='/auto-login'){var t=document.cookie.indexOf('token=')>=0||localStorage.getItem('token');if(!t){location.replace('/login');}}})();`
           }} />
           <script dangerouslySetInnerHTML={{ __html:
             `try{var t=localStorage.getItem('namainvest-theme-premium');if(t&&t!=='default'){document.documentElement.classList.add(t);}else if(!t){document.documentElement.classList.add('theme-white');localStorage.setItem('namainvest-theme-premium','theme-white');}}catch(e){}`

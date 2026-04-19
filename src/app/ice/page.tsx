@@ -6,7 +6,8 @@ import {
     Database, Mail, Hash, Clock, CreditCard, Package, 
     FileText, Settings, Globe, BarChart3,
     Smartphone, Bot, Rocket, Gem, Building2,
-    Sun, Moon, Sparkles, LayoutDashboard, ChevronDown, Trash2
+    Sun, Moon, Sparkles, LayoutDashboard, ChevronDown, Trash2,
+    Pencil, Save, Key, Lock, Check, X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -51,7 +52,40 @@ const ALL_SECTIONS = [
 ];
 
 
+// ── Plan Configurations ──
+const PLAN_CONFIGS: Record<string, {
+    label: string; labelEn: string; price: string; priceYearly: string; color: string; colorBg: string;
+    invoiceQuota: number; productQuota: number; userQuota: number;
+    allowedModules: string[]; features: string[];
+}> = {
+    free: {
+        label: 'تجريبي', labelEn: 'Free Trial', price: 'مجاني / 7 أيام', priceYearly: '', color: 'bg-slate-500', colorBg: 'bg-slate-50',
+        invoiceQuota: 30, productQuota: 1000, userQuota: 1,
+        allowedModules: ['Sales', 'POS', 'Purchases', 'Inventory', 'Finance', 'HR', 'Manufacturing', 'CRM', 'Enterprise', 'AI', 'Reports', 'Settings'],
+        features: ['30 فاتورة', '1,000 صنف', 'مستخدم واحد', 'كل الأقسام مفتوحة للتقييم', 'ZATCA Phase 1 (QR)'],
+    },
+    basic: {
+        label: 'أساسي', labelEn: 'Basic', price: '99 ر.س / شهرياً', priceYearly: '950 ر.س / سنوياً', color: 'bg-indigo-600', colorBg: 'bg-indigo-50',
+        invoiceQuota: 999999, productQuota: 19900, userQuota: 3,
+        allowedModules: ['Sales', 'POS', 'Purchases', 'Inventory', 'Finance', 'CRM', 'Reports', 'Settings'],
+        features: ['فواتير غير محدودة', '19,900 صنف', '3 مستخدمين', 'تقارير متقدمة', 'ZATCA Phase 1 + 2', 'دعم بريد إلكتروني'],
+    },
+    professional: {
+        label: 'احترافي', labelEn: 'Professional', price: '299 ر.س / شهرياً', priceYearly: '2,870 ر.س / سنوياً', color: 'bg-purple-600', colorBg: 'bg-purple-50',
+        invoiceQuota: 999999, productQuota: 999999, userQuota: 10,
+        allowedModules: ['Sales', 'POS', 'Purchases', 'Inventory', 'Finance', 'HR', 'Manufacturing', 'CRM', 'AI', 'Reports', 'Settings'],
+        features: ['فواتير غير محدودة', 'أصناف غير محدودة', '10 مستخدمين', 'تقارير + BI', 'ZATCA Phase 2 كاملة', 'دعم أولوية 24/7', 'نسخ احتياطية يومية'],
+    },
+    enterprise: {
+        label: 'مؤسسات', labelEn: 'Enterprise', price: 'تواصل معنا', priceYearly: 'تواصل معنا', color: 'bg-slate-900', colorBg: 'bg-slate-100',
+        invoiceQuota: 999999, productQuota: 999999, userQuota: 999999,
+        allowedModules: ['Sales', 'POS', 'Purchases', 'Inventory', 'Finance', 'HR', 'Manufacturing', 'CRM', 'Enterprise', 'AI', 'Reports', 'Settings'],
+        features: ['كل شيء في الاحترافي', 'مستخدمون غير محدودون', 'فروع متعددة', 'تكامل API مخصص', 'SLA 99.9%', 'مدير حساب مخصص'],
+    },
+};
+
 const PLANS = [
+    { value: 'free',         label: 'تجريبي',   color: 'bg-slate-500' },
     { value: 'basic',        label: 'أساسي',    color: 'bg-indigo-600' },
     { value: 'professional', label: 'احترافي',  color: 'bg-purple-600' },
     { value: 'enterprise',   label: 'مؤسسات',   color: 'bg-slate-900' },
@@ -174,6 +208,19 @@ export default function IcePage() {
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
     const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // ── Edit tenant info ──
+    const [editMode, setEditMode] = useState(false);
+    const [editEmail, setEditEmail] = useState('');
+    const [editOrgName, setEditOrgName] = useState('');
+    const [editVat, setEditVat] = useState('');
+
+    // ── Toast notification ──
+    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+    };
     // ── Auth State ──
     const [authenticated, setAuthenticated] = useState(false);
     const [authChecking, setAuthChecking] = useState(true);
@@ -250,7 +297,11 @@ export default function IcePage() {
         setSelected(t);
         setShowDeleteConfirm(false);
         setDeleteConfirmInput('');
-        setNewPlan(t.plan || 'basic');
+        setEditMode(false);
+        setEditEmail(t.email);
+        setEditOrgName(t.companyNameAr);
+        setEditVat(t.vatNumber);
+        setNewPlan(t.plan || 'free');
         setQuotaInv(String(t.invoiceQuota));
         setQuotaProd(String(t.productQuota));
         setQuotaUser(String(t.userQuota));
@@ -274,23 +325,88 @@ export default function IcePage() {
                     setTenants(freshData.tenants);
                     if (isDelete) {
                         setSelected(null);
+                        showToast('✅ تم حذف الحساب بنجاح');
                     } else {
-                        // Re-select from fresh data
                         const fresh = freshData.tenants.find((t: any) => t.subdomain === selected.subdomain);
-                        if (fresh) {
-                            setSelected(fresh);
-                            setNewPlan(fresh.plan || 'basic');
-                            setQuotaInv(String(fresh.invoiceQuota));
-                            setQuotaProd(String(fresh.productQuota));
-                            setQuotaUser(String(fresh.userQuota));
-                        }
+                        if (fresh) pickTenant(fresh);
+                        showToast('✅ تم تنفيذ الإجراء بنجاح');
                     }
                 }
-                setLoading(false);
             } else {
-                alert('⚠️ خطأ: ' + (data.error || 'فشل الإجراء'));
+                showToast('⚠️ خطأ: ' + (data.error || 'فشل الإجراء'), 'error');
             }
-        } catch { alert('⚠️ خطأ في الاتصال بالخادم'); }
+        } catch { showToast('⚠️ خطأ في الاتصال بالخادم', 'error'); }
+        finally { setBusy(''); }
+    };
+
+    // ── Update tenant info ──
+    const doUpdateInfo = async () => {
+        if (!selected || busy) return;
+        setBusy('update_info');
+        try {
+            const res = await fetch('/api/ice/toggle', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subdomain: selected.subdomain,
+                    action: 'update_info',
+                    email: editEmail,
+                    orgName: editOrgName,
+                    vatNumber: editVat,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEditMode(false);
+                const freshRes = await fetch('/api/ice/tenants');
+                const freshData = await freshRes.json();
+                if (freshData.success) {
+                    setTenants(freshData.tenants);
+                    const fresh = freshData.tenants.find((t: any) => t.subdomain === selected.subdomain);
+                    if (fresh) pickTenant(fresh);
+                }
+                showToast('✅ تم تحديث بيانات المستأجر');
+            } else {
+                showToast('⚠️ ' + (data.error || 'فشل التحديث'), 'error');
+            }
+        } catch { showToast('⚠️ خطأ في الاتصال', 'error'); }
+        finally { setBusy(''); }
+    };
+
+    // ── Apply plan with auto-modules ──
+    const doApplyPlan = async (planKey: string) => {
+        if (!selected || busy) return;
+        const cfg = PLAN_CONFIGS[planKey];
+        if (!cfg) return;
+        setBusy('apply_plan');
+        try {
+            const res = await fetch('/api/ice/toggle', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subdomain: selected.subdomain,
+                    action: 'apply_plan',
+                    plan: planKey,
+                    invoiceQuota: cfg.invoiceQuota,
+                    productQuota: cfg.productQuota,
+                    userQuota: cfg.userQuota,
+                    allowedModules: cfg.allowedModules,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                const freshRes = await fetch('/api/ice/tenants');
+                const freshData = await freshRes.json();
+                if (freshData.success) {
+                    setTenants(freshData.tenants);
+                    const fresh = freshData.tenants.find((t: any) => t.subdomain === selected.subdomain);
+                    if (fresh) pickTenant(fresh);
+                }
+                showToast(`✅ تم تطبيق باقة ${cfg.label} بنجاح`);
+            } else {
+                showToast('⚠️ ' + (data.error || 'فشل'), 'error');
+            }
+        } catch { showToast('⚠️ خطأ', 'error'); }
         finally { setBusy(''); }
     };
 
@@ -309,10 +425,11 @@ export default function IcePage() {
                 const updated = { ...selected, hiddenModules: data.hiddenModules };
                 setSelected(updated);
                 setTenants(prev => prev.map(t => t.subdomain === selected.subdomain ? { ...t, hiddenModules: data.hiddenModules } : t));
+                showToast(enabled ? '✅ تم تفعيل القسم' : '🔒 تم إقفال القسم');
             } else {
-                alert('⚠️ خطأ: ' + (data.error || 'فشل تغيير حالة الوحدة'));
+                showToast('⚠️ ' + (data.error || 'فشل تغيير حالة الوحدة'), 'error');
             }
-        } catch { alert('⚠️ خطأ في الاتصال بالخادم'); }
+        } catch { showToast('⚠️ خطأ في الاتصال', 'error'); }
         finally { setBusy(''); }
     };
 
@@ -532,28 +649,64 @@ export default function IcePage() {
                     ) : (
                         <div className="max-w-[1100px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-                            {/* â”€â”€ Company Header Card â”€â”€ */}
+                            {/* Toast */}
+                            {toast && (
+                                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-sm font-black shadow-2xl ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`}>
+                                    {toast.msg}
+                                </div>
+                            )}
+
+                            {/* Company Header Card */}
                             <div className={`rounded-3xl p-8 ${T.card} relative overflow-hidden`}>
                                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-l from-indigo-600 to-indigo-400" />
                                 <div className="flex flex-col lg:flex-row justify-between gap-8">
                                     <div className="space-y-4 flex-1 min-w-0">
                                         <div className="flex items-center gap-4 flex-wrap">
-                                            <h2 className="text-3xl font-black">{selected.companyNameAr}</h2>
+                                            {editMode ? (
+                                                <input value={editOrgName} onChange={e => setEditOrgName(e.target.value)}
+                                                    className={`text-2xl font-black rounded-xl px-3 py-1 border w-64 ${T.input}`} />
+                                            ) : (
+                                                <h2 className="text-3xl font-black">{selected.companyNameAr}</h2>
+                                            )}
                                             <Link href={`https://${selected.domainUrl}`} target="_blank"
                                                 className={`p-2.5 rounded-xl transition-all border ${isLight ? 'bg-indigo-50 border-indigo-100 hover:bg-white' : 'bg-white/10 border-white/10 hover:bg-white/20'}`}>
                                                 <ExternalLink className="w-5 h-5 text-indigo-600" />
                                             </Link>
+                                            {!editMode ? (
+                                                <button onClick={() => setEditMode(true)}
+                                                    className={`p-2.5 rounded-xl transition-all border ${isLight ? 'bg-amber-50 border-amber-200 hover:bg-amber-100' : 'bg-amber-900/20 border-amber-800 hover:bg-amber-900/40'}`}>
+                                                    <Pencil className="w-4 h-4 text-amber-600" />
+                                                </button>
+                                            ) : (
+                                                <div className="flex gap-2">
+                                                    <button onClick={doUpdateInfo} disabled={!!busy}
+                                                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white">
+                                                        {busy === 'update_info' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                                    </button>
+                                                    <button onClick={() => { setEditMode(false); setEditEmail(selected.email); setEditOrgName(selected.companyNameAr); setEditVat(selected.vatNumber); }}
+                                                        className={`p-2.5 rounded-xl border ${isLight ? 'border-slate-200 hover:bg-slate-100' : 'border-white/10 hover:bg-white/10'}`}>
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className={`flex flex-wrap gap-6 pt-4 border-t ${isLight ? 'border-slate-100' : 'border-white/10'}`}>
-                                            <span className={`flex items-center gap-2 text-xs font-bold ${T.textMuted}`}><Mail className="w-3.5 h-3.5 text-indigo-600" />{selected.email}</span>
-                                            <span className={`flex items-center gap-2 text-xs font-bold ${T.textMuted}`}><Hash className="w-3.5 h-3.5 text-indigo-600" />{selected.vatNumber}</span>
+                                            {editMode ? (<>
+                                                <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-indigo-600" />
+                                                    <input value={editEmail} onChange={e => setEditEmail(e.target.value)} className={`text-xs font-bold rounded-lg px-2 py-1 border w-48 ${T.input}`} /></div>
+                                                <div className="flex items-center gap-2"><Hash className="w-3.5 h-3.5 text-indigo-600" />
+                                                    <input value={editVat} onChange={e => setEditVat(e.target.value)} className={`text-xs font-bold rounded-lg px-2 py-1 border w-40 ${T.input}`} /></div>
+                                            </>) : (<>
+                                                <span className={`flex items-center gap-2 text-xs font-bold ${T.textMuted}`}><Mail className="w-3.5 h-3.5 text-indigo-600" />{selected.email}</span>
+                                                <span className={`flex items-center gap-2 text-xs font-bold ${T.textMuted}`}><Hash className="w-3.5 h-3.5 text-indigo-600" />{selected.vatNumber}</span>
+                                            </>)}
                                             <span className={`flex items-center gap-2 text-xs font-black text-indigo-600 ${isLight ? 'bg-indigo-50' : 'bg-indigo-900/40'} px-3 py-1 rounded-xl`}><Database className="w-3.5 h-3.5" />{selected.dbName}</span>
                                         </div>
                                     </div>
                                     <div className="flex gap-3 flex-shrink-0">
-                                        <div className={`px-6 py-4 rounded-2xl text-center ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-white/5 border border-white/10'}`}>
+                                        <div className={`px-6 py-4 rounded-2xl text-center ${PLAN_CONFIGS[selected.plan]?.colorBg || 'bg-slate-50'} border ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
                                             <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${T.textMuted}`}>الباقة</div>
-                                            <div className="text-lg font-black uppercase text-indigo-600">{selected.plan}</div>
+                                            <div className={`text-lg font-black ${selected.plan === 'enterprise' ? 'text-slate-800' : 'text-indigo-600'}`}>{PLAN_CONFIGS[selected.plan]?.label || selected.plan}</div>
                                         </div>
                                         <div className={`px-6 py-4 rounded-2xl text-center ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-white/5 border border-white/10'}`}>
                                             <div className={`text-[9px] font-black uppercase tracking-widest mb-2 ${T.textMuted}`}>الحالة</div>
@@ -571,9 +724,9 @@ export default function IcePage() {
                                         </div>
                                         <div className={`text-3xl font-black font-outfit ${selected.isExpired ? 'text-rose-600' : T.text}`}>{selected.daysRemaining}</div>
                                     </div>
-                                    <ProgressBar theme={theme} label="Invoices" current={selected.invoiceCount} total={selected.invoiceQuota} barColor="bg-indigo-600" />
-                                    <ProgressBar theme={theme} label="Products" current={selected.productCount} total={selected.productQuota} barColor="bg-emerald-500" />
-                                    <ProgressBar theme={theme} label="Users" current={selected.userCount} total={selected.userQuota} barColor="bg-violet-500" />
+                                    <ProgressBar theme={theme} label="فواتير" current={selected.invoiceCount} total={selected.invoiceQuota} barColor="bg-indigo-600" />
+                                    <ProgressBar theme={theme} label="أصناف" current={selected.productCount} total={selected.productQuota} barColor="bg-emerald-500" />
+                                    <ProgressBar theme={theme} label="مستخدمين" current={selected.userCount} total={selected.userQuota} barColor="bg-violet-500" />
                                 </div>
                             </div>
 
@@ -613,9 +766,10 @@ export default function IcePage() {
                                             <label className={`text-[10px] font-black uppercase tracking-widest ${T.textMuted}`}>ترقية الباقة المدفوعة</label>
                                             <div className="flex flex-wrap gap-2 items-center">
                                                 {PLANS.map(p => (
-                                                    <button key={p.value} onClick={() => setNewPlan(p.value)}
-                                                        className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all border ${newPlan === p.value ? `${p.color} text-white border-transparent shadow-lg` : `${isLight ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'} ${T.textMuted} hover:border-indigo-400`}`}>
-                                                        {p.label}
+                                                    <button key={p.value} onClick={() => doApplyPlan(p.value)}
+                                                        disabled={!!busy}
+                                                        className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all border ${selected.plan === p.value ? `${p.color} text-white border-transparent shadow-lg` : `${isLight ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'} ${T.textMuted} hover:border-indigo-400`}`}>
+                                                        {busy === 'apply_plan' && newPlan === p.value ? '⏳' : selected.plan === p.value ? '✔️' : ''} {p.label}
                                                     </button>
                                                 ))}
                                                 <button
