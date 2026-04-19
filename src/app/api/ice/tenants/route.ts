@@ -52,9 +52,17 @@ export async function GET() {
             const dbName = `${subdomain}_db`;
             const trialEndsAt = acc.trial_ends_at ? new Date(acc.trial_ends_at) : null;
             const now = new Date();
-            const daysRemaining = trialEndsAt
-                ? Math.max(0, Math.ceil((trialEndsAt.getTime() - now.getTime()) / 86400000))
-                : 999;
+            let daysRemaining: number;
+            if (trialEndsAt) {
+                daysRemaining = Math.max(0, Math.ceil((trialEndsAt.getTime() - now.getTime()) / 86400000));
+            } else if (acc.subscription_status === 'active' && acc.created_at) {
+                // Paid plan: calculate from created_at + 365 days (1 year)
+                const createdAt = new Date(acc.created_at);
+                const expiresAt = new Date(createdAt.getTime() + 365 * 86400000);
+                daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / 86400000));
+            } else {
+                daysRemaining = 0;
+            }
             const isExpired = acc.subscription_status === 'trial' && daysRemaining <= 0;
 
             let invoiceCount = 0, productCount = 0, userCount = 0;

@@ -63,6 +63,32 @@ function AutoLoginContent() {
                 }
             } catch { /* متابعة */ }
 
+            // محاولة 3: البحث عن البريد في subdomain آخر
+            if (userEmail) {
+                try {
+                    setMsg('جاري البحث عن حسابك...');
+                    const findRes = await fetch('/api/auth/find-tenant-by-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: userEmail }),
+                    });
+                    if (findRes.ok) {
+                        const findData = await findRes.json();
+                        if (findData.found && findData.subdomain) {
+                            const currentHost = window.location.hostname;
+                            const targetHost = `${findData.subdomain}.namainvist.com`;
+                            if (currentHost !== targetHost) {
+                                setMsg(`بريدك مسجل في ${findData.subdomain}. جاري التحويل...`);
+                                setTimeout(() => {
+                                    window.location.replace(`https://${targetHost}/auto-login`);
+                                }, 1500);
+                                return;
+                            }
+                        }
+                    }
+                } catch { /* متابعة */ }
+            }
+
             // If everything failed → go to login with message (NOT dashboard to avoid loop)
             setMsg('تعذّر تسجيل الدخول التلقائي. جاري التحويل...');
             setTimeout(() => {
