@@ -75,7 +75,29 @@ export async function POST(request: NextRequest) {
 
         // ── Default modules by role ──────────────────────────────────
         const DEFAULT_ROLE_MODULES: Record<string, string[]> = {
+            // كاشير — نقطة البيع والمبيعات فقط
             cashier: ['pos', 'sales', 'products', 'customers', 'shifts'],
+            // المالك — كل شيء (مثل admin)
+            owner: [],
+            // مدير عام — كل الوحدات
+            general_manager: ['pos', 'sales', 'products', 'customers', 'shifts', 'purchases', 'purchase_orders',
+                'stock', 'warehouses', 'employees', 'attendance', 'salaries', 'vacations', 'reports',
+                'accounting', 'treasury', 'banks', 'expenses', 'manufacturing', 'loyalty', 'settings'],
+            // مدير النظام — مثل المالك
+            system_admin: [],
+            // مراجع / مدقق — مالية + تقارير (قراءة فقط)
+            auditor: ['accounting', 'treasury', 'banks', 'expenses', 'reports', 'fixed_assets', 'petty_cash'],
+            // محاسب — المالية والحسابات
+            accountant: ['accounting', 'treasury', 'banks', 'expenses', 'petty_cash', 'receipt_vouchers',
+                'fixed_assets', 'installments', 'reports'],
+            // موارد بشرية — HR فقط
+            hr: ['employees', 'attendance', 'salaries', 'vacations', 'hr_loans', 'reports'],
+            // مندوب مبيعات — مبيعات + عملاء
+            sales_rep: ['pos', 'sales', 'price_quotes', 'sales_orders', 'products', 'customers',
+                'loyalty', 'sales_routes', 'sales_targets'],
+            // مدخل بيانات — مشتريات + مخزون + أصناف
+            data_entry: ['products', 'stock', 'warehouses', 'purchases', 'purchase_orders', 'barcode', 'batches'],
+            // مدير (fallback)
             manager: ['pos', 'sales', 'products', 'customers', 'shifts', 'purchases', 'stock', 'warehouses',
                        'employees', 'reports', 'accounting', 'treasury', 'banks', 'expenses'],
             admin: [], // admin gets all — handled by role check in sidebar
