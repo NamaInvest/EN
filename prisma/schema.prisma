@@ -61,6 +61,7 @@ model UserPermission {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@unique([userId, module])
   @@map("user_permissions")
 }
 
@@ -282,6 +283,10 @@ model SalesInvoice {
   costCenterId Int?                 @map("cost_center_id")
   costCenter   CostCenter?          @relation(fields: [costCenterId], references: [id])
 
+  @@index([invoiceNo])
+  @@index([date])
+  @@index([customerId])
+  @@index([userId])
   @@map("sales_invoices")
 }
 
@@ -436,6 +441,9 @@ model PurchaseInvoice {
   branchId Int?                    @map("branch_id")
   branch   Branch?                 @relation(fields: [branchId], references: [id])
 
+  @@index([invoiceNo])
+  @@index([date])
+  @@index([supplierId])
   @@map("purchase_invoices")
 }
 
@@ -494,6 +502,9 @@ model StockMovement {
   batch   ProductBatch? @relation(fields: [batchId], references: [id])
   batchId Int?          @map("batch_id")
 
+  @@index([productId])
+  @@index([date])
+  @@index([stockId])
   @@map("stock_movements")
 }
 
@@ -513,6 +524,8 @@ model Expense {
   branch     Branch?     @relation(fields: [branchId], references: [id])
   costCenter CostCenter? @relation(fields: [costCenterId], references: [id])
 
+  @@index([date])
+  @@index([userId])
   @@map("expenses")
 }
 
@@ -556,6 +569,8 @@ model AuditLog {
 
   user User? @relation(fields: [userId], references: [id])
 
+  @@index([date])
+  @@index([userId])
   @@map("audit_log")
 }
 
@@ -610,6 +625,7 @@ model Attendance {
 
   employee Employee @relation(fields: [employeeId], references: [id])
 
+  @@index([employeeId, date])
   @@map("attendance")
 }
 
@@ -780,6 +796,8 @@ model JournalEntry {
   branch   Branch?       @relation(fields: [branchId], references: [id])
   branchId Int?          @map("branch_id")
 
+  @@index([entryDate])
+  @@index([status])
   @@map("journal_entries")
 }
 

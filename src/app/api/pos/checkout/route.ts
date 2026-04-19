@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { generateZatcaQRContent } from '@/lib/zatca';
+import { round2 } from '@/lib/money';
 
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -17,17 +18,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'السلة فارغة' }, { status: 400 });
         }
 
-        // 1. Generate Invoice Number (Numeric)
-        const lastInvoice = await prisma.salesInvoice.findFirst({
-            orderBy: { invoiceNo: 'desc' }
-        });
-        const invoiceNo = lastInvoice ? lastInvoice.invoiceNo + 1 : 10001;
-
-        const finalTotal = total + tax - (discount || 0);
+        const finalTotal = round2(total + tax - (discount || 0));
 
         // 2. Transaction to ensure atomicity: Create Invoice + Deduct Stock
         const invoice = await prisma.$transaction(async (tx) => {
             
+            // Generate Invoice Number inside transaction to prevent race conditions
+            const lastInvoice = await tx.salesInvoice.findFirst({
+                orderBy: { invoiceNo: 'desc' }
+            });
+            const invoiceNo = lastInvoice ? lastInvoice.invoiceNo + 1 : 10001;
+
             // Create Invoice Header
             const newInvoice = await tx.salesInvoice.create({
                 data: {
@@ -49,8 +50,8 @@ export async function POST(req: NextRequest) {
 
             // Create Invoice Details & Deduct Stock
             for (const item of cart) {
-                const itemTotal = item.price * item.qty;
-                const itemTax = itemTotal * ((item.taxRate || 15) / 100);
+                const itemTotal = round2(item.price * item.qty);
+                const itemTax = round2(itemTotal * ((item.taxRate || 15) / 100));
 
                 await tx.salesInvoiceDetail.create({
                     data: {
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
                         price: item.price,
                         taxRate: item.taxRate || 15,
                         taxValue: itemTax,
-                        total: itemTotal + itemTax
+                        total: round2(itemTotal + itemTax)
                     }
                 });
 

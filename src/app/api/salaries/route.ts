@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { round2 } from '@/lib/money';
 import { salaryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
                     basicSalary: basic,
                     additions,
                     deductions,
-                    netSalary: net,
+                    netSalary: round2(net),
                     notes: body.notes || null,
                 },
                 include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },

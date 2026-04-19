@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { round2 } from '@/lib/money';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
@@ -127,12 +128,12 @@ export async function POST(request: Request) {
         }
 
         const discountRate = Number(body.discountRate) || 0;
-        const discountValue = subtotal * (discountRate / 100);
-        const afterDiscount = subtotal - discountValue;
-        const taxValue = afterDiscount * (bodyTaxRate / 100);
-        const total = afterDiscount + taxValue;
-        const paid = body.paid !== undefined ? Number(body.paid) : total;
-        const remaining = total - paid;
+        const discountValue = round2(subtotal * (discountRate / 100));
+        const afterDiscount = round2(subtotal - discountValue);
+        const taxValue = round2(afterDiscount * (bodyTaxRate / 100));
+        const total = round2(afterDiscount + taxValue);
+        const paid = body.paid !== undefined ? round2(Number(body.paid)) : total;
+        const remaining = round2(total - paid);
 
         const userId = body.userId ? Number(body.userId) : null;
 
@@ -175,9 +176,9 @@ export async function POST(request: Request) {
                             const price = parseFloat(item.price as string) || 0; // already adjusted for inclusive above
                             const dRate = parseFloat(item.discountRate as string) || 0;
                             const itemSubtotal = qty * price;
-                            const dValue = itemSubtotal * (dRate / 100);
-                            const afterD = itemSubtotal - dValue;
-                            const tax = afterD * (bodyTaxRate / 100);
+                            const dValue = round2(itemSubtotal * (dRate / 100));
+                            const afterD = round2(itemSubtotal - dValue);
+                            const tax = round2(afterD * (bodyTaxRate / 100));
                             return {
                                 productId: parseInt(item.productId as string),
                                 productName: item.productName as string || '',
@@ -187,7 +188,7 @@ export async function POST(request: Request) {
                                 discountValue: dValue,
                                 taxRate: bodyTaxRate,
                                 taxValue: tax,
-                                total: afterD + tax,
+                                total: round2(afterD + tax),
                             };
                         }),
                     },

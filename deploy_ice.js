@@ -1,27 +1,30 @@
 const {Client} = require('ssh2');
 const fs = require('fs');
 const c = new Client();
+
+const FILES = [
+  'src/app/api/customers/route.ts',
+  'src/app/api/sales/route.ts',
+  'src/app/api/warehouses/[id]/route.ts',
+];
+
 c.on('ready', () => {
     c.sftp((e, sftp) => {
-        const targets = [
-            '/www/wwwroot/n11.namainvist.com/src/components/Sidebar.tsx',
-            '/www/wwwroot/namainvist.com/src/components/Sidebar.tsx',
-        ];
         let done = 0;
-        const content = fs.readFileSync('src/components/Sidebar.tsx');
-        for (const t of targets) {
-            sftp.writeFile(t, content, (err) => {
-                console.log(err ? `❌ ${t}` : `✅ ${t}`);
-                if (++done === targets.length) {
+        FILES.forEach(f => {
+            const content = fs.readFileSync(f);
+            sftp.writeFile('/www/wwwroot/n11.namainvist.com/' + f, content, (err) => {
+                console.log(err ? '❌ ' + f : '✅ ' + f);
+                if (++done === FILES.length) {
                     sftp.end();
-                    c.exec('cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -3 && pm2 restart saas-app --silent && echo "SAAS OK"', (e, s) => {
+                    c.exec('cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -5 && pm2 restart saas-app --silent && echo "=== BUILD OK ==="', (e, s) => {
                         s.on('data', d => process.stdout.write(d.toString()));
                         s.stderr.on('data', d => process.stderr.write(d.toString()));
                         s.on('close', () => { console.log('\nDone!'); c.end(); });
                     });
                 }
             });
-        }
+        });
     });
 });
 c.connect({host:'46.4.188.170',port:22,username:'root',password:'_ee4SWbxLVfH9b'});

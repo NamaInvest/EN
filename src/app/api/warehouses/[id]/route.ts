@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-export async function GET(request: Request, {
-    const prisma = getPrisma(request as any);
- params }: { params: Promise<{ id: string }> }) {
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const prisma = getPrisma(request);
   try {
     const warehouse = await prisma.stock.findUnique({
       where: { id: parseInt((await params).id) },
@@ -19,9 +19,8 @@ export async function GET(request: Request, {
   }
 }
 
-export async function PUT(request: Request, {
-    const prisma = getPrisma(request as any);
- params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const prisma = getPrisma(request);
   try {
     const data = await request.json();
     
@@ -41,9 +40,8 @@ export async function PUT(request: Request, {
   }
 }
 
-export async function DELETE(request: Request, {
-    const prisma = getPrisma(request as any);
- params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const prisma = getPrisma(request);
   try {
     await prisma.stock.delete({
       where: { id: parseInt((await params).id) }

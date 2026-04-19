@@ -60,9 +60,15 @@ export async function POST(request: Request) {
     }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
     const prisma = getPrisma(request);
     try {
+        // Auth check — only admin/owner can delete all customers
+        const { getUserFromRequest } = require('@/lib/auth');
+        const auth = getUserFromRequest(request);
+        if (!auth || !['admin', 'owner', 'system_admin'].includes(auth.role)) {
+            return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        }
         await prisma.customer.deleteMany();
         return NextResponse.json({ message: 'تم حذف الكل' });
     } catch (error) {
