@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
 
-const prisma = new PrismaClient();
-
-export async function GET(request: Request) {
     try {
         const branches = await prisma.branch.findMany({
             include: {
@@ -35,7 +34,9 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const body = await request.json();
         const { name, address, phone } = body;
@@ -77,7 +78,9 @@ export async function POST(request: Request) {
     }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const body = await request.json();
         const { id, name, address, phone, isActive } = body;
@@ -101,7 +104,9 @@ export async function PUT(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request || req);

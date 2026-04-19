@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
-
 export async function GET(req: Request) {
+    const prisma = getPrisma(req as any);
+
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -30,6 +30,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    const prisma = getPrisma(req as any);
+
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

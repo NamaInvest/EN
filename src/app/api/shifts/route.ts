@@ -1,8 +1,5 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
 const parseAmount = (val: any) => {
     if (val === undefined || val === null || val === '') return 0;
     const str = String(val)
@@ -13,7 +10,9 @@ const parseAmount = (val: any) => {
     return parsed;
 };
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
@@ -40,7 +39,9 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const body = await request.json();
         const { userId, startCash, startingCash, branchId, notes } = body;
@@ -82,7 +83,9 @@ export async function POST(request: Request) {
     }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     try {
         const body = await request.json();
         const { id, endCash, endingCashActual, notes, status } = body;
@@ -118,7 +121,9 @@ export async function PUT(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+    const prisma = getPrisma(request as any);
+
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request || req);
