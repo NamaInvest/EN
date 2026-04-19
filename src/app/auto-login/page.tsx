@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -55,20 +55,23 @@ function AutoLoginContent() {
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: 'admin', password: 'admin' }),
+                    body: JSON.stringify({ username: 'admin', password: 'O_O772040030' }),
                 });
                 if (res.ok) {
                     const data = await res.json();
                     if (data.token) { goToDashboard(data.token, data.user); return; }
                 }
-            } catch { /* ظ…طھط§ط¨ط¹ط© */ }
+            } catch { /* متابعة */ }
 
-            // ط¥ط°ط§ ظپط´ظ„ ظƒظ„ ط´ظٹط، â†’ ط§ظ„ظ€ dashboard ظ…ط¨ط§ط´ط±ط©
-            window.location.replace(redirect);
+            // If everything failed → go to login with message (NOT dashboard to avoid loop)
+            setMsg('تعذّر تسجيل الدخول التلقائي. جاري التحويل...');
+            setTimeout(() => {
+                window.location.replace('/login?error=auto-login-failed');
+            }, 2000);
         };
 
         const run = async () => {
-            // ط¥ط°ط§ ظٹظˆط¬ط¯ SSO token طµط±ظٹط­ ط¬ط±ظ‘ط¨ظ‡
+            // إذا يوجد SSO token صريح جرِّبه
             if (token) {
                 try {
                     const res = await fetch(`/api/auth/auto-login?token=${encodeURIComponent(token)}`);

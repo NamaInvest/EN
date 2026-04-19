@@ -73,7 +73,28 @@ export async function POST(request: NextRequest) {
             select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, branchId: true,  },
         });
 
-        if (body.modules && Array.isArray(body.modules)) {
+        // ── Default modules by role ──────────────────────────────────
+        const DEFAULT_ROLE_MODULES: Record<string, string[]> = {
+            cashier: ['pos', 'sales', 'products', 'customers', 'shifts'],
+            manager: ['pos', 'sales', 'products', 'customers', 'shifts', 'purchases', 'stock', 'warehouses',
+                       'employees', 'reports', 'accounting', 'treasury', 'banks', 'expenses'],
+            admin: [], // admin gets all — handled by role check in sidebar
+        };
+
+        const role = body.role || 'cashier';
+        const modules = (body.modules && Array.isArray(body.modules) && body.modules.length > 0)
+            ? body.modules
+            : DEFAULT_ROLE_MODULES[role] || DEFAULT_ROLE_MODULES['cashier'];
+
+        // Only create permissions for non-admin roles (admin has full access by role)
+        if (role !== 'admin' && role !== 'owner' && modules.length > 0) {
+            for (const mod of modules) {
+                await prisma.userPermission.create({
+                    data: { userId: user.id, module: mod, canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true },
+                });
+            }
+        } else if (body.modules && Array.isArray(body.modules) && body.modules.length > 0) {
+            // Admin/owner with explicit modules
             for (const mod of body.modules) {
                 await prisma.userPermission.create({
                     data: { userId: user.id, module: mod, canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true },

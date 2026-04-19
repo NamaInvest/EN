@@ -87,7 +87,7 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
             } else if (resource === 'user') {
                 limit = row.user_quota ?? 1; // افتراضي: مستخدم واحد فقط
                 const r = await tenantPool.query(
-                    'SELECT COUNT(*) as cnt FROM "User"'
+                    'SELECT COUNT(*) as cnt FROM users'
                 );
                 current = parseInt(r.rows[0]?.cnt || '0');
             }

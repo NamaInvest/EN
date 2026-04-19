@@ -467,8 +467,15 @@ export default function Sidebar() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
-    // تسجيل الخروج من Clerk مع التوجيه لصفحة تسجيل الدخول الرئيسية
-    await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
+    // Determine redirect: subdomain → /login, main site → /sign-in
+    const host = window.location.hostname;
+    const isSubdomain = host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com');
+    if (isSubdomain) {
+      // On subdomain: sign out Clerk then redirect to tenant login
+      await signOut({ redirectUrl: `${window.location.origin}/login` });
+    } else {
+      await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
+    }
   };
 
   const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });
