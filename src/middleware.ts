@@ -42,13 +42,21 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL(token ? '/dashboard' : '/login', req.url));
     }
 
-    // Public tenant routes — pass through
+    // On subdomain, /company-info should go to /auto-login instead
+    if (pathname.startsWith('/company-info')) {
+      return NextResponse.redirect(new URL('/auto-login', req.url));
+    }
+
+    // Public tenant routes — pass through (includes Clerk auth routes)
     if (
       pathname === '/login' ||
       pathname.startsWith('/api/') ||
       pathname.startsWith('/auto-login') ||
       pathname.startsWith('/_next/') ||
-      pathname.startsWith('/uploads/')
+      pathname.startsWith('/uploads/') ||
+      pathname.startsWith('/sign-in') ||
+      pathname.startsWith('/sign-up') ||
+      pathname.startsWith('/sso-callback')
     ) {
       return NextResponse.next({ request: { headers: requestHeaders } });
     }

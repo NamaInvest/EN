@@ -1,8 +1,7 @@
 const {Client} = require('ssh2');
 const c = new Client();
 c.on('ready', () => {
-    // Check where to put the map directive - it needs to be in http{} context
-    c.exec('cat /etc/nginx/nginx.conf | head -30 && echo "======" && cat /www/server/panel/vhost/nginx/namainvist.com.conf', (e, s) => {
+    c.exec('grep -i clerk /www/wwwroot/n11.namainvist.com/.env 2>/dev/null | head -5 && echo "---LAYOUT---" && head -10 /www/wwwroot/n11.namainvist.com/src/app/layout.tsx 2>/dev/null', (e, s) => {
         let out = '';
         s.on('data', d => out += d.toString());
         s.on('close', () => { console.log(out); c.end(); });
