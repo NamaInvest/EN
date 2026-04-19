@@ -107,9 +107,16 @@ function LoginForm() {
       localStorage.setItem("lastActivity", Date.now().toString());
 
       document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      // ï؟½ï؟½ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½
+      // تحويل المستخدم حسب الدور والصفحة الافتراضية
       const defaultPage = data.user?.defaultPage;
-      window.location.href = defaultPage || "/dashboard";
+      const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+      if (defaultPage) {
+        window.location.href = defaultPage;
+      } else if (ADMIN_ROLES.includes(data.user?.role)) {
+        window.location.href = "/dashboard";
+      } else {
+        window.location.href = "/pos";
+      }
     } catch (err) {
       console.error("[LOGIN] Error:", err);
       if (err instanceof DOMException && err.name === "AbortError") {

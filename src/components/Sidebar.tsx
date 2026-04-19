@@ -464,17 +464,19 @@ export default function Sidebar() {
   const handleLogout = async () => {
     // مسح بيانات الجلسة المحلية
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
     // Determine redirect: subdomain → /login, main site → /sign-in
     const host = window.location.hostname;
     const isSubdomain = host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com');
-    if (isSubdomain) {
-      // On subdomain: sign out Clerk then redirect to tenant login
-      await signOut({ redirectUrl: `${window.location.origin}/login` });
-    } else {
-      await signOut({ redirectUrl: 'https://namainvist.com/sign-in' });
+    const redirectUrl = isSubdomain ? `${window.location.origin}/login` : 'https://namainvist.com/sign-in';
+    try {
+      await signOut({ redirectUrl });
+    } catch {
+      // Clerk signOut fails if user has no Clerk session (ERP-only login)
+      window.location.href = redirectUrl;
     }
   };
 

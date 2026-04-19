@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
                 phone: body.phone?.trim() || null,
                 active: true,
                 branchId: body.branchId ? parseInt(body.branchId) : null,
-                
+                defaultPage: body.defaultPage?.trim() || null,
             },
-            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, branchId: true,  },
+            select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, branchId: true, defaultPage: true },
         });
 
         // ── Default modules by role ──────────────────────────────────

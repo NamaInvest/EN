@@ -36,10 +36,25 @@ export default clerkMiddleware(async (auth, req) => {
     requestHeaders.set('x-tenant', tenant);
     const pathname = req.nextUrl.pathname;
 
-    // Root → redirect
+    // Root → redirect based on role
     if (pathname === '/' || pathname === '') {
       const token = req.cookies.get('token')?.value;
-      return NextResponse.redirect(new URL(token ? '/dashboard' : '/login', req.url));
+      if (!token) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
+      // Decode JWT to get role (without verifying - middleware can't use jsonwebtoken)
+      try {
+        const payloadB64 = token.split('.')[1];
+        const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+        const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+        if (ADMIN_ROLES.includes(payload.role)) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+        // Non-admin: redirect to /pos (most common default)
+        return NextResponse.redirect(new URL('/pos', req.url));
+      } catch {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
     }
 
     // On subdomain, /company-info should go to /auto-login instead

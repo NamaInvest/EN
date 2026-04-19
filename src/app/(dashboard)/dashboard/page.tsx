@@ -36,6 +36,17 @@ export default function DashboardPage() {
 
     const { t, lang } = useTranslation();
 
+    // ── حماية لوحة القيادة — فقط مالك/admin/مدير نظام ──
+    useEffect(() => {
+        try {
+            const u = JSON.parse(localStorage.getItem('user') || '{}');
+            const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+            if (u.role && !ADMIN_ROLES.includes(u.role)) {
+                window.location.href = u.defaultPage || '/pos';
+            }
+        } catch {}
+    }, []);
+
     const fetchDashboard = useCallback(async (isRefresh = false) => {
         if (isRefresh) setRefreshing(true); else setLoading(true);
         try {

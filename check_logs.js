@@ -2,9 +2,10 @@ const {Client} = require('ssh2');
 const c = new Client();
 c.on('ready', () => {
     c.exec([
-        // Delete test user
-        'PGPASSWORD=n11_pass123 psql -U n11_db -h localhost -d mgmg_db -c "DELETE FROM user_permissions WHERE user_id = 3; DELETE FROM users WHERE username = \'cashier01\';" 2>&1',
-        'echo "Test user cleaned"',
+        // Check what user exists
+        'echo "=== USERS ===" && PGPASSWORD=n11_pass123 psql -U n11_db -h localhost -d mgmg_db -c "SELECT id, username, role, default_page FROM users ORDER BY id" 2>&1',
+        // Check permissions
+        'echo "=== PERMISSIONS ===" && PGPASSWORD=n11_pass123 psql -U n11_db -h localhost -d mgmg_db -c "SELECT up.user_id, u.username, up.module FROM user_permissions up JOIN users u ON u.id = up.user_id ORDER BY up.user_id" 2>&1',
     ].join(' && '), (e, s) => {
         let out = '';
         s.on('data', d => out += d.toString());

@@ -318,9 +318,15 @@ export default function POSPage() {
             <div className="products-pane">
                 <header className="pos-header">
                     <div className="nav-buttons">
-                        <Link href="/dashboard" className="btn-back">
+                        <button type="button" className="btn-back" onClick={() => {
+                            try {
+                                const u = JSON.parse(localStorage.getItem('user') || '{}');
+                                const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+                                window.location.href = ADMIN_ROLES.includes(u.role) ? '/dashboard' : (u.defaultPage || '/pos');
+                            } catch { window.location.href = '/pos'; }
+                        }}>
                             <ArrowRight size={20} style={{ transform: isRTL ? 'rotate(0)' : 'rotate(180deg)' }} />
-                            {t('sys.str_4028')}</Link>
+                            {t('sys.str_4028')}</button>
                         <button type="button" onClick={() => setShowReturnsModal(true)} className="btn-back" style={{ color: '#ef4444', textDecoration: 'none', border: 'none', background: 'transparent' }}>
                               ↩ استرجاع محلي
                         </button>
