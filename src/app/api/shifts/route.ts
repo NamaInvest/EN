@@ -119,6 +119,11 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    // Auth guard
+    const { getUserFromRequest } = require('@/lib/auth');
+    const _auth = getUserFromRequest(request || req);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

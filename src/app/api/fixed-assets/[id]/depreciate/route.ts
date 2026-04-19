@@ -3,6 +3,11 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    // Auth guard
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    const _auth = _getAuth(request || req);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     const prisma = getPrisma(request);
     try {
         const { id } = await params;

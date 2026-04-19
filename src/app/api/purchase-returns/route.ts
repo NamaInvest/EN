@@ -14,6 +14,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    // Auth guard
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    const _auth = _getAuth(request || req);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();

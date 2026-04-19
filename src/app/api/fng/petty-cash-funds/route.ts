@@ -73,6 +73,11 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+    // Auth guard
+    const { getUserFromRequest } = require('@/lib/auth');
+    const _auth = getUserFromRequest(request || req);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     const prisma = getPrisma(req as any);
 
     try {
