@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
 import { Pool } from 'pg';
+import crypto from 'crypto';
 
-const OWNER_EMAIL = process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';
+const ICE_SECRET = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
 
 const masterPool = new Pool({
     connectionString: process.env.MASTER_DB_URL ||
@@ -17,21 +18,20 @@ const tenantPool = (dbName: string) => new Pool({
     database: dbName, max: 2,
 });
 
-async function verifyOwner(userId: string): Promise<boolean> {
+function verifyIceToken(token: string): boolean {
     try {
-        const res = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-            headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-        });
-        const u = await res.json();
-        const email = u?.email_addresses?.[0]?.email_address || '';
-        return email === OWNER_EMAIL;
+        const [data, sig] = token.split('.');
+        const expectedSig = crypto.createHmac('sha256', ICE_SECRET).update(data).digest('hex');
+        if (sig !== expectedSig) return false;
+        const payload = JSON.parse(Buffer.from(data, 'base64').toString());
+        return payload.exp > Date.now();
     } catch { return false; }
 }
 
 export async function GET() {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!await verifyOwner(userId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const cookieStore = await cookies();
+    const token = cookieStore.get('ice_token')?.value;
+    if (!token || !verifyIceToken(token)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
         // قراءة جميع المستأجرين من n11_db
