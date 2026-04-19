@@ -172,6 +172,8 @@ export default function IcePage() {
     const [quotaProd, setQuotaProd] = useState('');
     const [quotaUser, setQuotaUser] = useState('');
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
+    const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     // ── Auth State ──
     const [authenticated, setAuthenticated] = useState(false);
     const [authChecking, setAuthChecking] = useState(true);
@@ -246,6 +248,8 @@ export default function IcePage() {
 
     const pickTenant = (t: Tenant) => {
         setSelected(t);
+        setShowDeleteConfirm(false);
+        setDeleteConfirmInput('');
         setNewPlan(t.plan || 'basic');
         setQuotaInv(String(t.invoiceQuota));
         setQuotaProd(String(t.productQuota));
@@ -264,13 +268,25 @@ export default function IcePage() {
             });
             const data = await res.json();
             if (data.success) {
-                await fetchTenants();
-                if (isDelete) {
-                    setSelected(null);
-                    alert('✅ تم حذف الحساب بنجاح');
-                } else {
-                    setSelected(prev => prev ? { ...prev, ...extra } : prev);
+                const freshRes = await fetch('/api/ice/tenants');
+                const freshData = await freshRes.json();
+                if (freshData.success) {
+                    setTenants(freshData.tenants);
+                    if (isDelete) {
+                        setSelected(null);
+                    } else {
+                        // Re-select from fresh data
+                        const fresh = freshData.tenants.find((t: any) => t.subdomain === selected.subdomain);
+                        if (fresh) {
+                            setSelected(fresh);
+                            setNewPlan(fresh.plan || 'basic');
+                            setQuotaInv(String(fresh.invoiceQuota));
+                            setQuotaProd(String(fresh.productQuota));
+                            setQuotaUser(String(fresh.userQuota));
+                        }
+                    }
                 }
+                setLoading(false);
             } else {
                 alert('⚠️ خطأ: ' + (data.error || 'فشل الإجراء'));
             }
@@ -536,11 +552,11 @@ export default function IcePage() {
                                     </div>
                                     <div className="flex gap-3 flex-shrink-0">
                                         <div className={`px-6 py-4 rounded-2xl text-center ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-white/5 border border-white/10'}`}>
-                                            <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${T.textMuted}`}>Plan</div>
+                                            <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${T.textMuted}`}>الباقة</div>
                                             <div className="text-lg font-black uppercase text-indigo-600">{selected.plan}</div>
                                         </div>
                                         <div className={`px-6 py-4 rounded-2xl text-center ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-white/5 border border-white/10'}`}>
-                                            <div className={`text-[9px] font-black uppercase tracking-widest mb-2 ${T.textMuted}`}>Status</div>
+                                            <div className={`text-[9px] font-black uppercase tracking-widest mb-2 ${T.textMuted}`}>الحالة</div>
                                             <StatusBadge tenant={selected} />
                                         </div>
                                     </div>
@@ -550,7 +566,7 @@ export default function IcePage() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                                     <div className={`p-4 rounded-2xl ${isLight ? 'bg-slate-50 border border-slate-100' : 'bg-white/5 border border-white/5'}`}>
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className={`text-[10px] font-black uppercase ${T.textMuted}`}>Days Left</span>
+                                            <span className={`text-[10px] font-black uppercase ${T.textMuted}`}>أيام متبقية</span>
                                             <Clock className={`w-4 h-4 ${selected.isExpired ? 'text-rose-500' : 'text-emerald-600'}`} />
                                         </div>
                                         <div className={`text-3xl font-black font-outfit ${selected.isExpired ? 'text-rose-600' : T.text}`}>{selected.daysRemaining}</div>
@@ -617,27 +633,46 @@ export default function IcePage() {
                                             <label className={`text-[10px] font-black uppercase tracking-widest text-rose-500`}>منطقة الخطر</label>
                                             <button
                                                 disabled={!!busy}
-                                                onClick={() => { if (confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
+                                                onClick={() => { if (window.confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
                                                 className={`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 ${isLight ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-amber-800 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40'}`}>
                                                 {busy === 'suspend' ? <RefreshCw className="w-4 h-4 animate-spin" /> : '⛔'}
                                                 تعليق الوصول الكامل
                                             </button>
-                                            <button
-                                                disabled={!!busy}
-                                                onClick={() => {
-                                                    const name = prompt(`⚠️ لحذف الحساب نهائياً، اكتب اسم النطاق: ${selected.subdomain}`);
-                                                    if (name === selected.subdomain) {
-                                                        if (confirm(`🗑️ سيتم حذف:\n- قاعدة البيانات (${selected.dbName})\n- حساب Clerk المرتبط\n- سجل المستأجر\n\nهل أنت متأكد؟ لا يمكن التراجع!`)) {
-                                                            doAction('delete');
-                                                        }
-                                                    } else if (name !== null) {
-                                                        alert('❌ الاسم غير مطابق. تم إلغاء الحذف.');
-                                                    }
-                                                }}
-                                                className={`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 ${isLight ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : 'border-rose-800 bg-rose-900/20 text-rose-400 hover:bg-rose-900/40'}`}>
-                                                {busy === 'delete' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                                🗑️ حذف الحساب نهائياً
-                                            </button>
+                                            {!showDeleteConfirm ? (
+                                                <button
+                                                    disabled={!!busy || ['n7','n11'].includes(selected.subdomain)}
+                                                    onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmInput(''); }}
+                                                    className={`w-full py-3 rounded-2xl text-sm font-black transition-all border flex items-center justify-center gap-2 ${['n7','n11'].includes(selected.subdomain) ? 'opacity-30 cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400' : isLight ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' : 'border-rose-800 bg-rose-900/20 text-rose-400 hover:bg-rose-900/40'}`}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                    {['n7','n11'].includes(selected.subdomain) ? '🔒 محمي - لا يمكن حذفه' : '🗑️ حذف الحساب نهائياً'}
+                                                </button>
+                                            ) : (
+                                                <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? 'border-rose-200 bg-rose-50' : 'border-rose-800 bg-rose-900/20'}`}>
+                                                    <p className="text-sm font-bold text-rose-600">⚠️ لتأكيد الحذف، اكتب اسم النطاق: <strong className="font-outfit">{selected.subdomain}</strong></p>
+                                                    <input
+                                                        type="text"
+                                                        value={deleteConfirmInput}
+                                                        onChange={e => setDeleteConfirmInput(e.target.value)}
+                                                        placeholder={`اكتب ${selected.subdomain} هنا...`}
+                                                        className={`w-full rounded-xl px-4 py-2.5 text-sm font-outfit border focus:outline-none focus:ring-2 focus:ring-rose-400/30 ${isLight ? 'bg-white border-rose-200' : 'bg-slate-900 border-rose-800 text-white'}`}
+                                                        autoFocus
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmInput(''); }}
+                                                            className={`flex-1 py-2.5 rounded-xl text-sm font-black border ${isLight ? 'border-slate-200 hover:bg-slate-100' : 'border-white/10 hover:bg-white/10 text-white'}`}>
+                                                            إلغاء
+                                                        </button>
+                                                        <button
+                                                            disabled={deleteConfirmInput !== selected.subdomain || !!busy}
+                                                            onClick={() => { doAction('delete'); setShowDeleteConfirm(false); }}
+                                                            className="flex-1 py-2.5 rounded-xl text-sm font-black bg-rose-600 hover:bg-rose-500 disabled:opacity-30 disabled:hover:bg-rose-600 text-white flex items-center justify-center gap-2">
+                                                            {busy === 'delete' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                            تأكيد الحذف
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* 3. Custom Quotas */}
