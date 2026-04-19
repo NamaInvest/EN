@@ -595,7 +595,7 @@ export default function Sidebar() {
         return ['admin', 'owner', 'system_admin'].includes(loggedUser.role);
       }
       if (mod === 'master-panel') return loggedUser.role === 'owner';
-      if (['admin', 'owner'].includes(loggedUser.role)) {
+      if (['admin', 'owner', 'system_admin'].includes(loggedUser.role)) {
         // 1️⃣ تحقق من إخفاء الوحدة الرئيسية بالكامل
         const moduleKey = Object.entries(MODULE_MAP).find(([, mods]) => (mods as string[]).includes(mod))?.[0];
         if (moduleKey && hiddenModules.includes(moduleKey)) return false;
