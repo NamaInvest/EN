@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -193,7 +193,7 @@ html {
 }
 
 body {
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   background: var(--bg-dark);
   color: var(--text);
   min-height: 100vh;
@@ -584,7 +584,7 @@ body::before {
   gap: 8px;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -679,7 +679,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 14px;
   transition: all 0.2s ease;
   outline: none;
@@ -895,7 +895,7 @@ textarea.input {
   white-space: nowrap;
   border: none;
   background: transparent;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
 }
 
 .tab:hover {
@@ -1384,7 +1384,7 @@ textarea.input {
   background: transparent;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 13px;
   color: var(--text);
   transition: all 0.15s ease;
@@ -1948,7 +1948,7 @@ textarea.input {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -2000,7 +2000,7 @@ textarea.input {
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2089,7 +2089,7 @@ textarea.input {
   animation: fadeIn 0.2s ease;
 }
 
-/* ============ Mobile Responsive (≤768px) ============ */
+/* ============ Mobile Responsive (â‰¤768px) ============ */
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: flex;
@@ -2313,7 +2313,7 @@ textarea.input {
   }
 }
 
-/* ============ Small phones (≤480px) ============ */
+/* ============ Small phones (â‰¤480px) ============ */
 @media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;

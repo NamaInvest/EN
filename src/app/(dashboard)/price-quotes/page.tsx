@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
@@ -21,7 +21,7 @@ export default function PriceQuotesPage() {
     const [settings, setSettings]       = useState<Record<string, string>>({});
     const searchRef = useRef<HTMLInputElement>(null);
 
-    // تحويل لفاتورة
+    // طھط­ظˆظٹظ„ ظ„ظپط§طھظˆط±ط©
     const [convertingId, setConvertingId] = useState<number | null>(null);
     const [paymentType, setPaymentType]   = useState('cash');
     const [converting, setConverting]     = useState(false);
@@ -95,23 +95,23 @@ export default function PriceQuotesPage() {
             const saved = await res.json();
             setShowAdd(false); setItems([]); setNotes('');
             load();
-            // طباعة تلقائية بعد الحفظ
+            // ط·ط¨ط§ط¹ط© طھظ„ظ‚ط§ط¦ظٹط© ط¨ط¹ط¯ ط§ظ„ط­ظپط¸
             setTimeout(() => printQuoteA4(saved), 300);
         }
     };
 
-    // ════════════════════════════════════════════
-    //  طباعة A4 احترافية بدون باركود
-    // ════════════════════════════════════════════
+    // â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
+    //  ط·ط¨ط§ط¹ط© A4 ط§ط­طھط±ط§ظپظٹط© ط¨ط¯ظˆظ† ط¨ط§ط±ظƒظˆط¯
+    // â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
     const printQuoteA4 = (quote: Quote) => {
-        const companyName    = settings['company_name']    || settings['company_name_ar'] || 'المنشأة';
+        const companyName    = settings['company_name']    || settings['company_name_ar'] || 'ط§ظ„ظ…ظ†ط´ط£ط©';
         const vatNumber      = settings['tax_number']      || '';
         const crNumber       = settings['zatca_crn']       || settings['cr_number'] || '';
         const companyAddress = settings['company_address'] || settings['company_address_ar'] || '';
         const companyCity    = settings['zatca_city']      || settings['company_city'] || '';
         const rate           = parseFloat(settings['tax_rate'] || '15') || 15;
 
-        // حساب الإجماليات
+        // ط­ط³ط§ط¨ ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹط§طھ
         const sub   = quote.details.reduce((s, d) => s + d.total, 0);
         const tax   = sub * (rate / 100);
         const grand = sub + tax;
@@ -124,7 +124,7 @@ export default function PriceQuotesPage() {
                 <td style="text-align:center; padding:8px; border:1px solid #ccc;">${fmt(d.total)}</td>
             </tr>`).join('');
 
-        const notesLine = quote.notes ? `<div style="margin-top:16px;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#555;"><strong>ملاحظات:</strong> ${quote.notes}</div>` : '';
+        const notesLine = quote.notes ? `<div style="margin-top:16px;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#555;"><strong>ظ…ظ„ط§ط­ط¸ط§طھ:</strong> ${quote.notes}</div>` : '';
 
         const win = window.open('', '_blank', 'width=850,height=1100');
         if (!win) return;
@@ -132,11 +132,11 @@ export default function PriceQuotesPage() {
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>عرض سعر #${quote.quoteNo}</title>
+  <title>ط¹ط±ط¶ ط³ط¹ط± #${quote.quoteNo}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Cairo',sans-serif; padding:30px 40px; color:#000; background:#fff; direction:rtl; }
+    body { font-family:'Lateef',sans-serif; padding:30px 40px; color:#000; background:#fff; direction:rtl; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #1e293b; padding-bottom:16px; margin-bottom:20px; }
     .company-info h1 { font-size:26px; font-weight:800; color:#1e293b; margin-bottom:4px; }
     .company-info p  { font-size:12px; color:#555; margin-bottom:2px; }
@@ -164,45 +164,45 @@ export default function PriceQuotesPage() {
   <div class="header">
     <div class="company-info">
       <h1>${companyName}</h1>
-      ${vatNumber      ? `<p>الرقم الضريبي: ${vatNumber}</p>` : ''}
-      ${crNumber       ? `<p>السجل التجاري: ${crNumber}</p>` : ''}
-      ${companyAddress ? `<p>العنوان: ${companyAddress}</p>` : ''}
-      ${companyCity    ? `<p>المدينة: ${companyCity}</p>` : ''}
+      ${vatNumber      ? `<p>ط§ظ„ط±ظ‚ظ… ط§ظ„ط¶ط±ظٹط¨ظٹ: ${vatNumber}</p>` : ''}
+      ${crNumber       ? `<p>ط§ظ„ط³ط¬ظ„ ط§ظ„طھط¬ط§ط±ظٹ: ${crNumber}</p>` : ''}
+      ${companyAddress ? `<p>ط§ظ„ط¹ظ†ظˆط§ظ†: ${companyAddress}</p>` : ''}
+      ${companyCity    ? `<p>ط§ظ„ظ…ط¯ظٹظ†ط©: ${companyCity}</p>` : ''}
     </div>
     <div class="quote-info">
-      <div class="title">عرض سعر / Quotation</div>
-      <div class="row"><span>رقم العرض:</span><span>#${quote.quoteNo}</span></div>
-      <div class="row"><span>التاريخ:</span><span>${new Date(quote.date).toLocaleDateString('ar-SA')}</span></div>
+      <div class="title">ط¹ط±ط¶ ط³ط¹ط± / Quotation</div>
+      <div class="row"><span>ط±ظ‚ظ… ط§ظ„ط¹ط±ط¶:</span><span>#${quote.quoteNo}</span></div>
+      <div class="row"><span>ط§ظ„طھط§ط±ظٹط®:</span><span>${new Date(quote.date).toLocaleDateString('ar-SA')}</span></div>
     </div>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th style="text-align:right; padding:10px 8px;">المنتج / Description</th>
-        <th>الكمية / Qty</th>
-        <th>سعر الوحدة / Unit Price</th>
-        <th>الإجمالي / Total</th>
+        <th style="text-align:right; padding:10px 8px;">ط§ظ„ظ…ظ†طھط¬ / Description</th>
+        <th>ط§ظ„ظƒظ…ظٹط© / Qty</th>
+        <th>ط³ط¹ط± ط§ظ„ظˆط­ط¯ط© / Unit Price</th>
+        <th>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ / Total</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
 
   <div class="totals">
-    <div class="tot-row"><span>المجموع قبل الضريبة</span><span>${fmt(sub)}</span></div>
-    <div class="tot-row"><span>ضريبة القيمة المضافة (${rate}%)</span><span>${fmt(tax)}</span></div>
-    <div class="tot-row"><span>الإجمالي الكلي</span><span>${fmt(grand)} ريال</span></div>
+    <div class="tot-row"><span>ط§ظ„ظ…ط¬ظ…ظˆط¹ ظ‚ط¨ظ„ ط§ظ„ط¶ط±ظٹط¨ط©</span><span>${fmt(sub)}</span></div>
+    <div class="tot-row"><span>ط¶ط±ظٹط¨ط© ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ…ط¶ط§ظپط© (${rate}%)</span><span>${fmt(tax)}</span></div>
+    <div class="tot-row"><span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظƒظ„ظٹ</span><span>${fmt(grand)} ط±ظٹط§ظ„</span></div>
   </div>
 
   ${notesLine}
 
   <div class="stamp-area">
-    <div class="stamp-box">توقيع المورد / Supplier Signature</div>
-    <div class="stamp-box">توقيع العميل / Customer Signature</div>
+    <div class="stamp-box">طھظˆظ‚ظٹط¹ ط§ظ„ظ…ظˆط±ط¯ / Supplier Signature</div>
+    <div class="stamp-box">طھظˆظ‚ظٹط¹ ط§ظ„ط¹ظ…ظٹظ„ / Customer Signature</div>
   </div>
 
   <div class="footer">
-    هذا العرض صالح لمدة 30 يوماً من تاريخ الإصدار — This quotation is valid for 30 days from issue date
+    ظ‡ط°ط§ ط§ظ„ط¹ط±ط¶ طµط§ظ„ط­ ظ„ظ…ط¯ط© 30 ظٹظˆظ…ط§ظ‹ ظ…ظ† طھط§ط±ظٹط® ط§ظ„ط¥طµط¯ط§ط± â€” This quotation is valid for 30 days from issue date
   </div>
 
   <script>window.onload = () => { setTimeout(() => { window.print(); }, 400); }</script>
@@ -211,9 +211,9 @@ export default function PriceQuotesPage() {
         win.document.close();
     };
 
-    // ════════════════════════════════════════════
-    //  تحويل عرض السعر إلى فاتورة مبيعات
-    // ════════════════════════════════════════════
+    // â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
+    //  طھط­ظˆظٹظ„ ط¹ط±ط¶ ط§ظ„ط³ط¹ط± ط¥ظ„ظ‰ ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ
+    // â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
     const convertToInvoice = async (quote: Quote) => {
         setConverting(true);
         try {
@@ -223,7 +223,7 @@ export default function PriceQuotesPage() {
             const userId = me?.user?.id || null;
 
             const salesItems = quote.details.map(d => ({
-                productId:   null, // لا يوجد productId في عروض الأسعار
+                productId:   null, // ظ„ط§ ظٹظˆط¬ط¯ productId ظپظٹ ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±
                 productName: d.productName,
                 quantity:    d.quantity,
                 price:       d.price,
@@ -237,8 +237,8 @@ export default function PriceQuotesPage() {
                     items: salesItems,
                     paymentType,
                     taxRate,
-                    isTaxInclusive: false, // الأسعار في DB مجردة بدون ضريبة
-                    notes: `محول من عرض سعر #${quote.quoteNo}`,
+                    isTaxInclusive: false, // ط§ظ„ط£ط³ط¹ط§ط± ظپظٹ DB ظ…ط¬ط±ط¯ط© ط¨ط¯ظˆظ† ط¶ط±ظٹط¨ط©
+                    notes: `ظ…ط­ظˆظ„ ظ…ظ† ط¹ط±ط¶ ط³ط¹ط± #${quote.quoteNo}`,
                     userId,
                     paid: quote.total * (1 + taxRate / 100),
                 }),
@@ -247,8 +247,8 @@ export default function PriceQuotesPage() {
             if (res.ok) {
                 const inv = await res.json();
                 setConvertingId(null);
-                alert(`✅ تم إنشاء الفاتورة رقم #${inv.invoiceNo} بنجاح!`);
-                // تحديث حالة العرض
+                alert(`âœ… طھظ… ط¥ظ†ط´ط§ط، ط§ظ„ظپط§طھظˆط±ط© ط±ظ‚ظ… #${inv.invoiceNo} ط¨ظ†ط¬ط§ط­!`);
+                // طھط­ط¯ظٹط« ط­ط§ظ„ط© ط§ظ„ط¹ط±ط¶
                 await fetch(`/api/price-quotes?id=${quote.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -257,10 +257,10 @@ export default function PriceQuotesPage() {
                 load();
             } else {
                 const err = await res.json();
-                alert(`❌ فشل التحويل: ${err.error || 'خطأ غير معروف'}`);
+                alert(`â‌Œ ظپط´ظ„ ط§ظ„طھط­ظˆظٹظ„: ${err.error || 'ط®ط·ط£ ط؛ظٹط± ظ…ط¹ط±ظˆظپ'}`);
             }
         } catch (e: any) {
-            alert(`❌ خطأ: ${e.message}`);
+            alert(`â‌Œ ط®ط·ط£: ${e.message}`);
         }
         setConverting(false);
     };
@@ -269,9 +269,9 @@ export default function PriceQuotesPage() {
 
     const statusBadge = (status: string) => {
         const map: Record<string, { label: string; color: string; bg: string }> = {
-            pending:  { label: 'قيد الانتظار', color: '#d97706', bg: 'rgba(217,119,6,0.1)' },
-            approved: { label: 'معتمد',         color: '#16a34a', bg: 'rgba(22,163,74,0.1)' },
-            rejected: { label: 'مرفوض',         color: '#dc2626', bg: 'rgba(220,38,38,0.1)' },
+            pending:  { label: 'ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±', color: '#d97706', bg: 'rgba(217,119,6,0.1)' },
+            approved: { label: 'ظ…ط¹طھظ…ط¯',         color: '#16a34a', bg: 'rgba(22,163,74,0.1)' },
+            rejected: { label: 'ظ…ط±ظپظˆط¶',         color: '#dc2626', bg: 'rgba(220,38,38,0.1)' },
         };
         const s = map[status] || { label: status, color: '#64748b', bg: 'rgba(100,116,139,0.1)' };
         return (
@@ -283,32 +283,32 @@ export default function PriceQuotesPage() {
 
     return (<>
         <div className="page-header">
-            <h1 className="page-title">📋 {t('sys.str_1265') || 'عروض الأسعار'}</h1>
+            <h1 className="page-title">ًں“‹ {t('sys.str_1265') || 'ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±'}</h1>
         </div>
         <div className="page-content animate-fade-in">
 
             {/* Toolbar */}
             <div className="toolbar" style={{ marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} عرض</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{quotes.length} ط¹ط±ط¶</span>
                 <div className="toolbar-spacer" />
                 <button className="btn btn-primary" onClick={() => { setShowAdd(true); setItems([]); }}>
-                    + عرض سعر جديد
+                    + ط¹ط±ط¶ ط³ط¹ط± ط¬ط¯ظٹط¯
                 </button>
             </div>
 
-            {/* نموذج الإضافة */}
+            {/* ظ†ظ…ظˆط°ط¬ ط§ظ„ط¥ط¶ط§ظپط© */}
             {showAdd && (
                 <div className="card" style={{ marginBottom: '16px', padding: '20px' }}>
-                    <h3 style={{ marginBottom: '14px', fontSize: '16px', fontWeight: '700' }}>📝 إنشاء عرض سعر جديد</h3>
+                    <h3 style={{ marginBottom: '14px', fontSize: '16px', fontWeight: '700' }}>ًں“‌ ط¥ظ†ط´ط§ط، ط¹ط±ط¶ ط³ط¹ط± ط¬ط¯ظٹط¯</h3>
 
-                    {/* بحث عن المنتج */}
+                    {/* ط¨ط­ط« ط¹ظ† ط§ظ„ظ…ظ†طھط¬ */}
                     <div style={{ position: 'relative', marginBottom: '12px' }}>
                         <input
                             ref={searchRef}
                             value={searchText}
                             onChange={e => { setSearchText(e.target.value); setShowSearch(true); }}
                             onFocus={() => setShowSearch(true)}
-                            placeholder="🔍 ابحث عن منتج أو أدخل اسمه..."
+                            placeholder="ًں”چ ط§ط¨ط­ط« ط¹ظ† ظ…ظ†طھط¬ ط£ظˆ ط£ط¯ط®ظ„ ط§ط³ظ…ظ‡..."
                             style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '2px solid var(--primary)', fontSize: '14px', background: 'var(--bg-card)', color: 'var(--text)' }}
                         />
                         {showSearch && searchText && filteredProducts.length > 0 && (
@@ -320,23 +320,23 @@ export default function PriceQuotesPage() {
                                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                     >
                                         <span>{p.name}</span>
-                                        <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ر.س</span>
+                                        <span style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{fmt(p.sellPrice)} ط±.ط³</span>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
 
-                    {/* جدول الأصناف */}
+                    {/* ط¬ط¯ظˆظ„ ط§ظ„ط£طµظ†ط§ظپ */}
                     {items.length > 0 && (
                         <div style={{ overflowX: 'auto', marginBottom: '12px' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
                                     <tr style={{ background: 'rgba(108,99,255,0.08)' }}>
-                                        <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>الصنف</th>
-                                        <th style={{ padding: '8px', textAlign: 'center', width: '90px', color: 'var(--text-secondary)' }}>الكمية</th>
-                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>السعر</th>
-                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>الإجمالي</th>
+                                        <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>ط§ظ„طµظ†ظپ</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '90px', color: 'var(--text-secondary)' }}>ط§ظ„ظƒظ…ظٹط©</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>ط§ظ„ط³ط¹ط±</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', width: '110px', color: 'var(--text-secondary)' }}>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</th>
                                         <th style={{ width: '36px' }}></th>
                                     </tr>
                                 </thead>
@@ -345,7 +345,7 @@ export default function PriceQuotesPage() {
                                         <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                                             <td style={{ padding: '4px 6px' }}>
                                                 <input value={item.productName} onChange={e => updateItem(i, 'productName', e.target.value)}
-                                                    placeholder="اسم الصنف"
+                                                    placeholder="ط§ط³ظ… ط§ظ„طµظ†ظپ"
                                                     style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)' }} />
                                             </td>
                                             <td style={{ padding: '4px' }}>
@@ -360,7 +360,7 @@ export default function PriceQuotesPage() {
                                                 {fmt(item.quantity * item.price)}
                                             </td>
                                             <td style={{ padding: '4px' }}>
-                                                <button onClick={() => removeItem(i)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+                                                <button onClick={() => removeItem(i)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>âœ•</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -369,84 +369,84 @@ export default function PriceQuotesPage() {
                         </div>
                     )}
 
-                    {/* الإجمالي */}
+                    {/* ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ */}
                     {items.length > 0 && (
                         <div style={{ background: 'rgba(108,99,255,0.06)', borderRadius: '8px', padding: '12px 16px', marginBottom: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
-                                <span>المجموع قبل الضريبة</span><span style={{ fontFamily: 'monospace' }}>{fmt(subtotal)}</span>
+                                <span>ط§ظ„ظ…ط¬ظ…ظˆط¹ ظ‚ط¨ظ„ ط§ظ„ط¶ط±ظٹط¨ط©</span><span style={{ fontFamily: 'monospace' }}>{fmt(subtotal)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
-                                <span>ضريبة القيمة المضافة ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(taxValue)}</span>
+                                <span>ط¶ط±ظٹط¨ط© ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ…ط¶ط§ظپط© ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(taxValue)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '800', color: 'var(--primary)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
-                                <span>الإجمالي الكلي</span><span style={{ fontFamily: 'monospace' }}>{fmt(total)} ر.س</span>
+                                <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظƒظ„ظٹ</span><span style={{ fontFamily: 'monospace' }}>{fmt(total)} ط±.ط³</span>
                             </div>
                         </div>
                     )}
 
-                    {/* الأزرار */}
+                    {/* ط§ظ„ط£ط²ط±ط§ط± */}
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <button className="btn btn-sm" onClick={addManualItem}>+ صنف يدوي</button>
-                        <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات..."
+                        <button className="btn btn-sm" onClick={addManualItem}>+ طµظ†ظپ ظٹط¯ظˆظٹ</button>
+                        <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="ظ…ظ„ط§ط­ط¸ط§طھ..."
                             style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', minWidth: '150px', background: 'var(--bg-card)', color: 'var(--text)' }} />
-                        <button className="btn btn-sm" style={{ background: 'var(--bg-card-hover)' }} onClick={() => setShowAdd(false)}>إلغاء</button>
-                        <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>💾 حفظ وطباعة</button>
+                        <button className="btn btn-sm" style={{ background: 'var(--bg-card-hover)' }} onClick={() => setShowAdd(false)}>ط¥ظ„ط؛ط§ط،</button>
+                        <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={items.length === 0}>ًں’¾ ط­ظپط¸ ظˆط·ط¨ط§ط¹ط©</button>
                     </div>
                 </div>
             )}
 
-            {/* قائمة العروض */}
+            {/* ظ‚ط§ط¦ظ…ط© ط§ظ„ط¹ط±ظˆط¶ */}
             <div className="card" style={{ padding: '0' }}>
                 {loading ? (
-                    <div className="empty-state"><div className="empty-state-text">جاري التحميل...</div></div>
+                    <div className="empty-state"><div className="empty-state-text">ط¬ط§ط±ظٹ ط§ظ„طھط­ظ…ظٹظ„...</div></div>
                 ) : quotes.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-state-icon">📄</div>
-                        <div className="empty-state-text">لا توجد عروض أسعار بعد</div>
+                        <div className="empty-state-icon">ًں“„</div>
+                        <div className="empty-state-text">ظ„ط§ طھظˆط¬ط¯ ط¹ط±ظˆط¶ ط£ط³ط¹ط§ط± ط¨ط¹ط¯</div>
                     </div>
                 ) : (
                     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {quotes.map(q => (
                             <div key={q.id} style={{ border: '1px solid var(--border)', borderRadius: '10px', overflow: 'hidden', background: 'var(--bg-card)' }}>
-                                {/* رأس العرض */}
+                                {/* ط±ط£ط³ ط§ظ„ط¹ط±ط¶ */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', cursor: 'pointer', borderBottom: expanded === q.id ? '1px solid var(--border)' : 'none' }}
                                     onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
                                     <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: '800', fontSize: '15px' }}>#{q.quoteNo}</span>
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(q.date).toLocaleDateString('ar-SA')}</span>
                                     {statusBadge(q.status)}
-                                    {q.notes && <span style={{ fontSize: '11px', color: 'var(--text-muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📝 {q.notes}</span>}
+                                    {q.notes && <span style={{ fontSize: '11px', color: 'var(--text-muted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>ًں“‌ {q.notes}</span>}
                                     <div className="toolbar-spacer" />
-                                    <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '15px', color: 'var(--text)' }}>{fmt(q.total * (1 + taxRate / 100))} ر.س</span>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '15px', color: 'var(--text)' }}>{fmt(q.total * (1 + taxRate / 100))} ط±.ط³</span>
 
-                                    {/* زر الطباعة */}
+                                    {/* ط²ط± ط§ظ„ط·ط¨ط§ط¹ط© */}
                                     <button onClick={e => { e.stopPropagation(); printQuoteA4(q); }}
-                                        title="طباعة عرض السعر A4"
-                                        style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Cairo' }}>
-                                        🖨️ طباعة
+                                        title="ط·ط¨ط§ط¹ط© ط¹ط±ط¶ ط§ظ„ط³ط¹ط± A4"
+                                        style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Lateef' }}>
+                                        ًں–¨ï¸ڈ ط·ط¨ط§ط¹ط©
                                     </button>
 
-                                    {/* زر تحويل لفاتورة */}
+                                    {/* ط²ط± طھط­ظˆظٹظ„ ظ„ظپط§طھظˆط±ط© */}
                                     {q.status !== 'approved' && (
                                         <button onClick={e => { e.stopPropagation(); setConvertingId(q.id); setPaymentType('cash'); }}
-                                            title="تحويل إلى فاتورة مبيعات"
-                                            style={{ padding: '6px 12px', background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Cairo' }}>
-                                            ✅ تحويل لفاتورة
+                                            title="طھط­ظˆظٹظ„ ط¥ظ„ظ‰ ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ"
+                                            style={{ padding: '6px 12px', background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Lateef' }}>
+                                            âœ… طھط­ظˆظٹظ„ ظ„ظپط§طھظˆط±ط©
                                         </button>
                                     )}
 
-                                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', transition: 'transform 0.2s', transform: expanded === q.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>▼</span>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', transition: 'transform 0.2s', transform: expanded === q.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>â–¼</span>
                                 </div>
 
-                                {/* تفاصيل العرض */}
+                                {/* طھظپط§طµظٹظ„ ط§ظ„ط¹ط±ط¶ */}
                                 {expanded === q.id && q.details && (
                                     <div style={{ padding: '12px 14px' }}>
                                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                             <thead>
                                                 <tr style={{ background: 'rgba(108,99,255,0.05)' }}>
-                                                    <th style={{ padding: '8px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: '600' }}>الصنف</th>
-                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>الكمية</th>
-                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>السعر</th>
-                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>الإجمالي</th>
+                                                    <th style={{ padding: '8px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: '600' }}>ط§ظ„طµظ†ظپ</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>ط§ظ„ظƒظ…ظٹط©</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>ط§ظ„ط³ط¹ط±</th>
+                                                    <th style={{ padding: '8px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: '600' }}>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -460,11 +460,11 @@ export default function PriceQuotesPage() {
                                                 ))}
                                             </tbody>
                                         </table>
-                                        {/* إجماليات داخل التفاصيل */}
+                                        {/* ط¥ط¬ظ…ط§ظ„ظٹط§طھ ط¯ط§ط®ظ„ ط§ظ„طھظپط§طµظٹظ„ */}
                                         <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
-                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>قبل الضريبة: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total)}</b></span>
-                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>الضريبة: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)}</b></span>
-                                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>الإجمالي: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * (1 + taxRate / 100))} ر.س</b></span>
+                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ظ‚ط¨ظ„ ط§ظ„ط¶ط±ظٹط¨ط©: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total)}</b></span>
+                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ط§ظ„ط¶ط±ظٹط¨ط©: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)}</b></span>
+                                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)' }}>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ: <b style={{ fontFamily: 'monospace' }}>{fmt(q.total * (1 + taxRate / 100))} ط±.ط³</b></span>
                                         </div>
                                     </div>
                                 )}
@@ -475,7 +475,7 @@ export default function PriceQuotesPage() {
             </div>
         </div>
 
-        {/* ════ مودال تحويل لفاتورة ════ */}
+        {/* â•گâ•گâ•گâ•گ ظ…ظˆط¯ط§ظ„ طھط­ظˆظٹظ„ ظ„ظپط§طھظˆط±ط© â•گâ•گâ•گâ•گ */}
         {convertingId !== null && (() => {
             const q = quotes.find(x => x.id === convertingId);
             if (!q) return null;
@@ -484,43 +484,43 @@ export default function PriceQuotesPage() {
                 <div className="modal-overlay" onClick={() => !converting && setConvertingId(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
                         <div className="modal-header">
-                            <h2 className="modal-title">✅ تحويل عرض سعر #${q.quoteNo} إلى فاتورة</h2>
-                            <button onClick={() => setConvertingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '20px' }}>✕</button>
+                            <h2 className="modal-title">âœ… طھط­ظˆظٹظ„ ط¹ط±ط¶ ط³ط¹ط± #${q.quoteNo} ط¥ظ„ظ‰ ظپط§طھظˆط±ط©</h2>
+                            <button onClick={() => setConvertingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '20px' }}>âœ•</button>
                         </div>
 
-                        {/* ملخص العرض */}
+                        {/* ظ…ظ„ط®طµ ط§ظ„ط¹ط±ط¶ */}
                         <div style={{ background: 'rgba(108,99,255,0.06)', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
-                                <span>عدد الأصناف</span><span>{q.details.length} صنف</span>
+                                <span>ط¹ط¯ط¯ ط§ظ„ط£طµظ†ط§ظپ</span><span>{q.details.length} طµظ†ظپ</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
-                                <span>قبل الضريبة</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total)} ر.س</span>
+                                <span>ظ‚ط¨ظ„ ط§ظ„ط¶ط±ظٹط¨ط©</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total)} ط±.ط³</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px', color: 'var(--text-secondary)' }}>
-                                <span>الضريبة ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)} ر.س</span>
+                                <span>ط§ظ„ط¶ط±ظٹط¨ط© ({taxRate}%)</span><span style={{ fontFamily: 'monospace' }}>{fmt(q.total * taxRate / 100)} ط±.ط³</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '17px', fontWeight: '800', color: 'var(--primary)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
-                                <span>الإجمالي</span><span style={{ fontFamily: 'monospace' }}>{fmt(grand)} ر.س</span>
+                                <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</span><span style={{ fontFamily: 'monospace' }}>{fmt(grand)} ط±.ط³</span>
                             </div>
                         </div>
 
-                        {/* طريقة الدفع */}
+                        {/* ط·ط±ظٹظ‚ط© ط§ظ„ط¯ظپط¹ */}
                         <div className="input-group">
-                            <label className="input-label">طريقة الدفع</label>
+                            <label className="input-label">ط·ط±ظٹظ‚ط© ط§ظ„ط¯ظپط¹</label>
                             <select className="input" value={paymentType} onChange={e => setPaymentType(e.target.value)}>
-                                <option value="cash">نقدي</option>
-                                <option value="card">بطاقة</option>
-                                <option value="transfer">تحويل بنكي</option>
-                                <option value="credit">آجل</option>
+                                <option value="cash">ظ†ظ‚ط¯ظٹ</option>
+                                <option value="card">ط¨ط·ط§ظ‚ط©</option>
+                                <option value="transfer">طھط­ظˆظٹظ„ ط¨ظ†ظƒظٹ</option>
+                                <option value="credit">ط¢ط¬ظ„</option>
                             </select>
                         </div>
 
                         <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                             <button onClick={() => setConvertingId(null)} className="btn btn-ghost" style={{ flex: 1 }} disabled={converting}>
-                                إلغاء
+                                ط¥ظ„ط؛ط§ط،
                             </button>
                             <button onClick={() => convertToInvoice(q)} className="btn btn-success" style={{ flex: 2 }} disabled={converting}>
-                                {converting ? '⏳ جاري التحويل...' : '✅ إنشاء الفاتورة'}
+                                {converting ? 'âڈ³ ط¬ط§ط±ظٹ ط§ظ„طھط­ظˆظٹظ„...' : 'âœ… ط¥ظ†ط´ط§ط، ط§ظ„ظپط§طھظˆط±ط©'}
                             </button>
                         </div>
                     </div>
@@ -529,3 +529,4 @@ export default function PriceQuotesPage() {
         })()}
     </>);
 }
+

@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
@@ -87,7 +87,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     });
 
     return (
-        <div style={{ background: '#f3f4f6', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px', fontFamily: 'Cairo, sans-serif' }}>
+        <div style={{ background: '#f3f4f6', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px', fontFamily: 'Lateef, sans-serif' }}>
             <head>
                 <title>{t('sys.str_1576')}{invoice.invoiceNo}</title>
             </head>

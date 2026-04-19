@@ -520,6 +520,63 @@ export default function Sidebar() {
     Settings: ['branches', 'currencies', 'approvals', 'whatsapp', 'salla', 'settings', 'audit_logs', 'maintenance'],
   };
 
+  // ── خريطة الأقسام الفرعية (ICE sub-section → sidebar modules) ────────────
+  const SUBMODULE_MAP: Record<string, string[]> = {
+    // المبيعات
+    'Sales.Invoices':        ['sales'],
+    'Sales.Quotes':          ['price_quotes'],
+    'Sales.Returns':         ['sales_returns'],
+    // نقطة البيع
+    'POS.Main':              ['pos'],
+    'POS.Restaurants':       ['restaurant_pos'],
+    'POS.Shifts':            ['shifts'],
+    // المشتريات
+    'Purchases.Invoices':    ['purchases'],
+    'Purchases.Orders':      ['purchase_orders'],
+    'Purchases.Returns':     ['purchase_returns'],
+    // المخزون
+    'Inventory.Products':    ['products'],
+    'Inventory.Warehouses':  ['warehouses', 'wms'],
+    'Inventory.Stocktaking': ['stock', 'stock_transfers', 'vision_inventory'],
+    'Inventory.Barcode':     ['barcode', 'batches'],
+    // المالية
+    'Finance.Accounting':    ['accounting'],
+    'Finance.Treasury':      ['treasury', 'banks', 'treasury_checks', 'receipt_vouchers', 'expenses', 'petty_cash'],
+    'Finance.Assets':        ['fixed_assets', 'installments'],
+    // الموارد البشرية
+    'HR.Employees':          ['employees'],
+    'HR.Payroll':            ['salaries'],
+    'HR.Attendance':         ['attendance'],
+    'HR.Leaves':             ['vacations', 'hr_loans'],
+    // التصنيع
+    'Manufacturing.BOM':     ['manufacturing'],
+    'Manufacturing.MRP':     ['mrp'],
+    'Manufacturing.Quality': ['mrp'],
+    // العملاء والتسويق
+    'CRM.Customers':         ['customers'],
+    'CRM.Loyalty':           ['loyalty', 'gift_cards'],
+    'CRM.Coupons':           ['coupons', 'promotions'],
+    'CRM.Bookings':          ['bookings', 'affiliates'],
+    // الأنظمة المتخصصة
+    'Enterprise.Projects':   ['projects'],
+    'Enterprise.RealEstate': ['legal'],
+    'Enterprise.Fleet':      ['legal'],
+    'Enterprise.Schools':    ['schools'],
+    // الذكاء الاصطناعي
+    'AI.Copilot':            ['ai_copilot'],
+    'AI.CFO':                ['ai_cfo'],
+    'AI.SCM':                ['ai_scm'],
+    // التقارير
+    'Reports.Sales':         ['reports'],
+    'Reports.Finance':       ['reports'],
+    'Reports.Inventory':     ['reports'],
+    // الإعدادات
+    'Settings.Branches':     ['branches'],
+    'Settings.Currencies':   ['currencies'],
+    'Settings.Approvals':    ['approvals'],
+    'Settings.WhatsApp':     ['whatsapp', 'salla'],
+  };
+
   const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({
     ...group,
     items: group.items.filter(item => {
@@ -527,8 +584,16 @@ export default function Sidebar() {
       if (mod === 'dashboard' || mod === 'login') return true;
       if (mod === 'master-panel') return loggedUser.role === 'owner';
       if (['admin', 'owner'].includes(loggedUser.role)) {
+        // 1️⃣ تحقق من إخفاء الوحدة الرئيسية بالكامل
         const moduleKey = Object.entries(MODULE_MAP).find(([, mods]) => (mods as string[]).includes(mod))?.[0];
         if (moduleKey && hiddenModules.includes(moduleKey)) return false;
+
+        // 2️⃣ تحقق من إخفاء قسم فرعي محدد
+        const isHiddenBySub = Object.entries(SUBMODULE_MAP).some(
+          ([subKey, mods]) => hiddenModules.includes(subKey) && (mods as string[]).includes(mod)
+        );
+        if (isHiddenBySub) return false;
+
         return true;
       }
       return userModules.includes(mod);
@@ -598,11 +663,11 @@ export default function Sidebar() {
                   onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                   onMouseOut={(e) => e.currentTarget.style.background = isExpanded ? 'var(--bg-card-hover)' : 'transparent'}
                 >
-                  <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.02em' }}>
+                  <span style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '0.02em' }}>
                     {gl(lang, group.sk)}
                   </span>
                   <span style={{
-                    fontSize: '10px',
+                    fontSize: '14px',
                     transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}>▼</span>
@@ -630,7 +695,7 @@ export default function Sidebar() {
                         background: pathname === item.href ? 'rgba(var(--primary-rgb, 79,70,229),0.12)' : 'transparent',
                         borderRadius: 'var(--radius-sm)',
                         margin: '1px 8px',
-                        fontSize: '13px',
+                        fontSize: '18px',
                         fontWeight: pathname === item.href ? 600 : 400,
                         transition: 'all 0.15s ease',
                         direction: isRTL ? 'rtl' : 'ltr',
@@ -642,8 +707,8 @@ export default function Sidebar() {
                         if (pathname !== item.href) e.currentTarget.style.background = 'transparent';
                       }}
                     >
-                      <span style={{ fontSize: '15px', flexShrink: 0 }}>{item.icon}</span>
-                      <span style={{ fontSize: '12.5px', lineHeight: '1.4' }}>{gl(lang, item.lk)}</span>
+                      <span style={{ fontSize: '20px', flexShrink: 0 }}>{item.icon}</span>
+                      <span style={{ fontSize: '18px', lineHeight: '1.4' }}>{gl(lang, item.lk)}</span>
                     </Link>
                   ))}
                 </div>
@@ -661,16 +726,16 @@ export default function Sidebar() {
             <div style={{
               width: '34px', height: '34px', borderRadius: '50%',
               background: 'var(--primary)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontSize: '14px', fontWeight: 700, color: 'white',
+              justifyContent: 'center', fontSize: '18px', fontWeight: 700, color: 'white',
               flexShrink: 0
             }}>
               {(loggedUser.fullName || 'U')[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', truncate: true } as any}>
+              <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', truncate: true } as any}>
                 {loggedUser.fullName || '...'}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '15px', color: 'var(--text-muted)' }}>
                 {loggedUser.role}
               </div>
             </div>
@@ -680,7 +745,7 @@ export default function Sidebar() {
             style={{
               width: '100%', padding: '8px', background: 'rgba(239,68,68,0.1)',
               border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius-sm)',
-              color: '#ef4444', cursor: 'pointer', fontSize: '13px',
+              color: '#ef4444', cursor: 'pointer', fontSize: '17px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               transition: 'all 0.2s'
             }}

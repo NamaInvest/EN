@@ -1,4 +1,4 @@
-import Sidebar from '@/components/Sidebar';
+﻿import Sidebar from '@/components/Sidebar';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SessionGuard from '@/components/SessionGuard';
@@ -54,10 +54,10 @@ export default function DashboardLayout({
                             background: 'var(--gradient-primary)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
-                            fontFamily: "'Cairo', sans-serif",
+                            fontFamily: "'Lateef', sans-serif",
                             letterSpacing: '-0.5px'
                         }}>
-                            نظام نما انفست
+                            ظ†ط¸ط§ظ… ظ†ظ…ط§ ط§ظ†ظپط³طھ
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <PrintButton />
@@ -81,3 +81,4 @@ export default function DashboardLayout({
         </I18nProvider>
     );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 
@@ -27,12 +27,12 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
     const isExpired = reason === 'trial_expired';
 
     const icons: Record<string, string> = {
-        invoice: '🧾', product: '📦', user: '👤',
+        invoice: 'ًں§¾', product: 'ًں“¦', user: 'ًں‘¤',
     };
-    const resourceIcon = icons[resource || ''] || '⚠️';
+    const resourceIcon = icons[resource || ''] || 'âڑ ï¸ڈ';
 
     const resourceLabel: Record<string, string> = {
-        invoice: 'الفواتير', product: 'الأصناف', user: 'المستخدمين',
+        invoice: 'ط§ظ„ظپظˆط§طھظٹط±', product: 'ط§ظ„ط£طµظ†ط§ظپ', user: 'ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†',
     };
     const rLabel = resourceLabel[resource || ''] || resource || '';
 
@@ -56,7 +56,7 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                     boxShadow: '0 25px 50px rgba(0,0,0,0.5), 0 0 80px rgba(139,92,246,0.15)',
                     textAlign: 'center',
                     direction: 'rtl',
-                    fontFamily: "'Tajawal', 'Cairo', sans-serif",
+                    fontFamily: "'Tajawal', 'Lateef', sans-serif",
                 }}
             >
                 {/* Icon */}
@@ -67,7 +67,7 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 20px', fontSize: 32,
                 }}>
-                    {isExpired ? '⏰' : resourceIcon}
+                    {isExpired ? 'âڈ°' : resourceIcon}
                 </div>
 
                 {/* Title */}
@@ -75,21 +75,21 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                     fontSize: 22, fontWeight: 700, margin: '0 0 10px',
                     color: isExpired ? '#fca5a5' : '#c4b5fd',
                 }}>
-                    {isExpired ? 'انتهت فترة التجربة' : `استنفدت حصة ${rLabel}`}
+                    {isExpired ? 'ط§ظ†طھظ‡طھ ظپطھط±ط© ط§ظ„طھط¬ط±ط¨ط©' : `ط§ط³طھظ†ظپط¯طھ ط­طµط© ${rLabel}`}
                 </h2>
 
                 {/* Message */}
                 <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.7, margin: '0 0 20px' }}>
                     {message || (isExpired
-                        ? 'انتهت فترة التجربة المجانية. قم بالترقية لمتابعة استخدام النظام بدون قيود.'
-                        : `لقد وصلت للحد الأقصى المسموح به. قم بالترقية للحصول على حصص غير محدودة.`)}
+                        ? 'ط§ظ†طھظ‡طھ ظپطھط±ط© ط§ظ„طھط¬ط±ط¨ط© ط§ظ„ظ…ط¬ط§ظ†ظٹط©. ظ‚ظ… ط¨ط§ظ„طھط±ظ‚ظٹط© ظ„ظ…طھط§ط¨ط¹ط© ط§ط³طھط®ط¯ط§ظ… ط§ظ„ظ†ط¸ط§ظ… ط¨ط¯ظˆظ† ظ‚ظٹظˆط¯.'
+                        : `ظ„ظ‚ط¯ ظˆطµظ„طھ ظ„ظ„ط­ط¯ ط§ظ„ط£ظ‚طµظ‰ ط§ظ„ظ…ط³ظ…ظˆط­ ط¨ظ‡. ظ‚ظ… ط¨ط§ظ„طھط±ظ‚ظٹط© ظ„ظ„ط­طµظˆظ„ ط¹ظ„ظ‰ ط­طµطµ ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©.`)}
                 </p>
 
                 {/* Usage bar (for quota_exceeded) */}
                 {!isExpired && limit && current !== undefined && (
                     <div style={{ margin: '0 0 20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b', marginBottom: 6 }}>
-                            <span>الاستخدام الحالي</span>
+                            <span>ط§ظ„ط§ط³طھط®ط¯ط§ظ… ط§ظ„ط­ط§ظ„ظٹ</span>
                             <span style={{ color: '#a78bfa' }}>{current} / {limit}</span>
                         </div>
                         <div style={{ height: 8, background: '#1e293b', borderRadius: 99, overflow: 'hidden' }}>
@@ -125,7 +125,7 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                             (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 20px rgba(124,58,237,0.4)';
                         }}
                     >
-                        🚀 ترقية الاشتراك الآن
+                        ًںڑ€ طھط±ظ‚ظٹط© ط§ظ„ط§ط´طھط±ط§ظƒ ط§ظ„ط¢ظ†
                     </a>
                     <button
                         onClick={onClose}
@@ -135,22 +135,23 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                             cursor: 'pointer', fontSize: 13,
                         }}
                     >
-                        إغلاق
+                        ط¥ط؛ظ„ط§ظ‚
                     </button>
                 </div>
 
                 {/* WhatsApp CTA */}
                 <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #1e293b' }}>
                     <a
-                        href="https://wa.me/966500000000?text=أريد الاشتراك في نما إنفست"
+                        href="https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ظ†ظ…ط§ ط¥ظ†ظپط³طھ"
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: '#22c55e', fontSize: 13, textDecoration: 'none' }}
                     >
-                        💬 تواصل معنا على واتساب للاشتراك الفوري
+                        ًں’¬ طھظˆط§طµظ„ ظ…ط¹ظ†ط§ ط¹ظ„ظ‰ ظˆط§طھط³ط§ط¨ ظ„ظ„ط§ط´طھط±ط§ظƒ ط§ظ„ظپظˆط±ظٹ
                     </a>
                 </div>
             </div>
         </div>
     );
 }
+

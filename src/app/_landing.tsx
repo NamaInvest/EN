@@ -170,14 +170,14 @@ const S = {
     overflow: 'hidden' as const,
   },
   heroTitle: {
-    fontSize: 'clamp(2.2rem, 6vw, 4rem)',
+    fontSize: 'clamp(2.8rem, 7vw, 5rem)',
     fontWeight: 900,
     lineHeight: 1.2,
     marginBottom: '16px',
     letterSpacing: '-0.5px',
   },
   heroSub: {
-    fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
+    fontSize: 'clamp(1.2rem, 3vw, 1.6rem)',
     color: '#94a3b8',
     maxWidth: '600px',
     margin: '0 auto 40px',
@@ -208,13 +208,13 @@ const S = {
     backdropFilter: 'blur(8px)',
   },
   statNum: {
-    fontSize: '2rem',
+    fontSize: '2.5rem',
     fontWeight: 900,
     color: '#818cf8',
     display: 'block',
   },
   statLabel: {
-    fontSize: '0.9rem',
+    fontSize: '1.1rem',
     color: '#94a3b8',
     marginTop: '4px',
   },
@@ -225,7 +225,7 @@ const S = {
     padding: '16px 36px',
     borderRadius: '999px',
     border: 'none',
-    fontSize: '1.1rem',
+    fontSize: '1.3rem',
     fontWeight: 700,
     cursor: 'pointer',
     textDecoration: 'none',
@@ -233,7 +233,7 @@ const S = {
     alignItems: 'center',
     gap: '8px',
     boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
-    fontFamily: "'Cairo', sans-serif",
+    fontFamily: "'Lateef', sans-serif",
     transition: 'transform 0.2s',
   },
   btnSecondary: {
@@ -242,7 +242,7 @@ const S = {
     padding: '16px 36px',
     borderRadius: '999px',
     border: '1px solid rgba(255,255,255,0.2)',
-    fontSize: '1.1rem',
+    fontSize: '1.3rem',
     fontWeight: 700,
     cursor: 'pointer',
     textDecoration: 'none',
@@ -250,7 +250,7 @@ const S = {
     alignItems: 'center',
     gap: '8px',
     backdropFilter: 'blur(8px)',
-    fontFamily: "'Cairo', sans-serif",
+    fontFamily: "'Lateef', sans-serif",
   },
   // features
   featuresSection: {
@@ -287,7 +287,7 @@ export default function LandingPage() {
   const moduleCount = MODULES_DATA.length;
 
   return (
-    <div dir="rtl" style={{ fontFamily: "'Cairo', sans-serif" }}>
+    <div dir="rtl" style={{ fontFamily: "'Lateef', sans-serif" }}>
 
       {/* NAV */}
       <nav style={{
@@ -309,7 +309,7 @@ export default function LandingPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1.2rem',
             }}>🏢</div>
-            <span style={{ color: 'white', fontWeight: 800, fontSize: '1.15rem' }}>
+            <span style={{ color: 'white', fontWeight: 800, fontSize: '1.4rem' }}>
               نما <span style={{ color: '#818cf8' }}>إنفست</span>
             </span>
           </div>
@@ -317,7 +317,7 @@ export default function LandingPage() {
           {/* Nav links + CTA */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" style={{
-              color: '#94a3b8', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600,
+              color: '#94a3b8', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 600,
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               💬 واتساب
@@ -325,7 +325,7 @@ export default function LandingPage() {
             <a href="https://n1.namainvist.com/sign-in" style={{
               background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
               color: 'white', padding: '9px 22px', borderRadius: '999px',
-              textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem',
+              textDecoration: 'none', fontWeight: 700, fontSize: '1.15rem',
               boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
             }}>
               دخول النظام ←
@@ -355,7 +355,7 @@ export default function LandingPage() {
             display: 'inline-block', background: 'rgba(99,102,241,0.2)',
             border: '1px solid rgba(99,102,241,0.4)',
             borderRadius: '999px', padding: '6px 18px',
-            fontSize: '0.85rem', color: '#a5b4fc', marginBottom: '24px',
+            fontSize: '1.05rem', color: '#a5b4fc', marginBottom: '24px',
           }}>
             ✨ {moduleCount} وحدة برمجية متكاملة — النظام الأشمل في السعودية
           </div>
@@ -399,7 +399,7 @@ export default function LandingPage() {
       {/* FEATURES */}
       <section style={S.featuresSection}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0f172a' }}>
+          <h2 style={{ fontSize: '2.4rem', fontWeight: 800, color: '#0f172a' }}>
             لماذا <span style={{ color: '#6366f1' }}>نما إنفست</span>؟
           </h2>
           <p style={{ color: '#64748b' }}>ميزات حصرية لا تجدها في أي نظام آخر في السعودية</p>
@@ -408,10 +408,10 @@ export default function LandingPage() {
           {FEATURES.map(f => (
             <div key={f.title} style={S.featureCard}>
               <div style={{ fontSize: '2rem' }}>{f.icon}</div>
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700, color: '#0f172a' }}>
                 {f.title}
               </h3>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', lineHeight: 1.6 }}>
                 {f.desc}
               </p>
             </div>
@@ -424,18 +424,18 @@ export default function LandingPage() {
 
       {/* FINAL CTA */}
       <section style={S.ctaSection}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '16px' }}>
           ابدأ الآن — تجربة مجانية
         </h2>
-        <p style={{ color: '#c7d2fe', fontSize: '1.1rem', marginBottom: '36px' }}>
+        <p style={{ color: '#c7d2fe', fontSize: '1.3rem', marginBottom: '36px' }}>
           لا بطاقة ائتمان. لا التزامات. ابدأ في 5 دقائق.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center' }}>
           <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" style={{
             background: '#25D366', color: 'white',
             padding: '16px 40px', borderRadius: '999px',
-            textDecoration: 'none', fontWeight: 700, fontSize: '1.15rem',
-            fontFamily: "'Cairo', sans-serif",
+            textDecoration: 'none', fontWeight: 700, fontSize: '1.4rem',
+            fontFamily: "'Lateef', sans-serif",
             boxShadow: '0 8px 24px rgba(37,211,102,0.35)',
             display: 'inline-flex', alignItems: 'center', gap: '10px',
           }}>
@@ -444,15 +444,15 @@ export default function LandingPage() {
           <a href="https://n1.namainvist.com/sign-in" style={{
             background: 'white', color: '#4f46e5',
             padding: '16px 40px', borderRadius: '999px',
-            textDecoration: 'none', fontWeight: 700, fontSize: '1.15rem',
-            fontFamily: "'Cairo', sans-serif",
+            textDecoration: 'none', fontWeight: 700, fontSize: '1.4rem',
+            fontFamily: "'Lateef', sans-serif",
           }}>
             دخول النظام ←
           </a>
         </div>
 
         {/* Contact info */}
-        <div style={{ marginTop: '48px', color: '#8b9dc3', fontSize: '0.9rem' }}>
+        <div style={{ marginTop: '48px', color: '#8b9dc3', fontSize: '1.1rem' }}>
           <span>📞 +966 53 120 6628</span>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <span>🌐 namainvist.com</span>
@@ -465,7 +465,7 @@ export default function LandingPage() {
         color: '#475569',
         textAlign: 'center',
         padding: '24px 20px',
-        fontSize: '0.85rem',
+        fontSize: '1.05rem',
       }}>
         <p style={{ margin: 0 }}>
           © 2025 نما إنفست — جميع الحقوق محفوظة &nbsp;|&nbsp;

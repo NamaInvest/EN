@@ -238,13 +238,15 @@ export default function NamaInvestLanding() {
   };
 
   return (
-    <div className="w-full m-0 p-0 min-h-screen font-sans overflow-x-hidden bg-slate-50 text-slate-900" dir="rtl">
+    <div className="w-full m-0 p-0 min-h-screen overflow-x-hidden bg-slate-50 text-slate-900" dir="rtl" style={{ fontFamily: "'Lateef', sans-serif", fontSize: '20px' }}>
       <style dangerouslySetInnerHTML={{__html: `
+        html { font-size: 26px !important; }
         .tab-scroll::-webkit-scrollbar { height: 0; }
         .ind-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
         .ind-card:hover { transform: translateY(-5px); }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
         .fade-in { animation: fadeIn 0.25s ease forwards; }
+        * { font-family: 'Lateef', sans-serif !important; }
       `}} />
 
       {/* NAV */}

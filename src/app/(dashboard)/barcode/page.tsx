@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -11,11 +11,11 @@ interface Product {
 }
 
 const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSize: string; barcodeH: string }[] = [
-    { value: '30x20', label: '🏷️ 30×20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
-    { value: '40x30', label: '🏷️ 40×30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
-    { value: '50x25', label: '🏷️ 50×25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
-    { value: '50x30', label: '🏷️ 50×30mm (مخصص)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
-    { value: '100x50', label: '🏷️ 100×50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
+    { value: '30x20', label: 'ًںڈ·ï¸ڈ 30أ—20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
+    { value: '40x30', label: 'ًںڈ·ï¸ڈ 40أ—30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
+    { value: '50x25', label: 'ًںڈ·ï¸ڈ 50أ—25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
+    { value: '50x30', label: 'ًںڈ·ï¸ڈ 50أ—30mm (ظ…ط®طµطµ)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
+    { value: '100x50', label: 'ًںڈ·ï¸ڈ 100أ—50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
 ];
 
 export default function BarcodePage() {
@@ -112,22 +112,22 @@ export default function BarcodePage() {
                 ${name ? `<div class="name">${name}</div>` : ''}
                 <svg class="barcode" viewBox="0 0 ${totalBars} 100" preserveAspectRatio="none"><rect x="0" y="0" width="2" height="100" fill="#000"/>${barSvg}<rect x="${totalBars - 2}" y="0" width="2" height="100" fill="#000"/></svg>
                 <div class="code">${code}</div>
-                ${showPrice && price ? `<div class="price">${price.toFixed(2)} ر.س</div>` : ''}
+                ${showPrice && price ? `<div class="price">${price.toFixed(2)} ط±.ط³</div>` : ''}
             </div>`;
         }
 
         const pw = window.open('', '_blank', 'width=500,height=500');
         if (!pw) { showToast(t('sys.str_4158')); return; }
-        pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طباعة باركود</title>
+        pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ط·ط¨ط§ط¹ط© ط¨ط§ط±ظƒظˆط¯</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;700&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Cairo', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; padding: 2mm; gap: 1mm; }
+            body { font-family: 'Lateef', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; padding: 2mm; gap: 1mm; }
             .label { width: ${sz.w}; height: ${sz.h}; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1mm; overflow: hidden; page-break-inside: avoid; border: 0.5px dashed #ccc; }
             .company { font-size: ${sz.fontSize}; font-weight: 700; text-align: center; line-height: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
             .name { font-size: calc(${sz.fontSize} - 1px); text-align: center; line-height: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; color: #333; }
             .barcode { width: 90%; height: ${sz.barcodeH}; margin: 0.5mm 0; }
-            .code { font-size: ${sz.fontSize}; font-weight: 600; letter-spacing: 1.5px; text-align: center; font-family: monospace, 'Cairo'; }
+            .code { font-size: ${sz.fontSize}; font-weight: 600; letter-spacing: 1.5px; text-align: center; font-family: monospace, 'Lateef'; }
             .price { font-size: ${sz.fontSize}; font-weight: 700; text-align: center; }
             @media print { @page { margin: 0; size: auto; } body { padding: 0; } .label { border: none; } }
         </style></head><body>${labels}
@@ -152,7 +152,7 @@ export default function BarcodePage() {
                 setSelectedProduct({ ...selectedProduct, barcode: manualBarcode });
             } else {
                 const d = await res.json();
-                showToast(`❌ ${d.error || t('sys.str_4161')}`);
+                showToast(`â‌Œ ${d.error || t('sys.str_4161')}`);
             }
         } catch { showToast(t('sys.str_4162')); }
     };
@@ -216,7 +216,7 @@ export default function BarcodePage() {
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px',
                         }}>
                             <div>
-                                <div style={{ fontWeight: '700', fontSize: '15px' }}>📦 {selectedProduct.name}</div>
+                                <div style={{ fontWeight: '700', fontSize: '15px' }}>ًں“¦ {selectedProduct.name}</div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                     {t('sys.str_4141')}<code style={{ direction: 'ltr' }}>{selectedProduct.barcode || t('sys.str_4165')}</code>
                                 </div>
@@ -349,7 +349,8 @@ export default function BarcodePage() {
                     </div>
                 </div>
             </div>
-            {toast && <div className="toast-container"><div className={`toast ${toast.includes('✅') ? 'toast-success' : 'toast-error'}`}>{toast}</div></div>}
+            {toast && <div className="toast-container"><div className={`toast ${toast.includes('âœ…') ? 'toast-success' : 'toast-error'}`}>{toast}</div></div>}
         </>
     );
 }
+

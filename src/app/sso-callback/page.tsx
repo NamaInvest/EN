@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
 
@@ -12,7 +12,7 @@ export default function SSOCallback() {
         justifyContent: 'center',
         background: '#0f172a',
         color: 'white',
-        fontFamily: 'Cairo, sans-serif',
+        fontFamily: 'Lateef, sans-serif',
       }}
       dir="rtl"
     >
@@ -26,10 +26,11 @@ export default function SSOCallback() {
           animation: 'spin 0.8s linear infinite',
           margin: '0 auto 16px',
         }} />
-        <p style={{ color: '#94a3b8', fontWeight: 'bold' }}>جاري التحقق من الحساب...</p>
+        <p style={{ color: '#94a3b8', fontWeight: 'bold' }}>ط¬ط§ط±ظٹ ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط­ط³ط§ط¨...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
       <AuthenticateWithRedirectCallback />
     </div>
   );
 }
+

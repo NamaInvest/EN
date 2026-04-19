@@ -7,11 +7,20 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/sso-callback(.*)',
-  '/api(.*)',
+  // APIs that handle their own auth internally
+  '/api/ice(.*)',
+  '/api/tenant/provision(.*)',
+  '/api/tenant/hidden-modules(.*)',
+  '/api/tenant/check-status(.*)',
+  '/api/tenant/auto-login(.*)',
+  '/api/tenant/seed-company(.*)',
+  '/api/webhooks(.*)',
+  '/api/og(.*)',
   '/auto-login(.*)',
 ]);
 
-const isIceRoute = createRouteMatcher(['/ice(.*)']);
+// ICE Panel UI — المالك فقط (redirect to sign-in if not authenticated)
+const isIceRoute = createRouteMatcher(['/ice']);
 
 export default clerkMiddleware(async (auth, req) => {
   // ── استخراج الـ tenant من الـ subdomain ──────────────────────────
@@ -82,30 +91,30 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // ── ICE Panel: المالك فقط ──────────────────────────────────────────────────
+  // ── ICE Panel: تسجيل دخول مخصّص (بدون Clerk) ──────────────────────────────
   if (isIceRoute(req)) {
-    const { userId } = await auth();
-    // غير مسجّل → وجّهه لتسجيل الدخول ثم يرجع لـ /ice
-    if (!userId) {
-      const signInUrl = new URL('/sign-in', req.url);
-      signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
-      return NextResponse.redirect(signInUrl);
+    const iceToken = req.cookies.get('ice_token')?.value;
+    if (!iceToken) {
+      // لا يوجد token → الصفحة ستعرض نموذج تسجيل الدخول
+      return NextResponse.next();
     }
+    // التحقق من صلاحية الـ token
     try {
-      const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-        headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-        signal: AbortSignal.timeout(5000),
-      });
-      const clerkUser = await clerkRes.json().catch(() => ({}));
-      const email: string = clerkUser?.email_addresses?.[0]?.email_address || '';
-      console.log(`[ICE] userId=${userId} email=${email} owner=${OWNER_EMAIL}`);
-      if (email === OWNER_EMAIL) {
-        return NextResponse.next(); // ✅ المالك مسموح له
+      const [data, sig] = iceToken.split('.');
+      const crypto = require('crypto');
+      const secret = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
+      const expectedSig = crypto.createHmac('sha256', secret).update(data).digest('hex');
+      if (sig === expectedSig) {
+        const payload = JSON.parse(Buffer.from(data, 'base64').toString());
+        if (payload.exp > Date.now()) {
+          return NextResponse.next(); // ✅ مصادق عليه
+        }
       }
     } catch (e) {
-      console.error('[ICE] Clerk fetch error:', e);
+      console.error('[ICE] Token verify error:', e);
     }
-    return NextResponse.redirect(new URL('/', req.url));
+    // Token غير صالح → الصفحة ستعرض نموذج تسجيل الدخول
+    return NextResponse.next();
   }
 
   // باقي مسارات الموقع الرئيسي → Clerk protect أولاً

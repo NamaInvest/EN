@@ -124,3 +124,60 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
+
+// DELETE: حذف مستأجر بالكامل (قاعدة البيانات + حساب Clerk + السجل)
+export async function DELETE(req: Request) {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyOwner(userId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const { subdomain } = await req.json();
+    if (!subdomain) return NextResponse.json({ error: 'subdomain required' }, { status: 400 });
+
+    try {
+        // 1. جلب بيانات المستأجر (clerk_user_id, email)
+        const { rows } = await masterPool.query(
+            `SELECT clerk_user_id, user_email FROM tenant_accounts WHERE subdomain = $1`,
+            [subdomain]
+        );
+        const tenant = rows[0];
+
+        // 2. حذف قاعدة بيانات الـ tenant
+        const dbName = `${subdomain}_db`;
+        try {
+            // قطع أي اتصالات نشطة
+            await masterPool.query(`
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '${dbName}'
+                AND pid <> pg_backend_pid()
+            `);
+            await masterPool.query(`DROP DATABASE IF EXISTS "${dbName}"`);
+            console.log(`[ICE DELETE] Dropped database: ${dbName}`);
+        } catch (dbErr: any) {
+            console.error(`[ICE DELETE] DB drop error: ${dbErr.message}`);
+        }
+
+        // 3. حذف حساب Clerk المرتبط
+        if (tenant?.clerk_user_id) {
+            try {
+                const clerkRes = await fetch(`https://api.clerk.com/v1/users/${tenant.clerk_user_id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+                });
+                console.log(`[ICE DELETE] Clerk user ${tenant.clerk_user_id} deleted: ${clerkRes.status}`);
+            } catch (clerkErr: any) {
+                console.error(`[ICE DELETE] Clerk delete error: ${clerkErr.message}`);
+            }
+        }
+
+        // 4. حذف سجل المستأجر من الجدول
+        await masterPool.query(`DELETE FROM tenant_accounts WHERE subdomain = $1`, [subdomain]);
+        console.log(`[ICE DELETE] Tenant record deleted: ${subdomain}`);
+
+        return NextResponse.json({ success: true, action: 'delete', subdomain });
+    } catch (err: any) {
+        console.error(`[ICE DELETE] Error:`, err);
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    }
+}

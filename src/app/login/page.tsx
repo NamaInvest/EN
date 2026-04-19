@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,7 +13,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [companyName, setCompanyName] = useState("نما انفست");
+  const [companyName, setCompanyName] = useState("ظ†ظ…ط§ ط§ظ†ظپط³طھ");
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/auth/routing";
@@ -99,7 +99,7 @@ function LoginForm() {
       localStorage.setItem("lastActivity", Date.now().toString());
 
       document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      // ����� ������ ����������
+      // ï؟½ï؟½ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½
       const defaultPage = data.user?.defaultPage;
       window.location.href = defaultPage || "/dashboard";
     } catch (err) {
@@ -194,7 +194,7 @@ function LoginForm() {
                 {t("sys.str_4014")}
               </span>
             ) : (
-              "تسجيل الدخول"
+              "طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„"
             )}
           </button>
 
@@ -311,7 +311,7 @@ export default function LoginPage() {
             justifyContent: "center",
             fontWeight: "bold",
             fontSize: "1.25rem",
-            fontFamily: "Cairo,sans-serif",
+            fontFamily: "Lateef,sans-serif",
           }}
         >
           {t("sys.str_4018")}
@@ -322,3 +322,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+

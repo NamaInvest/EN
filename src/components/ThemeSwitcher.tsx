@@ -1,15 +1,15 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
-    { id: 'default',       nameKey: 'sys.str_4003', name: 'الوضع الافتراضي', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC' } },
-    { id: 'theme-white',   nameKey: 'sys.str_4008', name: 'أبيض نقي',        preview: { p: '#1E293B', b: '#FFFFFF',  t: '#000000' } },
-    { id: 'theme-light',   nameKey: 'sys.str_4004', name: 'الوضع النهاري',   preview: { p: '#4F46E5', b: '#FFFFFF',  t: '#0F172A' } },
-    { id: 'theme-luxury',  nameKey: 'sys.str_4005', name: 'الفاخر الداكن',   preview: { p: '#D4AF37', b: '#04060F',  t: '#FDFBF7' } },
-    { id: 'theme-cyber',   nameKey: 'sys.str_4006', name: 'السيبراني',       preview: { p: '#00FFCC', b: '#050505',  t: '#E0FFFF' } },
-    { id: 'theme-soft',    nameKey: 'sys.str_4007', name: 'الناعم الرمادي', preview: { p: '#8DA9C4', b: '#E0E7ED',  t: '#4A5A6A' } },
+    { id: 'default',       nameKey: 'sys.str_4003', name: 'ط§ظ„ظˆط¶ط¹ ط§ظ„ط§ظپطھط±ط§ط¶ظٹ', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC' } },
+    { id: 'theme-white',   nameKey: 'sys.str_4008', name: 'ط£ط¨ظٹط¶ ظ†ظ‚ظٹ',        preview: { p: '#1E293B', b: '#FFFFFF',  t: '#000000' } },
+    { id: 'theme-light',   nameKey: 'sys.str_4004', name: 'ط§ظ„ظˆط¶ط¹ ط§ظ„ظ†ظ‡ط§ط±ظٹ',   preview: { p: '#4F46E5', b: '#FFFFFF',  t: '#0F172A' } },
+    { id: 'theme-luxury',  nameKey: 'sys.str_4005', name: 'ط§ظ„ظپط§ط®ط± ط§ظ„ط¯ط§ظƒظ†',   preview: { p: '#D4AF37', b: '#04060F',  t: '#FDFBF7' } },
+    { id: 'theme-cyber',   nameKey: 'sys.str_4006', name: 'ط§ظ„ط³ظٹط¨ط±ط§ظ†ظٹ',       preview: { p: '#00FFCC', b: '#050505',  t: '#E0FFFF' } },
+    { id: 'theme-soft',    nameKey: 'sys.str_4007', name: 'ط§ظ„ظ†ط§ط¹ظ… ط§ظ„ط±ظ…ط§ط¯ظٹ', preview: { p: '#8DA9C4', b: '#E0E7ED',  t: '#4A5A6A' } },
 ];
 
 export default function ThemeSwitcher() {
@@ -53,11 +53,11 @@ export default function ThemeSwitcher() {
     return (
         <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
 
-            {/* ── Toggle Button ── */}
+            {/* â”€â”€ Toggle Button â”€â”€ */}
             <button
                 id="theme-switcher-btn"
                 onClick={(e) => { e.stopPropagation(); setIsOpen(prev => !prev); }}
-                title={t('sys.str_110') || 'تغيير الثيم'}
+                title={t('sys.str_110') || 'طھط؛ظٹظٹط± ط§ظ„ط«ظٹظ…'}
                 style={{
                     background: isOpen ? 'var(--primary, #6C63FF)' : 'transparent',
                     border: '2px solid var(--border-light, #94A3B8)',
@@ -75,10 +75,10 @@ export default function ThemeSwitcher() {
                     flexShrink: 0,
                 }}
             >
-                🎨
+                ًںژ¨
             </button>
 
-            {/* ── Dropdown Panel ── */}
+            {/* â”€â”€ Dropdown Panel â”€â”€ */}
             {isOpen && (
                 <>
                     {/* Backdrop to close on outside click */}
@@ -86,7 +86,7 @@ export default function ThemeSwitcher() {
                         style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
                         onClick={() => setIsOpen(false)}
                     />
-                    {/* The actual panel — opens DOWNWARD */}
+                    {/* The actual panel â€” opens DOWNWARD */}
                     <div style={{
                         position: 'absolute',
                         top: 'calc(100% + 8px)',
@@ -113,7 +113,7 @@ export default function ThemeSwitcher() {
                             letterSpacing: '0.5px',
                             textTransform: 'uppercase',
                         }}>
-                            {t('sys.str_109') || '🎨 اختر الثيم'}
+                            {t('sys.str_109') || 'ًںژ¨ ط§ط®طھط± ط§ظ„ط«ظٹظ…'}
                         </div>
 
                         {/* Theme options */}
@@ -145,7 +145,7 @@ export default function ThemeSwitcher() {
                                         fontWeight: isActive ? '700' : '400',
                                         transition: 'all 0.12s',
                                         marginBottom: '3px',
-                                        fontFamily: "'Cairo', sans-serif",
+                                        fontFamily: "'Lateef', sans-serif",
                                         outline: 'none',
                                         whiteSpace: 'nowrap',
                                     }}
@@ -157,7 +157,7 @@ export default function ThemeSwitcher() {
                                         fontSize: '14px',
                                         color: '#6C63FF',
                                         visibility: isActive ? 'visible' : 'hidden',
-                                    }}>✓</span>
+                                    }}>âœ“</span>
 
                                     {/* Theme name */}
                                     <span style={{ flex: 1, textAlign: 'right', margin: '0 6px' }}>
@@ -188,3 +188,4 @@ export default function ThemeSwitcher() {
         </div>
     );
 }
+

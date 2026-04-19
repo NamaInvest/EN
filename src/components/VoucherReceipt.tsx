@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -76,12 +76,12 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>سند قبض</title>
+        <title>ط³ظ†ط¯ ظ‚ط¨ط¶</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Lateef', sans-serif;
             width: ${ps.width};
             padding: ${ps.padding};
             font-size: ${ps.fontSize};
@@ -123,14 +123,14 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
     }).format(v);
 
     const paymentLabel = (method: string) => {
-        const labels: Record<string, string> = { cash: 'نقداً', card: 'بطاقة مدى/ائتمان', transfer: 'تحويل بنكي', split: 'مقسّم (نقد/بطاقة)' };
+        const labels: Record<string, string> = { cash: 'ظ†ظ‚ط¯ط§ظ‹', card: 'ط¨ط·ط§ظ‚ط© ظ…ط¯ظ‰/ط§ط¦طھظ…ط§ظ†', transfer: 'طھط­ظˆظٹظ„ ط¨ظ†ظƒظٹ', split: 'ظ…ظ‚ط³ظ‘ظ… (ظ†ظ‚ط¯/ط¨ط·ط§ظ‚ط©)' };
         return labels[method] || method;
     };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', background: '#fff', color: '#000' }}>
-                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Cairo, sans-serif', direction: 'rtl' }}>
+                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Lateef, sans-serif', direction: 'rtl' }}>
                     
                     {/* Header */}
                     <div className="header" style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -177,12 +177,13 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid #eee' }} className="no-print">
-                    <button onClick={handlePrint} style={{ flex: 1, padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Cairo' }}>
+                    <button onClick={handlePrint} style={{ flex: 1, padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Lateef' }}>
                         {t('sys.str_125')}</button>
-                    <button onClick={onClose} style={{ padding: '12px 24px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Cairo' }}>
+                    <button onClick={onClose} style={{ padding: '12px 24px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Lateef' }}>
                         {t('sys.str_77')}</button>
                 </div>
             </div>
         </div>
     );
 }
+

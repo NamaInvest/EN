@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -8,16 +8,16 @@ import { Suspense } from 'react';
 function AutoLoginContent() {
     const searchParams = useSearchParams();
     const { user: clerkUser, isLoaded } = useUser();
-    const [msg, setMsg] = useState('جاري تسجيل الدخول...');
+    const [msg, setMsg] = useState('ط¬ط§ط±ظٹ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„...');
 
     useEffect(() => {
-        if (!isLoaded) return; // انتظر تحميل Clerk
+        if (!isLoaded) return; // ط§ظ†طھط¸ط± طھط­ظ…ظٹظ„ Clerk
 
         const token = searchParams.get('token');
         const redirect = searchParams.get('redirect') || '/dashboard';
 
         const goToDashboard = (jwtToken: string, user?: any) => {
-            // إذا يوجد مستخدم Clerk، استخدم بياناته للعرض
+            // ط¥ط°ط§ ظٹظˆط¬ط¯ ظ…ط³طھط®ط¯ظ… ClerkطŒ ط§ط³طھط®ط¯ظ… ط¨ظٹط§ظ†ط§طھظ‡ ظ„ظ„ط¹ط±ط¶
             const displayUser = {
                 ...(user || {}),
                 fullName: clerkUser?.fullName || clerkUser?.emailAddresses?.[0]?.emailAddress || user?.fullName || 'Admin',
@@ -31,9 +31,9 @@ function AutoLoginContent() {
         };
 
         const tryAutoLogin = async () => {
-            setMsg('جاري التحقق من هويتك...');
+            setMsg('ط¬ط§ط±ظٹ ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ظ‡ظˆظٹطھظƒ...');
 
-            // محاولة 1: تسجيل الدخول بالبريد من Clerk
+            // ظ…ط­ط§ظˆظ„ط© 1: طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ط¨ط§ظ„ط¨ط±ظٹط¯ ظ…ظ† Clerk
             const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
             if (userEmail) {
                 try {
@@ -46,12 +46,12 @@ function AutoLoginContent() {
                         const data = await res.json();
                         if (data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* متابعة */ }
+                } catch { /* ظ…طھط§ط¨ط¹ط© */ }
             }
 
-            // محاولة 2: تسجيل الدخول كـ admin
+            // ظ…ط­ط§ظˆظ„ط© 2: طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظƒظ€ admin
             try {
-                setMsg('جاري الدخول كمدير النظام...');
+                setMsg('ط¬ط§ط±ظٹ ط§ظ„ط¯ط®ظˆظ„ ظƒظ…ط¯ظٹط± ط§ظ„ظ†ط¸ط§ظ…...');
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -61,14 +61,14 @@ function AutoLoginContent() {
                     const data = await res.json();
                     if (data.token) { goToDashboard(data.token, data.user); return; }
                 }
-            } catch { /* متابعة */ }
+            } catch { /* ظ…طھط§ط¨ط¹ط© */ }
 
-            // إذا فشل كل شيء → الـ dashboard مباشرة
+            // ط¥ط°ط§ ظپط´ظ„ ظƒظ„ ط´ظٹط، â†’ ط§ظ„ظ€ dashboard ظ…ط¨ط§ط´ط±ط©
             window.location.replace(redirect);
         };
 
         const run = async () => {
-            // إذا يوجد SSO token صريح جرّبه
+            // ط¥ط°ط§ ظٹظˆط¬ط¯ SSO token طµط±ظٹط­ ط¬ط±ظ‘ط¨ظ‡
             if (token) {
                 try {
                     const res = await fetch(`/api/auth/auto-login?token=${encodeURIComponent(token)}`);
@@ -76,7 +76,7 @@ function AutoLoginContent() {
                         const data = await res.json();
                         if (data.success && data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* تابع */ }
+                } catch { /* طھط§ط¨ط¹ */ }
             }
 
             await tryAutoLogin();
@@ -95,7 +95,7 @@ function AutoLoginContent() {
             color: 'white',
             flexDirection: 'column',
             gap: '16px',
-            fontFamily: 'Cairo, sans-serif',
+            fontFamily: 'Lateef, sans-serif',
         }} dir="rtl">
             <div style={{
                 width: '48px',
@@ -118,3 +118,4 @@ export default function AutoLoginPage() {
         </Suspense>
     );
 }
+

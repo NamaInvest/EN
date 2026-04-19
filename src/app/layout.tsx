@@ -46,18 +46,18 @@ export default async function RootLayout({
           <meta name="theme-color" content="#0f172a" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
           {/* Invalidate any stale service workers from old builds */}
           <script dangerouslySetInnerHTML={{ __html:
             `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>{r.forEach(e=>e.unregister())});}`
           }} />
         </head>
-        <body style={{ fontFamily: "'Cairo', sans-serif", margin: 0, padding: 0, backgroundColor: '#f8fafc' }}>
+        <body style={{ fontFamily: "'Lateef', sans-serif", margin: 0, padding: 0, backgroundColor: '#f8fafc' }}>
           <style dangerouslySetInnerHTML={{ __html: `
             /* Reset & Base */
             *, *::before, *::after { box-sizing: border-box; }
             html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
-            body { background: #f8fafc !important; color: #0f172a !important; font-family: 'Cairo', sans-serif; }
+            body { background: #f8fafc !important; color: #0f172a !important; font-family: 'Lateef', sans-serif; }
             body::before { display: none !important; }
 
             /* Critical Layout Classes - bypass Tailwind @supports wrapper */
@@ -235,7 +235,7 @@ export default async function RootLayout({
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
           <script dangerouslySetInnerHTML={{ __html:

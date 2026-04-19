@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { Camera, CheckCircle, Fingerprint, XCircle } from 'lucide-react';
@@ -65,7 +65,7 @@ export default function FaceIdAttendance() {
       if (res.ok) {
         setStatus('success');
         setEmployee(data.employee);
-        setMessage(`تم تسجيل الخْتْم بنجاح: ${data.action === 'check_in' ? t('sys.str_380') : t('sys.str_381')}`);
+        setMessage(`طھظ… طھط³ط¬ظٹظ„ ط§ظ„ط®ظ’طھظ’ظ… ط¨ظ†ط¬ط§ط­: ${data.action === 'check_in' ? t('sys.str_380') : t('sys.str_381')}`);
         
         // Reset after 4 seconds for the next employee
         setTimeout(() => {
@@ -87,7 +87,7 @@ export default function FaceIdAttendance() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#0f172a', color: 'white', fontFamily: 'Cairo, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#0f172a', color: 'white', fontFamily: 'Lateef, sans-serif' }}>
       
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '36px', margin: '0 0 10px', color: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -171,3 +171,4 @@ export default function FaceIdAttendance() {
     </div>
   );
 }
+

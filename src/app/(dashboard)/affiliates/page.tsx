@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -29,7 +29,7 @@ export default function SaaS_Affiliate_Dashboard() {
     };
 
     return (
-        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Cairo, sans-serif' }} dir="rtl">
+        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Lateef, sans-serif' }} dir="rtl">
             
             {/* Header Section */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: '24px', padding: '40px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(59,130,246,0.3)' }}>
@@ -38,7 +38,7 @@ export default function SaaS_Affiliate_Dashboard() {
                     <p style={{ fontSize: '18px', margin: 0, opacity: 0.9, maxWidth: '600px', lineHeight: 1.6 }}>
                         {t('sys.str_277')}</p>
                 </div>
-                <div style={{ fontSize: '80px', paddingLeft: '40px', opacity: 0.8 }}>💸</div>
+                <div style={{ fontSize: '80px', paddingLeft: '40px', opacity: 0.8 }}>ًں’¸</div>
             </div>
 
             {loading ? (
@@ -69,7 +69,7 @@ export default function SaaS_Affiliate_Dashboard() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginTop: '30px' }}>
                         
                         <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
-                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>🖱️</div>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>ًں–±ï¸ڈ</div>
                             <div>
                                 <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>{t('sys.str_281')}</div>
                                 <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px' }}>{stats.clicks}</div>
@@ -77,7 +77,7 @@ export default function SaaS_Affiliate_Dashboard() {
                         </div>
 
                         <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
-                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', color: '#10b981', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>🏪</div>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', color: '#10b981', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>ًںڈھ</div>
                             <div>
                                 <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>{t('sys.str_282')}</div>
                                 <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px' }}>{stats.signups}</div>
@@ -85,7 +85,7 @@ export default function SaaS_Affiliate_Dashboard() {
                         </div>
 
                         <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '20px', border: '2px solid #10b981', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(16,185,129,0.15)' }}>
-                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#10b981', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>💰</div>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#10b981', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '28px' }}>ًں’°</div>
                             <div>
                                 <div style={{ fontSize: '14px', color: '#10b981', fontWeight: 'bold' }}>{t('sys.str_283')}</div>
                                 <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px' }}>{stats.earnings}</div>
@@ -107,3 +107,4 @@ export default function SaaS_Affiliate_Dashboard() {
         </div>
     );
 }
+

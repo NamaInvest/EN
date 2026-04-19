@@ -2228,8 +2228,14 @@ model TenantAccount {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // SaaS Billing & Lifecycle
-  paymentStatus        String @default("pending") @map("payment_status") // pending, paid, cancelled
-  subscriptionDuration String @default("1_year") @map("subscription_duration") // 1_year, 6_months, 1_month
+  paymentStatus        String    @default("pending") @map("payment_status") // pending, paid, cancelled
+  subscriptionDuration String    @default("1_year") @map("subscription_duration") // 1_year, 6_months, 1_month
+  subscriptionStatus   String?   @default("trial") @map("subscription_status") // trial, active, suspended
+  plan                 String?   @default("free") @map("plan") // free, basic, professional, enterprise
+  trialEndsAt          DateTime? @map("trial_ends_at")
+  invoiceQuota         Int?      @default(30) @map("invoice_quota")
+  productQuota         Int?      @default(1000) @map("product_quota")
+  userQuota            Int?      @default(1) @map("user_quota")
 
   @@map("tenant_accounts")
 }

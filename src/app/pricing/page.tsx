@@ -1,93 +1,93 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export const metadata = {
-    title: 'خطط الأسعار — نما انفست',
-    description: 'اختر الخطة المناسبة لشركتك. من المجاني إلى الاحترافي مع دعم كامل لـ ZATCA.',
+    title: 'ط®ط·ط· ط§ظ„ط£ط³ط¹ط§ط± â€” ظ†ظ…ط§ ط§ظ†ظپط³طھ',
+    description: 'ط§ط®طھط± ط§ظ„ط®ط·ط© ط§ظ„ظ…ظ†ط§ط³ط¨ط© ظ„ط´ط±ظƒطھظƒ. ظ…ظ† ط§ظ„ظ…ط¬ط§ظ†ظٹ ط¥ظ„ظ‰ ط§ظ„ط§ط­طھط±ط§ظپظٹ ظ…ط¹ ط¯ط¹ظ… ظƒط§ظ…ظ„ ظ„ظ€ ZATCA.',
 };
 
 const plans = [
     {
-        name: 'التجريبي',
+        name: 'ط§ظ„طھط¬ط±ظٹط¨ظٹ',
         nameEn: 'Free Trial',
-        price: 'مجاني',
-        period: '7 أيام',
+        price: 'ظ…ط¬ط§ظ†ظٹ',
+        period: '7 ط£ظٹط§ظ…',
         color: 'from-slate-700 to-slate-900',
         badge: null,
         features: [
-            { text: '30 فاتورة', included: true },
-            { text: '1,000 صنف', included: true },
-            { text: 'مستخدم واحد', included: true },
-            { text: 'تقارير أساسية', included: true },
+            { text: '30 ظپط§طھظˆط±ط©', included: true },
+            { text: '1,000 طµظ†ظپ', included: true },
+            { text: 'ظ…ط³طھط®ط¯ظ… ظˆط§ط­ط¯', included: true },
+            { text: 'طھظ‚ط§ط±ظٹط± ط£ط³ط§ط³ظٹط©', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
             { text: 'ZATCA Phase 2', included: false },
-            { text: 'دعم فني', included: false },
-            { text: 'نسخ احتياطية يومية', included: false },
+            { text: 'ط¯ط¹ظ… ظپظ†ظٹ', included: false },
+            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: false },
         ],
-        cta: 'الخطة الحالية',
+        cta: 'ط§ظ„ط®ط·ط© ط§ظ„ط­ط§ظ„ظٹط©',
         ctaHref: '/dashboard',
         disabled: true,
     },
     {
-        name: 'الأساسية',
+        name: 'ط§ظ„ط£ط³ط§ط³ظٹط©',
         nameEn: 'Basic',
         price: '99',
-        period: 'شهرياً',
+        period: 'ط´ظ‡ط±ظٹط§ظ‹',
         color: 'from-indigo-600 to-indigo-800',
-        badge: 'الأكثر شيوعاً',
+        badge: 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹',
         features: [
-            { text: 'فواتير غير محدودة', included: true },
-            { text: '5,000 صنف', included: true },
-            { text: '3 مستخدمين', included: true },
-            { text: 'تقارير متقدمة', included: true },
+            { text: 'ظپظˆط§طھظٹط± ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
+            { text: '5,000 طµظ†ظپ', included: true },
+            { text: '3 ظ…ط³طھط®ط¯ظ…ظٹظ†', included: true },
+            { text: 'طھظ‚ط§ط±ظٹط± ظ…طھظ‚ط¯ظ…ط©', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
             { text: 'ZATCA Phase 2', included: true },
-            { text: 'دعم بريد إلكتروني', included: true },
-            { text: 'نسخ احتياطية يومية', included: false },
+            { text: 'ط¯ط¹ظ… ط¨ط±ظٹط¯ ط¥ظ„ظƒطھط±ظˆظ†ظٹ', included: true },
+            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: false },
         ],
-        cta: 'اشترك الآن',
-        ctaHref: 'https://wa.me/966500000000?text=أريد الاشتراك في الخطة الأساسية',
+        cta: 'ط§ط´طھط±ظƒ ط§ظ„ط¢ظ†',
+        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ط§ظ„ط®ط·ط© ط§ظ„ط£ط³ط§ط³ظٹط©',
         disabled: false,
     },
     {
-        name: 'الاحترافية',
+        name: 'ط§ظ„ط§ط­طھط±ط§ظپظٹط©',
         nameEn: 'Professional',
         price: '299',
-        period: 'شهرياً',
+        period: 'ط´ظ‡ط±ظٹط§ظ‹',
         color: 'from-violet-600 to-purple-800',
-        badge: 'موصى به للشركات',
+        badge: 'ظ…ظˆطµظ‰ ط¨ظ‡ ظ„ظ„ط´ط±ظƒط§طھ',
         features: [
-            { text: 'فواتير غير محدودة', included: true },
-            { text: 'أصناف غير محدودة', included: true },
-            { text: '10 مستخدمين', included: true },
-            { text: 'تقارير متقدمة + BI', included: true },
+            { text: 'ظپظˆط§طھظٹط± ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
+            { text: 'ط£طµظ†ط§ظپ ط؛ظٹط± ظ…ط­ط¯ظˆط¯ط©', included: true },
+            { text: '10 ظ…ط³طھط®ط¯ظ…ظٹظ†', included: true },
+            { text: 'طھظ‚ط§ط±ظٹط± ظ…طھظ‚ط¯ظ…ط© + BI', included: true },
             { text: 'ZATCA Phase 1 (QR)', included: true },
-            { text: 'ZATCA Phase 2 كاملة', included: true },
-            { text: 'دعم أولوية 24/7', included: true },
-            { text: 'نسخ احتياطية يومية', included: true },
+            { text: 'ZATCA Phase 2 ظƒط§ظ…ظ„ط©', included: true },
+            { text: 'ط¯ط¹ظ… ط£ظˆظ„ظˆظٹط© 24/7', included: true },
+            { text: 'ظ†ط³ط® ط§ط­طھظٹط§ط·ظٹط© ظٹظˆظ…ظٹط©', included: true },
         ],
-        cta: 'اشترك الآن',
-        ctaHref: 'https://wa.me/966500000000?text=أريد الاشتراك في الخطة الاحترافية',
+        cta: 'ط§ط´طھط±ظƒ ط§ظ„ط¢ظ†',
+        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ط§ظ„ط§ط´طھط±ط§ظƒ ظپظٹ ط§ظ„ط®ط·ط© ط§ظ„ط§ط­طھط±ط§ظپظٹط©',
         disabled: false,
     },
     {
-        name: 'المؤسسات',
+        name: 'ط§ظ„ظ…ط¤ط³ط³ط§طھ',
         nameEn: 'Enterprise',
-        price: 'تواصل معنا',
+        price: 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§',
         period: '',
         color: 'from-amber-600 to-orange-700',
-        badge: 'للشركات الكبرى',
+        badge: 'ظ„ظ„ط´ط±ظƒط§طھ ط§ظ„ظƒط¨ط±ظ‰',
         features: [
-            { text: 'كل شيء في الاحترافي', included: true },
-            { text: 'مستخدمون غير محدودون', included: true },
-            { text: 'فروع متعددة', included: true },
-            { text: 'تكامل API مخصص', included: true },
-            { text: 'SLA مضمون 99.9%', included: true },
-            { text: 'تدريب وتأهيل الفريق', included: true },
-            { text: 'مدير حساب مخصص', included: true },
-            { text: 'تخصيص كامل للنظام', included: true },
+            { text: 'ظƒظ„ ط´ظٹط، ظپظٹ ط§ظ„ط§ط­طھط±ط§ظپظٹ', included: true },
+            { text: 'ظ…ط³طھط®ط¯ظ…ظˆظ† ط؛ظٹط± ظ…ط­ط¯ظˆط¯ظˆظ†', included: true },
+            { text: 'ظپط±ظˆط¹ ظ…طھط¹ط¯ط¯ط©', included: true },
+            { text: 'طھظƒط§ظ…ظ„ API ظ…ط®طµطµ', included: true },
+            { text: 'SLA ظ…ط¶ظ…ظˆظ† 99.9%', included: true },
+            { text: 'طھط¯ط±ظٹط¨ ظˆطھط£ظ‡ظٹظ„ ط§ظ„ظپط±ظٹظ‚', included: true },
+            { text: 'ظ…ط¯ظٹط± ط­ط³ط§ط¨ ظ…ط®طµطµ', included: true },
+            { text: 'طھط®طµظٹطµ ظƒط§ظ…ظ„ ظ„ظ„ظ†ط¸ط§ظ…', included: true },
         ],
-        cta: 'تواصل معنا',
-        ctaHref: 'https://wa.me/966500000000?text=أريد معرفة المزيد عن خطة المؤسسات',
+        cta: 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§',
+        ctaHref: 'https://wa.me/966500000000?text=ط£ط±ظٹط¯ ظ…ط¹ط±ظپط© ط§ظ„ظ…ط²ظٹط¯ ط¹ظ† ط®ط·ط© ط§ظ„ظ…ط¤ط³ط³ط§طھ',
         disabled: false,
     },
 ];
@@ -99,7 +99,7 @@ export default function PricingPage() {
             style={{
                 minHeight: '100vh',
                 background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-                fontFamily: "'Cairo', 'Segoe UI', sans-serif",
+                fontFamily: "'Lateef', 'Segoe UI', sans-serif",
                 padding: '40px 16px 80px',
             }}
         >
@@ -112,7 +112,7 @@ export default function PricingPage() {
                         borderRadius: '50px', padding: '6px 20px', marginBottom: '24px',
                         color: '#a5b4fc', fontSize: '14px', cursor: 'pointer',
                     }}>
-                        ← العودة للرئيسية
+                        â†گ ط§ظ„ط¹ظˆط¯ط© ظ„ظ„ط±ط¦ظٹط³ظٹط©
                     </div>
                 </Link>
 
@@ -122,10 +122,10 @@ export default function PricingPage() {
                     background: 'linear-gradient(to right, #c7d2fe, #818cf8, #6366f1)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 }}>
-                    خطط بسيطة وشفافة 💎
+                    ط®ط·ط· ط¨ط³ظٹط·ط© ظˆط´ظپط§ظپط© ًں’ژ
                 </h1>
                 <p style={{ color: '#94a3b8', fontSize: '18px', maxWidth: '600px', margin: '0 auto' }}>
-                    ابدأ مجاناً لمدة 7 أيام، ثم اختر الخطة التي تناسب نمو شركتك
+                    ط§ط¨ط¯ط£ ظ…ط¬ط§ظ†ط§ظ‹ ظ„ظ…ط¯ط© 7 ط£ظٹط§ظ…طŒ ط«ظ… ط§ط®طھط± ط§ظ„ط®ط·ط© ط§ظ„طھظٹ طھظ†ط§ط³ط¨ ظ†ظ…ظˆ ط´ط±ظƒطھظƒ
                 </p>
             </div>
 
@@ -140,7 +140,7 @@ export default function PricingPage() {
                 {plans.map((plan) => (
                     <div key={plan.name} style={{
                         background: 'rgba(255,255,255,0.04)',
-                        border: plan.badge === 'الأكثر شيوعاً'
+                        border: plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹'
                             ? '2px solid #6366f1'
                             : '1px solid rgba(255,255,255,0.08)',
                         borderRadius: '20px',
@@ -153,11 +153,11 @@ export default function PricingPage() {
                         {/* Badge */}
                         {plan.badge && (
                             <div style={{
-                                background: plan.badge === 'الأكثر شيوعاً' ? '#6366f1' : 'rgba(255,255,255,0.1)',
+                                background: plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹' ? '#6366f1' : 'rgba(255,255,255,0.1)',
                                 color: 'white', textAlign: 'center',
                                 padding: '6px', fontSize: '12px', fontWeight: '700',
                             }}>
-                                ⭐ {plan.badge}
+                                â­گ {plan.badge}
                             </div>
                         )}
 
@@ -173,16 +173,16 @@ export default function PricingPage() {
                                 {plan.name}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                                {plan.price === 'مجاني' || plan.price === 'تواصل معنا' ? (
+                                {plan.price === 'ظ…ط¬ط§ظ†ظٹ' || plan.price === 'طھظˆط§طµظ„ ظ…ط¹ظ†ط§' ? (
                                     <span style={{ color: 'white', fontSize: '28px', fontWeight: '800' }}>{plan.price}</span>
                                 ) : (
                                     <>
                                         <span style={{ color: 'white', fontSize: '40px', fontWeight: '800' }}>{plan.price}</span>
-                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>ر.س</span>
+                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>ط±.ط³</span>
                                         <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {plan.period}</span>
                                     </>
                                 )}
-                                {plan.period === '7 أيام' && (
+                                {plan.period === '7 ط£ظٹط§ظ…' && (
                                     <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>/ {plan.period}</span>
                                 )}
                             </div>
@@ -198,7 +198,7 @@ export default function PricingPage() {
                                     color: f.included ? '#e2e8f0' : '#475569',
                                     fontSize: '14px',
                                 }}>
-                                    <span style={{ fontSize: '16px' }}>{f.included ? '✅' : '❌'}</span>
+                                    <span style={{ fontSize: '16px' }}>{f.included ? 'âœ…' : 'â‌Œ'}</span>
                                     <span style={{ textDecoration: f.included ? 'none' : 'line-through' }}>{f.text}</span>
                                 </div>
                             ))}
@@ -214,7 +214,7 @@ export default function PricingPage() {
                                     borderRadius: '12px',
                                     background: plan.disabled
                                         ? 'rgba(255,255,255,0.05)'
-                                        : plan.badge === 'الأكثر شيوعاً'
+                                        : plan.badge === 'ط§ظ„ط£ظƒط«ط± ط´ظٹظˆط¹ط§ظ‹'
                                             ? 'linear-gradient(135deg, #6366f1, #4f46e5)'
                                             : 'rgba(255,255,255,0.1)',
                                     border: plan.disabled ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.2)',
@@ -226,7 +226,7 @@ export default function PricingPage() {
                                     pointerEvents: plan.disabled ? 'none' : 'auto',
                                 }}
                             >
-                                {plan.cta} {!plan.disabled && '🚀'}
+                                {plan.cta} {!plan.disabled && 'ًںڑ€'}
                             </a>
                         </div>
                     </div>
@@ -242,21 +242,22 @@ export default function PricingPage() {
                 textAlign: 'center',
             }}>
                 <p style={{ color: '#94a3b8', fontSize: '15px', margin: 0 }}>
-                    💬 هل تحتاج مساعدة في اختيار الخطة المناسبة؟
+                    ًں’¬ ظ‡ظ„ طھط­طھط§ط¬ ظ…ط³ط§ط¹ط¯ط© ظپظٹ ط§ط®طھظٹط§ط± ط§ظ„ط®ط·ط© ط§ظ„ظ…ظ†ط§ط³ط¨ط©طں
                     <br />
                     <a
                         href="https://wa.me/966500000000"
                         style={{ color: '#818cf8', textDecoration: 'none', fontWeight: '700', marginTop: '8px', display: 'inline-block' }}
                     >
-                        تواصل معنا عبر واتساب ←
+                        طھظˆط§طµظ„ ظ…ط¹ظ†ط§ ط¹ط¨ط± ظˆط§طھط³ط§ط¨ â†گ
                     </a>
                 </p>
             </div>
 
             <link
-                href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+                href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;700;800&display=swap"
                 rel="stylesheet"
             />
         </div>
     );
 }
+

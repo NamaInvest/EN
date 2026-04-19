@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -31,7 +31,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [vatNumber, setVatNumber] = useState('');
-    const [cashierName, setCashierName] = useState('الكاشير');
+    const [cashierName, setCashierName] = useState('ط§ظ„ظƒط§ط´ظٹط±');
     const [companyCity, setCompanyCity] = useState('');
     const [crNumber, setCrNumber] = useState('');
     const [companyAddress, setCompanyAddress] = useState('');
@@ -160,10 +160,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         <meta charset="UTF-8">
         <title>${windowTitle}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Lateef', sans-serif;
             width: ${ps.width};
             padding: ${ps.padding};
             font-size: ${ps.fontSize};
@@ -247,10 +247,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 <html dir="rtl" lang="ar">
                 <head>
                     <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+                        @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
                         * { margin: 0; padding: 0; box-sizing: border-box; }
                         body {
-                            font-family: 'Cairo', sans-serif;
+                            font-family: 'Lateef', sans-serif;
                             line-height: 1.4;
                             direction: rtl;
                             color: #000;
@@ -283,17 +283,17 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                     <div class="a4-container">
                         <div class="a4-header">
                             <h1>${companyName}</h1>
-                            <h2>الرقم الضريبي : <span dir="ltr">${vatNumber}</span></h2>
-                            <h3>${isQuote ? 'عرض سعر / Quotation' : 'فاتورة ضريبية / Tax Invoice'}</h3>
+                            <h2>ط§ظ„ط±ظ‚ظ… ط§ظ„ط¶ط±ظٹط¨ظٹ : <span dir="ltr">${vatNumber}</span></h2>
+                            <h3>${isQuote ? 'ط¹ط±ط¶ ط³ط¹ط± / Quotation' : 'ظپط§طھظˆط±ط© ط¶ط±ظٹط¨ظٹط© / Tax Invoice'}</h3>
                         </div>
                         
                         <table class="info-table">
                             <tbody>
                                 <tr>
                                     <td class="ar-cell">
-                                        <div><strong>المدينة:</strong> ${companyCity}</div>
-                                        <div><strong>العنوان:</strong> ${companyAddress}</div>
-                                        <div><strong>رقم السجل التجاري:</strong> <span dir="ltr">${crNumber}</span></div>
+                                        <div><strong>ط§ظ„ظ…ط¯ظٹظ†ط©:</strong> ${companyCity}</div>
+                                        <div><strong>ط§ظ„ط¹ظ†ظˆط§ظ†:</strong> ${companyAddress}</div>
+                                        <div><strong>ط±ظ‚ظ… ط§ظ„ط³ط¬ظ„ ط§ظ„طھط¬ط§ط±ظٹ:</strong> <span dir="ltr">${crNumber}</span></div>
                                     </td>
                                     <td class="en-cell">
                                         <div><strong>City:</strong> ${companyCity}</div>
@@ -303,10 +303,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 </tr>
                                 <tr>
                                     <td class="ar-cell">
-                                        <div><strong>الكاشير:</strong> ${cashierName}</div>
-                                        <div><strong>العميل:</strong> ${data.customerName || 'عميل نقدي'}</div>
-                                        <div><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
-                                        <div><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
+                                        <div><strong>ط§ظ„ظƒط§ط´ظٹط±:</strong> ${cashierName}</div>
+                                        <div><strong>ط§ظ„ط¹ظ…ظٹظ„:</strong> ${data.customerName || 'ط¹ظ…ظٹظ„ ظ†ظ‚ط¯ظٹ'}</div>
+                                        <div><strong>ط±ظ‚ظ… ط§ظ„ظپط§طھظˆط±ط©:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
+                                        <div><strong>طھط§ط±ظٹط® ط§ظ„ط¥طµط¯ط§ط±:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
                                     </td>
                                     <td class="en-cell">
                                         <div><strong>Cashier:</strong> ${cashierName}</div>
@@ -321,10 +321,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <table class="items-table">
                             <thead>
                                 <tr>
-                                    <th style="text-align: right;">المنتج<br/><span style="font-size:10px;font-weight:normal">Product</span></th>
-                                    <th>الكمية<br/><span style="font-size:10px;font-weight:normal">Qty</span></th>
-                                    <th>سعر الوحدة<br/><span style="font-size:10px;font-weight:normal">Unit Price</span></th>
-                                    <th>الإجمالي<br/><span style="font-size:10px;font-weight:normal">Total</span></th>
+                                    <th style="text-align: right;">ط§ظ„ظ…ظ†طھط¬<br/><span style="font-size:10px;font-weight:normal">Product</span></th>
+                                    <th>ط§ظ„ظƒظ…ظٹط©<br/><span style="font-size:10px;font-weight:normal">Qty</span></th>
+                                    <th>ط³ط¹ط± ط§ظ„ظˆط­ط¯ط©<br/><span style="font-size:10px;font-weight:normal">Unit Price</span></th>
+                                    <th>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ<br/><span style="font-size:10px;font-weight:normal">Total</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -340,7 +340,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 <tr>
                                     <td colSpan="3" style="text-align: left; font-weight: 600;">
                                         <div class="split-total">
-                                            <span>الإجمالي الفرعي</span>
+                                            <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظپط±ط¹ظٹ</span>
                                             <span class="en-text">Subtotal</span>
                                         </div>
                                     </td>
@@ -350,7 +350,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 <tr>
                                     <td colSpan="3" style="text-align: left; font-weight: 600; color: #e11d48;">
                                         <div class="split-total">
-                                            <span>الخصم</span>
+                                            <span>ط§ظ„ط®طµظ…</span>
                                             <span class="en-text">Discount</span>
                                         </div>
                                     </td>
@@ -360,7 +360,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 <tr>
                                     <td colSpan="3" style="text-align: left; font-weight: 600;">
                                         <div class="split-total">
-                                            <span>ضريبة القيمة المضافة (${data.taxRate}%)</span>
+                                            <span>ط¶ط±ظٹط¨ط© ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ…ط¶ط§ظپط© (${data.taxRate}%)</span>
                                             <span class="en-text">VAT (${data.taxRate}%)</span>
                                         </div>
                                     </td>
@@ -369,7 +369,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 <tr>
                                     <td colSpan="3" style="text-align: left; font-size: 16px; font-weight: 900;">
                                         <div class="split-total">
-                                            <span>الإجمالي الكلي</span>
+                                            <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظƒظ„ظٹ</span>
                                             <span class="en-text">Grand Total</span>
                                         </div>
                                     </td>
@@ -406,7 +406,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     }).format(v);
 
     const paymentLabel = (method: string) => {
-        const labels: Record<string, string> = { cash: 'نقدي', card: 'بطاقة', transfer: 'تحويل بنكي', credit: 'آجل' };
+        const labels: Record<string, string> = { cash: 'ظ†ظ‚ط¯ظٹ', card: 'ط¨ط·ط§ظ‚ط©', transfer: 'طھط­ظˆظٹظ„ ط¨ظ†ظƒظٹ', credit: 'ط¢ط¬ظ„' };
         return labels[method] || method;
     };
 
@@ -414,7 +414,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', background: '#fff', color: '#000' }}>
                 {/* Receipt content for printing */}
-                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Cairo, sans-serif', direction: 'rtl' }}>
+                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Lateef, sans-serif', direction: 'rtl' }}>
                     {/* Header */}
                     <div className="header" style={{ textAlign: 'center', paddingBottom: '12px', marginBottom: '12px' }}>
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
@@ -433,15 +433,15 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                     <strong>{t('sys.str_84')}:</strong> <span dir="ltr">{data.invoiceNumber}</span>
                                 </td>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
-                                    <strong>التاريخ:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('ar-SA')}</span>
+                                    <strong>ط§ظ„طھط§ط±ظٹط®:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('ar-SA')}</span>
                                 </td>
                             </tr>
                             <tr>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
-                                    <strong>الكاشير:</strong> {cashierName}
+                                    <strong>ط§ظ„ظƒط§ط´ظٹط±:</strong> {cashierName}
                                 </td>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
-                                    <strong>العميل:</strong> {data.customerName || 'عميل نقدي'}
+                                    <strong>ط§ظ„ط¹ظ…ظٹظ„:</strong> {data.customerName || 'ط¹ظ…ظٹظ„ ظ†ظ‚ط¯ظٹ'}
                                 </td>
                             </tr>
 
@@ -536,25 +536,25 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             flex: 1, padding: '12px', background: '#6C63FF', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Cairo',
+                            cursor: 'pointer', fontFamily: 'Lateef',
                         }}
                     >
-                        طباعة فورية</button>
+                        ط·ط¨ط§ط¹ط© ظپظˆط±ظٹط©</button>
                     <button
                         onClick={() => handlePrint(true)}
                         style={{
                             flex: 1, padding: '12px', background: '#3b82f6', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Cairo',
+                            cursor: 'pointer', fontFamily: 'Lateef',
                         }}
                     >
-                        خيارات الطباعة</button>
+                        ط®ظٹط§ط±ط§طھ ط§ظ„ط·ط¨ط§ط¹ط©</button>
                     <button
                         onClick={handleExportPDF}
                         style={{
                             flex: 1, padding: '12px', background: '#ef4444', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Cairo',
+                            cursor: 'pointer', fontFamily: 'Lateef',
                         }}
                     >
                         {t('sys.str_76')}</button>
@@ -563,7 +563,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             padding: '12px 24px', background: '#f1f5f9', color: '#334155',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Cairo',
+                            cursor: 'pointer', fontFamily: 'Lateef',
                         }}
                     >
                         {t('sys.str_77')}</button>
@@ -572,3 +572,4 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         </div>
     );
 }
+
