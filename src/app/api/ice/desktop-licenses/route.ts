@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 
-// ──────────────────────────────────────────────────────────────────────────────
-// ICE Desktop License API
-// إنشاء، التحقق، وإدارة مفاتيح تراخيص تطبيق سطح المكتب
-// ──────────────────────────────────────────────────────────────────────────────
-
 const MASTER_DB_URL = process.env.DATABASE_URL || '';
 
 function getMasterPool() {
   return new Pool({ connectionString: MASTER_DB_URL, max: 3 });
 }
 
-// Generate a license key: XXXX-XXXX-XXXX-XXXX
 function generateLicenseKey(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const segments = [];
@@ -27,35 +21,68 @@ function generateLicenseKey(): string {
   return segments.join('-');
 }
 
-// Ensure licenses table exists
 async function ensureTable(pool: Pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS desktop_licenses (
       id SERIAL PRIMARY KEY,
       license_key VARCHAR(20) UNIQUE NOT NULL,
-      company_name VARCHAR(255),
+      hardware_id VARCHAR(255),
+      company_name_ar VARCHAR(255),
+      company_name_en VARCHAR(255),
+      business_domain VARCHAR(100),
+      mobile VARCHAR(20),
+      vat_number VARCHAR(20),
+      crn_number VARCHAR(20),
+      city VARCHAR(100),
+      city_en VARCHAR(100),
+      district VARCHAR(100),
+      street_name VARCHAR(255),
+      building_no VARCHAR(10),
+      postal_code VARCHAR(10),
       contact_email VARCHAR(255),
       contact_phone VARCHAR(50),
-      hardware_id VARCHAR(255),
-      status VARCHAR(20) DEFAULT 'active',
+      status VARCHAR(20) DEFAULT 'trial',
+      app_version VARCHAR(20),
       max_devices INTEGER DEFAULT 1,
       activated_devices INTEGER DEFAULT 0,
-      expires_at TIMESTAMP,
-      created_at TIMESTAMP DEFAULT NOW(),
-      activated_at TIMESTAMP,
-      last_verified_at TIMESTAMP,
-      notes TEXT
+      trial_ends_at TIMESTAMPTZ,
+      expires_at TIMESTAMPTZ,
+      activated_at TIMESTAMPTZ,
+      last_verified_at TIMESTAMPTZ,
+      notes TEXT DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+
+  // Add new columns if table existed with old schema
+  const addColumnSafe = async (col: string, type: string) => {
+    try {
+      await pool.query(`ALTER TABLE desktop_licenses ADD COLUMN IF NOT EXISTS ${col} ${type}`);
+    } catch {}
+  };
+  await addColumnSafe('company_name_ar', 'VARCHAR(255)');
+  await addColumnSafe('company_name_en', 'VARCHAR(255)');
+  await addColumnSafe('business_domain', 'VARCHAR(100)');
+  await addColumnSafe('mobile', 'VARCHAR(20)');
+  await addColumnSafe('vat_number', 'VARCHAR(20)');
+  await addColumnSafe('crn_number', 'VARCHAR(20)');
+  await addColumnSafe('city', 'VARCHAR(100)');
+  await addColumnSafe('city_en', 'VARCHAR(100)');
+  await addColumnSafe('district', 'VARCHAR(100)');
+  await addColumnSafe('street_name', 'VARCHAR(255)');
+  await addColumnSafe('building_no', 'VARCHAR(10)');
+  await addColumnSafe('postal_code', 'VARCHAR(10)');
+  await addColumnSafe('app_version', 'VARCHAR(20)');
+  await addColumnSafe('trial_ends_at', 'TIMESTAMPTZ');
+  await addColumnSafe('updated_at', 'TIMESTAMPTZ DEFAULT NOW()');
 }
 
 // GET: List all licenses or verify a license key
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
-  const action = searchParams.get('action') || 'list';
 
-  // Desktop mode doesn't need license management
   if (process.env.DESKTOP_MODE === 'true') {
     return NextResponse.json({ valid: true, data: { company: 'Desktop Local' } });
   }
@@ -68,51 +95,55 @@ export async function GET(req: NextRequest) {
     // Verify a license key (called by desktop app)
     if (key) {
       const result = await pool.query(
-        `SELECT * FROM desktop_licenses WHERE license_key = $1`,
-        [key]
+        `SELECT * FROM desktop_licenses WHERE license_key = $1`, [key]
       );
 
       if (result.rows.length === 0) {
         return NextResponse.json({ valid: false, error: 'مفتاح غير موجود' });
       }
 
-      const license = result.rows[0];
+      const lic = result.rows[0];
 
-      if (license.status !== 'active') {
-        return NextResponse.json({ valid: false, error: 'الرخصة ملغية أو معلقة' });
+      // Check trial expiry
+      if (lic.status === 'trial' && lic.trial_ends_at && new Date(lic.trial_ends_at) < new Date()) {
+        return NextResponse.json({ valid: false, error: 'انتهت الفترة التجريبية', status: 'trial_expired' });
       }
 
-      if (license.expires_at && new Date(license.expires_at) < new Date()) {
-        return NextResponse.json({ valid: false, error: 'الرخصة منتهية الصلاحية' });
+      if (lic.status === 'revoked' || lic.status === 'suspended') {
+        return NextResponse.json({ valid: false, error: 'الرخصة ملغية أو معلقة', status: lic.status });
       }
 
-      // Update last verified
+      if (lic.expires_at && new Date(lic.expires_at) < new Date()) {
+        return NextResponse.json({ valid: false, error: 'الرخصة منتهية الصلاحية', status: 'expired' });
+      }
+
       await pool.query(
-        `UPDATE desktop_licenses SET last_verified_at = NOW() WHERE license_key = $1`,
-        [key]
+        `UPDATE desktop_licenses SET last_verified_at = NOW() WHERE license_key = $1`, [key]
       );
 
       return NextResponse.json({
         valid: true,
         data: {
-          company: license.company_name,
-          email: license.contact_email,
-          status: license.status,
-          expiresAt: license.expires_at,
+          company_name_ar: lic.company_name_ar || lic.company_name || '',
+          company_name_en: lic.company_name_en || '',
+          status: lic.status,
+          trial_ends_at: lic.trial_ends_at,
+          expires_at: lic.expires_at,
         },
       });
     }
 
-    // Check ICE admin auth
-    const authHeader = req.headers.get('cookie') || '';
-    const iceEmail = process.env.ICE_OWNER_EMAIL;
-    // Simple auth check — in production this should be more robust
-
-    // List all licenses
+    // List all licenses (for ICE panel)
     const result = await pool.query(
-      `SELECT id, license_key, company_name, contact_email, contact_phone, 
-              status, max_devices, activated_devices, expires_at, 
-              created_at, activated_at, last_verified_at, notes, hardware_id
+      `SELECT id, license_key, hardware_id,
+              company_name_ar, company_name_en, business_domain,
+              mobile, vat_number, crn_number,
+              city, city_en, district, street_name, building_no, postal_code,
+              contact_email, contact_phone,
+              status, app_version, max_devices, activated_devices,
+              trial_ends_at, expires_at, activated_at, last_verified_at, notes,
+              created_at, updated_at,
+              COALESCE(company_name_ar, '') as company_name
        FROM desktop_licenses ORDER BY created_at DESC`
     );
 
@@ -125,7 +156,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Create or Activate a license
+// POST: Create, activate, or manage licenses
 export async function POST(req: NextRequest) {
   if (process.env.DESKTOP_MODE === 'true') {
     return NextResponse.json({ error: 'Not available in desktop mode' }, { status: 400 });
@@ -139,14 +170,25 @@ export async function POST(req: NextRequest) {
     const { action } = body;
 
     if (action === 'create') {
-      // Generate new license key
       const key = generateLicenseKey();
-      const { company_name, contact_email, contact_phone, expires_at, notes, max_devices } = body;
+      const {
+        company_name, company_name_ar, company_name_en,
+        contact_email, contact_phone, expires_at, notes, max_devices,
+        business_domain, mobile, vat_number, crn_number,
+        city, city_en, district, street_name, building_no, postal_code,
+      } = body;
 
       await pool.query(
-        `INSERT INTO desktop_licenses (license_key, company_name, contact_email, contact_phone, expires_at, notes, max_devices)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [key, company_name || '', contact_email || '', contact_phone || '', 
+        `INSERT INTO desktop_licenses 
+          (license_key, company_name_ar, company_name_en, contact_email, contact_phone,
+           business_domain, mobile, vat_number, crn_number,
+           city, city_en, district, street_name, building_no, postal_code,
+           expires_at, notes, max_devices, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 'active')`,
+        [key, company_name_ar || company_name || '', company_name_en || '',
+         contact_email || '', contact_phone || '',
+         business_domain || '', mobile || '', vat_number || '', crn_number || '',
+         city || '', city_en || '', district || '', street_name || '', building_no || '', postal_code || '',
          expires_at || null, notes || '', max_devices || 1]
       );
 
@@ -154,68 +196,46 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'activate') {
-      // Desktop app calls this to register hardware
       const { key, hardware_id } = body;
-
       const result = await pool.query(
-        `SELECT * FROM desktop_licenses WHERE license_key = $1`,
-        [key]
+        `SELECT * FROM desktop_licenses WHERE license_key = $1`, [key]
       );
 
       if (result.rows.length === 0) {
         return NextResponse.json({ success: false, error: 'مفتاح غير موجود' });
       }
 
-      const license = result.rows[0];
-
-      if (license.status !== 'active') {
-        return NextResponse.json({ success: false, error: 'الرخصة غير نشطة' });
-      }
-
-      if (license.hardware_id && license.hardware_id !== hardware_id) {
-        if (license.activated_devices >= license.max_devices) {
-          return NextResponse.json({ success: false, error: 'تم الوصول للحد الأقصى من الأجهزة' });
-        }
+      const lic = result.rows[0];
+      if (lic.status === 'revoked') {
+        return NextResponse.json({ success: false, error: 'الرخصة ملغية' });
       }
 
       await pool.query(
         `UPDATE desktop_licenses 
          SET hardware_id = $1, activated_at = NOW(), activated_devices = activated_devices + 1,
-             last_verified_at = NOW()
+             last_verified_at = NOW(), status = 'active'
          WHERE license_key = $2`,
         [hardware_id || 'unknown', key]
       );
 
       return NextResponse.json({
         success: true,
-        data: { company: license.company_name, status: license.status },
+        data: { company: lic.company_name_ar, status: 'active' },
       });
     }
 
     if (action === 'revoke') {
-      const { id } = body;
-      await pool.query(
-        `UPDATE desktop_licenses SET status = 'revoked' WHERE id = $1`,
-        [id]
-      );
+      await pool.query(`UPDATE desktop_licenses SET status = 'revoked', updated_at = NOW() WHERE id = $1`, [body.id]);
       return NextResponse.json({ success: true });
     }
 
     if (action === 'suspend') {
-      const { id } = body;
-      await pool.query(
-        `UPDATE desktop_licenses SET status = 'suspended' WHERE id = $1`,
-        [id]
-      );
+      await pool.query(`UPDATE desktop_licenses SET status = 'suspended', updated_at = NOW() WHERE id = $1`, [body.id]);
       return NextResponse.json({ success: true });
     }
 
     if (action === 'reactivate') {
-      const { id } = body;
-      await pool.query(
-        `UPDATE desktop_licenses SET status = 'active' WHERE id = $1`,
-        [id]
-      );
+      await pool.query(`UPDATE desktop_licenses SET status = 'active', updated_at = NOW() WHERE id = $1`, [body.id]);
       return NextResponse.json({ success: true });
     }
 

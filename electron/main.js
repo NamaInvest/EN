@@ -196,12 +196,28 @@ function createWindow() {
     },
   });
 
+  // Set Content-Security-Policy
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' http://localhost:* https://*.namainvist.com https://fonts.googleapis.com https://fonts.gstatic.com; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; " +
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+          "font-src 'self' https://fonts.gstatic.com data:; " +
+          "img-src 'self' data: blob: http://localhost:* https:; " +
+          "connect-src 'self' http://localhost:* https://*.namainvist.com https://*.zatca.gov.sa wss://localhost:*;"
+        ],
+      },
+    });
+  });
+
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL(`http://localhost:${INTERNAL_PORT}/login`);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    if (isDev) mainWindow.webContents.openDevTools();
   });
 
   mainWindow.on('close', (e) => {

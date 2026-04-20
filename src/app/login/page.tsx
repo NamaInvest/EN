@@ -116,6 +116,27 @@ function LoginForm() {
       // تحويل المستخدم حسب الدور والصفحة الافتراضية
       const defaultPage = data.user?.defaultPage;
       const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+
+      // Desktop mode: check if company setup is needed
+      if (isDesktop && ADMIN_ROLES.includes(data.user?.role)) {
+        try {
+          const settingsRes = await fetch('/api/settings', {
+            headers: { 'Authorization': `Bearer ${data.token}` },
+          });
+          if (settingsRes.ok) {
+            const settings = await settingsRes.json();
+            const compName = Array.isArray(settings) 
+              ? settings.find((s: any) => s.key === 'company_name')?.value
+              : settings?.company_name;
+            const needsSetup = !compName || compName === 'نما إنفست' || compName === 'Nama Invest' || compName === 'شركتي';
+            if (needsSetup) {
+              window.location.href = '/company-setup';
+              return;
+            }
+          }
+        } catch { /* proceed to dashboard */ }
+      }
+
       if (defaultPage) {
         window.location.href = defaultPage;
       } else if (ADMIN_ROLES.includes(data.user?.role)) {

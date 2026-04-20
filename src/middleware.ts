@@ -18,7 +18,7 @@ const isPublicRoute = createRouteMatcher([
   '/auto-login(.*)',
 ]);
 
-const isIceRoute = createRouteMatcher(['/ice']);
+const isIceRoute = createRouteMatcher(['/ice', '/ice/(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';
@@ -44,6 +44,7 @@ export default clerkMiddleware(async (auth, req) => {
     // Public routes — always pass through
     if (
       pathname === '/login' ||
+      pathname === '/company-setup' ||
       pathname.startsWith('/api/') ||
       pathname.startsWith('/_next/') ||
       pathname.startsWith('/uploads/') ||
