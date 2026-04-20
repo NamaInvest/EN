@@ -261,7 +261,7 @@ function LoginForm() {
                 وضع سطح المكتب — يعمل بدون إنترنت
               </div>
               <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>
-                سجّل الدخول باسم المستخدم وكلمة المرور (admin / admin)
+                فترة تجريبية 7 أيام • ZATCA والفوترة الإلكترونية تعمل عند توفر الإنترنت
               </div>
             </div>
           ) : isSubdomain ? (

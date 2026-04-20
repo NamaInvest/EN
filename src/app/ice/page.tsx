@@ -564,6 +564,11 @@ export default function IcePage() {
                         <button onClick={() => changeTheme('glass')} title="Modern Glass"    className={`p-1.5 rounded-lg transition-all ${theme === 'glass' ? 'bg-indigo-600 text-white shadow-sm' : T.textMuted}`}><Sparkles className="w-4 h-4" /></button>
                     </div>
 
+                    <Link href="/ice/desktop-licenses" className={`p-2 rounded-xl transition-all ${T.itemHover} flex items-center gap-1.5 text-xs font-bold`} title="تراخيص سطح المكتب">
+                        <Key className="w-4 h-4 text-amber-500" />
+                        <span className="hidden lg:inline">التراخيص</span>
+                    </Link>
+
                     <button onClick={fetchTenants} title="تحديث" className={`p-2 rounded-xl transition-all ${T.itemHover}`}>
                         <RefreshCw className={`w-5 h-5 text-indigo-600 ${loading ? 'animate-spin' : ''}`} />
                     </button>

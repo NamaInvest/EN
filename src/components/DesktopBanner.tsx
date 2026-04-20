@@ -53,7 +53,7 @@ export default function DesktopBanner() {
           
           const launchDate = parseInt(firstLaunch || Date.now().toString());
           const daysSinceInstall = Math.floor((Date.now() - launchDate) / (1000 * 60 * 60 * 24));
-          const trialDays = 30;
+          const trialDays = 7;
           const trialDaysLeft = Math.max(0, trialDays - daysSinceInstall);
 
           setInfo({
@@ -77,7 +77,7 @@ export default function DesktopBanner() {
             localStorage.setItem('nama_first_launch', Date.now().toString());
           }
           const launchDate = parseInt(firstLaunch || Date.now().toString());
-          const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - launchDate) / (1000 * 60 * 60 * 24)));
+          const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - launchDate) / (1000 * 60 * 60 * 24)));
           
           setInfo({
             isDesktop: true,
