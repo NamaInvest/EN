@@ -101,13 +101,19 @@ export default function DesktopLicensesPage() {
     setCreating(false);
   }
 
-  async function updateStatus(id: number, action: string) {
+  async function updateStatus(id: number, action: string, extra: Record<string, any> = {}) {
     await fetch('/api/ice/desktop-licenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, id }),
+      body: JSON.stringify({ action, id, ...extra }),
     });
     loadLicenses();
+  }
+
+  function isOnline(lastVerified: string | null): boolean {
+    if (!lastVerified) return false;
+    const diff = Date.now() - new Date(lastVerified).getTime();
+    return diff < 2 * 60 * 60 * 1000; // متصل إذا آخر تحقق خلال ساعتين
   }
 
   const statusConfig: Record<string, { label: string; bg: string; color: string }> = {
@@ -126,6 +132,7 @@ export default function DesktopLicensesPage() {
 
   return (
     <div style={{ direction: 'rtl', minHeight: '100vh', background: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <style>{`@keyframes pulse-green { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #1e1b4b, #312e81, #4338ca)',
@@ -220,13 +227,21 @@ export default function DesktopLicensesPage() {
                     style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', cursor: 'pointer' }}
                     onClick={() => setExpandedId(expanded ? null : lic.id)}
                   >
-                    {/* License Key */}
-                    <div style={{ minWidth: '180px' }}>
-                      <div style={{ fontFamily: 'monospace', fontSize: '15px', fontWeight: 700, color: '#1e293b', letterSpacing: '1.5px', direction: 'ltr' }}>
-                        {lic.license_key}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                        {new Date(lic.created_at).toLocaleDateString('ar-SA')}
+                    {/* Online Indicator + License Key */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '200px' }}>
+                      <div style={{
+                        width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0,
+                        background: isOnline(lic.last_verified_at) ? '#22c55e' : '#ef4444',
+                        boxShadow: isOnline(lic.last_verified_at) ? '0 0 8px rgba(34,197,94,0.5)' : '0 0 8px rgba(239,68,68,0.3)',
+                        animation: isOnline(lic.last_verified_at) ? 'pulse-green 2s infinite' : 'none',
+                      }} title={isOnline(lic.last_verified_at) ? 'متصل' : 'غير متصل'} />
+                      <div>
+                        <div style={{ fontFamily: 'monospace', fontSize: '15px', fontWeight: 700, color: '#1e293b', letterSpacing: '1.5px', direction: 'ltr' }}>
+                          {lic.license_key}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                          {new Date(lic.created_at).toLocaleDateString('ar-SA')}
+                        </div>
                       </div>
                     </div>
 
@@ -289,6 +304,14 @@ export default function DesktopLicensesPage() {
                           ✅ تفعيل
                         </button>
                       )}
+                      <button onClick={() => {
+                        if (window.confirm(`⚠️ هل أنت متأكد من حذف ترخيص ${lic.company_name_ar || lic.license_key}?\n\nسيتم حذف الترخيص وجميع النسخ الاحتياطية المرتبطة به نهائياً!`)) {
+                          updateStatus(lic.id, 'delete');
+                        }
+                      }} title="حذف نهائي"
+                        style={{ background: '#fecaca', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+                        🗑️
+                      </button>
                     </div>
 
                     <span style={{ fontSize: '16px', color: '#94a3b8', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>▼</span>
@@ -330,11 +353,52 @@ export default function DesktopLicensesPage() {
                           { label: 'انتهاء التجربة', value: lic.trial_ends_at ? new Date(lic.trial_ends_at).toLocaleDateString('ar-SA') : '—' },
                         ]} />
                       </div>
+
+                      {/* Activation Duration Buttons */}
+                      <div style={{ marginTop: '16px', padding: '16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#15803d', marginBottom: '10px' }}>
+                          🔓 تفعيل الترخيص
+                        </h4>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {[
+                            { label: '3 أشهر', months: 3 },
+                            { label: '6 أشهر', months: 6 },
+                            { label: '9 أشهر', months: 9 },
+                            { label: 'سنة', months: 12 },
+                          ].map(opt => (
+                            <button
+                              key={opt.months}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`تفعيل ترخيص ${lic.company_name_ar || lic.license_key} لمدة ${opt.label}؟`)) {
+                                  updateStatus(lic.id, 'activate_duration', { months: opt.months });
+                                }
+                              }}
+                              style={{
+                                background: 'linear-gradient(135deg, #059669, #10b981)',
+                                color: '#fff', border: 'none', padding: '8px 20px',
+                                borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                                cursor: 'pointer', boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                              }}
+                            >
+                              ✅ {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        {lic.expires_at && (
+                          <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b' }}>
+                            📅 تنتهي الصلاحية: {new Date(lic.expires_at).toLocaleDateString('ar-SA')}
+                          </div>
+                        )}
+                      </div>
+
                       {lic.notes && (
                         <div style={{ marginTop: '12px', padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', fontSize: '13px', color: '#475569' }}>
                           📝 {lic.notes}
                         </div>
                       )}
+                      {/* Backup Section */}
+                      <BackupSection licenseKey={lic.license_key} />
                     </div>
                   )}
                 </div>
@@ -443,3 +507,64 @@ function DetailCard({ title, items }: { title: string; items: { label: string; v
     </div>
   );
 }
+
+// Backup section component
+function BackupSection({ licenseKey }: { licenseKey: string }) {
+  const [backups, setBackups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/ice/backup/list?license_key=${licenseKey}`)
+      .then(r => r.json())
+      .then(data => {
+        setBackups(data.backups || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [licenseKey]);
+
+  if (loading) return <div style={{ marginTop: '12px', fontSize: '12px', color: '#94a3b8' }}>⏳ تحميل النسخ الاحتياطية...</div>;
+  
+  return (
+    <div style={{ marginTop: '16px', padding: '16px', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd' }}>
+      <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#0369a1', marginBottom: '10px' }}>
+        💾 النسخ الاحتياطية ({backups.length})
+      </h4>
+      {backups.length === 0 ? (
+        <div style={{ fontSize: '12px', color: '#64748b' }}>لا توجد نسخ احتياطية لهذا الترخيص</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {backups.map((b: any) => (
+            <div key={b.id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 14px', background: '#fff', borderRadius: '8px',
+              border: '1px solid #e0f2fe',
+            }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  📅 {new Date(b.createdAt).toLocaleString('ar-SA')}
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  📦 {b.sizeFormatted}
+                </div>
+              </div>
+              <a
+                href={`/api/ice/backup/download?id=${b.id}`}
+                target="_blank"
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                  color: '#fff', padding: '6px 16px', borderRadius: '8px',
+                  fontSize: '12px', fontWeight: 600, textDecoration: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                ⬇️ تحميل
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+

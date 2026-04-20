@@ -65,7 +65,7 @@ export default function FaceIdAttendance() {
       if (res.ok) {
         setStatus('success');
         setEmployee(data.employee);
-        setMessage(`طھظ… طھط³ط¬ظٹظ„ ط§ظ„ط®ظ’طھظ’ظ… ط¨ظ†ط¬ط§ط­: ${data.action === 'check_in' ? t('sys.str_380') : t('sys.str_381')}`);
+        setMessage(`طھظ… تسجيل ط§ظ„ط®ظ’طھظ’ظ… ط¨ظ†ط¬ط§ط­: ${data.action === 'check_in' ? t('sys.str_380') : t('sys.str_381')}`);
         
         // Reset after 4 seconds for the next employee
         setTimeout(() => {

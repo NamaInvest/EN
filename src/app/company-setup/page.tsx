@@ -22,6 +22,9 @@ export default function CompanySetupPage() {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [backupData, setBackupData] = useState<any>(null);
 
   // Step 1: Company info
   const [companyNameAr, setCompanyNameAr] = useState('');
@@ -38,12 +41,18 @@ export default function CompanySetupPage() {
   const [vatNumber, setVatNumber] = useState('');
   const [crnNumber, setCrnNumber] = useState('');
 
-  // Check if setup already done
+  // Check if setup already done (run once)
   useEffect(() => {
-    fetch('/api/settings')
-      .then(r => r.json())
+    const token = localStorage.getItem('token');
+    fetch('/api/settings', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.company_name && data.company_name !== 'نما إنفست' && data.company_name !== 'Nama Invest') {
+        if (!data) return;
+        const defaultNames = ['نما إنفست', 'Nama Invest', 'شركتي', 'نماء سوفت', 'الشركة الرئيسية', 'Nama Invest ERP', ''];
+        const name = Array.isArray(data) ? data.find((s: any) => s.key === 'company_name')?.value : data?.company_name;
+        if (name && !defaultNames.includes(name)) {
           router.replace('/dashboard');
         }
       })
@@ -79,22 +88,29 @@ export default function CompanySetupPage() {
     setSaving(true);
 
     try {
-      // 1. Save locally to Settings
+      const token = localStorage.getItem('token');
+      // 1. Save locally to Settings — use the SAME keys as settings/company page
       const settingsRes = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
+          // بيانات المنشأة الأساسية
           company_name: companyNameAr,
           company_name_en: companyNameEn,
-          vat_number: vatNumber,
-          cr_number: crnNumber,
-          phone: mobile,
-          city: city,
-          district: district,
-          street: streetName,
-          building_number: buildingNo,
-          postal_code: postalCode,
+          company_phone: mobile,
+          company_address: `${streetName}${streetName ? '، ' : ''}${district}${district ? '، ' : ''}${city}`,
+          tax_number: vatNumber,
           business_domain: businessDomain,
+          // بيانات ZATCA (نفس المفاتيح في صفحة معلومات المنشأة)
+          zatca_crn: crnNumber,
+          zatca_street: streetName,
+          zatca_building: buildingNo,
+          zatca_district: district,
+          zatca_city: city,
+          zatca_postal_code: postalCode,
         }),
       });
 
@@ -102,7 +118,8 @@ export default function CompanySetupPage() {
         console.warn('Settings save warning (non-fatal)');
       }
 
-      // 2. Send to cloud for ICE tracking
+      // 2. Send to cloud for ICE tracking (namainvist.com/ice/desktop-licenses)
+      let trialMessage = '✅ تم حفظ بيانات الشركة بنجاح!';
       try {
         const cloudRes = await fetch('https://namainvist.com/api/ice/desktop-register', {
           method: 'POST',
@@ -120,24 +137,42 @@ export default function CompanySetupPage() {
             buildingNo,
             postalCode,
             hardwareId: getHardwareId(),
+            deviceName: navigator.userAgent.substring(0, 80),
             appVersion: '1.0.0',
           }),
         });
 
         const cloudData = await cloudRes.json();
-        if (cloudData.success && cloudData.license_key) {
-          // Save license key locally
-          localStorage.setItem('nama-desktop-license', cloudData.license_key);
+        if (cloudData.success) {
+          if (cloudData.license_key) {
+            localStorage.setItem('nama-desktop-license', cloudData.license_key);
+            localStorage.setItem('nama-license-status', cloudData.status || 'trial');
+          }
+          if (cloudData.status === 'trial') {
+            trialMessage = `✅ تم التسجيل بنجاح — فترة تجريبية ${cloudData.trial_days || 7} أيام`;
+          } else if (cloudData.already_registered) {
+            trialMessage = '✅ الجهاز مسجّل مسبقاً — مواصلة العمل';
+          }
+
+          // Check if there's a backup to restore
+          if (cloudData.has_backup && cloudData.backup_id) {
+            setBackupData(cloudData);
+            setSuccessMsg(trialMessage);
+            setShowRestorePrompt(true);
+            setSaving(false);
+            return; // Don't redirect yet — ask about restore first
+          }
         }
       } catch (cloudErr) {
-        // Cloud registration failed (no internet) — continue anyway
         console.warn('Cloud registration deferred (no internet):', cloudErr);
+        trialMessage = '✅ تم حفظ البيانات — يعمل بدون إنترنت (وضع تجريبي)';
+        localStorage.setItem('nama-license-status', 'offline-trial');
       }
 
-      setSuccessMsg('✅ تم حفظ بيانات الشركة بنجاح!');
+      setSuccessMsg(trialMessage);
       setTimeout(() => {
         router.replace('/dashboard');
-      }, 1500);
+      }, 2000);
 
     } catch (err: any) {
       setErrorMsg('خطأ في الحفظ: ' + err.message);
@@ -199,7 +234,110 @@ export default function CompanySetupPage() {
     borderRadius: '14px', cursor: 'pointer', background: 'transparent',
   };
 
-  if (successMsg) {
+  const handleRestoreBackup = async () => {
+    if (!backupData) return;
+    setRestoring(true);
+    try {
+      // Download backup from cloud
+      const backupUrl = `https://namainvist.com/api/ice/backup/download?license_key=${backupData.backup_license_key}&id=${backupData.backup_id}`;
+      const res = await fetch(backupUrl);
+      if (!res.ok) throw new Error('فشل تحميل النسخة الاحتياطية');
+
+      const blob = await res.blob();
+
+      // Send to local restore API
+      const formData = new FormData();
+      formData.append('file', blob, 'backup.sql.gz');
+      
+      const restoreRes = await fetch('/api/system/restore-backup', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      if (restoreRes.ok) {
+        setSuccessMsg('✅ تم استعادة النسخة الاحتياطية بنجاح!');
+        setShowRestorePrompt(false);
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+      } else {
+        const err = await restoreRes.json();
+        setErrorMsg('فشل الاستعادة: ' + (err.message || 'خطأ'));
+        setShowRestorePrompt(false);
+      }
+    } catch (err: any) {
+      setErrorMsg('فشل تحميل النسخة: ' + err.message);
+      setShowRestorePrompt(false);
+    }
+    setRestoring(false);
+  };
+
+  const skipRestore = () => {
+    setShowRestorePrompt(false);
+    setTimeout(() => { router.replace('/dashboard'); }, 1000);
+  };
+
+  // Restore prompt screen
+  if (showRestorePrompt) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ ...cardStyle, textAlign: 'center', maxWidth: '500px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>💾</div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#a5b4fc', marginBottom: '12px' }}>
+            تم العثور على نسخة احتياطية سابقة
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '8px' }}>
+            وجدنا نسخة احتياطية لهذه المنشأة من تسجيل سابق
+          </p>
+          {backupData?.backup_date && (
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '24px' }}>
+              📅 تاريخ النسخة: {new Date(backupData.backup_date).toLocaleDateString('ar-SA')}
+              {backupData.backup_size && ` — 📦 الحجم: ${(backupData.backup_size / 1024 / 1024).toFixed(1)} MB`}
+            </p>
+          )}
+
+          {restoring ? (
+            <div style={{ padding: '20px' }}>
+              <div style={{
+                width: '48px', height: '48px', margin: '0 auto 16px',
+                border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1',
+                borderRadius: '50%', animation: 'spin 1s linear infinite',
+              }} />
+              <p style={{ color: '#a5b4fc', fontWeight: 600 }}>⏳ جاري استعادة النسخة الاحتياطية...</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : (
+            <>
+              {errorMsg && (
+                <div style={{
+                  marginBottom: '16px', padding: '10px', borderRadius: '10px',
+                  background: 'rgba(239,68,68,0.15)', color: '#fca5a5', fontSize: '13px',
+                }}>⚠️ {errorMsg}</div>
+              )}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  style={{
+                    ...btnPrimary,
+                    background: 'linear-gradient(135deg, #059669, #10b981)',
+                    boxShadow: '0 4px 20px rgba(16,185,129,0.4)',
+                  }}
+                  onClick={handleRestoreBackup}
+                >
+                  ✅ نعم، استعادة النسخة
+                </button>
+                <button style={btnSecondary} onClick={skipRestore}>
+                  ❌ لا، بداية جديدة
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (successMsg && !showRestorePrompt) {
     return (
       <div style={containerStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>

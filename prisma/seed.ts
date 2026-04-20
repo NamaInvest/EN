@@ -37,7 +37,7 @@ async function main() {
     const company = await prisma.company.upsert({
         where: { id: 1 },
         update: {},
-        create: { id: 1, name: 'الشركة الرئيسية', subdomain: 'main', email: 'admin@main.local' },
+        create: { id: 1, name: 'الشركة الرئيسية' },
     }).catch(() => null); // ignore if Company model doesn't exist in older schemas
 
     // 3.1 Default Branch

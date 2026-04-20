@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
 
 export const themes = [
-    { id: 'default',       nameKey: 'sys.str_4003', name: 'ط§ظ„ظˆط¶ط¹ ط§ظ„ط§ظپطھط±ط§ط¶ظٹ', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC' } },
+    { id: 'default',       nameKey: 'sys.str_4003', name: 'ط§ظ„ظˆط¶ط¹ ط§لاظپطھط±ط§ط¶ظٹ', preview: { p: '#6C63FF', b: '#1A1D27', t: '#F8FAFC' } },
     { id: 'theme-white',   nameKey: 'sys.str_4008', name: 'ط£ط¨ظٹط¶ ظ†ظ‚ظٹ',        preview: { p: '#1E293B', b: '#FFFFFF',  t: '#000000' } },
     { id: 'theme-light',   nameKey: 'sys.str_4004', name: 'ط§ظ„ظˆط¶ط¹ ط§ظ„ظ†ظ‡ط§ط±ظٹ',   preview: { p: '#4F46E5', b: '#FFFFFF',  t: '#0F172A' } },
     { id: 'theme-luxury',  nameKey: 'sys.str_4005', name: 'ط§ظ„ظپط§ط®ط± ط§ظ„ط¯ط§ظƒظ†',   preview: { p: '#D4AF37', b: '#04060F',  t: '#FDFBF7' } },

@@ -8,16 +8,16 @@ import { Suspense } from 'react';
 function AutoLoginContent() {
     const searchParams = useSearchParams();
     const { user: clerkUser, isLoaded } = useUser();
-    const [msg, setMsg] = useState('ط¬ط§ط±ظٹ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„...');
+    const [msg, setMsg] = useState('جاري تسجيل الدخول...');
 
     useEffect(() => {
-        if (!isLoaded) return; // ط§ظ†طھط¸ط± طھط­ظ…ظٹظ„ Clerk
+        if (!isLoaded) return; // انتظر تحميل Clerk
 
         const token = searchParams.get('token');
         const redirect = searchParams.get('redirect') || '/dashboard';
 
         const goToDashboard = (jwtToken: string, user?: any) => {
-            // ط¥ط°ط§ ظٹظˆط¬ط¯ ظ…ط³طھط®ط¯ظ… ClerkطŒ ط§ط³طھط®ط¯ظ… ط¨ظٹط§ظ†ط§طھظ‡ ظ„ظ„ط¹ط±ط¶
+            // إذا يوجد مستخدم Clerk، استخدم بياناته للعرض
             const displayUser = {
                 ...(user || {}),
                 fullName: clerkUser?.fullName || clerkUser?.emailAddresses?.[0]?.emailAddress || user?.fullName || 'Admin',
@@ -31,9 +31,9 @@ function AutoLoginContent() {
         };
 
         const tryAutoLogin = async () => {
-            setMsg('ط¬ط§ط±ظٹ ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ظ‡ظˆظٹطھظƒ...');
+            setMsg('جاري التحقق من هويتك...');
 
-            // ظ…ط­ط§ظˆظ„ط© 1: طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ط¨ط§ظ„ط¨ط±ظٹط¯ ظ…ظ† Clerk
+            // محاولة 1: تسجيل الدخول بالبريد من Clerk
             const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
             if (userEmail) {
                 try {
@@ -46,12 +46,12 @@ function AutoLoginContent() {
                         const data = await res.json();
                         if (data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* ظ…طھط§ط¨ط¹ط© */ }
+                } catch { /* متابعة */ }
             }
 
-            // ظ…ط­ط§ظˆظ„ط© 2: طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظƒظ€ admin
+            // محاولة 2: تسجيل الدخول كـ admin
             try {
-                setMsg('ط¬ط§ط±ظٹ ط§ظ„ط¯ط®ظˆظ„ ظƒظ…ط¯ظٹط± ط§ظ„ظ†ط¸ط§ظ…...');
+                setMsg('جاري الدخول كمدير النظام...');
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -105,7 +105,7 @@ function AutoLoginContent() {
                         const data = await res.json();
                         if (data.success && data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* طھط§ط¨ط¹ */ }
+                } catch { /* تابع */ }
             }
 
             await tryAutoLogin();
@@ -147,4 +147,3 @@ export default function AutoLoginPage() {
         </Suspense>
     );
 }
-

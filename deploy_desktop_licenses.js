@@ -10,6 +10,10 @@ const BASE = '/www/wwwroot/namainvist.com';
 const files = [
   { local: 'src/app/ice/desktop-licenses/page.tsx', remote: `${BASE}/src/app/ice/desktop-licenses/page.tsx` },
   { local: 'src/app/api/ice/desktop-licenses/route.ts', remote: `${BASE}/src/app/api/ice/desktop-licenses/route.ts` },
+  { local: 'src/app/api/ice/desktop-register/route.ts', remote: `${BASE}/src/app/api/ice/desktop-register/route.ts` },
+  { local: 'src/app/api/ice/backup/upload/route.ts', remote: `${BASE}/src/app/api/ice/backup/upload/route.ts` },
+  { local: 'src/app/api/ice/backup/download/route.ts', remote: `${BASE}/src/app/api/ice/backup/download/route.ts` },
+  { local: 'src/app/api/ice/backup/list/route.ts', remote: `${BASE}/src/app/api/ice/backup/list/route.ts` },
   { local: 'src/app/ice/page.tsx', remote: `${BASE}/src/app/ice/page.tsx` },
 ];
 
@@ -17,13 +21,16 @@ const conn = new Client();
 conn.on('ready', () => {
   console.log('✅ Connected to fleet server');
 
-  // Create dirs first
   const dirs = [
     `${BASE}/src/app/ice/desktop-licenses`,
     `${BASE}/src/app/api/ice/desktop-licenses`,
+    `${BASE}/src/app/api/ice/desktop-register`,
+    `${BASE}/src/app/api/ice/backup/upload`,
+    `${BASE}/src/app/api/ice/backup/download`,
+    `${BASE}/src/app/api/ice/backup/list`,
   ];
 
-  conn.exec(`mkdir -p ${dirs.join(' ')}`, (err, stream) => {
+  conn.exec(`mkdir -p ${dirs.join(' ')} /tmp/nama-backups`, (err, stream) => {
     if (err) throw err;
     stream.on('close', () => {
       console.log('📁 Directories created');

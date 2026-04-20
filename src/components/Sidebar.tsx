@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSettings } from '@/lib/SettingsContext';
-import { useClerk } from '@clerk/nextjs';
+
+
 
 // ── All 5 language labels ─────────────────────────────────────────────────────
 type Lang = 'ar' | 'en' | 'hi' | 'bn' | 'ur';
@@ -459,7 +460,8 @@ export default function Sidebar() {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const { signOut } = useClerk();
+
+
 
   const handleLogout = async () => {
     // مسح بيانات الجلسة المحلية
@@ -478,15 +480,18 @@ export default function Sidebar() {
     localStorage.removeItem('lastActivity');
     const host = window.location.hostname;
     const isSubdomain = host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com');
-    // دائماً ننهي جلسة Clerk أولاً لمنع auto-login
+    // Try to end Clerk session if available (SaaS mode only)
     try {
-      await signOut();
-    } catch { /* ignore if no Clerk session */ }
+      const clerkInstance = (window as any).Clerk;
+      if (clerkInstance?.signOut) await clerkInstance.signOut();
+    } catch { /* ignore — Desktop mode has no Clerk */ }
     if (isSubdomain) {
       window.location.href = `${window.location.origin}/login`;
       return;
     }
-    window.location.href = 'https://namainvist.com/';
+    // Desktop mode: redirect to login page
+    const isDesktopApp = window.location.hostname === 'localhost' || window.location.protocol === 'file:';
+    window.location.href = isDesktopApp ? '/login' : 'https://namainvist.com/';
   };
 
   const [loggedUser, setLoggedUser] = useState<{ fullName: string; role: string }>({ fullName: '', role: '' });

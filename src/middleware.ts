@@ -24,6 +24,12 @@ export default clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';
   const isDesktopMode = process.env.DESKTOP_MODE === 'true';
 
+  // Block ICE panel on localhost — ICE is cloud-only (namainvist.com)
+  const isLocalhost = hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1');
+  if (isLocalhost && req.nextUrl.pathname.startsWith('/ice')) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
   // ══════════════════════════════════════════════════════════════════
   // DESKTOP MODE — bypass Clerk, use ERP token auth (like subdomains)
   // ══════════════════════════════════════════════════════════════════
@@ -38,6 +44,11 @@ export default clerkMiddleware(async (auth, req) => {
       if (!token) {
         return NextResponse.redirect(new URL('/login', req.url));
       }
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+
+    // Block ICE panel in Desktop mode — it's a cloud-only admin feature
+    if (pathname.startsWith('/ice')) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 

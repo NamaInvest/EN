@@ -123,7 +123,7 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
     }).format(v);
 
     const paymentLabel = (method: string) => {
-        const labels: Record<string, string> = { cash: 'ظ†ظ‚ط¯ط§ظ‹', card: 'ط¨ط·ط§ظ‚ط© ظ…ط¯ظ‰/ط§ط¦طھظ…ط§ظ†', transfer: 'طھط­ظˆظٹظ„ ط¨ظ†ظƒظٹ', split: 'ظ…ظ‚ط³ظ‘ظ… (ظ†ظ‚ط¯/ط¨ط·ط§ظ‚ط©)' };
+        const labels: Record<string, string> = { cash: 'ظ†ظ‚ط¯ط§ظ‹', card: 'بطاقة ظ…ط¯ظ‰/ط§ط¦طھظ…ط§ظ†', transfer: 'تحويل بنكي', split: 'ظ…ظ‚ط³ظ‘ظ… (ظ†ظ‚ط¯/بطاقة)' };
         return labels[method] || method;
     };
 

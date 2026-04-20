@@ -135,12 +135,26 @@ class BackupSync {
     try {
       const { execSync } = require('child_process');
       const dumpPath = path.join(app.getPath('userData'), 'pg_dump.sql.gz');
-      // This would only work if pg_dump is available
-      execSync(`pg_dump -h localhost -p 5433 -U postgres -Fc nama_local > "${dumpPath}"`, {
+      const pgBinDir = path.join(require.resolve('embedded-postgres').replace(/[/\\]index\..*$/, ''), '..', '@embedded-postgres', process.platform === 'win32' ? 'windows-x64' : 'linux-x64', 'native', 'bin');
+      const pgDump = path.join(pgBinDir, process.platform === 'win32' ? 'pg_dump.exe' : 'pg_dump');
+      
+      if (fs.existsSync(pgDump)) {
+        const env = { ...process.env, PGPASSWORD: 'NamaLocal2026!' };
+        execSync(`"${pgDump}" -h localhost -p 5433 -U nama -Fc nama_local > "${dumpPath}"`, {
+          timeout: 60000, env, shell: true,
+        });
+        return dumpPath;
+      }
+
+      // Fallback: system pg_dump
+      execSync(`pg_dump -h localhost -p 5433 -U nama -Fc nama_local > "${dumpPath}"`, {
         timeout: 60000,
+        env: { ...process.env, PGPASSWORD: 'NamaLocal2026!' },
+        shell: true,
       });
       return dumpPath;
-    } catch {
+    } catch (err) {
+      console.error('pg_dump failed:', err.message);
       return null;
     }
   }
@@ -149,13 +163,17 @@ class BackupSync {
     return new Promise((resolve) => {
       const url = new URL(BACKUP_API);
       const boundary = '----NamaBackup' + Date.now();
+      const hardwareId = this.store.get('hardwareId') || 'unknown';
       
       const bodyParts = [
         `--${boundary}\r\n`,
-        `Content-Disposition: form-data; name="licenseKey"\r\n\r\n`,
+        `Content-Disposition: form-data; name="license_key"\r\n\r\n`,
         `${licenseKey}\r\n`,
         `--${boundary}\r\n`,
-        `Content-Disposition: form-data; name="backup"; filename="backup_${Date.now()}.gz"\r\n`,
+        `Content-Disposition: form-data; name="hardware_id"\r\n\r\n`,
+        `${hardwareId}\r\n`,
+        `--${boundary}\r\n`,
+        `Content-Disposition: form-data; name="file"; filename="backup_${Date.now()}.sql.gz"\r\n`,
         `Content-Type: application/gzip\r\n\r\n`,
       ];
 
@@ -171,7 +189,6 @@ class BackupSync {
         headers: {
           'Content-Type': `multipart/form-data; boundary=${boundary}`,
           'Content-Length': body.length,
-          'X-License-Key': licenseKey,
         },
       };
 

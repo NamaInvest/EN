@@ -87,7 +87,7 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
       {/* Section Header */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
-          ط§ط³طھط¹ط±ط¶ ط§ظ„ظ€ <span style={{ color: '#6366f1' }}>104 ظˆط­ط¯ط©</span> ط§ظ„ط¨ط±ظ…ط¬ظٹط©
+          ط§ط³طھعرض ط§ظ„ظ€ <span style={{ color: '#6366f1' }}>104 ظˆط­ط¯ط©</span> ط§ظ„ط¨ط±ظ…ط¬ظٹط©
         </h2>
         <p style={{ color: '#64748b', fontSize: '1rem' }}>
           ط§ط¶ط؛ط· ط¹ظ„ظ‰ ط£ظٹ ظپط¦ط© ظ„طھطµظپظٹط© ط§ظ„ظˆط­ط¯ط§طھ
@@ -98,7 +98,7 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
       <div style={{ maxWidth: '500px', margin: '0 auto 32px auto' }}>
         <input
           type="text"
-          placeholder="ط§ط¨ط­ط« ط¹ظ† ظˆط­ط¯ط©... (ظ…ط«ط§ظ„: ظ…ط®ط²ظˆظ†طŒ ظپط§طھظˆط±ط©طŒ ظ…ظˆط¸ظپظٹظ†)"
+          placeholder="ط§بحث ط¹ظ† ظˆط­ط¯ط©... (ظ…ط«ط§ظ„: ظ…ط®ط²ظˆظ†طŒ فاتورةطŒ ظ…ظˆط¸ظپظٹظ†)"
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
@@ -206,13 +206,13 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
       {filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
           <div style={{ fontSize: '3rem', marginBottom: '12px' }}>ًں”چ</div>
-          <p style={{ fontSize: '1.1rem' }}>ظ„ط§ طھظˆط¬ط¯ ظˆط­ط¯ط§طھ طھط·ط§ط¨ظ‚ ط§ظ„ط¨ط­ط«</p>
+          <p style={{ fontSize: '1.1rem' }}>لا طھظˆط¬ط¯ ظˆط­ط¯ط§طھ طھط·ط§ط¨ظ‚ ط§ظ„بحث</p>
         </div>
       )}
 
       {/* Count */}
       <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '32px', fontSize: '0.9rem' }}>
-        ط¹ط±ط¶ <strong style={{ color: '#6366f1' }}>{filtered.length}</strong> ظ…ظ† ط£طµظ„{' '}
+        عرض <strong style={{ color: '#6366f1' }}>{filtered.length}</strong> ظ…ظ† ط£طµظ„{' '}
         <strong>{modules.length}</strong> ظˆط­ط¯ط©
       </p>
     </section>

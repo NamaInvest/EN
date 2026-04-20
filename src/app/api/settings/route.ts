@@ -21,6 +21,7 @@ export async function DELETE(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const prisma = getPrisma(request);
         const allowed = await hasPermission(auth.userId, 'clear_zatca');
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف بيانات الزكاة' }, { status: 403 });
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const prisma = getPrisma(request);
         const allowed = await hasPermission(auth.userId, 'settings');
         if (!allowed && auth.role !== 'admin' && auth.role !== 'owner') {
             return NextResponse.json({ error: 'غير مصرح - ليس لديك صلاحية التعديل' }, { status: 403 });

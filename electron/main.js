@@ -55,7 +55,7 @@ async function verifyLicenseOnline(key) {
     const https = require('https');
     return new Promise((resolve) => {
       const req = https.get(
-        `https://namainvist.com/api/ice/license/verify?key=${encodeURIComponent(key)}`,
+        `https://namainvist.com/api/ice/desktop-licenses?key=${encodeURIComponent(key)}`,
         (res) => {
           let data = '';
           res.on('data', (d) => (data += d));
@@ -70,6 +70,160 @@ async function verifyLicenseOnline(key) {
     });
   } catch {
     return { valid: false, offline: true };
+  }
+}
+
+// Heartbeat: sends license check every 5 min to keep "online" status green
+let heartbeatTimer = null;
+function startHeartbeat() {
+  const key = store.get('license')?.key;
+  if (!key) return;
+
+  const doHeartbeat = async () => {
+    try {
+      const result = await verifyLicenseOnline(key);
+      if (result.valid) {
+        store.set('lastLicenseVerify', Date.now());
+        store.set('licenseStatus', result.data?.status || 'active');
+      } else if (!result.offline) {
+        // License is invalid — check why
+        const status = result.status || '';
+        const error = result.error || '';
+        
+        if (status === 'suspended' || status === 'revoked') {
+          console.log(`⛔ License ${status}: blocking access`);
+          store.set('licenseStatus', status);
+          
+          if (mainWindow) {
+            // Show blocking page
+            mainWindow.loadURL(`http://localhost:${PORT}/login`);
+          }
+          
+          const statusMsg = status === 'suspended' ? 'معلّق' : 'ملغي';
+          dialog.showMessageBox(mainWindow, {
+            type: 'error',
+            title: `⛔ الحساب ${statusMsg}`,
+            message: `تم تعطيل حساب الشركة.\n\n${error}\n\nالرجاء التواصل مع الدعم الفني:\n📞 0531206654\n📧 support@namainvist.com`,
+            buttons: ['حسناً'],
+          });
+        } else if (status === 'trial_expired' || status === 'expired') {
+          console.log('⏰ License expired');
+          store.set('licenseStatus', 'expired');
+
+          dialog.showMessageBox(mainWindow, {
+            type: 'warning',
+            title: '⏰ انتهت الصلاحية',
+            message: `انتهت صلاحية الترخيص.\n\nالرجاء التواصل مع الدعم الفني لتجديد الاشتراك:\n📞 0531206654\n📧 support@namainvist.com`,
+            buttons: ['حسناً'],
+          });
+        }
+      }
+    } catch {}
+  };
+
+  doHeartbeat(); // run immediately
+  heartbeatTimer = setInterval(doHeartbeat, 5 * 60 * 1000); // every 5 min
+}
+
+// Sync: send company data to cloud on startup (works with or without stored license)
+async function syncLicenseToCloud() {
+  // Wait 10s for DB to be ready
+  await new Promise(r => setTimeout(r, 10000));
+  
+  try {
+    // Read company settings from local DB (key-value format)
+    const { Pool } = require('pg');
+    const pool = new Pool({ connectionString: 'postgresql://nama:NamaLocal2026!@localhost:5433/nama_local', max: 2 });
+    let settings = {};
+    try {
+      const result = await pool.query('SELECT key, value FROM settings');
+      for (const row of result.rows) {
+        settings[row.key] = row.value;
+      }
+      await pool.end();
+    } catch (e) {
+      console.log('☁️ Cloud sync: no local settings yet —', e.message);
+      try { await pool.end(); } catch {}
+      return;
+    }
+
+    const companyName = settings.company_name || '';
+    if (!companyName || companyName === 'اسم المنشأة') {
+      console.log('☁️ Cloud sync: no company data yet — skipping');
+      return;
+    }
+
+    const os = require('os');
+    const license = store.get('license') || {};
+    const hardwareId = license.hardwareId || `${os.hostname()}-${os.platform()}-${os.arch()}`;
+    
+    const payload = {
+      companyNameAr: companyName,
+      companyNameEn: settings.company_name_en || '',
+      businessDomain: settings.business_domain || '',
+      mobile: settings.phone || settings.company_phone || '',
+      vatNumber: settings.vat_number || settings.tax_number || '',
+      crnNumber: settings.cr_number || '',
+      city: settings.city || '',
+      district: settings.district || '',
+      streetName: settings.street || '',
+      buildingNo: settings.building_number || '',
+      postalCode: settings.postal_code || '',
+      hardwareId: hardwareId,
+      deviceName: os.hostname(),
+      appVersion: app.getVersion(),
+    };
+
+    // If we have a stored license key, send it for sync
+    if (license.key) {
+      payload.licenseKey = license.key;
+    }
+
+    console.log(`☁️ Cloud sync: sending data for "${companyName}" ...`);
+
+    const https = require('https');
+    const data = JSON.stringify(payload);
+    const req = https.request({
+      hostname: 'namainvist.com',
+      path: '/api/ice/desktop-register',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+    }, (res) => {
+      let body = '';
+      res.on('data', (d) => body += d);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(body);
+          if (result.success) {
+            // Save the license key to electron store
+            store.set('license', {
+              key: result.license_key,
+              hardwareId: hardwareId,
+              status: result.status,
+              company: companyName,
+              syncedAt: Date.now(),
+            });
+            store.set('lastLicenseVerify', Date.now());
+            
+            // Start heartbeat now that we have a key
+            if (!heartbeatTimer) startHeartbeat();
+            
+            const action = result.synced ? 'synced ✅' : result.re_registered ? 're-registered 🔄' : result.already_registered ? 'already exists ✅' : 'registered 🆕';
+            console.log(`☁️ Cloud sync: ${action} — key: ${result.license_key}`);
+          } else {
+            console.log(`☁️ Cloud sync: failed — ${result.message}`);
+          }
+        } catch (e) {
+          console.log('☁️ Cloud sync: parse error —', e.message);
+        }
+      });
+    });
+    req.on('error', (e) => console.log('☁️ Cloud sync: offline —', e.message));
+    req.setTimeout(15000, () => { req.destroy(); console.log('☁️ Cloud sync: timeout'); });
+    req.write(data);
+    req.end();
+  } catch (e) {
+    console.log('☁️ Cloud sync error:', e.message);
   }
 }
 
@@ -188,6 +342,7 @@ function createWindow() {
     icon: iconPath,
     title: APP_NAME,
     show: false,
+    fullscreen: true,
     backgroundColor: '#0B0E14',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -202,12 +357,12 @@ function createWindow() {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self' http://localhost:* https://*.namainvist.com https://fonts.googleapis.com https://fonts.gstatic.com; " +
+          "default-src 'self' http://localhost:* https://namainvist.com https://*.namainvist.com https://fonts.googleapis.com https://fonts.gstatic.com; " +
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
           "font-src 'self' https://fonts.gstatic.com data:; " +
           "img-src 'self' data: blob: http://localhost:* https:; " +
-          "connect-src 'self' http://localhost:* https://*.namainvist.com https://*.zatca.gov.sa wss://localhost:*;"
+          "connect-src 'self' http://localhost:* https://namainvist.com https://*.namainvist.com https://*.zatca.gov.sa wss://localhost:*;"
         ],
       },
     });
@@ -331,23 +486,11 @@ app.whenReady().then(async () => {
     console.error('Backup sync error:', e.message);
   }
 
-  // 5. Periodic license verification (every 7 days)
-  setInterval(async () => {
-    const license = store.get('license');
-    if (license?.key) {
-      const result = await verifyLicenseOnline(license.key);
-      if (result.valid) {
-        store.set('lastLicenseVerify', Date.now());
-      } else if (!result.offline) {
-        store.delete('license');
-        dialog.showMessageBox({
-          type: 'warning',
-          title: 'تم إلغاء الرخصة',
-          message: 'تم إلغاء رخصة البرنامج. تواصل مع الدعم الفني.',
-        });
-      }
-    }
-  }, 7 * 24 * 60 * 60 * 1000);
+  // 5. Start heartbeat (license verify every 5 min for online status)
+  startHeartbeat();
+
+  // 6. Sync company data to cloud (re-register if deleted)
+  syncLicenseToCloud();
 });
 
 app.on('window-all-closed', () => {

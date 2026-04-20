@@ -128,7 +128,7 @@ function LoginForm() {
             const compName = Array.isArray(settings) 
               ? settings.find((s: any) => s.key === 'company_name')?.value
               : settings?.company_name;
-            const needsSetup = !compName || compName === 'نما إنفست' || compName === 'Nama Invest' || compName === 'شركتي';
+            const needsSetup = !compName || compName === 'نما إنفست' || compName === 'Nama Invest' || compName === 'شركتي' || compName === 'نماء سوفت' || compName === 'الشركة الرئيسية' || compName === 'Nama Invest ERP';
             if (needsSetup) {
               window.location.href = '/company-setup';
               return;
@@ -318,7 +318,7 @@ function LoginForm() {
                   },
                 }}
                 routing="hash"
-                afterSignInUrl="/auto-login"
+                forceRedirectUrl="/auto-login"
               />
             </div>
           ) : (
