@@ -283,11 +283,18 @@ function isPortAvailable(port) {
 }
 
 async function waitForServer(port, timeout = 30000) {
+  const http = require('http');
   const start = Date.now();
   while (Date.now() - start < timeout) {
     try {
-      const available = await isPortAvailable(port);
-      if (!available) return true;
+      const isUp = await new Promise((resolve) => {
+        const req = http.get(`http://127.0.0.1:${port}/login`, (res) => {
+          resolve(res.statusCode >= 200);
+        });
+        req.on('error', () => resolve(false));
+        req.setTimeout(1000, () => { req.destroy(); resolve(false); });
+      });
+      if (isUp) return true;
     } catch {}
     await new Promise((r) => setTimeout(r, 500));
   }
@@ -352,7 +359,7 @@ async function startNextServer(dbEnv) {
     const serverPath = path.join(process.resourcesPath, 'standalone', 'server.js');
     nextProcess = spawn(process.execPath, [serverPath], {
       cwd: path.join(process.resourcesPath, 'standalone'),
-      env: { ...desktopEnv, HOSTNAME: 'localhost', NODE_ENV: 'production' },
+      env: { ...desktopEnv, HOSTNAME: '127.0.0.1', NODE_ENV: 'production' },
     });
   }
 

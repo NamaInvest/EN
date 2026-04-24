@@ -60,4 +60,32 @@ if (fs.existsSync(standaloneDir)) {
   } catch(e) {
     console.error('⚠️ Failed to append Prisma CLI to standalone: ', e.message);
   }
+
+  // Copy public and static assets to standalone
+  const nextDir = path.join(__dirname, '..', process.env.ELECTRON_BUILD ? '.next-electron' : '.next');
+  const projectRoot = path.join(__dirname, '..');
+  
+  try {
+    const cpSync = (src, dest) => {
+      if (fs.existsSync(src)) {
+        const stats = fs.statSync(src);
+        if (stats.isDirectory()) {
+          if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+          fs.readdirSync(src).forEach(item => cpSync(path.join(src, item), path.join(dest, item)));
+        } else {
+          fs.copyFileSync(src, dest);
+        }
+      }
+    };
+
+    console.log('📦 Copying public folder to standalone...');
+    cpSync(path.join(projectRoot, 'public'), path.join(standaloneDir, 'public'));
+
+    console.log('📦 Copying static folder to standalone...');
+    cpSync(path.join(nextDir, 'static'), path.join(standaloneDir, '.next', 'static'));
+
+    console.log('✅ Static assets copied to standalone successfully.');
+  } catch (e) {
+    console.error('⚠️ Failed to copy static assets:', e.message);
+  }
 }

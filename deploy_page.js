@@ -5,11 +5,11 @@ const conn = new Client();
 const APP = '/www/wwwroot/namainvist.com';
 
 const files = [
-    { local: 'src/middleware.ts', remote: 'src/middleware.ts' }
+    { local: 'src/app/page.tsx', remote: 'src/app/page.tsx' }
 ];
 
 conn.on('ready', () => {
-    console.log('✅ متصل - يتم رفع middleware.ts...');
+    console.log('✅ متصل - يتم رفع page.tsx...');
 
     conn.sftp((err, sftp) => {
         if (err) throw err;

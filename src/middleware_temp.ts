@@ -17,7 +17,6 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
   '/api/og(.*)',
   '/auto-login(.*)',
-  '/updates(.*)',
 ]);
 
 const isIceRoute = createRouteMatcher(['/ice', '/ice/(.*)']);
@@ -107,7 +106,6 @@ export default function middleware(req: any, event: any) {
       pathname.startsWith('/api/') ||
       pathname.startsWith('/_next/') ||
       pathname.startsWith('/uploads/') ||
-      pathname.startsWith('/updates/') ||
       pathname.startsWith('/sign-in') ||
       pathname.startsWith('/sign-up') ||
       pathname.startsWith('/sso-callback')
@@ -164,7 +162,6 @@ export default function middleware(req: any, event: any) {
       pathname.startsWith('/auto-login') ||
       pathname.startsWith('/_next/') ||
       pathname.startsWith('/uploads/') ||
-      pathname.startsWith('/updates/') ||
       pathname.startsWith('/sign-in') ||
       pathname.startsWith('/sign-up') ||
       pathname.startsWith('/sso-callback')
