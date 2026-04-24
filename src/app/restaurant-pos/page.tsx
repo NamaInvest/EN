@@ -9,9 +9,11 @@ import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
 import { FeatureGuard } from '@/hooks/FeatureGuard';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 export default function RestaurantPOS() {
     const { t } = useTranslation();
+    const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     // Force RTL for this specific layout to match image perfectly
     const isRTL = true;
 
@@ -303,12 +305,29 @@ export default function RestaurantPOS() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
+            if (isOffline) {
+                // Fetch from Local SQLite
+                if (typeof window !== 'undefined' && (window as any).electron) {
+                    const localProducts = await (window as any).electron.invoke('offline-db-search-products');
+                    if (localProducts && localProducts.length > 0) {
+                        setProducts(localProducts);
+                        const catsMap = new Map();
+                        localProducts.forEach((p:any) => { if(p.categoryId) catsMap.set(p.categoryId, p.categoryName); });
+                        const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...Array.from(catsMap.entries()).map(([id,name])=>({id,name}))];
+                        setCategories(cats);
+                    }
+                }
+                return;
+            }
+
             const res = await fetch('/api/pos/products');
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
                 const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
+                // Cache for offline use
+                cacheProducts(data.products || []);
             }
         } catch (e) {
             alert(t('sys.str_4069'));
@@ -525,6 +544,7 @@ export default function RestaurantPOS() {
                         <Link href="/dashboard" style={{textDecoration:'none', color:'#666', display:'flex', alignItems:'center', gap:'0.25rem'}}>
                             <ArrowRight size={18} /> {t('sys.str_4082')}</Link>
                         <h2 style={{margin:0, fontSize:'1.2rem', color:'#333', marginLeft: '1rem'}}>{t('sys.str_4083')}</h2>
+                        <OfflineBadge />
                         
                         <button type="button" onClick={() => setShowReturnsModal(true)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
                               ↩ استرجاع محلي

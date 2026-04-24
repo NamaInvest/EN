@@ -37,6 +37,7 @@ let tray = null;
 let nextProcess = null;
 let isQuitting = false;
 let localPg = null;
+let offlineDb = null;
 
 // ── Paths ────────────────────────────────────────────────────────────────────
 function getAppPath(...segments) {
@@ -476,6 +477,18 @@ function createTray() {
 const BackupSync = require('./backup-sync');
 let backupSync = null;
 
+// ── Offline DB Handlers ──────────────────────────────────────────────────────
+const OfflineDB = require('./offline-db');
+
+ipcMain.handle('offline-db-save-products', (_, products) => OfflineDB.saveLocalProducts(products));
+ipcMain.handle('offline-db-search-products', (_, query) => OfflineDB.searchLocalProducts(query));
+ipcMain.handle('offline-db-clear-products', () => OfflineDB.clearLocalProducts());
+ipcMain.handle('offline-db-save-invoice', (_, invoice) => OfflineDB.savePendingInvoice(invoice));
+ipcMain.handle('offline-db-get-pending', () => OfflineDB.getPendingInvoices());
+ipcMain.handle('offline-db-mark-synced', (_, uuid) => OfflineDB.markInvoiceSynced(uuid));
+ipcMain.handle('offline-db-increment-retry', (_, uuid) => OfflineDB.incrementInvoiceRetry(uuid));
+ipcMain.handle('offline-db-delete-synced', () => OfflineDB.deleteSyncedInvoices());
+
 // ── IPC Handlers ─────────────────────────────────────────────────────────────
 ipcMain.handle('get-license', () => store.get('license'));
 ipcMain.handle('get-app-info', () => ({
@@ -519,6 +532,14 @@ app.whenReady().then(async () => {
   // 1. Start local PostgreSQL
   const pg = await startLocalDatabase();
   const dbEnv = pg ? pg.getEnvVars() : {};
+
+  // 1.5 Start Offline SQLite DB
+  const isOfflineDbReady = OfflineDB.initDB(app.getPath('userData'));
+  if (isOfflineDbReady) {
+      console.log('✅ Offline Database is ready to use');
+  } else {
+      console.log('⚠️ Offline Database failed to start');
+  }
 
   // 2. Start Next.js server with local DB
   await startNextServer(dbEnv);
