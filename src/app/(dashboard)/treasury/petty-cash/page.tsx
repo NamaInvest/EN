@@ -113,7 +113,7 @@ export default function PettyCashPage() {
                                 <td><strong>PC-{r.id}</strong></td>
                                 <td>{r.employee?.name}</td>
                                 <td>{r.purpose}</td>
-                                <td>{new Date(r.requestDate).toLocaleDateString()}</td>
+                                <td>{new Date(r.requestDate).toLocaleDateString('en-GB')}</td>
                                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(r.amount)} {t('sys.str_68')}</td>
                                 <td>
                                     <span style={{

@@ -26,17 +26,17 @@ export default function CommissionRulesPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading commission rules...</div>
+          <div className="p-8 text-center text-slate-500">جاري تحميل القواعد...</div>
         ) : rules.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No commission rules defined.</div>
+          <div className="p-8 text-center text-slate-500">لا توجد قواعد عمولات مسجلة.</div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="p-4 font-semibold">Rule Name</th>
-                <th className="p-4 font-semibold">Sales Target</th>
-                <th className="p-4 font-semibold">Reward Value</th>
-                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold">اسم القاعدة</th>
+                <th className="p-4 font-semibold">هدف المبيعات</th>
+                <th className="p-4 font-semibold">قيمة المكافأة</th>
+                <th className="p-4 font-semibold">الحالة</th>
               </tr>
             </thead>
             <tbody>

@@ -98,7 +98,7 @@ export default function DeliveryNotesPage() {
                         {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : notes.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sales.str_2399')}</td></tr> : notes.map(n => (
                             <tr key={n.id}>
                                 <td><strong style={{color: '#f59e0b'}}>DN-{n.noteNo}</strong></td>
-                                <td>{new Date(n.date).toLocaleDateString()}</td>
+                                <td>{new Date(n.date).toLocaleDateString('en-GB')}</td>
                                 <td>{n.customer?.name || t('sys.str_752')}</td>
                                 <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}>{t('sales.str_2400')}</span></td>
                                 <td>{n.details?.length || 0}</td>

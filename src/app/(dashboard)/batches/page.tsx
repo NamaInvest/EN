@@ -123,8 +123,8 @@ export default function BatchesPage() {
                                 <tr key={b.id} style={{ opacity: b.currentQuantity <= 0 ? 0.6 : 1 }}>
                                     <td style={{ fontWeight: '600' }}>{b.product?.name} <br/><small style={{ color: 'var(--text-muted)' }}>{b.product?.barcode}</small></td>
                                     <td style={{ fontWeight: 'bold', letterSpacing: '1px' }}>{b.batchNumber}</td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{b.productionDate ? new Date(b.productionDate).toLocaleDateString('ar-SA') : '-'}</td>
-                                    <td style={{ color: status.color, fontWeight: 'bold' }}>{b.expiryDate ? new Date(b.expiryDate).toLocaleDateString('ar-SA') : '-'}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{b.productionDate ? new Date(b.productionDate).toLocaleDateString('en-GB') : '-'}</td>
+                                    <td style={{ color: status.color, fontWeight: 'bold' }}>{b.expiryDate ? new Date(b.expiryDate).toLocaleDateString('en-GB') : '-'}</td>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <strong style={{ color: b.currentQuantity > 0 ? 'var(--primary-color)' : '#ef4444' }}>{b.currentQuantity}</strong> 

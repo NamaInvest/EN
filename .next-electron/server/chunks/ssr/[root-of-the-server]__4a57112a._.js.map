@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "debugId": "2ae05da1-0446-1dd6-b5a3-1c3d6063cca3",
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../src/app/sign-in/%5B%5B...sign-in%5D%5D/page.tsx"],"sourcesContent":["import { SignIn } from \"@clerk/nextjs\";\n\nexport default function Page() {\n  return (\n    <div className=\"min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8\">\n      <SignIn />\n    </div>\n  );\n}\n"],"names":[],"mappings":"kWAAA,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,gGACb,CAAA,EAAA,EAAA,GAAA,EAAC,EAAA,MAAM,CAAA,CAAA,IAGb"}}]
-}

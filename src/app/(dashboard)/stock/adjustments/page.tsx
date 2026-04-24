@@ -94,7 +94,7 @@ export default function StockAdjustmentsPage() {
                         {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : adjustments.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('stock.str_2623')}</td></tr> : adjustments.map(a => (
                             <tr key={a.id}>
                                 <td><strong style={{color: '#6366f1'}}>ADJ-{a.id}</strong></td>
-                                <td><span dir="ltr">{new Date(a.date).toLocaleDateString()}</span></td>
+                                <td><span dir="ltr">{new Date(a.date).toLocaleDateString('en-GB')}</span></td>
                                 <td>{a.product?.name} <span style={{fontSize:'10px', color:'#888'}}>({a.product?.sku})</span></td>
                                 <td>
                                     {a.type === 'adjustment_in' ? 

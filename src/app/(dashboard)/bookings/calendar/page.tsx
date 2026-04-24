@@ -33,7 +33,7 @@ export default function BookingsCalendarPage() {
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
-    const monthName = currentDate.toLocaleString('ar-SA', { month: 'long', year: 'numeric' });
+    const monthName = currentDate.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
     const weekDays = [t('sys.str_1733'), t('sys.str_1734'), t('sys.str_1735'), t('sys.str_1736'), t('sys.str_1737'), t('sys.str_1738'), t('sys.str_1739')];
 
     const getBookingsForDay = (day: number) => {

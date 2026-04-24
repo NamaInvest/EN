@@ -240,7 +240,7 @@ export default function DesktopLicensesPage() {
                           {lic.license_key}
                         </div>
                         <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                          {new Date(lic.created_at).toLocaleDateString('ar-SA')}
+                          {new Date(lic.created_at).toLocaleDateString('en-GB')}
                         </div>
                       </div>
                     </div>
@@ -348,9 +348,9 @@ export default function DesktopLicensesPage() {
                           { label: 'معرّف الجهاز', value: lic.hardware_id || 'غير مفعّل', mono: true },
                           { label: 'إصدار التطبيق', value: lic.app_version || '—' },
                           { label: 'أجهزة مفعّلة', value: `${lic.activated_devices}/${lic.max_devices}` },
-                          { label: 'آخر تحقق', value: lic.last_verified_at ? new Date(lic.last_verified_at).toLocaleString('ar-SA') : 'لم يتحقق' },
-                          { label: 'تاريخ التفعيل', value: lic.activated_at ? new Date(lic.activated_at).toLocaleString('ar-SA') : '—' },
-                          { label: 'انتهاء التجربة', value: lic.trial_ends_at ? new Date(lic.trial_ends_at).toLocaleDateString('ar-SA') : '—' },
+                          { label: 'آخر تحقق', value: lic.last_verified_at ? new Date(lic.last_verified_at).toLocaleString('en-GB') : 'لم يتحقق' },
+                          { label: 'تاريخ التفعيل', value: lic.activated_at ? new Date(lic.activated_at).toLocaleString('en-GB') : '—' },
+                          { label: 'انتهاء التجربة', value: lic.trial_ends_at ? new Date(lic.trial_ends_at).toLocaleDateString('en-GB') : '—' },
                         ]} />
                       </div>
 
@@ -387,7 +387,7 @@ export default function DesktopLicensesPage() {
                         </div>
                         {lic.expires_at && (
                           <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b' }}>
-                            📅 تنتهي الصلاحية: {new Date(lic.expires_at).toLocaleDateString('ar-SA')}
+                            📅 تنتهي الصلاحية: {new Date(lic.expires_at).toLocaleDateString('en-GB')}
                           </div>
                         )}
                       </div>
@@ -544,7 +544,7 @@ function BackupSection({ licenseKey }: { licenseKey: string }) {
             }}>
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
-                  📅 {new Date(b.createdAt).toLocaleString('ar-SA')}
+                  📅 {new Date(b.createdAt).toLocaleString('en-GB')}
                 </div>
                 <div style={{ fontSize: '11px', color: '#94a3b8' }}>
                   📦 {b.sizeFormatted}

@@ -1,3 +1,0 @@
-{
-  "/api/cron/trigger-invoices/route": "app/api/cron/trigger-invoices/route.js"
-}

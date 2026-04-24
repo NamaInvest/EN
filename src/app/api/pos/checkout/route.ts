@@ -55,7 +55,9 @@ export async function POST(req: NextRequest) {
 
             // Create Invoice Details & Deduct Stock
             for (const item of cart) {
-                const itemTotal = round2(item.price * item.qty);
+                const safePrice = validateMoney(item.price, 'السعر');
+                const safeQty = validateMoney(item.qty, 'الكمية');
+                const itemTotal = round2(safePrice * safeQty);
                 const itemTax = round2(itemTotal * ((item.taxRate || 15) / 100));
 
                 await tx.salesInvoiceDetail.create({
@@ -63,8 +65,8 @@ export async function POST(req: NextRequest) {
                         invoiceId: newInvoice.id,
                         productId: parseInt(item.id),
                         productName: item.name,
-                        quantity: item.qty,
-                        price: item.price,
+                        quantity: safeQty,
+                        price: safePrice,
                         taxRate: item.taxRate || 15,
                         taxValue: itemTax,
                         total: round2(itemTotal + itemTax)
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
                 });
 
                 // Deduct Inventory safely considering Factor (Multi-Units)
-                const deductionQty = item.qty * (item.factor || 1);
+                const deductionQty = safeQty * validateMoney(item.factor || 1, 'المعامل');
                 await tx.product.update({
                     where: { id: parseInt(item.id) },
                     data: { currentStock: { decrement: deductionQty } }

@@ -143,7 +143,7 @@ export default function PurchaseOrdersPage() {
                                     <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 'bold' }}>#{o.orderNo}</span>
                                     <span style={{ fontSize: '12px', color: 'var(--text)' }}>👤 {o.user?.fullName || t('sys.str_963')}</span>
                                     {o.supplier && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>🏭 {o.supplier.name}</span>}
-                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>📅 {new Date(o.date).toLocaleDateString()}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>📅 {new Date(o.date).toLocaleDateString('en-GB')}</span>
                                     <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', background: (statusColor[o.status] || '#888') + '15', color: statusColor[o.status] || '#888', fontWeight: 'bold' }}>{statusLabel[o.status] || o.status}</span>
                                     <div className="toolbar-spacer" />
                                     <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '16px' }}>{fmt(o.total)} {t('sys.str_68')}</span>

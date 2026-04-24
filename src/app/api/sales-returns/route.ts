@@ -5,7 +5,7 @@ import { salesReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const returns = await prisma.salesReturn.findMany({ orderBy: { id: 'desc' } });
@@ -177,7 +177,163 @@ export async function POST(request: Request) {
             console.warn('Auto-journal for sales return skipped:', journalErr);
         }
 
-        return NextResponse.json(ret, { status: 201 });
+        // ── ZATCA Phase 2: Credit Note (إشعار دائن) ──────────────────────
+        let zatcaQR = '';
+        try {
+            const zatcaSettings = await prisma.setting.findMany({
+                where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_private_key', 'zatca_certificate', 'zatca_enabled', 'zatca_production_token', 'zatca_production_secret', 'zatca_environment', 'zatca_last_pih', 'zatca_invoice_counter', 'tax_rate'] } }
+            });
+            const s: Record<string, string> = {};
+            zatcaSettings.forEach((st: any) => { s[st.key] = st.value ?? ''; });
+
+            if (s['zatca_enabled'] === '1' && s['company_name'] && s['tax_number']) {
+                if (s['zatca_production_token'] && s['zatca_private_key']) {
+                    const crypto = require('crypto');
+                    const certParsed = Buffer.from(s['zatca_production_token'], 'base64').toString('ascii');
+
+                    const counterKey = 'zatca_invoice_counter';
+                    const currentCounter = parseInt(s[counterKey] || '0') + 1;
+                    const prevHash = s['zatca_last_pih'] || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==';
+
+                    const nowUtc = new Date();
+                    const saudiOffset = 3 * 60 * 60 * 1000;
+                    const saudiNow = new Date(nowUtc.getTime() + saudiOffset);
+                    const issueDate = saudiNow.toISOString().split('T')[0];
+                    const issueTime = saudiNow.toISOString().split('T')[1]?.substring(0, 8) || '00:00:00';
+                    const creditNoteUuid = crypto.randomUUID();
+                    const taxRate = parseFloat(s['tax_rate'] || '15') / 100;
+
+                    try {
+                        const { ZatcaSigner } = await import('@/lib/zatca-signer');
+                        const signer = new ZatcaSigner();
+
+                        const zatcaSettingsObj = {
+                            companyName: s['company_name'],
+                            companyNameEn: s['company_name_en'] || s['company_name'],
+                            taxNumber: s['tax_number'],
+                            crn: s['zatca_crn'] || '1010010000',
+                            street: s['zatca_street'] || 'Main',
+                            building: s['zatca_building'] || '1234',
+                            district: s['zatca_district'] || 'District',
+                            city: s['zatca_city'] || 'Riyadh',
+                            cityEn: s['zatca_city_en'] || 'Riyadh',
+                            postalCode: s['zatca_postal_code'] || '12345',
+                            privateKey: s['zatca_private_key'],
+                            certificate: certParsed,
+                            productionToken: s['zatca_production_token'],
+                            productionSecret: s['zatca_production_secret'] || '',
+                            environment: (s['zatca_environment'] as 'sandbox' | 'simulation' | 'production') || 'production',
+                            lastPih: prevHash,
+                            invoiceCounter: currentCounter,
+                        };
+
+                        // Map returned items to ZATCA line items
+                        const mappedLines = processedItems.map((item: any) => {
+                            const exclPrice = parseFloat((item.price / (1 + taxRate)).toFixed(2));
+                            const qty = item.quantity;
+                            return {
+                                name: item.productName || 'Item',
+                                quantity: qty,
+                                unitPrice: exclPrice,
+                                taxRate,
+                                taxAmount: parseFloat((exclPrice * qty * taxRate).toFixed(2)),
+                                subtotal: parseFloat((exclPrice * qty).toFixed(2)),
+                                total: parseFloat((item.price * qty).toFixed(2)),
+                            };
+                        });
+
+                        const creditNoteData = {
+                            id: `CN-${returnNo}`,
+                            uuid: creditNoteUuid,
+                            issueDate,
+                            issueTime,
+                            invoiceTypeCode: '381',      // Credit Note (إشعار دائن)
+                            invoiceTypeName: '0200000',   // Simplified (B2C)
+                            currencyCode: 'SAR',
+                            taxCurrencyCode: 'SAR',
+                            note: `إشعار دائن - مرتجع مبيعات #${returnNo}${originalInvoice ? ` للفاتورة #${originalInvoice.invoiceNo}` : ''}`,
+                            supplier: {
+                                companyID: s['zatca_crn'] || '1010010000',
+                                registrationName: s['tax_number'],
+                                taxNumber: s['tax_number'],
+                                address: {
+                                    streetName: s['zatca_street'] || 'Main',
+                                    buildingNumber: s['zatca_building'] || '1234',
+                                    citySubdivisionName: s['zatca_district'] || 'District',
+                                    cityName: s['zatca_city_en'] || s['zatca_city'] || 'Riyadh',
+                                    postalZone: s['zatca_postal_code'] || '12345',
+                                    countryCode: 'SA',
+                                },
+                            },
+                            customer: {
+                                companyID: '300000000000003',
+                                registrationName: 'Customer',
+                                address: {
+                                    streetName: 'Test', buildingNumber: '1111',
+                                    citySubdivisionName: 'Test', cityName: 'Riyadh',
+                                    postalZone: '11111', countryCode: 'SA',
+                                },
+                            },
+                            invoiceLines: mappedLines,
+                            taxAmount: ret.taxValue.toFixed(2),
+                            totalAmount: ret.total.toFixed(2),
+                            // Reference to original invoice for ZATCA BillingReference
+                            ...(originalInvoice ? {
+                                cancelation: {
+                                    canceled_invoice_number: originalInvoice.invoiceNo,
+                                    reason: 'مرتجع مبيعات',
+                                }
+                            } : {}),
+                        };
+
+                        const signOutput = signer.signInvoice(creditNoteData, zatcaSettingsObj);
+                        zatcaQR = signOutput.qr;
+                        const hashFinal = signOutput.hash;
+
+                        // Update ZATCA counter & hash chain
+                        await prisma.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: hashFinal }, create: { key: 'zatca_last_pih', value: hashFinal, description: 'ZATCA Last PIH' } });
+                        await prisma.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
+                        await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR } });
+                        // Store signed XML separately
+                        try { await prisma.$executeRawUnsafe(`UPDATE sales_returns SET zatca_xml = $1 WHERE id = $2`, signOutput.signedXml, ret.id); } catch (_) {}
+
+                        // Report Credit Note to ZATCA
+                        if (s['zatca_production_secret']) {
+                            try {
+                                const reportResult = await signer.reportInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj);
+                                if (reportResult.status === 'reported') {
+                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'reported' } });
+                                    console.log(`✅ Credit Note CN-${returnNo} reported to ZATCA`);
+                                } else {
+                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(reportResult.validationResults) } });
+                                }
+                            } catch (reportErr: any) {
+                                await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
+                            }
+                        }
+                        console.log(`✅ Credit Note CN-${returnNo} signed (Node.js)`);
+                    } catch (signErr: any) {
+                        console.error('ZATCA Credit Note Signing Error:', signErr.message, signErr.stack);
+                    }
+                } else {
+                    // Phase 1 QR fallback
+                    const { generateZatcaQRContent } = await import('@/lib/zatca');
+                    const qrData = generateZatcaQRContent({
+                        sellerName: s['company_name'],
+                        vatNumber: s['tax_number'],
+                        timestamp: new Date().toISOString(),
+                        totalWithVat: ret.total,
+                        vatAmount: ret.taxValue,
+                    });
+                    zatcaQR = qrData;
+                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaQr: zatcaQR } });
+                }
+            }
+        } catch (zatcaErr) {
+            console.warn('ZATCA Credit Note process skipped/failed:', zatcaErr);
+        }
+
+        return NextResponse.json({ ...ret, zatcaQR }, { status: 201 });
     } catch (e) { 
         return handleApiError(e); 
     }

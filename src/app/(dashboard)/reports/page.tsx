@@ -136,7 +136,7 @@ export default function ReportsPage() {
             h1{text-align:center;color:#333;} .date{text-align:center;color:#666;font-size:14px;margin-bottom:20px;}
             @media print{button{display:none !important;}}</style></head><body>
             <h1>${reportTitle}</h1>
-            <div class="date">${dateFrom || dateTo ? `من ${dateFrom || '-'} إلى ${dateTo || '-'}` : new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}${userName ? ` | المستخدم: ${userName}` : ''}</div>
+            <div class="date">${dateFrom || dateTo ? `من ${dateFrom || '-'} إلى ${dateTo || '-'}` : new Date().toLocaleDateString('en-GB')}${userName ? ` | المستخدم: ${userName}` : ''}</div>
             ${summaryHtml}${tableHtml}
             <button onclick="window.print()" style="margin-top:20px;padding:10px 24px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">🖨️ طباعة</button>
         </body></html>`);

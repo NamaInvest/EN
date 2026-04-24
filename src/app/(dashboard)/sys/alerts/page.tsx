@@ -52,7 +52,7 @@ export default function SystemAlertsPage() {
                 </div>
 
                 <div className="text-xs text-slate-400">
-                  {new Date(al.createdAt).toLocaleString('ar-SA')}
+                  {new Date(al.createdAt).toLocaleString('en-GB')}
                 </div>
               </div>
             ))}

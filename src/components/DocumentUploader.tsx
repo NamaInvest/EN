@@ -104,10 +104,10 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
                             </div>
                             
                             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px' }}>
-                                <p style={{ margin: '2px 0' }}>{t('sys.str_41')}{new Date(doc.createdAt).toLocaleDateString()}</p>
+                                <p style={{ margin: '2px 0' }}>{t('sys.str_41')}{new Date(doc.createdAt).toLocaleDateString('en-GB')}</p>
                                 {doc.expiryDate && (
                                     <p style={{ margin: '2px 0', color: new Date(doc.expiryDate) < new Date() ? 'red' : 'inherit' }}>
-                                        {t('sys.str_42')}{new Date(doc.expiryDate).toLocaleDateString()}
+                                        {t('sys.str_42')}{new Date(doc.expiryDate).toLocaleDateString('en-GB')}
                                     </p>
                                 )}
                             </div>

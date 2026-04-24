@@ -134,7 +134,7 @@ export default function SalesOrdersPage() {
                         {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : orders.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('sales.str_2438')}</td></tr> : orders.map(o => (
                             <tr key={o.id}>
                                 <td><strong>SO-{o.orderNo}</strong></td>
-                                <td>{new Date(o.date).toLocaleDateString()}</td>
+                                <td>{new Date(o.date).toLocaleDateString('en-GB')}</td>
                                 <td>{o.customer?.name || '-'}</td>
                                 <td>{o.salesRep?.name || <span style={{ color: 'var(--text-muted)' }}>{t('sales.str_2439')}</span>}</td>
                                 <td><strong style={{ color: '#10b981' }}>{o.total.toLocaleString()} {t('sys.str_68')}</strong></td>

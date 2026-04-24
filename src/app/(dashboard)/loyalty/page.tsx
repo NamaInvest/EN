@@ -141,7 +141,7 @@ export default function LoyaltyPage() {
                                     <tbody>
                                         {transactions.map(tx => (
                                             <tr key={tx.id}>
-                                                <td>{new Date(tx.createdAt).toLocaleDateString('ar-SA')}</td>
+                                                <td>{new Date(tx.createdAt).toLocaleDateString('en-GB')}</td>
                                                 <td><span className={`badge ${tx.type === 'earned' ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '11px', padding: '2px 6px' }}>{tx.type === 'earned' ? t('sys.str_704') : t('sys.str_705')}</span></td>
                                                 <td style={{ fontWeight: 'bold', color: tx.type === 'earned' ? '#10b981' : '#ef4444' }}>{tx.type === 'earned' ? '+' : '-'}{tx.points}</td>
                                                 <td>{tx.invoiceId ? `#${tx.invoiceId}` : '-'}</td>

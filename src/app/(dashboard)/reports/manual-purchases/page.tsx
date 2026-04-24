@@ -117,7 +117,7 @@ export default function ManualPurchasesReport() {
                                     invoices.map(inv => (
                                         <tr key={inv.id}>
                                             <td style={{ fontWeight: 'bold' }}>#{inv.invoiceNo}</td>
-                                            <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
+                                            <td>{new Date(inv.date).toLocaleDateString('en-GB')}</td>
                                             <td>{inv.supplier?.name || '-'}</td>
                                             <td>{inv.paymentType === 'cash' ? 'نقدي' : inv.paymentType === 'credit' ? 'آجل' : inv.paymentType === 'transfer' ? 'تحويل' : 'شبكة'}</td>
                                             <td>{fmt(inv.subtotal)} ر.س</td>

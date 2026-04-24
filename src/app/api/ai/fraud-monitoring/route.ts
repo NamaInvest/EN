@@ -7,12 +7,12 @@ export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const auth = getUserFromRequest(req);
-        if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        if (!auth) return NextResponse.json({ success: false, error: ' ' }, { status: 401 });
 
         const allowed = await hasPermission(auth.userId, 'view_fraud_ai');
         // Fallback: If not explicitly allowed, at least let admin access it
         if (!allowed && auth.role !== 'admin') {
-            return NextResponse.json({ success: false, error: 'ليس لديك صلاحية مراقبة الاحتيال الأمنية' }, { status: 403 });
+            return NextResponse.json({ success: false, error: '     ' }, { status: 403 });
         }
 
         // 1. Fetch Suspicious Data Points
@@ -51,20 +51,20 @@ export async function GET(req: NextRequest) {
         // 2. Prepare context for Gemini
         const contextData = {
             deleted_invoices_by_staff: deletedAudits.map(a => ({
-                employee: a.user?.fullName || 'غير معروف',
+                employee: a.user?.fullName || ' ',
                 actionDate: a.date,
                 details: a.details
             })),
             unusual_high_discounts: highDiscounts.map(d => ({
-                employee: d.user?.fullName || 'غير معروف',
+                employee: d.user?.fullName || ' ',
                 discountRatio: d.discountRate,
                 invoiceTotal: d.total,
                 date: d.date
             })),
             suspicious_cash_withdrawals: suspiciousTreasury.map(t => ({
-                employee: t.user?.fullName || 'غير معروف',
+                employee: t.user?.fullName || ' ',
                 amount: t.amount,
-                reason: t.description || 'بدون سبب',
+                reason: t.description || ' ',
                 date: t.date
             }))
         };
@@ -72,32 +72,32 @@ export async function GET(req: NextRequest) {
         // 3. Ask AI to analyze
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-             return NextResponse.json({ success: false, error: 'مفتاح الذكاء الاصطناعي غير متوفر (GEMINI_API_KEY)' });
+             return NextResponse.json({ success: false, error: '     (GEMINI_API_KEY)' });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         const prompt = `
-        أنت حارس أمني مالي (AI Fraud Detector) تعمل داخل نظام نقاط بيع ومبيعات (NAMA INVEST).
-        مهمتك هي تحليل البيانات التشغيلية التالية وكشف السلوكيات التي قد تشير إلى تلاعب، سرقة أموال، تصريف بضائع بدون فواتير كاملة (طريق الخصم الوهمي)، أو حذف الفواتير بعد تحصيلها نقدياً.
+            (AI Fraud Detector)       (NAMA INVEST).
+                    ȡ        (  )      .
         
-        البيانات المالية الأخيرة:
+          :
         ${JSON.stringify(contextData, null, 2)}
 
-        المطلوب:
-        قم بإرجاع التقرير بصيغة JSON فقط، بدون أي نصوص Markdown (أي لا تستخدم \`\`\`json)، متوافق مع هذه الواجهة البرمجية (Interface):
+        :
+            JSON ء    Markdown (   \`\`\`json)      (Interface):
         {
-           "securityScore": number, // من 0 إلى 100 (100 يعني أمان تام، 0 يعني اختراقات حادة)
+           "securityScore": number, //  0  100 (100    0   )
            "status": "Safe" | "Warning" | "Critical",
            "alerts": [
                {
                    "severity": "low" | "medium" | "high",
-                   "title": "عنوان التنبيه",
-                   "description": "تفاصيل دقيقة بناءً على اسم الموظف والمبالغ والتوقيت"
+                   "title": " ",
+                   "description": "       "
                }
            ],
-           "recommendation": "نصيحة أمنية للإدارة لإغلاق الثغرات المكتشفة"
+           "recommendation": "     "
         }
         `;
 

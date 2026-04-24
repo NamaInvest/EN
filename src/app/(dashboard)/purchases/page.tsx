@@ -486,7 +486,7 @@ export default function PurchasesPage() {
                                         {pendingInvoices.map(inv => (
                                             <tr key={inv.id}>
                                                 <td style={{ fontWeight: '700' }}>#{inv.invoiceNo} {inv.isManual && <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '10px', padding: '2px 4px', borderRadius: '4px', marginRight: '4px' }}>يدوي</span>}</td>
-                                                <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
+                                                <td>{new Date(inv.date).toLocaleDateString('en-GB')}</td>
                                                 <td>{inv.supplier?.name || t('purchases.str_1037')}</td>
                                                 <td>{fmt(inv.total)} {t('sys.str_68')}</td>
                                                 <td style={{ color: 'var(--success)' }}>{fmt(inv.paid)} {t('sys.str_68')}</td>
@@ -549,7 +549,7 @@ export default function PurchasesPage() {
                                         {pendingReceipts.map(inv => (
                                             <tr key={inv.id}>
                                                 <td style={{ fontWeight: '700' }}>#{inv.invoiceNo} {inv.isManual && <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '10px', padding: '2px 4px', borderRadius: '4px', marginRight: '4px' }}>يدوي</span>}</td>
-                                                <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
+                                                <td>{new Date(inv.date).toLocaleDateString('en-GB')}</td>
                                                 <td>{inv.supplier?.name || t('purchases.str_1037')}</td>
                                                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(inv.total)} {t('sys.str_68')}</td>
                                                 <td>{inv.paymentType === 'cash' ? t('sys.str_860') : inv.paymentType === 'transfer' ? t('sys.str_862') : inv.paymentType === 'card' ? t('sys.str_861') : t('sys.str_863')}</td>

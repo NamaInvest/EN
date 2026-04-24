@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const totalTax = invoices.reduce((s, i) => s + i.taxValue, 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المبيعات': totalSales, 'الضريبة': totalTax, 'عدد الفواتير': invoices.length },
-                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'العميل': (i as any).customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
+                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'العميل': (i as any).customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
                 });
             }
             case 'purchases': {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const total = invoices.reduce((s, i) => s + i.total, 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المشتريات': total, 'عدد الفواتير': invoices.length },
-                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'المورد': (i as any).supplier?.name || '-', 'الإجمالي': i.total })),
+                    data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'المورد': (i as any).supplier?.name || '-', 'الإجمالي': i.total })),
                 });
             }
             case 'stock': {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const total = expenses.reduce((s, e) => s + e.amount, 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المصروفات': total, 'عدد العمليات': expenses.length },
-                    data: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المبلغ': e.amount })),
+                    data: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('en-GB'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المبلغ': e.amount })),
                 });
             }
             case 'customers': {
@@ -147,12 +147,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         'مرتجعات المبيعات': totalSalesReturns,
                         'مرتجعات المشتريات': totalPurchaseReturns,
                     },
-                    sales: sales.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'العميل': (i as any).customer?.name || 'نقدي', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total, 'الدفع': i.paymentType === 'cash' ? 'نقدي' : 'آجل' })),
-                    purchases: purchases.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'المورد': (i as any).supplier?.name || '-', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total })),
-                    expenses: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المستخدم': (e as any).user?.fullName || '-', 'المبلغ': e.amount })),
-                    treasury: treasury.map(t => ({ 'التاريخ': new Date(t.date).toLocaleDateString('ar-SA'), 'الوقت': new Date(t.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }), 'النوع': t.type === 'in' ? 'وارد' : 'صادر', 'الوصف': t.description || '-', 'المستخدم': (t as any).user?.fullName || '-', 'المبلغ': t.amount })),
-                    salesReturns: salesReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('ar-SA'), 'الإجمالي': r.total })),
-                    purchaseReturns: purchaseReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('ar-SA'), 'الإجمالي': r.total })),
+                    sales: sales.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'الوقت': new Date(i.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), 'العميل': (i as any).customer?.name || 'نقدي', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total, 'الدفع': i.paymentType === 'cash' ? 'نقدي' : 'آجل' })),
+                    purchases: purchases.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'الوقت': new Date(i.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), 'المورد': (i as any).supplier?.name || '-', 'المستخدم': (i as any).user?.fullName || '-', 'الإجمالي': i.total })),
+                    expenses: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('en-GB'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المستخدم': (e as any).user?.fullName || '-', 'المبلغ': e.amount })),
+                    treasury: treasury.map(t => ({ 'التاريخ': new Date(t.date).toLocaleDateString('en-GB'), 'الوقت': new Date(t.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), 'النوع': t.type === 'in' ? 'وارد' : 'صادر', 'الوصف': t.description || '-', 'المستخدم': (t as any).user?.fullName || '-', 'المبلغ': t.amount })),
+                    salesReturns: salesReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('en-GB'), 'الإجمالي': r.total })),
+                    purchaseReturns: purchaseReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('en-GB'), 'الإجمالي': r.total })),
                 });
             }
             case 'stock-audit': {
@@ -176,8 +176,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         'النوع': typeLabels[m.type] || m.type,
                         'الكمية': m.quantity,
                         'المخزن': (m as any).stock?.name || '-',
-                        'التاريخ': new Date(m.date).toLocaleDateString('ar-SA'),
-                        'الوقت': new Date(m.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                        'التاريخ': new Date(m.date).toLocaleDateString('en-GB'),
+                        'الوقت': new Date(m.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         'ملاحظات': m.notes || '-',
                     })),
                 });
@@ -240,8 +240,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         'نسبة التخفيض': `${i.discountRate}%`,
                         'قيمة التخفيض': i.discountValue,
                         'إجمالي الفاتورة': i.total,
-                        'التاريخ': new Date(i.date).toLocaleDateString('ar-SA'),
-                        'الوقت': new Date(i.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+                        'التاريخ': new Date(i.date).toLocaleDateString('en-GB'),
+                        'الوقت': new Date(i.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                     })),
                 });
             }

@@ -82,6 +82,10 @@ export interface InvoiceData {
     invoiceLines: InvoiceLine[];
     taxAmount: string;
     totalAmount: string;
+    cancelation?: {
+        canceled_invoice_number: number;
+        reason: string;
+    };
 }
 
 export interface SignResult {
@@ -149,11 +153,20 @@ export class ZatcaSigner {
         const invoiceProps: ZATCASimplifiedInvoiceProps = {
             egs_info: egsInfo,
             invoice_counter_number: settings.invoiceCounter,
-            invoice_serial_number: `INV-${invoiceData.id}`,
+            invoice_serial_number: invoiceData.invoiceTypeCode === '381' ? `CN-${invoiceData.id}` : `INV-${invoiceData.id}`,
             issue_date: invoiceData.issueDate,
             issue_time: invoiceData.issueTime,
             previous_invoice_hash: settings.lastPih || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==',
             line_items: lineItems,
+            // Credit Note (381) or Debit Note (383): add cancelation to reference original invoice
+            ...(invoiceData.invoiceTypeCode === '381' && invoiceData.cancelation ? {
+                cancelation: {
+                    canceled_invoice_number: invoiceData.cancelation.canceled_invoice_number,
+                    payment_method: ZATCAPaymentMethods.CASH,
+                    cancelation_type: ZATCAInvoiceTypes.CREDIT_NOTE,
+                    reason: invoiceData.cancelation.reason || 'مرتجع مبيعات',
+                }
+            } : {}),
         };
 
         // Create the invoice XML

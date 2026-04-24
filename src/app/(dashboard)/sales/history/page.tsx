@@ -167,7 +167,7 @@ export default function SalesHistoryPage() {
                             filteredInvoices.map(inv => (
                                 <tr key={inv.id}>
                                     <td style={{ fontWeight: 'bold' }}>#{inv.invoiceNo}</td>
-                                    <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(inv.date).toLocaleString('ar-SA')}</td>
+                                    <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(inv.date).toLocaleString('en-GB')}</td>
                                     <td>{inv.customer?.name || <span className="badge badge-gray">{t('sales.str_2421')}</span>}</td>
                                     <td>
                                         <span className={`badge ${inv.paymentType.toLowerCase() === 'cash' ? 'badge-success' : 'badge-primary'}`}>

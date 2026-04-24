@@ -103,9 +103,9 @@ export default function RequestForQuotationPage() {
                         {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : rfqs.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('purchases.str_2335')}</td></tr> : rfqs.map(r => (
                             <tr key={r.id}>
                                 <td><strong style={{color: '#6366f1'}}>RFQ-{r.rfqNo}</strong></td>
-                                <td>{new Date(r.date).toLocaleDateString()}</td>
+                                <td>{new Date(r.date).toLocaleDateString('en-GB')}</td>
                                 <td>{r.supplier?.name || <span style={{color: 'var(--text-muted)'}}>{t('purchases.str_2336')}</span>}</td>
-                                <td>{r.dueDate ? new Date(r.dueDate).toLocaleDateString() : t('purchases.str_2350')}</td>
+                                <td>{r.dueDate ? new Date(r.dueDate).toLocaleDateString('en-GB') : t('purchases.str_2350')}</td>
                                 <td>{statusBadge(r.status)}</td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>

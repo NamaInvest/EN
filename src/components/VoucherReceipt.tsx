@@ -142,7 +142,7 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
                     {/* Metadata */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
                         <span><strong>{t('sys.str_112')}</strong> {voucherData.receiptNumber}</span>
-                        <span><strong>{t('sys.str_113')}</strong> {new Date(voucherData.date).toLocaleDateString('ar-SA')}</span>
+                        <span><strong>{t('sys.str_113')}</strong> {new Date(voucherData.date).toLocaleDateString('en-GB')}</span>
                     </div>
 
                     {/* Content Box */}

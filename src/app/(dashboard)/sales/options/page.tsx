@@ -162,7 +162,7 @@ export default function SalesOptionsPage() {
                         يجب تثبيت برنامج QZ Tray على أجهزة الكمبيوتر لنجاح الاتصال.
                     </p>
 
-                    <div style={{ marginBottom: '20px', background: 'var(--bg-body, #1a1b23)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ marginBottom: '20px', background: 'var(--bg-muted, #f9fafb)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border, #e5e7eb)' }}>
                         <h4 style={{ margin: '0 0 10px 0' }}>الطابعة الرئيسية (للكاشير)</h4>
                         <input
                             type="text"
@@ -174,7 +174,7 @@ export default function SalesOptionsPage() {
                         />
                     </div>
 
-                    <div style={{ background: 'var(--bg-body, #1a1b23)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ background: 'var(--bg-muted, #f9fafb)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border, #e5e7eb)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <h4 style={{ margin: 0 }}>طابعات الدعم الإضافية للمطبخ</h4>
                             <button
@@ -363,13 +363,13 @@ export default function SalesOptionsPage() {
                     </div>
 
                     {discountRules.length === 0 ? (
-                        <div style={{ padding: '30px', textAlign: 'center', background: 'var(--bg-body)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
+                        <div style={{ padding: '30px', textAlign: 'center', background: 'var(--bg-muted, #f9fafb)', borderRadius: '8px', border: '1px dashed var(--border, #e5e7eb)' }}>
                             <p style={{ color: 'var(--text-muted)' }}>لا توجد أي قواعد. بذلك يمكن للكاشير أن يخصم أي مبلغ دون قيود.</p>
                         </div>
                     ) : (
                         <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead>
-                                <tr style={{ background: 'var(--bg-body)' }}>
+                                <tr style={{ background: 'var(--bg-muted, #f9fafb)' }}>
                                     <th style={{ padding: '12px' }}>أقل قيمة فاتورة (ريال)</th>
                                     <th style={{ padding: '12px' }}>أكبر خصم مسموح (ريال)</th>
                                     <th style={{ padding: '12px' }}>أكبر خصم مسموح (%)</th>

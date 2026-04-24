@@ -53,7 +53,7 @@ export default function FleetTripsPage() {
                     <span className="text-blue-600">{trip.startLocation}</span> ➔ <span className="text-emerald-600">{trip.endLocation}</span>
                   </td>
                   <td className="p-4 text-sm text-slate-500">
-                    {new Date(trip.departureTime).toLocaleString('ar-SA')}
+                    {new Date(trip.departureTime).toLocaleString('en-GB')}
                   </td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${

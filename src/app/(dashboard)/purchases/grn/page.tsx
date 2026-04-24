@@ -108,7 +108,7 @@ export default function GoodsReceiptNotePage() {
                         {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : grns.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>{t('purchases.str_2248')}</td></tr> : grns.map(g => (
                             <tr key={g.id}>
                                 <td><strong style={{color: '#6366f1'}}>GRN-{g.grnNo}</strong></td>
-                                <td>{new Date(g.date).toLocaleDateString()}</td>
+                                <td>{new Date(g.date).toLocaleDateString('en-GB')}</td>
                                 <td>{g.supplier?.name || '-'}</td>
                                 <td>{g.stock?.name || t('purchases.str_2267')}</td>
                                 <td>{g.receiver?.fullName || '-'}</td>

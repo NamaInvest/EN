@@ -179,7 +179,7 @@ export default function PettyCashFundsPage() {
                                     </td>
                                     <td style={{ fontWeight: 'bold', color: 'var(--danger)' }}>{fund.maxLimit?.toLocaleString()} SAR</td>
                                     <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>{fund.currentBalance?.toLocaleString()} SAR</td>
-                                    <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{new Date(fund.createdAt).toLocaleDateString('ar-SA')}</td>
+                                    <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{new Date(fund.createdAt).toLocaleDateString('en-GB')}</td>
                                     <td>
                                         <span style={{ 
                                             padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold',

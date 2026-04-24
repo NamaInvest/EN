@@ -104,7 +104,7 @@ export default function BookingsPage() {
                                 <tr key={b.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{b.bookingNo}</td>
                                     <td style={{ padding: '8px', fontSize: '13px' }}>{b.customer?.name || '-'}</td>
-                                    <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(b.date).toLocaleDateString('ar-SA')}</td>
+                                    <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(b.date).toLocaleDateString('en-GB')}</td>
                                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{fmt(b.total)}</td>
                                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{fmt(b.deposit)}</td>
                                     <td style={{ padding: '8px' }}><span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: (statusColor[b.status] || '#888') + '15', color: statusColor[b.status] || '#888' }}>{statusLabel[b.status] || b.status}</span></td>

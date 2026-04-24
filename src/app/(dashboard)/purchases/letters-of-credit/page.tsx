@@ -137,7 +137,7 @@ export default function LettersOfCreditPage() {
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                         <span style={{ color: 'var(--text-muted)' }}>{t('sys.str_42')}</span>
-                                        <strong style={{ color: 'var(--danger)' }}>{new Date(lc.expiryDate).toLocaleDateString()}</strong>
+                                        <strong style={{ color: 'var(--danger)' }}>{new Date(lc.expiryDate).toLocaleDateString('en-GB')}</strong>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ color: 'var(--text-muted)' }}>{t('purchases.str_2274')}</span>

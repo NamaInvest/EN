@@ -1,5 +1,0 @@
-;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="e5716852-d909-43c3-0d2a-8e3f34963a81")}catch(e){}}();
-module.exports=[527607,a=>{"use strict";var b=a.i(137936),c=a.i(905246);async function d(){(await (0,c.cookies)()).delete(`__clerk_invalidate_cache_cookie_${Date.now()}`)}(0,a.i(713095).ensureServerEntryExports)([d]),(0,b.registerServerReference)(d,"00d011a4d10b0a9cd7dc59887e6400afb8671b954e",null),a.s(["invalidateCacheAction",()=>d])},631439,a=>{"use strict";var b=a.i(527607),c=a.i(526022);a.s([],716887),a.i(716887),a.s(["009c5a1ee6fa4075fa0695a8efdbeabe029ff08307",()=>c.deleteKeylessAction,"009fcd21dd75143b38b8c38a09dce3e2a2fa4938d7",()=>c.createOrReadKeylessAction,"00d011a4d10b0a9cd7dc59887e6400afb8671b954e",()=>b.invalidateCacheAction,"4090ea04e1f86d3b8957d216142b55aec2ebef2870",()=>c.syncKeylessConfigAction],631439)}];
-
-//# debugId=e5716852-d909-43c3-0d2a-8e3f34963a81
-//# sourceMappingURL=_510e169b._.js.map

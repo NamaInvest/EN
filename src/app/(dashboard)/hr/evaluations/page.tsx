@@ -74,7 +74,7 @@ export default function EmployeeEvaluationsPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-800">New Appraisal</h2>
+              <h2 className="text-xl font-bold text-slate-800">تقييم جديد</h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
             </div>
             <form onSubmit={handleSave} className="p-6">
@@ -105,8 +105,8 @@ export default function EmployeeEvaluationsPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">Cancel</button>
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">Submit Appraisal</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">إلغاء</button>
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ التقييم</button>
               </div>
             </form>
           </div>
@@ -123,9 +123,9 @@ export default function EmployeeEvaluationsPage() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <th className="p-4 font-semibold">Date / Period</th>
-                <th className="p-4 font-semibold">Employee</th>
-                <th className="p-4 font-semibold">Evaluator</th>
-                <th className="p-4 font-semibold">Score Overview</th>
+                <th className="p-4 font-semibold">الموظف</th>
+                <th className="p-4 font-semibold">المقيّم</th>
+                <th className="p-4 font-semibold">ملخص التقييم</th>
               </tr>
             </thead>
             <tbody>
@@ -133,9 +133,9 @@ export default function EmployeeEvaluationsPage() {
                 <tr key={e.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
                   <td className="p-4 text-sm text-slate-600">
                     <span className="font-bold">{e.period}</span> <br/>
-                    {new Date(e.evaluationDate).toLocaleDateString()}
+                    {new Date(e.evaluationDate).toLocaleDateString('en-GB')}
                   </td>
-                  <td className="p-4 font-medium text-slate-800">{e.employee?.name || 'Unknown'}</td>
+                  <td className="p-4 font-medium text-slate-800">{e.employee?.name || 'غير معروف'}</td>
                   <td className="p-4 text-slate-500">{e.evaluator?.name || 'Manager'}</td>
                   <td className="p-4">
                     <div className="w-full bg-slate-200 rounded-full h-2.5 max-w-[150px] mb-1">

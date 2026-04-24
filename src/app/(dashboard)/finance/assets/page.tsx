@@ -98,7 +98,7 @@ export default function FixedAssetsPage() {
                                 <td><strong style={{color: '#6366f1'}}>AST-{a.id}</strong></td>
                                 <td><Building2 size={14} style={{display:'inline', marginRight:'5px', color:'#9ca3af'}}/> {a.assetName}</td>
                                 <td><span style={{backgroundColor: '#f3f4f6', padding: '3px 8px', borderRadius: '4px', fontSize: '12px'}}>{a.assetType}</span></td>
-                                <td><span dir="ltr">{new Date(a.purchaseDate).toLocaleDateString()}</span></td>
+                                <td><span dir="ltr">{new Date(a.purchaseDate).toLocaleDateString('en-GB')}</span></td>
                                 <td>{a.location || '-'}</td>
                                 <td><strong>{parseFloat(a.purchaseCost).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></td>
                                 <td>

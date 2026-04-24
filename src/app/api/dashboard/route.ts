@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
                 _sum: { total: true },
             });
             salesChart.push({
-                date: d.toLocaleDateString('ar-SA', { weekday: 'short' }),
+                date: d.toLocaleDateString('en-GB'),
                 total: agg._sum.total || 0,
             });
         }

@@ -1,0 +1,67 @@
+/**
+ * Formats a Date object or ISO string into a localized Arabic-Saudi date string.
+ * Example: ١٥/٠٤/٢٠٢٦
+ */
+export function formatDateAR(dateInput: string | Date): string {
+    if (!dateInput) return '-';
+    try {
+        const date = new Date(dateInput);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleDateString('en-GB');
+    } catch (e) {
+        return '-';
+    }
+}
+
+/**
+ * Formats a Date object or ISO string into a localized Arabic-Saudi date & time string.
+ * Example: ١٥/٠٤/٢٠٢٦ ١٠:٣٠ ص
+ */
+export function formatDateTimeAR(dateInput: string | Date): string {
+    if (!dateInput) return '-';
+    try {
+        const date = new Date(dateInput);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleString('en-GB', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    } catch (e) {
+        return '-';
+    }
+}
+
+/**
+ * Formats a number as SAR currency in Arabic context.
+ * Example: ١,٢٥٠.٥٠ ر.س
+ */
+export function formatCurrencyAR(amount: number): string {
+    if (amount === undefined || amount === null || isNaN(amount)) return '-';
+    try {
+        return new Intl.NumberFormat('en-GB', {
+            style: 'currency',
+            currency: 'SAR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+    } catch (e) {
+        return amount.toString();
+    }
+}
+
+/**
+ * Formats a number with Arabic numerals.
+ * Example: ١,٢٥٠
+ */
+export function formatNumberAR(num: number): string {
+    if (num === undefined || num === null || isNaN(num)) return '-';
+    try {
+        return new Intl.NumberFormat('en-GB').format(num);
+    } catch (e) {
+        return num.toString();
+    }
+}

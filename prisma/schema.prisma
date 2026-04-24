@@ -332,6 +332,7 @@ model SalesReturn {
   zatcaHash         String?             @map("zatca_hash")
   zatcaQr           String?             @map("zatca_qr")
   zatcaResponse     String?             @map("zatca_response")
+  zatcaXml          String?             @map("zatca_xml")
   branch            Branch?             @relation(fields: [branchId], references: [id])
   shift             Shift?              @relation(fields: [shiftId], references: [id])
   branchId          Int?                @map("branch_id")
@@ -548,6 +549,9 @@ model Treasury {
   branch   Branch? @relation(fields: [branchId], references: [id])
   branchId Int?    @map("branch_id")
 
+  @@index([date])
+  @@index([branchId])
+  @@index([userId])
   @@map("treasury")
 }
 

@@ -68,7 +68,7 @@ export default function POSPage() {
             cart: [...cart],
             total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
             customer: selectedCustomer,
-            time: new Date().toLocaleTimeString('ar-SA')
+            time: new Date().toLocaleTimeString('en-GB')
         };
         saveHeldOrders([...heldOrders, newOrder]);
         setCart([]);
@@ -654,7 +654,7 @@ export default function POSPage() {
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#1a1a1a', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                                     <div>
                                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px' }}>{t('sys.str_4056')}{inv.invoiceNo}</div>
-                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
+                                        <div style={{ color: '#aaa', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('en-GB')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_68')}</div>

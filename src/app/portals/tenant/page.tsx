@@ -103,15 +103,15 @@ export default function TenantPortalPage() {
                 <div style={{ display: 'flex', gap: '30px', marginBottom: '20px', borderBottom: '1px solid #f3f4f6', paddingBottom: '20px' }}>
                   <div>
                     <div style={{ fontSize: '12px', color: '#6b7280' }}>{t('sys.str_1654')}</div>
-                    <div style={{ fontWeight: 'bold' }}>{new Date(lease.startDate).toLocaleDateString('ar-SA')}</div>
+                    <div style={{ fontWeight: 'bold' }}>{new Date(lease.startDate).toLocaleDateString('en-GB')}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '12px', color: '#6b7280' }}>{t('sys.str_1655')}</div>
-                    <div style={{ fontWeight: 'bold' }}>{new Date(lease.endDate).toLocaleDateString('ar-SA')}</div>
+                    <div style={{ fontWeight: 'bold' }}>{new Date(lease.endDate).toLocaleDateString('en-GB')}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '12px', color: '#6b7280' }}>{t('sys.str_1656')}</div>
-                    <div style={{ fontWeight: 'bold', color: '#6366f1' }}>{lease.rentAmount.toLocaleString('ar-SA')} {t('sys.str_1640')}</div>
+                    <div style={{ fontWeight: 'bold', color: '#6366f1' }}>{lease.rentAmount.toLocaleString('en-GB')} {t('sys.str_1640')}</div>
                   </div>
                 </div>
 
@@ -123,7 +123,7 @@ export default function TenantPortalPage() {
                       <div key={inst.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', backgroundColor: inst.isPaid ? '#f0fdf4' : '#fff' }}>
                         <div>
                           <div style={{ fontWeight: 'bold', fontSize: '15px', color: inst.isPaid ? '#15803d' : '#111827' }}>{inst.amount.toLocaleString()} {t('sys.str_1640')}</div>
-                          <div style={{ fontSize: '12px', color: '#6b7280' }}>{t('sys.str_1659')}{new Date(inst.dueDate).toLocaleDateString('ar-SA')}</div>
+                          <div style={{ fontSize: '12px', color: '#6b7280' }}>{t('sys.str_1659')}{new Date(inst.dueDate).toLocaleDateString('en-GB')}</div>
                         </div>
                         <div>
                           {inst.isPaid ? (

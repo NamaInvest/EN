@@ -230,7 +230,7 @@ export default function RestaurantPOS() {
                         </style></head><body>
                         <h2>🍳 تذكرة مطبخ</h2>
                         <div class="table-info">🍽️ ${order.notes?.match(/طاولة[:\s]*([^\|]+)/)?.[1]?.trim() || 'طلب إلكتروني'}</div>
-                        <div class="time">⏰ ${new Date().toLocaleTimeString('ar-SA')} | #${order.invoiceNo}</div>
+                        <div class="time">⏰ ${new Date().toLocaleTimeString('en-GB')} | #${order.invoiceNo}</div>
                         ${order.details?.map((d: any) => `
                             <div class="item">
                                 <span>${d.productName}</span>
@@ -260,7 +260,7 @@ export default function RestaurantPOS() {
             cart: [...cart],
             total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
             customer: selectedCustomer,
-            time: new Date().toLocaleTimeString('ar-SA')
+            time: new Date().toLocaleTimeString('en-GB')
         };
         saveHeldOrders([...heldOrders, newOrder]);
         setCart([]);
@@ -929,7 +929,7 @@ export default function RestaurantPOS() {
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <div>
                                         <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '4px', color: '#1e293b' }}>{t('sys.str_4056')}{inv.invoiceNo}</div>
-                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('ar-SA')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{new Date(inv.date).toLocaleString('en-GB')} {t('sys.str_4057')}{inv.customer?.name || t('sys.str_4081')}</div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_4105')}</div>
@@ -999,7 +999,7 @@ export default function RestaurantPOS() {
                                 <div key={order.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '0.75rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                         <span style={{ fontWeight: 900, color: '#3b82f6' }}>#{order.invoiceNo}</span>
-                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(order.date).toLocaleTimeString('ar-SA')}</span>
+                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(order.date).toLocaleTimeString('en-GB')}</span>
                                     </div>
                                     {order.notes && (
                                         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '0.5rem', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#92400e' }}>

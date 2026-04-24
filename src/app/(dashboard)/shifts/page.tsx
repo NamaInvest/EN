@@ -128,8 +128,8 @@ export default function ShiftsPage() {
                                         <tr key={s.id}>
                                             <td style={{ fontWeight: 'bold' }}>{s.user?.fullName || t('sys.str_963')}</td>
                                             <td><span className="badge badge-outline">{s.branch?.name || t('sys.str_1408')}</span></td>
-                                            <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(s.startTime).toLocaleString('ar-SA')}</td>
-                                            <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--text-muted)' }}>{s.endTime ? new Date(s.endTime).toLocaleString('ar-SA') : '-'}</td>
+                                            <td style={{ direction: 'ltr', textAlign: 'right' }}>{new Date(s.startTime).toLocaleString('en-GB')}</td>
+                                            <td style={{ direction: 'ltr', textAlign: 'right', color: 'var(--text-muted)' }}>{s.endTime ? new Date(s.endTime).toLocaleString('en-GB') : '-'}</td>
                                             <td style={{ color: 'var(--primary)' }}>{fmt(s.startingCash)} {t('sys.str_68')}</td>
                                             <td style={{ color: s.endingCashActual ? 'var(--success)' : 'var(--text-muted)' }}>{s.endingCashActual !== null ? `${fmt(s.endingCashActual)} ر.س` : '-'}</td>
                                             <td>

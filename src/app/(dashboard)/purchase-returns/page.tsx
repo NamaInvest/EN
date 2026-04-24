@@ -36,7 +36,7 @@ export default function PurchaseReturnsPage() {
                             <tbody>{returns.map(r => (
                                 <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{r.returnNo}</td>
-                                    <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(r.date).toLocaleDateString('ar-SA')}</td>
+                                    <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(r.date).toLocaleDateString('en-GB')}</td>
                                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{fmt(r.subtotal)}</td>
                                     <td style={{ padding: '8px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{fmt(r.taxValue)}</td>
                                     <td style={{ padding: '8px', fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(r.total)}</td>

@@ -131,7 +131,7 @@ export default function EnterpriseLegal() {
                                 {note.amount.toFixed(2)} SAR
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                                <span>{t('sys.str_1806')}{new Date(note.dueDate).toLocaleDateString()}</span>
+                                <span>{t('sys.str_1806')}{new Date(note.dueDate).toLocaleDateString('en-GB')}</span>
                                 <span style={{ color: isDueSoon(note.dueDate) && note.status === 'PENDING' ? 'var(--danger)' : 'inherit' }}>
                                     {isDueSoon(note.dueDate) && note.status === 'PENDING' ? t('sys.str_1826') : (note.status === 'PENDING' ? t('sys.str_1827') : t('sys.str_1828'))}
                                 </span>
@@ -156,7 +156,7 @@ export default function EnterpriseLegal() {
                                 {lg.amount.toFixed(2)} {lg.bank?.currency || 'SAR'}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '10px', borderRadius: '8px' }}>
-                                <span>{t('sys.str_1808')}{new Date(lg.expiryDate).toLocaleDateString()}</span>
+                                <span>{t('sys.str_1808')}{new Date(lg.expiryDate).toLocaleDateString('en-GB')}</span>
                                 <span style={{ color: lg.status === 'ACTIVE' ? 'var(--success)' : 'var(--danger)' }}>
                                     {lg.status === 'ACTIVE' ? t('sys.str_1831') : t('sys.str_448')}
                                 </span>

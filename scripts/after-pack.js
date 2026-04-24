@@ -35,14 +35,15 @@ exports.default = async function afterPack(context) {
   // Next.js Standalone Manual Copy
   // electron-builder is aggressive with node_modules. We bypass it by copying things manually.
   try {
-    const standaloneSrc = path.join(context.packager.projectDir, '.next', 'standalone');
+    const nextDir = process.env.ELECTRON_BUILD ? '.next-electron' : '.next';
+    const standaloneSrc = path.join(context.packager.projectDir, nextDir, 'standalone');
     const standaloneDest = path.join(context.appOutDir, 'resources', 'standalone');
     if (fs.existsSync(standaloneSrc)) {
       console.log('📦 Copying NextJS standalone server (bypassing builder)...');
       fs.cpSync(standaloneSrc, standaloneDest, { recursive: true });
       
       console.log('📦 Copying public and static assets...');
-      fs.cpSync(path.join(context.packager.projectDir, '.next', 'static'), path.join(standaloneDest, '.next', 'static'), { recursive: true });
+      fs.cpSync(path.join(context.packager.projectDir, nextDir, 'static'), path.join(standaloneDest, nextDir, 'static'), { recursive: true });
       fs.cpSync(path.join(context.packager.projectDir, 'public'), path.join(standaloneDest, 'public'), { recursive: true });
       
       console.log('📦 Copying Prisma CLI for offline migrations...');

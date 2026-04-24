@@ -16,7 +16,7 @@ export function validateMoney(
     fieldName: string = 'المبلغ',
     options: { allowNegative?: boolean; maxValue?: number } = {}
 ): number {
-    const { allowNegative = false, maxValue = 999_999_999 } = options;
+    const { allowNegative = false, maxValue = 999_999_999_999 } = options;
     const num = Number(value);
 
     if (isNaN(num) || !isFinite(num)) {

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
                 remaining: 0,
                 paymentType: 'pending',
                 status: 'pending',
-                notes: `🔔 استدعاء نادل${tableName ? ` | 🍽️ طاولة: ${tableName}` : tableId ? ` | طاولة رقم: ${tableId}` : ''} | ⏰ ${new Date().toLocaleTimeString('ar-SA')}`,
+                notes: `🔔 استدعاء نادل${tableName ? ` | 🍽️ طاولة: ${tableName}` : tableId ? ` | طاولة رقم: ${tableId}` : ''} | ⏰ ${new Date().toLocaleTimeString('en-GB')}`,
             }
         });
 

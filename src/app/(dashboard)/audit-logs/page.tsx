@@ -93,7 +93,7 @@ export default function AuditLogsPage() {
                                     : filteredLogs.map((log) => (
                                         <tr key={log.id}>
                                             <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                {new Date(log.date).toLocaleString('ar-SA')}
+                                                {new Date(log.date).toLocaleString('en-GB')}
                                             </td>
                                             <td style={{ fontWeight: 'bold' }}>
                                                 {log.user ? `${log.user.fullName} (${log.user.role})` : t('sys.str_396')}

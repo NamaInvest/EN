@@ -292,7 +292,7 @@ export default function CompanySetupPage() {
           </p>
           {backupData?.backup_date && (
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '24px' }}>
-              📅 تاريخ النسخة: {new Date(backupData.backup_date).toLocaleDateString('ar-SA')}
+              📅 تاريخ النسخة: {new Date(backupData.backup_date).toLocaleDateString('en-GB')}
               {backupData.backup_size && ` — 📦 الحجم: ${(backupData.backup_size / 1024 / 1024).toFixed(1)} MB`}
             </p>
           )}

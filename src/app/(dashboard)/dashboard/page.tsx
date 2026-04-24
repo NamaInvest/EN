@@ -146,9 +146,7 @@ export default function DashboardPage() {
                 <h1 className="page-title">{t('dashboard.title')}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-                        {new Date().toLocaleDateString(dateLocale, {
-                            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                        })}
+                        {new Date().toLocaleDateString('en-GB')}
                     </div>
                     <button
                         className="btn btn-ghost btn-sm"
@@ -258,7 +256,7 @@ export default function DashboardPage() {
                         <div style={{ height: '250px', display: 'flex', alignItems: 'flex-end', gap: '8px', padding: '0 8px' }}>
                             {(d.salesChart.length > 0 ? d.salesChart :
                                 Array.from({ length: 7 }, (_, i) => ({
-                                    date: new Date(Date.now() - (6 - i) * 86400000).toLocaleDateString(dateLocale, { weekday: 'short' }),
+                                    date: new Date(Date.now() - (6 - i) * 86400000).toLocaleDateString('en-GB'),
                                     total: 0
                                 }))
                             ).map((item, i) => {
@@ -339,7 +337,7 @@ export default function DashboardPage() {
                                     }}>#{inv.invoiceNo}</span>
                                     <span style={{ flex: 1, fontSize: '13px' }}>{inv.customerName}</span>
                                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                        {new Date(inv.date).toLocaleDateString(dateLocale)}
+                                        {new Date(inv.date).toLocaleDateString('en-GB')}
                                     </span>
                                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                                         {t(paymentKey[inv.paymentType] || '') || inv.paymentType}

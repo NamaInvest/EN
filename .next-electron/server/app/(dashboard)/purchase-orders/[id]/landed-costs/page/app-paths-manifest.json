@@ -1,3 +1,0 @@
-{
-  "/(dashboard)/purchase-orders/[id]/landed-costs/page": "app/(dashboard)/purchase-orders/[id]/landed-costs/page.js"
-}

@@ -105,7 +105,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#444', marginBottom: '16px' }}>
                     <div>
                         <p style={{ margin: '4px 0' }}><strong>{t('sys.str_84')}</strong> #{invoice.invoiceNo}</p>
-                        <p style={{ margin: '4px 0' }}><strong>{t('sys.str_113')}</strong> {new Date(invoice.date).toLocaleString('ar-SA')}</p>
+                        <p style={{ margin: '4px 0' }}><strong>{t('sys.str_113')}</strong> {new Date(invoice.date).toLocaleString('en-GB')}</p>
                     </div>
                     <div style={{ textAlign: 'left' }}>
                         <p style={{ margin: '4px 0' }}><strong>{t('sys.str_4598')}</strong> {invoice.customer?.name || t('sys.str_752')}</p>

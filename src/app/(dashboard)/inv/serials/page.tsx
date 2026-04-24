@@ -55,7 +55,7 @@ export default function SerialNumbersPage() {
                       {sn.status === 'IN_STOCK' ? t('sys.str_4657') : sn.status === 'SOLD' ? t('sys.str_4658') : sn.status}
                     </span>
                   </td>
-                  <td className="p-4 text-sm text-slate-500">{new Date(sn.createdAt).toLocaleDateString('ar-SA')}</td>
+                  <td className="p-4 text-sm text-slate-500">{new Date(sn.createdAt).toLocaleDateString('en-GB')}</td>
                 </tr>
               ))}
             </tbody>

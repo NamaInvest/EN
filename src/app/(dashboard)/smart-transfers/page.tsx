@@ -260,7 +260,7 @@ export default function SmartTransfersPage() {
                                                 <td className="p-4 text-xl font-bold">{tr.quantity} {t('sys.str_813')}</td>
                                                 <td className="p-4 text-gray-400">{tr.senderStock}<br/><span className="text-xs">{t('sys.str_1430')}{tr.senderName}</span></td>
                                                 <td className="p-4 text-orange-400 font-bold border-l-2 border-r-2 border-dashed border-orange-500/30">{tr.receiverStock}</td>
-                                                <td className="p-4 text-sm text-gray-400">{new Date(tr.date).toLocaleDateString()}</td>
+                                                <td className="p-4 text-sm text-gray-400">{new Date(tr.date).toLocaleDateString('en-GB')}</td>
                                                 <td className="p-4">
                                                     <button 
                                                         disabled={loading}

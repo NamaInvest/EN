@@ -81,7 +81,7 @@ export default function TreasuryPage() {
                             ) : entries.map((e, i) => (
                                 <tr key={e.id}>
                                     <td>{i + 1}</td>
-                                    <td>{new Date(e.date).toLocaleDateString('ar-SA')}</td>
+                                    <td>{new Date(e.date).toLocaleDateString('en-GB')}</td>
                                     <td><span className={`badge ${e.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{e.type === 'in' ? t('sys.str_1490') : t('sys.str_1491')}</span></td>
                                     <td style={{ fontWeight: '700', color: e.type === 'in' ? 'var(--success-light)' : 'var(--danger-light)' }}>{e.type === 'in' ? '+' : '-'}{fmt(e.amount)} {t('sys.str_68')}</td>
                                     <td>{e.description || '-'}</td>

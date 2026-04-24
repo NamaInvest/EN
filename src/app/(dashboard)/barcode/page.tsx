@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -11,11 +11,11 @@ interface Product {
 }
 
 const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSize: string; barcodeH: string }[] = [
-    { value: '30x20', label: 'ًںڈ·ï¸ڈ 30أ—20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
-    { value: '40x30', label: 'ًںڈ·ï¸ڈ 40أ—30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
-    { value: '50x25', label: 'ًںڈ·ï¸ڈ 50أ—25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
-    { value: '50x30', label: 'ًںڈ·ï¸ڈ 50أ—30mm (ظ…ط®طµطµ)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
-    { value: '100x50', label: 'ًںڈ·ï¸ڈ 100أ—50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
+    { value: '30x20', label: '🏷️ 30×20mm', w: '30mm', h: '20mm', fontSize: '7px', barcodeH: '12mm' },
+    { value: '40x30', label: '🏷️ 40×30mm', w: '40mm', h: '30mm', fontSize: '8px', barcodeH: '18mm' },
+    { value: '50x25', label: '🏷️ 50×25mm', w: '50mm', h: '25mm', fontSize: '9px', barcodeH: '16mm' },
+    { value: '50x30', label: '🏷️ 50×30mm (مخصص)', w: '50mm', h: '30mm', fontSize: '9px', barcodeH: '20mm' },
+    { value: '100x50', label: '🏷️ 100×50mm', w: '100mm', h: '50mm', fontSize: '12px', barcodeH: '32mm' },
 ];
 
 export default function BarcodePage() {
@@ -112,13 +112,13 @@ export default function BarcodePage() {
                 ${name ? `<div class="name">${name}</div>` : ''}
                 <svg class="barcode" viewBox="0 0 ${totalBars} 100" preserveAspectRatio="none"><rect x="0" y="0" width="2" height="100" fill="#000"/>${barSvg}<rect x="${totalBars - 2}" y="0" width="2" height="100" fill="#000"/></svg>
                 <div class="code">${code}</div>
-                ${showPrice && price ? `<div class="price">${price.toFixed(2)} ط±.ط³</div>` : ''}
+                ${showPrice && price ? `<div class="price">${price.toFixed(2)} ر.س</div>` : ''}
             </div>`;
         }
 
         const pw = window.open('', '_blank', 'width=500,height=500');
         if (!pw) { showToast(t('sys.str_4158')); return; }
-        pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ط·ط¨ط§ط¹ط© ط¨ط§ط±ظƒظˆط¯</title>
+        pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طباعة باركود</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;700&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -152,7 +152,7 @@ export default function BarcodePage() {
                 setSelectedProduct({ ...selectedProduct, barcode: manualBarcode });
             } else {
                 const d = await res.json();
-                showToast(`â‌Œ ${d.error || t('sys.str_4161')}`);
+                showToast(`❌ ${d.error || t('sys.str_4161')}`);
             }
         } catch { showToast(t('sys.str_4162')); }
     };
@@ -216,7 +216,7 @@ export default function BarcodePage() {
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px',
                         }}>
                             <div>
-                                <div style={{ fontWeight: '700', fontSize: '15px' }}>ًں“¦ {selectedProduct.name}</div>
+                                <div style={{ fontWeight: '700', fontSize: '15px' }}>📦 {selectedProduct.name}</div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                     {t('sys.str_4141')}<code style={{ direction: 'ltr' }}>{selectedProduct.barcode || t('sys.str_4165')}</code>
                                 </div>
@@ -349,7 +349,7 @@ export default function BarcodePage() {
                     </div>
                 </div>
             </div>
-            {toast && <div className="toast-container"><div className={`toast ${toast.includes('âœ…') ? 'toast-success' : 'toast-error'}`}>{toast}</div></div>}
+            {toast && <div className="toast-container"><div className={`toast ${toast.includes('✅') ? 'toast-success' : 'toast-error'}`}>{toast}</div></div>}
         </>
     );
 }

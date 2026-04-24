@@ -137,7 +137,7 @@ export default function ExpensesPage() {
                             {loading ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_4107')}</td></tr>
                                 : expenses.length === 0 ? <tr><td colSpan={(canDelete || canEdit) ? 8 : 7}><div className="empty-state"><div className="empty-state-icon">💸</div><div className="empty-state-text">{t('sys.str_4180')}</div></div></td></tr>
                                     : expenses.map((e, i) => (
-                                        <tr key={e.id}><td>{i + 1}</td><td>{new Date(e.date).toLocaleDateString('ar-SA')}</td>
+                                        <tr key={e.id}><td>{i + 1}</td><td>{new Date(e.date).toLocaleDateString('en-GB')}</td>
                                             <td><span className="badge badge-warning">{e.category}</span></td>
                                             <td>{e.description}</td><td style={{ fontWeight: '700', color: 'var(--danger-light)' }}>{fmt(e.amount)} {t('sys.str_4105')}</td>
                                             <td><span className="badge" style={{background:'#eef2ff', color:'#4f46e5'}}>{e.costCenter?.name || '-'}</span></td>

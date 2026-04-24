@@ -201,7 +201,7 @@ export default function PosReturnsModal({ isOpen, onClose }: { isOpen: boolean, 
                         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                             <div className="flex justify-between items-center p-4 bg-slate-50 border-b border-slate-200 text-sm">
                                 <div><span className="text-slate-500">{t('sales.str_1130')}</span> <strong className="text-slate-800">#{originalInvoice.invoiceNo}</strong></div>
-                                <div><span className="text-slate-500">{t('sys.str_113')}</span> <strong className="text-slate-800">{new Date(originalInvoice.date).toLocaleDateString('ar-SA')}</strong></div>
+                                <div><span className="text-slate-500">{t('sys.str_113')}</span> <strong className="text-slate-800">{new Date(originalInvoice.date).toLocaleDateString('en-GB')}</strong></div>
                                 <div><span className="text-slate-500">{t('sales.str_1131')}</span> <strong className="text-slate-800">{fmt(originalInvoice.total)} {t('sys.str_68')}</strong></div>
                             </div>
 

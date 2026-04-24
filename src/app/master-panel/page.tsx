@@ -57,7 +57,7 @@ export default function MasterPanelPage() {
                     const latestSub = company.subscriptions?.[0];
                     const isActive = latestSub?.status === 'ACTIVE';
                     const isValidDate = latestSub?.endDate && !isNaN(new Date(latestSub.endDate).getTime());
-                    const endDate = isValidDate ? new Date(latestSub.endDate).toLocaleDateString('ar-SA') : (latestSub?.status || t('sys.str_179'));
+                    const endDate = isValidDate ? new Date(latestSub.endDate).toLocaleDateString('en-GB') : (latestSub?.status || t('sys.str_179'));
                     
                     return (
                         <div key={index} className="bg-[#1a1c23] rounded-xl border border-white/10 p-6 flex flex-col justify-between hover:border-[#0066cc]/50 transition-colors">

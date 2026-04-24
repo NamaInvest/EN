@@ -941,7 +941,7 @@ export default function SettingsPage() {
                                                 {u.active ? t('sys.str_4581') : t('sys.str_4542')}
                                             </button>
                                         </td>
-                                        <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(u.createdAt).toLocaleDateString('ar-SA')}</td>
+                                        <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(u.createdAt).toLocaleDateString('en-GB')}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '4px' }}>
                                                 {canResetPassword && <button className="btn btn-sm" onClick={() => resetPassword(u)} style={{ fontSize: '11px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>{t('sys.str_4374')}</button>}

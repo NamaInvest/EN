@@ -117,7 +117,7 @@ export default function QualityControlView() {
                                     <td className="p-4">
                                         <div className="flex items-center gap-2"><User size={16} className="text-blue-500"/> {qc.inspector}</div>
                                     </td>
-                                    <td className="p-4">{new Date(qc.inspectionDate).toLocaleString('ar-SA')}</td>
+                                    <td className="p-4">{new Date(qc.inspectionDate).toLocaleString('en-GB')}</td>
                                     <td className="p-4">
                                         {qc.result === 'PASS' 
                                             ? <span className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-3 py-1 rounded w-max font-bold"><CheckCircle2 size={16}/> {t('sys.str_1947')}</span>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useMemo } from 'react';
 
 interface Module {
@@ -18,25 +18,25 @@ interface Category {
 }
 
 const ICON_MAP: Record<string, string> = {
-  ShoppingCart: 'ًں›’', Receipt: 'ًں§¾', Undo: 'â†©ï¸ڈ', Users: 'ًں‘¥', Package: 'ًں“¦',
-  Truck: 'ًںڑڑ', BarChart3: 'ًں“ٹ', Calculator: 'ًں§®', CreditCard: 'ًں’³', Building2: 'ًںڈ¢',
-  FileText: 'ًں“„', DollarSign: 'ًں’°', TrendingUp: 'ًں“ˆ', Warehouse: 'ًںڈ­', ShoppingBag: 'ًں›چï¸ڈ',
-  RefreshCcw: 'ًں”„', UserCheck: 'âœ…', Clock: 'âڈ°', Briefcase: 'ًں’¼', Heart: 'â‌¤ï¸ڈ',
-  Shield: 'ًں›،ï¸ڈ', Zap: 'âڑ،', Globe: 'ًںŒگ', Cpu: 'ًں–¥ï¸ڈ', MessageSquare: 'ًں’¬',
-  Bot: 'ًں¤–', Camera: 'ًں“·', Archive: 'ًں“‚', Settings: 'âڑ™ï¸ڈ', Key: 'ًں”‘',
-  Star: 'â­گ', Award: 'ًںڈ†', Target: 'ًںژ¯', Layers: 'ًں“ڑ', GitBranch: 'ًں”€',
-  Factory: 'ًںڈ—ï¸ڈ', Leaf: 'ًںŒ؟', Anchor: 'âڑ“', Radio: 'ًں“،', Thermometer: 'ًںŒ،ï¸ڈ',
-  Wrench: 'ًں”§', Car: 'ًںڑ—', Home: 'ًںڈ ', Scissors: 'âœ‚ï¸ڈ', Coffee: 'âک•',
-  Music: 'ًںژµ', Book: 'ًں“•', Map: 'ًں—؛ï¸ڈ', Flag: 'ًںڈ³ï¸ڈ', Tool: 'ًں› ï¸ڈ',
-  Activity: 'ًں“‰', PieChart: 'ًں¥§', Lock: 'ًں”’', Mail: 'ًں“§', Phone: 'ًں“‍',
-  Tablet: 'ًں“±', Monitor: 'ًں–¥ï¸ڈ', Printer: 'ًں–¨ï¸ڈ', Database: 'ًں’¾', Server: 'ًں–§',
-  Cloud: 'âکپï¸ڈ', Search: 'ًں”چ', Filter: 'â–¼', Edit: 'âœڈï¸ڈ', Trash: 'ًں—‘ï¸ڈ',
-  Plus: 'â‍•', Minus: 'â‍–', Check: 'âœ”ï¸ڈ', X: 'âœ–ï¸ڈ', Info: 'â„¹ï¸ڈ',
-  AlertTriangle: 'âڑ ï¸ڈ', HelpCircle: 'â‌“', ChevronRight: 'â€؛', ChevronDown: 'âŒ„',
+  ShoppingCart: '🛒', Receipt: '🧾', Undo: '↩️', Users: '👥', Package: '📦',
+  Truck: '🚚', BarChart3: '📊', Calculator: '🧮', CreditCard: '💳', Building2: '🏢',
+  FileText: '📄', DollarSign: '💰', TrendingUp: '📈', Warehouse: '🏭', ShoppingBag: '🛍️',
+  RefreshCcw: '🔄', UserCheck: '✅', Clock: '⏰', Briefcase: '💼', Heart: '❤️',
+  Shield: '🛡️', Zap: '⚡', Globe: '🌐', Cpu: '🖥️', MessageSquare: '💬',
+  Bot: '🤖', Camera: '📷', Archive: '📂', Settings: '⚙️', Key: '🔑',
+  Star: '⭐', Award: '🏆', Target: '🎯', Layers: '📚', GitBranch: '🔀',
+  Factory: '🏗️', Leaf: '🌿', Anchor: '⚓', Radio: '📡', Thermometer: '🌡️',
+  Wrench: '🔧', Car: '🚗', Home: '🏠', Scissors: '✂️', Coffee: '☕',
+  Music: '🎵', Book: '📕', Map: '🗺️', Flag: '🏳️', Tool: '🛠️',
+  Activity: '📉', PieChart: '🥧', Lock: '🔒', Mail: '📧', Phone: '📞',
+  Tablet: '📱', Monitor: '🖥️', Printer: '🖨️', Database: '💾', Server: '🖧',
+  Cloud: '☁️', Search: '🔍', Filter: '▼', Edit: '✏️', Trash: '🗑️',
+  Plus: '➕', Minus: '➖', Check: '✔️', X: '✖️', Info: 'ℹ️',
+  AlertTriangle: '⚠️', HelpCircle: '❓', ChevronRight: '›', ChevronDown: '⌄',
 };
 
 function getIcon(name: string): string {
-  return ICON_MAP[name] || 'ًں“‹';
+  return ICON_MAP[name] || '📋';
 }
 
 const CAT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -87,10 +87,10 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
       {/* Section Header */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
-          ط§ط³طھعرض ط§ظ„ظ€ <span style={{ color: '#6366f1' }}>104 ظˆط­ط¯ط©</span> ط§ظ„ط¨ط±ظ…ط¬ظٹط©
+          استكشف الـ <span style={{ color: '#6366f1' }}>104 وحدة</span> البرمجية
         </h2>
         <p style={{ color: '#64748b', fontSize: '1rem' }}>
-          ط§ط¶ط؛ط· ط¹ظ„ظ‰ ط£ظٹ ظپط¦ط© ظ„طھطµظپظٹط© ط§ظ„ظˆط­ط¯ط§طھ
+          اضغط على أي فئة لتصفية الوحدات
         </p>
       </div>
 
@@ -98,7 +98,7 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
       <div style={{ maxWidth: '500px', margin: '0 auto 32px auto' }}>
         <input
           type="text"
-          placeholder="ط§بحث ط¹ظ† ظˆط­ط¯ط©... (ظ…ط«ط§ظ„: ظ…ط®ط²ظˆظ†طŒ فاتورةطŒ ظ…ظˆط¸ظپظٹظ†)"
+          placeholder="ا عن وحدة... (مثال: مخزون، ، موظفين)"
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
@@ -205,15 +205,15 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
 
       {filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '12px' }}>ًں”چ</div>
-          <p style={{ fontSize: '1.1rem' }}>لا طھظˆط¬ط¯ ظˆط­ط¯ط§طھ طھط·ط§ط¨ظ‚ ط§ظ„بحث</p>
+          <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🔍</div>
+          <p style={{ fontSize: '1.1rem' }}>لا توجد وحدات تطابق البحث</p>
         </div>
       )}
 
       {/* Count */}
       <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '32px', fontSize: '0.9rem' }}>
-        عرض <strong style={{ color: '#6366f1' }}>{filtered.length}</strong> ظ…ظ† ط£طµظ„{' '}
-        <strong>{modules.length}</strong> ظˆط­ط¯ط©
+        تمت <strong style={{ color: '#6366f1' }}>{filtered.length}</strong> من أصل{' '}
+        <strong>{modules.length}</strong> وحدة
       </p>
     </section>
   );

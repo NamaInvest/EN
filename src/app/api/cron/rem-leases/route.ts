@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       // In real life, we would also generate the Journal Entry / Invoice automatically here.
       // But for now, we trigger a WhatsApp Notification to the Tenant:
       if (inst.contract.tenant.phone) {
-        const message = `مرحباً ${inst.contract.tenant.name}،\nنذكركم باقتراب موعد استحقاق الدفعة الإيجارية لعقار ${inst.contract.unit.property.name} - وحدة ${inst.contract.unit.unitNumber} بقيمة ${inst.amount} ريال.\nيرجى السداد قبل تاريخ ${inst.dueDate.toLocaleDateString('ar-SA')} لتجنب الغرامات.\nشكراً لتعاونكم.`;
+        const message = `مرحباً ${inst.contract.tenant.name}،\nنذكركم باقتراب موعد استحقاق الدفعة الإيجارية لعقار ${inst.contract.unit.property.name} - وحدة ${inst.contract.unit.unitNumber} بقيمة ${inst.amount} ريال.\nيرجى السداد قبل تاريخ ${inst.dueDate.toLocaleDateString('en-GB')} لتجنب الغرامات.\nشكراً لتعاونكم.`;
         
         try {
           // Attempting generic whatsapp send logic, or simply logging it to DB for daemon to pick up
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     });
 
     for (const contract of expiringContracts) {
-      console.log(`[Auto-Lease-Renewal] Reminding tenant ${contract.tenant.name} about contract expiring on ${contract.endDate.toLocaleDateString()}`);
+      console.log(`[Auto-Lease-Renewal] Reminding tenant ${contract.tenant.name} about contract expiring on ${contract.endDate.toLocaleDateString('en-GB')}`);
       // Also can auto-generate a Draft Contract for next year!
     }
 

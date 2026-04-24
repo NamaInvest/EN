@@ -99,7 +99,7 @@ export default function PurchaseRequisitionsPage() {
                         {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : prs.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('purchases.str_2308')}</td></tr> : prs.map(p => (
                             <tr key={p.id}>
                                 <td><strong style={{color: '#6366f1'}}>PR-{p.reqNo}</strong></td>
-                                <td>{new Date(p.date).toLocaleDateString()}</td>
+                                <td>{new Date(p.date).toLocaleDateString('en-GB')}</td>
                                 <td>{p.department || t('sys.str_733')}</td>
                                 <td>{p.requester?.fullName || p.requester?.username || '-'}</td>
                                 <td>{statusBadge(p.status)}</td>

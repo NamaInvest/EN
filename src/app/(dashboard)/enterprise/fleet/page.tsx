@@ -136,7 +136,7 @@ export default function FleetManagementView() {
                                             <GaugeCircle size={16}/> {v.currentOdometer.toLocaleString()} {t('sys.str_1783')}</div>
                                     </td>
                                     <td className="p-4 font-semibold text-gray-700">
-                                        {v.licenseExpiry ? new Date(v.licenseExpiry).toLocaleDateString('ar-SA') : '-'}
+                                        {v.licenseExpiry ? new Date(v.licenseExpiry).toLocaleDateString('en-GB') : '-'}
                                     </td>
                                     <td className="p-4">
                                         <span className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-sm ${getStatusStyle(v.status)}`}>

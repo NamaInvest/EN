@@ -220,7 +220,7 @@ export default function EnterpriseProjects() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
                                     <Clock size={14} />
-                                    {t('sys.str_1876')}{project.startDate ? new Date(project.startDate).toLocaleDateString() : t('sys.str_1894')}
+                                    {t('sys.str_1876')}{project.startDate ? new Date(project.startDate).toLocaleDateString('en-GB') : t('sys.str_1894')}
                                 </div>
                                 
                                 <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }}>

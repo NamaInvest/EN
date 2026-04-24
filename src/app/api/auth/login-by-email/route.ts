@@ -16,22 +16,22 @@ const getMasterPool = () => new Pool({
 /**
  * POST /api/auth/login-by-email
  * 
- * تسجيل دخول عبر البريد الإلكتروني (بدون كلمة سر)
- * شرط أمان صارم: الإيميل يجب أن يكون مسجلاً لهذا الـ subdomain تحديداً
+ *      (  )
+ *   :        subdomain 
  */
 export async function POST(req: Request) {
     try {
         const { email } = await req.json();
 
         if (!email) {
-            return NextResponse.json({ error: 'البريد الإلكتروني مطلوب' }, { status: 400 });
+            return NextResponse.json({ error: '  ' }, { status: 400 });
         }
 
-        // ── تحديد الـ subdomain الحالي من الـ host ───────────────────────
+        // ??   subdomain    host ???????????????????????
         const host = req.headers.get('host') || '';
         const currentSubdomain = host.split('.')[0]; // ahmedalyamicompany
 
-        // ── التحقق الأمني: هل هذا الإيميل مسجّل لهذا الـ subdomain فقط؟ ──
+        // ??  :       subdomain ؿ ??
         const masterPool = getMasterPool();
         try {
             const result = await masterPool.query(
@@ -41,19 +41,19 @@ export async function POST(req: Request) {
             const registeredSubdomain = result.rows[0]?.subdomain;
 
             if (!registeredSubdomain) {
-                // الإيميل مو مسجّل في أي tenant
+                //      tenant
                 return NextResponse.json(
-                    { error: 'هذا البريد الإلكتروني غير مسجّل في النظام' },
+                    { error: '      ' },
                     { status: 403 }
                 );
             }
 
             if (registeredSubdomain !== currentSubdomain) {
-                // الإيميل مسجّل في subdomain مختلف
+                //    subdomain 
                 console.warn(`[login-by-email] BLOCKED: email=${email} belongs to ${registeredSubdomain}, tried to access ${currentSubdomain}`);
                 return NextResponse.json(
                     { 
-                        error: 'هذا البريد الإلكتروني مسجّل في حساب آخر',
+                        error: '      ',
                         redirect: `https://${registeredSubdomain}.namainvist.com/auto-login`,
                     },
                     { status: 403 }
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
             await masterPool.end().catch(() => {});
         }
 
-        // ── الإيميل صحيح → سجّل دخول ─────────────────────────────────────
+        // ??   ?   ?????????????????????????????????????
         const prisma = await getPrisma(req);
         const emailUsername = email.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase();
 
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
         });
 
         if (!user) {
-            return NextResponse.json({ error: 'لم يُعثر على مستخدم' }, { status: 404 });
+            return NextResponse.json({ error: '   ' }, { status: 404 });
         }
 
         const token = generateToken({
@@ -104,6 +104,6 @@ export async function POST(req: Request) {
 
     } catch (err: any) {
         console.error('[login-by-email]', err.message);
-        return NextResponse.json({ error: 'خطأ في السيرفر' }, { status: 500 });
+        return NextResponse.json({ error: '  ' }, { status: 500 });
     }
 }

@@ -55,3 +55,6 @@ next-env.d.ts
 /electron-protected/
 /electron/zatca-sdk/
 /.tmp-prisma-cli/
+
+dist-electron/
+.next-electron/

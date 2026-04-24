@@ -187,7 +187,7 @@ async function getDailyReport(): Promise<string> {
     const lowStock = await prisma.product.count({ where: { currentStock: { lt: 5 } } });
     const entries = await prisma.treasury.findMany();
     const balance = entries.reduce((s, e) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
-    return `📋 <b>التقرير اليومي</b> - ${new Date().toLocaleDateString('ar-SA')}\n━━━━━━━━━━━━━━━━━━\n` +
+    return `📋 <b>التقرير اليومي</b> - ${new Date().toLocaleDateString('en-GB')}\n━━━━━━━━━━━━━━━━━━\n` +
         `🧾 المبيعات: <b>${sales.length}</b> فاتورة | <b>${fmt(salesTotal)} ر.س</b>\n` +
         `📦 المشتريات: <b>${purchases.length}</b> فاتورة | <b>${fmt(purchasesTotal)} ر.س</b>\n` +
         `💸 المصروفات: <b>${expenses.length}</b> | <b>${fmt(expensesTotal)} ر.س</b>\n━━━━━━━━━━━━━━━━━━\n` +

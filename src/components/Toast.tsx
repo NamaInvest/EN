@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
@@ -24,11 +24,11 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const ICONS: Record<ToastType, string> = {
-    success: 'âœ…',
-    error:   'â‌Œ',
-    warning: 'âڑ ï¸ڈ',
-    info:    'â„¹ï¸ڈ',
-    loading: 'âڈ³',
+    success: '✅',
+    error:   '❌',
+    warning: '⚠️',
+    info:    'ℹ️',
+    loading: '⏳',
 };
 
 const COLORS: Record<ToastType, { bg: string; border: string; text: string }> = {
@@ -116,7 +116,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                                 background: 'none', border: 'none', cursor: 'pointer',
                                 color: 'var(--text-muted, #94a3b8)', fontSize: '16px', flexShrink: 0,
                                 padding: '2px 4px', lineHeight: 1,
-                            }}>âœ•</button>
+                            }}>✕</button>
                         </div>
                     );
                 })}
@@ -129,7 +129,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 export function useToast(): ToastContextValue {
     const ctx = useContext(ToastContext);
     if (!ctx) {
-        // fallback â€” ظ…ط§ ظپظٹظ‡ providerطŒ ظ†ط±ط¬ط¹ ظˆط¸ط§ط¦ظپ طھط³طھط®ط¯ظ… console ظپظ‚ط·
+        // fallback — ما فيه provider، نرجع وظائف تستخدم console فقط
         const noop = (m: string) => { console.log('[Toast]', m); return ''; };
         return {
             toast:      (m, t) => { console.log(`[Toast:${t}]`, m); return ''; },

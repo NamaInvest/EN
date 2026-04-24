@@ -136,7 +136,7 @@ export default function ChecksPage() {
                                 <td><strong>{c.checkNumber}</strong></td>
                                 <td>{c.bankName}</td>
                                 <td>{tab === 'RECEIVABLE' ? c.customer?.name : c.supplier?.name}</td>
-                                <td>{new Date(c.dueDate).toLocaleDateString()}</td>
+                                <td>{new Date(c.dueDate).toLocaleDateString('en-GB')}</td>
                                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{fmt(c.amount)} {t('sys.str_68')}</td>
                                 <td>
                                     <span style={{

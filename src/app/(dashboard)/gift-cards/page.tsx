@@ -95,10 +95,10 @@ export default function GiftCardsPage() {
                                 return (
                                 <tr key={c.id}>
                                     <td style={{ fontWeight: '700', color: 'var(--primary-color)', letterSpacing: '2px' }}>{c.code}</td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('ar-SA')}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('en-GB')}</td>
                                     <td>{fmt(c.initialBalance)} {t('sys.str_68')}</td>
                                     <td style={{ fontWeight: 'bold', color: fullyUsed ? '#ef4444' : '#10b981' }}>{fmt(c.currentBalance)} {t('sys.str_68')}</td>
-                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('ar-SA') : t('sys.str_514')}</td>
+                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('en-GB') : t('sys.str_514')}</td>
                                     <td>
                                         <span className={`badge ${!c.isActive ? 'badge-error' : expired ? 'badge-warning' : fullyUsed ? 'badge-ghost' : 'badge-success'}`}>
                                             {!c.isActive ? t('sys.str_654') : expired ? t('sys.str_655') : fullyUsed ? t('sys.str_656') : t('sys.str_657')}

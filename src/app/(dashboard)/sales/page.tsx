@@ -64,7 +64,7 @@ export default function SalesPage() {
                     'طلب مطبخ\n\n',
                     '\x1B\x21\x00', // Normal font
                     '\x1B\x61\x00', // Left align
-                    `تاريخ: ${new Date().toLocaleTimeString('ar-SA')}\n`,
+                    `تاريخ: ${new Date().toLocaleTimeString('en-GB')}\n`,
                     `فاتورة #: ${invoice.invoiceNo}\n`,
                     '--------------------------------\n',
                     ...job.items.map((i: any) => `${i.productName}  x  ${i.quantity}\n`),
@@ -793,7 +793,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
                     ).join('\n');
                     
                     const text = `🧾 *فاتورة مبيعات #${invoice.invoiceNo}*\n` +
-                        `📅 ${new Date().toLocaleDateString('ar-SA')}\n` +
+                        `📅 ${new Date().toLocaleDateString('en-GB')}\n` +
                         `👤 ${customerName}\n\n` +
                         `📦 *الأصناف:*\n${itemsText}\n\n` +
                         `💰 المجموع: ${fmt(subtotal)} ر.س\n` +
@@ -863,7 +863,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
             paidAmount,
             paymentType,
             heldAt: now.toISOString(),
-            label: `${cart.length} صنف - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
+            label: `${cart.length} صنف - ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`,
         };
         const updated = [...heldInvoices, held];
         setHeldInvoices(updated);
@@ -963,7 +963,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
             `${i + 1}. ${d.productName} × ${d.quantity} = ${fmt(d.total)} ر.س`
         ).join('\n');
         const text = `🧾 *فاتورة مبيعات #${inv.invoiceNo}*\n` +
-            `📅 ${new Date(inv.date).toLocaleDateString('ar-SA')}\n` +
+            `📅 ${new Date(inv.date).toLocaleDateString('en-GB')}\n` +
             `👤 ${inv.customer?.name || t('sys.str_752')}\n\n` +
             `📦 *الأصناف:*\n${items}\n\n` +
             `💰 المجموع: ${fmt(inv.subtotal)} ر.س\n` +
@@ -1647,8 +1647,8 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
                                         {historyInvoices.map((inv: any) => (
                                             <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedInvoice(inv)}>
                                                 <td style={{ fontWeight: '700' }}>#{inv.invoiceNo}</td>
-                                                <td>{new Date(inv.date).toLocaleDateString('ar-SA')}</td>
-                                                <td>{new Date(inv.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td>
+                                                <td>{new Date(inv.date).toLocaleDateString('en-GB')}</td>
+                                                <td>{new Date(inv.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</td>
                                                 <td>{inv.customer?.name || t('sys.str_752')}</td>
                                                 <td>{inv.paymentType === 'cash' ? '💵' : inv.paymentType === 'card' ? '💳' : inv.paymentType === 'transfer' ? '🏦' : '📝'}</td>
                                                 <td style={{ fontWeight: '700', color: 'var(--primary)' }}>{fmt(inv.total)} {t('sys.str_68')}</td>
@@ -1673,8 +1673,8 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
                         </div>
                         <div className="modal-body">
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px', fontSize: '13px' }}>
-                                <div><strong>{t('sys.str_797')}</strong> {new Date(selectedInvoice.date).toLocaleDateString('ar-SA')}</div>
-                                <div><strong>{t('sys.str_798')}</strong> {new Date(selectedInvoice.date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
+                                <div><strong>{t('sys.str_797')}</strong> {new Date(selectedInvoice.date).toLocaleDateString('en-GB')}</div>
+                                <div><strong>{t('sys.str_798')}</strong> {new Date(selectedInvoice.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
                                 <div><strong>{t('sys.str_799')}</strong> {selectedInvoice.customer?.name || t('sys.str_752')}</div>
                                 <div><strong>{t('sys.str_800')}</strong> {selectedInvoice.paymentType === 'cash' ? t('sys.str_860') : selectedInvoice.paymentType === 'card' ? t('sys.str_861') : selectedInvoice.paymentType === 'transfer' ? t('sys.str_862') : t('sys.str_863')}</div>
                             </div>

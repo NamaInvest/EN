@@ -433,7 +433,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                     <strong>{t('sys.str_84')}:</strong> <span dir="ltr">{data.invoiceNumber}</span>
                                 </td>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
-                                    <strong>التاريخ:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('ar-SA')}</span>
+                                    <strong>التاريخ:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('en-GB')}</span>
                                 </td>
                             </tr>
                             <tr>

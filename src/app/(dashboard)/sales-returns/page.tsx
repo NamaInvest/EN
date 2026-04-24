@@ -225,7 +225,7 @@ export default function SalesReturnsPage() {
                             <div style={{ background: 'var(--bg-card-hover)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '13px' }}>
                                     <div><strong>{t('sales.str_1130')}</strong> #{originalInvoice.invoiceNo}</div>
-                                    <div><strong>{t('sys.str_113')}</strong> {new Date(originalInvoice.date).toLocaleDateString('ar-SA')}</div>
+                                    <div><strong>{t('sys.str_113')}</strong> {new Date(originalInvoice.date).toLocaleDateString('en-GB')}</div>
                                     <div><strong>{t('sales.str_1131')}</strong> {fmt(originalInvoice.total)} {t('sys.str_68')}</div>
                                 </div>
 
@@ -313,7 +313,7 @@ export default function SalesReturnsPage() {
                                 <tbody>{returns.map(r => (
                                     <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '8px', fontFamily: 'monospace', fontWeight: 'bold' }}>#{r.returnNo}</td>
-                                        <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(r.date).toLocaleDateString('ar-SA')}</td>
+                                        <td style={{ padding: '8px', fontSize: '12px' }}>{new Date(r.date).toLocaleDateString('en-GB')}</td>
                                         <td style={{ padding: '8px', fontFamily: 'monospace', color: 'var(--primary)' }}>
                                             {r.originalInvoiceId ? `#INV-${r.originalInvoiceId}` : t('sales.str_1154')}
                                         </td>

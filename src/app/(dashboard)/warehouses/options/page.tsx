@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/i18n';
@@ -18,7 +18,7 @@ export default function WarehouseOptionsPage() {
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState('');
 
-    // â”€â”€ ظˆط­ط¯ط§طھ ط§ظ„طھط¹ط¨ط¦ط© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── وحدات التعبئة ──────────────────────────────────────────
     const [units, setUnits] = useState<{ id: number; name: string }[]>([]);
     const [newUnitName, setNewUnitName] = useState('');
     const [savingUnit, setSavingUnit] = useState(false);
@@ -39,18 +39,18 @@ export default function WarehouseOptionsPage() {
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ name: newUnitName.trim() }),
             });
-            if (res.ok) { setNewUnitName(''); await fetchUnits(); showToast('âœ… طھظ…طھ إضافة الوحدة'); }
-            else showToast('â‌Œ ظپط´ظ„ ظپظٹ ط§ظ„إضافة');
-        } catch { showToast('â‌Œ ط®ط·ط£'); }
+            if (res.ok) { setNewUnitName(''); await fetchUnits(); showToast('✅ تمت الإضافة'); }
+            else showToast('❌ فشل في الإضافة');
+        } catch { showToast('❌ خطأ'); }
         finally { setSavingUnit(false); }
     };
 
     const handleDeleteUnit = async (id: number) => {
-        if (!confirm('هل طھط±ظٹط¯ حذف ظ‡ط°ظ‡ الوحدةطں')) return;
+        if (!confirm(' تريد  هذه ؟')) return;
         const token = localStorage.getItem('token');
         const res = await fetch(`/api/units?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { await fetchUnits(); showToast('âœ… طھظ… ط§ظ„حذف'); }
-        else showToast('â‌Œ طھط¹ط°ط± ط§ظ„حذف - ط±ط¨ظ…ط§ طھط³طھط®ط¯ظ…ظ‡ط§ منتجط§طھ');
+        if (res.ok) { await fetchUnits(); showToast('✅ تم الحذف'); }
+        else showToast('❌ تعذر ال - ربما تستخدمها ات');
     };
 
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
@@ -67,7 +67,7 @@ export default function WarehouseOptionsPage() {
                     setSettings(map);
                     setOriginal(map);
                 }
-            } catch (err: any) { toastError(err?.message || 'ط­ط¯ط« ط®ط·ط£'); }
+            } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
             finally { setLoading(false); }
         };
         fetchData();
@@ -80,7 +80,7 @@ export default function WarehouseOptionsPage() {
         try {
             const allKeys = new Set([...Object.keys(settings), ...Object.keys(original)]);
             const changedKeys = Array.from(allKeys).filter(k => (settings[k] || '') !== (original[k] || ''));
-            if (changedKeys.length === 0) { showToast('لا طھظˆط¬ط¯ طھط؛ظٹظٹط±ط§طھ'); setSaving(false); return; }
+            if (changedKeys.length === 0) { showToast('لا توجد تغييرات'); setSaving(false); return; }
             const payload: Record<string, string> = {};
             changedKeys.forEach(k => { payload[k] = settings[k] || ''; });
             const res = await fetch('/api/settings', {
@@ -90,10 +90,10 @@ export default function WarehouseOptionsPage() {
             });
             if (res.ok) {
                 setOriginal({ ...settings });
-                showToast(`âœ… طھظ… ط§ظ„حفظ`);
+                showToast(`✅ تم الحذف`);
                 refreshSettings();
-            } else { showToast('â‌Œ ظپط´ظ„ ظپظٹ ط§ظ„حفظ'); }
-        } catch { showToast('â‌Œ ط®ط·ط£ ظپظٹ ط§لاطھطµط§ظ„'); }
+            } else { showToast('❌ فشل في الحفظ'); }
+        } catch { showToast('❌ خطأ في اتصال'); }
         finally { setSaving(false); }
     };
 
@@ -140,7 +140,7 @@ export default function WarehouseOptionsPage() {
         }
         const pw = window.open('', '_blank', 'width=400,height=400');
         if (!pw) return;
-        pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ط¨ط§ط±ظƒظˆط¯</title>
+        pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>باركود</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@600&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -170,7 +170,7 @@ export default function WarehouseOptionsPage() {
             )}
 
             <div className="page-header">
-                <h1 className="page-title">âڑ™ï¸ڈ {t('sys.str_4410')}</h1>
+                <h1 className="page-title">⚙️ {t('sys.str_4410')}</h1>
                 <button
                     className={`btn ${hasChanges ? 'btn-primary' : 'btn-ghost'}`}
                     onClick={handleSave}
@@ -178,53 +178,53 @@ export default function WarehouseOptionsPage() {
                     style={{ minWidth: '140px', fontSize: '15px', fontWeight: '700',
                         ...(hasChanges ? { animation: 'pulse 2s infinite' } : {}) }}
                 >
-                    {saving ? 'âڈ³ ط¬ط§ط±ظچ ط§ظ„حفظ...' : 'ًں’¾ حفظ ط§ظ„طھط؛ظٹظٹط±ط§طھ'}
+                    {saving ? '⏳ جارٍ الحفظ...' : '💾 حفظ التغييرات'}
                 </button>
             </div>
 
             <div className="page-content animate-fade-in">
 
-                {/* â”€â”€ إعدادات ط§ظ„ط·ط§ط¨ط¹ط© ظˆالباركود â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ──إعدادات الطابعة والباركود ─────────────────────── */}
                 <div className="card" style={{ marginBottom: '20px' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>
-                        ًں–¨ï¸ڈ {t('sys.str_4410')}
+                        🖨️ {t('sys.str_4410')}
                     </h3>
                     <div className="grid-2">
-                        {/* ظ†ظˆط¹ ط§ظ„ط·ط§ط¨ط¹ط© */}
+                        {/* نوع الطابعة */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4411')}</label>
                             <select className="input" value={settings['printer_type'] || '80mm'} onChange={e => set('printer_type', e.target.value)} style={inputStyle('printer_type')}>
                                 <option value="58mm">{t('sys.str_4412')}</option>
                                 <option value="76mm">{t('sys.str_4413')}</option>
                                 <option value="80mm">{t('sys.str_4414')}</option>
-                                <option value="A4">ًں“„ A4 (210mm)</option>
-                                <option value="A5">ًں“„ A5 (148mm)</option>
+                                <option value="A4">📄 A4 (210mm)</option>
+                                <option value="A5">📄 A5 (148mm)</option>
                             </select>
                         </div>
-                        {/* ط­ط¬ظ… ظ…ظ„طµظ‚ الباركود */}
+                        {/* حجم ملصق الباركود */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4417')}</label>
                             <select className="input" value={settings['barcode_label_size'] || '50x30'} onChange={e => set('barcode_label_size', e.target.value)} style={inputStyle('barcode_label_size')}>
-                                <option value="30x20">ًںڈ·ï¸ڈ 30أ—20mm</option>
-                                <option value="40x30">ًںڈ·ï¸ڈ 40أ—30mm</option>
-                                <option value="50x25">ًںڈ·ï¸ڈ 50أ—25mm</option>
-                                <option value="50x30">ًںڈ·ï¸ڈ 50أ—30mm (ظ…ط®طµطµ)</option>
-                                <option value="100x50">ًںڈ·ï¸ڈ 100أ—50mm</option>
+                                <option value="30x20">🏷️ 30×20mm</option>
+                                <option value="40x30">🏷️ 40×30mm</option>
+                                <option value="50x25">🏷️ 50×25mm</option>
+                                <option value="50x30">🏷️ 50×30mm (مخصص)</option>
+                                <option value="100x50">🏷️ 100×50mm</option>
                             </select>
                         </div>
-                        {/* ط±ط£ط³ ط§ظ„ط¥ظٹطµط§ظ„ */}
+                        {/* رأس الإيصال */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4415')}</label>
                             <input className="input" value={settings['receipt_header'] || ''} onChange={e => set('receipt_header', e.target.value)} style={inputStyle('receipt_header')} />
                         </div>
-                        {/* ط°ظٹظ„ ط§ظ„ط¥ظٹطµط§ظ„ */}
+                        {/* ذيل الإيصال */}
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4416')}</label>
                             <input className="input" value={settings['receipt_footer'] || ''} onChange={e => set('receipt_footer', e.target.value)} style={inputStyle('receipt_footer')} />
                         </div>
                     </div>
 
-                    {/* ط§ط®طھط¨ط§ط± طباعة الباركود */}
+                    {/* اختبار طباعة الباركود */}
                     <div style={{ marginTop: '20px', padding: '20px', background: 'var(--bg-card-hover)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                         <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px' }}>{t('sys.str_4139')}</h3>
                         <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4344')}</p>
@@ -243,19 +243,19 @@ export default function WarehouseOptionsPage() {
                         </div>
                     </div>
                 </div>
-                {/* â”€â”€ ظˆط­ط¯ط§طھ ط§ظ„طھط¹ط¨ط¦ط© (ط¯ط±ط²ظ†طŒ ظƒط±طھظˆظ†طŒ ط´ط¯ظ‡...) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── وحدات التعبئة (درزن، كرتون، شده...) ──────────── */}
                 <div className="card" style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>ًں“¦ ظˆط­ط¯ط§طھ ط§ظ„طھط¹ط¨ط¦ط©</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>📦 وحدات التعبئة</h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-                        ط£ط¶ظپ ط£ط³ظ…ط§ط، ظˆط­ط¯ط§طھ ط§ظ„طھط¹ط¨ط¦ط© ظ…ط«ظ„ ط§ظ„ط¯ط±ط²ظ† ظˆط§ظ„ظƒط±طھظˆظ† ظˆط§ظ„ط´ظگظ‘ط¯ظ‡ ظˆط؛ظٹط±ظ‡ط§. طھظڈط³طھط®ط¯ظ… ظ„طھط¹ط±ظٹظپ ظˆط­ط¯ط§طھ المنتج ط§ظ„ظ…طھط¹ط¯ط¯ط©.
+                        أضف أسماء وحدات التعبئة مثل الدرزن والكرتون والشِّده وغيرها. تُستخدم لتعريف وحدات الصنف المتعددة.
                     </p>
 
-                    {/* إضافة ظˆط­ط¯ط© جديدط© */}
+                    {/* إضافة وحدة جديدة */}
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                         <input
                             className="input"
                             style={{ flex: 1 }}
-                            placeholder="ط§ط³ظ… الوحدة (ظ…ط«ط§ظ„: ط¯ط±ط²ظ†طŒ ظƒط±طھظˆظ†طŒ ط´ط¯ظ‡طŒ ط¨ظƒطھ)"
+                            placeholder="اسم الوحدة (مثال: درزن، كرتون، شده، بكت)"
                             value={newUnitName}
                             onChange={e => setNewUnitName(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddUnit(); } }}
@@ -266,26 +266,26 @@ export default function WarehouseOptionsPage() {
                             disabled={savingUnit || !newUnitName.trim()}
                             style={{ minWidth: '100px' }}
                         >
-                            {savingUnit ? 'âڈ³' : 'â‍• إضافة'}
+                            {savingUnit ? '⏳' : '➕ إضافة'}
                         </button>
                     </div>
 
-                    {/* ظ‚ط§ط¦ظ…ط© ط§ظ„ظˆط­ط¯ط§طھ ط§ظ„ظ…ظˆط¬ظˆط¯ط© */}
+                    {/* قائمة الوحدات الموجودة */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {units.length === 0 ? (
-                            <div style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px' }}>لا طھظˆط¬ط¯ ظˆط­ط¯ط§طھ طھط¹ط¨ط¦ط©. ط£ط¶ظپ ط£ظˆظ„ظ‰ ظˆط­ط¯ط§طھظƒ ط£ط¹لاظ‡.</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px' }}>لا توجد وحدات تعبئة. أضف أولى وحداتك أعلاه.</div>
                         ) : units.map(u => (
                             <div key={u.id} style={{
                                 display: 'flex', alignItems: 'center', gap: '8px',
                                 background: 'var(--bg-card-hover)', border: '1px solid var(--border)',
                                 borderRadius: '20px', padding: '6px 14px', fontSize: '14px',
                             }}>
-                                <span>ًں“¦ {u.name}</span>
+                                <span>📦 {u.name}</span>
                                 <button
                                     onClick={() => handleDeleteUnit(u.id)}
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: '14px', padding: '0 2px', lineHeight: 1 }}
                                     title="حذف"
-                                >âœ•</button>
+                                >✕</button>
                             </div>
                         ))}
                     </div>

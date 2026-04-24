@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { round2 } from '@/lib/money';
+import { round2, validateMoney } from '@/lib/money';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
@@ -116,13 +116,13 @@ export async function POST(request: Request) {
         let subtotal = 0;
         const items = body.items || [];
         for (const item of items) {
-            let price = parseFloat(item.price as string) || 0;
+            let price = validateMoney(item.price);
             if (bodyTaxInclusive) {
                 // Extract VAT from the price: priceExclVat = price * 100 / (100 + rate)
                 price = price * 100 / (100 + bodyTaxRate);
                 item.price = price; // update in place for details creation
             }
-            const itemTotal = (Number(item.quantity) || 1) * price;
+            const itemTotal = (item.quantity ? validateMoney(item.quantity, 'الكمية') : 1) * price;
             const itemDiscount = itemTotal * ((Number(item.discountRate) || 0) / 100);
             subtotal += itemTotal - itemDiscount;
         }
@@ -172,9 +172,9 @@ export async function POST(request: Request) {
                     exchangeRate: body.exchangeRate ? Number(body.exchangeRate) : 1.0,
                     details: {
                         create: items.map((item: Record<string, unknown>) => {
-                            const qty = parseFloat(item.quantity as string) || 1;
-                            const price = parseFloat(item.price as string) || 0; // already adjusted for inclusive above
-                            const dRate = parseFloat(item.discountRate as string) || 0;
+                            const qty = item.quantity ? validateMoney(item.quantity, 'الكمية') : 1;
+                            const price = validateMoney(item.price, 'السعر'); // already adjusted for inclusive above
+                            const dRate = item.discountRate ? validateMoney(item.discountRate, 'نسبة الخصم') : 0;
                             const itemSubtotal = qty * price;
                             const dValue = round2(itemSubtotal * (dRate / 100));
                             const afterD = round2(itemSubtotal - dValue);

@@ -45,7 +45,7 @@ export default function FleetFuelPage() {
             <tbody>
               {logs.map(log => (
                 <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                  <td className="p-4 text-slate-600">{new Date(log.date).toLocaleDateString('ar-SA')}</td>
+                  <td className="p-4 text-slate-600">{new Date(log.date).toLocaleDateString('en-GB')}</td>
                   <td className="p-4 font-bold text-slate-700">
                     <span dir="ltr">{log.vehicle?.plateNumber}</span> <br/>
                     <span className="text-xs font-normal text-slate-500">{log.vehicle?.make}</span>

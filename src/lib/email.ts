@@ -119,7 +119,7 @@ export function invoiceEmailTemplate(customerName: string, invoiceNo: number, to
   <div class="body">
     <p style="color:#475569">مرحباً ${customerName}،</p>
     <p style="color:#475569">يسعدنا إبلاغك بأنه تم إصدار الفاتورة رقم <strong>#${invoiceNo}</strong> باسمك.</p>
-    <div class="amount">${total.toLocaleString('ar-SA')} ر.س</div>
+    <div class="amount">${total.toLocaleString('en-GB')} ر.س</div>
     ${pdfUrl ? `<a href="${pdfUrl}" class="btn">⬇️ تحميل الفاتورة</a>` : ''}
   </div>
   <div class="footer">© ${new Date().getFullYear()} نما انفست</div>

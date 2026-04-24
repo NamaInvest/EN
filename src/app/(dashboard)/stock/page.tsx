@@ -99,7 +99,7 @@ export default function StockPage() {
                                 {movements.length === 0 ? <tr><td colSpan={5}><div className="empty-state"><div className="empty-state-icon">📋</div><div className="empty-state-text">{t('stock.str_1450')}</div></div></td></tr>
                                     : movements.map(m => (
                                         <tr key={m.id}>
-                                            <td>{new Date(m.date).toLocaleDateString('ar-SA')}</td>
+                                            <td>{new Date(m.date).toLocaleDateString('en-GB')}</td>
                                             <td>{m.product?.name || '-'}</td>
                                             <td><span className={`badge ${m.type === 'in' ? 'badge-success' : 'badge-danger'}`}>{m.type === 'in' ? t('stock.str_1451') : m.type === 'out' ? t('stock.str_1452') : m.type}</span></td>
                                             <td style={{ fontWeight: '600' }}>{m.quantity}</td>

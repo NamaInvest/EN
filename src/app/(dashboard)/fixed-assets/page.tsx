@@ -135,7 +135,7 @@ export default function FixedAssetsPage() {
                                 <tr key={a.id}>
                                     <td style={{ fontWeight: '600' }}>{a.assetName}</td>
                                     <td><span className="badge badge-outline">{typeLabel(a.assetType)}</span></td>
-                                    <td style={{ color: 'var(--text-secondary)' }}>{new Date(a.purchaseDate).toLocaleDateString('ar-SA')}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{new Date(a.purchaseDate).toLocaleDateString('en-GB')}</td>
                                     <td>{fmt(a.purchaseCost)} {t('sys.str_4105')}</td>
                                     <td style={{ fontWeight: '700', color: a.currentValue <= a.salvageValue ? '#f59e0b' : '#10b981' }}>{fmt(a.currentValue)} {t('sys.str_4105')}</td>
                                     <td>{a.usefulLifeYears} {t('sys.str_4217')}</td>
@@ -208,7 +208,7 @@ export default function FixedAssetsPage() {
                                     <tbody>
                                         {showDepModal.depreciations.map(d => (
                                             <tr key={d.id}>
-                                                <td>{new Date(d.depreciationDate).toLocaleDateString('ar-SA')}</td>
+                                                <td>{new Date(d.depreciationDate).toLocaleDateString('en-GB')}</td>
                                                 <td style={{ fontWeight: '600', color: '#ef4444' }}>-{fmt(d.amount)} {t('sys.str_4105')}</td>
                                             </tr>
                                         ))}

@@ -76,7 +76,7 @@ export default function LoansPage() {
                                         {loan.status === 'active' ? t('hr.str_2183') : t('hr.str_2184')}
                                     </span>
                                 </td>
-                                <td className="p-4 text-slate-500 text-sm">{new Date(loan.startDate).toLocaleDateString('ar-SA')}</td>
+                                <td className="p-4 text-slate-500 text-sm">{new Date(loan.startDate).toLocaleDateString('en-GB')}</td>
                             </tr>
                         ))}
                     </tbody>

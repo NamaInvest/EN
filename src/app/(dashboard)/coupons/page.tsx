@@ -92,7 +92,7 @@ export default function CouponsPage() {
                                             {c.usedCount > 0 && <button className="btn btn-sm btn-ghost" style={{ padding: '0 4px', height: '20px', minHeight: '20px' }} onClick={() => setShowUsagesModal(c)}>👁️</button>}
                                         </div>
                                     </td>
-                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.endDate ? new Date(c.endDate).toLocaleDateString('ar-SA') : t('sys.str_514')}</td>
+                                    <td style={{ color: expired ? '#ef4444' : 'inherit' }}>{c.endDate ? new Date(c.endDate).toLocaleDateString('en-GB') : t('sys.str_514')}</td>
                                     <td>
                                         <span className={`badge ${!c.isActive ? 'badge-error' : expired ? 'badge-warning' : 'badge-success'}`}>
                                             {!c.isActive ? t('sys.str_489') : expired ? t('sys.str_515') : t('sys.str_180')}
@@ -183,7 +183,7 @@ export default function CouponsPage() {
                                             <tr key={u.id}>
                                                 <td>{u.invoiceId || '-'}</td>
                                                 <td style={{ fontWeight: 'bold', color: '#10b981' }}>{fmt(u.discountAmount)} {t('sys.str_68')}</td>
-                                                <td>{new Date(u.usedAt).toLocaleString('ar-SA')}</td>
+                                                <td>{new Date(u.usedAt).toLocaleString('en-GB')}</td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -110,7 +110,7 @@ export default function LcManagementPage() {
                                     {lc.marginPaid.toLocaleString()} <span className="text-xs text-slate-500">SAR</span>
                                     <div className="text-[10px] text-slate-400">({lc.marginPercent}%)</div>
                                 </td>
-                                <td className="px-6 py-4">{new Date(lc.expiryDate).toLocaleDateString('ar-SA')}</td>
+                                <td className="px-6 py-4">{new Date(lc.expiryDate).toLocaleDateString('en-GB')}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
                                         {lc.status === 'draft' ? t('fin.str_1717') : lc.status}
