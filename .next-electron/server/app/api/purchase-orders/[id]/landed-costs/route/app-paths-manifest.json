@@ -1,0 +1,3 @@
+{
+  "/api/purchase-orders/[id]/landed-costs/route": "app/api/purchase-orders/[id]/landed-costs/route.js"
+}

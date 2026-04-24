@@ -1,0 +1,3 @@
+{
+  "/(dashboard)/sys/alerts/page": "app/(dashboard)/sys/alerts/page.js"
+}

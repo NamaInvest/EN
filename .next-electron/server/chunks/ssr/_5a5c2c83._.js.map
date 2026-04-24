@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "364054be-a403-8c94-c1ea-3d2d921358d6",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../node_modules/next/src/client/components/noop-head.tsx","../../../../src/app/sentry-example-page/page.tsx"],"sourcesContent":["export default function NoopHead() {\n  return null\n}\n","\"use client\";\n\nimport Head from \"next/head\";\n\nexport default function SentryExamplePage() {\n  return (\n    <div style={{ padding: \"50px\", textAlign: \"center\" }}>\n      <Head>\n        <title>Sentry Test Page</title>\n      </Head>\n      <h1>Sentry is Integrated!</h1>\n      <p>Click the button below to simulate an error and send it to Sentry.</p>\n      <button\n        style={{ padding: \"10px 20px\", fontSize: \"16px\", cursor: \"pointer\", marginTop: \"20px\" }}\n        onClick={() => {\n          throw new Error(\"This is a test error for Sentry on Nama Invest!\");\n        }}\n      >\n        Trigger Error\n      </button>\n    </div>\n  );\n}\n"],"names":["NoopHead"],"mappings":"8CAAe,SAASA,IACtB,OAAO,IACT,0EAFA,UAAA,qCAAwBA,uQCExB,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,IAAA,EAAC,MAAA,CAAI,MAAO,CAAE,QAAS,OAAQ,UAAW,QAAS,YACjD,CAAA,EAAA,EAAA,GAAA,EAAC,EAAA,OAAI,CAAA,UACH,CAAA,EAAA,EAAA,GAAA,EAAC,QAAA,UAAM,uBAET,CAAA,EAAA,EAAA,GAAA,EAAC,KAAA,UAAG,0BACJ,CAAA,EAAA,EAAA,GAAA,EAAC,IAAA,UAAE,uEACH,CAAA,EAAA,EAAA,GAAA,EAAC,SAAA,CACC,MAAO,CAAE,QAAS,YAAa,SAAU,OAAQ,OAAQ,UAAW,UAAW,MAAO,EACtF,QAAS,KACP,MAAM,AAAI,MAAM,kDAClB,WACD,oBAKP","ignoreList":[0]}}]
+}

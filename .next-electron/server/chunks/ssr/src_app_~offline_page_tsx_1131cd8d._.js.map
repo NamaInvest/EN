@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "d1624327-019a-1580-5083-30ecd8779035",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../src/app/~offline/page.tsx"],"sourcesContent":["'use client';\nimport React from 'react';\nimport { useTranslation } from \"@/lib/i18n\";\n\nexport default function OfflineFallback() {\n    const { t } = useTranslation();\r\n  return (\r\n    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center', fontFamily: 'Noto Sans Arabic, sans-serif', backgroundColor: '#0B0E14', color: '#FFF' }}>\r\n      <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{t('sys.str_4008')}</h1>\r\n      <p style={{ fontSize: '1.2rem', color: '#A0AEC0' }}>{t('sys.str_4009')}</p>\r\n    </div>\r\n  );\r\n}\r\n\r\n"],"names":[],"mappings":"0DAEA,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACpB,GAAM,GAAE,CAAC,CAAE,CAAG,CAAA,EAAA,EAAA,cAAA,AAAc,IAC9B,MACE,CAAA,EAAA,EAAA,IAAA,EAAC,MAAA,CAAI,MAAO,CAAE,OAAQ,QAAS,QAAS,OAAQ,cAAe,SAAU,WAAY,SAAU,eAAgB,SAAU,QAAS,OAAQ,UAAW,SAAU,WAAY,+BAAgC,gBAAiB,UAAW,MAAO,MAAO,YACnP,CAAA,EAAA,EAAA,GAAA,EAAC,KAAA,CAAG,MAAO,CAAE,SAAU,SAAU,aAAc,MAAO,WAAI,EAAE,kBAC5D,CAAA,EAAA,EAAA,GAAA,EAAC,IAAA,CAAE,MAAO,CAAE,SAAU,SAAU,MAAO,SAAU,WAAI,EAAE,oBAG7D"}}]
+}

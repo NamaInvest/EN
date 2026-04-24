@@ -1,0 +1,3 @@
+{
+  "/api/cron/rem-leases/route": "app/api/cron/rem-leases/route.js"
+}

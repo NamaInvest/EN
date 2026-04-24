@@ -1,0 +1,3 @@
+{
+  "/api/cron/predictive-po/route": "app/api/cron/predictive-po/route.js"
+}

@@ -1,0 +1,13 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/zatca/route.js")
+R.c("server/chunks/[root-of-the-server]__4eefeebb._.js")
+R.c("server/chunks/node_modules_next_dist_esm_build_templates_app-route_c1655bde.js")
+R.c("server/chunks/node_modules_next_f2da0d3e._.js")
+R.c("server/chunks/src_lib_auth_ts_f5ef5b5b._.js")
+R.c("server/chunks/node_modules_next_dist_3cae5f3a._.js")
+R.c("server/chunks/[root-of-the-server]__55b585d3._.js")
+R.c("server/chunks/[root-of-the-server]__29adc2e3._.js")
+R.c("server/chunks/node_modules_5060e774._.js")
+R.c("server/chunks/node_modules_next_f5199d09._.js")
+R.c("server/chunks/_next-internal_server_app_api_zatca_route_actions_2536eca8.js")
+R.m(693664)
+module.exports=R.m(693664).exports

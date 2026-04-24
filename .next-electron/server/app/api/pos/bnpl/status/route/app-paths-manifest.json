@@ -1,0 +1,3 @@
+{
+  "/api/pos/bnpl/status/route": "app/api/pos/bnpl/status/route.js"
+}

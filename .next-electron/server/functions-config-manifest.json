@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/auth/login-by-email": {},
+    "/api/auth/sso-redirect": {},
+    "/api/tenant/check-status": {},
+    "/api/tenant/provision": {},
+    "/api/tenant/seed-company": {},
+    "/api/tenant/trial-status": {},
+    "/updates/desktop/[file]": {}
+  }
+}

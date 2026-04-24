@@ -1,0 +1,3 @@
+{
+  "/(dashboard)/stock/movements/page": "app/(dashboard)/stock/movements/page.js"
+}

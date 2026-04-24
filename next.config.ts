@@ -2,6 +2,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.ELECTRON_BUILD ? '.next-electron' : '.next',
   output: 'standalone',
   reactCompiler: true,
   allowedDevOrigins: ['https://namainvist.com', 'http://localhost:3000'],

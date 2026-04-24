@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const standaloneDir = path.join(__dirname, '..', '.next', 'standalone');
+const standaloneDir = path.join(__dirname, '..', process.env.ELECTRON_BUILD ? '.next-electron' : '.next', 'standalone');
 
 if (fs.existsSync(standaloneDir)) {
   console.log('🧹 Cleaning NextJS standalone directory from bloated traces...');

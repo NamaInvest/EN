@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "4117c161-ca37-e78b-e448-6aa47607d44a",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../src/app/test-i18n/page.tsx"],"sourcesContent":["'use client';\n\nimport { useTranslation } from '@/lib/i18n';\n\nexport default function TestI18n() {\n    const { t } = useTranslation();\n    return (\n        <div style={{ padding: 50, color: 'white', backgroundColor: 'black' }}>\n            <h1>TEST I18N PAGE</h1>\n            <h2 id=\"test-key-1\">{t('dashboard.title')}</h2>\n            <h2 id=\"test-key-2\">{t('common.sar')}</h2>\n        </div>\n    );\n}\n"],"names":[],"mappings":"0DAEA,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACpB,GAAM,GAAE,CAAC,CAAE,CAAG,CAAA,EAAA,EAAA,cAAA,AAAc,IAC5B,MACI,CAAA,EAAA,EAAA,IAAA,EAAC,MAAA,CAAI,MAAO,CAAE,QAAS,GAAI,MAAO,QAAS,gBAAiB,OAAQ,YAChE,CAAA,EAAA,EAAA,GAAA,EAAC,KAAA,UAAG,mBACJ,CAAA,EAAA,EAAA,GAAA,EAAC,KAAA,CAAG,GAAG,sBAAc,EAAE,qBACvB,CAAA,EAAA,EAAA,GAAA,EAAC,KAAA,CAAG,GAAG,sBAAc,EAAE,kBAGnC"}}]
+}

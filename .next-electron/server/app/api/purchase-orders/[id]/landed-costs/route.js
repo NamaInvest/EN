@@ -1,0 +1,11 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/purchase-orders/[id]/landed-costs/route.js")
+R.c("server/chunks/[root-of-the-server]__2fe2984a._.js")
+R.c("server/chunks/node_modules_next_dist_3cae5f3a._.js")
+R.c("server/chunks/src_lib_auth_ts_f5ef5b5b._.js")
+R.c("server/chunks/node_modules_next_f2da0d3e._.js")
+R.c("server/chunks/[root-of-the-server]__55b585d3._.js")
+R.c("server/chunks/node_modules_5060e774._.js")
+R.c("server/chunks/node_modules_next_f5199d09._.js")
+R.c("server/chunks/ce889_server_app_api_purchase-orders_[id]_landed-costs_route_actions_9276cb37.js")
+R.m(917510)
+module.exports=R.m(917510).exports

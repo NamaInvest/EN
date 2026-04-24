@@ -1,0 +1,3 @@
+{
+  "/(dashboard)/shifts/page": "app/(dashboard)/shifts/page.js"
+}

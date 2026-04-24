@@ -1,0 +1,3 @@
+{
+  "/(dashboard)/stocktake/page": "app/(dashboard)/stocktake/page.js"
+}

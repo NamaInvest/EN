@@ -1,0 +1,3 @@
+{
+  "/api/hr/payroll/generate/route": "app/api/hr/payroll/generate/route.js"
+}
