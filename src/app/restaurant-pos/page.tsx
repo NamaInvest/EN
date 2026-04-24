@@ -439,22 +439,21 @@ export default function RestaurantPOS() {
                 customerId: selectedCustomer ? selectedCustomer.id : null,
                 shiftId: null
             };
-            const res = await fetch('/api/pos/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCompletedInvoiceId(data.invoice.id);
+            const data = await saveInvoiceWithSync(body);
+            if (data && data.success) {
+                if (data.offline) {
+                    setCompletedInvoiceId(Number(data.uuid)); // For offline printing logic if needed
+                } else {
+                    setCompletedInvoiceId(data.invoice?.id || data.invoiceId);
+                }
                 
                 setCart([]); // clear cart
                 removeCoupon(); // clear active coupon
                 setSelectedCustomer(null); // clear linked customer
                 setNumpadValue('');
-                fetchProducts(); // refresh stock
+                if (!isOffline) fetchProducts(); // refresh stock only if online
             } else {
-                alert(data.error || t('sys.str_4075'));
+                alert(data?.error || t('sys.str_4075'));
             }
         } catch (e) {
             alert(t('sys.str_4076'));
