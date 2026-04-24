@@ -90,6 +90,14 @@ function initDB(userDataPath) {
                 key TEXT PRIMARY KEY,
                 value TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS WhatsAppQueue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone TEXT NOT NULL,
+                message TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                createdAt TEXT NOT NULL
+            );
         `);
 
         console.log('✅ Offline SQLite DB initialized at:', dbPath);
@@ -227,6 +235,38 @@ function deleteSyncedInvoices() {
     } catch (e) {}
 }
 
+// --- WhatsApp Queue Methods ---
+function queueWhatsAppMessage(phone, message) {
+    if (!db) return false;
+    try {
+        const stmt = db.prepare(`INSERT INTO WhatsAppQueue (phone, message, createdAt, status) VALUES (?, ?, ?, 'pending')`);
+        stmt.run(phone, message, new Date().toISOString());
+        return true;
+    } catch (e) {
+        console.error('Queue WhatsApp failed:', e);
+        return false;
+    }
+}
+
+function getPendingWhatsAppMessages() {
+    if (!db) return [];
+    try {
+        return db.prepare(`SELECT * FROM WhatsAppQueue WHERE status = 'pending' LIMIT 20`).all();
+    } catch (e) {
+        return [];
+    }
+}
+
+function markWhatsAppMessageSent(id) {
+    if (!db) return false;
+    try {
+        db.prepare(`UPDATE WhatsAppQueue SET status = 'sent' WHERE id = ?`).run(id);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 module.exports = {
     initDB,
     saveLocalProducts,
@@ -236,5 +276,8 @@ module.exports = {
     getPendingInvoices,
     markInvoiceSynced,
     incrementInvoiceRetry,
-    deleteSyncedInvoices
+    deleteSyncedInvoices,
+    queueWhatsAppMessage,
+    getPendingWhatsAppMessages,
+    markWhatsAppMessageSent
 };

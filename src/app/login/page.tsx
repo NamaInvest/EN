@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail } from "lucide-react";
+import { Mail, Camera, X } from "lucide-react";
 import { SignIn } from "@clerk/nextjs";
 
 import { Suspense } from "react";
@@ -17,6 +17,8 @@ function LoginForm() {
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [showFaceLogin, setShowFaceLogin] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/auth/routing";
@@ -240,6 +242,33 @@ function LoginForm() {
             )}
           </button>
 
+          {isDesktop && (
+            <button
+              type="button"
+              onClick={() => setShowFaceLogin(true)}
+              className="btn btn-secondary"
+              style={{
+                width: "100%",
+                padding: "14px",
+                fontSize: "16px",
+                marginTop: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                background: "rgba(99, 102, 241, 0.1)",
+                color: "#6366f1",
+                border: "1px solid rgba(99, 102, 241, 0.3)",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              <Camera size={20} />
+              الدخول السريع بالكاميرا (Face ID)
+            </button>
+          )}
+
           <div
             style={{
               display: "flex",
@@ -369,6 +398,50 @@ function LoginForm() {
           {t("sys.str_4017")}
         </div>
       </div>
+
+      {/* Face Login Modal */}
+      {showFaceLogin && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)'
+        }}>
+          <div style={{
+            background: '#1e293b', padding: '24px', borderRadius: '16px', width: '400px',
+            border: '1px solid #334155', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowFaceLogin(false)} 
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+            <Camera size={48} color="#6366f1" style={{ marginBottom: '16px' }} />
+            <h2 style={{ color: 'white', marginBottom: '8px', fontSize: '20px' }}>الدخول ببصمة الوجه</h2>
+            <p style={{ color: '#94a3b8', textAlign: 'center', marginBottom: '24px', fontSize: '14px' }}>
+              سيتم تفعيل الكاميرا للتعرف على وجهك. تأكد من إضاءة المكان بشكل جيد.
+            </p>
+            <div style={{
+              width: '300px', height: '300px', background: 'black', borderRadius: '50%',
+              overflow: 'hidden', border: '4px solid #6366f1', position: 'relative',
+              boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)'
+            }}>
+              {/* placeholder for video feed */}
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                جاري تهيئة الذكاء الاصطناعي...
+              </div>
+            </div>
+            <button onClick={() => {
+                alert("جاري دمج مكتبة face-api.js للتعرف على وجه الكاشير. يتطلب تحميل ملفات النماذج (Models).");
+                setShowFaceLogin(false);
+            }} style={{
+              marginTop: '24px', background: '#6366f1', color: 'white', border: 'none',
+              padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
+            }}>
+              بدء الفحص
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

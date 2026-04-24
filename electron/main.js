@@ -479,7 +479,9 @@ let backupSync = null;
 
 // ── Offline DB Handlers ──────────────────────────────────────────────────────
 const OfflineDB = require('./offline-db');
+const { signInvoiceOffline } = require('./zatca-offline');
 
+ipcMain.handle('offline-zatca-sign', (_, data) => signInvoiceOffline(data.invoiceData, data.settings));
 ipcMain.handle('offline-db-save-products', (_, products) => OfflineDB.saveLocalProducts(products));
 ipcMain.handle('offline-db-search-products', (_, query) => OfflineDB.searchLocalProducts(query));
 ipcMain.handle('offline-db-clear-products', () => OfflineDB.clearLocalProducts());
@@ -488,6 +490,11 @@ ipcMain.handle('offline-db-get-pending', () => OfflineDB.getPendingInvoices());
 ipcMain.handle('offline-db-mark-synced', (_, uuid) => OfflineDB.markInvoiceSynced(uuid));
 ipcMain.handle('offline-db-increment-retry', (_, uuid) => OfflineDB.incrementInvoiceRetry(uuid));
 ipcMain.handle('offline-db-delete-synced', () => OfflineDB.deleteSyncedInvoices());
+
+// WhatsApp Queue IPC
+ipcMain.handle('offline-wa-queue', (_, data) => OfflineDB.queueWhatsAppMessage(data.phone, data.message));
+ipcMain.handle('offline-wa-get', () => OfflineDB.getPendingWhatsAppMessages());
+ipcMain.handle('offline-wa-mark-sent', (_, id) => OfflineDB.markWhatsAppMessageSent(id));
 
 // ── IPC Handlers ─────────────────────────────────────────────────────────────
 ipcMain.handle('get-license', () => store.get('license'));
@@ -498,6 +505,35 @@ ipcMain.handle('get-app-info', () => ({
   isPackaged: app.isPackaged,
   dbPort: localPg ? 5433 : null,
 }));
+
+// ── Printers & Silent Printing ───────────────────────────────────────────────
+ipcMain.handle('get-printers', async (event) => {
+    try { return await event.sender.getPrintersAsync(); } catch (e) { return []; }
+});
+
+ipcMain.handle('silent-print', async (event, options) => {
+    try {
+        const printWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: { nodeIntegration: false, contextIsolation: true }
+        });
+        await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(options.html)}`);
+        
+        return new Promise((resolve) => {
+            printWindow.webContents.print({
+                silent: true,
+                deviceName: options.deviceName || '', // empty means default printer
+                margins: { marginType: 'none' },
+                // Standard 80mm receipt width (approx 302 microns/pixels width)
+            }, (success, failureReason) => {
+                printWindow.close();
+                resolve({ success, failureReason });
+            });
+        });
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
 ipcMain.handle('activate-license', async (_, key) => {
   const result = await verifyLicenseOnline(key);
   if (result.valid) {
