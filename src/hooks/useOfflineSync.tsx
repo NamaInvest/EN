@@ -65,10 +65,15 @@ export function useOfflineSync() {
                     if (invoice.retryCount > 10) continue;
 
                     // Send to server
-                    const res = await fetch('/api/pos/invoice', {
+                    // Send to server using custom endpoint if provided
+                    const endpoint = invoice.data._endpoint || '/api/pos/invoice';
+                    const payload = { ...invoice.data };
+                    delete payload._endpoint; // remove internal marker
+                    
+                    const res = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(invoice.data)
+                        body: JSON.stringify(payload)
                     });
 
                     const data = await res.json();
@@ -97,10 +102,11 @@ export function useOfflineSync() {
     }, [isSyncing, refreshPendingCount]);
 
     // Save invoice either remotely or locally
-    const saveInvoiceWithSync = async (invoiceData: any) => {
+    const saveInvoiceWithSync = async (invoiceData: any, endpoint = '/api/pos/invoice') => {
         if (isOffline) {
             if ((window as any).electron) {
-                const uuid = await (window as any).electron.invoke('offline-db-save-invoice', invoiceData);
+                const dataWithEndpoint = { ...invoiceData, _endpoint: endpoint };
+                const uuid = await (window as any).electron.invoke('offline-db-save-invoice', dataWithEndpoint);
                 if (uuid) {
                     toast.success('تم الحفظ محلياً (Offline)', { icon: '💾' });
                     refreshPendingCount();
@@ -112,7 +118,7 @@ export function useOfflineSync() {
         } else {
             // Online save
             try {
-                const res = await fetch('/api/pos/invoice', {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(invoiceData)
@@ -123,7 +129,8 @@ export function useOfflineSync() {
             } catch (e: any) {
                 // If it fails due to sudden disconnect, try to save locally
                 if ((window as any).electron) {
-                    const uuid = await (window as any).electron.invoke('offline-db-save-invoice', invoiceData);
+                    const dataWithEndpoint = { ...invoiceData, _endpoint: endpoint };
+                    const uuid = await (window as any).electron.invoke('offline-db-save-invoice', dataWithEndpoint);
                     if (uuid) {
                         toast.error('فشل الاتصال - تم حفظ الفاتورة محلياً وسيتم رفعها لاحقاً');
                         refreshPendingCount();

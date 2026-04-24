@@ -9,9 +9,11 @@ import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Gri
 import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { FeatureGuard } from '@/hooks/FeatureGuard';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 export default function POSPage() {
     const { t, lang } = useTranslation();
+    const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     const isRTL = lang === 'ar';
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -112,12 +114,29 @@ export default function POSPage() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
+            if (isOffline) {
+                // Fetch from Local SQLite
+                if (typeof window !== 'undefined' && (window as any).electron) {
+                    const localProducts = await (window as any).electron.invoke('offline-db-search-products');
+                    if (localProducts && localProducts.length > 0) {
+                        setProducts(localProducts);
+                        const catsMap = new Map();
+                        localProducts.forEach((p:any) => { if(p.categoryId) catsMap.set(p.categoryId, p.categoryName); });
+                        const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...Array.from(catsMap.entries()).map(([id,name])=>({id,name}))];
+                        setCategories(cats);
+                    }
+                }
+                return;
+            }
+
             const res = await fetch('/api/pos/products');
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products || []);
                 const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...data.categories];
                 setCategories(cats);
+                // Cache for offline use
+                cacheProducts(data.products || []);
             }
         } catch (e) {
             alert(t('sys.str_4069'));
@@ -271,20 +290,19 @@ export default function POSPage() {
                 customerId: selectedCustomer ? selectedCustomer.id : null,
                 shiftId: null 
             };
-            const res = await fetch('/api/pos/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCompletedInvoiceId(data.invoice.id);
+            const data = await saveInvoiceWithSync(body);
+            if (data && data.success) {
+                if (data.offline) {
+                    setCompletedInvoiceId(Number(data.uuid)); // local fallback
+                } else {
+                    setCompletedInvoiceId(data.invoice?.id || data.invoiceId);
+                }
                 setCart([]); 
                 removeCoupon(); 
                 setSelectedCustomer(null); 
-                fetchProducts(); 
+                if (!isOffline) fetchProducts(); 
             } else {
-                alert(data.error || t('sys.str_4075'));
+                alert(data?.error || t('sys.str_4075'));
             }
         } catch (e) {
             alert(t('sys.str_4076'));
@@ -319,7 +337,8 @@ export default function POSPage() {
             {/* Left/Right Pane based on RTL */}
             <div className="products-pane">
                 <header className="pos-header">
-                    <div className="nav-buttons">
+                    <div className="nav-buttons" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <OfflineBadge />
                         <button type="button" className="btn-back" onClick={() => {
                             try {
                                 const u = JSON.parse(localStorage.getItem('user') || '{}');

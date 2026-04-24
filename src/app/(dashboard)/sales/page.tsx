@@ -12,6 +12,7 @@ import { useTranslation } from "@/lib/i18n";
 import { printRawESCPOS, connectQZ } from "@/lib/qz";
 import { useSettings } from '@/lib/SettingsContext';
 import { useToast } from '@/components/Toast';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 interface Product {
     id: number; name: string; barcode: string; sellPrice: number;
@@ -36,6 +37,7 @@ interface HeldInvoice { id: string; cart: CartItem[]; customerId: string; notes:
 export default function SalesPage() {
     const { t } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
+    const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     const { getSetting } = useSettings();
     const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
     const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
@@ -444,9 +446,25 @@ export default function SalesPage() {
 
     async function fetchProducts() {
         try {
+            if (isOffline) {
+                if (typeof window !== 'undefined' && (window as any).electron) {
+                    const localProducts = await (window as any).electron.invoke('offline-db-search-products');
+                    if (localProducts && localProducts.length > 0) {
+                        setProducts(localProducts);
+                        setFilteredProducts(localProducts.slice(0, 20));
+                    }
+                }
+                return;
+            }
             const token = localStorage.getItem('token');
             const res = await fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } });
-            if (res.ok) { const data = await res.json(); const arr = Array.isArray(data) ? data : []; setProducts(arr); setFilteredProducts(arr.slice(0, 20)); }
+            if (res.ok) { 
+                const data = await res.json(); 
+                const arr = Array.isArray(data) ? data : []; 
+                setProducts(arr); 
+                setFilteredProducts(arr.slice(0, 20)); 
+                cacheProducts(arr);
+            }
         } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     };
 
@@ -688,10 +706,7 @@ export default function SalesPage() {
                 // approved or no_device → proceed to save
             }
 
-            const res = await fetch('/api/sales', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({
+            const invoiceDataBody = {
                     customerId: customerId || null,
                     stockId: stockId || '1',
                     items: cart.map(c => ({
@@ -708,13 +723,17 @@ export default function SalesPage() {
                     splitCard: paymentType === 'split' ? parseFloat(splitCard) || 0 : undefined,
                     paid: paymentType === 'split' ? (parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0) : (paidAmount ? parseFloat(paidAmount) : total),
                     userId: user.id,
-                    notes: bnplOrderId ? notes + `\nBNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
+                    notes: bnplOrderId ? notes + `
+BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
                     manualInvoiceNo: manualInvoiceNo ? parseInt(manualInvoiceNo) : undefined,
                     manualDate: manualDate || undefined,
-                }),
-            });
-            if (res.ok) {
-                const invoice = await res.json();
+                    total: total, // For SQLite pending totals
+                };
+
+                const data = await saveInvoiceWithSync(invoiceDataBody, '/api/sales');
+                const res = { ok: data && data.success };
+                if (res.ok) {
+                    const invoice = data.offline ? { id: data.uuid, invoiceNo: data.uuid, date: new Date().toISOString() } : data;
                 if (paymentType === 'card' && posPort) {
                     showToast(`✅ تم الدفع وحفظ الفاتورة #${invoice.invoiceNo}`);
                 } else if (bnplOrderId) {
@@ -1009,6 +1028,7 @@ export default function SalesPage() {
             
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <OfflineBadge />
                     <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
                     <button id="returns-btn" type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
                         ↩ {'استرجاع مباشر'}
