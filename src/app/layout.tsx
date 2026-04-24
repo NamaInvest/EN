@@ -4,23 +4,11 @@ import { Providers } from "@/components/Providers";
 import { I18nProvider } from "@/lib/i18n";
 import DesktopBanner from "@/components/DesktopBanner";
 import { headers } from "next/headers";
+import { ClerkProvider, ClerkLoaded } from "@clerk/nextjs";
+import { arSA } from "@clerk/localizations";
+import GlobalAuthGuard from "@/components/GlobalAuthGuard";
 
 const isDesktopMode = process.env.DESKTOP_MODE === 'true';
-
-// Only import Clerk in web/SaaS mode
-let ClerkProvider: any = null;
-let ClerkLoaded: any = null;
-let GlobalAuthGuard: any = null;
-let arSA: any = null;
-
-if (!isDesktopMode) {
-  const clerkNext = require('@clerk/nextjs');
-  const clerkLoc = require('@clerk/localizations');
-  ClerkProvider = clerkNext.ClerkProvider;
-  ClerkLoaded = clerkNext.ClerkLoaded;
-  GlobalAuthGuard = require('@/components/GlobalAuthGuard').default;
-  arSA = clerkLoc.arSA;
-}
 
 export const metadata: Metadata = {
   title: "نما انفست (Nama Invest) - أفضل نظام ERP ونقاط بيع في السعودية",
@@ -51,9 +39,13 @@ export default async function RootLayout({
   const headersList = await headers();
   const isMarketing = headersList.get('x-is-marketing') === '1';
 
-  // ── MARKETING LAYOUT: No Clerk, No SessionProvider → instant SSR ────────
+  // ── MARKETING LAYOUT: Lightweight but still includes ClerkProvider ────────
+  // ClerkProvider is needed even on marketing pages because users navigate
+  // to /sign-in via client-side navigation (Link). Without ClerkProvider in
+  // the root layout, the Clerk hooks in sign-in crash with
+  // "useSession can only be used within <ClerkProvider />".
   if (isMarketing) {
-    return (
+    const marketingContent = (
       <html lang="ar" dir="rtl" suppressHydrationWarning>
         <head>
           <meta charSet="utf-8" />
@@ -61,7 +53,7 @@ export default async function RootLayout({
           <meta name="theme-color" content="#0f172a" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
           {/* Invalidate any stale service workers from old builds */}
           <script dangerouslySetInnerHTML={{ __html:
             `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>{r.forEach(e=>e.unregister())});}`
@@ -71,12 +63,12 @@ export default async function RootLayout({
             `(function(){var h=location.hostname;if(h!=='namainvist.com'&&h!=='www.namainvist.com'&&h.indexOf('.namainvist.com')>0){var t=document.cookie.indexOf('token=')>=0;location.replace(t?'/dashboard':'/login');}})();`
           }} />
         </head>
-        <body style={{ fontFamily: "'Lateef', sans-serif", margin: 0, padding: 0, backgroundColor: '#f8fafc' }}>
+        <body style={{ fontFamily: "'Noto Sans Arabic', sans-serif", margin: 0, padding: 0, backgroundColor: '#f8fafc' }}>
           <style dangerouslySetInnerHTML={{ __html: `
             /* Reset & Base */
             *, *::before, *::after { box-sizing: border-box; }
             html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
-            body { background: #f8fafc !important; color: #0f172a !important; font-family: 'Lateef', sans-serif; }
+            body { background: #f8fafc !important; color: #0f172a !important; font-family: 'Noto Sans Arabic', sans-serif; }
             body::before { display: none !important; }
 
             /* Critical Layout Classes - bypass Tailwind @supports wrapper */
@@ -173,6 +165,21 @@ export default async function RootLayout({
         </body>
       </html>
     );
+
+    // Wrap marketing pages with ClerkProvider too (needed for client-side nav to /sign-in)
+    if (!isDesktopMode) {
+      return (
+        <ClerkProvider
+          localization={arSA}
+          afterSignOutUrl="/"
+          signInFallbackRedirectUrl="/company-info"
+          signUpFallbackRedirectUrl="/company-info"
+        >
+          {marketingContent}
+        </ClerkProvider>
+      );
+    }
+    return marketingContent;
   }
 
   // ── ERP LAYOUT: Full Clerk + SessionProvider ────────────────────────────
@@ -254,7 +261,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         <script dangerouslySetInnerHTML={{ __html:
@@ -262,7 +269,7 @@ export default async function RootLayout({
         }} />
         {!isDesktopMode && (
           <script dangerouslySetInnerHTML={{ __html:
-            `(function(){var h=location.hostname;if(h!=='namainvist.com'&&h!=='www.namainvist.com'&&h.indexOf('.namainvist.com')>0&&location.pathname!=='/login'&&location.pathname!=='/auto-login'){var t=document.cookie.indexOf('token=')>=0||localStorage.getItem('token');if(!t){location.replace('/login');}}})();`
+            `(function(){var h=location.hostname;var p=location.pathname;if(h!=='namainvist.com'&&h!=='www.namainvist.com'&&h.indexOf('.namainvist.com')>0&&p!=='/login'&&p!=='/auto-login'&&p.indexOf('/menu')!==0){var t=document.cookie.indexOf('token=')>=0||localStorage.getItem('token');if(!t){location.replace('/login');}}})();`
           }} />
         )}
         <script dangerouslySetInnerHTML={{ __html:
@@ -281,7 +288,7 @@ export default async function RootLayout({
         <Providers>
           <I18nProvider>
             <DesktopBanner />
-            {!isDesktopMode && ClerkLoaded && GlobalAuthGuard && (
+            {!isDesktopMode && (
               <ClerkLoaded>
                 <GlobalAuthGuard />
               </ClerkLoaded>

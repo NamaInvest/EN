@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
 // بيانات دخول ICE - يمكن نقلها لـ env لاحقاً
-const ICE_USERNAME = process.env.ICE_USERNAME || 'ice';
+const ICE_USERNAME = process.env.ICE_USERNAME || 'admin';
 const ICE_PASSWORD = process.env.ICE_PASSWORD || 'O_O772040030';
 const ICE_SECRET = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
 

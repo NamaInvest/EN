@@ -48,3 +48,10 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Build artifacts
+/dist/
+/extracted_asar/
+/electron-protected/
+/electron/zatca-sdk/
+/.tmp-prisma-cli/

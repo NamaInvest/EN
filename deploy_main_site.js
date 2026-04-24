@@ -5,10 +5,17 @@ const conn = new Client();
 const APP = '/www/wwwroot/namainvist.com';
 
 const files = [
-    'src/middleware.ts',
-    'src/app/company-info/page.tsx',
-    'src/app/api/tenant/provision/route.ts',
-    'src/app/api/tenant/check-status/route.ts',
+    'prisma/schema.prisma',
+    'src/app/api/ice/toggle/route.ts',
+    'src/app/api/ice/desktop-licenses/route.ts',
+    'src/app/api/ice/tenants/route.ts',
+    'src/app/ice/page.tsx',
+    'electron/main.js',
+    'src/app/api/users/route.ts',
+    'src/app/(dashboard)/settings/page.tsx',
+    'src/lib/translations.ts',
+    'src/locales/ar.json',
+    'src/locales/en.json'
 ];
 
 conn.on('ready', () => {
@@ -16,7 +23,7 @@ conn.on('ready', () => {
 
     // Create all required directories
     const dirs = [...new Set(files.map(f => path.posix.dirname(f)))];
-    const mkdirCmd = dirs.map(d => `mkdir -p ${APP}/${d}`).join(' && ');
+    const mkdirCmd = dirs.map(d => `mkdir -p "${APP}/${d}"`).join(' && ');
 
     conn.exec(mkdirCmd, (err, stream) => {
         if (err) throw err;
@@ -32,7 +39,7 @@ conn.on('ready', () => {
                         done++;
                         if (done === files.length) {
                             console.log('\n⏳ بناء main-site...');
-                            conn.exec(`cd ${APP} && npm run build 2>&1 | tail -8 && pm2 restart main-site && echo "DONE"`, (err, stream2) => {
+                            conn.exec(`cd ${APP} && npx prisma generate && npm run build 2>&1 | tail -8 && pm2 restart main-site && echo "DONE"`, (err, stream2) => {
                                 stream2.on('data', d => process.stdout.write(d.toString()));
                                 stream2.stderr.on('data', d => process.stderr.write(d.toString()));
                                 stream2.on('close', () => { conn.end(); });

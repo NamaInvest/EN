@@ -76,6 +76,7 @@ async function ensureTable(pool: Pool) {
   await addColumnSafe('app_version', 'VARCHAR(20)');
   await addColumnSafe('trial_ends_at', 'TIMESTAMPTZ');
   await addColumnSafe('updated_at', 'TIMESTAMPTZ DEFAULT NOW()');
+  await addColumnSafe('tenant_account_id', 'INTEGER');
 }
 
 // GET: List all licenses or verify a license key
@@ -121,6 +122,20 @@ export async function GET(req: NextRequest) {
         `UPDATE desktop_licenses SET last_verified_at = NOW() WHERE license_key = $1`, [key]
       );
 
+      // Fetch associated feature flags
+      let features: string[] = [];
+      if (lic.tenant_account_id) {
+          try {
+              const flagsRes = await pool.query(
+                  `SELECT module_name FROM tenant_feature_flags WHERE tenant_account_id = $1 AND is_enabled = true`,
+                  [lic.tenant_account_id]
+              );
+              features = flagsRes.rows.map(r => r.module_name);
+          } catch (e) {
+              console.error('Error fetching feature flags:', e);
+          }
+      }
+
       return NextResponse.json({
         valid: true,
         data: {
@@ -129,23 +144,35 @@ export async function GET(req: NextRequest) {
           status: lic.status,
           trial_ends_at: lic.trial_ends_at,
           expires_at: lic.expires_at,
+          features, // Include features in the payload
         },
       });
     }
 
-    // List all licenses (for ICE panel)
-    const result = await pool.query(
-      `SELECT id, license_key, hardware_id,
+    const tenantId = searchParams.get('tenant_id');
+
+    let query = `
+      SELECT id, license_key, hardware_id,
               company_name_ar, company_name_en, business_domain,
               mobile, vat_number, crn_number,
               city, city_en, district, street_name, building_no, postal_code,
               contact_email, contact_phone,
               status, app_version, max_devices, activated_devices,
               trial_ends_at, expires_at, activated_at, last_verified_at, notes,
-              created_at, updated_at,
+              created_at, updated_at, tenant_account_id,
               COALESCE(company_name_ar, '') as company_name
-       FROM desktop_licenses ORDER BY created_at DESC`
-    );
+       FROM desktop_licenses
+    `;
+    let params: any[] = [];
+
+    if (tenantId) {
+        query += ` WHERE tenant_account_id = $1 ORDER BY created_at DESC`;
+        params.push(tenantId);
+    } else {
+        query += ` ORDER BY created_at DESC`;
+    }
+
+    const result = await pool.query(query, params);
 
     return NextResponse.json({ licenses: result.rows });
   } catch (err: any) {
@@ -176,6 +203,7 @@ export async function POST(req: NextRequest) {
         contact_email, contact_phone, expires_at, notes, max_devices,
         business_domain, mobile, vat_number, crn_number,
         city, city_en, district, street_name, building_no, postal_code,
+        tenant_account_id,
       } = body;
 
       await pool.query(
@@ -183,13 +211,13 @@ export async function POST(req: NextRequest) {
           (license_key, company_name_ar, company_name_en, contact_email, contact_phone,
            business_domain, mobile, vat_number, crn_number,
            city, city_en, district, street_name, building_no, postal_code,
-           expires_at, notes, max_devices, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 'active')`,
+           expires_at, notes, max_devices, status, tenant_account_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 'active', $19)`,
         [key, company_name_ar || company_name || '', company_name_en || '',
          contact_email || '', contact_phone || '',
          business_domain || '', mobile || '', vat_number || '', crn_number || '',
          city || '', city_en || '', district || '', street_name || '', building_no || '', postal_code || '',
-         expires_at || null, notes || '', max_devices || 1]
+         expires_at || null, notes || '', max_devices || 1, tenant_account_id || null]
       );
 
       return NextResponse.json({ success: true, license_key: key });
@@ -226,6 +254,21 @@ export async function POST(req: NextRequest) {
 
     if (action === 'revoke') {
       await pool.query(`UPDATE desktop_licenses SET status = 'revoked', updated_at = NOW() WHERE id = $1`, [body.id]);
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'update_status') {
+      await pool.query(`UPDATE desktop_licenses SET status = $1, updated_at = NOW() WHERE id = $2`, [body.status, body.id]);
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'reset_hardware') {
+      await pool.query(`UPDATE desktop_licenses SET hardware_id = NULL, activated_devices = 0, updated_at = NOW() WHERE id = $1`, [body.id]);
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'update_max_devices') {
+      await pool.query(`UPDATE desktop_licenses SET max_devices = $1, updated_at = NOW() WHERE id = $2`, [body.max_devices, body.id]);
       return NextResponse.json({ success: true });
     }
 

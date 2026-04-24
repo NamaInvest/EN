@@ -104,7 +104,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                             boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
                             pointerEvents: 'all',
                             direction: 'rtl',
-                            fontFamily: "'Lateef', sans-serif",
+                            fontFamily: "'Noto Sans Arabic', sans-serif",
                             animation: 'toastSlideIn 0.25s ease',
                             backdropFilter: 'blur(12px)',
                         }}>

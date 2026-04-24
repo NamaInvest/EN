@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PosReturnsModal from '@/components/PosReturnsModal';
 import Link from 'next/link';
+import { FeatureGuard } from '@/hooks/FeatureGuard';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import VoucherReceipt from '../../../components/VoucherReceipt';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -1681,7 +1682,11 @@ export default function SalesPage() {
                             <button className="btn btn-primary" onClick={() => reprintInvoice(selectedInvoice)}>{t('sys.str_4328')}</button>
                             <button className="btn btn-primary" onClick={() => printVoucher(selectedInvoice)} style={{ background: '#3b82f6', borderColor: '#3b82f6' }}>{t('sys.str_804')}</button>
                             <button className="btn btn-success" onClick={() => sendWhatsApp(selectedInvoice)} style={{ background: '#25D366' }}>{t('sys.str_805')}</button>
-                            {canDelete && <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_806')}</button>}
+                            {canDelete && (
+                                <FeatureGuard featureKey="sales_delete_invoice_btn">
+                                    <button className="btn" onClick={() => deleteInvoice(selectedInvoice)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_806')}</button>
+                                </FeatureGuard>
+                            )}
                             <button className="btn btn-ghost" onClick={() => setSelectedInvoice(null)}>{t('sys.str_77')}</button>
                         </div>
                     </div>

@@ -160,10 +160,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         <meta charset="UTF-8">
         <title>${windowTitle}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;800&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
-            font-family: 'Lateef', sans-serif;
+            font-family: 'Noto Sans Arabic', sans-serif;
             width: ${ps.width};
             padding: ${ps.padding};
             font-size: ${ps.fontSize};
@@ -247,10 +247,10 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 <html dir="rtl" lang="ar">
                 <head>
                     <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
+                        @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;800&display=swap');
                         * { margin: 0; padding: 0; box-sizing: border-box; }
                         body {
-                            font-family: 'Lateef', sans-serif;
+                            font-family: 'Noto Sans Arabic', sans-serif;
                             line-height: 1.4;
                             direction: rtl;
                             color: #000;
@@ -414,7 +414,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', background: '#fff', color: '#000' }}>
                 {/* Receipt content for printing */}
-                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Lateef, sans-serif', direction: 'rtl' }}>
+                <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Noto Sans Arabic, sans-serif', direction: 'rtl' }}>
                     {/* Header */}
                     <div className="header" style={{ textAlign: 'center', paddingBottom: '12px', marginBottom: '12px' }}>
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
@@ -536,7 +536,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             flex: 1, padding: '12px', background: '#6C63FF', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Lateef',
+                            cursor: 'pointer', fontFamily: 'Noto Sans Arabic',
                         }}
                     >
                         طباعة فورية</button>
@@ -545,7 +545,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             flex: 1, padding: '12px', background: '#3b82f6', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Lateef',
+                            cursor: 'pointer', fontFamily: 'Noto Sans Arabic',
                         }}
                     >
                         خيارات الطباعة</button>
@@ -554,7 +554,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             flex: 1, padding: '12px', background: '#ef4444', color: '#fff',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Lateef',
+                            cursor: 'pointer', fontFamily: 'Noto Sans Arabic',
                         }}
                     >
                         {t('sys.str_76')}</button>
@@ -563,7 +563,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         style={{
                             padding: '12px 24px', background: '#f1f5f9', color: '#334155',
                             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
-                            cursor: 'pointer', fontFamily: 'Lateef',
+                            cursor: 'pointer', fontFamily: 'Noto Sans Arabic',
                         }}
                     >
                         {t('sys.str_77')}</button>

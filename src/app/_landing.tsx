@@ -233,7 +233,7 @@ const S = {
     alignItems: 'center',
     gap: '8px',
     boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
-    fontFamily: "'Lateef', sans-serif",
+    fontFamily: "'Noto Sans Arabic', sans-serif",
     transition: 'transform 0.2s',
   },
   btnSecondary: {
@@ -250,7 +250,7 @@ const S = {
     alignItems: 'center',
     gap: '8px',
     backdropFilter: 'blur(8px)',
-    fontFamily: "'Lateef', sans-serif",
+    fontFamily: "'Noto Sans Arabic', sans-serif",
   },
   // features
   featuresSection: {
@@ -287,7 +287,7 @@ export default function LandingPage() {
   const moduleCount = MODULES_DATA.length;
 
   return (
-    <div dir="rtl" style={{ fontFamily: "'Lateef', sans-serif" }}>
+    <div dir="rtl" style={{ fontFamily: "'Noto Sans Arabic', sans-serif" }}>
 
       {/* NAV */}
       <nav style={{
@@ -435,7 +435,7 @@ export default function LandingPage() {
             background: '#25D366', color: 'white',
             padding: '16px 40px', borderRadius: '999px',
             textDecoration: 'none', fontWeight: 700, fontSize: '1.4rem',
-            fontFamily: "'Lateef', sans-serif",
+            fontFamily: "'Noto Sans Arabic', sans-serif",
             boxShadow: '0 8px 24px rgba(37,211,102,0.35)',
             display: 'inline-flex', alignItems: 'center', gap: '10px',
           }}>
@@ -445,7 +445,7 @@ export default function LandingPage() {
             background: 'white', color: '#4f46e5',
             padding: '16px 40px', borderRadius: '999px',
             textDecoration: 'none', fontWeight: 700, fontSize: '1.4rem',
-            fontFamily: "'Lateef', sans-serif",
+            fontFamily: "'Noto Sans Arabic', sans-serif",
           }}>
             دخول النظام ←
           </a>

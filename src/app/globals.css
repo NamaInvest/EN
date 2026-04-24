@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@200;300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -194,7 +194,7 @@ html {
 }
 
 body {
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 18px !important;
   background: var(--bg-dark);
   color: var(--text);
@@ -586,7 +586,7 @@ body::before {
   gap: 8px;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
@@ -681,7 +681,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 17px;
   transition: all 0.2s ease;
   outline: none;
@@ -897,7 +897,7 @@ textarea.input {
   white-space: nowrap;
   border: none;
   background: transparent;
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
 }
 
 .tab:hover {
@@ -1386,7 +1386,7 @@ textarea.input {
   background: transparent;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 13px;
   color: var(--text);
   transition: all 0.15s ease;
@@ -1950,7 +1950,7 @@ textarea.input {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -2002,7 +2002,7 @@ textarea.input {
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-family: 'Lateef', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.15s ease;

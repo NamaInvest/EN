@@ -4,6 +4,8 @@ import { getUserFromRequest } from '@/lib/auth';
 import { generateZATCAXml, InvoiceData } from '@/lib/zatca';
 import { generateSignedXMLString } from 'zatca-xml-js/lib/zatca/signing';
 import crypto from 'crypto';
+import * as os from 'os';
+import * as fs from 'fs';
 const ZATCA_SIMULATION_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation';
 const ZATCA_CORE_URL = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core';
 
@@ -21,20 +23,108 @@ export async function POST(req: NextRequest) {
         // 1. COMPLIANCE CSID
         if (action === 'compliance-csid') {
             const otpClean = (body.otp || '').replace(/\s/g, '');
-            const settingCsr = await prisma.setting.findFirst({ where: { key: 'zatca_csr_base64' } });
-            const settingEnv = await prisma.setting.findFirst({ where: { key: 'zatca_environment' } });
-            
-            if (!settingCsr) return NextResponse.json({ error: 'لم يتم توليد CSR مسبقاً.' }, { status: 400 });
+            if (!otpClean || otpClean.length !== 6) {
+                return NextResponse.json({ error: 'رمز OTP يجب أن يكون 6 أرقام' }, { status: 400 });
+            }
 
-            // Dynamically resolve target URL
+            // ── Auto-generate CSR with latest company data ──────────────
+            const allSettings = await prisma.setting.findMany();
+            const sDict: Record<string, string> = {};
+            allSettings.forEach((s: any) => sDict[s.key] = s.value);
+
+            const taxNumber = sDict['tax_number'];
+            if (!taxNumber || taxNumber.length !== 15 || !taxNumber.startsWith('3') || !taxNumber.endsWith('3')) {
+                return NextResponse.json({ error: 'الرقم الضريبي غير صالح. يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3' }, { status: 400 });
+            }
+
+            const companyNameEn = sDict['company_name_en'] || 'Unknown Company';
+            const crn = sDict['zatca_crn'] || '1010010000';
+            const branchName = sDict['branch_name_en'] || 'HeadOffice';
+            const cityEn = sDict['zatca_city_en'] || 'Riyadh';
+            const industryCategory = sDict['zatca_industry'] || 'Retail';
+
+            // Arabic to English transliteration
+            const arToEnMap: Record<string, string> = { 'ا': 'a', 'أ': 'a', 'إ': 'e', 'آ': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'th', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'h', 'ء': '', 'ئ': 'e', 'ؤ': 'w', 'لا': 'la', ' ': ' ', 'ـ': '' };
+            const arabicToEnglish = (text: string) => {
+                if (!text) return '';
+                const engPart = text.replace(/[^\x00-\x7F]/g, '').trim();
+                if (engPart.length > 3) return engPart;
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (/[\x00-\x7F]/.test(ch)) { result += ch; }
+                    else if (arToEnMap[ch]) { result += arToEnMap[ch]; }
+                }
+                return result.replace(/\s+/g, ' ').trim().replace(/\b\w/g, l => l.toUpperCase()) || 'NamaCompany';
+            };
+
+            const orgName = arabicToEnglish(companyNameEn);
+            const EGS_Name = orgName.replace(/\s+/g, '').substring(0, 15) || 'NAMA';
+            const uuid = crypto.randomUUID();
+            const serialNumber = `1-${EGS_Name}|2-${branchName.replace(/\s+/g, '')}|3-${uuid}`;
+
+            const tmpDir = require('path').join(require('os').tmpdir(), 'zatca_' + Date.now());
+            let csrBase64 = '';
+            let privateKeyClean = '';
+
+            try {
+                const { execSync } = require('child_process');
+                const fs = require('fs');
+                fs.mkdirSync(tmpDir, { recursive: true });
+
+                const csrConfig = `csr.common.name=PRE-${taxNumber}
+csr.serial.number=${serialNumber}
+csr.organization.identifier=${taxNumber}
+csr.organization.unit.name=${branchName}
+csr.organization.name=${orgName}
+csr.country.name=SA
+csr.invoice.type=1100
+csr.location.address=${cityEn}
+csr.industry.business.category=${industryCategory}`;
+
+                fs.writeFileSync(`${tmpDir}/csr-config.properties`, csrConfig);
+
+                // Generate ECDSA key pair
+                const cryptoInstance = require('crypto');
+                const { privateKey } = cryptoInstance.generateKeyPairSync('ec', {
+                    namedCurve: 'secp256k1',
+                    publicKeyEncoding: { type: 'spki', format: 'pem' },
+                    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+                });
+                fs.writeFileSync(`${tmpDir}/private.key`, privateKey);
+
+                // Use ZATCA Fatoora SDK to generate CSR
+                try {
+                    execSync(`fatoora -csr -csrConfig ${tmpDir}/csr-config.properties -privateKey ${tmpDir}/private.key -generatedCsr ${tmpDir}/csr.txt`);
+                } catch (fatooraErr: any) {
+                    console.error("ZATCA Fatoora CSR Gen Error:", fatooraErr.message);
+                    return NextResponse.json({ error: 'فشل توليد CSR: ' + (fatooraErr.stderr?.toString() || fatooraErr.message) }, { status: 500 });
+                }
+
+                privateKeyClean = fs.readFileSync(`${tmpDir}/private.key`, 'utf-8');
+                csrBase64 = fs.readFileSync(`${tmpDir}/csr.txt`, 'utf-8').trim();
+            } finally {
+                try { require('fs').rmSync(tmpDir, { recursive: true, force: true }); } catch { }
+            }
+
+            // Save CSR and private key
+            await Promise.all([
+                prisma.setting.upsert({ where: { key: 'zatca_private_key' }, update: { value: privateKeyClean }, create: { key: 'zatca_private_key', value: privateKeyClean } }),
+                prisma.setting.upsert({ where: { key: 'zatca_csr_base64' }, update: { value: csrBase64 }, create: { key: 'zatca_csr_base64', value: csrBase64 } }),
+            ]);
+
+            console.log('✅ CSR generated successfully, proceeding to compliance CSID...');
+
+            // ── Now request Compliance CSID from ZATCA ──────────────
+            const settingEnv = sDict['zatca_environment'];
             let targetUrl = `${ZATCA_SIMULATION_URL}/compliance`;
-            if (settingEnv?.value === 'production') {
+            if (settingEnv === 'production') {
                 targetUrl = `${ZATCA_CORE_URL}/compliance`;
-            } else if (settingEnv?.value === 'sandbox') {
+            } else if (settingEnv === 'sandbox') {
                 targetUrl = `https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal/compliance`;
             }
 
-            console.log(`Requesting Compliance CSID with OTP: ${otpClean} to TRUTH URL: ${targetUrl}`);
+            console.log(`Requesting Compliance CSID with OTP: ${otpClean} to URL: ${targetUrl}`);
             const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers: {
@@ -44,7 +134,7 @@ export async function POST(req: NextRequest) {
                     'OTP': otpClean,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ csr: (settingCsr.value || '').replace(/[\r\n\s]/g, '') })
+                body: JSON.stringify({ csr: csrBase64.replace(/[\r\n\s]/g, '') })
             });
 
             if (!response.ok) {
@@ -65,7 +155,7 @@ export async function POST(req: NextRequest) {
                 await prisma.setting.upsert({ where: { key: 'zatca_compliance_request_id' }, update: { value: String(data.requestID) }, create: { key: 'zatca_compliance_request_id', value: String(data.requestID) } });
             }
 
-            return NextResponse.json({ success: true, requestID: data.requestID });
+            return NextResponse.json({ success: true, message: '✅ تم توليد CSR واستخراج شهادة المطابقة بنجاح', requestID: data.requestID });
         }
 
         // 2. PRODUCTION CSID
@@ -113,7 +203,13 @@ export async function POST(req: NextRequest) {
                 await prisma.setting.upsert({ where: { key: 'zatca_production_secret' }, update: { value: data.secret }, create: { key: 'zatca_production_secret', value: data.secret } });
             }
 
-            return NextResponse.json({ success: true, message: 'تم استخراج الشهادة الإنتاجية (Production CSID) بنجاح.' });
+            // ── Auto-enable ZATCA reporting after successful Production CSID ──
+            if (data.binarySecurityToken && data.secret) {
+                await prisma.setting.upsert({ where: { key: 'zatca_enabled' }, update: { value: '1' }, create: { key: 'zatca_enabled', value: '1' } });
+                console.log('✅ ZATCA auto-enabled after Production CSID success');
+            }
+
+            return NextResponse.json({ success: true, message: '✅ تم استخراج الشهادة الإنتاجية وتفعيل الإرسال التلقائي بنجاح' });
         }
 
         // 3. COMPLIANCE INVOICE (Validation)
@@ -131,12 +227,17 @@ export async function POST(req: NextRequest) {
             const sMap: Record<string, string> = {};
             settings.forEach((s: any) => sMap[s.key] = s.value);
             
+            // Saudi Arabia timezone (UTC+3)
+            const saudiNow = new Date(Date.now() + 3 * 60 * 60 * 1000);
+            const saudiDate = saudiNow.toISOString().split('T')[0];
+            const saudiTime = saudiNow.toISOString().split('T')[1].substring(0, 8);
+
             const buildDummyInvoice = (typeCode: string, typeName: string, amount: string): InvoiceData => ({
                 profileID: 'reporting:1.0',
                 id: `INV-${Date.now()}-${crypto.randomUUID().substring(0,5)}-${typeCode}`,
                 uuid: crypto.randomUUID(),
-                issueDate: new Date().toISOString().split('T')[0],
-                issueTime: new Date().toISOString().split('T')[1].substring(0, 8),
+                issueDate: saudiDate,
+                issueTime: saudiTime,
                 invoiceTypeCode: typeCode,
                 invoiceTypeName: typeName,
                 note: 'Test Compliance Invoice',

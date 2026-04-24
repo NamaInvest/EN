@@ -27,14 +27,17 @@ function verifyIceToken(token: string): boolean {
     } catch { return false; }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get('ice_token')?.value;
     if (!token || !verifyIceToken(token)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
         // قراءة جميع المستأجرين من n11_db
-        const { rows: accounts } = await masterPool.query(`
+        const url = new URL(req.url);
+        const subdomainQuery = url.searchParams.get('subdomain');
+
+        let query = `
             SELECT
                 id, subdomain, org_name, user_email, vat_number,
                 status, subscription_status, plan,
@@ -42,8 +45,17 @@ export async function GET() {
                 COALESCE(user_quota, 1) as user_quota,
                 created_at
             FROM tenant_accounts
-            ORDER BY created_at DESC
-        `);
+        `;
+        let params: any[] = [];
+
+        if (subdomainQuery) {
+            query += ` WHERE subdomain = $1`;
+            params.push(subdomainQuery);
+        } else {
+            query += ` ORDER BY created_at DESC`;
+        }
+
+        const { rows: accounts } = await masterPool.query(query, params);
 
         const { Client } = require('pg');
 

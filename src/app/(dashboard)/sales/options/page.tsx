@@ -260,79 +260,9 @@ export default function SalesOptionsPage() {
                     </div>
                 </div>
 
-                {/* Enable/Disable Tax */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ flex: 1 }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' }}>تفعيل ضريبة القيمة المضافة</h3>
-                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
-                            عند الإيقاف سيتم البيع بدون حساب وحفظ الضريبة على فاتورة المبيعات للمستهلك ولن تظهر في الشاشة.
-                        </p>
-                    </div>
-                    <div>
-                        <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
-                            <input type="checkbox" style={{ opacity: 0, width: 0, height: 0 }} 
-                                checked={taxEnabled} 
-                                onChange={e => setTaxEnabled(e.target.checked)} />
-                            <span style={{
-                                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                                backgroundColor: taxEnabled ? 'var(--primary)' : '#ccc',
-                                transition: '.4s', borderRadius: '34px'
-                            }}>
-                                <span style={{
-                                    position: 'absolute', content: '""', height: '20px', width: '20px',
-                                    left: taxEnabled ? '26px' : '4px', bottom: '4px',
-                                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
-                                }}></span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
 
-                {taxEnabled && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)', background: 'rgba(99,102,241,0.05)', padding: '16px', borderRadius: '8px' }}>
-                        <div style={{ flex: 1 }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>نسبة القيمة المضافة الافتراضية (VAT)</h3>
-                            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-                                النسبة المئوية المطبقة افتراضياً في شاشة نقاط البيع (POS).
-                            </p>
-                        </div>
-                        <div>
-                            <select className="input" style={{ width: '150px' }} value={taxRate} onChange={e => setTaxRate(e.target.value)}>
-                                <option value="15">15% (أساسية)</option>
-                                <option value="5">5% (مخفضة)</option>
-                                <option value="0">0% (معفاة/صفرية)</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
 
-                {/* Tax Inclusive / Exclusive */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ flex: 1 }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' }}>أسعار البيع شاملة الضريبة</h3>
-                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
-                            عند التفعيل، سيعتبر النظام أن أسعار المنتجات المضافة للفاتورة تشمل ضريبة القيمة المضافة وسيستخرج الضريبة منها. عند الإيقاف، سيضيف الضريبة فوق السعر.
-                        </p>
-                    </div>
-                    <div>
-                        <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
-                            <input type="checkbox" style={{ opacity: 0, width: 0, height: 0 }} 
-                                checked={taxInclusive} 
-                                onChange={e => setTaxInclusive(e.target.checked)} />
-                            <span style={{
-                                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                                backgroundColor: taxInclusive ? 'var(--primary)' : '#ccc',
-                                transition: '.4s', borderRadius: '34px'
-                            }}>
-                                <span style={{
-                                    position: 'absolute', content: '""', height: '20px', width: '20px',
-                                    left: taxInclusive ? '26px' : '4px', bottom: '4px',
-                                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
-                                }}></span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
+
 
                 {/* Enable/Disable Coupons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>

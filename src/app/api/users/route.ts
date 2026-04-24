@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'معرف المستخدم مطلوب' }, { status: 400 });
         }
 
-        if (body.modules) {
+        if (body.modules || body.permissions) {
             const canPerm = await hasPermission(auth.userId, 'manage_permissions', prisma);
             if (!canPerm) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تعديل الصلاحيات' }, { status: 403 });
         } else {
@@ -166,7 +166,22 @@ export async function PUT(request: NextRequest) {
             select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, branchId: true,  },
         });
 
-        if (body.modules && Array.isArray(body.modules)) {
+        if (body.permissions && Array.isArray(body.permissions)) {
+            await prisma.userPermission.deleteMany({ where: { userId: body.id } });
+            for (const p of body.permissions) {
+                await prisma.userPermission.create({
+                    data: { 
+                        userId: body.id, 
+                        module: p.module, 
+                        canView: p.canView ?? false, 
+                        canAdd: p.canAdd ?? false, 
+                        canEdit: p.canEdit ?? false, 
+                        canDelete: p.canDelete ?? false, 
+                        canPrint: p.canPrint ?? false 
+                    },
+                });
+            }
+        } else if (body.modules && Array.isArray(body.modules)) {
             await prisma.userPermission.deleteMany({ where: { userId: body.id } });
             for (const mod of body.modules) {
                 await prisma.userPermission.create({

@@ -103,7 +103,7 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
           onChange={e => setSearch(e.target.value)}
           style={{
             width: '100%', padding: '12px 20px', borderRadius: '12px',
-            border: '2px solid #e2e8f0', fontSize: '1rem', fontFamily: "'Lateef', sans-serif",
+            border: '2px solid #e2e8f0', fontSize: '1rem', fontFamily: "'Noto Sans Arabic', sans-serif",
             direction: 'rtl', outline: 'none', boxSizing: 'border-box',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           }}
@@ -128,7 +128,7 @@ export default function ModuleFilter({ modules, categories }: ModuleFilterProps)
                 border: `2px solid ${isActive ? 'transparent' : '#e2e8f0'}`,
                 background: isActive ? '#6366f1' : 'white',
                 color: isActive ? 'white' : '#475569',
-                fontFamily: "'Lateef', sans-serif",
+                fontFamily: "'Noto Sans Arabic', sans-serif",
                 fontWeight: 600,
                 fontSize: '0.9rem',
                 cursor: 'pointer',

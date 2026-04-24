@@ -318,7 +318,7 @@ function LoginForm() {
                   },
                 }}
                 routing="hash"
-                forceRedirectUrl="/auto-login"
+                forceRedirectUrl="https://namainvist.com/dashboard"
               />
             </div>
           ) : (
@@ -388,7 +388,7 @@ export default function LoginPage() {
             justifyContent: "center",
             fontWeight: "bold",
             fontSize: "1.25rem",
-            fontFamily: "Lateef,sans-serif",
+            fontFamily: "Noto Sans Arabic,sans-serif",
           }}
         >
           {t("sys.str_4018")}

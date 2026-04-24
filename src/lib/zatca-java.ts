@@ -7,21 +7,27 @@ import os from 'os';
 const execAsync = promisify(exec);
 
 export class ZatcaJavaAdapter {
-    private sdkPath: string;
+    private sdkPath: string;   // path to fatoora executable (inside Apps/)
+    private sdkRoot: string;   // SDK root directory (parent of Apps/)
     private workspace: string;
     private javaHome: string;
 
     constructor() {
         if (os.platform() === 'win32') {
-            // Hardcoded SDK path per user's desktop environment requirement
-            this.sdkPath = 'C:\\Users\\1\\Desktop\\zatca-einvoicing-sdk-Java-238-R3.4.8\\Apps\\fatoora.bat';
+            // SDK bundled inside the app (electron/zatca-sdk/)
+            // Try bundled path first, fallback to desktop path
+            const bundledSdk = path.join(process.cwd(), 'electron', 'zatca-sdk', 'Apps', 'fatoora.bat');
+            const desktopSdk = 'C:\\Users\\1\\Desktop\\zatca-einvoicing-sdk-238-R4.0.0\\Apps\\fatoora.bat';
+            this.sdkPath = require('fs').existsSync(bundledSdk) ? bundledSdk : desktopSdk;
             this.javaHome = 'C:\\Users\\1\\Desktop\\Java\\jdk-21.0.6+7';
         } else {
-            // Hetzner Production Cluster (Ubuntu 24.04) Paths
-            this.sdkPath = '/opt/zatca-einvoicing-sdk-238-R3.4.8/Apps/fatoora';
-            this.javaHome = '/usr/lib/jvm/java-21-openjdk-amd64';
+            // Hetzner Production Cluster (Ubuntu 24.04) — SDK R4.0.0
+            this.sdkPath = '/opt/zatca-einvoicing-sdk-238-R4.0.0/Apps/fatoora';
+            this.javaHome = '/opt/amazon-corretto-21.0.11.10.1-linux-x64';
         }
         
+        // SDK root = parent of Apps/ — required for config.json resolution
+        this.sdkRoot = path.resolve(path.dirname(this.sdkPath), '..');
         this.workspace = path.join(os.tmpdir(), 'zatca-workspace');
     }
 
@@ -31,23 +37,32 @@ export class ZatcaJavaAdapter {
         } catch (e) {}
     }
 
-    /**
-     * Executes the Fatoora SDK CLI with the proper Java 21 environment variables.
-     */
-    private async executeFatoora(args: string): Promise<{ stdout: string; stderr: string }> {
-        // Ensure Java 21 is injected into the child process environment
+    /** Build environment variables for the SDK child process */
+    private getEnv() {
         const pathSeparator = os.platform() === 'win32' ? ';' : ':';
         const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-        
-        const env = { 
-            ...process.env, 
-            JAVA_HOME: this.javaHome, 
+        const configPath = path.join(this.sdkRoot, 'Configuration', 'config.json');
+        return {
+            ...process.env,
+            JAVA_HOME: this.javaHome,
             FATOORA_HOME: path.dirname(this.sdkPath),
-            PATH: `${binPath}${pathSeparator}${process.env.PATH}` 
+            SDK_CONFIG: configPath,
+            PATH: `${binPath}${pathSeparator}${process.env.PATH}`
         };
+    }
 
+    /** Get the fatoora executable name */
+    private getExeName() {
+        return os.platform() === 'win32' ? 'fatoora.bat' : './fatoora';
+    }
+
+    /**
+     * Executes the Fatoora SDK CLI with the proper Java 21 environment variables.
+     * CWD is set to Apps/ directory where fatoora lives.
+     */
+    private async executeFatoora(args: string): Promise<{ stdout: string; stderr: string }> {
         const command = `"${this.sdkPath}" ${args}`;
-        return execAsync(command, { env });
+        return execAsync(command, { env: this.getEnv(), cwd: path.dirname(this.sdkPath) });
     }
 
     /**
@@ -82,7 +97,7 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
 `.trim();
 
         // The Properties must be written sequentially and ZATCA SDK will generate them at Data/Certificates/
-        const dataCertsDir = path.join(path.dirname(this.sdkPath), '..', 'Data', 'Certificates');
+        const dataCertsDir = path.join(this.sdkRoot, 'Data', 'Certificates');
         const csrFile = path.join(dataCertsDir, 'cert.pem');
         const privKeyFile = path.join(dataCertsDir, 'ec-secp256k1-priv-key.pem');
 
@@ -93,21 +108,10 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
 
         await fs.writeFile(configPath, properties, 'utf8');
 
-        // Execute CSR Generation
-        // Must run with CWD inside Apps to prevent ZATCA SDK relative path crash
         const command = os.platform() === 'win32' ? `fatoora.bat -csr -csrConfig "${configPath}"` : `./fatoora -csr -csrConfig "${configPath}"`;
-        const pathSeparator = os.platform() === 'win32' ? ';' : ':';
-        const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-
-        const env = { 
-            ...process.env, 
-            JAVA_HOME: this.javaHome, 
-            FATOORA_HOME: path.dirname(this.sdkPath),
-            PATH: `${binPath}${pathSeparator}${process.env.PATH}` 
-        };
 
         try {
-            await execAsync(command, { env, cwd: path.dirname(this.sdkPath) });
+            await execAsync(command, { env: this.getEnv(), cwd: path.dirname(this.sdkPath) });
             
             const csrBuffer = await fs.readFile(csrFile);
             const pkBuffer = await fs.readFile(privKeyFile);
@@ -128,11 +132,11 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
     public async signInvoice(xmlContent: string, certificateBase64: string, privateKeyBase64: string, previousHash: string = 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=='): Promise<{ signedXml: string, hash: string, qr: string }> {
         const timestamp = Date.now();
         const invoicePath = path.join(this.workspace, `invoice-${timestamp}.xml`);
-        const dataCertsDir = path.join(path.dirname(this.sdkPath), '..', 'Data', 'Certificates');
+        const dataCertsDir = path.join(this.sdkRoot, 'Data', 'Certificates');
         
-        // Wrap keys in PEM standard headers as required by Java OpenSSL readers
-        const pemCert = `-----BEGIN CERTIFICATE-----\n${certificateBase64}\n-----END CERTIFICATE-----`;
-        const pemPk = `-----BEGIN EC PRIVATE KEY-----\n${privateKeyBase64}\n-----END EC PRIVATE KEY-----`;
+        // SDK R4.0.0 requires raw base64 WITHOUT PEM headers for both cert and key
+        const pemCert = certificateBase64;
+        const pemPk = privateKeyBase64;
 
         try {
             await this.initWorkspace();
@@ -142,24 +146,25 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
             await fs.writeFile(path.join(dataCertsDir, 'cert.pem'), pemCert, 'utf8');
             await fs.writeFile(path.join(dataCertsDir, 'ec-secp256k1-priv-key.pem'), pemPk, 'utf8');
 
-            const pathSeparator = os.platform() === 'win32' ? ';' : ':';
-            const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-            const env = { ...process.env, JAVA_HOME: this.javaHome, FATOORA_HOME: path.dirname(this.sdkPath), PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
-            
-            const exeName = os.platform() === 'win32' ? 'fatoora.bat' : './fatoora';
+            const env = this.getEnv();
+            const exeName = this.getExeName();
+            const cwd = path.dirname(this.sdkPath);
 
             // Generate Hash First
             const hashCmd = `${exeName} -generateHash -invoice "${invoicePath}"`;
-            const hashResult = await execAsync(hashCmd, { env, cwd: path.dirname(this.sdkPath) });
+            const hashResult = await execAsync(hashCmd, { env, cwd });
+            console.log('[ZATCA-SDK] Hash stdout:', hashResult.stdout.substring(0, 200));
+            if (hashResult.stderr) console.error('[ZATCA-SDK] Hash stderr:', hashResult.stderr.substring(0, 300));
             
             // Extract Hash from CLI stdout
-            // Usually prints: INVOICE HASH = <hash> 
             const hashMatch = hashResult.stdout.match(/([a-zA-Z0-9+/=]{43,45})/);
             const hash = hashMatch ? hashMatch[1] : '';
 
             // Sign XML
             const signCmd = `${exeName} -sign -invoice "${invoicePath}"`;
-            const signResult = await execAsync(signCmd, { env, cwd: path.dirname(this.sdkPath) });
+            const signResult = await execAsync(signCmd, { env, cwd });
+            console.log('[ZATCA-SDK] Sign stdout:', signResult.stdout.substring(0, 300));
+            if (signResult.stderr) console.error('[ZATCA-SDK] Sign stderr:', signResult.stderr.substring(0, 300));
 
             // Fatoora creates signed file at invoice_signed.xml typically in same directory
             const signedInvoicePath = invoicePath.replace('.xml', '_signed.xml');
@@ -167,7 +172,7 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
             
             // Extract QR code generated by SDK
             const qrCmd = `${exeName} -generateQr -invoice "${signedInvoicePath}"`;
-            const qrResult = await execAsync(qrCmd, { env, cwd: path.dirname(this.sdkPath) }).catch(() => ({ stdout: '' }));
+            const qrResult = await execAsync(qrCmd, { env, cwd }).catch(() => ({ stdout: '' }));
             const qrMatch = qrResult.stdout.match(/([a-zA-Z0-9+/=]{100,})/);
             const qr = qrMatch ? qrMatch[1] : '';
 
@@ -187,17 +192,16 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
         try {
             await this.initWorkspace();
             await fs.writeFile(invoicePath, xmlContent, 'utf8');
-            const pathSeparator = os.platform() === 'win32' ? ';' : ':';
-            const binPath = os.platform() === 'win32' ? `${this.javaHome}\\bin` : `${this.javaHome}/bin`;
-            const env = { ...process.env, JAVA_HOME: this.javaHome, FATOORA_HOME: path.dirname(this.sdkPath), PATH: `${binPath}${pathSeparator}${process.env.PATH}` };
+            const env = this.getEnv();
+            const exeName = this.getExeName();
+            const cwd = path.dirname(this.sdkPath);
             
-            const exeName = os.platform() === 'win32' ? 'fatoora.bat' : './fatoora';
             const validateCmd = `${exeName} -validate -invoice "${invoicePath}"`;
-            const result = await execAsync(validateCmd, { env, cwd: path.dirname(this.sdkPath) });
+            const result = await execAsync(validateCmd, { env, cwd });
             
             return {
                 isValid: result.stdout.includes('VALID') || !result.stdout.includes('ERROR'),
-                messages: result.stdout.split('\\n').filter(l => l.includes('ERROR') || l.includes('WARNING'))
+                messages: result.stdout.split('\n').filter(l => l.includes('ERROR') || l.includes('WARNING'))
             };
         } catch (e: any) {
             return {

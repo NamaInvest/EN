@@ -140,7 +140,31 @@ export default function CompanyInfoPage() {
                 setOriginal({ ...settings });
                 showToast(`✅ تم حفظ ${changedKeys.length} إعداد بنجاح`);
                 refreshSettings();
-            } else { showToast('❌ فشل في الحفظ'); }
+                
+                // Sync updated company details with central ICE server if running in desktop mode
+                const desktopLicense = localStorage.getItem('nama-desktop-license');
+                if (desktopLicense && (changedKeys.includes('company_name') || changedKeys.includes('tax_number') || changedKeys.includes('zatca_crn') || changedKeys.includes('company_name_en'))) {
+                   try {
+                       fetch('https://namainvist.com/api/ice/desktop-register', {
+                           method: 'POST',
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({
+                             licenseKey: desktopLicense,
+                             companyNameAr: settings['company_name'] || '',
+                             companyNameEn: settings['company_name_en'] || '',
+                             vatNumber: settings['tax_number'] || '',
+                             crnNumber: settings['zatca_crn'] || '',
+                             city: settings['zatca_city'] || '',
+                             businessDomain: settings['company_industry'] || '',
+                           })
+                       }).catch(console.error);
+                   } catch { }
+                }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showToast(`❌ ${errData.error || 'فشل في الحفظ'}`);
+                console.error('Save failed:', res.status, errData);
+            }
         } catch { showToast('❌ خطأ في الاتصال'); }
         finally { setSaving(false); }
     };
@@ -456,7 +480,48 @@ export default function CompanyInfoPage() {
                         </div>
                         <div className="input-group">
                             <label className="input-label">{t('sys.str_4436')}</label>
-                            <input className="input" type="text" value={settings['zatca_otp'] || ''} onChange={e => set('zatca_otp', e.target.value)} style={inputStyle('zatca_otp')} />
+                            <input
+                                className="input"
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={6}
+                                placeholder="000000"
+                                value={settings['zatca_otp'] || ''}
+                                onChange={async (e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                                    set('zatca_otp', val);
+                                    if (val.length === 6) {
+                                        // Auto-save OTP immediately
+                                        try {
+                                            const token = localStorage.getItem('token');
+                                            const res = await fetch('/api/settings', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                                body: JSON.stringify({ zatca_otp: val }),
+                                            });
+                                            if (res.ok) {
+                                                setOriginal(prev => ({ ...prev, zatca_otp: val }));
+                                                showToast('✅ تم حفظ رمز OTP تلقائياً');
+                                            } else {
+                                                const errData = await res.json().catch(() => ({}));
+                                                showToast(`❌ فشل حفظ OTP: ${errData.error || res.status}`);
+                                            }
+                                        } catch { showToast('❌ خطأ في الاتصال'); }
+                                    }
+                                }}
+                                dir="ltr"
+                                style={{
+                                    ...inputStyle('zatca_otp'),
+                                    letterSpacing: '8px',
+                                    fontSize: '20px',
+                                    fontWeight: '700',
+                                    textAlign: 'center',
+                                    fontFamily: 'monospace',
+                                }}
+                            />
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                أدخل 6 أرقام — سيتم الحفظ تلقائياً
+                            </span>
                         </div>
                         {[
                             { key: 'zatca_crn', label: t('sys.str_4401') },

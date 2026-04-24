@@ -5,7 +5,7 @@ import fs from 'fs';
 export async function GET(req: NextRequest) {
     try {
         const tmpDir = '/tmp/debug_zatca_perfect';
-        try { execSync('mkdir -p ' + tmpDir); } catch(e){}
+        try { fs.mkdirSync(tmpDir, { recursive: true }); } catch(e){}
 
         // Perfect English CSR
         const strictConfig = "csr.common.name=TST-311985620700003-311985620700003\n" +

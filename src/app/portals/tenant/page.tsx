@@ -37,7 +37,7 @@ export default function TenantPortalPage() {
 
   if (!data) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6', fontFamily: 'Lateef, sans-serif' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6', fontFamily: 'Noto Sans Arabic, sans-serif' }}>
         <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <div style={{ backgroundColor: '#eef2ff', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
             <Key size={40} color="#6366f1" />
@@ -74,7 +74,7 @@ export default function TenantPortalPage() {
   const { tenant, leases } = data;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', fontFamily: 'Lateef, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', fontFamily: 'Noto Sans Arabic, sans-serif' }}>
       
       {/* Header */}
       <div style={{ backgroundColor: '#fff', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

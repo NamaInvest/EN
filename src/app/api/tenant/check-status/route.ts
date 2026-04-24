@@ -29,20 +29,20 @@ export async function GET(req: Request) {
     try {
         let row: any = null;
 
-        // البحث بـ clerk_user_id أولاً
-        if (userId) {
+        // البحث بـ email أولاً (الأدق — كل إيميل مرتبط بـ tenant واحد)
+        if (email) {
             const res = await pool.query(
-                `SELECT subdomain, status, org_name FROM tenant_accounts WHERE clerk_user_id = $1 LIMIT 1`,
-                [userId]
+                `SELECT subdomain, status, org_name FROM tenant_accounts WHERE user_email = $1 LIMIT 1`,
+                [email]
             );
             row = res.rows[0] || null;
         }
 
-        // البحث بـ email كـ fallback
-        if (!row && email) {
+        // البحث بـ clerk_user_id كـ fallback فقط إذا لم يُعطَ إيميل
+        if (!row && userId && !email) {
             const res = await pool.query(
-                `SELECT subdomain, status, org_name FROM tenant_accounts WHERE user_email = $1 LIMIT 1`,
-                [email]
+                `SELECT subdomain, status, org_name FROM tenant_accounts WHERE clerk_user_id = $1 LIMIT 1`,
+                [userId]
             );
             row = res.rows[0] || null;
         }

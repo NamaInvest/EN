@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
         // ── 3. مستخدم admin ────────────────────────────────────────────────────
         const bcryptjs = require('bcryptjs');
-        const adminHash = bcryptjs.hashSync('admin', 10);
+        const adminHash = bcryptjs.hashSync('admin7773', 10);
         await prisma.user.upsert({
             where: { username: 'admin' },
             update: { passwordHash: adminHash, role: 'admin', active: true },
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
             const defaultBranch = await prisma.branch.create({
                 data: {
                     companyId: company.id,
-                    name: branchName || 'الفرع الرئيسي',
+                    name: branchName || companyNameAr || 'الفرع الرئيسي',
                     nameEn: 'Main Branch',
                     address: `${city || ''} ${address || ''}`.trim() || null,
                     isActive: true,
@@ -127,7 +127,7 @@ export async function POST(req: Request) {
 
             await prisma.stock.create({
                 data: {
-                    name: 'المستودع الرئيسي',
+                    name: companyNameAr || 'المستودع الرئيسي',
                     address: address || null,
                     branchId: defaultBranch.id,
                 },

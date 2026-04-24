@@ -29,7 +29,7 @@ export default function SaaS_Affiliate_Dashboard() {
     };
 
     return (
-        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Lateef, sans-serif' }} dir="rtl">
+        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Noto Sans Arabic, sans-serif' }} dir="rtl">
             
             {/* Header Section */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: '24px', padding: '40px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(59,130,246,0.3)' }}>

@@ -2,22 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { Suspense } from 'react';
 
 function AutoLoginContent() {
     const searchParams = useSearchParams();
     const { user: clerkUser, isLoaded } = useUser();
-    const [msg, setMsg] = useState('جاري تسجيل الدخول...');
+    const { signOut } = useClerk();
+    const [msg, setMsg] = useState('جاري التحقق من هويتك...');
+    const [showSwitch, setShowSwitch] = useState(false);
 
     useEffect(() => {
-        if (!isLoaded) return; // انتظر تحميل Clerk
+        if (!isLoaded) return;
 
-        const token = searchParams.get('token');
         const redirect = searchParams.get('redirect') || '/dashboard';
+        const currentSubdomain = window.location.hostname.split('.')[0]; // مثل: ahmedalyamicompany
 
         const goToDashboard = (jwtToken: string, user?: any) => {
-            // إذا يوجد مستخدم Clerk، استخدم بياناته للعرض
             const displayUser = {
                 ...(user || {}),
                 fullName: clerkUser?.fullName || clerkUser?.emailAddresses?.[0]?.emailAddress || user?.fullName || 'Admin',
@@ -30,11 +31,48 @@ function AutoLoginContent() {
             window.location.replace(redirect);
         };
 
-        const tryAutoLogin = async () => {
-            setMsg('جاري التحقق من هويتك...');
-
-            // محاولة 1: تسجيل الدخول بالبريد من Clerk
+        const run = async () => {
             const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+
+            // ── خطوة 1: تحقق من الإيميل قبل أي شي ──────────────────────
+            if (userEmail) {
+                setMsg('جاري التحقق من صلاحية الوصول...');
+                try {
+                    // ابحث عن الـ tenant المرتبط بهذا الإيميل
+                    const findRes = await fetch('https://namainvist.com/api/tenant/check-status?userId=_&email=' + encodeURIComponent(userEmail), {
+                        signal: AbortSignal.timeout(5000),
+                    });
+                    if (findRes.ok) {
+                        const findData = await findRes.json();
+                        if (findData.provisioned && findData.subdomain) {
+                            const correctSubdomain = findData.subdomain;
+                            if (correctSubdomain !== currentSubdomain) {
+                                // الإيميل مرتبط بـ subdomain مختلف → حوّل له
+                                setMsg(`هذا الحساب مسجل في ${correctSubdomain}. جاري التحويل...`);
+                                setTimeout(() => {
+                                    window.location.replace(`https://${correctSubdomain}.namainvist.com/auto-login`);
+                                }, 1500);
+                                return;
+                            }
+                            // الإيميل صحيح لهذا الـ subdomain → سجّل دخول
+                        } else {
+                            // إيميل غير مسجّل → حوّل لإنشاء شركة
+                            setMsg('إيميلك غير مسجّل. جاري التحويل لإنشاء شركة...');
+                            setTimeout(() => {
+                                window.location.replace('https://namainvist.com/company-info');
+                            }, 2000);
+                            return;
+                        }
+                    }
+                } catch { /* تابع */ }
+            } else {
+                // ما فيه Clerk session → اعرض خيار تسجيل الدخول
+                setMsg('يرجى تسجيل الدخول بإيميلك.');
+                setShowSwitch(true);
+                return;
+            }
+
+            // ── خطوة 2: الإيميل صحيح → سجّل دخول بـ login-by-email ─────
             if (userEmail) {
                 try {
                     const res = await fetch('/api/auth/login-by-email', {
@@ -46,69 +84,25 @@ function AutoLoginContent() {
                         const data = await res.json();
                         if (data.token) { goToDashboard(data.token, data.user); return; }
                     }
-                } catch { /* متابعة */ }
-            }
-
-            // محاولة 2: تسجيل الدخول كـ admin
-            try {
-                setMsg('جاري الدخول كمدير النظام...');
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: 'admin', password: 'O_O772040030' }),
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.token) { goToDashboard(data.token, data.user); return; }
-                }
-            } catch { /* متابعة */ }
-
-            // محاولة 3: البحث عن البريد في subdomain آخر
-            if (userEmail) {
-                try {
-                    setMsg('جاري البحث عن حسابك...');
-                    const findRes = await fetch('/api/auth/find-tenant-by-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: userEmail }),
-                    });
-                    if (findRes.ok) {
-                        const findData = await findRes.json();
-                        if (findData.found && findData.subdomain) {
-                            const currentHost = window.location.hostname;
-                            const targetHost = `${findData.subdomain}.namainvist.com`;
-                            if (currentHost !== targetHost) {
-                                setMsg(`بريدك مسجل في ${findData.subdomain}. جاري التحويل...`);
-                                setTimeout(() => {
-                                    window.location.replace(`https://${targetHost}/auto-login`);
-                                }, 1500);
-                                return;
-                            }
-                        }
-                    }
-                } catch { /* متابعة */ }
-            }
-
-            // If everything failed → go to login with message (NOT dashboard to avoid loop)
-            setMsg('تعذّر تسجيل الدخول التلقائي. جاري التحويل...');
-            setTimeout(() => {
-                window.location.replace('/login?error=auto-login-failed');
-            }, 2000);
-        };
-
-        const run = async () => {
-            // إذا يوجد SSO token صريح جرِّبه
-            if (token) {
-                try {
-                    const res = await fetch(`/api/auth/auto-login?token=${encodeURIComponent(token)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.success && data.token) { goToDashboard(data.token, data.user); return; }
-                    }
                 } catch { /* تابع */ }
             }
 
-            await tryAutoLogin();
+            // ── خطوة 3: fallback → سجّل دخول كـ admin ───────────────────
+            try {
+                const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin7773' }),
+                });
+                if (loginRes.ok) {
+                    const data = await loginRes.json();
+                    if (data.token) { goToDashboard(data.token, data.user); return; }
+                }
+            } catch { /* تابع */ }
+
+            // فشل كلي
+            setMsg('تعذّر تسجيل الدخول.');
+            setShowSwitch(true);
         };
 
         run();
@@ -124,7 +118,7 @@ function AutoLoginContent() {
             color: 'white',
             flexDirection: 'column',
             gap: '16px',
-            fontFamily: 'Lateef, sans-serif',
+            fontFamily: "'Noto Sans Arabic', sans-serif",
         }} dir="rtl">
             <div style={{
                 width: '48px',
@@ -132,9 +126,27 @@ function AutoLoginContent() {
                 border: '4px solid #6366f1',
                 borderTop: '4px solid transparent',
                 borderRadius: '50%',
-                animation: 'spin 0.8s linear infinite',
+                animation: showSwitch ? 'none' : 'spin 0.8s linear infinite',
             }} />
             <p style={{ color: '#94a3b8', fontWeight: 'bold', fontSize: '16px' }}>{msg}</p>
+            {showSwitch && (
+                <button
+                    onClick={() => { signOut(() => { window.location.href = 'https://namainvist.com/sign-in'; }); }}
+                    style={{
+                        marginTop: '16px',
+                        padding: '12px 24px',
+                        background: 'rgba(99, 102, 241, 0.2)',
+                        color: '#a5b4fc',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    🔄 تسجيل دخول بإيميل آخر
+                </button>
+            )}
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );

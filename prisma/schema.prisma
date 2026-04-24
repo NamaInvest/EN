@@ -272,6 +272,7 @@ model SalesInvoice {
   zatcaHash     String?  @map("zatca_hash")
   zatcaQr       String?  @map("zatca_qr")
   zatcaResponse String?  @map("zatca_response")
+  zatcaXml      String?  @map("zatca_xml")
   salesRepId    Int?     @map("sales_rep_id")
 
   customer     Customer?            @relation(fields: [customerId], references: [id])
@@ -2258,5 +2259,97 @@ model TenantAccount {
   productQuota         Int?      @default(1000) @map("product_quota")
   userQuota            Int?      @default(1) @map("user_quota")
 
+  desktopLicenses      DesktopLicense[]
+  featureFlags         TenantFeatureFlag[]
+
   @@map("tenant_accounts")
+}
+
+// ==================== 102. Desktop Licensing ====================
+model DesktopLicense {
+  id                Int       @id @default(autoincrement())
+  licenseKey        String    @unique @map("license_key")
+  hardwareId        String?   @map("hardware_id")
+  companyNameAr     String?   @map("company_name_ar")
+  companyNameEn     String?   @map("company_name_en")
+  businessDomain    String?   @map("business_domain")
+  mobile            String?   @map("mobile")
+  vatNumber         String?   @map("vat_number")
+  crnNumber         String?   @map("crn_number")
+  city              String?   @map("city")
+  cityEn            String?   @map("city_en")
+  district          String?   @map("district")
+  streetName        String?   @map("street_name")
+  buildingNo        String?   @map("building_no")
+  postalCode        String?   @map("postal_code")
+  contactEmail      String?   @map("contact_email")
+  contactPhone      String?   @map("contact_phone")
+  status            String?   @default("trial")
+  appVersion        String?   @map("app_version")
+  maxDevices        Int?      @default(1) @map("max_devices")
+  activatedDevices  Int?      @default(0) @map("activated_devices")
+  trialEndsAt       DateTime? @map("trial_ends_at")
+  expiresAt         DateTime? @map("expires_at")
+  activatedAt       DateTime? @map("activated_at")
+  lastVerifiedAt    DateTime? @map("last_verified_at")
+  notes             String?   @map("notes")
+  createdAt         DateTime? @default(now()) @map("created_at")
+  updatedAt         DateTime? @default(now()) @map("updated_at")
+
+  tenantAccountId   Int?      @map("tenant_account_id")
+  tenantAccount     TenantAccount? @relation(fields: [tenantAccountId], references: [id])
+
+  featureFlags      TenantFeatureFlag[]
+
+  @@map("desktop_licenses")
+}
+
+// ==================== 103. Tenant Feature Flags ====================
+model TenantFeatureFlag {
+  id                Int       @id @default(autoincrement())
+  moduleName        String    @map("module_name")
+  isEnabled         Boolean   @default(true) @map("is_enabled")
+  createdAt         DateTime? @default(now()) @map("created_at")
+  updatedAt         DateTime? @default(now()) @map("updated_at")
+
+  tenantAccountId   Int?      @map("tenant_account_id")
+  tenantAccount     TenantAccount? @relation(fields: [tenantAccountId], references: [id])
+
+  desktopLicenseId  Int?      @map("desktop_license_id")
+  desktopLicense    DesktopLicense? @relation(fields: [desktopLicenseId], references: [id])
+
+  @@unique([tenantAccountId, moduleName], name: "unique_tenant_module")
+  @@unique([desktopLicenseId, moduleName], name: "unique_license_module")
+  @@map("tenant_feature_flags")
+}
+
+// ==================== 104. Restaurant POS ====================
+model RestaurantZone {
+  id       Int               @id @default(autoincrement())
+  name     String
+  branchId Int?              @map("branch_id")
+  tables   RestaurantTable[]
+  @@map("restaurant_zones")
+}
+
+model RestaurantTable {
+  id       Int               @id @default(autoincrement())
+  zoneId   Int               @map("zone_id")
+  name     String
+  capacity Int               @default(4)
+  status   String            @default("Available") // Available, Occupied, Reserved
+  zone     RestaurantZone    @relation(fields: [zoneId], references: [id])
+  sessions RestaurantSession[]
+  @@map("restaurant_tables")
+}
+
+model RestaurantSession {
+  id         Int             @id @default(autoincrement())
+  tableId    Int             @map("table_id")
+  startTime  DateTime        @default(now()) @map("start_time")
+  endTime    DateTime?       @map("end_time")
+  customerId Int?            @map("customer_id")
+  status     String          @default("Active") // Active, Closed
+  table      RestaurantTable @relation(fields: [tableId], references: [id])
+  @@map("restaurant_sessions")
 }

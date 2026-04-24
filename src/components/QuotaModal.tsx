@@ -56,7 +56,7 @@ export default function QuotaModal({ open, onClose, reason, resource, limit, cur
                     boxShadow: '0 25px 50px rgba(0,0,0,0.5), 0 0 80px rgba(139,92,246,0.15)',
                     textAlign: 'center',
                     direction: 'rtl',
-                    fontFamily: "'Tajawal', 'Lateef', sans-serif",
+                    fontFamily: "'Tajawal', 'Noto Sans Arabic', sans-serif",
                 }}
             >
                 {/* Icon */}

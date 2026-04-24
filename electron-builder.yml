@@ -10,10 +10,15 @@ asar: true
 asarUnpack:
   - "**/*.node"
   - "**/sharp/**"
+  - "**/embedded-postgres/**"
+  - "**/@embedded-postgres/**"
+  - "**/electron/zatca-sdk/**"
+
+npmRebuild: false
 
 files:
   - "electron/**/*"
-  - ".next/standalone/**/*"
+  # - ".next/standalone/**/*"  <-- REMOVED to avoid 30-minute double-packing
   - ".next/static/**/*"
   - "public/**/*"
   - "prisma/**/*"
@@ -23,14 +28,15 @@ files:
   - "!**/*.ts"
   - "!**/test/**"
   - "!**/tests/**"
+  - "!**/ssh2/**"
+  - "!**/ssh2-sftp-client/**"
+  - "!**/cpu-features/**"
+  - "!**/*.zip"
+  - "!**/*.tar.gz"
 
 extraResources:
-  - from: ".next/standalone"
-    to: "standalone"
-  - from: ".next/static"
-    to: "standalone/.next/static"
-  - from: "public"
-    to: "standalone/public"
+  - from: "prisma"
+    to: "prisma"
 
 win:
   target:
@@ -38,11 +44,7 @@ win:
       arch:
         - x64
   icon: electron/assets/icon.ico
-  publisherName: "Nama Invest Technology"
   legalTrademarks: "Nama Invest ERP is a trademark of Nama Invest Technology"
-  signingHashAlgorithms:
-    - sha256
-  signDlls: false
 
 nsis:
   oneClick: false
@@ -50,16 +52,18 @@ nsis:
   installerIcon: electron/assets/icon.ico
   uninstallerIcon: electron/assets/icon.ico
   installerHeaderIcon: electron/assets/icon.ico
-  createDesktopShortcut: true
+  createDesktopShortcut: always
   createStartMenuShortcut: true
   shortcutName: "Nama Invest ERP"
-  license: LICENSE.txt
-  installerLanguages:
-    - ar
-    - en
-  language: 1025
-  perMachine: false
   artifactName: "NamaInvest-Setup-${version}.${ext}"
+  perMachine: false
 
 # Code Protection
 afterPack: scripts/after-pack.js
+
+# Auto Update — يشير لسيرفرنا لتوفير التحديثات التلقائية
+# (publish section مفعّلة عند الإصدار الرسمي فقط)
+# publish:
+#   provider: generic
+#   url: https://namainvist.com/updates/desktop
+#   channel: latest

@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
-    Users, Shield, Zap, Search, RefreshCw, ExternalLink, 
+    Users, Zap, Search, RefreshCw, ExternalLink, 
     Database, Mail, Hash, Clock, CreditCard, Package, 
     FileText, Settings, Globe, BarChart3,
     Smartphone, Bot, Rocket, Gem, Building2,
     Sun, Moon, Sparkles, LayoutDashboard, ChevronDown, Trash2,
-    Pencil, Save, Key, Lock, Check, X
+    Pencil, Save, Key, Lock, Check, X, Plus
 } from 'lucide-react';
 import Link from 'next/link';
-
+import featuresList from '@/lib/featuresList.json';
 type ThemeMode = 'light' | 'dark' | 'glass';
 
 interface Tenant {
@@ -141,14 +141,18 @@ const THEMES = {
 
 // â”€â”€ Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+const UNLIMITED_THRESHOLD = 99999;
+const fmtQuota = (n: number) => n >= UNLIMITED_THRESHOLD ? '∞' : n.toLocaleString();
+
 function ProgressBar({ label, current, total, barColor, theme }: { label: string; current: number; total: number; barColor: string; theme: ThemeMode }) {
-    const pct = Math.min(100, total > 0 ? Math.round((current / total) * 100) : 0);
+    const isUnlimited = total >= UNLIMITED_THRESHOLD;
+    const pct = isUnlimited ? Math.min(100, 5) : Math.min(100, total > 0 ? Math.round((current / total) * 100) : 0);
     const T = THEMES[theme];
     return (
         <div className={`p-4 rounded-2xl ${T.card}`}>
             <div className="flex justify-between mb-2">
                 <span className={`text-[10px] font-black uppercase tracking-widest ${T.textMuted}`}>{label}</span>
-                <span className="text-xs font-black font-outfit text-slate-600">{current} / {total}</span>
+                <span className="text-xs font-black font-outfit text-slate-600">{current.toLocaleString()} / {isUnlimited ? '∞ غير محدود' : total.toLocaleString()}</span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${pct}%` }} />
@@ -209,11 +213,43 @@ export default function IcePage() {
     const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+    // ── Desktop Licenses ──
+    const [tenantLicenses, setTenantLicenses] = useState<any[]>([]);
+    const [licenseBusy, setLicenseBusy] = useState('');
+    const [newMaxDevices, setNewMaxDevices] = useState(1);
+
     // ── Edit tenant info ──
     const [editMode, setEditMode] = useState(false);
     const [editEmail, setEditEmail] = useState('');
     const [editOrgName, setEditOrgName] = useState('');
     const [editVat, setEditVat] = useState('');
+
+    // ── Tenant Feature Flags ──
+    const [featureFlags, setFeatureFlags] = useState<any[]>([]);
+    const [featureBusy, setFeatureBusy] = useState('');
+    const [newFeatureKey, setNewFeatureKey] = useState('');
+
+    const fetchTenantFeatures = async (id: number) => {
+        try {
+            const res = await fetch(`/api/ice/tenant-features?tenantAccountId=${id}`);
+            const data = await res.json();
+            if (data.success) setFeatureFlags(data.flags || []);
+        } catch {}
+    };
+
+    const toggleFeatureFlag = async (moduleName: string, isEnabled: boolean) => {
+        if (!selected) return;
+        setFeatureBusy(moduleName);
+        try {
+            const res = await fetch('/api/ice/tenant-features', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tenantAccountId: selected.id, moduleName, isEnabled })
+            });
+            if (res.ok) fetchTenantFeatures(selected.id);
+        } catch {}
+        finally { setFeatureBusy(''); }
+    };
 
     // ── Toast notification ──
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
@@ -221,46 +257,10 @@ export default function IcePage() {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3000);
     };
-    // ── Auth State ──
-    const [authenticated, setAuthenticated] = useState(false);
-    const [authChecking, setAuthChecking] = useState(true);
-    const [loginUsername, setLoginUsername] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
-    const [loginError, setLoginError] = useState('');
-    const [loginLoading, setLoginLoading] = useState(false);
-
-
-    
-    // ── Auth Check ──
-    useEffect(() => {
-        fetch('/api/ice/auth')
-            .then(r => r.json())
-            .then(d => { setAuthenticated(d.authenticated); setAuthChecking(false); })
-            .catch(() => { setAuthenticated(false); setAuthChecking(false); });
-    }, []);
-
-    const handleLogin = async () => {
-        setLoginLoading(true);
-        setLoginError('');
-        try {
-            const res = await fetch('/api/ice/auth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: loginUsername, password: loginPassword }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                setAuthenticated(true);
-            } else {
-                setLoginError(data.error || 'فشل تسجيل الدخول');
-            }
-        } catch { setLoginError('خطأ في الاتصال بالخادم'); }
-        finally { setLoginLoading(false); }
-    };
 
     const handleLogout = async () => {
         await fetch('/api/ice/auth', { method: 'DELETE' });
-        setAuthenticated(false);
+        window.location.reload();
     };
 
     useEffect(() => {
@@ -275,12 +275,20 @@ export default function IcePage() {
         try {
             const res = await fetch('/api/ice/tenants');
             const data = await res.json();
-            if (data.success) setTenants(data.tenants);
+            if (data.success) {
+                setTenants(data.tenants);
+                if (data.tenants?.length > 0 && !selected) {
+                    setSelected(data.tenants[0]);
+                    fetchTenantLicenses(data.tenants[0].id);
+                    fetchTenantFeatures(data.tenants[0].id);
+                }
+            }
         } catch {}
         finally { setLoading(false); }
     }, []);
 
-    useEffect(() => { if (authenticated) fetchTenants(); }, [fetchTenants, authenticated]);
+    // Auth is handled by layout — load tenants immediately
+    useEffect(() => { fetchTenants(); }, [fetchTenants]);
 
     const filteredTenants = useMemo(() => tenants.filter(t => {
         const q = search.toLowerCase();
@@ -297,6 +305,8 @@ export default function IcePage() {
         setSelected(t);
         setShowDeleteConfirm(false);
         setDeleteConfirmInput('');
+        fetchTenantLicenses(t.id);
+        fetchTenantFeatures(t.id);
         setEditMode(false);
         setEditEmail(t.email);
         setEditOrgName(t.companyNameAr);
@@ -305,6 +315,15 @@ export default function IcePage() {
         setQuotaInv(String(t.invoiceQuota));
         setQuotaProd(String(t.productQuota));
         setQuotaUser(String(t.userQuota));
+        fetchTenantLicenses(t.id);
+    };
+
+    const fetchTenantLicenses = async (tenantId: number) => {
+        try {
+            const res = await fetch(`/api/ice/desktop-licenses?tenant_id=${tenantId}`);
+            const data = await res.json();
+            if (data.licenses) setTenantLicenses(data.licenses);
+        } catch {}
     };
 
     const doAction = async (action: string, extra: Record<string, any> = {}) => {
@@ -436,109 +455,12 @@ export default function IcePage() {
     const T = THEMES[theme];
     const isLight = theme === 'light';
 
-    // ── Loading ──
-    if (authChecking) {
-        return (
-            <div className="h-screen flex items-center justify-center bg-slate-950">
-                <style dangerouslySetInnerHTML={{ __html: `
-                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Lateef:wght@400;700;900&display=swap');
-                    html { font-size: 24px !important; }
-                    body { font-family: 'Lateef', sans-serif; }
-                ` }} />
-                <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
-            </div>
-        );
-    }
-
-    // ── Login Page ──
-    if (!authenticated) {
-        return (
-            <div dir="rtl" className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 relative overflow-hidden">
-                <style dangerouslySetInnerHTML={{ __html: `
-                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Lateef:wght@400;700;900&display=swap');
-                    html { font-size: 20px !important; }
-                    body, button, input { font-family: 'Lateef', sans-serif; }
-                    .font-outfit { font-family: 'Outfit', sans-serif !important; }
-                ` }} />
-                {/* Background Effects */}
-                <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600 rounded-full blur-[128px]" />
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600 rounded-full blur-[128px]" />
-                </div>
-
-                <div className="relative z-10 w-full max-w-md mx-4">
-                    {/* Logo */}
-                    <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/30">
-                            <Building2 className="w-10 h-10 text-white" />
-                        </div>
-                        <h1 className="text-3xl font-black text-white mb-2">محرك نما إنفست</h1>
-                        <p className="text-slate-400 text-sm font-bold">Infrastructure Control Engine</p>
-                    </div>
-
-                    {/* Login Card */}
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-6">
-                        <div className="text-center">
-                            <h2 className="text-xl font-black text-white mb-1">تسجيل الدخول</h2>
-                            <p className="text-slate-400 text-xs">أدخل بيانات الدخول للمتابعة</p>
-                        </div>
-
-                        {loginError && (
-                            <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl px-4 py-3 text-rose-400 text-sm font-bold text-center">
-                                {loginError}
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block">اسم المستخدم</label>
-                                <input
-                                    type="text"
-                                    value={loginUsername}
-                                    onChange={e => setLoginUsername(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                                    placeholder="admin"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all"
-                                    autoFocus
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block">كلمة المرور</label>
-                                <input
-                                    type="password"
-                                    value={loginPassword}
-                                    onChange={e => setLoginPassword(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                                    placeholder="••••••••"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all"
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleLogin}
-                            disabled={loginLoading || !loginUsername || !loginPassword}
-                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white text-base font-black rounded-2xl shadow-xl shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-                        >
-                            {loginLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-                            دخول
-                        </button>
-                    </div>
-
-                    <p className="text-center text-slate-600 text-xs mt-6 font-bold">
-                        Nama Invest Infrastructure Engine v2.0
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div dir="rtl" className={`h-screen flex flex-col overflow-hidden ${T.bg} ${T.text}`}>
             <style dangerouslySetInnerHTML={{ __html: `
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Lateef:wght@400;700;900&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto Sans Arabic:wght@400;700;900&display=swap');
                 html { font-size: 24px !important; }
-                body, button, input { font-family: 'Lateef', sans-serif; }
+                body, button, input { font-family: 'Noto Sans Arabic', sans-serif; }
                 .font-outfit { font-family: 'Outfit', sans-serif !important; }
                 ::-webkit-scrollbar { width: 4px; }
                 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -842,13 +764,17 @@ export default function IcePage() {
                                                     { label: 'فواتير', value: quotaInv, set: setQuotaInv },
                                                     { label: 'أصناف', value: quotaProd, set: setQuotaProd },
                                                     { label: 'مستخدمين', value: quotaUser, set: setQuotaUser },
-                                                ].map(q => (
+                                                ].map(q => {
+                                                    const isUn = +q.value >= UNLIMITED_THRESHOLD;
+                                                    return (
                                                     <div key={q.label}>
                                                         <div className={`text-[9px] font-black uppercase mb-1.5 ${T.textMuted}`}>{q.label}</div>
                                                         <input type="number" value={q.value} onChange={e => q.set(e.target.value)}
                                                             className={`w-full rounded-2xl px-4 py-3 text-base font-black font-outfit text-center border focus:outline-none focus:ring-2 focus:ring-indigo-400/20 transition-all ${T.input}`} />
+                                                        {isUn && <div className="text-[9px] font-bold text-emerald-600 text-center mt-1">∞ غير محدود</div>}
                                                     </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                             <button
                                                 disabled={!!busy}
@@ -944,6 +870,229 @@ export default function IcePage() {
                                         })}
                                     </div>
                                 </div>
+
+                                {/* Panel 3: Desktop License Management */}
+                                <div className={`rounded-3xl ${T.card} flex flex-col lg:col-span-2`}>
+                                    <div className={`px-8 py-6 border-b ${isLight ? 'border-slate-100' : 'border-white/10'} flex items-center justify-between gap-4 flex-shrink-0`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2.5 bg-amber-500 rounded-xl shadow-lg shadow-amber-200/40"><Key className="w-5 h-5 text-white" /></div>
+                                            <h3 className="text-lg font-black">إدارة تراخيص تطبيق سطح المكتب (Desktop App)</h3>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+                                                <span className="text-xs font-bold text-slate-500">الأجهزة:</span>
+                                                <input 
+                                                    type="number" min="1" max="1000"
+                                                    value={newMaxDevices}
+                                                    onChange={e => setNewMaxDevices(parseInt(e.target.value) || 1)}
+                                                    className="w-12 bg-transparent text-sm font-black text-center outline-none"
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    if (licenseBusy) return;
+                                                    setLicenseBusy('create');
+                                                    try {
+                                                        const res = await fetch('/api/ice/desktop-licenses', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                action: 'create',
+                                                                company_name: selected.companyNameAr,
+                                                                contact_email: selected.email,
+                                                                vat_number: selected.vatNumber,
+                                                                tenant_account_id: selected.id,
+                                                                max_devices: newMaxDevices
+                                                            })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            showToast('✅ تم إنشاء ترخيص جديد بنجاح');
+                                                            fetchTenantLicenses(selected.id);
+                                                            setNewMaxDevices(1);
+                                                        } else {
+                                                            showToast('⚠️ خطأ في إنشاء الترخيص', 'error');
+                                                        }
+                                                    } catch { showToast('⚠️ خطأ في الاتصال', 'error'); }
+                                                    finally { setLicenseBusy(''); }
+                                                }}
+                                                disabled={!!licenseBusy}
+                                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black rounded-xl shadow-sm transition-all flex items-center gap-2"
+                                            >
+                                                {licenseBusy === 'create' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4"/> إصدار ترخيص</>}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 space-y-4">
+                                        {tenantLicenses.length === 0 ? (
+                                            <div className={`text-center py-8 ${T.textMuted}`}>
+                                                <Key className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                                                <p className="text-sm font-bold">لا توجد تراخيص مكتبية مصدرة لهذا المستأجر</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {tenantLicenses.map(lic => (
+                                                    <div key={lic.id} className={`p-5 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-700 shadow-md'}`}>
+                                                        <div className="flex justify-between items-start mb-3">
+                                                            <div className="text-xs font-black uppercase tracking-widest text-indigo-500">License Key</div>
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                                                                lic.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
+                                                                lic.status === 'revoked' ? 'bg-rose-50 text-rose-700' :
+                                                                'bg-amber-50 text-amber-700'
+                                                            }`}>
+                                                                {lic.status === 'active' ? 'نشط' : lic.status === 'revoked' ? 'ملغي' : lic.status}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-lg font-outfit font-black mb-4 select-all">{lic.license_key}</div>
+                                                        
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex justify-between text-xs">
+                                                                <span className={T.textMuted}>معرف الجهاز (Hardware ID):</span>
+                                                                <span className="font-outfit font-black truncate max-w-[150px]">{lic.hardware_id || 'غير مرتبط بعد'}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-xs">
+                                                                <span className={T.textMuted}>تاريخ الإصدار:</span>
+                                                                <span className="font-outfit font-black">{new Date(lic.created_at).toLocaleDateString('en-GB')}</span>
+                                                            </div>
+                                                            <div className="flex justify-between items-center text-xs">
+                                                                <span className={T.textMuted}>الأجهزة المفعلة / المسموحة:</span>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="font-outfit font-black text-emerald-600">{lic.activated_devices}</span>
+                                                                    <span className="text-slate-400">/</span>
+                                                                    <input 
+                                                                        type="number" min="1"
+                                                                        defaultValue={lic.max_devices}
+                                                                        onBlur={async (e) => {
+                                                                            const val = parseInt(e.target.value);
+                                                                            if (!val || val === lic.max_devices) return;
+                                                                            setLicenseBusy(`max_${lic.id}`);
+                                                                            try {
+                                                                                await fetch('/api/ice/desktop-licenses', {
+                                                                                    method: 'POST',
+                                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({ action: 'update_max_devices', id: lic.id, max_devices: val })
+                                                                                });
+                                                                                fetchTenantLicenses(selected.id);
+                                                                            } catch {}
+                                                                            finally { setLicenseBusy(''); }
+                                                                        }}
+                                                                        className={`w-12 text-center rounded bg-slate-100 dark:bg-slate-800 font-outfit font-black px-1 py-0.5 outline-none focus:ring-2 focus:ring-indigo-500 ${licenseBusy === `max_${lic.id}` ? 'opacity-50 animate-pulse' : ''}`}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={`mt-5 pt-4 border-t ${isLight ? 'border-slate-100' : 'border-slate-800'} flex gap-2`}>
+                                                            <button 
+                                                                onClick={async () => {
+                                                                    if (!confirm('هل أنت متأكد من تعليق هذا الترخيص؟ سيفقد العميل القدرة على الدخول للتطبيق المكتبي.')) return;
+                                                                    setLicenseBusy(`revoke_${lic.id}`);
+                                                                    try {
+                                                                        await fetch('/api/ice/desktop-licenses', {
+                                                                            method: 'POST',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            body: JSON.stringify({ action: 'revoke', id: lic.id })
+                                                                        });
+                                                                        fetchTenantLicenses(selected.id);
+                                                                    } catch {} finally { setLicenseBusy(''); }
+                                                                }}
+                                                                disabled={!!licenseBusy || lic.status === 'revoked'}
+                                                                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${lic.status === 'revoked' ? 'opacity-30 cursor-not-allowed border bg-slate-50 text-slate-400' : 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100'}`}
+                                                            >
+                                                                تعليق وإلغاء
+                                                            </button>
+                                                            <button 
+                                                                onClick={async () => {
+                                                                    setLicenseBusy(`activate_${lic.id}`);
+                                                                    try {
+                                                                        await fetch('/api/ice/desktop-licenses', {
+                                                                            method: 'POST',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            body: JSON.stringify({ action: 'activate', id: lic.id })
+                                                                        });
+                                                                        fetchTenantLicenses(selected.id);
+                                                                    } catch {} finally { setLicenseBusy(''); }
+                                                                }}
+                                                                disabled={!!licenseBusy || lic.status === 'active'}
+                                                                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${lic.status === 'active' ? 'opacity-30 cursor-not-allowed border bg-slate-50 text-slate-400' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100'}`}
+                                                            >
+                                                                إعادة تفعيل
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Panel 4: Dynamic Feature Control */}
+                                <div className={`rounded-3xl ${T.card} flex flex-col lg:col-span-2 mt-4`}>
+                                    <div className={`px-8 py-6 border-b ${isLight ? 'border-slate-100' : 'border-white/10'} flex items-center justify-between gap-4 flex-shrink-0`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2.5 bg-rose-500 rounded-xl shadow-lg shadow-rose-200/40"><Bot className="w-5 h-5 text-white" /></div>
+                                            <h3 className="text-lg font-black">التحكم بالأزرار والعناصر التفاعلية (Feature Flags)</h3>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 space-y-4">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <select
+                                                value={newFeatureKey}
+                                                onChange={e => setNewFeatureKey(e.target.value)}
+                                                className={`flex-1 rounded-xl px-4 py-2 text-sm font-bold border focus:outline-none focus:ring-2 focus:ring-indigo-400/20 ${T.input}`}
+                                            >
+                                                <option value="">-- اختر العنصر لتعطيله / تفعيله --</option>
+                                                
+                                                {/* Dynamically grouped features */}
+                                                {Array.from(new Set(featuresList.map(f => f.module))).map(moduleName => (
+                                                    <optgroup key={moduleName} label={moduleName}>
+                                                        {featuresList.filter(f => f.module === moduleName).map(f => (
+                                                            <option key={f.key} value={f.key}>
+                                                                {f.label}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                            <button
+                                                onClick={() => {
+                                                    if (newFeatureKey) {
+                                                        toggleFeatureFlag(newFeatureKey, false);
+                                                        setNewFeatureKey('');
+                                                    }
+                                                }}
+                                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black rounded-xl shadow-sm transition-all flex items-center gap-2"
+                                            >
+                                                <Plus className="w-4 h-4"/> إضافة عنصر
+                                            </button>
+                                        </div>
+
+                                        {featureFlags.length === 0 ? (
+                                            <div className={`text-center py-4 ${T.textMuted}`}>
+                                                <p className="text-sm font-bold">لا يوجد أي عناصر مقيدة لهذا المستأجر.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {featureFlags.map(f => (
+                                                    <div key={f.id} className={`flex items-center justify-between p-4 rounded-xl border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-700'}`}>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-outfit font-black text-indigo-600">{f.moduleName}</span>
+                                                            <span className="text-xs text-slate-500">الحالة: {f.isEnabled ? 'مفعل' : 'معطل (مخفي)'}</span>
+                                                        </div>
+                                                        <ToggleSwitch
+                                                            active={f.isEnabled}
+                                                            loading={featureBusy === f.moduleName}
+                                                            onToggle={() => toggleFeatureFlag(f.moduleName, !f.isEnabled)}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
 
                             </div>
                         </div>

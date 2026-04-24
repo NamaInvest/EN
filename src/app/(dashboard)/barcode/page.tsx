@@ -120,14 +120,14 @@ export default function BarcodePage() {
         if (!pw) { showToast(t('sys.str_4158')); return; }
         pw.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ط·ط¨ط§ط¹ط© ط¨ط§ط±ظƒظˆط¯</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;700&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Lateef', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; padding: 2mm; gap: 1mm; }
+            body { font-family: 'Noto Sans Arabic', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; padding: 2mm; gap: 1mm; }
             .label { width: ${sz.w}; height: ${sz.h}; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1mm; overflow: hidden; page-break-inside: avoid; border: 0.5px dashed #ccc; }
             .company { font-size: ${sz.fontSize}; font-weight: 700; text-align: center; line-height: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
             .name { font-size: calc(${sz.fontSize} - 1px); text-align: center; line-height: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; color: #333; }
             .barcode { width: 90%; height: ${sz.barcodeH}; margin: 0.5mm 0; }
-            .code { font-size: ${sz.fontSize}; font-weight: 600; letter-spacing: 1.5px; text-align: center; font-family: monospace, 'Lateef'; }
+            .code { font-size: ${sz.fontSize}; font-weight: 600; letter-spacing: 1.5px; text-align: center; font-family: monospace, 'Noto Sans Arabic'; }
             .price { font-size: ${sz.fontSize}; font-weight: 700; text-align: center; }
             @media print { @page { margin: 0; size: auto; } body { padding: 0; } .label { border: none; } }
         </style></head><body>${labels}

@@ -1,0 +1,27 @@
+[
+  {
+    "module": "المنتجات (Products)",
+    "key": "btn_reset_stock",
+    "label": "🔄 تصفير المخزون"
+  },
+  {
+    "module": "المنتجات (Products)",
+    "key": "btn_delete_all_products",
+    "label": "🗑️ حذف كل المنتجات"
+  },
+  {
+    "module": "المنتجات (Products)",
+    "key": "btn_delete_all_categories",
+    "label": "🗑️ حذف كل التصنيفات"
+  },
+  {
+    "module": "الإعدادات (Settings)",
+    "key": "btn_danger_zone",
+    "label": "⚠️ منطقة الخطر (كامل القسم)"
+  },
+  {
+    "module": "الإعدادات (Settings)",
+    "key": "btn_factory_reset",
+    "label": "🔴 فرمتة وتهيئة النظام (ضبط مصنع)"
+  }
+]

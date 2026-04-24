@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const prisma = getPrisma(request);
-        const allowed = await hasPermission(auth.userId, 'settings');
+        const allowed = await hasPermission(auth.userId, 'settings', prisma);
         if (!allowed && auth.role !== 'admin' && auth.role !== 'owner') {
             return NextResponse.json({ error: 'غير مصرح - ليس لديك صلاحية التعديل' }, { status: 403 });
         }
@@ -64,14 +64,14 @@ export async function POST(request: NextRequest) {
             return prisma.setting.upsert({
                 where: { key },
                 update: { value: String(value) },
-                create: { key, value: String(value), description: '' }
+                create: { key, value: String(value) }
             });
         });
 
         await prisma.$transaction(updatePromises);
         return NextResponse.json({ success: true, message: 'تم حفظ الإعدادات' });
     } catch (error: any) {
-        console.error('Settings POST error:', error);
-        return apiError(error, 'فشل في حفظ الإعدادات', { context: 'settings' });
+        console.error('Settings POST error:', error?.message || error);
+        return NextResponse.json({ error: error?.message || 'فشل في حفظ الإعدادات' }, { status: 500 });
     }
 }

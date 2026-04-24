@@ -142,9 +142,9 @@ export default function WarehouseOptionsPage() {
         if (!pw) return;
         pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ط¨ط§ط±ظƒظˆط¯</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@600&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@600&display=swap');
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Lateef', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; padding: 2mm; }
+            body { font-family: 'Noto Sans Arabic', sans-serif; display: flex; flex-wrap: wrap; justify-content: center; padding: 2mm; }
             .label { width: ${sz.w}; height: ${sz.h}; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1mm; overflow: hidden; page-break-inside: avoid; }
             .company { font-size: ${sz.fontSize}; font-weight: 600; text-align: center; line-height: 1.1; max-height: 3mm; overflow: hidden; }
             .barcode { width: 90%; height: ${sz.barcodeH}; margin: 1mm 0; }

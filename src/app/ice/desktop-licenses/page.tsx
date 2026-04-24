@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
+import featuresList from '@/lib/featuresList.json';
 interface License {
   id: number;
   license_key: string;
@@ -399,6 +399,8 @@ export default function DesktopLicensesPage() {
                       )}
                       {/* Backup Section */}
                       <BackupSection licenseKey={lic.license_key} />
+                      {/* Feature Flags Section */}
+                      <FeatureFlagsSection licenseId={lic.id} licenseKey={lic.license_key} />
                     </div>
                   )}
                 </div>
@@ -568,3 +570,70 @@ function BackupSection({ licenseKey }: { licenseKey: string }) {
   );
 }
 
+// Feature Flags section for desktop licenses
+function FeatureFlagsSection({ licenseId, licenseKey }: { licenseId: number; licenseKey: string }) {
+  const [flags, setFlags] = useState<{ key: string; enabled: boolean }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState('');
+  const [newKey, setNewKey] = useState('');
+
+  useEffect(() => {
+    fetch(`/api/ice/desktop-licenses?action=get_flags&id=${licenseId}`)
+      .then(r => r.json())
+      .then(data => { setFlags(data.flags || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [licenseId]);
+
+  async function toggleFlag(key: string, enabled: boolean) {
+    setBusy(key);
+    try {
+      await fetch('/api/ice/desktop-licenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_flag', id: licenseId, flag_key: key, enabled }),
+      });
+      setFlags(prev => {
+        const existing = prev.find(f => f.key === key);
+        if (existing) return prev.map(f => f.key === key ? { ...f, enabled } : f);
+        return [...prev, { key, enabled }];
+      });
+    } catch (e) { console.error(e); }
+    setBusy('');
+  }
+
+  if (loading) return <div style={{ marginTop: '12px', fontSize: '12px', color: '#94a3b8' }}>⏳ تحميل...</div>;
+
+  return (
+    <div style={{ marginTop: '16px', padding: '16px', background: '#fefce8', borderRadius: '12px', border: '1px solid #fde68a' }}>
+      <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#a16207', marginBottom: '10px' }}>
+        ⚙️ التحكم بالأزرار الخطرة
+      </h4>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <select value={newKey} onChange={e => setNewKey(e.target.value)}
+          style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px', minWidth: '200px' }}>
+          <option value="">-- اختر عنصر --</option>
+          {featuresList.map(f => (<option key={f.key} value={f.key}>{f.label}</option>))}
+        </select>
+        <button onClick={() => { if (newKey) { toggleFlag(newKey, false); setNewKey(''); } }} disabled={!newKey}
+          style={{ background: '#d97706', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', opacity: newKey ? 1 : 0.5 }}>
+          ➕ إضافة
+        </button>
+      </div>
+      {flags.length === 0 ? (
+        <div style={{ fontSize: '12px', color: '#a16207' }}>الأزرار الخطرة مخفية افتراضياً.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {flags.map(f => (
+            <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #fde68a' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{featuresList.find(fl => fl.key === f.key)?.label || f.key}</span>
+              <button onClick={() => toggleFlag(f.key, !f.enabled)} disabled={busy === f.key}
+                style={{ background: f.enabled ? '#fee2e2' : '#d1fae5', color: f.enabled ? '#dc2626' : '#15803d', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+                {busy === f.key ? '...' : f.enabled ? '🚫 إخفاء' : '✅ إظهار'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

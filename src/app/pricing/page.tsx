@@ -105,7 +105,7 @@ export default function PricingPage() {
             style={{
                 minHeight: '100vh',
                 background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-                fontFamily: "'Lateef', 'Segoe UI', sans-serif",
+                fontFamily: "'Noto Sans Arabic', 'Segoe UI', sans-serif",
                 padding: '40px 16px 80px',
             }}
         >
@@ -150,7 +150,7 @@ export default function PricingPage() {
                             border: 'none', cursor: 'pointer',
                             fontWeight: '700', fontSize: '14px',
                             transition: 'all 0.3s',
-                            fontFamily: "'Lateef', sans-serif",
+                            fontFamily: "'Noto Sans Arabic', sans-serif",
                         }}
                     >
                         شهري
@@ -164,7 +164,7 @@ export default function PricingPage() {
                             border: 'none', cursor: 'pointer',
                             fontWeight: '700', fontSize: '14px',
                             transition: 'all 0.3s',
-                            fontFamily: "'Lateef', sans-serif",
+                            fontFamily: "'Noto Sans Arabic', sans-serif",
                         }}
                     >
                         سنوي
@@ -318,7 +318,7 @@ export default function PricingPage() {
             </div>
 
             <link
-                href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;700;800&display=swap"
+                href="https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;700;800&display=swap"
                 rel="stylesheet"
             />
         </div>

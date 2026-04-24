@@ -23,7 +23,7 @@ description: Deploy changes to the production server (Hetzner VPS)
 
 | Node | Domain | App Path | PM2 Name | Port |
 |---|---|---|---|---|
-| **Main Site** | `namainvist.com` | `/www/wwwroot/namainvist.com` | `main-site` | **2999** |
+| **Main Site** | `namainvist.com` | `/www/wwwroot/namainvist.com` | `main-site` | **3000** |
 | **N1** | `n1.namainvist.com` | `/www/wwwroot/n1.namainvist.com` | `n1-main` | **3001** |
 | **N2** | `n2.namainvist.com` | `/www/wwwroot/n2.namainvist.com` | `n2` | **3002** |
 | **N3** | `n3.namainvist.com` | `/www/wwwroot/n3.namainvist.com` | `n3` | **3003** |
@@ -38,10 +38,10 @@ description: Deploy changes to the production server (Hetzner VPS)
 | **New tenants** | `*.namainvist.com` | `/www/wwwroot/*.namainvist.com` | subdomain | **3013+** |
 
 **Notes:**
-- The **Main Site** (`namainvist.com` on port 2999) contains: Landing page + ICE Panel (`/ice`) + Onboarding
+- The **Main Site** (`namainvist.com` on port 3000) contains: Landing page + ICE Panel (`/ice`) + Onboarding
 - **N1** (port 3001) is the master template used for cloning new tenants — it is NOT the main landing site
 - **ICE Panel Owner Email:** `ialqrashi62@gmail.com`
-- **Nginx** for `namainvist.com` proxies to `localhost:2999`
+- **Nginx** for `namainvist.com` proxies to `localhost:3000`
 - **Nginx** for `n1.namainvist.com` proxies to `localhost:3001`
 
 **SSH to Fleet Server:**
@@ -128,7 +128,7 @@ C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\id_ed25519_deploy -o Stri
 
 Since the fleet server uses password auth, use Node.js ssh2 scripts:
 
-**Deploy to Main Site (namainvist.com — port 2999):**
+**Deploy to Main Site (namainvist.com — port 3000):**
 ```powershell
 node deploy_main_site.js
 ```

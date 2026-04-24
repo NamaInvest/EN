@@ -51,20 +51,20 @@ export async function POST(req: NextRequest) {
         // ====================================================================
         //  Generate ZATCA-compliant CSR using OpenSSL EXACTLY as Guide
         // ====================================================================
-        const tmpDir = '/tmp/zatca_' + Date.now();
+        const tmpDir = require('path').join(require('os').tmpdir(), 'zatca_' + Date.now());
         let csrBase64 = '';
         let privateKeyClean = '';
         let csrPem = '';
 
         try {
-            execSync(`mkdir -p ${tmpDir}`);
+            fs.mkdirSync(tmpDir, { recursive: true });
             const uuid = typeof crypto !== 'undefined' ? crypto.randomUUID() : '11223344-5566-7788-9900-aabbccddeeff';
             const orgName = arabicToEnglish(companyName);
             const cityEn = settingsDict.zatca_city_en || arabicToEnglish(city) || 'Riyadh';
             const branchName = settingsDict.branch_name_en || 'HeadOffice';
             
             const EGS_Name = orgName.replace(/\s+/g, '').substring(0, 15) || 'NAMA';
-            const cnName = `PRE-311985620700003`; // Wait actually better: PRE- + taxNumber
+            const cnName = `PRE-${taxNumber}`;
             const serialNumber = `1-${EGS_Name}|2-${branchName.replace(/\s+/g, '')}|3-${uuid}`;
             const locationAddress = settingsDict.zatca_city_en || 'Riyadh';
             const industryCategory = settingsDict.zatca_industry || industry || 'Medical';
@@ -102,7 +102,7 @@ csr.industry.business.category=${industryCategory}`;
             // Read the clean Base64 string exported directly by Fatoora Java Module
             csrBase64 = fs.readFileSync(`${tmpDir}/csr.txt`, 'utf-8').trim();
         } finally {
-            try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
+            try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) { }
         }
 
         // Upsert into DB

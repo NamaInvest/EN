@@ -8,6 +8,7 @@ import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Grid, Trash2, Clock, History, CheckCircle2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
+import { FeatureGuard } from '@/hooks/FeatureGuard';
 
 export default function POSPage() {
     const { t, lang } = useTranslation();
@@ -19,6 +20,7 @@ export default function POSPage() {
     const [showReturnsModal, setShowReturnsModal] = useState(false);
 
     const [taxRate, setTaxRate] = useState(15);
+    const [allowNegativeStock, setAllowNegativeStock] = useState(false);
     
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
@@ -44,7 +46,7 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('pos_held_orders');
         if (saved) {
@@ -163,7 +165,7 @@ export default function POSPage() {
     );
 
     const addToCart = (product: any) => {
-        if (product.stock <= 0) {
+        if (!allowNegativeStock && product.stock <= 0) {
             alert(t('sys.str_4070'));
             return;
         }
@@ -360,8 +362,8 @@ export default function POSPage() {
                             {t('sys.str_4032')}</div>
                     ) : (
                         filteredProducts.slice(0, 100).map((product: any) => (
-                            <div key={product.id} className={`product-card ${product.stock <= 0 ? 'disabled' : ''}`} onClick={() => product.stock > 0 && addToCart(product)}>
-                                {product.stock <= 0 && <span className="stock-badge">{t('sys.str_4033')}</span>}
+                            <div key={product.id} className={`product-card ${(!allowNegativeStock && product.stock <= 0) ? 'disabled' : ''}`} onClick={() => (allowNegativeStock || product.stock > 0) && addToCart(product)}>
+                                {(!allowNegativeStock && product.stock <= 0) && <span className="stock-badge">{t('sys.str_4033')}</span>}
                                 <div className="product-icon" style={{ overflow: 'hidden' }}>
                                     {product.img && product.img.length > 2 && (product.img.startsWith('/') || product.img.startsWith('http'))
                                         ? <img src={product.img} alt={product.name} style={{width:'60px', height:'60px', objectFit:'contain', borderRadius:'8px'}} /> 
@@ -457,24 +459,26 @@ export default function POSPage() {
                     </div>
                     
                     {/* Coupon Input Box */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                        <input 
-                            type="text" 
-                            placeholder={t('sys.str_4078')} 
-                            value={couponCode}
-                            onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                            disabled={!!appliedCoupon}
-                            style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #333', background: '#1a1a1a', color: 'white' }}
-                        />
-                        {!appliedCoupon ? (
-                            <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
-                                {couponLoading ? '...' : t('pos.str_184')}
-                            </button>
-                        ) : (
-                            <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
-                                {t('fin.str_206')}</button>
-                        )}
-                    </div>
+                    <FeatureGuard featureKey="pos_coupon_module">
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                            <input 
+                                type="text" 
+                                placeholder={t('sys.str_4078')} 
+                                value={couponCode}
+                                onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                                disabled={!!appliedCoupon}
+                                style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #333', background: '#1a1a1a', color: 'white' }}
+                            />
+                            {!appliedCoupon ? (
+                                <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
+                                    {couponLoading ? '...' : t('pos.str_184')}
+                                </button>
+                            ) : (
+                                <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer' }}>
+                                    {t('fin.str_206')}</button>
+                            )}
+                        </div>
+                    </FeatureGuard>
 
                     <div className="summary-total">
                         <span>{t('sys.str_66')}</span>
@@ -492,9 +496,11 @@ export default function POSPage() {
                     <button className="pay-btn" style={{ background: 'var(--primary-color)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={() => handleCheckout('TRANSFER')}>
                         🏦 {'تحويل بنكي'}
                     </button>
-                    <button className="pay-btn" style={{ background: '#f59e0b', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={() => setShowSplitModal(true)}>
-                        ✂️ {'تقسيم الفاتورة'}
-                    </button>
+                    <FeatureGuard featureKey="pos_split_payment">
+                        <button className="pay-btn" style={{ background: '#f59e0b', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={() => setShowSplitModal(true)}>
+                            ✂️ {'تقسيم الفاتورة'}
+                        </button>
+                    </FeatureGuard>
 
                     <button id="hold-btn" className="pay-btn" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.1)', color: 'white' }} disabled={cart.length === 0 || isProcessing} onClick={handleHoldOrder}>
                         <Save size={20} /> {t('sys.str_4041')} <kbd style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 4px', borderRadius: '4px' }}>F3</kbd></button>

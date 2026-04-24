@@ -67,6 +67,7 @@ export default function ProductsPage() {
     });
     const [canResetStock, setCanResetStock] = useState(false);
     const [canDeleteProduct, setCanDeleteProduct] = useState(false);
+    const [hiddenModules, setHiddenModules] = useState<string[]>([]);
     const [toast, setToast] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isImporting, setIsImporting] = useState(false);
@@ -121,6 +122,16 @@ export default function ProductsPage() {
             setCanResetStock(u.role === 'admin' || perms.includes('reset_stock'));
             setCanDeleteProduct(u.role === 'admin' || perms.includes('delete_products'));
         } catch { }
+        // Fetch hidden_modules (ICE feature flags) - danger buttons hidden by default
+        const DEFAULT_HIDDEN = ['btn_reset_stock', 'btn_delete_all_products', 'btn_delete_all_categories'];
+        fetch('/api/settings/hidden_modules').then(r => r.ok ? r.json() : { value: '' }).then(d => {
+            try {
+                const saved: string[] = d.value ? JSON.parse(d.value) : [];
+                // Merge defaults: if a default key isn't explicitly absent, keep it hidden
+                const merged = [...new Set([...DEFAULT_HIDDEN.filter(k => !saved.includes('SHOW_' + k)), ...saved])];
+                setHiddenModules(merged);
+            } catch { setHiddenModules(DEFAULT_HIDDEN); }
+        }).catch(() => setHiddenModules(DEFAULT_HIDDEN));
     }, []);
 
     async function fetchProducts() {
@@ -385,9 +396,9 @@ export default function ProductsPage() {
                     <button className="btn" onClick={() => fileInputRef.current?.click()} style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }} disabled={isImporting}>
                         {isImporting ? t('sys.str_914') : t('sys.str_915')}
                     </button>
-                    {canResetStock && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_871')}</button>}
-                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_872')}</button>}
-                    {canDeleteProduct && <button className="btn" onClick={handleDeleteAllCategories} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>حذف كل التصنيفات</button>}
+                    {canResetStock && !hiddenModules.includes('btn_reset_stock') && <button className="btn" onClick={handleResetStock} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_871')}</button>}
+                    {canDeleteProduct && !hiddenModules.includes('btn_delete_all_products') && <button className="btn" onClick={handleDeleteAllProducts} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>{t('sys.str_872')}</button>}
+                    {canDeleteProduct && !hiddenModules.includes('btn_delete_all_categories') && <button className="btn" onClick={handleDeleteAllCategories} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>حذف كل التصنيفات</button>}
                     <button className="btn btn-primary" onClick={openAdd}>{t('sys.str_873')}</button>
                 </div>
 
@@ -614,29 +625,6 @@ export default function ProductsPage() {
                                     <div style={{ fontSize: '12px', color: 'var(--success-light)', marginTop: '4px', fontWeight: '600' }}>
                                         {t('sys.str_890')}{(parseFloat(form.sellPrice) * (1 + (parseFloat(form.taxRate) || 15) / 100)).toFixed(2)} {t('sys.str_68')}</div>
                                 )}
-                            </div>
-                            <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', padding: '10px 14px', borderRadius: '10px', background: form.addVat ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', border: form.addVat ? '1px solid rgba(34,197,94,0.3)' : '1px solid var(--border)', transition: 'all 0.2s' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={form.addVat}
-                                        onChange={e => setForm({ ...form, addVat: e.target.checked })}
-                                        style={{ width: '20px', height: '20px', accentColor: '#22c55e' }}
-                                    />
-                                    <span style={{ fontWeight: '600' }}>{t('sys.str_891')}{form.taxRate}% {form.taxType}</span>
-                                </label>
-                            </div>
-                            <div className="input-group">
-                                <label className="input-label">{t('sys.str_4260')}</label>
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                    <select className="input" style={{ flex: 1 }} value={form.taxType} onChange={e => setForm({ ...form, taxType: e.target.value })}>
-                                        <option value="VAT">{t('sys.str_4261')}</option>
-                                        <option value="GST">{t('sys.str_4262')}</option>
-                                        <option value="SALES_TAX">{t('sys.str_4263')}</option>
-                                        <option value="NONE">{t('sys.str_4264')}</option>
-                                    </select>
-                                    <input className="input" style={{ width: '80px' }} type="number" value={form.taxRate} onChange={e => setForm({ ...form, taxRate: e.target.value })} dir="ltr" />
-                                </div>
                             </div>
                             <div className="input-group">
                                 <label className="input-label">{t('sys.str_893')}</label>

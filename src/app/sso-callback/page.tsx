@@ -12,7 +12,7 @@ export default function SSOCallback() {
         justifyContent: 'center',
         background: '#0f172a',
         color: 'white',
-        fontFamily: 'Lateef, sans-serif',
+        fontFamily: 'Noto Sans Arabic, sans-serif',
       }}
       dir="rtl"
     >

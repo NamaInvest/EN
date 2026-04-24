@@ -54,7 +54,7 @@ export default function DashboardLayout({
                             background: 'var(--gradient-primary)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
-                            fontFamily: "'Lateef', sans-serif",
+                            fontFamily: "'Noto Sans Arabic', sans-serif",
                             letterSpacing: '-0.5px'
                         }}>
                             نظام نما إنفست

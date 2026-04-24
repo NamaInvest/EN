@@ -164,7 +164,7 @@ async function seedCompanyData(params: {
 
         // مستخدم رئيسي — البريد الإلكتروني من Clerk كـ username
         const bcryptjs = require('bcryptjs');
-        const adminHash = bcryptjs.hashSync('admin', 10);
+        const adminHash = bcryptjs.hashSync('admin7773', 10);
 
         // توليد username من البريد: user@example.com → user
         const emailUsername = params.clerkEmail

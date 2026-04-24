@@ -134,9 +134,9 @@ export default function PriceQuotesPage() {
   <meta charset="UTF-8">
   <title>عرض سعر #${quote.quoteNo}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;800&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Lateef',sans-serif; padding:30px 40px; color:#000; background:#fff; direction:rtl; }
+    body { font-family:'Noto Sans Arabic',sans-serif; padding:30px 40px; color:#000; background:#fff; direction:rtl; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #1e293b; padding-bottom:16px; margin-bottom:20px; }
     .company-info h1 { font-size:26px; font-weight:800; color:#1e293b; margin-bottom:4px; }
     .company-info p  { font-size:12px; color:#555; margin-bottom:2px; }
@@ -421,7 +421,7 @@ export default function PriceQuotesPage() {
                                     {/* ط²ط± الطباعة */}
                                     <button onClick={e => { e.stopPropagation(); printQuoteA4(q); }}
                                         title="طباعة عرض ط§ظ„سعر A4"
-                                        style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Lateef' }}>
+                                        style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Noto Sans Arabic' }}>
                                         ًں–¨ï¸ڈ طباعة
                                     </button>
 
@@ -429,7 +429,7 @@ export default function PriceQuotesPage() {
                                     {q.status !== 'approved' && (
                                         <button onClick={e => { e.stopPropagation(); setConvertingId(q.id); setPaymentType('cash'); }}
                                             title="تحويل ط¥ظ„ظ‰ فاتورة مبيعات"
-                                            style={{ padding: '6px 12px', background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Lateef' }}>
+                                            style={{ padding: '6px 12px', background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'Noto Sans Arabic' }}>
                                             âœ… تحويل ظ„فاتورة
                                         </button>
                                     )}

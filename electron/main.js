@@ -3,6 +3,26 @@ const path = require('path');
 const { spawn } = require('child_process');
 const net = require('net');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
+
+// ── Safe Console ─────────────────────────────────────────────────────────────
+// Prevent EPIPE errors when writing to closed standard output in packaged builds
+['log', 'error', 'warn', 'info'].forEach((method) => {
+  const original = console[method];
+  console[method] = function (...args) {
+    try {
+      original.apply(console, args);
+    } catch (err) {
+      // Ignore broken pipe errors
+    }
+  };
+});
+
+process.on('uncaughtException', (err) => {
+  if (err.code === 'EPIPE') return;
+  // Use the original console.error if possible, or just ignore if it fails
+  try { console.error('Uncaught Exception:', err); } catch (e) {}
+});
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Nama Invest ERP — Electron Main Process
@@ -73,6 +93,26 @@ async function verifyLicenseOnline(key) {
   }
 }
 
+async function syncFeaturesToLocalDb(allowedFeatures) {
+  try {
+    const { Pool } = require('pg');
+    const pool = new Pool({ connectionString: 'postgresql://nama:NamaLocal2026!@localhost:5433/nama_local', max: 2 });
+    
+    // We get "allowed features", we need to convert to "hidden modules"
+    const ALL_MODULES = ['Sales','POS','Purchases','Inventory','Finance','HR','Manufacturing','CRM','Enterprise','AI','Reports','Settings'];
+    const hiddenModules = ALL_MODULES.filter(m => !allowedFeatures.includes(m));
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS "Setting" (key TEXT PRIMARY KEY, value TEXT DEFAULT '')`);
+    await pool.query(`
+        INSERT INTO "Setting" (key, value) VALUES ('hidden_modules', $1)
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `, [JSON.stringify(hiddenModules)]);
+    await pool.end();
+  } catch (e) {
+    console.error('Local feature sync error:', e.message);
+  }
+}
+
 // Heartbeat: sends license check every 5 min to keep "online" status green
 let heartbeatTimer = null;
 function startHeartbeat() {
@@ -85,6 +125,10 @@ function startHeartbeat() {
       if (result.valid) {
         store.set('lastLicenseVerify', Date.now());
         store.set('licenseStatus', result.data?.status || 'active');
+        if (result.data?.features) {
+            store.set('tenantFeatures', result.data.features);
+            syncFeaturesToLocalDb(result.data.features);
+        }
       } else if (!result.offline) {
         // License is invalid — check why
         const status = result.status || '';
@@ -233,7 +277,7 @@ function isPortAvailable(port) {
     const server = net.createServer();
     server.once('error', () => resolve(false));
     server.once('listening', () => { server.close(); resolve(true); });
-    server.listen(port);
+    server.listen(port, '127.0.0.1');
   });
 }
 
@@ -292,6 +336,7 @@ async function startNextServer(dbEnv) {
     // Disable Clerk in desktop mode
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: '',
     CLERK_SECRET_KEY: '',
+    ELECTRON_RUN_AS_NODE: '1',
   };
 
   if (isDev) {
@@ -445,6 +490,10 @@ ipcMain.handle('activate-license', async (_, key) => {
   if (result.valid) {
     store.set('license', { key, ...result.data, activatedAt: Date.now() });
     store.set('lastLicenseVerify', Date.now());
+    if (result.data?.features) {
+        store.set('tenantFeatures', result.data.features);
+        syncFeaturesToLocalDb(result.data.features);
+    }
     return { success: true, data: result.data };
   }
   return { success: false, error: result.error || 'مفتاح غير صالح' };
@@ -491,6 +540,40 @@ app.whenReady().then(async () => {
 
   // 6. Sync company data to cloud (re-register if deleted)
   syncLicenseToCloud();
+
+  // 7. Auto Updater setup
+  if (!isDev) {
+      autoUpdater.checkForUpdatesAndNotify();
+
+      autoUpdater.on('update-available', () => {
+          console.log('Update available.');
+          if (mainWindow) {
+              mainWindow.webContents.send('update_available');
+          }
+      });
+
+      autoUpdater.on('update-downloaded', () => {
+          console.log('Update downloaded.');
+          if (mainWindow) {
+              mainWindow.webContents.send('update_downloaded');
+          }
+          dialog.showMessageBox({
+              type: 'info',
+              title: 'تحديث متاح',
+              message: 'تم تحميل تحديث جديد للتطبيق. هل تريد تثبيت التحديث وإعادة التشغيل الآن؟',
+              buttons: ['نعم، إعادة التشغيل', 'لاحقاً']
+          }).then(result => {
+              if (result.response === 0) {
+                  isQuitting = true;
+                  autoUpdater.quitAndInstall();
+              }
+          });
+      });
+
+      autoUpdater.on('error', (err) => {
+          console.error('Error in auto-updater.', err);
+      });
+  }
 });
 
 app.on('window-all-closed', () => {

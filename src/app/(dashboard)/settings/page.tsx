@@ -113,6 +113,15 @@ export default function SettingsPage() {
                 router.replace('/dashboard');
             }
         } catch { router.replace('/dashboard'); }
+        // Fetch hidden_modules (ICE feature flags) - danger zone hidden by default
+        const DEFAULT_HIDDEN = ['btn_danger_zone', 'btn_factory_reset'];
+        fetch('/api/settings/hidden_modules').then(r => r.ok ? r.json() : { value: '' }).then(d => {
+            try {
+                const saved: string[] = d.value ? JSON.parse(d.value) : [];
+                const merged = [...new Set([...DEFAULT_HIDDEN.filter(k => !saved.includes('SHOW_' + k)), ...saved])];
+                setHiddenModules(merged);
+            } catch { setHiddenModules(DEFAULT_HIDDEN); }
+        }).catch(() => setHiddenModules(DEFAULT_HIDDEN));
     }, [router]);
 
     // User Management
@@ -147,13 +156,14 @@ export default function SettingsPage() {
     const [savingUser, setSavingUser] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [editPermUser, setEditPermUser] = useState<any>(null);
-    const [editPermModules, setEditPermModules] = useState<string[]>([]);
+    const [editPermMatrix, setEditPermMatrix] = useState<Record<string, { canView: boolean, canAdd: boolean, canEdit: boolean, canDelete: boolean, canPrint: boolean }>>({});
     const [canManageUsers, setCanManageUsers] = useState(false);
     const [canManagePerms, setCanManagePerms] = useState(false);
     const [canResetPassword, setCanResetPassword] = useState(false);
     const [canDeleteAllSales, setCanDeleteAllSales] = useState(false);
     const [canClearZatca, setCanClearZatca] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [hiddenModules, setHiddenModules] = useState<string[]>([]);
     const roleLabels: Record<string, string> = { owner: 'المالك', admin: 'مدير النظام', manager: 'مدير عام', auditor: 'مُراجع / مدقق', accountant: 'محاسب', cashier: 'كاشير', data_entry: 'مدخل بيانات', hr: 'موارد بشرية', sales_rep: 'مندوب مبيعات' };
     const ALL_MODULES = [
         // ═══ الرئيسية ═══
@@ -908,7 +918,20 @@ export default function SettingsPage() {
                                         </td>
                                         <td>
                                             {canManagePerms && (
-                                                <button className="btn btn-ghost btn-sm" onClick={() => { setEditPermUser(u); setEditPermModules((u.permissions || []).map((p: { module: string }) => p.module)); }}
+                                                <button className="btn btn-ghost btn-sm" onClick={() => { 
+                                                    setEditPermUser(u); 
+                                                    const matrix: Record<string, any> = {};
+                                                    (u.permissions || []).forEach((p: any) => {
+                                                        matrix[p.module] = {
+                                                            canView: p.canView ?? true,
+                                                            canAdd: p.canAdd ?? true,
+                                                            canEdit: p.canEdit ?? true,
+                                                            canDelete: p.canDelete ?? true,
+                                                            canPrint: p.canPrint ?? true,
+                                                        };
+                                                    });
+                                                    setEditPermMatrix(matrix);
+                                                }}
                                                     style={{ fontSize: '11px' }}>
                                                     🔐 {(u.permissions || []).length} {t('sys.str_4373')}</button>
                                             )}
@@ -946,17 +969,65 @@ export default function SettingsPage() {
                         </div>
                         <div className="modal-body">
                             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4385')}</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-                                <button type="button" className={`btn btn-sm ${editPermModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
-                                    onClick={() => setEditPermModules(editPermModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                    {editPermModules.length === ALL_MODULES.length ? t('sys.str_4578') : t('sys.str_4579')}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                <button type="button" className="btn btn-sm btn-ghost"
+                                    onClick={() => {
+                                        const isAll = Object.keys(editPermMatrix).length === ALL_MODULES.length;
+                                        if (isAll) {
+                                            setEditPermMatrix({});
+                                        } else {
+                                            const next: any = {};
+                                            ALL_MODULES.forEach(m => {
+                                                next[m.key] = { canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true };
+                                            });
+                                            setEditPermMatrix(next);
+                                        }
+                                    }} style={{ fontSize: '11px', fontWeight: 'bold' }}>
+                                    {Object.keys(editPermMatrix).length === ALL_MODULES.length ? '✗ إلغاء تحديد الكل' : '✓ تحديد الكل'}
                                 </button>
-                                {ALL_MODULES.map(m => (
-                                    <button key={m.key} type="button"
-                                        className={`btn btn-sm ${editPermModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
-                                        onClick={() => setEditPermModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
-                                        style={{ fontSize: '11px' }}>{m.label}</button>
-                                ))}
+                            </div>
+                            <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
+                                <table className="table" style={{ fontSize: '12px', margin: 0 }}>
+                                    <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1, boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                                        <tr>
+                                            <th>القسم</th>
+                                            <th style={{ textAlign: 'center', width: '50px' }}>عرض</th>
+                                            <th style={{ textAlign: 'center', width: '50px' }}>إضافة</th>
+                                            <th style={{ textAlign: 'center', width: '50px' }}>تعديل</th>
+                                            <th style={{ textAlign: 'center', width: '50px' }}>حذف</th>
+                                            <th style={{ textAlign: 'center', width: '50px' }}>طباعة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {ALL_MODULES.map(m => {
+                                            const p = editPermMatrix[m.key];
+                                            const hasModule = !!p;
+                                            return (
+                                                <tr key={m.key} style={{ background: hasModule ? 'var(--bg-card-hover)' : 'transparent', opacity: hasModule ? 1 : 0.6 }}>
+                                                    <td style={{ fontWeight: '600' }}>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
+                                                            <input type="checkbox" checked={hasModule} onChange={(e) => {
+                                                                const checked = e.target.checked;
+                                                                setEditPermMatrix(prev => {
+                                                                    const next = { ...prev };
+                                                                    if (checked) next[m.key] = { canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true };
+                                                                    else delete next[m.key];
+                                                                    return next;
+                                                                });
+                                                            }} style={{ cursor: 'pointer' }} />
+                                                            {m.label}
+                                                        </label>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canView} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canView: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
+                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canAdd} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canAdd: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
+                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canEdit} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canEdit: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
+                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canDelete} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canDelete: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
+                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canPrint} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canPrint: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
@@ -965,7 +1036,10 @@ export default function SettingsPage() {
                                     const token = localStorage.getItem('token');
                                     await fetch('/api/users', {
                                         method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                        body: JSON.stringify({ id: editPermUser.id, modules: editPermModules })
+                                        body: JSON.stringify({ 
+                                            id: editPermUser.id, 
+                                            permissions: Object.entries(editPermMatrix).map(([module, perms]) => ({ module, ...perms })) 
+                                        })
                                     });
                                     showToast(t('sys.str_4582'));
                                     setEditPermUser(null);
@@ -979,7 +1053,7 @@ export default function SettingsPage() {
             )}
 
             {/* Danger Zone */}
-            {(canDeleteAllSales || canClearZatca) && (
+            {(canDeleteAllSales || canClearZatca) && !hiddenModules.includes('btn_danger_zone') && (
                 <div className="card" style={{ marginBottom: '20px', borderColor: 'rgba(239,68,68,0.3)' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#ef4444', marginBottom: '16px' }}>{t('sys.str_4386')}</h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
@@ -991,7 +1065,7 @@ export default function SettingsPage() {
                             <button className="btn" onClick={clearZatcaData} style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', fontWeight: '600' }}>
                                 {t('sys.str_4388')}</button>
                         )}
-                        {isOwner && (
+                        {isOwner && !hiddenModules.includes('btn_factory_reset') && (
                             <button className="btn" onClick={async () => {
                                 const code = prompt('تنبيه خطير جداً!\nهذا الزر سيقوم بمسح كافة الفواتير، المخزون، المنتجات، التصنيفات والعملاء، والرجوع لوضع المصنع.\nاكتب WIPE_SYSTEM_N11 للتأكيد:');
                                 if (code !== 'WIPE_SYSTEM_N11') { if (code) alert('كلمة التأكيد غير صحيحة.'); return; }

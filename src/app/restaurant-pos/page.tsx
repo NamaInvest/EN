@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import PosReturnsModal from '@/components/PosReturnsModal';
 import { useMadaTerminal } from '@/hooks/useMadaTerminal';
 import Link from 'next/link';
-import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2 } from 'lucide-react';
+import { ShoppingCart, Search, User, CreditCard, Banknote, Save, ArrowRight, Trash2, Printer, Clock, History, CheckCircle2, QrCode, Bell, X as XIcon } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
+import { FeatureGuard } from '@/hooks/FeatureGuard';
 
 export default function RestaurantPOS() {
     const { t } = useTranslation();
@@ -45,14 +47,204 @@ export default function RestaurantPOS() {
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [showQrModal, setShowQrModal] = useState<any>(null);
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    // Allow Negative Stock Setting
+    const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+
+    // Pending Orders Notification System
+    const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+    const [showPendingModal, setShowPendingModal] = useState(false);
+    const [lastKnownCount, setLastKnownCount] = useState(0);
+    const [notifFlash, setNotifFlash] = useState(false);
+
+    // Floor Management State
+    const [posMode, setPosMode] = useState<'MENU' | 'FLOOR'>('FLOOR');
+    const [zones, setZones] = useState<any[]>([]);
+    const [activeZone, setActiveZone] = useState<any>(null);
+    const [activeTable, setActiveTable] = useState<any>(null);
+
+    const fetchFloorPlan = async () => {
+        try {
+            const res = await fetch('/api/pos/restaurant/floor');
+            if (res.ok) {
+                const data = await res.json();
+                setZones(data.zones || []);
+                if (data.zones && data.zones.length > 0 && !activeZone) setActiveZone(data.zones[0]);
+            }
+        } catch (e) {}
+    };
+
+    useEffect(() => {
+        if (posMode === 'FLOOR') fetchFloorPlan();
+    }, [posMode]);
+
+    const createZone = async () => {
+        const name = prompt('اسم المنطقة الجديدة (مثال: العائلات، الأفراد):');
+        if (!name) return;
+        await fetch('/api/pos/restaurant/floor', { method: 'POST', body: JSON.stringify({ action: 'create_zone', payload: { name } }) });
+        fetchFloorPlan();
+    };
+
+    const createTable = async () => {
+        if (!activeZone) return alert('اختر منطقة أولاً');
+        const countStr = prompt('كم عدد الطاولات التي تريد إضافتها؟', '1');
+        if (!countStr) return;
+        const count = Math.max(1, Math.min(50, parseInt(countStr) || 1));
+        const capacity = prompt('عدد المقاعد لكل طاولة:', '4');
+        const existingCount = activeZone.tables?.length || 0;
+        for (let i = 0; i < count; i++) {
+            const tableNum = existingCount + i + 1;
+            await fetch('/api/pos/restaurant/floor', { method: 'POST', body: JSON.stringify({ action: 'create_table', payload: { name: `T${tableNum}`, capacity: Number(capacity) || 4, zoneId: activeZone.id } }) });
+        }
+        fetchFloorPlan();
+    };
+
+    const openTableSession = async (table: any) => {
+        if (table.status === 'Available') {
+            await fetch('/api/pos/restaurant/floor', { method: 'POST', body: JSON.stringify({ action: 'open_session', payload: { tableId: table.id } }) });
+        }
+        setActiveTable(table);
+        setPosMode('MENU');
+        fetchFloorPlan();
+    };
+
+    const closeTableSession = async (e: React.MouseEvent, table: any) => {
+        e.stopPropagation();
+        if (!confirm(`هل تريد تحرير الطاولة ${table.name}؟`)) return;
+        await fetch('/api/pos/restaurant/floor', { method: 'POST', body: JSON.stringify({ action: 'close_session', payload: { tableId: table.id } }) });
+        if (activeTable?.id === table.id) { setActiveTable(null); setCart([]); }
+        fetchFloorPlan();
+    };
+
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('rest_held_orders');
         if (saved) {
             try { setHeldOrders(JSON.parse(saved)); } catch (e) {}
         }
     }, []);
+
+    // ═══ Audio Context (init on first user click to bypass browser restriction) ═══
+    const audioCtxRef = React.useRef<AudioContext | null>(null);
+    useEffect(() => {
+        const initAudio = () => {
+            if (!audioCtxRef.current) {
+                audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+        };
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('touchstart', initAudio, { once: true });
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        return () => { document.removeEventListener('click', initAudio); document.removeEventListener('touchstart', initAudio); };
+    }, []);
+
+    const playOrderBell = () => {
+        // Play loud bell ring 3 times
+        const ctx = audioCtxRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtxRef.current = ctx;
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const ringBell = (delay: number) => {
+            // First tone (high)
+            const osc1 = ctx.createOscillator(); const g1 = ctx.createGain();
+            osc1.connect(g1); g1.connect(ctx.destination);
+            osc1.frequency.value = 1200; osc1.type = 'sine';
+            g1.gain.setValueAtTime(0.6, ctx.currentTime + delay);
+            g1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.3);
+            osc1.start(ctx.currentTime + delay); osc1.stop(ctx.currentTime + delay + 0.3);
+
+            // Second tone (low)
+            const osc2 = ctx.createOscillator(); const g2 = ctx.createGain();
+            osc2.connect(g2); g2.connect(ctx.destination);
+            osc2.frequency.value = 900; osc2.type = 'sine';
+            g2.gain.setValueAtTime(0.6, ctx.currentTime + delay + 0.15);
+            g2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.45);
+            osc2.start(ctx.currentTime + delay + 0.15); osc2.stop(ctx.currentTime + delay + 0.45);
+        };
+
+        // Ring 3 times with gaps
+        ringBell(0);
+        ringBell(0.6);
+        ringBell(1.2);
+
+        // Browser notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('🔔 طلب جديد من المنيو!', { body: 'وصل طلب جديد من المنيو الإلكتروني', icon: '/favicon.ico' });
+        }
+    };
+
+    // ═══ Pending Orders Polling (every 8s) ═══
+    useEffect(() => {
+        const fetchPending = async () => {
+            try {
+                const res = await fetch('/api/pos/pending-orders');
+                const data = await res.json();
+                if (data.success && data.orders) {
+                    const newOrders = data.orders;
+                    if (newOrders.length > lastKnownCount && lastKnownCount >= 0) {
+                        playOrderBell();
+                        setNotifFlash(true);
+                        setTimeout(() => setNotifFlash(false), 5000);
+                    }
+                    setLastKnownCount(newOrders.length);
+                    setPendingOrders(newOrders);
+                }
+            } catch (e) {}
+        };
+        fetchPending();
+        const interval = setInterval(fetchPending, 8000);
+        return () => clearInterval(interval);
+    }, [lastKnownCount]);
+
+    const handleOrderAction = async (invoiceId: number, action: 'approve' | 'reject') => {
+        try {
+            const order = pendingOrders.find(o => o.id === invoiceId);
+            const res = await fetch('/api/pos/pending-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, invoiceId }) });
+            const data = await res.json();
+            setPendingOrders(prev => prev.filter(o => o.id !== invoiceId));
+            setLastKnownCount(prev => Math.max(0, prev - 1));
+
+            if (action === 'approve' && data.success) {
+                // 1) Print tax invoice on main printer (with QR)
+                setCompletedInvoiceId(invoiceId);
+
+                // 2) Print kitchen ticket on secondary printers (without QR)
+                if (order) {
+                    const kitchenHtml = `
+                        <html dir="rtl"><head><title>تذكرة مطبخ</title>
+                        <style>
+                            body { font-family: 'Courier New', monospace; width: 280px; margin: 0 auto; padding: 10px; }
+                            h2 { text-align: center; margin: 5px 0; border-bottom: 2px dashed #000; padding-bottom: 8px; }
+                            .table-info { text-align: center; font-size: 20px; font-weight: bold; background: #000; color: #fff; padding: 8px; margin: 8px 0; border-radius: 4px; }
+                            .time { text-align: center; color: #666; font-size: 12px; margin-bottom: 10px; }
+                            .item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #ccc; font-size: 14px; }
+                            .item-qty { font-weight: bold; font-size: 16px; }
+                            .notes { background: #fff3cd; padding: 6px; margin-top: 8px; font-size: 12px; border-radius: 4px; }
+                            .footer { text-align: center; margin-top: 10px; border-top: 2px dashed #000; padding-top: 8px; font-size: 11px; color: #999; }
+                        </style></head><body>
+                        <h2>🍳 تذكرة مطبخ</h2>
+                        <div class="table-info">🍽️ ${order.notes?.match(/طاولة[:\s]*([^\|]+)/)?.[1]?.trim() || 'طلب إلكتروني'}</div>
+                        <div class="time">⏰ ${new Date().toLocaleTimeString('ar-SA')} | #${order.invoiceNo}</div>
+                        ${order.details?.map((d: any) => `
+                            <div class="item">
+                                <span>${d.productName}</span>
+                                <span class="item-qty">×${d.quantity}</span>
+                            </div>
+                        `).join('') || ''}
+                        ${order.notes?.includes('ملاحظات') ? `<div class="notes">📝 ${order.notes.match(/ملاحظات[:\s]*([^\|]+)/)?.[1] || ''}</div>` : ''}
+                        <div class="footer">طلب من المنيو الإلكتروني</div>
+                        <script>window.print(); setTimeout(() => window.close(), 1000);</script>
+                        </body></html>`;
+                    const kitchenWin = window.open('', '_blank', 'width=320,height=500');
+                    if (kitchenWin) kitchenWin.document.write(kitchenHtml);
+                }
+            }
+        } catch (e) { alert('حدث خطأ'); }
+    };
 
     const saveHeldOrders = (orders: any[]) => {
         setHeldOrders(orders);
@@ -164,7 +356,7 @@ export default function RestaurantPOS() {
     );
 
     const addToCart = (product: any) => {
-        if (product.stock <= 0) {
+        if (!allowNegativeStock && product.stock <= 0) {
             alert(t('sys.str_4070'));
             return;
         }
@@ -345,6 +537,23 @@ export default function RestaurantPOS() {
                         </button>
                         <button onClick={fetchRecentOrders} style={{ background: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', padding: '0.4rem 0.8rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600 }}>
                             <History size={16} /> {t('sys.str_4085')}</button>
+                        
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', background: '#e2e8f0', padding: '4px', borderRadius: '8px' }}>
+                            <button onClick={() => setPosMode('MENU')} style={{ background: posMode === 'MENU' ? '#fff' : 'transparent', color: posMode === 'MENU' ? '#3b82f6' : '#64748b', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', boxShadow: posMode === 'MENU' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>
+                                القائمة
+                            </button>
+                            <button onClick={() => setPosMode('FLOOR')} style={{ background: posMode === 'FLOOR' ? '#fff' : 'transparent', color: posMode === 'FLOOR' ? '#3b82f6' : '#64748b', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', boxShadow: posMode === 'FLOOR' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>
+                                خريطة الطاولات
+                            </button>
+                        </div>
+                        {/* Notification Bell */}
+                        <button onClick={() => setShowPendingModal(true)} style={{ position: 'relative', background: notifFlash ? '#ef4444' : pendingOrders.length > 0 ? '#f59e0b' : '#e2e8f0', border: 'none', borderRadius: '10px', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: notifFlash ? 'pulse 0.5s ease-in-out infinite' : 'none', transition: 'all 0.3s' }}>
+                            <Bell size={20} color={pendingOrders.length > 0 ? 'white' : '#64748b'} />
+                            {pendingOrders.length > 0 && (
+                                <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 900, borderRadius: '10px', padding: '1px 5px', minWidth: '18px', textAlign: 'center' }}>{pendingOrders.length}</span>
+                            )}
+                        </button>
+                        <style>{`@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }`}</style>
                     </div>
                     <input 
                         className="search-input"
@@ -355,31 +564,77 @@ export default function RestaurantPOS() {
                     />
                 </div>
 
-                <div className="products-grid">
-                    {loading ? (
-                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
-                            {t('sys.str_4086')}</div>
-                    ) : filteredProducts.slice(0, 100).map((product: any) => (
-                        <div 
-                            key={product.id} 
-                            className="product-card"
-                            onClick={() => addToCart(product)}
-                            style={{ opacity: product.stock <= 0 ? 0.6 : 1 }}
-                        >
-                            <div className="product-img-wrapper" style={{ overflow: 'hidden' }}>
-                                {product.img && product.img.length > 2 && (product.img.startsWith('/') || product.img.startsWith('http'))
-                                    ? <img src={product.img} alt={product.name} style={{width:'60px', height:'60px', objectFit:'contain', borderRadius: '8px'}} /> 
-                                    : <div style={{width:'60px', height:'60px', background:'#f1f5f9', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:'0.8rem', fontWeight:'bold'}}>{product.name ? product.name.substring(0,2) : ''}</div>}
+                {posMode === 'MENU' ? (
+                    <div className="products-grid">
+                        {loading ? (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
+                                {t('sys.str_4086')}</div>
+                        ) : filteredProducts.slice(0, 100).map((product: any) => (
+                            <div 
+                                key={product.id} 
+                                className="product-card"
+                                onClick={() => addToCart(product)}
+                                style={{ opacity: (!allowNegativeStock && product.stock <= 0) ? 0.6 : 1 }}
+                            >
+                                <div className="product-img-wrapper" style={{ overflow: 'hidden' }}>
+                                    {product.img && product.img.length > 2 && (product.img.startsWith('/') || product.img.startsWith('http'))
+                                        ? <img src={product.img} alt={product.name} style={{width:'60px', height:'60px', objectFit:'contain', borderRadius: '8px'}} /> 
+                                        : <div style={{width:'60px', height:'60px', background:'#f1f5f9', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:'0.8rem', fontWeight:'bold'}}>{product.name ? product.name.substring(0,2) : ''}</div>}
+                                </div>
+                                <div className="product-name">{product.name}</div>
+                                <div className="product-price">SR {product.price.toLocaleString()}</div>
                             </div>
-                            <div className="product-name">{product.name}</div>
-                            <div className="product-price">SR {product.price.toLocaleString()}</div>
+                        ))}
+                        {!loading && filteredProducts.length === 0 && (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
+                                {t('sys.str_4087')}</div>
+                        )}
+                    </div>
+                ) : (
+                    <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+                            {zones.map(z => (
+                                <button key={z.id} onClick={() => setActiveZone(z)} style={{ padding: '0.5rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: activeZone?.id === z.id ? '#3b82f6' : '#fff', color: activeZone?.id === z.id ? '#fff' : '#333', fontWeight: 'bold', cursor: 'pointer' }}>
+                                    {z.name} ({z.tables?.length || 0})
+                                </button>
+                            ))}
+                            <button onClick={createZone} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px dashed #94a3b8', background: 'transparent', color: '#64748b', cursor: 'pointer', fontWeight: 'bold' }}>+ إضافة منطقة</button>
                         </div>
-                    ))}
-                    {!loading && filteredProducts.length === 0 && (
-                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#666' }}>
-                            {t('sys.str_4087')}</div>
-                    )}
-                </div>
+                        <div style={{ flex: 1, background: '#f8f9fa', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.5rem', alignContent: 'start' }}>
+                            {activeZone?.tables?.map((t: any) => {
+                                const isOccupied = t.status === 'Occupied';
+                                const isReserved = t.status === 'Reserved';
+                                const bgColor = isOccupied ? '#fee2e2' : isReserved ? '#fef3c7' : '#dcfce3';
+                                const borderColor = isOccupied ? '#ef4444' : isReserved ? '#f59e0b' : '#22c55e';
+                                const textColor = isOccupied ? '#991b1b' : isReserved ? '#b45309' : '#166534';
+                                return (
+                                <div key={t.id} onClick={() => openTableSession(t)} style={{ background: bgColor, border: `2px solid ${borderColor}`, borderRadius: '16px', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.1s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', position: 'relative' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: textColor }}>{t.name}</div>
+                                    <div style={{ fontSize: '0.8rem', color: textColor, opacity: 0.8, marginTop: '0.25rem' }}>{t.capacity} مقاعد</div>
+                                    <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px', background: 'rgba(255,255,255,0.5)', color: textColor }}>
+                                        {isOccupied ? 'مشغولة' : isReserved ? 'محجوزة' : 'متاحة'}
+                                    </div>
+                                    {isOccupied && (
+                                        <button onClick={(e) => closeTableSession(e, t)} style={{ marginTop: '0.5rem', background: '#22c55e', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>
+                                            ✓ تحرير الطاولة
+                                        </button>
+                                    )}
+                                    <button onClick={(e) => { e.stopPropagation(); setShowQrModal(t); }} style={{ marginTop: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <QrCode size={12} /> المنيو
+                                    </button>
+                                    {activeTable?.id === t.id && <div style={{ position: 'absolute', top: -8, right: -8, background: '#3b82f6', color: 'white', width: '24px', height: '24px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CheckCircle2 size={16} /></div>}
+                                </div>
+                            )})}
+                            {activeZone && (
+                                <div onClick={createTable} style={{ background: 'transparent', border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
+                                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>+</div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>إضافة طاولة</div>
+                                </div>
+                            )}
+                            {!activeZone && <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#94a3b8', padding: '3rem' }}>اختر منطقة لعرض الطاولات</div>}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* RIGHT CART & NUMPAD */}
@@ -399,6 +654,12 @@ export default function RestaurantPOS() {
                 </div>
                 
                 <div className="cart-totals-banner">
+                    {activeTable && (
+                        <div style={{ background: '#fef3c7', color: '#b45309', padding: '0.5rem', borderRadius: '8px', marginBottom: '0.5rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>الطاولة: {activeTable.name}</span>
+                            <button onClick={() => { setActiveTable(null); setCart([]); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }} title="إلغاء ارتباط الطاولة"><Trash2 size={14}/></button>
+                        </div>
+                    )}
                     <div className="banner-row">
                         <span>{t('sys.str_4088')}</span>
                         <span>{total.toLocaleString()}</span>
@@ -478,24 +739,26 @@ export default function RestaurantPOS() {
                 </div>
 
                 {/* Coupon Input Box Container */}
-                <div style={{ padding: '0.75rem 1rem', background: '#f1f5f9', borderBottom: '1px solid #ddd', display: 'flex', gap: '0.5rem' }}>
-                    <input 
-                        type="text" 
-                        placeholder={t('sys.str_4078')} 
-                        value={couponCode}
-                        onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                        disabled={!!appliedCoupon}
-                        style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
-                    />
-                    {!appliedCoupon ? (
-                        <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                            {couponLoading ? '...' : t('sys.str_4116')}
-                        </button>
-                    ) : (
-                        <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                            {t('sys.str_4097')}</button>
-                    )}
-                </div>
+                <FeatureGuard featureKey="pos_coupon_module">
+                    <div style={{ padding: '0.75rem 1rem', background: '#f1f5f9', borderBottom: '1px solid #ddd', display: 'flex', gap: '0.5rem' }}>
+                        <input 
+                            type="text" 
+                            placeholder={t('sys.str_4078')} 
+                            value={couponCode}
+                            onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                            disabled={!!appliedCoupon}
+                            style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                        />
+                        {!appliedCoupon ? (
+                            <button onClick={handleApplyCoupon} disabled={couponLoading || !couponCode} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                {couponLoading ? '...' : t('sys.str_4116')}
+                            </button>
+                        ) : (
+                            <button onClick={removeCoupon} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                {t('sys.str_4097')}</button>
+                        )}
+                    </div>
+                </FeatureGuard>
 
                 <div className="numpad-section" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
@@ -701,6 +964,51 @@ export default function RestaurantPOS() {
                     </div>
                 </div>
             )}
+
+            {/* ═══ PENDING ORDERS MODAL (Digital Menu Orders) ═══ */}
+            {showPendingModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowPendingModal(false)}>
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', width: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, fontWeight: 900, color: '#1e293b' }}>🔔 طلبات المنيو الإلكتروني ({pendingOrders.length})</h3>
+                            <button onClick={() => setShowPendingModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer' }}><XIcon size={18} /></button>
+                        </div>
+                        {pendingOrders.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>لا توجد طلبات معلقة</div>
+                        ) : (
+                            pendingOrders.map((order: any) => (
+                                <div key={order.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '0.75rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                        <span style={{ fontWeight: 900, color: '#3b82f6' }}>#{order.invoiceNo}</span>
+                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(order.date).toLocaleTimeString('ar-SA')}</span>
+                                    </div>
+                                    {order.notes && (
+                                        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '0.5rem', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#92400e' }}>
+                                            {order.notes}
+                                        </div>
+                                    )}
+                                    <div style={{ marginBottom: '0.5rem' }}>
+                                        {order.details?.map((d: any) => (
+                                            <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.2rem 0' }}>
+                                                <span>{d.productName} × {d.quantity}</span>
+                                                <span style={{ fontWeight: 'bold' }}>{d.total?.toLocaleString()} ر.س</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem' }}>
+                                        <span style={{ fontWeight: 900, color: '#1e293b', fontSize: '1.1rem' }}>{order.total?.toLocaleString()} ر.س</span>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button onClick={() => handleOrderAction(order.id, 'reject')} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '0.4rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>رفض</button>
+                                            <button onClick={() => handleOrderAction(order.id, 'approve')} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>✓ موافقة</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+
             <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />
             
             {/* Unified POS Invoice Receipt Modal */}
@@ -710,6 +1018,36 @@ export default function RestaurantPOS() {
                     autoPrint={true} 
                     onClose={() => setCompletedInvoiceId(null)} 
                 />
+            )}
+
+            {/* QR Code Modal for Table Menu */}
+            {showQrModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowQrModal(null)}>
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', width: '360px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem', color: '#1e293b' }}>📱 منيو طاولة {showQrModal.name}</h3>
+                        <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem' }}>امسح الباركود لفتح المنيو الإلكتروني</p>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', background: '#f8fafc', borderRadius: '16px', padding: '1.5rem' }}>
+                            <QRCodeCanvas value={`${typeof window !== 'undefined' ? window.location.origin : ''}/menu/${showQrModal.id}`} size={200} level="H" />
+                        </div>
+                        <p style={{ color: '#94a3b8', fontSize: '0.75rem', direction: 'ltr', wordBreak: 'break-all' }}>
+                            {typeof window !== 'undefined' ? window.location.origin : ''}/menu/{showQrModal.id}
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                            <button onClick={() => {
+                                const canvas = document.querySelector('#qr-modal canvas') as HTMLCanvasElement;
+                                if (!canvas) return;
+                                const win = window.open('', '_blank');
+                                if (!win) return;
+                                win.document.write(`<html dir="rtl"><head><title>QR - ${showQrModal.name}</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;}</style></head><body><h1>طاولة ${showQrModal.name}</h1><img src="${canvas.toDataURL()}" /><p>امسح الباركود لفتح المنيو</p><script>window.print()</script></body></html>`);
+                            }} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                <Printer size={16} /> طباعة
+                            </button>
+                            <button onClick={() => setShowQrModal(null)} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' }}>
+                                إغلاق
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
             </>
             )}

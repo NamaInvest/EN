@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
         }
 
         // إنشاء مسار مؤقت آمن
-        tmpDir = `/tmp/zatca_req_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        execSync(`mkdir -p ${tmpDir}`);
+        tmpDir = require('path').join(require('os').tmpdir(), `zatca_req_${Date.now()}_${Math.random().toString(36).substring(7)}`);
+        fs.mkdirSync(tmpDir, { recursive: true });
 
         const invoicePath = `${tmpDir}/signed_invoice.xml`;
         const requestJsonPath = `${tmpDir}/api_request.json`;
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     } finally {
         if (tmpDir) {
-            try { execSync(`rm -rf ${tmpDir}`); } catch (e) { }
+            try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) { }
         }
     }
 }

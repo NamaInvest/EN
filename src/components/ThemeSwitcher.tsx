@@ -145,7 +145,7 @@ export default function ThemeSwitcher() {
                                         fontWeight: isActive ? '700' : '400',
                                         transition: 'all 0.12s',
                                         marginBottom: '3px',
-                                        fontFamily: "'Lateef', sans-serif",
+                                        fontFamily: "'Noto Sans Arabic', sans-serif",
                                         outline: 'none',
                                         whiteSpace: 'nowrap',
                                     }}

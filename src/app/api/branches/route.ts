@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'asc' }
         });
         // We will map salesInvoices to invoices so the UI doesn't break
-        const mapped = branches.map(b => ({
+        const mapped = branches.map((b: any) => ({
             ...b,
             _count: {
                 users: b._count.users,
@@ -43,6 +44,34 @@ export async function POST(request: NextRequest) {
 
         if (!name) {
             return NextResponse.json({ error: 'Branch name is required' }, { status: 400 });
+        }
+
+        // Check branch limit: max 2 branches, requires Professional plan
+        const branchCount = await prisma.branch.count();
+        if (branchCount >= 2) {
+            return NextResponse.json({ error: 'الحد الأقصى للفروع هو فرعين. يرجى الترقية إلى باقة Enterprise للمزيد.' }, { status: 403 });
+        }
+        if (branchCount >= 1) {
+            // Need Professional plan to add 2nd branch
+            try {
+                const { Pool } = require('pg');
+                const masterPool = new Pool({
+                    connectionString: process.env.MASTER_DB_URL || 'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+                    max: 1,
+                });
+                const host = request.headers.get('host') || '';
+                const subdomain = host.split('.')[0];
+                const { rows } = await masterPool.query(
+                    `SELECT plan FROM tenant_accounts WHERE subdomain = $1`, [subdomain]
+                );
+                await masterPool.end();
+                const plan = rows[0]?.plan || 'free';
+                if (!['professional', 'enterprise'].includes(plan)) {
+                    return NextResponse.json({ error: 'إضافة فرع جديد تتطلب الباقة الاحترافية (Professional) أو أعلى.' }, { status: 403 });
+                }
+            } catch (e) {
+                console.error('[Branches] Plan check error:', e);
+            }
         }
 
         // We MUST have a company to link the branch to
@@ -109,7 +138,7 @@ export async function DELETE(request: NextRequest) {
 
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
+    const _auth = getUserFromRequest(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -118,8 +147,8 @@ export async function DELETE(request: NextRequest) {
 
         if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
-        // Check for related data
-        const related = await prisma.branch.findUnique({
+        // Prevent deleting the first branch
+        const branch = await prisma.branch.findUnique({
             where: { id: parseInt(id) },
             include: {
                 _count: {
@@ -128,7 +157,15 @@ export async function DELETE(request: NextRequest) {
             }
         });
 
-        if (related && (related._count.users > 0 || related._count.salesInvoices > 0 || related._count.stocks > 0 || related._count.shifts > 0)) {
+        if (!branch) return NextResponse.json({ error: 'الفرع غير موجود' }, { status: 404 });
+
+        // Don't allow deleting the first/only branch
+        const branchCount = await prisma.branch.count();
+        if (branchCount <= 1) {
+            return NextResponse.json({ error: 'لا يمكن حذف الفرع الرئيسي.' }, { status: 400 });
+        }
+
+        if (branch._count.users > 0 || branch._count.salesInvoices > 0 || branch._count.stocks > 0 || branch._count.shifts > 0) {
             return NextResponse.json({ error: 'لا يمكن حذف الفرع لارتباطه بمستخدمين، فواتير، أو مخزون.' }, { status: 400 });
         }
 

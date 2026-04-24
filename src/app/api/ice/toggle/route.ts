@@ -63,6 +63,39 @@ export async function POST(req: Request) {
             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
         `, [JSON.stringify(hidden)]);
 
+        // ----------------------------------------------------
+        // Sync with Master DB (TenantFeatureFlag)
+        // ----------------------------------------------------
+        try {
+            const tenantRes = await masterPool.query(`SELECT id FROM tenant_accounts WHERE subdomain = $1`, [subdomain]);
+            if (tenantRes.rows.length > 0) {
+                const tenantId = tenantRes.rows[0].id;
+                
+                // First ensure table exists (it should via Prisma, but just in case for raw SQL)
+                await masterPool.query(`
+                    CREATE TABLE IF NOT EXISTS tenant_feature_flags (
+                        id SERIAL PRIMARY KEY,
+                        module_name VARCHAR(255) NOT NULL,
+                        is_enabled BOOLEAN DEFAULT true,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ DEFAULT NOW(),
+                        tenant_account_id INTEGER,
+                        desktop_license_id INTEGER,
+                        CONSTRAINT unique_tenant_module UNIQUE (tenant_account_id, module_name)
+                    )
+                `);
+
+                await masterPool.query(`
+                    INSERT INTO tenant_feature_flags (tenant_account_id, module_name, is_enabled, updated_at)
+                    VALUES ($1, $2, $3, NOW())
+                    ON CONFLICT (tenant_account_id, module_name)
+                    DO UPDATE SET is_enabled = EXCLUDED.is_enabled, updated_at = NOW()
+                `, [tenantId, moduleName, enabled]);
+            }
+        } catch (masterErr: any) {
+            console.error('[ICE Toggle] Master DB Sync Error:', masterErr.message);
+        }
+
         return NextResponse.json({ success: true, hiddenModules: hidden });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -177,6 +210,38 @@ export async function PATCH(req: Request) {
                         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
                     `, [JSON.stringify(hiddenModules)]);
                 } catch {} finally { await tc.end().catch(() => {}); }
+
+                // Sync with Master DB
+                try {
+                    const tenantRes = await masterPool.query(`SELECT id FROM tenant_accounts WHERE subdomain = $1`, [subdomain]);
+                    if (tenantRes.rows.length > 0) {
+                        const tenantId = tenantRes.rows[0].id;
+                        await masterPool.query(`
+                            CREATE TABLE IF NOT EXISTS tenant_feature_flags (
+                                id SERIAL PRIMARY KEY,
+                                module_name VARCHAR(255) NOT NULL,
+                                is_enabled BOOLEAN DEFAULT true,
+                                created_at TIMESTAMPTZ DEFAULT NOW(),
+                                updated_at TIMESTAMPTZ DEFAULT NOW(),
+                                tenant_account_id INTEGER,
+                                desktop_license_id INTEGER,
+                                CONSTRAINT unique_tenant_module UNIQUE (tenant_account_id, module_name)
+                            )
+                        `);
+
+                        for (const module of ALL_MODULES) {
+                            const isEnabled = allowedModules.includes(module);
+                            await masterPool.query(`
+                                INSERT INTO tenant_feature_flags (tenant_account_id, module_name, is_enabled, updated_at)
+                                VALUES ($1, $2, $3, NOW())
+                                ON CONFLICT (tenant_account_id, module_name)
+                                DO UPDATE SET is_enabled = EXCLUDED.is_enabled, updated_at = NOW()
+                            `, [tenantId, module, isEnabled]);
+                        }
+                    }
+                } catch (masterErr: any) {
+                    console.error('[ICE Apply Plan] Master DB Sync Error:', masterErr.message);
+                }
             }
 
         } else {
