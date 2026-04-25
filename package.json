@@ -15,7 +15,7 @@
     "db:setup": "npx prisma db push && npx tsx prisma/seed.ts",
     "db:studio": "npx prisma studio",
     "electron:dev": "concurrently \"node scripts/start-desktop.js\" \"wait-on http://localhost:3500 && electron .\"",
-    "electron:build": "cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win",
+    "electron:build": "node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win",
     "electron:pack": "next build && electron-builder --dir",
     "electron:protect": "node scripts/protect-code.js"
   },

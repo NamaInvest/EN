@@ -18,11 +18,53 @@ const { autoUpdater } = require('electron-updater');
   };
 });
 
+function sendCrashReportToWebsite(errorMsg, stackTrace = '', notes = '') {
+  try {
+    const https = require('https');
+    const os = require('os');
+    const data = JSON.stringify({
+      osPlatform: os.platform(),
+      osRelease: os.release(),
+      appVersion: app.getVersion(),
+      errorMessage: String(errorMsg),
+      stackTrace: String(stackTrace),
+      tenantInfo: store ? store.get('license') || 'Unlicensed' : 'Unknown',
+      notes: notes
+    });
+
+    const options = {
+      hostname: 'namainvist.com',
+      port: 443,
+      path: '/api/sys/desktop-crash',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data)
+      }
+    };
+
+    const req = https.request(options, (res) => {});
+    req.on('error', (e) => {
+      try { console.error('Failed to send crash report:', e); } catch(err) {}
+    });
+    req.write(data);
+    req.end();
+  } catch (err) {
+    // Ignore internal reporting errors
+  }
+}
+
 process.on('uncaughtException', (err) => {
   if (err.code === 'EPIPE') return;
-  // Use the original console.error if possible, or just ignore if it fails
+  sendCrashReportToWebsite(err.message, err.stack, 'Uncaught Exception in Main Process');
   try { console.error('Uncaught Exception:', err); } catch (e) {}
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  sendCrashReportToWebsite(String(reason), '', 'Unhandled Rejection in Main Process');
+  try { console.error('Unhandled Rejection at:', promise, 'reason:', reason); } catch (e) {}
+});
+
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Nama Invest ERP — Electron Main Process
@@ -363,11 +405,17 @@ async function startNextServer(dbEnv) {
     });
   }
 
+  let lastNextError = '';
   nextProcess.stdout?.on('data', (data) => console.log(`[NEXT] ${data}`));
-  nextProcess.stderr?.on('data', (data) => console.error(`[NEXT ERR] ${data}`));
+  nextProcess.stderr?.on('data', (data) => {
+    const str = data.toString();
+    console.error(`[NEXT ERR] ${str}`);
+    lastNextError = (lastNextError + str).slice(-2000); // Keep last 2000 characters
+  });
   nextProcess.on('close', (code) => {
     console.log(`[NEXT] Process exited with code ${code}`);
-    if (!isQuitting) {
+    if (!isQuitting && code !== 0) {
+      sendCrashReportToWebsite(`Next.js Standalone Server Crashed (Exit Code: ${code})`, lastNextError, 'Next.js Process Exit');
       dialog.showErrorBox('خطأ', 'توقف السيرفر المحلي. سيتم إعادة التشغيل.');
       app.relaunch();
       app.exit(0);

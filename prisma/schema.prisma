@@ -2357,3 +2357,20 @@ model RestaurantSession {
   table      RestaurantTable @relation(fields: [tableId], references: [id])
   @@map("restaurant_sessions")
 }
+
+// ==================== 105. Desktop Crash Reports ====================
+model DesktopCrashReport {
+  id            Int      @id @default(autoincrement())
+  timestamp     DateTime @default(now())
+  osPlatform    String?  @map("os_platform")
+  osRelease     String?  @map("os_release")
+  appVersion    String?  @map("app_version")
+  errorMessage  String   @map("error_message")
+  stackTrace    String?  @map("stack_trace")
+  tenantInfo    String?  @map("tenant_info")
+  isResolved    Boolean  @default(false) @map("is_resolved")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("desktop_crash_reports")
+}
