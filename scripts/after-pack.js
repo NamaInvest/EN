@@ -61,6 +61,16 @@ exports.default = async function afterPack(context) {
       if (fs.existsSync(prismaEnginesSrc)) {
          fs.cpSync(prismaEnginesSrc, prismaEnginesDest, { recursive: true });
       }
+
+      console.log('✅ Fixing package.json to prevent ERR_INVALID_PACKAGE_CONFIG...');
+      const pkgJsonPath = path.join(standaloneDest, 'package.json');
+      fs.writeFileSync(pkgJsonPath, JSON.stringify({
+        name: 'namaweb',
+        version: '2.4.1',
+        private: true,
+        type: 'commonjs'
+      }, null, 2), 'utf8');
+      
     }
   } catch (e) {
     console.error('⚠️ Error copying standalone server resources:', e.message);

@@ -37,6 +37,8 @@ files:
 extraResources:
   - from: "prisma"
     to: "prisma"
+  - from: "electron/assets/vcredist_x64.exe"
+    to: "vcredist_x64.exe"
 
 win:
   target:
@@ -57,6 +59,7 @@ nsis:
   shortcutName: "Nama Invest ERP"
   artifactName: "NamaInvest-Setup-${version}.${ext}"
   perMachine: false
+  include: "scripts/installer.nsh"
 
 # Code Protection
 afterPack: scripts/after-pack.js

@@ -23,8 +23,8 @@ async function upload() {
       console.log('Created remote directory.');
     }
 
-    const localExe = path.join(__dirname, 'dist-electron', 'NamaInvest-Setup-2.4.0.exe');
-    const remoteExe = `${remoteDir}/NamaInvest-Setup-2.4.0.exe`;
+    const localExe = path.join(__dirname, 'dist-electron', 'NamaInvest-Setup-2.4.2.exe');
+    const remoteExe = `${remoteDir}/NamaInvest-Setup-2.4.2.exe`;
     
     const localYml = path.join(__dirname, 'dist-electron', 'latest.yml');
     const remoteYml = `${remoteDir}/latest.yml`;

@@ -300,9 +300,9 @@ class LocalPostgres {
       
       let cmd;
       if (fs.existsSync(prismaScript)) {
-        cmd = `"${process.execPath}" "${prismaScript}" db push --schema=./prisma/schema.prisma --accept-data-loss`;
+        cmd = `"${process.execPath}" "${prismaScript}" db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate`;
       } else {
-        cmd = 'npx prisma db push --schema=./prisma/schema.prisma --accept-data-loss';
+        cmd = 'npx prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate';
       }
 
       execSync(cmd, {

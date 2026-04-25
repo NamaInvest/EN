@@ -1,35 +1,27 @@
 const { Client } = require('ssh2');
-const path = require('path');
+const fs = require('fs');
 
-const conn = new Client();
-const APP = '/www/wwwroot/namainvist.com';
+const filePage = fs.readFileSync('src/app/page.tsx', 'utf8');
 
-const files = [
-    { local: 'src/app/page.tsx', remote: 'src/app/page.tsx' }
-];
-
-conn.on('ready', () => {
-    console.log('✅ متصل - يتم رفع page.tsx...');
-
-    conn.sftp((err, sftp) => {
+const c = new Client();
+c.on('ready', () => {
+    c.sftp((err, sftp) => {
         if (err) throw err;
-        let done = 0;
-        files.forEach(f => {
-            sftp.fastPut(path.join(__dirname, f.local), `${APP}/${f.remote}`, (err) => {
-                if (err) console.log(`\n❌ ${f.local}: ${err.message}`);
-                else console.log(`\n✅ ${f.local} -> ${f.remote}`);
-                done++;
-                if (done === files.length) {
-                    console.log('\n⏳ تحديث وبناء الصفحة الرئيسية (main-site)...');
-                    conn.exec(`cd ${APP} && npm run build 2>&1 | tail -8 && pm2 restart main-site && echo "DONE"`, (err, stream2) => {
-                        stream2.on('data', d => process.stdout.write(d.toString()));
-                        stream2.stderr.on('data', d => process.stderr.write(d.toString()));
-                        stream2.on('close', () => { conn.end(); });
-                    });
-                }
+        const stream = sftp.createWriteStream('/www/wwwroot/namainvist.com/src/app/page.tsx');
+        stream.write(filePage);
+        stream.end();
+        stream.on('close', () => {
+            console.log('page.tsx uploaded successfully.');
+            // Now run build and restart
+            c.exec('cd /www/wwwroot/namainvist.com && npm run build && pm2 restart main-site', (err, execStream) => {
+                if (err) throw err;
+                execStream.on('data', d => process.stdout.write(d));
+                execStream.stderr.on('data', d => process.stderr.write(d));
+                execStream.on('close', () => {
+                    console.log('Build and restart done!');
+                    c.end();
+                });
             });
         });
     });
-}).connect({
-    host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000
-});
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });

@@ -19,50 +19,67 @@ const { autoUpdater } = require('electron-updater');
 });
 
 function sendCrashReportToWebsite(errorMsg, stackTrace = '', notes = '') {
-  try {
-    const https = require('https');
-    const os = require('os');
-    const data = JSON.stringify({
-      osPlatform: os.platform(),
-      osRelease: os.release(),
-      appVersion: app.getVersion(),
-      errorMessage: String(errorMsg),
-      stackTrace: String(stackTrace),
-      tenantInfo: store ? store.get('license') || 'Unlicensed' : 'Unknown',
-      notes: notes
-    });
+  return new Promise((resolve) => {
+    try {
+      const https = require('https');
+      const os = require('os');
+      const data = JSON.stringify({
+        errorMessage: errorMsg || 'Unknown Error',
+        stackTrace: stackTrace || '',
+        notes: notes || '',
+        osInfo: `${os.type()} ${os.release()} ${os.arch()}`,
+        appVersion: app.getVersion(),
+        tenantInfo: store ? (typeof store.get('license') === 'object' ? JSON.stringify(store.get('license')) : (store.get('license') || 'Unlicensed')) : 'Unknown',
+        timestamp: new Date().toISOString()
+      });
 
-    const options = {
-      hostname: 'namainvist.com',
-      port: 443,
-      path: '/api/sys/desktop-crash',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(data)
-      }
-    };
+      const options = {
+        hostname: 'namainvist.com',
+        port: 443,
+        path: '/api/sys/desktop-crash',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data)
+        }
+      };
 
-    const req = https.request(options, (res) => {});
-    req.on('error', (e) => {
-      try { console.error('Failed to send crash report:', e); } catch(err) {}
-    });
-    req.write(data);
-    req.end();
-  } catch (err) {
-    // Ignore internal reporting errors
-  }
+      const req = https.request(options, (res) => {
+        resolve();
+      });
+
+      req.on('error', (e) => {
+        try { console.error('Failed to send crash report:', e); } catch(err) {}
+        resolve();
+      });
+
+      // Timeout to not block forever
+      req.setTimeout(5000, () => {
+        req.destroy();
+        resolve();
+      });
+
+      req.write(data);
+      req.end();
+    } catch (err) {
+      resolve();
+    }
+  });
 }
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', async (err) => {
   if (err.code === 'EPIPE') return;
-  sendCrashReportToWebsite(err.message, err.stack, 'Uncaught Exception in Main Process');
   try { console.error('Uncaught Exception:', err); } catch (e) {}
+  await sendCrashReportToWebsite(err.message, err.stack, 'Uncaught Exception in Main Process');
+  try { dialog.showErrorBox('خطأ غير متوقع', `حدث خطأ غير متوقع في النظام:\n${err.message}\nتم إرسال التقرير للدعم الفني.`); } catch(e){}
+  app.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  sendCrashReportToWebsite(String(reason), '', 'Unhandled Rejection in Main Process');
-  try { console.error('Unhandled Rejection at:', promise, 'reason:', reason); } catch (e) {}
+process.on('unhandledRejection', async (reason) => {
+  try { console.error('Unhandled Rejection:', reason); } catch (e) {}
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : '';
+  await sendCrashReportToWebsite(msg, stack, 'Unhandled Rejection in Main Process');
 });
 
 
@@ -412,13 +429,23 @@ async function startNextServer(dbEnv) {
     console.error(`[NEXT ERR] ${str}`);
     lastNextError = (lastNextError + str).slice(-2000); // Keep last 2000 characters
   });
-  nextProcess.on('close', (code) => {
+  nextProcess.on('error', async (err) => {
+    console.error(`[NEXT] Process error:`, err);
+    if (!isQuitting) {
+      await sendCrashReportToWebsite(`Next.js Standalone Process Error`, err.stack, 'Next.js Process Error');
+      dialog.showErrorBox('خطأ في تشغيل السيرفر', `لم نتمكن من تشغيل الخادم المحلي:\n${err.message}`);
+      app.relaunch();
+      app.exit(1);
+    }
+  });
+
+  nextProcess.on('close', async (code) => {
     console.log(`[NEXT] Process exited with code ${code}`);
     if (!isQuitting && code !== 0) {
-      sendCrashReportToWebsite(`Next.js Standalone Server Crashed (Exit Code: ${code})`, lastNextError, 'Next.js Process Exit');
+      await sendCrashReportToWebsite(`Next.js Standalone Server Crashed (Exit Code: ${code})`, lastNextError, 'Next.js Process Exit');
       dialog.showErrorBox('خطأ', 'توقف السيرفر المحلي. سيتم إعادة التشغيل.');
       app.relaunch();
-      app.exit(0);
+      app.exit(1);
     }
   });
 

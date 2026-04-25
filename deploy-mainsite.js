@@ -18,20 +18,16 @@ function ssh(cmd) {
   });
 }
 
-function writeFile(remotePath, content) {
+function writeFile(c, remotePath, content) {
   return new Promise(r => {
-    const c = new Client();
-    c.on('ready', () => {
       c.sftp((err, sftp) => {
-        if (err) { console.error('sftp error:', err.message); c.end(); return r(); }
+        if (err) { console.error('sftp error:', err.message); return r(); }
         const stream = sftp.createWriteStream(remotePath);
         stream.write(content);
         stream.end();
-        stream.on('close', () => { console.log('[✓]', remotePath.replace('/www/wwwroot/', '')); c.end(); r(); });
-        stream.on('error', e => { console.error('[✗]', remotePath, e.message); c.end(); r(); });
+        stream.on('close', () => { console.log('[✓]', remotePath.replace('/www/wwwroot/', '')); r(); });
+        stream.on('error', e => { console.error('[✗]', remotePath, e.message); r(); });
       });
-    }).on('error', e => { console.error('[connect error]', e.message); r(); })
-     .connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
   });
 }
 

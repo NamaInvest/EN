@@ -21,3 +21,17 @@ if (fs.existsSync(distElectron)) {
     rimraf(distElectron);
     console.log('✅ Deleted dist-electron');
 }
+
+const vcredistPath = path.join(__dirname, '..', 'electron', 'assets', 'vcredist_x64.exe');
+if (!fs.existsSync(vcredistPath)) {
+    console.log('⬇️ Downloading Visual C++ Redistributable...');
+    const { execSync } = require('child_process');
+    try {
+        execSync(`curl -L -o "${vcredistPath}" https://aka.ms/vs/17/release/vc_redist.x64.exe`, { stdio: 'inherit' });
+        console.log('✅ vcredist_x64.exe downloaded successfully.');
+    } catch (e) {
+        console.error('⚠️ Failed to download vcredist:', e.message);
+    }
+} else {
+    console.log('✅ vcredist_x64.exe already exists, skipping download.');
+}
