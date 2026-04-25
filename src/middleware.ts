@@ -20,7 +20,7 @@ const isPublicRoute = createRouteMatcher([
   '/updates(.*)',
 ]);
 
-const isIceRoute = createRouteMatcher(['/ice', '/ice/(.*)']);
+const isIceRoute = createRouteMatcher(['/ice', '/ice/(.*)', '/admin/(.*)']);
 
 const clerk = clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';

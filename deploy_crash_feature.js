@@ -5,9 +5,7 @@ const conn = new Client();
 const APP = '/www/wwwroot/namainvist.com';
 
 const files = [
-    'prisma/schema.prisma',
-    'src/app/api/sys/desktop-crash/route.ts',
-    'src/app/admin/crashes/page.tsx'
+    'src/middleware.ts'
 ];
 
 conn.on('ready', () => {
@@ -30,9 +28,8 @@ conn.on('ready', () => {
                         else console.log(`📤 ${f}`);
                         done++;
                         if (done === files.length) {
-                            console.log('\n⏳ تحديث قاعدة البيانات والبناء (سيستغرق بعض الوقت)...');
-                            // Run db push first, then generate, then build
-                            const cmd = `cd ${APP} && npx prisma db push --accept-data-loss && npx prisma generate && npm run build 2>&1 | tail -8 && pm2 restart main-site && echo "DONE"`;
+                            console.log('\n⏳ تحديث النظام والبناء (سيستغرق بعض الوقت)...');
+                            const cmd = `cd ${APP} && npm run build 2>&1 | tail -8 && pm2 restart main-site && echo "DONE"`;
                             conn.exec(cmd, (err, stream2) => {
                                 stream2.on('data', d => process.stdout.write(d.toString()));
                                 stream2.stderr.on('data', d => process.stderr.write(d.toString()));
