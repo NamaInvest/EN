@@ -35,11 +35,15 @@ exports.default = async function afterPack(context) {
   // Next.js Standalone Manual Copy
   // electron-builder is aggressive with node_modules. We bypass it by copying things manually.
   try {
-    const nextDir = process.env.ELECTRON_BUILD ? '.next-electron' : '.next';
+    let nextDir = process.env.ELECTRON_BUILD ? '.next-electron' : '.next';
+    if (!fs.existsSync(path.join(context.packager.projectDir, nextDir, 'standalone')) && fs.existsSync(path.join(context.packager.projectDir, '.next-electron', 'standalone'))) {
+        nextDir = '.next-electron';
+    }
+
     const standaloneSrc = path.join(context.packager.projectDir, nextDir, 'standalone');
     const standaloneDest = path.join(context.appOutDir, 'resources', 'standalone');
     if (fs.existsSync(standaloneSrc)) {
-      console.log('📦 Copying NextJS standalone server (bypassing builder)...');
+      console.log(`📦 Copying NextJS standalone server from ${nextDir} (bypassing builder)...`);
       fs.cpSync(standaloneSrc, standaloneDest, { recursive: true });
       
       console.log('📦 Copying public and static assets...');

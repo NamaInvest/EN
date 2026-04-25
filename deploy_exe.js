@@ -6,7 +6,7 @@ const APP = '/www/wwwroot/namainvist.com';
 
 const files = [
     { local: 'src/app/page.tsx', remote: 'src/app/page.tsx' },
-    { local: 'dist-electron/NamaInvest-Setup-2.4.0.exe', remote: 'public/updates/desktop/NamaInvest-Setup-2.4.0.exe' }
+    { local: 'dist-electron/NamaInvest-Setup-2.4.1.exe', remote: 'public/updates/desktop/NamaInvest-Setup-2.4.1.exe' }
 ];
 
 conn.on('ready', () => {
