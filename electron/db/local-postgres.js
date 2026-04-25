@@ -338,7 +338,7 @@ class LocalPostgres {
 
       await client.connect();
 
-      const check = await client.query(`SELECT COUNT(*) FROM "User" WHERE username = 'admin'`).catch(() => ({ rows: [{ count: '0' }] }));
+      const check = await client.query(`SELECT COUNT(*) FROM users WHERE username = 'admin'`).catch(() => ({ rows: [{ count: '0' }] }));
 
       if (parseInt(check.rows[0].count) > 0) {
         console.log('ℹ️ Already seeded, skipping');
@@ -350,49 +350,48 @@ class LocalPostgres {
       const hashedPassword = await bcrypt.hash('admin', 10);
 
       await client.query(`
-        INSERT INTO "User" (username, password, "fullName", role, "isActive", "createdAt", "updatedAt")
-        VALUES ('admin', $1, 'مدير النظام', 'admin', true, NOW(), NOW())
+        INSERT INTO users (username, password_hash, full_name, role, active)
+        VALUES ('admin', $1, 'مدير النظام', 'admin', true)
         ON CONFLICT (username) DO NOTHING
       `, [hashedPassword]);
 
-      await client.query(`
-        INSERT INTO "Warehouse" (name, code, "isDefault", "createdAt", "updatedAt")
-        VALUES ('المستودع الرئيسي', 'WH-001', true, NOW(), NOW())
-        ON CONFLICT DO NOTHING
-      `);
+      const stockCheck = await client.query(`SELECT id FROM stocks WHERE name = 'المستودع الرئيسي'`);
+      if (stockCheck.rowCount === 0) {
+        await client.query(`INSERT INTO stocks (name, active) VALUES ('المستودع الرئيسي', true)`);
+      }
 
-      await client.query(`
-        INSERT INTO "Unit" (name, "isDefault", "createdAt", "updatedAt")
-        VALUES ('قطعة', true, NOW(), NOW())
-        ON CONFLICT DO NOTHING
-      `);
+      const unitCheck = await client.query(`SELECT id FROM units WHERE name = 'قطعة'`);
+      if (unitCheck.rowCount === 0) {
+        await client.query(`INSERT INTO units (name) VALUES ('قطعة')`);
+      }
 
-      await client.query(`
-        INSERT INTO "Customer" (name, phone, "createdAt", "updatedAt")
-        VALUES ('عميل نقدي', '0000000000', NOW(), NOW())
-        ON CONFLICT DO NOTHING
-      `);
+      const customerCheck = await client.query(`SELECT id FROM customers WHERE name = 'عميل نقدي'`);
+      if (customerCheck.rowCount === 0) {
+        await client.query(`INSERT INTO customers (name, phone) VALUES ('عميل نقدي', '0000000000')`);
+      }
 
       const accounts = [
-        [1, 'الأصول', 'asset', null],
-        [2, 'الخصوم', 'liability', null],
-        [3, 'حقوق الملكية', 'equity', null],
-        [4, 'الإيرادات', 'revenue', null],
-        [5, 'المصروفات', 'expense', null],
-        [11, 'النقدية والبنوك', 'asset', 1],
-        [12, 'المدينون', 'asset', 1],
-        [13, 'المخزون', 'asset', 1],
-        [21, 'الدائنون', 'liability', 2],
-        [41, 'إيرادات المبيعات', 'revenue', 4],
-        [51, 'تكلفة المبيعات', 'expense', 5],
+        [1, 'الأصول', null],
+        [2, 'الخصوم', null],
+        [3, 'حقوق الملكية', null],
+        [4, 'الإيرادات', null],
+        [5, 'المصروفات', null],
+        [11, 'النقدية والبنوك', 1],
+        [12, 'المدينون', 1],
+        [13, 'المخزون', 1],
+        [21, 'الدائنون', 2],
+        [41, 'إيرادات المبيعات', 4],
+        [51, 'تكلفة المبيعات', 5],
       ];
 
-      for (const [code, name, type, parentCode] of accounts) {
-        await client.query(`
-          INSERT INTO "Account" (code, name, "accountType", "parentCode", "createdAt", "updatedAt")
-          VALUES ($1, $2, $3, $4, NOW(), NOW())
-          ON CONFLICT DO NOTHING
-        `, [code.toString(), name, type, parentCode?.toString() || null]);
+      for (const [code, name, parentCode] of accounts) {
+        const accCheck = await client.query(`SELECT id FROM accounts WHERE code = $1`, [code.toString()]);
+        if (accCheck.rowCount === 0) {
+          await client.query(`
+            INSERT INTO accounts (code, name, parent_id)
+            VALUES ($1, $2, $3)
+          `, [code.toString(), name, parentCode]);
+        }
       }
 
       console.log('✅ Default data seeded');
