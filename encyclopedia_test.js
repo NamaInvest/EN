@@ -206,7 +206,7 @@ L('8.1','ZATCA API موجود',d!==null||r?.length>2?'P':'F','OK');
 
 r=await api(c,'GET','/api/settings');d=P(r);
 const settings=d||{};
-const hasTax=Object.values(settings).flat?.().some?.((s)=>(s as any)?.key==='tax_rate');
+const hasTax=d&&JSON.stringify(d).includes('tax_rate');
 L('8.2','إعداد الضريبة',d?'P':'F','Settings loaded');
 
 // Full sales cycle with ZATCA
