@@ -63,3 +63,9 @@
 ```bash
 node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win
 ```
+
+## 5. المعالجة التلقائية لانهيار قاعدة البيانات (Automated Reset)
+في تحديثات المستقبل، يجب ألا نعتمد على العميل للقيام بحذف مجلد `pgdata` يدوياً من `%APPDATA%\namaweb` عند وجود أخطاء في الـ Schema أو فشل في الإعدادات الافتراضية.
+**الحلول المعتمدة للمستقبل:**
+1. **التحقق الذاتي في `local-postgres.js`**: كتابة كود يفحص ما إذا كانت الجداول الأساسية موجودة أو إذا كان حجم قاعدة البيانات غير منطقي، وإذا اكتشف خللاً هيكلياً (Corrupted Database) يقوم بمسح مجلد `pgdata` برمجياً وإعادة تهيئته (Re-init) دون تدخل المستخدم.
+2. **زر إعادة ضبط المصنع (Factory Reset)**: توفير زر في واجهة الطوارئ (Crash UI) يُمكّن العميل من "إعادة ضبط النظام" بنقرة واحدة، حيث يقوم البرنامج بإغلاق خادم `Postgres`، مسح المجلد، وإعادة تشغيل التطبيق ليقوم بالبناء من الصفر.
