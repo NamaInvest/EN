@@ -2,534 +2,374 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+    Building2, FileText, MapPin, ChevronRight,
+    ChevronLeft, CheckCircle, Loader2, Globe, Layers,
+} from 'lucide-react';
 
 const BUSINESS_DOMAINS = [
-  'صيدلية', 'بقالة وسوبرماركت', 'مطعم ومقهى',
-  'إلكترونيات وأجهزة', 'ملابس وأزياء', 'أثاث وديكور',
-  'مخبز وحلويات', 'سيارات وقطع غيار', 'عطور ومستحضرات تجميل',
-  'مجوهرات وساعات', 'عيادة طبية', 'عيادة أسنان', 'بصريات ونظارات',
-  'عيادة بيطرية', 'عقارات', 'مقاولات وبناء',
-  'تصنيع وإنتاج', 'جملة وتوزيع', 'استيراد وتصدير',
-  'نقل ولوجستيات', 'طباعة وإعلان', 'خدمات تقنية',
-  'نظافة وصيانة', 'مغسلة ملابس', 'خياطة',
-  'تعليم وتدريب', 'نادي رياضي', 'فندقة وضيافة',
-  'سفر وسياحة', 'تجارة عامة', 'أخرى',
+    'صيدلية', 'بقالة وسوبرماركت', 'مطعم ومقهى',
+    'إلكترونيات وأجهزة', 'ملابس وأزياء', 'أثاث وديكور',
+    'مخبز وحلويات', 'سيارات وقطع غيار', 'عطور ومستحضرات تجميل',
+    'مجوهرات وساعات', 'عيادة طبية', 'عيادة أسنان', 'بصريات ونظارات',
+    'عيادة بيطرية', 'عقارات', 'مقاولات وبناء',
+    'تصنيع وإنتاج', 'جملة وتوزيع', 'استيراد وتصدير',
+    'نقل ولوجستيات', 'طباعة وإعلان', 'خدمات تقنية',
+    'نظافة وصيانة', 'مغسلة ملابس', 'خياطة',
+    'تعليم وتدريب', 'نادي رياضي', 'فندقة وضيافة',
+    'سفر وسياحة', 'تجارة عامة', 'أخرى',
 ];
 
+type Step = 1 | 2 | 3;
+type Status = 'IDLE' | 'SUBMITTING' | 'PROVISIONING' | 'READY' | 'ERROR';
+
+const STEP_LABELS = ['بيانات المنشأة', 'بيانات الموقع', 'التأكيد والإرسال'];
+
+async function translateToEn(text: string): Promise<string> {
+    if (!text.trim()) return '';
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const data = await res.json();
+        return (data?.[0]?.[0]?.[0] || text).trim();
+    } catch {
+        return text;
+    }
+}
+
+function toSlug(text: string): string {
+    return text.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+}
+
 export default function CompanySetupPage() {
-  const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [saving, setSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
-  const [restoring, setRestoring] = useState(false);
-  const [backupData, setBackupData] = useState<any>(null);
+    const router = useRouter();
 
-  // Step 1: Company info
-  const [companyNameAr, setCompanyNameAr] = useState('');
-  const [companyNameEn, setCompanyNameEn] = useState('');
-  const [businessDomain, setBusinessDomain] = useState('');
-  const [mobile, setMobile] = useState('');
+    const [step, setStep] = useState<Step>(1);
+    const [status, setStatus] = useState<Status>('IDLE');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [provisionedSubdomain, setProvisionedSubdomain] = useState('');
+    const [statusMessages, setStatusMessages] = useState<string[]>([]);
+    const [checkingExisting, setCheckingExisting] = useState(true);
 
-  // Step 2: Location & Legal
-  const [city, setCity] = useState('');
-  const [district, setDistrict] = useState('');
-  const [streetName, setStreetName] = useState('');
-  const [buildingNo, setBuildingNo] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [vatNumber, setVatNumber] = useState('');
-  const [crnNumber, setCrnNumber] = useState('');
+    const [companyNameAr, setCompanyNameAr] = useState('');
+    const [companyNameEn, setCompanyNameEn] = useState('');
+    const [businessDomain, setBusinessDomain] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [country, setCountry] = useState('SA');
 
-  // Check if setup already done (run once)
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('/api/settings', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data) return;
-        const defaultNames = ['نما إنفست', 'Nama Invest', 'شركتي', 'نماء سوفت', 'الشركة الرئيسية', 'Nama Invest ERP', ''];
-        const name = Array.isArray(data) ? data.find((s: any) => s.key === 'company_name')?.value : data?.company_name;
-        if (name && !defaultNames.includes(name)) {
-          router.replace('/dashboard');
+    const [vatNumber, setVatNumber] = useState('');
+    const [crnNumber, setCrnNumber] = useState('');
+    const [streetName, setStreetName] = useState('');
+    const [buildingNo, setBuildingNo] = useState('');
+    const [district, setDistrict] = useState('');
+    const [city, setCity] = useState('');
+    const [cityEn, setCityEn] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+
+    const [mobileErr, setMobileErr] = useState('');
+    const [vatErr, setVatErr] = useState('');
+    const [crnErr, setCrnErr] = useState('');
+    const [buildingErr, setBuildingErr] = useState('');
+    const [postalErr, setPostalErr] = useState('');
+
+    const isSaudi = country === 'SA';
+    const [previewSubdomain, setPreviewSubdomain] = useState('');
+
+    const companyTimer = useRef<any>(null);
+    const cityTimer    = useRef<any>(null);
+    const [translating, setTranslating] = useState(false);
+    const [cityTranslating, setCityTranslating] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        fetch('/api/settings', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data) return;
+                const defaultNames = ['نما إنفست', 'Nama Invest', 'شركتي', 'نماء سوفت', 'الشركة الرئيسية', 'Nama Invest ERP', ''];
+                const name = Array.isArray(data) ? data.find((s: any) => s.key === 'company_name')?.value : data?.company_name;
+                if (name && !defaultNames.includes(name)) {
+                    router.replace('/dashboard');
+                } else {
+                    setCheckingExisting(false);
+                }
+            })
+            .catch(() => setCheckingExisting(false));
+    }, [router]);
+
+    useEffect(() => {
+        if (!companyNameAr.trim()) {
+            setCompanyNameEn('');
+            setPreviewSubdomain('');
+            return;
         }
-      })
-      .catch(() => {});
-  }, [router]);
+        clearTimeout(companyTimer.current);
+        companyTimer.current = setTimeout(async () => {
+            setTranslating(true);
+            const en = await translateToEn(companyNameAr);
+            setCompanyNameEn(prev => prev || en);
+            setPreviewSubdomain(toSlug(en));
+            setTranslating(false);
+        }, 600);
+    }, [companyNameAr]);
 
-  // Validation
-  const validateStep1 = () => {
-    if (!companyNameAr.trim()) return 'اسم الشركة بالعربية مطلوب';
-    if (!mobile.trim()) return 'رقم الجوال مطلوب';
-    if (mobile && !/^\d{10}$/.test(mobile)) return 'رقم الجوال يجب أن يكون 10 أرقام';
-    return '';
-  };
+    useEffect(() => {
+        if (!city.trim()) { setCityEn(''); return; }
+        clearTimeout(cityTimer.current);
+        cityTimer.current = setTimeout(async () => {
+            setCityTranslating(true);
+            const en = await translateToEn(city);
+            setCityEn(prev => prev || en);
+            setCityTranslating(false);
+        }, 600);
+    }, [city]);
 
-  const validateStep2 = () => {
-    if (!city.trim()) return 'المدينة مطلوبة';
-    if (vatNumber && !/^3\d{13}3$/.test(vatNumber)) return 'الرقم الضريبي يجب أن يكون 15 رقم (يبدأ وينتهي بـ 3)';
-    if (crnNumber && !/^7\d{9}$/.test(crnNumber)) return 'السجل التجاري يجب أن يكون 10 أرقام (يبدأ بـ 7)';
-    return '';
-  };
+    const handleMobileChange = (v: string) => { setMobile(v); if (v && !/^\d{10}$/.test(v)) setMobileErr('10 أرقام'); else setMobileErr(''); };
+    const handleVatChange = (v: string) => { setVatNumber(v); if (isSaudi && v && !/^3\d{13}3$/.test(v)) setVatErr('15 رقم يبدأ وينتهي بـ 3'); else setVatErr(''); };
+    const handleCrnChange = (v: string) => { setCrnNumber(v); if (isSaudi && v && !/^7\d{9}$/.test(v)) setCrnErr('10 أرقام تبدأ بـ 7'); else setCrnErr(''); };
+    const handleBuildingChange = (v: string) => { setBuildingNo(v); if (isSaudi && v && !/^\d{4}$/.test(v)) setBuildingErr('4 أرقام'); else setBuildingErr(''); };
+    const handlePostalChange = (v: string) => { setPostalCode(v); if (isSaudi && v && !/^\d{5}$/.test(v)) setPostalErr('5 أرقام'); else setPostalErr(''); };
 
-  const nextStep = () => {
-    const err = validateStep1();
-    if (err) { setErrorMsg(err); return; }
-    setErrorMsg('');
-    setStep(2);
-  };
-
-  const handleSubmit = async () => {
-    const err = validateStep2();
-    if (err) { setErrorMsg(err); return; }
-    setErrorMsg('');
-    setSaving(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      // 1. Save locally to Settings — use the SAME keys as settings/company page
-      const settingsRes = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          // بيانات المنشأة الأساسية
-          company_name: companyNameAr,
-          company_name_en: companyNameEn,
-          company_phone: mobile,
-          company_address: `${streetName}${streetName ? '، ' : ''}${district}${district ? '، ' : ''}${city}`,
-          tax_number: vatNumber,
-          business_domain: businessDomain,
-          // بيانات ZATCA (نفس المفاتيح في صفحة معلومات المنشأة)
-          zatca_crn: crnNumber,
-          zatca_street: streetName,
-          zatca_building: buildingNo,
-          zatca_district: district,
-          zatca_city: city,
-          zatca_postal_code: postalCode,
-        }),
-      });
-
-      if (!settingsRes.ok) {
-        console.warn('Settings save warning (non-fatal)');
-      }
-
-      // 2. Send to cloud for ICE tracking (namainvist.com/ice/desktop-licenses)
-      let trialMessage = '✅ تم حفظ بيانات الشركة بنجاح!';
-      try {
-        const cloudRes = await fetch('https://namainvist.com/api/ice/desktop-register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            companyNameAr,
-            companyNameEn,
-            businessDomain,
-            mobile,
-            vatNumber,
-            crnNumber,
-            city,
-            district,
-            streetName,
-            buildingNo,
-            postalCode,
-            hardwareId: getHardwareId(),
-            deviceName: navigator.userAgent.substring(0, 80),
-            appVersion: '1.0.0',
-          }),
-        });
-
-        const cloudData = await cloudRes.json();
-        if (cloudData.success) {
-          if (cloudData.license_key) {
-            localStorage.setItem('nama-desktop-license', cloudData.license_key);
-            localStorage.setItem('nama-license-status', cloudData.status || 'trial');
-          }
-          if (cloudData.status === 'trial') {
-            trialMessage = `✅ تم التسجيل بنجاح — فترة تجريبية ${cloudData.trial_days || 7} أيام`;
-          } else if (cloudData.already_registered) {
-            trialMessage = '✅ الجهاز مسجّل مسبقاً — مواصلة العمل';
-          }
-
-          // Check if there's a backup to restore
-          if (cloudData.has_backup && cloudData.backup_id) {
-            setBackupData(cloudData);
-            setSuccessMsg(trialMessage);
-            setShowRestorePrompt(true);
-            setSaving(false);
-            return; // Don't redirect yet — ask about restore first
-          }
+    const validateStep = (s: Step): string => {
+        if (s === 1) {
+            if (!companyNameAr.trim()) return 'اسم المنشأة بالعربية مطلوب.';
+            if (!businessDomain) return 'مجال العمل مطلوب.';
+            if (!mobile.trim()) return 'رقم الهاتف مطلوب.';
+            if (!/^\d{10}$/.test(mobile)) return 'رقم الهاتف يجب أن يتكون من 10 أرقام بالضبط.';
         }
-      } catch (cloudErr) {
-        console.warn('Cloud registration deferred (no internet):', cloudErr);
-        trialMessage = '✅ تم حفظ البيانات — يعمل بدون إنترنت (وضع تجريبي)';
-        localStorage.setItem('nama-license-status', 'offline-trial');
-      }
+        if (s === 2) {
+            if (!city.trim()) return 'المدينة مطلوبة.';
+            if (isSaudi) {
+                if (!vatNumber.trim()) return 'الرقم الضريبي مطلوب.';
+                if (!/^3\d{13}3$/.test(vatNumber)) return 'الرقم الضريبي غير صحيح.';
+                if (!crnNumber.trim()) return 'السجل التجاري مطلوب.';
+                if (!/^7\d{9}$/.test(crnNumber)) return 'السجل التجاري غير صحيح.';
+            }
+        }
+        return '';
+    };
 
-      setSuccessMsg(trialMessage);
-      setTimeout(() => {
-        router.replace('/dashboard');
-      }, 2000);
+    const nextStep = () => { const err = validateStep(step); if (err) { setErrorMsg(err); return; } setErrorMsg(''); setStep(s => (s < 3 ? ((s + 1) as Step) : s)); };
+    const prevStep = () => { setErrorMsg(''); setStep(s => (s > 1 ? ((s - 1) as Step) : s)); };
 
-    } catch (err: any) {
-      setErrorMsg('خطأ في الحفظ: ' + err.message);
+    function getHardwareId(): string {
+        let id = localStorage.getItem('nama-hardware-id');
+        if (!id) { id = 'HW-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8); localStorage.setItem('nama-hardware-id', id); }
+        return id;
     }
-    setSaving(false);
-  };
 
-  function getHardwareId(): string {
-    let id = localStorage.getItem('nama-hardware-id');
-    if (!id) {
-      id = 'HW-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8);
-      localStorage.setItem('nama-hardware-id', id);
+    const handleSubmit = async () => {
+        const err = validateStep(2);
+        if (err) { setErrorMsg(err); return; }
+        setErrorMsg('');
+        setStatus('SUBMITTING');
+        setIsSubmitting(true);
+        setStatusMessages(['⏳ جاري حفظ البيانات محلياً في معلومات المنشأة...']);
+
+        try {
+            const token = localStorage.getItem('token');
+            // Save to local Settings
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({
+                    company_name: companyNameAr, company_name_en: companyNameEn,
+                    company_phone: mobile, company_address: `${streetName}${streetName ? '، ' : ''}${district}${district ? '، ' : ''}${city}`,
+                    tax_number: vatNumber, business_domain: businessDomain,
+                    zatca_crn: crnNumber, zatca_street: streetName, zatca_building: buildingNo,
+                    zatca_district: district, zatca_city: city, zatca_postal_code: postalCode,
+                }),
+            });
+
+            setStatusMessages(prev => [...prev, '☁️ جاري تسجيل المنشأة سحابياً وتوليد رابط النسخ الاحتياطي...']);
+            let cloudSubdomain = previewSubdomain;
+
+            try {
+                const cloudRes = await fetch('https://namainvist.com/api/ice/desktop-register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        companyNameAr, companyNameEn, businessDomain, mobile, vatNumber, crnNumber,
+                        city, cityEn, district, streetName, buildingNo, postalCode, subdomain: previewSubdomain,
+                        hardwareId: getHardwareId(), deviceName: navigator.userAgent.substring(0, 80), appVersion: '1.0.0',
+                    }),
+                });
+
+                const cloudData = await cloudRes.json();
+                if (cloudData.success) {
+                    if (cloudData.license_key) localStorage.setItem('nama-desktop-license', cloudData.license_key);
+                    if (cloudData.subdomain) cloudSubdomain = cloudData.subdomain;
+                }
+            } catch (cloudErr) {
+                console.warn('Cloud registration deferred', cloudErr);
+            }
+
+            setProvisionedSubdomain(cloudSubdomain);
+            setStatus('PROVISIONING');
+            setStatusMessages(prev => [...prev,
+                `✅ تم دمج البيانات مع معلومات المنشأة بنجاح!`,
+                `🌐 رابط النسخ الاحتياطي المحجوز لك: ${cloudSubdomain}.namainvist.com`,
+                '🚀 نظامك المكتبي جاهز للعمل بالكامل...',
+            ]);
+
+            setTimeout(() => {
+                setStatus('READY');
+                setTimeout(() => { router.replace('/dashboard'); }, 2000);
+            }, 3000);
+
+        } catch (e: any) {
+            setErrorMsg('خطأ في الاتصال: ' + e.message);
+            setStatus('ERROR');
+            setIsSubmitting(false);
+        }
+    };
+
+    if (checkingExisting) {
+        return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><Loader2 size={40} className="text-white animate-spin" /></div>;
     }
-    return id;
-  }
 
-  // Styles 
-  const containerStyle: React.CSSProperties = {
-    direction: 'rtl', minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif',
-  };
-
-  const cardStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.15)', borderRadius: '24px',
-    padding: '40px', maxWidth: '600px', width: '100%',
-    boxShadow: '0 30px 60px rgba(0,0,0,0.4)',
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '12px 16px', fontSize: '14px',
-    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '12px', color: '#fff', outline: 'none',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: '13px', fontWeight: 700,
-    color: 'rgba(255,255,255,0.7)', marginBottom: '6px',
-  };
-
-  const fieldGroupStyle: React.CSSProperties = { marginBottom: '16px' };
-
-  const twoColStyle: React.CSSProperties = {
-    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px',
-  };
-
-  const btnPrimary: React.CSSProperties = {
-    padding: '14px 32px', fontSize: '15px', fontWeight: 700,
-    color: '#fff', border: 'none', borderRadius: '14px', cursor: 'pointer',
-    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-    boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
-  };
-
-  const btnSecondary: React.CSSProperties = {
-    padding: '14px 32px', fontSize: '15px', fontWeight: 600,
-    color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '14px', cursor: 'pointer', background: 'transparent',
-  };
-
-  const handleRestoreBackup = async () => {
-    if (!backupData) return;
-    setRestoring(true);
-    try {
-      // Download backup from cloud
-      const backupUrl = `https://namainvist.com/api/ice/backup/download?license_key=${backupData.backup_license_key}&id=${backupData.backup_id}`;
-      const res = await fetch(backupUrl);
-      if (!res.ok) throw new Error('فشل تحميل النسخة الاحتياطية');
-
-      const blob = await res.blob();
-
-      // Send to local restore API
-      const formData = new FormData();
-      formData.append('file', blob, 'backup.sql.gz');
-      
-      const restoreRes = await fetch('/api/system/restore-backup', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData,
-      });
-
-      if (restoreRes.ok) {
-        setSuccessMsg('✅ تم استعادة النسخة الاحتياطية بنجاح!');
-        setShowRestorePrompt(false);
-        setTimeout(() => { window.location.href = '/login'; }, 2000);
-      } else {
-        const err = await restoreRes.json();
-        setErrorMsg('فشل الاستعادة: ' + (err.message || 'خطأ'));
-        setShowRestorePrompt(false);
-      }
-    } catch (err: any) {
-      setErrorMsg('فشل تحميل النسخة: ' + err.message);
-      setShowRestorePrompt(false);
+    if (status === 'PROVISIONING' || status === 'READY' || status === 'SUBMITTING') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                        <div className="absolute inset-0 border-4 border-indigo-300/30 rounded-full" />
+                        <div className="absolute inset-0 border-4 border-t-indigo-400 rounded-full animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center text-3xl">🚀</div>
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2">{status === 'READY' ? 'نظامك جاهز!' : 'جاري إعداد المنشأة'}</h2>
+                    {provisionedSubdomain && <p className="text-indigo-300 font-bold mb-6 text-sm">{provisionedSubdomain}.namainvist.com</p>}
+                    <div className="space-y-2 text-right">
+                        {statusMessages.map((msg, i) => (
+                            <div key={i} className="flex items-center gap-2 text-sm text-slate-300 bg-white/5 rounded-xl px-4 py-2">
+                                <span>{msg}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
-    setRestoring(false);
-  };
 
-  const skipRestore = () => {
-    setShowRestorePrompt(false);
-    setTimeout(() => { router.replace('/dashboard'); }, 1000);
-  };
+    const INPUT_CLASS = "w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all";
 
-  // Restore prompt screen
-  if (showRestorePrompt) {
     return (
-      <div style={containerStyle}>
-        <div style={{ ...cardStyle, textAlign: 'center', maxWidth: '500px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>💾</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#a5b4fc', marginBottom: '12px' }}>
-            تم العثور على نسخة احتياطية سابقة
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '8px' }}>
-            وجدنا نسخة احتياطية لهذه المنشأة من تسجيل سابق
-          </p>
-          {backupData?.backup_date && (
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '24px' }}>
-              📅 تاريخ النسخة: {new Date(backupData.backup_date).toLocaleDateString('en-GB')}
-              {backupData.backup_size && ` — 📦 الحجم: ${(backupData.backup_size / 1024 / 1024).toFixed(1)} MB`}
-            </p>
-          )}
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4 py-12" dir="rtl">
+            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+            <div className="relative z-10 w-full max-w-2xl">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-2xl mb-4">
+                        <Layers className="w-8 h-8 text-white" />
+                    </div>
+                    <h1 className="text-3xl font-black text-white mb-1">إعداد المنشأة (للنسخة المكتبية)</h1>
+                    <p className="text-slate-400 text-sm">أدخل بيانات منشأتك لتهيئة النظام المحلي السحابي</p>
+                    
+                    <div className={`mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border transition-all duration-500 ${previewSubdomain ? 'bg-indigo-500/20 border-indigo-400/40' : 'bg-white/5 border-white/10 opacity-60'}`}>
+                        <Globe size={15} className={previewSubdomain ? 'text-indigo-300' : 'text-slate-500'} />
+                        {translating && <Loader2 size={12} className="text-indigo-300 animate-spin" />}
+                        <span className="text-xs font-bold text-slate-400 ml-1">رابطك المخصص:</span>
+                        <span className={`text-sm font-black tracking-wide ${previewSubdomain ? 'text-white' : 'text-slate-600'}`}>
+                            {previewSubdomain ? <><span className="text-indigo-300">{previewSubdomain}</span>.namainvist.com</> : 'يُولد تلقائياً'}
+                        </span>
+                    </div>
+                </div>
 
-          {restoring ? (
-            <div style={{ padding: '20px' }}>
-              <div style={{
-                width: '48px', height: '48px', margin: '0 auto 16px',
-                border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1',
-                borderRadius: '50%', animation: 'spin 1s linear infinite',
-              }} />
-              <p style={{ color: '#a5b4fc', fontWeight: 600 }}>⏳ جاري استعادة النسخة الاحتياطية...</p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    {STEP_LABELS.map((label, i) => {
+                        const stepNum = (i + 1) as Step;
+                        const isActive = step === stepNum;
+                        const isDone = step > stepNum;
+                        return (
+                            <div key={i} className="flex items-center gap-2">
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isDone ? 'bg-emerald-500 text-white' : isActive ? 'bg-indigo-500 text-white' : 'bg-white/10 text-slate-400'}`}>
+                                    {isDone ? <CheckCircle size={12} /> : <span>{stepNum}</span>} {label}
+                                </div>
+                                {i < 2 && <ChevronLeft size={14} className="text-slate-600" />}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+                    {errorMsg && <div className="mb-6 bg-red-500/20 border border-red-400/40 text-red-300 rounded-xl px-4 py-3 text-sm font-bold">⚠️ {errorMsg}</div>}
+
+                    {step === 1 && (
+                        <div className="space-y-5">
+                            <div className="flex items-center gap-2 text-indigo-300 font-black text-base mb-2"><Building2 size={18}/> بيانات المنشأة</div>
+                            
+                            <div><label className="block text-sm font-bold text-slate-300 mb-1.5">الدولة *</label>
+                            <select value={country} onChange={e => setCountry(e.target.value)} className={INPUT_CLASS} style={{ colorScheme: 'dark' }}>
+                                <option value="SA" style={{ background: '#1e293b' }}>🇸🇦 السعودية</option>
+                            </select></div>
+
+                            <div><label className="block text-sm font-bold text-slate-300 mb-1.5">اسم المنشأة بالعربية *</label>
+                            <input type="text" value={companyNameAr} onChange={e => setCompanyNameAr(e.target.value)} placeholder="مثال: مؤسسة نما" className={INPUT_CLASS} /></div>
+
+                            <div><label className="block text-sm font-bold text-slate-300 mb-1.5">اسم المنشأة بالإنجليزية *</label>
+                            <input type="text" value={companyNameEn} onChange={e => setCompanyNameEn(e.target.value)} className={INPUT_CLASS} dir="ltr" /></div>
+
+                            <div><label className="block text-sm font-bold text-slate-300 mb-1.5">مجال العمل *</label>
+                            <select value={businessDomain} onChange={e => setBusinessDomain(e.target.value)} className={INPUT_CLASS} style={{ colorScheme: 'dark' }}>
+                                <option value="" style={{ background: '#1e293b' }}>-- اختر مجال العمل --</option>
+                                {BUSINESS_DOMAINS.map(d => <option key={d} value={d} style={{ background: '#1e293b' }}>{d}</option>)}
+                            </select></div>
+
+                            <div><label className="block text-sm font-bold text-slate-300 mb-1.5">رقم الهاتف *</label>
+                            <input type="tel" value={mobile} onChange={e => handleMobileChange(e.target.value)} placeholder="05xxxxxxxx" dir="ltr" maxLength={10} className={`${INPUT_CLASS} ${mobileErr ? 'border-red-400/60' : ''}`} />
+                            {mobileErr && <p className="mt-1 text-xs text-red-400">{mobileErr}</p>}</div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-5">
+                            <div className="flex items-center gap-2 text-indigo-300 font-black text-base mb-2"><MapPin size={18}/> الموقع والبيانات الضريبية</div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">المدينة (عربي) *</label><input type="text" value={city} onChange={e => setCity(e.target.value)} className={INPUT_CLASS} /></div>
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">المدينة (إنجليزي)</label><input type="text" value={cityEn} onChange={e => setCityEn(e.target.value)} className={INPUT_CLASS} dir="ltr" /></div>
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">الحي *</label><input type="text" value={district} onChange={e => setDistrict(e.target.value)} className={INPUT_CLASS} /></div>
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">الشارع *</label><input type="text" value={streetName} onChange={e => setStreetName(e.target.value)} className={INPUT_CLASS} /></div>
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">رقم المبنى *</label><input type="text" value={buildingNo} onChange={e => handleBuildingChange(e.target.value)} className={INPUT_CLASS} dir="ltr" maxLength={4} /></div>
+                                <div><label className="block text-sm font-bold text-slate-300 mb-1.5">الرمز البريدي *</label><input type="text" value={postalCode} onChange={e => handlePostalChange(e.target.value)} className={INPUT_CLASS} dir="ltr" maxLength={5} /></div>
+                            </div>
+                            <div className="pt-2 border-t border-white/10 mt-4">
+                                <div className="flex items-center gap-2 text-indigo-300 font-black text-base mb-2"><FileText size={18}/> البيانات الضريبية (إجبارية)</div>
+                                <div className="grid grid-cols-1 gap-4 mt-4">
+                                    <div><label className="block text-sm font-bold text-slate-300 mb-1.5">الرقم الضريبي VAT *</label><input type="text" value={vatNumber} onChange={e => handleVatChange(e.target.value)} className={`${INPUT_CLASS} font-mono tracking-widest`} dir="ltr" maxLength={15} /></div>
+                                    <div><label className="block text-sm font-bold text-slate-300 mb-1.5">السجل التجاري CRN *</label><input type="text" value={crnNumber} onChange={e => handleCrnChange(e.target.value)} className={`${INPUT_CLASS} font-mono tracking-widest`} dir="ltr" maxLength={10} /></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-indigo-300 font-black text-base mb-2"><CheckCircle size={18}/> مراجعة البيانات</div>
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 text-sm">
+                                <div className="flex items-center justify-between"><span className="text-slate-400">المنشأة</span><span className="text-white font-bold">{companyNameAr}</span></div>
+                                <div className="flex items-center justify-between"><span className="text-slate-400">المجال</span><span className="text-white font-bold">{businessDomain}</span></div>
+                                <div className="flex items-center justify-between"><span className="text-slate-400">الرقم الضريبي</span><span className="text-white font-bold">{vatNumber}</span></div>
+                                <div className="flex items-center justify-between"><span className="text-slate-400">السجل التجاري</span><span className="text-white font-bold">{crnNumber}</span></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
+                        <button onClick={prevStep} disabled={step === 1} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/20 text-slate-300 font-bold text-sm hover:bg-white/10 transition-all disabled:opacity-30">
+                            <ChevronRight size={16} /> السابق
+                        </button>
+                        {step < 3 ? (
+                            <button onClick={nextStep} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 text-white font-bold text-sm shadow-lg transition-all">
+                                التالي <ChevronLeft size={16} />
+                            </button>
+                        ) : (
+                            <button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-black text-sm shadow-lg transition-all">
+                                {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> جاري الحفظ...</> : <>🚀 تفعيل النظام</>}
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
-          ) : (
-            <>
-              {errorMsg && (
-                <div style={{
-                  marginBottom: '16px', padding: '10px', borderRadius: '10px',
-                  background: 'rgba(239,68,68,0.15)', color: '#fca5a5', fontSize: '13px',
-                }}>⚠️ {errorMsg}</div>
-              )}
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button
-                  style={{
-                    ...btnPrimary,
-                    background: 'linear-gradient(135deg, #059669, #10b981)',
-                    boxShadow: '0 4px 20px rgba(16,185,129,0.4)',
-                  }}
-                  onClick={handleRestoreBackup}
-                >
-                  ✅ نعم، استعادة النسخة
-                </button>
-                <button style={btnSecondary} onClick={skipRestore}>
-                  ❌ لا، بداية جديدة
-                </button>
-              </div>
-            </>
-          )}
         </div>
-      </div>
     );
-  }
-
-  if (successMsg && !showRestorePrompt) {
-    return (
-      <div style={containerStyle}>
-        <div style={{ ...cardStyle, textAlign: 'center' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🏢</div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#34d399', marginBottom: '8px' }}>
-            {successMsg}
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
-            جاري التحويل للوحة التحكم...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '64px', height: '64px', margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-            borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '32px', boxShadow: '0 8px 30px rgba(99,102,241,0.3)',
-          }}>🏢</div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
-            إعداد بيانات المنشأة
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
-            أدخل بيانات شركتك لتفعيل النظام
-          </p>
-
-          {/* Step indicator */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
-            {['بيانات المنشأة', 'الموقع والبيانات الضريبية'].map((label, i) => (
-              <div key={i} style={{
-                padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 700,
-                background: step === i + 1 ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.05)',
-                color: step === i + 1 ? '#a5b4fc' : 'rgba(255,255,255,0.3)',
-                border: `1px solid ${step === i + 1 ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
-              }}>
-                {i + 1}. {label}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Error */}
-        {errorMsg && (
-          <div style={{
-            marginBottom: '20px', padding: '12px 16px', borderRadius: '12px',
-            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
-            color: '#fca5a5', fontSize: '13px', fontWeight: 600,
-          }}>
-            ⚠️ {errorMsg}
-          </div>
-        )}
-
-        {/* Step 1 */}
-        {step === 1 && (
-          <div>
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>اسم المنشأة بالعربية *</label>
-              <input style={inputStyle} value={companyNameAr}
-                onChange={e => setCompanyNameAr(e.target.value)}
-                placeholder="مثال: مؤسسة نما للتجارة" />
-            </div>
-
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>اسم المنشأة بالإنجليزية</label>
-              <input style={{ ...inputStyle, direction: 'ltr' }} value={companyNameEn}
-                onChange={e => setCompanyNameEn(e.target.value)}
-                placeholder="e.g. Nama Trading Est." />
-            </div>
-
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>مجال العمل *</label>
-              <select style={{ ...inputStyle, cursor: 'pointer' }} value={businessDomain}
-                onChange={e => setBusinessDomain(e.target.value)}>
-                <option value="" style={{ background: '#1e293b' }}>-- اختر مجال العمل --</option>
-                {BUSINESS_DOMAINS.map(d => (
-                  <option key={d} value={d} style={{ background: '#1e293b' }}>{d}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>رقم الجوال * (10 أرقام)</label>
-              <input style={{ ...inputStyle, direction: 'ltr' }} value={mobile}
-                onChange={e => setMobile(e.target.value)}
-                placeholder="05XXXXXXXX" maxLength={10} />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '24px' }}>
-              <button style={btnPrimary} onClick={nextStep}>
-                التالي ←
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2 */}
-        {step === 2 && (
-          <div>
-            <div style={twoColStyle}>
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>المدينة *</label>
-                <input style={inputStyle} value={city}
-                  onChange={e => setCity(e.target.value)}
-                  placeholder="الرياض" />
-              </div>
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>الحي</label>
-                <input style={inputStyle} value={district}
-                  onChange={e => setDistrict(e.target.value)}
-                  placeholder="العليا" />
-              </div>
-            </div>
-
-            <div style={twoColStyle}>
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>اسم الشارع</label>
-                <input style={inputStyle} value={streetName}
-                  onChange={e => setStreetName(e.target.value)}
-                  placeholder="شارع الملك فهد" />
-              </div>
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>رقم المبنى (4 أرقام)</label>
-                <input style={{ ...inputStyle, direction: 'ltr' }} value={buildingNo}
-                  onChange={e => setBuildingNo(e.target.value)}
-                  placeholder="1234" maxLength={4} />
-              </div>
-            </div>
-
-            <div style={fieldGroupStyle}>
-              <label style={labelStyle}>الرمز البريدي (5 أرقام)</label>
-              <input style={{ ...inputStyle, direction: 'ltr', maxWidth: '200px' }} value={postalCode}
-                onChange={e => setPostalCode(e.target.value)}
-                placeholder="12345" maxLength={5} />
-            </div>
-
-            <div style={{
-              marginTop: '20px', paddingTop: '20px',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-            }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#a5b4fc', marginBottom: '16px' }}>
-                📋 البيانات الضريبية
-              </h3>
-
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>الرقم الضريبي VAT (15 رقم — يبدأ وينتهي بـ 3)</label>
-                <input style={{ ...inputStyle, direction: 'ltr', fontFamily: 'monospace', letterSpacing: '2px' }}
-                  value={vatNumber} onChange={e => setVatNumber(e.target.value)}
-                  placeholder="3XXXXXXXXXXXXX3" maxLength={15} />
-                {vatNumber && /^3\d{13}3$/.test(vatNumber) && (
-                  <p style={{ color: '#34d399', fontSize: '12px', marginTop: '4px' }}>✅ الرقم الضريبي صحيح</p>
-                )}
-                {vatNumber && vatNumber.length === 15 && !/^3\d{13}3$/.test(vatNumber) && (
-                  <p style={{ color: '#f87171', fontSize: '12px', marginTop: '4px' }}>❌ صيغة الرقم الضريبي غير صحيحة</p>
-                )}
-              </div>
-
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>السجل التجاري CRN (10 أرقام — يبدأ بـ 7)</label>
-                <input style={{ ...inputStyle, direction: 'ltr', fontFamily: 'monospace', letterSpacing: '2px' }}
-                  value={crnNumber} onChange={e => setCrnNumber(e.target.value)}
-                  placeholder="7XXXXXXXXX" maxLength={10} />
-                {crnNumber && /^7\d{9}$/.test(crnNumber) && (
-                  <p style={{ color: '#34d399', fontSize: '12px', marginTop: '4px' }}>✅ السجل التجاري صحيح</p>
-                )}
-                {crnNumber && crnNumber.length === 10 && !/^7\d{9}$/.test(crnNumber) && (
-                  <p style={{ color: '#f87171', fontSize: '12px', marginTop: '4px' }}>❌ صيغة السجل التجاري غير صحيحة</p>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '12px' }}>
-              <button style={btnSecondary} onClick={() => { setStep(1); setErrorMsg(''); }}>
-                → السابق
-              </button>
-              <button style={{
-                ...btnPrimary,
-                background: saving ? '#64748b' : 'linear-gradient(135deg, #059669, #10b981)',
-                boxShadow: '0 4px 20px rgba(16,185,129,0.4)',
-              }} onClick={handleSubmit} disabled={saving}>
-                {saving ? '⏳ جاري الحفظ...' : '✅ حفظ وتفعيل النظام'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }

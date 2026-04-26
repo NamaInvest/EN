@@ -45,6 +45,12 @@ function writeFile(remotePath, localPath) {
       await writeFile(`${base}/src/middleware.ts`, 'src/middleware.ts');
       await writeFile(`${base}/package.json`, 'package.json');
       await writeFile(`${base}/next.config.ts`, 'next.config.ts');
+      await writeFile(`${base}/src/app/globals.css`, 'src/app/globals.css');
+      await writeFile(`${base}/src/app/company-setup/page.tsx`, 'src/app/company-setup/page.tsx');
+      await writeFile(`${base}/src/app/ice/page.tsx`, 'src/app/ice/page.tsx');
+      await writeFile(`${base}/src/app/api/ice/desktop-register/route.ts`, 'src/app/api/ice/desktop-register/route.ts');
+      await writeFile(`${base}/src/app/api/ice/desktop-licenses/route.ts`, 'src/app/api/ice/desktop-licenses/route.ts');
+      await writeFile(`${base}/src/app/updates/desktop/[file]/route.ts`, 'src/app/updates/desktop/[file]/route.ts');
       
       console.log(`\n=== Building Next.js for ${base} ===`);
       await ssh(`cd ${base} && rm -rf .next && npm run build`);
