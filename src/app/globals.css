@@ -211,6 +211,7 @@ body {
 
 /* Global failsafe to prevent repeating chevrons on select inputs */
 select {
+  appearance: none !important;
   background-repeat: no-repeat !important;
 }
 

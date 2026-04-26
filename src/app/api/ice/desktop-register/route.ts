@@ -18,6 +18,11 @@ function generateLicenseKey(): string {
   return segments.join('-');
 }
 
+function toSlug(text: string): string {
+  if (!text) return '';
+  return text.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+}
+
 async function ensureTable() {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS desktop_licenses (
@@ -36,6 +41,7 @@ async function ensureTable() {
       street_name VARCHAR(255),
       building_no VARCHAR(10),
       postal_code VARCHAR(10),
+      subdomain VARCHAR(100) UNIQUE,
       status VARCHAR(20) DEFAULT 'trial',
       app_version VARCHAR(20),
       max_devices INTEGER DEFAULT 1,
@@ -52,6 +58,7 @@ async function ensureTable() {
   `);
   try {
     await prisma.$executeRawUnsafe(`ALTER TABLE desktop_licenses ADD COLUMN IF NOT EXISTS device_name VARCHAR(255)`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE desktop_licenses ADD COLUMN IF NOT EXISTS subdomain VARCHAR(100) UNIQUE`);
   } catch {}
 }
 
@@ -76,7 +83,7 @@ export async function POST(req: NextRequest) {
       await ensureTable();
 
       const found = await prisma.$queryRawUnsafe(
-        `SELECT id, license_key, status, expires_at, trial_ends_at FROM desktop_licenses WHERE license_key = $1 LIMIT 1`,
+        `SELECT id, license_key, status, expires_at, trial_ends_at, subdomain FROM desktop_licenses WHERE license_key = $1 LIMIT 1`,
         existingLicenseKey
       ) as any[];
 
@@ -97,6 +104,7 @@ export async function POST(req: NextRequest) {
           status: found[0].status,
           expires_at: found[0].expires_at,
           trial_ends_at: found[0].trial_ends_at,
+          subdomain: found[0].subdomain,
           message: 'تم المزامنة بنجاح',
           synced: true,
         });
@@ -127,6 +135,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let subdomain = body.subdomain || '';
+    if (!subdomain && companyNameEn) {
+      subdomain = toSlug(companyNameEn);
+    }
+    if (!subdomain) {
+      subdomain = 'dsk';
+    }
+    subdomain = subdomain + '-' + Math.floor(Math.random() * 100000);
+
     // ── Normal registration (first time — no existing key) ──
     // Check if this hardware already registered
     if (hardwareId) {
@@ -145,6 +162,7 @@ export async function POST(req: NextRequest) {
           success: true,
           license_key: existing[0].license_key,
           status: existing[0].status,
+          subdomain: existing[0].subdomain,
           message: 'جهاز مسجّل مسبقاً',
           already_registered: true,
         });
@@ -162,14 +180,14 @@ export async function POST(req: NextRequest) {
       INSERT INTO desktop_licenses 
         (license_key, hardware_id, device_name, company_name_ar, company_name_en, business_domain,
          mobile, vat_number, crn_number, city, city_en, district, street_name,
-         building_no, postal_code, status, app_version, trial_ends_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'trial', $16, NOW() + INTERVAL '${trialDays} days')
+         building_no, postal_code, subdomain, status, app_version, trial_ends_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'trial', $17, NOW() + INTERVAL '${trialDays} days')
     `,
       licenseKey, hardwareId || null, deviceName || null,
       companyNameAr, companyNameEn || null, businessDomain || null,
       mobile || null, vatNumber || null, crnNumber || null,
       city || null, cityEn || null, district || null, streetName || null,
-      buildingNo || null, postalCode || null, appVersion || '1.0.0'
+      buildingNo || null, postalCode || null, subdomain, appVersion || '1.0.0'
     );
 
     // Check if a previous registration with matching company data has backups
@@ -239,6 +257,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       license_key: licenseKey,
+      subdomain: subdomain,
       status: 'trial',
       trial_days: trialDays,
       message: 'تم تسجيل الشركة بنجاح',

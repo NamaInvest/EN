@@ -144,3 +144,35 @@ node deploy_ice_panel.js
 - The app uses Next.js with Prisma, deployed via PM2
 - **GitHub Repo**: `https://github.com/iceman18ice-sketch/namasoft9-3.git`
 - For fleet deploys always use Node.js ssh2 scripts (not OpenSSH) since fleet server uses password auth
+
+---
+
+# Desktop App Version Release Workflow (Nama Invest)
+
+When preparing and releasing a new version for the Desktop Electron app, you must strictly follow these rules to avoid breaking the server or the desktop app:
+
+1. **Version Update:**
+   - Always increment the version number in `package.json` before building the desktop app.
+   - The web server dynamically reads `package.json` to inform the desktop app of the latest version (via `/api/version/route.ts`).
+
+2. **Next.js Output Configuration (`next.config.ts`):**
+   - **CRITICAL:** Do NOT set `output: 'standalone'` globally in `next.config.ts`. If you do, `PM2` (which uses `next start` on the SaaS servers) will enter an infinite restart loop and throw `ReferenceError: request is not defined`.
+   - Instead, use a conditional build flag: 
+     ```typescript
+     if (process.env.ELECTRON_BUILD) {
+       nextConfig.output = 'standalone';
+     }
+     ```
+   - Build the Electron app using `set ELECTRON_BUILD=1 && npm run build`.
+
+3. **Uploading the Installer:**
+   - After compiling the `.exe` installer (usually ~900MB), always upload it using `upload.ps1` or `upload-installer.js`.
+   - Ensure the path is exactly `/www/wwwroot/namainvist.com/public/updates/desktop/NamaInvest-Setup-{version}.exe` to match the dynamic `/api/version` URL.
+
+4. **Web Server Synchronization:**
+   - After changing `package.json`, you must upload the new `package.json`, `src/app/page.tsx`, and `src/app/api/version/route.ts` to both `namainvist.com` and `n11.namainvist.com`.
+   - Run `node update-web-version.js` to automatically push these files, clear `.next`, and rebuild `pm2`.
+
+5. **Clerk Middleware Rules (`src/middleware.ts`):**
+   - Any API routes that the desktop app needs to access without user authentication (like `/api/sys/desktop-crash` and `/api/version`) **MUST** be explicitly declared in `isPublicRoute` in `middleware.ts`.
+   - If missing, Clerk will intercept the desktop's JSON requests and return an HTML login page (throwing HTTP ERROR 405 or 404 in the desktop app).

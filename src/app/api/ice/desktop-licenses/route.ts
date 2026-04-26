@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
               mobile, vat_number, crn_number,
               city, city_en, district, street_name, building_no, postal_code,
               contact_email, contact_phone,
-              status, app_version, max_devices, activated_devices,
+              subdomain, status, app_version, max_devices, activated_devices,
               trial_ends_at, expires_at, activated_at, last_verified_at, notes,
               created_at, updated_at, tenant_account_id,
               COALESCE(company_name_ar, '') as company_name
