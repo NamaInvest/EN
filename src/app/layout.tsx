@@ -278,6 +278,10 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html:
           `document.addEventListener('focusin',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.select();}});`
         }} />
+        {/* Force English numerals (0-9) globally */}
+        <script dangerouslySetInnerHTML={{ __html:
+          `(function(){var _nls=Number.prototype.toLocaleString;Number.prototype.toLocaleString=function(l,o){l=l||'en-US';return _nls.call(this,l,o);}})();`
+        }} />
       </head>
       <body>
         {!isDesktopMode && (
