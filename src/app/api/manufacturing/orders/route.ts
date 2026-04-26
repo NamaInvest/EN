@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
                 orderNumber,
                 recipeId: parseInt(body.recipeId),
                 machineId: body.machineId ? parseInt(body.machineId) : null,
-                quantityToProduce: parseFloat(body.quantityToProduce),
+                quantityToProduce: parseFloat(body.quantityToProduce || body.quantity),
                 status: 'draft',
                 stockId: body.stockId ? parseInt(body.stockId) : 1,
                 userId: auth?.userId || null,

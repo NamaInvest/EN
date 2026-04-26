@@ -280,7 +280,7 @@ export default async function RootLayout({
         }} />
         {/* Force English numerals (0-9) globally */}
         <script dangerouslySetInnerHTML={{ __html:
-          `(function(){var _nls=Number.prototype.toLocaleString;Number.prototype.toLocaleString=function(l,o){l=l||'en-US';return _nls.call(this,l,o);}})();`
+          `(function(){var _nls=Number.prototype.toLocaleString;Number.prototype.toLocaleString=function(l,o){return _nls.call(this,'en-US',o);};var _INF=Intl.NumberFormat;Intl.NumberFormat=function(l,o){if(typeof l==='string'&&l.indexOf('ar')===0)l='en-US';return new _INF(l||'en-US',o);};Intl.NumberFormat.prototype=_INF.prototype;Intl.NumberFormat.supportedLocalesOf=_INF.supportedLocalesOf;})();`
         }} />
       </head>
       <body>

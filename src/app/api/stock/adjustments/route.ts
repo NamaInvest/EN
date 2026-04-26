@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request || req);
+    const _auth = _getAuth(req);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {

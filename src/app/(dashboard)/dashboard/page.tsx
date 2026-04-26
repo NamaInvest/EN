@@ -92,7 +92,7 @@ export default function DashboardPage() {
     };
 
     const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-US', {
+        return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }).format(value) + ' ' + t('common.sar');

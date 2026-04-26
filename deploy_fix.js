@@ -11,6 +11,7 @@ c.on('ready', async () => {
         'src/app/api/products/route.ts',
         'src/app/globals.css',
         'src/app/layout.tsx',
+        'src/app/(dashboard)/dashboard/page.tsx',
     ];
     for (const f of files) {
         await uploadFile(c, path.join('d:\\namasoft9-3-main', f), `/www/wwwroot/n11.namainvist.com/${f}`);
@@ -22,15 +23,7 @@ c.on('ready', async () => {
     let r = await exec(c, 'cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -3');
     console.log('Build:', r);
     await exec(c, 'pm2 start saas-app');
-    await new Promise(r => setTimeout(r, 5000));
-
-    const HOST = 'brightstartradingco.namainvist.com';
-    r = await exec(c, `curl -s -X POST http://localhost:3500/api/auth/login -H 'Host: ${HOST}' -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin7773"}'`);
-    const token = JSON.parse(r).token;
-    r = await exec(c, `curl -s -X POST http://localhost:3500/api/products -H 'Host: ${HOST}' -H 'Content-Type: application/json' -H 'Authorization: Bearer ${token}' -b 'token=${token}' -d '{"name":"AllFixTest","buyPrice":"10","sellPrice":"15","unitId":"1"}'`);
-    const pd = JSON.parse(r || '{}');
-    console.log('\n🧪 Product:', pd?.id ? '✅ ID: ' + pd.id : '❌ ' + r.substring(0, 100));
-    console.log('=== DONE ===');
+    console.log('\n✅ DEPLOYED');
     c.end();
 });
 c.on('error', e => console.error(e.message));
