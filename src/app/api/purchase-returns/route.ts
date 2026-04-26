@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
 import { postPurchaseReturn } from '@/lib/auto-journal';
 import { purchaseReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const returns = await prisma.purchaseReturn.findMany({ orderBy: { id: 'desc' } });

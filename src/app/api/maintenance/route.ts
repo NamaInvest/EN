@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const items = await prisma.maintenance.findMany({ orderBy: { id: 'desc' } });

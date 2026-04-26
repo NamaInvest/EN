@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const installments = await prisma.installment.findMany({ include: { customer: { select: { id: true, name: true, phone: true,  } }, payments: true }, orderBy: { id: 'desc' } });

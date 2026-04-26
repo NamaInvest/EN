@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - شجرة الحسابات
-export async function GET() {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const accounts = await prisma.account.findMany({

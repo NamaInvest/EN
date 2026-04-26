@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const quotes = await prisma.priceQuote.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
