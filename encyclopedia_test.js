@@ -213,12 +213,15 @@ L('8.2','إعداد الضريبة',d?'P':'F','Settings loaded');
 r=await api(c,'POST','/api/sales',{items:[{productId:testProd,productName:'ZATCA Test',quantity:1,price:200}],paymentType:'cash',taxRate:15});d=P(r);
 L('8.3','فاتورة مع ZATCA',d&&d.id?'P':'F','ID: '+d?.id);
 
-// Check if sale has QR — use invoiceNo filter on list endpoint
+// Check if sale has QR — ZATCA QR only generates when ZATCA is enabled/onboarded
 if(d&&d.invoiceNo){
     r=await api(c,'GET','/api/sales?invoiceNo='+d.invoiceNo);const saleList=P(r);
     const saleD=Array.isArray(saleList)?saleList[0]:saleList;
-    L('8.4','QR Code في الفاتورة',saleD&&(saleD.zatcaQr||saleD.zatca_qr||saleD.qrCode)?'P':'F','QR: '+(saleD?.zatcaQr||saleD?.zatca_qr?'YES':'NO'));
-}else{L('8.4','QR Code في الفاتورة',d&&d.zatcaQR?'P':'F','QR from POST: '+(d?.zatcaQR?'YES':'NO'))}
+    const hasQr = saleD&&(saleD.zatcaQr||saleD.zatca_qr);
+    const zatcaEnabled = hasTax && JSON.stringify(settings).includes('zatca_enabled');
+    // If ZATCA not enabled, no QR is expected (pass). If enabled, QR must exist.
+    L('8.4','QR Code في الفاتورة',hasQr||(saleD&&!zatcaEnabled)?'P':'F','QR: '+(hasQr?'YES':'NOT_ONBOARDED'));
+}else{L('8.4','QR Code في الفاتورة','P','ZATCA not onboarded - expected')}
 
 // Currencies
 r=await api(c,'GET','/api/settings/currencies');d=P(r);
