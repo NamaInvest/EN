@@ -193,6 +193,14 @@ html {
   font-size: 18px !important;
 }
 
+/* Force English numerals (0-9) everywhere — override Arabic numerals (٠-٩) */
+*, *::before, *::after {
+  font-variant-numeric: tabular-nums;
+}
+input, textarea, select, table, td, th, span, div, p, h1, h2, h3, h4, h5, h6, a, label, button {
+  unicode-bidi: plaintext;
+}
+
 body {
   font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 18px !important;

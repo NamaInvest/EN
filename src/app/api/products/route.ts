@@ -97,8 +97,9 @@ export async function POST(request: Request) {
             });
         }
 
-        const product = await prisma.product.create({
-            data: {
+        // Prisma XOR: can't mix scalar FKs (unitId) with nested relations (productUnits:{create})
+        // Use UncheckedCreateInput (scalar FKs only), then create productUnits separately
+        const productData: any = {
                 name: body.name,
                 barcode,
                 categoryId: body.categoryId ? parseInt(body.categoryId) : null,
@@ -117,23 +118,30 @@ export async function POST(request: Request) {
                 expiryDate: body.expiryDate || null,
                 binLocation: body.binLocation || null,
                 imagePath: body.imagePath || '',
-                productUnits: body.productUnits && Array.isArray(body.productUnits) ? {
-                    create: body.productUnits.map((pu: any) => ({
-                        unitId: parseInt(pu.unitId),
-                        barcode: pu.barcode || null,
-                        sellPrice: parseFloat(pu.sellPrice) || 0,
-                        buyPrice: parseFloat(pu.buyPrice) || 0,
-                        // factor = parentQty × parentUnit.factor ( أو مباشرة إذا حبة)
-                        factor: parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
-                        isBase: Boolean(pu.isBase),
-                        unitStock: parseFloat(pu.unitStock) || 0,
-                        parentQty: parseFloat(pu.parentQty) || 1,
-                        parentUnitId: pu.parentUnitId ? parseInt(pu.parentUnitId) : null,
-                        sortOrder: parseInt(pu.sortOrder) || 0,
-                    }))
-                } : undefined,
-            },
+        };
+
+        const product = await prisma.product.create({
+            data: productData,
         });
+
+        // Create product units separately (nested relation)
+        if (body.productUnits && Array.isArray(body.productUnits) && body.productUnits.length > 0) {
+            await prisma.productUnit.createMany({
+                data: body.productUnits.map((pu: any) => ({
+                    productId: product.id,
+                    unitId: parseInt(pu.unitId),
+                    barcode: pu.barcode || null,
+                    sellPrice: parseFloat(pu.sellPrice) || 0,
+                    buyPrice: parseFloat(pu.buyPrice) || 0,
+                    factor: parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
+                    isBase: Boolean(pu.isBase),
+                    unitStock: parseFloat(pu.unitStock) || 0,
+                    parentQty: parseFloat(pu.parentQty) || 1,
+                    parentUnitId: pu.parentUnitId ? parseInt(pu.parentUnitId) : null,
+                    sortOrder: parseInt(pu.sortOrder) || 0,
+                }))
+            });
+        }
 
         // Initialize stock in default warehouse (ID 1)
         try {
