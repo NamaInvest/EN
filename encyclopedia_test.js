@@ -71,8 +71,8 @@ console.log('🔄 الاستراتيجية 2: فحص التدفقات (Workflow 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
 console.log('⏰ 8:00 — فتح المحل:');
-r=await api(c,'POST','/api/shifts',{type:'open',openingBalance:2000});d=P(r);
-L('2.1','فتح وردية',d&&!d.error?'P':'F','OK');
+r=await api(c,'POST','/api/shifts',{userId:1,startCash:2000});d=P(r);
+L('2.1','فتح وردية',d&&(d.id||d.status==='open')?'P':'F','Shift ID: '+(d?.id||d?.error));
 r=await api(c,'GET','/api/treasury');d=P(r);
 L('2.2','رصيد الصندوق',d!==null?'P':'F','Balance: '+(d?.balance||'N/A'));
 r=await api(c,'GET','/api/reports/inventory');d=P(r);
@@ -213,11 +213,12 @@ L('8.2','إعداد الضريبة',d?'P':'F','Settings loaded');
 r=await api(c,'POST','/api/sales',{items:[{productId:testProd,productName:'ZATCA Test',quantity:1,price:200}],paymentType:'cash',taxRate:15});d=P(r);
 L('8.3','فاتورة مع ZATCA',d&&d.id?'P':'F','ID: '+d?.id);
 
-// Check if sale has QR
-if(d&&d.id){
-    r=await api(c,'GET','/api/sales/'+d.id);const saleD=P(r);
-    L('8.4','QR Code في الفاتورة',saleD&&(saleD.zatcaQr||saleD.qrCode)?'P':'F','QR: '+(saleD?.zatcaQr?'YES':'NO'));
-}else{L('8.4','QR Code في الفاتورة','F','No sale')}
+// Check if sale has QR — use invoiceNo filter on list endpoint
+if(d&&d.invoiceNo){
+    r=await api(c,'GET','/api/sales?invoiceNo='+d.invoiceNo);const saleList=P(r);
+    const saleD=Array.isArray(saleList)?saleList[0]:saleList;
+    L('8.4','QR Code في الفاتورة',saleD&&(saleD.zatcaQr||saleD.zatca_qr||saleD.qrCode)?'P':'F','QR: '+(saleD?.zatcaQr||saleD?.zatca_qr?'YES':'NO'));
+}else{L('8.4','QR Code في الفاتورة',d&&d.zatcaQR?'P':'F','QR from POST: '+(d?.zatcaQR?'YES':'NO'))}
 
 // Currencies
 r=await api(c,'GET','/api/settings/currencies');d=P(r);

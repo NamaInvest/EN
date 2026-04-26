@@ -13,7 +13,7 @@ import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
     productName: z.string().optional(),
-    quantity: z.union([z.string(), z.number()]),
+    quantity: z.union([z.string(), z.number()]).transform(v => Number(v)).pipe(z.number().positive('الكمية يجب أن تكون أكبر من صفر')),
     price: z.union([z.string(), z.number()]),
     discountRate: z.union([z.string(), z.number()]).optional().default(0),
     unitFactor: z.union([z.string(), z.number()]).optional().default(1),
