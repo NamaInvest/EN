@@ -73,6 +73,14 @@ function writeFile(remotePath, localPath) {
       await writeFile(`${base}/src/app/api/cron/scheduled-reports/route.ts`, 'src/app/api/cron/scheduled-reports/route.ts');
       await writeFile(`${base}/src/app/api/customers/[id]/gdpr-delete/route.ts`, 'src/app/api/customers/[id]/gdpr-delete/route.ts');
 
+      // === Integration — Modified Existing Files ===
+      await ssh(`mkdir -p ${base}/src/app/api/inventory/costing ${base}/src/components`);
+      await writeFile(`${base}/src/app/(dashboard)/layout.tsx`, 'src/app/(dashboard)/layout.tsx');
+      await writeFile(`${base}/src/components/HijriDate.tsx`, 'src/components/HijriDate.tsx');
+      await writeFile(`${base}/src/app/api/employees/route.ts`, 'src/app/api/employees/route.ts');
+      await writeFile(`${base}/src/app/api/manufacturing/orders/route.ts`, 'src/app/api/manufacturing/orders/route.ts');
+      await writeFile(`${base}/src/app/api/inventory/costing/route.ts`, 'src/app/api/inventory/costing/route.ts');
+
       // === Updated Schema ===
       await writeFile(`${base}/prisma/schema.prisma`, 'prisma/schema.prisma');
       
