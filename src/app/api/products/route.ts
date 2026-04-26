@@ -82,6 +82,17 @@ export async function POST(request: Request) {
         }
         // -----------------------------------
 
+        // ── Input Validation ──────────────────────────────────────────────
+        if (!body.name || String(body.name).trim().length === 0) {
+            return NextResponse.json({ error: 'اسم المنتج مطلوب' }, { status: 400 });
+        }
+        if (body.buyPrice !== undefined && parseFloat(body.buyPrice) < 0) {
+            return NextResponse.json({ error: 'سعر الشراء لا يمكن أن يكون سالباً' }, { status: 400 });
+        }
+        if (body.sellPrice !== undefined && parseFloat(body.sellPrice) < 0) {
+            return NextResponse.json({ error: 'سعر البيع لا يمكن أن يكون سالباً' }, { status: 400 });
+        }
+
         // Auto-generate barcode if not provided
         let barcode = body.barcode || null;
         if (!barcode) {
