@@ -85,7 +85,7 @@ async function uploadToS3(buffer: Buffer, key: string): Promise<UploadResult> {
             'Authorization': `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
             'Content-Type': 'application/octet-stream',
         },
-        body: buffer,
+        body: new Uint8Array(buffer),
     });
 
     if (!response.ok) throw new Error(`S3 upload failed: ${response.status}`);

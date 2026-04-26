@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
 
 const FROM = `"${process.env.EMAIL_FROM_NAME || 'نما انفست'}" <${process.env.EMAIL_FROM || 'noreply@namainvist.com'}>`;
 
+// Supported providers: 'smtp' (default), 'sendgrid', 'ses'
+const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'smtp';
+
 export interface EmailOptions {
     to: string;
     subject: string;
@@ -19,14 +22,57 @@ export interface EmailOptions {
     text?: string;
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<boolean> {
+export async function sendEmail(opts: EmailOptions): Promise<boolean> {
     try {
-        await transporter.sendMail({ from: FROM, to, subject, html, text });
+        if (EMAIL_PROVIDER === 'sendgrid' && process.env.SENDGRID_API_KEY) {
+            return await sendViaSendGrid(opts);
+        }
+        if (EMAIL_PROVIDER === 'ses' && process.env.AWS_SES_REGION) {
+            return await sendViaSES(opts);
+        }
+        // Default: SMTP via nodemailer
+        await transporter.sendMail({ from: FROM, ...opts });
         return true;
     } catch (err) {
         console.error('[Email] Failed to send:', err);
         return false;
     }
+}
+
+/** SendGrid v3 API */
+async function sendViaSendGrid({ to, subject, html, text }: EmailOptions): Promise<boolean> {
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            personalizations: [{ to: [{ email: to }] }],
+            from: { email: process.env.EMAIL_FROM || 'noreply@namainvist.com', name: process.env.EMAIL_FROM_NAME || 'نما انفست' },
+            subject,
+            content: [
+                ...(text ? [{ type: 'text/plain', value: text }] : []),
+                { type: 'text/html', value: html },
+            ],
+        }),
+    });
+    return res.ok || res.status === 202;
+}
+
+/** Amazon SES via SMTP (uses nodemailer with SES config) */
+async function sendViaSES(opts: EmailOptions): Promise<boolean> {
+    const sesTransport = nodemailer.createTransport({
+        host: `email-smtp.${process.env.AWS_SES_REGION}.amazonaws.com`,
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.AWS_SES_ACCESS_KEY || '',
+            pass: process.env.AWS_SES_SECRET_KEY || '',
+        },
+    });
+    await sesTransport.sendMail({ from: FROM, ...opts });
+    return true;
 }
 
 // ─── Template: Welcome ───────────────────────────────────────────────────────

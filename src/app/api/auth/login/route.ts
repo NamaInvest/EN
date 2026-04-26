@@ -49,7 +49,14 @@ export async function POST(request: Request) {
             );
         }
 
-
+        // ── 2FA Check ──────────────────────────────────────────────
+        if ((user as any).totpEnabled) {
+            return NextResponse.json({
+                requires2FA: true,
+                userId: user.id,
+                message: 'يرجى إدخال رمز التحقق الثنائي',
+            }, { status: 200 });
+        }
 
         const token = generateToken({
             userId: user.id,
