@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { encrypt, decrypt, maskSensitive } from '@/lib/encryption';
 
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
@@ -12,7 +13,13 @@ export async function GET(request: Request) {
             include: { branch: true },
             orderBy: { id: 'desc' } 
         });
-        return NextResponse.json(employees);
+        // فك تشفير IBAN للعرض (مع القناع)
+        const result = employees.map((emp: any) => ({
+            ...emp,
+            iban: emp.iban ? maskSensitive(decrypt(emp.iban), 4, 4) : null,
+            ibanFull: emp.iban ? decrypt(emp.iban) : null,
+        }));
+        return NextResponse.json(result);
     } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
@@ -36,7 +43,7 @@ export async function POST(request: Request) {
                 transportAllowance: parseFloat(body.transportAllowance) || 0,
                 otherAllowance: parseFloat(body.otherAllowance) || 0,
                 bankName: body.bankName || null,
-                iban: body.iban || null,
+                iban: body.iban ? encrypt(body.iban) : null,
                 startDate: body.startDate || null,
                 branchId: body.branchId ? parseInt(body.branchId) : null 
             },
