@@ -23,24 +23,24 @@ function writeFile(remotePath, localPath) {
     c.on('ready', () => {
       c.sftp((err, sftp) => {
         if (err) { console.error('sftp error:', err.message); return r(); }
-        const stream = sftp.createWriteStream(remotePath);
-        const readStream = fs.createReadStream(localPath);
         
-        let uploaded = 0;
-        const total = fs.statSync(localPath).size;
-        
-        readStream.on('data', chunk => {
-            uploaded += chunk.length;
-            const percent = ((uploaded / total) * 100).toFixed(1);
-            process.stdout.write(`\rUploading ${path.basename(localPath)}... ${percent}%`);
+        console.log(`Starting upload of ${path.basename(localPath)}...`);
+        sftp.fastPut(localPath, remotePath, {
+          step: (transferred, chunk, total) => {
+             const percent = ((transferred / total) * 100).toFixed(1);
+             process.stdout.write(`\rUploading ${path.basename(localPath)}... ${percent}%`);
+          }
+        }, (err) => {
+          if (err) {
+             console.error(`\n[✗]`, remotePath, err.message);
+          } else {
+             console.log(`\n[✓] Uploaded`, remotePath);
+          }
+          c.end();
+          r();
         });
-        
-        readStream.pipe(stream);
-        
-        stream.on('close', () => { console.log(`\n[✓] Uploaded`, remotePath); c.end(); r(); });
-        stream.on('error', e => { console.error(`\n[✗]`, remotePath, e.message); c.end(); r(); });
       });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 60000 });
   });
 }
 

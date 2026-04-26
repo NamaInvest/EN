@@ -16,6 +16,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/auth/sso-redirect(.*)',
   '/api/webhooks(.*)',
   '/api/og(.*)',
+  '/api/version(.*)',
+  '/api/sys(.*)',
   '/auto-login(.*)',
   '/updates(.*)',
 ]);

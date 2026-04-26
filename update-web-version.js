@@ -42,7 +42,9 @@ function writeFile(remotePath, localPath) {
       console.log(`\n=== Uploading dynamic version files to ${base} ===`);
       await writeFile(`${base}/src/app/page.tsx`, 'src/app/page.tsx');
       await writeFile(`${base}/src/app/api/version/route.ts`, 'src/app/api/version/route.ts');
+      await writeFile(`${base}/src/middleware.ts`, 'src/middleware.ts');
       await writeFile(`${base}/package.json`, 'package.json');
+      await writeFile(`${base}/next.config.ts`, 'next.config.ts');
       
       console.log(`\n=== Building Next.js for ${base} ===`);
       await ssh(`cd ${base} && rm -rf .next && npm run build`);
