@@ -97,50 +97,45 @@ export async function POST(request: Request) {
             });
         }
 
-        // Pure UncheckedCreateInput - all scalar FKs, no relation connect
-        const productData: any = {
-                name: body.name,
-                barcode,
-                unitId: body.unitId ? parseInt(body.unitId) : 1,
-                buyPrice: parseFloat(body.buyPrice) || 0,
-                sellPrice: parseFloat(body.sellPrice) || 0,
-                taxRate: parseFloat(body.taxRate) ?? 15,
-                minQuantity: parseFloat(body.minQuantity) || 0,
-                currentStock: parseFloat(body.currentStock) || 0,
-                description: body.description || null,
-                nameEn: body.nameEn || body.name || '',
-                brandAr: body.brandAr || '',
-                brandEn: body.brandEn || '',
-                sizeInfo: body.sizeInfo || '',
-                sellByWeight: body.sellByWeight || false,
-                expiryDate: body.expiryDate || null,
-                binLocation: body.binLocation || null,
-                imagePath: body.imagePath || '',
-        };
-        if (body.categoryId) productData.categoryId = parseInt(body.categoryId);
+        // Use raw SQL to bypass Prisma 5.22.0 XOR type detection bug
+        const uId = body.unitId ? parseInt(body.unitId) : 1;
+        const catId = body.categoryId ? parseInt(body.categoryId) : null;
+        const bPrice = parseFloat(body.buyPrice) || 0;
+        const sPrice = parseFloat(body.sellPrice) || 0;
+        const tRate = parseFloat(body.taxRate) ?? 15;
+        const minQty = parseFloat(body.minQuantity) || 0;
+        const curStock = parseFloat(body.currentStock) || 0;
 
-        const product = await prisma.product.create({
-            data: productData,
-        });
+        const result: any[] = await prisma.$queryRawUnsafe(`
+            INSERT INTO products (name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, min_quantity, current_stock, description, name_en, brand_ar, brand_en, size_info, sell_by_weight, expiry_date, bin_location, image_path, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+            RETURNING *`,
+            body.name, barcode, catId, uId, bPrice, sPrice, tRate, minQty, curStock,
+            body.description || null,
+            body.nameEn || body.name || '',
+            body.brandAr || '', body.brandEn || '', body.sizeInfo || '',
+            body.sellByWeight || false,
+            body.expiryDate || null, body.binLocation || null,
+            body.imagePath || ''
+        );
+        const product = result[0];
 
-        // Create product units separately (nested relation)
+        // Create product units if provided
         if (body.productUnits && Array.isArray(body.productUnits) && body.productUnits.length > 0) {
-            await prisma.productUnit.createMany({
-                data: body.productUnits.map((pu: any) => ({
-                    productId: product.id,
-                    unitId: parseInt(pu.unitId),
-                    barcode: pu.barcode || null,
-                    sellPrice: parseFloat(pu.sellPrice) || 0,
-                    buyPrice: parseFloat(pu.buyPrice) || 0,
-                    factor: parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
-                    isBase: Boolean(pu.isBase),
-                    unitStock: parseFloat(pu.unitStock) || 0,
-                    parentQty: parseFloat(pu.parentQty) || 1,
-                    parentUnitId: pu.parentUnitId ? parseInt(pu.parentUnitId) : null,
-                    sortOrder: parseInt(pu.sortOrder) || 0,
-                }))
-            });
+            for (const pu of body.productUnits) {
+                await prisma.$queryRawUnsafe(`
+                    INSERT INTO product_units (product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                    product.id, parseInt(pu.unitId), pu.barcode || null,
+                    parseFloat(pu.sellPrice) || 0, parseFloat(pu.buyPrice) || 0,
+                    parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
+                    Boolean(pu.isBase), parseFloat(pu.unitStock) || 0,
+                    parseFloat(pu.parentQty) || 1, parseInt(pu.sortOrder) || 0
+                );
+            }
         }
+
+
 
         // Initialize stock in default warehouse (ID 1)
         try {
