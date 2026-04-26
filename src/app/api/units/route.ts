@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-// GET all units (used as packaging unit names)
-export async function GET() {
+// GET all units
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } });
@@ -29,9 +29,8 @@ export async function POST(request: NextRequest) {
 
 // DELETE a unit by id
 export async function DELETE(request: NextRequest) {
-    // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
+    const _auth = getUserFromRequest(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
