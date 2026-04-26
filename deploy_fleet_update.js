@@ -1,8 +1,7 @@
 /**
- * Deploy to ALL nodes on Fleet Server (46.4.188.170)
+ * Fleet Deploy v2 — Upload once, copy internally to all nodes
  */
 const { Client } = require('ssh2');
-const fs = require('fs');
 const path = require('path');
 
 const HOST = '46.4.188.170';
@@ -26,104 +25,100 @@ const FILES = [
     'prisma/schema.prisma',
 ];
 
-const NODES = [
-    { name: 'main-site', path: '/www/wwwroot/namainvist.com', pm2: 'main-site' },
-    { name: 'n2', path: '/www/wwwroot/n2.namainvist.com', pm2: 'n2' },
-    { name: 'n3', path: '/www/wwwroot/n3.namainvist.com', pm2: 'n3' },
-    { name: 'n4', path: '/www/wwwroot/n4.namainvist.com', pm2: 'n4' },
-    { name: 'n5', path: '/www/wwwroot/n5.namainvist.com', pm2: 'n5' },
-    { name: 'n6', path: '/www/wwwroot/n6.namainvist.com', pm2: 'n6' },
-    { name: 'n7', path: '/www/wwwroot/n7.namainvist.com', pm2: 'n7' },
-    { name: 'n8', path: '/www/wwwroot/n8.namainvist.com', pm2: 'n8' },
-    { name: 'n9', path: '/www/wwwroot/n9.namainvist.com', pm2: 'n9' },
-    { name: 'n10', path: '/www/wwwroot/n10.namainvist.com', pm2: 'n10' },
-    { name: 'n11', path: '/www/wwwroot/n11.namainvist.com', pm2: 'n11' },
-];
+// N1 already deployed. These are the remaining nodes.
+const NODES = ['namainvist.com','n2.namainvist.com','n3.namainvist.com','n4.namainvist.com','n5.namainvist.com','n6.namainvist.com','n7.namainvist.com','n8.namainvist.com','n9.namainvist.com','n10.namainvist.com','n11.namainvist.com'];
+const PM2_MAP = {'namainvist.com':'main-site','n2.namainvist.com':'n2','n3.namainvist.com':'n3','n4.namainvist.com':'n4','n5.namainvist.com':'n5','n6.namainvist.com':'n6','n7.namainvist.com':'n7','n8.namainvist.com':'n8','n9.namainvist.com':'n9','n10.namainvist.com':'n10','n11.namainvist.com':'n11'};
 
-function deployToNode(node) {
+function execCmd(conn, cmd) {
+    return new Promise((resolve) => {
+        conn.exec(cmd, (err, stream) => {
+            if (err) { resolve('ERROR: ' + err.message); return; }
+            let out = '';
+            stream.on('data', (d) => out += d.toString());
+            stream.stderr.on('data', (d) => out += d.toString());
+            stream.on('close', () => resolve(out));
+        });
+    });
+}
+
+function uploadFiles(conn) {
     return new Promise((resolve, reject) => {
-        const conn = new Client();
-        conn.on('ready', () => {
-            console.log(`[${node.name}] Connected`);
-            
-            // First check if node directory exists
-            conn.exec(`test -d ${node.path}/src && echo EXISTS || echo MISSING`, (err, stream) => {
-                if (err) { conn.end(); resolve(); return; }
-                let result = '';
-                stream.on('data', (d) => result += d.toString().trim());
-                stream.on('close', () => {
-                    if (result.includes('MISSING')) {
-                        console.log(`[${node.name}] SKIPPED — directory doesn't exist`);
-                        conn.end();
-                        resolve();
-                        return;
-                    }
-                    
-                    // Create directories
-                    const dirs = [...new Set(FILES.map(f => path.posix.dirname(f)))];
-                    const mkdirCmd = dirs.map(d => `mkdir -p ${node.path}/${d}`).join(' && ');
-                    
-                    conn.exec(mkdirCmd, (err, stream) => {
-                        if (err) { conn.end(); resolve(); return; }
-                        stream.on('close', () => {
-                            conn.sftp((err, sftp) => {
-                                if (err) { conn.end(); resolve(); return; }
-                                
-                                let uploaded = 0;
-                                let errors = 0;
-                                FILES.forEach(file => {
-                                    const localPath = path.join(LOCAL_BASE, file);
-                                    const remotePath = `${node.path}/${file}`;
-                                    
-                                    sftp.fastPut(localPath, remotePath, (err) => {
-                                        uploaded++;
-                                        if (err) { errors++; }
-                                        
-                                        if (uploaded === FILES.length) {
-                                            console.log(`[${node.name}] ${uploaded - errors}/${uploaded} files uploaded`);
-                                            
-                                            // Prisma generate + Build + Restart
-                                            console.log(`[${node.name}] Building...`);
-                                            conn.exec(`cd ${node.path} && npx prisma generate 2>&1 && npm run build 2>&1 && pm2 restart ${node.pm2} 2>&1 && echo __BUILD_OK__`, 
-                                            { pty: false }, (err, stream) => {
-                                                if (err) { console.log(`[${node.name}] exec error`); conn.end(); resolve(); return; }
-                                                let out = '';
-                                                stream.on('data', (d) => out += d.toString());
-                                                stream.stderr.on('data', (d) => out += d.toString());
-                                                stream.on('close', () => {
-                                                    if (out.includes('__BUILD_OK__')) {
-                                                        console.log(`[${node.name}] ✅ BUILD DONE`);
-                                                    } else {
-                                                        console.log(`[${node.name}] ❌ BUILD FAILED`);
-                                                        // Still try restart with old build
-                                                        conn.exec(`pm2 restart ${node.pm2} 2>/dev/null`, () => {});
-                                                    }
-                                                    conn.end();
-                                                    resolve();
-                                                });
-                                            });
-                                        }
-                                    });
-                                });
-                            });
-                        });
-                    });
+        conn.sftp((err, sftp) => {
+            if (err) { reject(err); return; }
+            let done = 0;
+            // Upload to n1 as source (already has dirs)
+            FILES.forEach(file => {
+                const local = path.join(LOCAL_BASE, file);
+                const remote = `/www/wwwroot/n1.namainvist.com/${file}`;
+                sftp.fastPut(local, remote, () => {
+                    done++;
+                    if (done === FILES.length) resolve();
                 });
             });
         });
-        conn.on('error', (err) => {
-            console.error(`[${node.name}] Connection error: ${err.message}`);
-            resolve(); // Don't reject, continue with next
-        });
-        conn.connect({ host: HOST, port: 22, username: 'root', password: PASSWORD, readyTimeout: 15000 });
     });
 }
 
 (async () => {
-    console.log(`Deploying ${FILES.length} files to ${NODES.length} nodes on ${HOST}...\n`);
-    for (const node of NODES) {
-        await deployToNode(node);
-        console.log('');
-    }
-    console.log('=== Fleet deploy complete ===');
+    const conn = new Client();
+    
+    conn.on('ready', async () => {
+        console.log('Connected to fleet server');
+        
+        // Step 1: Make sure source (n1) has latest files
+        console.log('Step 1: Uploading files to n1 (source)...');
+        await uploadFiles(conn);
+        console.log(`Uploaded ${FILES.length} files to n1\n`);
+        
+        // Step 2: Copy from n1 to all other nodes
+        console.log('Step 2: Copying to all nodes...');
+        const dirs = [...new Set(FILES.map(f => path.posix.dirname(f)))];
+        
+        for (const node of NODES) {
+            const nodePath = `/www/wwwroot/${node}`;
+            // Check if exists
+            const check = await execCmd(conn, `test -d ${nodePath}/src && echo OK || echo NO`);
+            if (check.trim().includes('NO')) {
+                console.log(`  [${node}] SKIP — doesn't exist`);
+                continue;
+            }
+            
+            // Create dirs
+            const mkdirs = dirs.map(d => `mkdir -p ${nodePath}/${d}`).join('; ');
+            await execCmd(conn, mkdirs);
+            
+            // Copy files
+            const copies = FILES.map(f => `cp /www/wwwroot/n1.namainvist.com/${f} ${nodePath}/${f}`).join('; ');
+            await execCmd(conn, copies);
+            console.log(`  [${node}] ✅ Files copied`);
+        }
+        
+        // Step 3: Build and restart each node sequentially
+        console.log('\nStep 3: Building and restarting nodes...');
+        for (const node of NODES) {
+            const nodePath = `/www/wwwroot/${node}`;
+            const pm2Name = PM2_MAP[node];
+            
+            const check = await execCmd(conn, `test -d ${nodePath}/src && echo OK || echo NO`);
+            if (check.trim().includes('NO')) continue;
+            
+            console.log(`  [${node}] Building...`);
+            const result = await execCmd(conn, `cd ${nodePath} && npx prisma generate 2>&1 && npm run build 2>&1 && pm2 restart ${pm2Name} 2>&1 && echo __DONE__`);
+            
+            if (result.includes('__DONE__')) {
+                console.log(`  [${node}] ✅ BUILD OK + PM2 restarted`);
+            } else if (result.includes('Build error')) {
+                console.log(`  [${node}] ❌ Build failed — restarting PM2 with old build`);
+                await execCmd(conn, `pm2 restart ${pm2Name} 2>/dev/null`);
+            } else {
+                console.log(`  [${node}] ⚠️ Unknown result`);
+            }
+        }
+        
+        console.log('\n=== Fleet deploy complete ===');
+        conn.end();
+    });
+    
+    conn.on('error', (err) => { console.error('Connection failed:', err.message); });
+    conn.connect({ host: HOST, port: 22, username: 'root', password: PASSWORD, readyTimeout: 30000 });
 })();
