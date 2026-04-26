@@ -44,6 +44,8 @@ model User {
   goodsReceipts    GoodsReceiptNote[]
   alerts           SystemAlert[]
   defaultPage      String?               @map("default_page") // الصفحة الافتراضية بعد الدخول مثل /sales أو /dashboard
+  totpSecret       String?               @map("totp_secret")
+  totpEnabled      Boolean   @default(false) @map("totp_enabled")
 
   @@map("users")
 }
