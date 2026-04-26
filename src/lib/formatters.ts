@@ -1,13 +1,13 @@
 /**
  * Formats a Date object or ISO string into a localized date string.
+ * Example: 26/04/2026
  */
-export function formatDateAR(dateInput: string | Date, useArabicNumerals = false): string {
+export function formatDateAR(dateInput: string | Date): string {
     if (!dateInput) return '-';
     try {
         const date = new Date(dateInput);
         if (isNaN(date.getTime())) return '-';
-        const str = date.toLocaleDateString('en-GB');
-        return useArabicNumerals ? toArabicDigits(str) : str;
+        return date.toLocaleDateString('en-GB');
     } catch (e) {
         return '-';
     }
@@ -15,13 +15,14 @@ export function formatDateAR(dateInput: string | Date, useArabicNumerals = false
 
 /**
  * Formats a Date object or ISO string into a localized date & time string.
+ * Example: 26/04/2026, 10:30 am
  */
-export function formatDateTimeAR(dateInput: string | Date, useArabicNumerals = false): string {
+export function formatDateTimeAR(dateInput: string | Date): string {
     if (!dateInput) return '-';
     try {
         const date = new Date(dateInput);
         if (isNaN(date.getTime())) return '-';
-        const str = date.toLocaleString('en-GB', {
+        return date.toLocaleString('en-GB', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -29,7 +30,6 @@ export function formatDateTimeAR(dateInput: string | Date, useArabicNumerals = f
             minute: '2-digit',
             hour12: true
         });
-        return useArabicNumerals ? toArabicDigits(str) : str;
     } catch (e) {
         return '-';
     }
@@ -37,39 +37,31 @@ export function formatDateTimeAR(dateInput: string | Date, useArabicNumerals = f
 
 /**
  * Formats a number as SAR currency.
+ * Example: SAR 1,250.50
  */
-export function formatCurrencyAR(amount: number, useArabicNumerals = false): string {
+export function formatCurrencyAR(amount: number): string {
     if (amount === undefined || amount === null || isNaN(amount)) return '-';
     try {
-        const str = new Intl.NumberFormat('en-GB', {
+        return new Intl.NumberFormat('en-GB', {
             style: 'currency',
             currency: 'SAR',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(amount);
-        return useArabicNumerals ? toArabicDigits(str) : str;
     } catch (e) {
         return amount.toString();
     }
 }
 
 /**
- * Formats a number with optional Arabic numerals.
+ * Formats a number with commas.
+ * Example: 1,250
  */
-export function formatNumberAR(num: number, useArabicNumerals = false): string {
+export function formatNumberAR(num: number): string {
     if (num === undefined || num === null || isNaN(num)) return '-';
     try {
-        const str = new Intl.NumberFormat('en-GB').format(num);
-        return useArabicNumerals ? toArabicDigits(str) : str;
+        return new Intl.NumberFormat('en-GB').format(num);
     } catch (e) {
         return num.toString();
     }
 }
-
-/**
- * Convert Western digits (0-9) to Arabic-Indic digits (٠-٩)
- */
-export function toArabicDigits(input: string): string {
-    return input.replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[parseInt(d)]);
-}
-
