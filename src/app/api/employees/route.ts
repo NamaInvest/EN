@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request || req);
+    const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request || req);
+    const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);

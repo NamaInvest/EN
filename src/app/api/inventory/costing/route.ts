@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { fifo, lifo, weightedAverage, CostLayer } from '@/lib/costing';
+import { fifoCost, lifoCost, averageCost, calculateCost, CostBatch } from '@/lib/costing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/inventory/costing — حساب تكلفة المخزون بطرق مختلفة
- * ?productId=1&method=fifo|lifo|average
+ * ?productId=1&method=fifo|lifo|average&qty=10
  */
 export async function GET(req: Request) {
   const user = getUserFromRequest(req as any);
@@ -31,14 +31,14 @@ export async function GET(req: Request) {
       orderBy: { id: 'asc' },
     });
 
-    const layers: CostLayer[] = purchaseDetails.map(d => ({
-      qty: d.quantity,
+    const layers: CostBatch[] = purchaseDetails.map((d, i) => ({
+      id: d.id || i + 1,
+      quantity: d.quantity,
       unitCost: d.price,
       date: d.invoice?.date || new Date(),
     }));
 
     if (layers.length === 0) {
-      // لا توجد حركات شراء — نرجع سعر الشراء المخزن
       const product = await prisma.product.findUnique({
         where: { id: productId },
         select: { name: true, buyPrice: true, currentStock: true },
@@ -57,34 +57,25 @@ export async function GET(req: Request) {
     }
 
     // 2. حساب التكلفة حسب الطريقة المطلوبة
-    let result;
-    switch (method) {
-      case 'fifo':
-        result = fifo(layers, sellQty || undefined);
-        break;
-      case 'lifo':
-        result = lifo(layers, sellQty || undefined);
-        break;
-      case 'average':
-      default:
-        result = weightedAverage(layers, sellQty || undefined);
-        break;
-    }
+    const qty = sellQty || layers.reduce((s, l) => s + l.quantity, 0);
+    const result = calculateCost(method as any, layers, qty);
 
     // 3. مقارنة الطرق الثلاث
     const comparison = {
-      fifo: fifo(layers, sellQty || undefined),
-      lifo: lifo(layers, sellQty || undefined),
-      average: weightedAverage(layers, sellQty || undefined),
+      fifo: calculateCost('fifo', layers, qty),
+      lifo: calculateCost('lifo', layers, qty),
+      average: calculateCost('average', layers, qty),
     };
 
     return NextResponse.json({
       productId,
       method,
+      sellQty: qty,
       selectedResult: result,
       comparison,
       layers: layers.map(l => ({
-        qty: l.qty,
+        id: l.id,
+        qty: l.quantity,
         unitCost: l.unitCost,
         date: l.date,
       })),
@@ -93,3 +84,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
