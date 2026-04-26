@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-handler';
 
-export async function GET() {
+export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const [inAgg, outAgg] = await Promise.all([

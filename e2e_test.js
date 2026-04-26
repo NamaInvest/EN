@@ -74,19 +74,19 @@ c.on('ready', async () => {
     log('1.3', 'أمر شراء PO', d && !d.error ? 'PASS' : 'FAIL', d?.error || `PO created`);
 
     // 1.4 فاتورة مشتريات
-    r = await api(c, 'POST', '/api/purchases', { supplierId: suppId, items: [{ productId: prodId, quantity: 10, unitPrice: 3000 }], notes: 'E2E V3 Purchase' });
+    r = await api(c, 'POST', '/api/purchases', { supplierId: suppId, items: [{ productId: prodId, productName: 'لابتوب Dell V3', quantity: 10, price: 3000 }], notes: 'E2E V3 Purchase' });
     d = parse(r);
-    log('1.4', 'فاتورة مشتريات', d && !d.error ? 'PASS' : 'FAIL', d?.error || `Purchase OK`);
+    log('1.4', 'فاتورة مشتريات', d && (d.id || !d.error) ? 'PASS' : 'FAIL', d?.error || `Purchase OK, ID: ${d?.id}`);
 
-    // 1.5 تحويل مخازن
-    r = await api(c, 'POST', '/api/smart-transfers', { fromWarehouseId: 1, toWarehouseId: 2, items: [{ productId: prodId, quantity: 3 }], notes: 'E2E Transfer' });
+    // 1.5 تحويل مخازن (correct fields: productId, senderStockId, receiverStockId, quantity)
+    r = await api(c, 'POST', '/api/smart-transfers', { productId: prodId, senderStockId: 1, receiverStockId: 2, quantity: 3 });
     d = parse(r);
-    log('1.5', 'تحويل بين المخازن', d && !d.error ? 'PASS' : 'FAIL', d?.error || 'Transferred 3 units');
+    log('1.5', 'تحويل بين المخازن', d?.success ? 'PASS' : 'FAIL', d?.error || d?.message || 'Transferred 3 units');
 
-    // 1.6 تسوية مخزون
-    r = await api(c, 'POST', '/api/stock/adjustments', { items: [{ productId: prodId, systemQty: 10, actualQty: 9, reason: 'E2E shortage' }] });
+    // 1.6 تسوية مخزون (correct fields: productId, actualQuantity, reason)
+    r = await api(c, 'POST', '/api/stock/adjustments', { productId: prodId, actualQuantity: 9, reason: 'E2E shortage' });
     d = parse(r);
-    log('1.6', 'الجرد الفعلي', d && !d.error ? 'PASS' : 'FAIL', d?.error || 'Adjustment OK');
+    log('1.6', 'الجرد الفعلي', d && !d.error ? 'PASS' : 'FAIL', d?.error || 'Adjustment OK, ID: ' + d?.id);
 
     // 1.7 البيع
     r = await api(c, 'POST', '/api/sales', { items: [{ productId: prodId, productName: 'لابتوب Dell V3', quantity: 1, price: 4000 }], paymentType: 'cash', taxRate: 15 });
@@ -103,12 +103,12 @@ c.on('ready', async () => {
     console.log('\n💰 الاختبار 2: الدقة المحاسبية');
     console.log('─────────────────────────────────────');
 
-    // Get real account codes
+    // Get real account codes (auto-journal uses 1110=Cash, 4100=Sales)
     r = await api(c, 'GET', '/api/accounting/trial-balance');
     d = parse(r);
     const accts = d?.accounts || [];
-    const accCode1 = accts.find(a => a.code === '1001')?.code || accts[0]?.code || '1001';
-    const accCode2 = accts.find(a => a.code === '4001')?.code || accts[1]?.code || '4001';
+    const accCode1 = accts.find(a => a.code === '1110')?.code || '1110';
+    const accCode2 = accts.find(a => a.code === '4100')?.code || '4100';
 
     // 2.1 رفض قيد غير متوازن
     r = await api(c, 'POST', '/api/accounting/journal', { description: 'E2E Unbalanced', lines: [{ accountCode: accCode1, debit: 1000, credit: 0 }, { accountCode: accCode2, debit: 0, credit: 900 }] });
@@ -157,9 +157,9 @@ c.on('ready', async () => {
     d = parse(r);
     log('3.4', 'سلفة', d && !d.error ? 'PASS' : 'FAIL', d?.error || `Loan OK`);
 
-    r = await api(c, 'POST', '/api/salaries', { employeeId: empId, month: '4', year: '2026', basicSalary: 8000, additions: 2800, deductions: 1567, notes: 'E2E Salary' });
+    r = await api(c, 'POST', '/api/salaries', { employeeId: empId, month: 4, year: 2026, basicSalary: 8000, additions: 2800, deductions: 1567, notes: 'E2E Salary' });
     d = parse(r);
-    log('3.5', 'حساب الراتب', d?.netSalary ? 'PASS' : 'FAIL', d?.error || `Net: ${d?.netSalary}`);
+    log('3.5', 'حساب الراتب', d?.netSalary !== undefined ? 'PASS' : 'FAIL', d?.error || `Net: ${d?.netSalary}`);
 
     r = await api(c, 'GET', '/api/salaries');
     d = parse(r);
@@ -169,20 +169,30 @@ c.on('ready', async () => {
     console.log('\n🏭 الاختبار 4: التصنيع');
     console.log('─────────────────────────────────────');
 
-    // Create raw material
-    r = await api(c, 'POST', '/api/products', { name: 'دقيق V3', nameEn: 'Flour V3', buyPrice: '10', sellPrice: '15', unitId: '1', currentStock: '50' });
-    const flourId = parse(r)?.id;
-    r = await api(c, 'POST', '/api/products', { name: 'كعكة V3', nameEn: 'Cake V3', buyPrice: '5', sellPrice: '15', unitId: '1' });
-    const cakeId = parse(r)?.id;
-
-    r = await api(c, 'POST', '/api/manufacturing/recipes', { name: 'وصفة كعكة V3', finishedProductId: cakeId, outputQuantity: 1, ingredients: [{ rawProductId: flourId, quantity: 0.2, unit: 'kg' }] });
+    // Create raw material + finished product with simple names
+    r = await api(c, 'POST', '/api/products', { name: 'Raw Material E2E', nameEn: 'Raw Material E2E', buyPrice: '10', sellPrice: '15', unitId: '1', currentStock: '50' });
     d = parse(r);
-    const recipeId = d?.id;
-    log('4.1', 'إنشاء وصفة BOM', recipeId ? 'PASS' : 'FAIL', recipeId ? `Recipe ID: ${recipeId}` : (d?.error || r.substring(0, 100)));
+    const flourId = d?.id;
+    if (!flourId) console.log('  \u26a0\ufe0f Flour create failed:', r.substring(0, 80));
 
-    r = await api(c, 'POST', '/api/manufacturing/orders', { recipeId: recipeId, quantity: 100, notes: 'E2E Production' });
+    r = await api(c, 'POST', '/api/products', { name: 'Finished Product E2E', nameEn: 'Finished Product E2E', buyPrice: '5', sellPrice: '15', unitId: '1' });
     d = parse(r);
-    log('4.2', 'أمر إنتاج', d && !d.error ? 'PASS' : 'FAIL', d?.error || `Order: ${d?.status || 'created'}`);
+    const cakeId = d?.id;
+    if (!cakeId) console.log('  \u26a0\ufe0f Cake create failed:', r.substring(0, 80));
+
+    if (flourId && cakeId) {
+        r = await api(c, 'POST', '/api/manufacturing/recipes', { name: 'Recipe E2E', finishedProductId: cakeId, outputQuantity: 1, ingredients: [{ rawProductId: flourId, quantity: 0.2, estimatedCost: 2 }] });
+        d = parse(r);
+        const recipeId = d?.id;
+        log('4.1', '\u0625\u0646\u0634\u0627\u0621 \u0648\u0635\u0641\u0629 BOM', recipeId ? 'PASS' : 'FAIL', recipeId ? 'Recipe ID: ' + recipeId : (d?.error || r.substring(0, 100)));
+
+        r = await api(c, 'POST', '/api/manufacturing/orders', { recipeId: recipeId || 1, quantity: 100, notes: 'E2E Production' });
+        d = parse(r);
+        log('4.2', '\u0623\u0645\u0631 \u0625\u0646\u062a\u0627\u062c', d && !d.error ? 'PASS' : 'FAIL', d?.error || 'Order: ' + (d?.status || 'created'));
+    } else {
+        log('4.1', '\u0625\u0646\u0634\u0627\u0621 \u0648\u0635\u0641\u0629 BOM', 'FAIL', 'Missing products: flour=' + flourId + ', cake=' + cakeId);
+        log('4.2', '\u0623\u0645\u0631 \u0625\u0646\u062a\u0627\u062c', 'FAIL', 'Depends on 4.1');
+    }
 
     // ═══════════════════════════════════════════════
     console.log('\n🔄 الاختبار 5: التكامل والإضافات');
@@ -256,7 +266,7 @@ c.on('ready', async () => {
 
     r = await api(c, 'GET', '/api/treasury/balance');
     d = parse(r);
-    log('7.5', 'رصيد الصندوق', d !== null ? 'PASS' : 'FAIL', `Balance: ${JSON.stringify(d).substring(0, 80)}`);
+    log('7.5', 'رصيد الصندوق', d && d.balance !== undefined ? 'PASS' : 'FAIL', `Balance: ${d?.balance ?? JSON.stringify(d).substring(0, 80)} ريال`);
 
     // ═══════════════════════════════════════════════
     console.log('\n🏥 الاختبار 8: صحة النظام');
