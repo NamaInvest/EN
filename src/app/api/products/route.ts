@@ -97,12 +97,10 @@ export async function POST(request: Request) {
             });
         }
 
-        // Prisma XOR: can't mix scalar FKs (unitId) with nested relations (productUnits:{create})
-        // Use UncheckedCreateInput (scalar FKs only), then create productUnits separately
+        // Pure UncheckedCreateInput - all scalar FKs, no relation connect
         const productData: any = {
                 name: body.name,
                 barcode,
-                categoryId: body.categoryId ? parseInt(body.categoryId) : null,
                 unitId: body.unitId ? parseInt(body.unitId) : 1,
                 buyPrice: parseFloat(body.buyPrice) || 0,
                 sellPrice: parseFloat(body.sellPrice) || 0,
@@ -119,6 +117,7 @@ export async function POST(request: Request) {
                 binLocation: body.binLocation || null,
                 imagePath: body.imagePath || '',
         };
+        if (body.categoryId) productData.categoryId = parseInt(body.categoryId);
 
         const product = await prisma.product.create({
             data: productData,
