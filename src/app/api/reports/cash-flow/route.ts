@@ -25,13 +25,13 @@ export async function GET(req: Request) {
 
     // 1. التدفقات التشغيلية (Operating)
     const salesTotal = await prisma.salesInvoice.aggregate({
-      where: { date: dateFilter, paymentType: 'cash' },
-      _sum: { paid: true },
+      where: { date: dateFilter },
+      _sum: { total: true, paid: true },
     });
 
     const purchasesTotal = await prisma.purchaseInvoice.aggregate({
-      where: { date: dateFilter, paymentType: 'cash' },
-      _sum: { paid: true },
+      where: { date: dateFilter },
+      _sum: { total: true, paid: true },
     });
 
     const expensesTotal = await prisma.expense.aggregate({
@@ -39,15 +39,21 @@ export async function GET(req: Request) {
       _sum: { amount: true },
     });
 
-    const salariesTotal = await prisma.salary.aggregate({
-      _sum: { netSalary: true },
-    });
+    let salariesSum = 0;
+    try {
+      const salariesTotal = await prisma.salary.aggregate({ _sum: { netSalary: true } });
+      salariesSum = salariesTotal._sum.netSalary || 0;
+    } catch { /* salary table may not exist */ }
 
     // 2. التدفقات الاستثمارية (Investing)
-    const assetsTotal = await (prisma as any).fixedAsset?.aggregate?.({
-      where: { purchaseDate: dateFilter },
-      _sum: { cost: true },
-    });
+    let assetsSum = 0;
+    try {
+      const assetsTotal = await (prisma as any).fixedAsset.aggregate({
+        where: { purchaseDate: dateFilter },
+        _sum: { purchasePrice: true },
+      });
+      assetsSum = assetsTotal?._sum?.purchasePrice || 0;
+    } catch { /* fixedAsset table may not exist */ }
 
     // 3. حركات الخزينة المباشرة
     const treasuryIn = await prisma.treasury.aggregate({
@@ -64,13 +70,13 @@ export async function GET(req: Request) {
     const operating = {
       label: 'التدفقات التشغيلية',
       inflows: {
-        sales: salesTotal._sum.paid || 0,
+        sales: salesTotal._sum.total || 0,
         otherIncome: treasuryIn._sum.amount || 0,
       },
       outflows: {
-        purchases: purchasesTotal._sum.paid || 0,
+        purchases: purchasesTotal._sum.total || 0,
         expenses: expensesTotal._sum.amount || 0,
-        salaries: salariesTotal._sum.netSalary || 0,
+        salaries: salariesSum,
         otherPayments: treasuryOut._sum.amount || 0,
       },
       net: 0,
@@ -82,8 +88,8 @@ export async function GET(req: Request) {
 
     const investing = {
       label: 'التدفقات الاستثمارية',
-      assetPurchases: assetsTotal?._sum?.cost || 0,
-      net: -(assetsTotal?._sum?.cost || 0),
+      assetPurchases: assetsSum,
+      net: -assetsSum,
     };
 
     const financing = {
@@ -102,7 +108,7 @@ export async function GET(req: Request) {
       summary: {
         totalInflows: operating.inflows.sales + operating.inflows.otherIncome,
         totalOutflows: operating.outflows.purchases + operating.outflows.expenses +
-          operating.outflows.salaries + operating.outflows.otherPayments + (assetsTotal?._sum?.cost || 0),
+          operating.outflows.salaries + operating.outflows.otherPayments + assetsSum,
         net: netCashFlow,
       },
     });
