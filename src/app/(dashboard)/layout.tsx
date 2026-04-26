@@ -1,4 +1,5 @@
 import Sidebar from '@/components/Sidebar';
+import HijriDate from '@/components/HijriDate';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SessionGuard from '@/components/SessionGuard';
@@ -60,6 +61,7 @@ export default function DashboardLayout({
                             نظام نما إنفست
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <HijriDate />
                             <PrintButton />
                             <StockNotificationBell />
                             <LanguageSwitcher />
