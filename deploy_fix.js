@@ -9,9 +9,12 @@ c.on('ready', async () => {
     console.log('🔧 Upload ALL fixes + Clean build\n');
     const files = [
         'src/app/api/products/route.ts',
+        'src/app/api/stock/adjustments/route.ts',
+        'src/app/api/manufacturing/orders/route.ts',
+        'src/app/(dashboard)/sales/options/page.tsx',
+        'src/app/(dashboard)/dashboard/page.tsx',
         'src/app/globals.css',
         'src/app/layout.tsx',
-        'src/app/(dashboard)/dashboard/page.tsx',
     ];
     for (const f of files) {
         await uploadFile(c, path.join('d:\\namasoft9-3-main', f), `/www/wwwroot/n11.namainvist.com/${f}`);
@@ -20,10 +23,11 @@ c.on('ready', async () => {
 
     await exec(c, 'pm2 stop saas-app');
     await exec(c, 'rm -rf /www/wwwroot/n11.namainvist.com/.next');
-    let r = await exec(c, 'cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -3');
+    let r = await exec(c, 'cd /www/wwwroot/n11.namainvist.com && npm run build 2>&1 | tail -5');
     console.log('Build:', r);
     await exec(c, 'pm2 start saas-app');
-    console.log('\n✅ DEPLOYED');
+    await new Promise(r => setTimeout(r, 5000));
+    console.log('\n✅ DEPLOYED — Running E2E...\n');
     c.end();
 });
 c.on('error', e => console.error(e.message));
