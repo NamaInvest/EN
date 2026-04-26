@@ -18,6 +18,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/og(.*)',
   '/api/version(.*)',
   '/api/sys(.*)',
+  '/api/demo(.*)',
   '/auto-login(.*)',
   '/updates(.*)',
 ]);
