@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
+import { runMRP } from '@/lib/mrp-engine';
 
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
@@ -48,7 +49,15 @@ export async function POST(request: NextRequest) {
             include: { recipe: true, machine: true }
         });
 
-        return NextResponse.json(newOrder, { status: 201 });
+        // تشغيل MRP — فحص توفر المواد الخام وتوليد طلب شراء تلقائي عند النقص
+        let mrpResult = null;
+        try {
+            mrpResult = await runMRP(newOrder.id);
+        } catch (mrpErr) {
+            console.warn('MRP check failed (non-blocking):', mrpErr);
+        }
+
+        return NextResponse.json({ ...newOrder, mrp: mrpResult }, { status: 201 });
     } catch (error: any) {
         return apiError(error, 'Error creating Manufacturing Order', { context: 'manufacturing/orders' });
     }
