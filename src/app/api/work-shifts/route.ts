@@ -1,0 +1,70 @@
+import { NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/work-shifts — قائمة الورديات
+ * POST /api/work-shifts — إنشاء وردية جديدة
+ */
+export async function GET(req: Request) {
+  const user = getUserFromRequest(req as any);
+  if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+  try {
+    const shifts = await (prisma as any).workShift?.findMany?.({
+      orderBy: { id: 'asc' },
+    });
+
+    if (!shifts) {
+      // إرجاع ورديات افتراضية إذا لم يتم ترحيل قاعدة البيانات
+      return NextResponse.json({
+        shifts: [
+          { id: 1, name: 'صباحي', startTime: '08:00', endTime: '16:00', breakMins: 60, active: true },
+          { id: 2, name: 'مسائي', startTime: '16:00', endTime: '00:00', breakMins: 60, active: true },
+          { id: 3, name: 'ليلي', startTime: '00:00', endTime: '08:00', breakMins: 60, active: true },
+        ],
+        generated: true,
+      });
+    }
+
+    return NextResponse.json({ shifts });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  const user = getUserFromRequest(req as any);
+  if (!user || user.role !== 'admin') {
+    return NextResponse.json({ error: 'صلاحية المدير مطلوبة' }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const { name, startTime, endTime, breakMins } = body;
+
+    if (!name || !startTime || !endTime) {
+      return NextResponse.json({ error: 'الاسم ووقت البداية والنهاية مطلوبة' }, { status: 400 });
+    }
+
+    const shift = await (prisma as any).workShift?.create?.({
+      data: {
+        name,
+        startTime,
+        endTime,
+        breakMins: parseInt(breakMins) || 60,
+      },
+    });
+
+    if (!shift) {
+      return NextResponse.json({ error: 'يحتاج ترحيل قاعدة البيانات' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, shift });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
