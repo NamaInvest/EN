@@ -39,6 +39,9 @@ function writeFile(remotePath, localPath) {
   ];
   
   for (const base of bases) {
+      console.log(`\n=== Creating new directories on ${base} ===`);
+      await ssh(`mkdir -p ${base}/src/app/api/vendor-ratings ${base}/src/app/api/fiscal-periods ${base}/src/app/api/work-shifts ${base}/src/app/api/reports/cash-flow ${base}/src/app/api/reports/what-if ${base}/src/app/api/banks/import ${base}/src/app/api/field-service ${base}/src/app/api/cron/scheduled-reports "${base}/src/app/api/customers/[id]/gdpr-delete"`);
+
       console.log(`\n=== Uploading dynamic version files to ${base} ===`);
       await writeFile(`${base}/src/app/page.tsx`, 'src/app/page.tsx');
       await writeFile(`${base}/src/app/api/version/route.ts`, 'src/app/api/version/route.ts');
@@ -52,6 +55,26 @@ function writeFile(remotePath, localPath) {
       await writeFile(`${base}/src/app/api/ice/desktop-licenses/route.ts`, 'src/app/api/ice/desktop-licenses/route.ts');
       await writeFile(`${base}/src/app/updates/desktop/[file]/route.ts`, 'src/app/updates/desktop/[file]/route.ts');
       await writeFile(`${base}/src/app/api/demo/enter/route.ts`, 'src/app/api/demo/enter/route.ts');
+
+      // === Gap Closure — New Libraries ===
+      await writeFile(`${base}/src/lib/hijri.ts`, 'src/lib/hijri.ts');
+      await writeFile(`${base}/src/lib/costing.ts`, 'src/lib/costing.ts');
+      await writeFile(`${base}/src/lib/encryption.ts`, 'src/lib/encryption.ts');
+      await writeFile(`${base}/src/lib/mrp-engine.ts`, 'src/lib/mrp-engine.ts');
+
+      // === Gap Closure — New APIs ===
+      await writeFile(`${base}/src/app/api/vendor-ratings/route.ts`, 'src/app/api/vendor-ratings/route.ts');
+      await writeFile(`${base}/src/app/api/fiscal-periods/route.ts`, 'src/app/api/fiscal-periods/route.ts');
+      await writeFile(`${base}/src/app/api/work-shifts/route.ts`, 'src/app/api/work-shifts/route.ts');
+      await writeFile(`${base}/src/app/api/reports/cash-flow/route.ts`, 'src/app/api/reports/cash-flow/route.ts');
+      await writeFile(`${base}/src/app/api/reports/what-if/route.ts`, 'src/app/api/reports/what-if/route.ts');
+      await writeFile(`${base}/src/app/api/banks/import/route.ts`, 'src/app/api/banks/import/route.ts');
+      await writeFile(`${base}/src/app/api/field-service/route.ts`, 'src/app/api/field-service/route.ts');
+      await writeFile(`${base}/src/app/api/cron/scheduled-reports/route.ts`, 'src/app/api/cron/scheduled-reports/route.ts');
+      await writeFile(`${base}/src/app/api/customers/[id]/gdpr-delete/route.ts`, 'src/app/api/customers/[id]/gdpr-delete/route.ts');
+
+      // === Updated Schema ===
+      await writeFile(`${base}/prisma/schema.prisma`, 'prisma/schema.prisma');
       
       console.log(`\n=== Building Next.js for ${base} ===`);
       await ssh(`cd ${base} && rm -rf .next && npm run build`);
