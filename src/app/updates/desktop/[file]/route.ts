@@ -10,9 +10,14 @@ export const dynamic = 'force-dynamic';
  * 
  * يوفّر ملف معلومات التحديث لـ electron-updater
  */
-export async function GET(req: Request, { params }: { params: { file: string } }) {
-    const file = params.file;
+export async function GET(req: Request, { params }: { params: { file: string } | Promise<{ file: string }> }) {
+    const resolvedParams = await Promise.resolve(params);
+    const file = resolvedParams?.file;
     
+    if (!file) {
+        return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
+    }
+
     // أنواع الملفات المسموح بها فقط
     const allowed = ['latest.yml', 'latest-mac.yml', 'latest-linux.yml'];
     if (!allowed.includes(file) && !file.endsWith('.exe') && !file.endsWith('.dmg') && !file.endsWith('.AppImage') && !file.endsWith('.blockmap')) {
