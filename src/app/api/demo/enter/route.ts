@@ -5,18 +5,16 @@ import jwt from 'jsonwebtoken';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'namainvest-jwt-secret-2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'namainvest-secret';
+const DEMO_SUBDOMAIN = 'brightstartradingco';
 
 /**
  * GET /api/demo/enter
  * 
  * مسار الدخول التجريبي المباشر — يسمح بالدخول لحساب الشركة الوهمية
  * بدون الحاجة لاسم مستخدم أو كلمة سر.
- * 
- * يقوم بتوليد JWT Token تلقائياً ويحوّل الزائر للوحة التحكم.
  */
 export async function GET(req: Request) {
-    const DEMO_SUBDOMAIN = 'brightstartradingco';
     const DEMO_DB_URL = `postgresql://n11_db:n11_pass123@localhost:5432/${DEMO_SUBDOMAIN}_db?schema=public`;
 
     let prisma: PrismaClient | null = null;
@@ -35,22 +33,19 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: 'لم يتم العثور على حساب المدير' }, { status: 404 });
         }
 
-        // توليد JWT Token
+        // توليد JWT Token بنفس الطريقة المستخدمة في النظام
         const token = jwt.sign(
             {
                 userId: admin.id,
                 username: admin.username,
                 role: admin.role,
-                fullName: admin.fullName || 'مدير النظام',
-                demo: true,
             },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
         // إنشاء صفحة HTML تقوم بتخزين الـ Token وتحويل الزائر للداشبورد
-        const html = `
-<!DOCTYPE html>
+        const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
@@ -67,9 +62,7 @@ export async function GET(req: Request) {
             color: white;
             font-family: 'Noto Sans Arabic', sans-serif;
         }
-        .container {
-            text-align: center;
-        }
+        .container { text-align: center; }
         .spinner {
             width: 48px; height: 48px;
             border: 4px solid #6366f1;
@@ -88,20 +81,18 @@ export async function GET(req: Request) {
         <p>🚀 جاري الدخول للحساب التجريبي...</p>
     </div>
     <script>
-        const token = "${token}";
-        const user = ${JSON.stringify({
+        var token = "${token}";
+        var user = ${JSON.stringify({
             id: admin.id,
             username: admin.username,
             fullName: admin.fullName || 'مدير النظام',
             role: admin.role,
         })};
         
-        // حفظ الـ Token محلياً
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
-        document.cookie = 'token=' + token + '; path=/; max-age=' + (60 * 60 * 24);
+        document.cookie = 'token=' + token + '; path=/; max-age=' + (60 * 60 * 24) + '; domain=.namainvist.com';
         
-        // تحويل للداشبورد
         window.location.replace('https://${DEMO_SUBDOMAIN}.namainvist.com/dashboard');
     </script>
 </body>
