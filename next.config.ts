@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   reactCompiler: true,
   allowedDevOrigins: ['https://namainvist.com', 'http://localhost:3000'],
+  env: {
+    NEXT_PUBLIC_IS_DESKTOP: process.env.ELECTRON_BUILD ? '1' : '0',
+  },
   typescript: {
     // تجاهل أخطاء TypeScript مؤقتاً (سيتم إصلاحها تدريجياً)
     ignoreBuildErrors: true,

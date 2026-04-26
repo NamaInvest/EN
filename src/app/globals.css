@@ -209,6 +209,11 @@ body {
   color: #0f172a !important;
 }
 
+/* Global failsafe to prevent repeating chevrons on select inputs */
+select {
+  background-repeat: no-repeat !important;
+}
+
 /* Premium Background Pattern */
 body::before {
   content: '';

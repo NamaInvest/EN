@@ -16,7 +16,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(process.env.NEXT_PUBLIC_IS_DESKTOP === '1');
   const [showFaceLogin, setShowFaceLogin] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();

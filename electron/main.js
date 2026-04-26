@@ -251,10 +251,9 @@ async function syncLicenseToCloud() {
       return;
     }
 
-    const companyName = settings.company_name || '';
+    let companyName = settings.company_name || '';
     if (!companyName || companyName === 'اسم المنشأة') {
-      console.log('☁️ Cloud sync: no company data yet — skipping');
-      return;
+      companyName = 'منشأة جديدة (قيد الإعداد)';
     }
 
     const os = require('os');
