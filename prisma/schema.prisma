@@ -2440,3 +2440,25 @@ model ServiceTicket {
 
   @@map("service_tickets")
 }
+
+// ==================== Shipment Tracking ====================
+model Shipment {
+  id                Int       @id @default(autoincrement())
+  salesInvoiceId    Int?      @map("sales_invoice_id")
+  purchaseOrderId   Int?      @map("purchase_order_id")
+  carrier           String    @default("")  // SMSA, DHL, Aramex, FedEx
+  trackingNumber    String    @default("")  @map("tracking_number")
+  status            String    @default("pending") // pending, picked_up, in_transit, delivered, returned
+  estimatedDelivery DateTime? @map("estimated_delivery")
+  actualDelivery    DateTime? @map("actual_delivery")
+  shippingCost      Float     @default(0) @map("shipping_cost")
+  recipientName     String    @default("") @map("recipient_name")
+  recipientPhone    String    @default("") @map("recipient_phone")
+  recipientAddress  String    @default("") @map("recipient_address")
+  recipientCity     String    @default("") @map("recipient_city")
+  notes             String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("shipments")
+}
