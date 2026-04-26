@@ -51,6 +51,7 @@ function writeFile(remotePath, localPath) {
       await writeFile(`${base}/src/app/api/ice/desktop-register/route.ts`, 'src/app/api/ice/desktop-register/route.ts');
       await writeFile(`${base}/src/app/api/ice/desktop-licenses/route.ts`, 'src/app/api/ice/desktop-licenses/route.ts');
       await writeFile(`${base}/src/app/updates/desktop/[file]/route.ts`, 'src/app/updates/desktop/[file]/route.ts');
+      await writeFile(`${base}/src/app/api/demo/enter/route.ts`, 'src/app/api/demo/enter/route.ts');
       
       console.log(`\n=== Building Next.js for ${base} ===`);
       await ssh(`cd ${base} && rm -rf .next && npm run build`);

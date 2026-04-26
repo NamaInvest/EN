@@ -5,6 +5,8 @@ const path = require('path');
 const version = require('./package.json').version;
 const localFile = path.join(__dirname, 'dist-electron', `NamaInvest-Setup-${version}.exe`);
 const remoteFile = `/www/wwwroot/namainvist.com/public/updates/desktop/NamaInvest-Setup-${version}.exe`;
+const blockmapFile = path.join(__dirname, 'dist-electron', `NamaInvest-Setup-${version}.exe.blockmap`);
+const remoteBlockmapFile = `/www/wwwroot/namainvist.com/public/updates/desktop/NamaInvest-Setup-${version}.exe.blockmap`;
 const latestYml = path.join(__dirname, 'dist-electron', 'latest.yml');
 const remoteLatestYml = `/www/wwwroot/namainvist.com/public/updates/desktop/latest.yml`;
 
@@ -50,6 +52,7 @@ function uploadFile(local, remote) {
 async function run() {
   try {
     await uploadFile(latestYml, remoteLatestYml);
+    await uploadFile(blockmapFile, remoteBlockmapFile);
     await uploadFile(localFile, remoteFile);
     console.log('All files uploaded successfully.');
   } catch (e) {
