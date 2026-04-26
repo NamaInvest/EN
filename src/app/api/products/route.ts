@@ -102,21 +102,21 @@ export async function POST(request: Request) {
         const catId = body.categoryId ? parseInt(body.categoryId) : null;
         const bPrice = parseFloat(body.buyPrice) || 0;
         const sPrice = parseFloat(body.sellPrice) || 0;
-        const tRate = parseFloat(body.taxRate) ?? 15;
+        const tRate = parseFloat(body.taxRate) || 15;
         const minQty = parseFloat(body.minQuantity) || 0;
         const curStock = parseFloat(body.currentStock) || 0;
 
         const result: any[] = await prisma.$queryRawUnsafe(`
-            INSERT INTO products (name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, min_quantity, current_stock, description, name_en, brand_ar, brand_en, size_info, sell_by_weight, expiry_date, bin_location, image_path, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+            INSERT INTO products (name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, tax_type, min_quantity, current_stock, description, active, name_en, brand_ar, brand_en, size_info, image_path, sell_by_weight, expiry_date, bin_location, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
             RETURNING *`,
-            body.name, barcode, catId, uId, bPrice, sPrice, tRate, minQty, curStock,
-            body.description || null,
+            body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
+            body.description || null, true,
             body.nameEn || body.name || '',
             body.brandAr || '', body.brandEn || '', body.sizeInfo || '',
+            body.imagePath || '',
             body.sellByWeight || false,
-            body.expiryDate || null, body.binLocation || null,
-            body.imagePath || ''
+            body.expiryDate || null, body.binLocation || null
         );
         const product = result[0];
 

@@ -6,11 +6,15 @@ c.on('ready', async () => {
     const HOST = 'brightstartradingco.namainvist.com';
     let r = await exec(c, `curl -s -X POST http://localhost:3500/api/auth/login -H 'Host: ${HOST}' -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin7773"}'`);
     const token = JSON.parse(r).token;
-    r = await exec(c, `curl -s -X POST http://localhost:3500/api/products -H 'Host: ${HOST}' -H 'Content-Type: application/json' -H 'Authorization: Bearer ${token}' -b 'token=${token}' -d '{"name":"DebugFinal","buyPrice":"10","sellPrice":"15","unitId":"1"}'`);
+    r = await exec(c, `curl -s -X POST http://localhost:3500/api/products -H 'Host: ${HOST}' -H 'Content-Type: application/json' -H 'Authorization: Bearer ${token}' -b 'token=${token}' -d '{"name":"RawTest","buyPrice":"10","sellPrice":"15","unitId":"1"}'`);
     console.log('Product:', r);
     await new Promise(r => setTimeout(r, 500));
-    r = await exec(c, 'pm2 logs saas-app --lines 30 --nostream 2>&1 | grep -v "^$" | tail -20');
+    r = await exec(c, 'pm2 logs saas-app --lines 30 --nostream 2>&1');
     console.log('\nFull error:\n', r);
+
+    // Also check DB columns
+    r = await exec(c, `PGPASSWORD=n11_pass123 psql -h localhost -U n11_db -d brightstartradingco_db -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name='products' ORDER BY ordinal_position;" 2>&1`);
+    console.log('\nDB columns:', r);
     c.end();
 });
 c.on('error', e => console.error(e.message));
