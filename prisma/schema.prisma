@@ -2374,3 +2374,67 @@ model DesktopCrashReport {
 
   @@map("desktop_crash_reports")
 }
+
+// ==================== 106. Work Shifts (ورديات العمل) ====================
+model WorkShift {
+  id        Int      @id @default(autoincrement())
+  name      String   // "صباحي", "مسائي", "ليلي"
+  startTime String   @map("start_time") // "08:00"
+  endTime   String   @map("end_time")   // "16:00"
+  breakMins Int      @default(60) @map("break_mins")
+  active    Boolean  @default(true)
+
+  @@map("work_shifts")
+}
+
+// ==================== 107. Vendor Ratings (تقييم الموردين) ====================
+model VendorRating {
+  id         Int      @id @default(autoincrement())
+  supplierId Int      @map("supplier_id")
+  grnId      Int?     @map("grn_id")
+  quality    Int      @default(5) // 1-5 جودة المنتجات
+  delivery   Int      @default(5) // 1-5 الالتزام بالمواعيد
+  pricing    Int      @default(5) // 1-5 تنافسية الأسعار
+  notes      String?
+  ratedBy    Int?     @map("rated_by")
+  ratedAt    DateTime @default(now()) @map("rated_at")
+
+  @@map("vendor_ratings")
+}
+
+// ==================== 108. Fiscal Periods (الفترات المالية) ====================
+model FiscalPeriod {
+  id       Int       @id @default(autoincrement())
+  year     Int
+  month    Int
+  status   String    @default("open") // open, closed, locked
+  closedBy Int?      @map("closed_by")
+  closedAt DateTime? @map("closed_at")
+  notes    String?
+
+  @@unique([year, month])
+  @@map("fiscal_periods")
+}
+
+// ==================== 109. Service Tickets (الخدمات الميدانية) ====================
+model ServiceTicket {
+  id            Int       @id @default(autoincrement())
+  ticketNo      Int       @map("ticket_no")
+  customerId    Int?      @map("customer_id")
+  technicianId  Int?      @map("technician_id")
+  type          String    @default("repair") // repair, installation, maintenance, inspection
+  priority      String    @default("normal") // low, normal, high, urgent
+  description   String?
+  scheduledDate DateTime? @map("scheduled_date")
+  completedDate DateTime? @map("completed_date")
+  status        String    @default("open") // open, assigned, in_progress, completed, cancelled
+  laborCost     Float     @default(0) @map("labor_cost")
+  partsCost     Float     @default(0) @map("parts_cost")
+  totalCost     Float     @default(0) @map("total_cost")
+  latitude      Float?
+  longitude     Float?
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("service_tickets")
+}
