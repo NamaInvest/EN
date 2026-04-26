@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const vacations = await prisma.vacation.findMany({ include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, orderBy: { id: 'desc' } });
