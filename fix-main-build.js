@@ -1,14 +1,6 @@
 const { Client } = require('ssh2');
 const fs = require('fs');
 
-const filesToUpload = [
-  'src/app/globals.css',
-  'src/app/login/page.tsx',
-  'next.config.ts',
-  'electron/main.js',
-  'ELECTRON_APP_ARCHITECTURE_AND_FIXES.md'
-];
-
 function ssh(cmd) {
   return new Promise(r => {
     const c = new Client();
@@ -33,7 +25,7 @@ function writeFile(remotePath, localPath) {
         const stream = sftp.createWriteStream(remotePath);
         stream.write(fs.readFileSync(localPath));
         stream.end();
-        stream.on('close', () => { console.log('[✓]', remotePath); c.end(); r(); });
+        stream.on('close', () => { console.log('[✓] Uploaded', remotePath); c.end(); r(); });
         stream.on('error', e => { console.error('[✗]', remotePath, e.message); c.end(); r(); });
       });
     }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
@@ -41,18 +33,17 @@ function writeFile(remotePath, localPath) {
 }
 
 (async () => {
-  const base = '/www/wwwroot/n11.namainvist.com';
+  const base = '/www/wwwroot/namainvist.com';
   
-  console.log(`\n=== Uploading files to SAAS-APP ===`);
-  for (const file of filesToUpload) {
-    await writeFile(`${base}/${file}`, file);
-  }
+  // Upload the correct globals.css
+  console.log(`\n=== Uploading fixed globals.css to MAIN ===`);
+  await writeFile(`${base}/src/app/globals.css`, 'src/app/globals.css');
   
-  console.log(`\n=== Building Next.js for SAAS-APP ===`);
+  console.log(`\n=== Clearing Cache and Building Next.js for MAIN ===`);
   await ssh(`cd ${base} && rm -rf .next && npm run build`);
   
-  console.log(`\n=== Restarting PM2 SAAS-APP ===`);
-  await ssh(`pm2 restart saas-app`);
+  console.log(`\n=== Restarting PM2 MAIN ===`);
+  await ssh(`pm2 restart main-site`);
   
   console.log('\n=== Done ===');
 })();
