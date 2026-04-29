@@ -2541,3 +2541,171 @@ model Shipment {
 
   @@map("shipments")
 }
+
+// ══════════════════════════════════════════════════════════════
+// 💊  PHARMACY MODULE — وحدة الصيدليات
+// متوافق مع: SFDA + Wasfaty + CCHI/NPHIES
+// ══════════════════════════════════════════════════════════════
+
+// ==================== PH-1. دواء (يمتد من Product) ====================
+model PharmacyDrug {
+  id               Int      @id @default(autoincrement())
+  productId        Int      @unique @map("product_id")       // ربط بـ Product الأساسي
+  sfdaNumber       String   @map("sfda_number")              // رقم تسجيل هيئة الغذاء والدواء
+  genericName      String   @map("generic_name")             // المادة الفعالة
+  genericNameEn    String   @default("") @map("generic_name_en")
+  drugClass        String   @default("OTC") @map("drug_class") // OTC | Rx | CONTROLLED
+  manufacturer     String?
+  countryOfOrigin  String?  @map("country_of_origin")
+  storageTemp      String   @default("room") @map("storage_temp") // room | refrigerated | frozen
+  mohMaxPrice      Float    @default(0) @map("moh_max_price")     // السعر الأقصى من وزارة الصحة
+  requiresRx       Boolean  @default(false) @map("requires_rx")
+  isControlled     Boolean  @default(false) @map("is_controlled") // مخدر متحكم فيه
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  product            Product             @relation(fields: [productId], references: [id])
+  prescriptionItems  PrescriptionItem[]
+  controlledLogs     ControlledDrugLog[]
+
+  @@index([sfdaNumber])
+  @@index([genericName])
+  @@map("pharmacy_drugs")
+}
+
+// ==================== PH-2. مريض ====================
+model PharmacyPatient {
+  id              Int      @id @default(autoincrement())
+  nationalId      String   @unique @map("national_id")
+  name            String
+  nameEn          String?  @map("name_en")
+  dateOfBirth     String?  @map("date_of_birth")
+  gender          String?                                   // M | F
+  phone           String?
+  allergies       String?                                   // JSON array of allergy strings
+  insuranceCompany String? @map("insurance_company")
+  insuranceCardNo  String? @map("insurance_card_no")
+  copayPercent    Float    @default(20) @map("copay_percent") // نسبة التحمّل
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  prescriptions  Prescription[]
+  insuranceClaims InsuranceClaim[]
+  medicationLogs MedicationLog[]
+
+  @@index([nationalId])
+  @@index([phone])
+  @@map("pharmacy_patients")
+}
+
+// ==================== PH-3. وصفة طبية ====================
+model Prescription {
+  id               Int      @id @default(autoincrement())
+  patientId        Int      @map("patient_id")
+  wasfatyRef       String?  @map("wasfaty_ref")       // رقم وصفة وصفتي
+  doctorName       String?  @map("doctor_name")
+  doctorLicense    String?  @map("doctor_license")
+  clinicName       String?  @map("clinic_name")
+  prescriptionDate String   @map("prescription_date")
+  expiryDate       String?  @map("expiry_date")
+  source           String   @default("wasfaty")        // wasfaty | paper | otc
+  status           String   @default("pending")        // pending | dispensed | partial | cancelled
+  imageUrl         String?  @map("image_url")          // صورة الوصفة الورقية
+  pharmacistId     Int?     @map("pharmacist_id")
+  dispensedAt      DateTime? @map("dispensed_at")
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  patient     PharmacyPatient   @relation(fields: [patientId], references: [id])
+  pharmacist  User?             @relation("PrescriptionPharmacist", fields: [pharmacistId], references: [id])
+  items       PrescriptionItem[]
+  claims      InsuranceClaim[]
+
+  @@index([patientId])
+  @@index([wasfatyRef])
+  @@map("prescriptions")
+}
+
+// ==================== PH-4. أصناف الوصفة ====================
+model PrescriptionItem {
+  id             Int     @id @default(autoincrement())
+  prescriptionId Int     @map("prescription_id")
+  drugId         Int     @map("drug_id")
+  drugName       String  @map("drug_name")
+  dosage         String?                            // الجرعة: "2× يومياً بعد الأكل"
+  durationDays   Int?    @map("duration_days")
+  quantity       Float
+  dispensedQty   Float   @default(0) @map("dispensed_qty")
+  status         String  @default("pending")        // pending | dispensed | partial
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  drug         PharmacyDrug @relation(fields: [drugId], references: [id])
+
+  @@map("prescription_items")
+}
+
+// ==================== PH-5. مطالبة تأمين ====================
+model InsuranceClaim {
+  id              Int      @id @default(autoincrement())
+  patientId       Int      @map("patient_id")
+  prescriptionId  Int?     @map("prescription_id")
+  salesInvoiceId  Int?     @map("sales_invoice_id")
+  insuranceCompany String  @map("insurance_company")
+  claimRef        String?  @unique @map("claim_ref")   // رقم المطالبة من NPHIES
+  totalAmount     Float    @map("total_amount")
+  insuranceAmount Float    @map("insurance_amount")    // المبلغ على التأمين
+  patientAmount   Float    @map("patient_amount")      // ما يدفعه المريض
+  status          String   @default("submitted")       // submitted | approved | rejected | paid
+  rejectionReason String?  @map("rejection_reason")
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+  resolvedAt      DateTime? @map("resolved_at")
+
+  patient      PharmacyPatient @relation(fields: [patientId], references: [id])
+  prescription Prescription?   @relation(fields: [prescriptionId], references: [id])
+
+  @@index([patientId])
+  @@index([status])
+  @@map("insurance_claims")
+}
+
+// ==================== PH-6. سجل الأدوية المخدرة ====================
+model ControlledDrugLog {
+  id             Int      @id @default(autoincrement())
+  drugId         Int      @map("drug_id")
+  patientNationalId String @map("patient_national_id")
+  patientName    String   @map("patient_name")
+  doctorName     String   @map("doctor_name")
+  doctorLicense  String   @map("doctor_license")
+  pharmacistId   Int      @map("pharmacist_id")
+  quantity       Float
+  batchNo        String?  @map("batch_no")
+  dispensedAt    DateTime @default(now()) @map("dispensed_at")
+  notes          String?
+  // سجل لا يُحذف — SFDA compliance
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  drug       PharmacyDrug @relation(fields: [drugId], references: [id])
+  pharmacist User         @relation("ControlledDrugPharmacist", fields: [pharmacistId], references: [id])
+
+  @@index([drugId])
+  @@index([dispensedAt])
+  @@map("controlled_drug_logs")
+}
+
+// ==================== PH-7. سجل أدوية المريض ====================
+model MedicationLog {
+  id         Int      @id @default(autoincrement())
+  patientId  Int      @map("patient_id")
+  drugName   String   @map("drug_name")
+  dosage     String?
+  quantity   Float
+  pharmacistId Int?   @map("pharmacist_id")
+  dispensedAt DateTime @default(now()) @map("dispensed_at")
+
+  patient PharmacyPatient @relation(fields: [patientId], references: [id])
+
+  @@index([patientId])
+  @@map("medication_logs")
+}
+
