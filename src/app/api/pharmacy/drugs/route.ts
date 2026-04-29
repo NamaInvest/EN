@@ -38,7 +38,7 @@ export async function GET(req: Request) {
                         id: true, name: true, nameEn: true, barcode: true,
                         currentStock: true, minQuantity: true, sellPrice: true,
                         buyPrice: true, expiryDate: true, batches: {
-                            select: { batchNumber: true, expiryDate: true, quantity: true },
+                            select: { batchNumber: true, expiryDate: true, currentQuantity: true },
                             orderBy: { expiryDate: 'asc' },
                         },
                     },
