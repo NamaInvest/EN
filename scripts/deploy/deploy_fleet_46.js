@@ -9,7 +9,7 @@ const CONFIG = {
   password: '_ee4SWbxLVfH9b',
 };
 
-const ARCHIVE_LOCAL = path.join(__dirname, '..', 'deploy_patch_20260429_0555.tar.gz');
+const ARCHIVE_LOCAL = path.join(__dirname, '..', 'deploy_patch_20260429_0628.tar.gz');
 const ARCHIVE_REMOTE = '/tmp/deploy_patch_nama.tar.gz';
 
 // Actual instances on this server
