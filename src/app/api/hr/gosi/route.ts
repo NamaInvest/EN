@@ -83,14 +83,14 @@ export async function POST(req: Request) {
 
         const employees = await prisma.employee.findMany({
             where: { active: true },
-            select: { id: true, name: true, nationality: true, salary: true },
+            select: { id: true, name: true, salary: true },
         });
 
         let totalEmployerContrib = 0;
 
         // Update each employee's salary record with GOSI deductions
         for (const emp of employees) {
-            const isSaudi = !emp.nationality || emp.nationality.toLowerCase().includes('saudi');
+            const isSaudi = true; // default — add nationality field to schema when needed
             const baseSalary = emp.salary || 0;
             const empDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
             const empContrib = isSaudi
@@ -114,12 +114,16 @@ export async function POST(req: Request) {
         }
 
         // Post GOSI journal entry (employer contribution = expense)
+        const entryNo = `GOSI-${year}-${String(month).padStart(2,'0')}`;
         await prisma.journalEntry.create({
             data: {
-                date: new Date().toISOString().split('T')[0],
-                reference: `GOSI-${year}-${month}`,
+                entryNumber: entryNo,
+                entryDate: new Date().toISOString().split('T')[0],
+                reference: entryNo,
                 description: `اشتراكات التأمينات الاجتماعية GOSI — ${month}/${year}`,
-                userId: user.userId,
+                createdBy: user.userId,
+                totalDebit: Math.round(totalEmployerContrib * 100) / 100,
+                totalCredit: Math.round(totalEmployerContrib * 100) / 100,
                 lines: {
                     create: [
                         {

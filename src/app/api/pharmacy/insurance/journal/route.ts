@@ -25,13 +25,16 @@ export async function POST(req: Request) {
 
         const amount = parseFloat(paidAmount) || claim.insuranceAmount;
 
-        // Post journal: Bank (Dr) / Insurance Receivable (Cr)
+        const entryRef = `INS-CLM-${claim.id}`;
         await prisma.journalEntry.create({
             data: {
-                date: new Date().toISOString().split('T')[0],
-                reference: `INS-CLM-${claim.id}`,
+                entryNumber: entryRef,
+                entryDate: new Date().toISOString().split('T')[0],
+                reference: entryRef,
                 description: `تحصيل مطالبة تأمين — ${claim.insuranceCompany} — ${claim.patient?.name}`,
-                userId: user.userId,
+                createdBy: user.userId,
+                totalDebit: amount,
+                totalCredit: amount,
                 lines: {
                     create: [
                         {
@@ -50,6 +53,7 @@ export async function POST(req: Request) {
                 },
             },
         });
+
 
         // Update claim status to paid
         // @ts-ignore — pharmacy model
