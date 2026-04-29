@@ -273,7 +273,7 @@ export default async function RootLayout({
           }} />
         )}
         <script dangerouslySetInnerHTML={{ __html:
-          `try{var t=localStorage.getItem('namainvest-theme-premium');if(t&&t!=='default'){document.documentElement.classList.add(t);}else if(!t){document.documentElement.classList.add('theme-white');localStorage.setItem('namainvest-theme-premium','theme-white');}}catch(e){}`
+          `try{localStorage.removeItem('namainvest-theme-premium');document.documentElement.className='';}catch(e){}`
         }} />
         <script dangerouslySetInnerHTML={{ __html:
           `document.addEventListener('focusin',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.select();}});`
