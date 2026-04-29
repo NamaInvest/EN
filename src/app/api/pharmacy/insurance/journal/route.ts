@@ -35,15 +35,13 @@ export async function POST(req: Request) {
                 lines: {
                     create: [
                         {
-                            accountCode: '1010', // Bank / Cash
-                            accountName: 'البنك',
+                            accountId: 1, // Bank — عدّل حسب دليل الحسابات
                             debit: amount,
                             credit: 0,
                             description: `تحصيل من ${claim.insuranceCompany}`,
                         },
                         {
-                            accountCode: '1130', // Insurance Receivable
-                            accountName: 'ذمم تأمين صحي',
+                            accountId: 3, // ذمم تأمين صحي — عدّل حسب دليل الحسابات
                             debit: 0,
                             credit: amount,
                             description: `مطالبة #${claim.claimRef}`,

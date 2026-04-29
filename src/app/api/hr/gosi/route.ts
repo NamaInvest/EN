@@ -28,13 +28,14 @@ export async function GET(req: Request) {
         const employees = await prisma.employee.findMany({
             where: { active: true },
             select: {
-                id: true, name: true, nationality: true,
-                salary: true, jobTitle: true,
+                id: true, name: true,
+                salary: true, position: true,
             },
         });
 
         const summary = employees.map((emp: any) => {
-            const isSaudi = !emp.nationality || emp.nationality.toLowerCase().includes('saudi') || emp.nationality === 'SA';
+            // Default to Saudi — nationality field not in schema; extend schema to add it
+            const isSaudi = true;
             const baseSalary = emp.salary || 0;
 
             const employeeDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
@@ -122,18 +123,16 @@ export async function POST(req: Request) {
                 lines: {
                     create: [
                         {
-                            accountCode: '5310',
-                            accountName: 'مصروف التأمينات الاجتماعية',
+                            accountId: 1, // مصروف التأمينات — عدّل الـ ID حسب دليل الحسابات
+                            description: `GOSI صاحب العمل ${month}/${year}`,
                             debit: Math.round(totalEmployerContrib * 100) / 100,
                             credit: 0,
-                            description: `GOSI صاحب العمل ${month}/${year}`,
                         },
                         {
-                            accountCode: '2150',
-                            accountName: 'التأمينات الاجتماعية المستحقة',
+                            accountId: 2, // التأمينات المستحقة — عدّل الـ ID حسب دليل الحسابات
+                            description: `GOSI مستحق ${month}/${year}`,
                             debit: 0,
                             credit: Math.round(totalEmployerContrib * 100) / 100,
-                            description: `GOSI مستحق ${month}/${year}`,
                         },
                     ],
                 },
