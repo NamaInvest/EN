@@ -1,8 +1,11 @@
 /**
  * Priority 6: WMS (Warehouse Management System) API
- * يُعيد بنية المستودع: Zones → Racks → Bins مع محتواها
- * GET  /api/warehouses/wms?warehouseId=1
- * POST /api/warehouses/wms — تعيين منتج لـ Bin
+ *
+ * Schema facts:
+ * - WarehouseZone: stockId (Int) — linked to Stock, NOT warehouseId
+ * - WarehouseRack: zoneId (Int), name (String) — no 'code' field
+ * - WarehouseBin: rackId (Int), name (String), barcode (String?), maxWeight (Float) — no 'code'
+ * - Product: no 'sku' — use barcode instead
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
@@ -14,38 +17,36 @@ export async function GET(req: Request) {
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const url = new URL(req.url);
-    const warehouseId = parseInt(url.searchParams.get('warehouseId') || '1');
+    // WarehouseZone links to Stock via stockId, not warehouseId
+    const stockId = parseInt(url.searchParams.get('stockId') || url.searchParams.get('warehouseId') || '1');
 
     try {
-        // Fetch all zones with their racks and bins
         const zones = await prisma.warehouseZone.findMany({
-            where: { warehouseId },
+            where: { stockId },   // correct field
             include: {
-                racks: {
-                    include: {
-                        bins: {
-                            include: {
-                                // ProductStock entries assigned to this bin (if relation exists)
-                            },
-                        },
-                    },
-                },
+                racks: { include: { bins: true } },
             },
             orderBy: { id: 'asc' },
         });
 
-        // Fetch stock in this warehouse for occupancy data
+        // Stock occupancy per product
         const stocks = await prisma.productStock.findMany({
-            where: { stockId: warehouseId },
+            where: { stockId },
             include: {
                 product: {
-                    select: { id: true, name: true, sku: true, currentStock: true, unit: { select: { name: true } } },
+                    select: {
+                        id: true,
+                        name: true,
+                        barcode: true,       // no 'sku' field
+                        currentStock: true,
+                        unit: { select: { name: true } },
+                    },
                 },
             },
         });
 
         return NextResponse.json({
-            warehouseId,
+            stockId,
             zones,
             stocks,
             summary: {
@@ -72,39 +73,42 @@ export async function POST(req: Request) {
         const { action, ...data } = body;
 
         if (action === 'create_zone') {
+            // WarehouseZone: stockId (Int), name (String), description (String?)
             const zone = await prisma.warehouseZone.create({
                 data: {
-                    warehouseId: parseInt(data.warehouseId),
+                    stockId: parseInt(data.stockId),  // correct field
                     name: data.name,
-                    type: data.type || 'storage',
+                    description: data.description || null,
                 },
             });
             return NextResponse.json(zone, { status: 201 });
         }
 
         if (action === 'create_rack') {
+            // WarehouseRack: zoneId (Int), name (String)
             const rack = await prisma.warehouseRack.create({
                 data: {
                     zoneId: parseInt(data.zoneId),
-                    code: data.code,
-                    capacity: data.capacity ? parseInt(data.capacity) : null,
+                    name: data.name,      // 'name' not 'code'
                 },
             });
             return NextResponse.json(rack, { status: 201 });
         }
 
         if (action === 'create_bin') {
+            // WarehouseBin: rackId (Int), name (String), barcode (String?), maxWeight (Float)
             const bin = await prisma.warehouseBin.create({
                 data: {
                     rackId: parseInt(data.rackId),
-                    code: data.code,
-                    capacity: data.capacity ? parseFloat(data.capacity) : null,
+                    name: data.name,          // 'name' not 'code'
+                    barcode: data.barcode || null,
+                    maxWeight: data.maxWeight ? parseFloat(data.maxWeight) : 0,
                 },
             });
             return NextResponse.json(bin, { status: 201 });
         }
 
-        return NextResponse.json({ error: 'action غير معروف' }, { status: 400 });
+        return NextResponse.json({ error: 'action غير معروف. استخدم: create_zone | create_rack | create_bin' }, { status: 400 });
     } catch (e) {
         console.error('WMS POST error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء عنصر المستودع' }, { status: 500 });

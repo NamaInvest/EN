@@ -1,8 +1,11 @@
 /**
- * Priority 7: MRP (Material Requirements Planning) Interface API
- * يوفر واجهة لمحرك الـ MRP الموجود في @/lib/mrp-engine
- * GET  /api/manufacturing/mrp — احتياجات الخامات
- * POST /api/manufacturing/mrp — تشغيل MRP وإنشاء أوامر شراء مقترحة
+ * Priority 7: MRP Interface API
+ *
+ * Schema facts:
+ * - ManufacturingOrder: recipeId (Int), quantityToProduce (Float) — include recipe to get ingredients
+ * - Product: minQuantity (Float), no 'sku' field — barcode instead
+ * - PurchaseRequisition: reqNo (Int not 'requisitionNo'), requestedBy (Int)
+ * - PurchaseRequisitionDetail: reqId (Int)
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
@@ -24,7 +27,7 @@ export async function GET(req: Request) {
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
-        // Get open manufacturing orders
+        // Include recipe and its ingredients with raw product info
         const openOrders = await prisma.manufacturingOrder.findMany({
             where: { status: { in: ['pending', 'in_progress'] } },
             include: {
@@ -37,7 +40,8 @@ export async function GET(req: Request) {
                                         id: true,
                                         name: true,
                                         currentStock: true,
-                                        minStock: true,
+                                        minQuantity: true,   // correct field name
+                                        barcode: true,       // no 'sku' field — use barcode
                                         unit: { select: { name: true } },
                                     },
                                 },
@@ -57,7 +61,7 @@ export async function GET(req: Request) {
                 const product = ing.rawProduct;
                 if (!product) continue;
 
-                const requiredQty = ing.quantity * order.plannedQty;
+                const requiredQty = ing.quantity * order.quantityToProduce; // correct field
                 const existing = requirementsMap.get(product.id);
 
                 if (existing) {
@@ -96,7 +100,7 @@ export async function GET(req: Request) {
     }
 }
 
-// POST — Convert MRP suggestions into actual Purchase Requisitions
+// POST — Convert MRP suggestions into Purchase Requisitions
 export async function POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
@@ -104,30 +108,29 @@ export async function POST(req: Request) {
 
     try {
         const { items }: { items: MRPItem[] } = await req.json();
-
         if (!items || items.length === 0) {
-            return NextResponse.json({ error: 'لا توجد عناصر لإنشاء طلبات شراء' }, { status: 400 });
+            return NextResponse.json({ error: 'لا توجد عناصر' }, { status: 400 });
         }
 
-        // Auto-generate PR number
+        // PurchaseRequisition uses 'reqNo' not 'requisitionNo'
         const lastPR = await prisma.purchaseRequisition.findFirst({ orderBy: { id: 'desc' } });
-        const nextPRNo = (lastPR?.requisitionNo || 1000) + 1;
+        const nextReqNo = (lastPR?.reqNo || 1000) + 1;
+
+        const validItems = items.filter(i => i.suggestedPOQty > 0);
 
         const pr = await prisma.purchaseRequisition.create({
             data: {
-                requisitionNo: nextPRNo,
+                reqNo: nextReqNo,                   // correct field
                 requestedBy: user.userId,
                 status: 'pending',
                 notes: `طلب شراء تلقائي من محرك MRP — ${new Date().toLocaleDateString('ar-SA')}`,
                 details: {
-                    create: items
-                        .filter(i => i.suggestedPOQty > 0)
-                        .map(i => ({
-                            productId: i.productId,
-                            productName: i.productName,
-                            requestedQty: i.suggestedPOQty,
-                            notes: `MRP: مطلوب ${i.requiredQty} — متاح ${i.availableQty}`,
-                        })),
+                    create: validItems.map(i => ({
+                        productId: i.productId,
+                        productName: i.productName,
+                        requestedQty: i.suggestedPOQty,
+                        notes: `MRP: مطلوب ${i.requiredQty} — متاح ${i.availableQty}`,
+                    })),
                 },
             },
         });
@@ -135,8 +138,8 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             prId: pr.id,
-            prNo: nextPRNo,
-            itemsCreated: items.filter(i => i.suggestedPOQty > 0).length,
+            reqNo: nextReqNo,
+            itemsCreated: validItems.length,
         }, { status: 201 });
     } catch (e) {
         console.error('MRP POST error:', e);

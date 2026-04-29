@@ -202,6 +202,7 @@ model Customer {
   goodsReceipts    GoodsReceiptNote[]
   leaseContracts   LeaseContract[]
   purchaseReturns  PurchaseReturn[]
+  supplierContracts SupplierContract[] @relation("SupplierContracts")
 
   @@index([phone])
   @@index([name])
@@ -1671,11 +1672,54 @@ model Project {
   status      String    @default("ACTIVE")
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  customer Customer?     @relation(fields: [customerId], references: [id])
+  customer Customer?        @relation(fields: [customerId], references: [id])
   tasks    ProjectTask[]
+  budgetLines ProjectBudgetLine[]  // P8: Itemized budget
 
   @@map("projects")
 }
+
+// ==================== P8: Project Budget Lines ====================
+model ProjectBudgetLine {
+  id          Int     @id @default(autoincrement())
+  projectId   Int     @map("project_id")
+  category    String  // مواد، عمالة، معدات، مصاريف إدارية
+  description String
+  planned     Float   @default(0)  // المبلغ المخطط
+  actual      Float   @default(0)  // المبلغ الفعلي
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_budget_lines")
+}
+
+// ==================== P9: Supplier Contracts ====================
+model SupplierContract {
+  id               Int      @id @default(autoincrement())
+  contractNo       String   @unique @map("contract_no")
+  supplierId       Int      @map("supplier_id")
+  title            String
+  description      String?
+  startDate        DateTime @map("start_date")
+  endDate          DateTime @map("end_date")
+  value            Float    @default(0)
+  currency         String   @default("SAR")
+  paymentTerms     String?  @map("payment_terms")  // مثال: 30 يوم، 60 يوم
+  status           String   @default("active")      // active, expired, terminated
+  autoRenew        Boolean  @default(false) @map("auto_renew")
+  alertDaysBefore  Int      @default(30) @map("alert_days_before")
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  supplier Customer @relation("SupplierContracts", fields: [supplierId], references: [id])
+
+  @@index([endDate])
+  @@index([supplierId])
+  @@map("supplier_contracts")
+}
+
 
 model ProjectTask {
   id          Int     @id @default(autoincrement())

@@ -23,10 +23,7 @@ export async function GET(req: Request) {
     try {
         // ====== RECEIVABLES (مدينون - العملاء) ======
         const unpaidSales = await prisma.salesInvoice.findMany({
-            where: {
-                paymentType: 'credit',
-                // Approximate: installments not fully paid
-            },
+            where: { paymentType: 'credit' },
             select: {
                 id: true,
                 invoiceNo: true,
@@ -97,18 +94,19 @@ export async function GET(req: Request) {
         }
 
         // ====== INSTALLMENTS AGING ======
+        // Installment model: remaining (Float), createdAt (DateTime), no dueDate/amount fields
         const overdueInstallments = await prisma.installment.findMany({
             where: {
-                status: { in: ['pending', 'overdue'] },
-                dueDate: { lt: now },
+                status: { in: ['active', 'overdue'] },
+                remaining: { gt: 0 },
             },
             select: {
                 id: true,
-                dueDate: true,
-                amount: true,
+                createdAt: true,       // use createdAt (no dueDate field)
+                remaining: true,       // use remaining (no amount field)
                 customer: { select: { name: true, phone: true } },
             },
-            orderBy: { dueDate: 'asc' },
+            orderBy: { createdAt: 'asc' },
         });
 
         const installmentAging: Record<string, { count: number; total: number }> = {
@@ -119,15 +117,15 @@ export async function GET(req: Request) {
         };
 
         for (const inst of overdueInstallments) {
-            const days = Math.floor((now.getTime() - new Date(inst.dueDate).getTime()) / (1000 * 60 * 60 * 24));
+            const days = Math.floor((now.getTime() - new Date(inst.createdAt).getTime()) / (1000 * 60 * 60 * 24));
             const b = bucket(days);
             installmentAging[b].count++;
-            installmentAging[b].total += inst.amount;
+            installmentAging[b].total += inst.remaining;   // use remaining not amount
         }
 
-        // Totals
         const totalReceivables = Object.values(receivablesAging).reduce((s, b) => s + b.total, 0);
         const totalPayables = Object.values(payablesAging).reduce((s, b) => s + b.total, 0);
+        const totalInstallmentsRemaining = Object.values(installmentAging).reduce((s, b) => s + b.total, 0);
 
         return NextResponse.json({
             generatedAt: now.toISOString(),
@@ -135,7 +133,8 @@ export async function GET(req: Request) {
                 totalReceivables: Math.round(totalReceivables * 100) / 100,
                 totalPayables: Math.round(totalPayables * 100) / 100,
                 netExposure: Math.round((totalReceivables - totalPayables) * 100) / 100,
-                overdueInstallments: overdueInstallments.length,
+                pendingInstallments: overdueInstallments.length,
+                installmentsRemaining: Math.round(totalInstallmentsRemaining * 100) / 100,
             },
             receivables: receivablesAging,
             payables: payablesAging,
