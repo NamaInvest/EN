@@ -110,6 +110,38 @@ export async function POST(request: Request) {
         const invoiceNo = body.manualInvoiceNo ? Number(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
         const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
 
+        // ── Credit Limit Enforcement ────────────────────────────────────────
+        if (body.customerId) {
+            const customer = await prisma.customer.findUnique({
+                where: { id: Number(body.customerId) },
+                select: { creditLimit: true, balance: true, name: true },
+            });
+            if (customer && customer.creditLimit > 0) {
+                // Calculate invoice total estimate for check
+                let estTotal = 0;
+                for (const item of body.items) {
+                    const p = Number(item.price) || 0;
+                    const q = Number(item.quantity) || 1;
+                    estTotal += p * q;
+                }
+                const paymentType = body.paymentType || 'cash';
+                const paid = body.paid !== undefined ? Number(body.paid) : estTotal;
+                const willBeOwed = estTotal - paid; // ما سيبقى ديناً على العميل
+                const currentBalance = customer.balance || 0; // رصيد حالي (ديون قائمة)
+                if (paymentType !== 'cash' && (currentBalance + willBeOwed) > customer.creditLimit) {
+                    return NextResponse.json({
+                        error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${customer.creditLimit.toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${willBeOwed.toFixed(2)} ر.س`,
+                        code: 'CREDIT_LIMIT_EXCEEDED',
+                        currentBalance,
+                        creditLimit: customer.creditLimit,
+                        required: willBeOwed,
+                    }, { status: 422 });
+                }
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+
         // Calculate totals — support dynamic tax rate and inclusive/exclusive VAT mode
         const bodyTaxRate = Number(body.taxRate) || 15; // rate sent from frontend settings
         const bodyTaxInclusive = body.isTaxInclusive === true || String(body.isTaxInclusive) === 'true';
