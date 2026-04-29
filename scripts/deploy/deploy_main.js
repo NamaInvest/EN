@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
-const REMOTE_BASE = '/www/wwwroot/n11.namainvist.com';
+const REMOTE_BASE = '/www/wwwroot/namainvist.com';
 
 const args = process.argv.slice(2);
 const doBuild = args.includes('--build');
@@ -31,7 +31,7 @@ conn.on('ready', async () => {
     try {
         if (files.length > 0) await uploadFiles();
         if (doBuild) await runCommand(`cd ${REMOTE_BASE} && npm run build 2>&1 | tail -5`, '📦 Build');
-        if (doRestart) await runCommand(`pm2 restart saas-app && sleep 1 && pm2 list | grep saas-app`, '🚀 PM2');
+        if (doRestart) await runCommand(`pm2 restart main-site && sleep 1 && pm2 list | grep main-site`, '🚀 PM2');
         conn.end();
         console.log('=== DEPLOY COMPLETE ✅ ===');
     } catch (e) {

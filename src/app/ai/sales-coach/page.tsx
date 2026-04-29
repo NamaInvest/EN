@@ -25,24 +25,24 @@ export default function SalesCoachPage() {
         <div className="min-h-screen p-6" dir="rtl">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">ًںڈ… ظ…ط¯ط±ط¨ ط§ظ„ظ…ط¨ظٹط¹ط§طھ ط§ظ„ط°ظƒظٹ (AI Coach)</h1>
-                    <p className="text-[var(--text-muted)] text-sm mt-1">طھط­ظ„ظٹظ„ ط£ط¯ط§ط، ط§ظ„ظ…ظ†ط¯ظˆط¨ + طھظˆطµظٹط§طھ طھط·ظˆظٹط± ط´ط®طµظٹط©</p>
+                    <h1 className="text-2xl font-bold">🏅 مدرب المبيعات الذكي (AI Coach)</h1>
+                    <p className="text-[var(--text-muted)] text-sm mt-1">تحليل أداء المندوب + توصيات تطوير شخصية</p>
                 </div>
             </div>
 
             <div className="flex gap-3 mb-6 card">
-                <input value={userId} onChange={e => setUserId(e.target.value)} placeholder="ط±ظ‚ظ… ط§ظ„ظ…ظ†ط¯ظˆط¨ (ط£ظˆ ط§طھط±ظƒظ‡ ظ„طھط­ظ„ظٹظ„ ط­ط³ط§ط¨ظƒ)"
+                <input value={userId} onChange={e => setUserId(e.target.value)} placeholder="رقم المندوب (أو اتركه لتحليل حسابك)"
                     className="flex-1 input text-sm focus:outline-none focus:border-blue-500" />
                 <button onClick={analyze} disabled={loading}
                     className="px-5 py-2 btn-primary disabled:opacity-50 rounded-xl text-sm font-medium transition-colors">
-                    {loading ? 'âڈ³ طھط­ظ„ظٹظ„...' : 'ًںڈ… طھط­ظ„ظٹظ„ ط§ظ„ط£ط¯ط§ط،'}
+                    {loading ? '⏳ تحليل...' : '🏅 تحليل الأداء'}
                 </button>
             </div>
 
             {loading && (
                 <div className="text-center py-20">
                     <div className="text-5xl mb-4 animate-bounce">ًں§ </div>
-                    <p className="text-[var(--text-muted)]">ظٹط­ظ„ظ„ ط¨ظٹط§ظ†ط§طھ 30 ظٹظˆظ… ط§ظ„ظ…ط§ط¶ظٹط©...</p>
+                    <p className="text-[var(--text-muted)]">يحلل بيانات 30 يوم الماضية...</p>
                 </div>
             )}
 
@@ -52,7 +52,7 @@ export default function SalesCoachPage() {
                     <div className="card p-6 mb-5 flex items-center gap-6">
                         <div className="text-center">
                             <div className={`text-6xl font-black ${scoreColor(result.score)}`}>{result.score}</div>
-                            <p className="text-xs text-[var(--text-muted)] mt-1">ظ†ظ‚ط§ط· ط§ظ„ط£ط¯ط§ط،</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-1">نقاط الأداء</p>
                         </div>
                         <div className="flex-1 h-4 bg-gray-800 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full transition-all ${result.score >= 80 ? 'bg-emerald-500' : result.score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
@@ -64,10 +64,10 @@ export default function SalesCoachPage() {
                     {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         {[
-                            { label: 'ط¹ط¯ط¯ ط§ظ„ظپظˆط§طھظٹط±', value: result.performance?.totalInvoices, icon: 'ًں§¾' },
-                            { label: 'ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ…ط¨ظٹط¹ط§طھ', value: `${result.performance?.totalSales?.toLocaleString()} ط±.ط³`, icon: 'ًں’°' },
-                            { label: 'ظ…طھظˆط³ط· ط§ظ„ظپط§طھظˆط±ط©', value: `${result.performance?.avgInvoice?.toLocaleString()} ط±.ط³`, icon: 'ًں“ٹ' },
-                            { label: 'ظ†ط³ط¨ط© ط§ظ„ط¢ط¬ظ„', value: `${result.performance?.creditRatio}%`, icon: 'âڈ³' },
+                            { label: 'عدد الفواتير', value: result.performance?.totalInvoices, icon: '🧾' },
+                            { label: 'إجمالي المبيعات', value: `${result.performance?.totalSales?.toLocaleString()} ر.س`, icon: '💰' },
+                            { label: 'متوسط الفاتورة', value: `${result.performance?.avgInvoice?.toLocaleString()} ر.س`, icon: '📊' },
+                            { label: 'نسبة الآجل', value: `${result.performance?.creditRatio}%`, icon: '⏳' },
                         ].map(k => (
                             <div key={k.label} className="card p-4">
                                 <div className="text-2xl mb-2">{k.icon}</div>
@@ -81,7 +81,7 @@ export default function SalesCoachPage() {
                         {/* Top products */}
                         {result.topProducts?.length > 0 && (
                             <div className="card p-5">
-                                <h3 className="font-semibold mb-4">ًںڈ† ط£ظƒط«ط± ط§ظ„ظ…ظ†طھط¬ط§طھ ظ…ط¨ظٹط¹ط§ظ‹</h3>
+                                <h3 className="font-semibold mb-4">🏆 أكثر المنتجات مبيعاً</h3>
                                 <div className="space-y-3">
                                     {result.topProducts.map((p: any, i: number) => (
                                         <div key={i} className="flex items-center justify-between">
@@ -89,7 +89,7 @@ export default function SalesCoachPage() {
                                                 <span className={`text-lg font-bold ${i===0?'text-amber-400':i===1?'text-[var(--text-secondary)]':'text-amber-700'}`}>{i+1}</span>
                                                 <span className="text-sm text-[var(--text-secondary)]">{p.name}</span>
                                             </div>
-                                            <span className="text-emerald-400 text-sm font-bold">{p.revenue?.toLocaleString()} ط±.ط³</span>
+                                            <span className="text-emerald-400 text-sm font-bold">{p.revenue?.toLocaleString()} ر.س</span>
                                         </div>
                                     ))}
                                 </div>
@@ -98,7 +98,7 @@ export default function SalesCoachPage() {
 
                         {/* Recommendations */}
                         <div className="card p-5">
-                            <h3 className="font-semibold mb-4">ًں’، طھظˆطµظٹط§طھ ط§ظ„ظ…ط¯ط±ط¨ ط§ظ„ط°ظƒظٹ</h3>
+                            <h3 className="font-semibold mb-4">💡 توصيات المدرب الذكي</h3>
                             <div className="space-y-3">
                                 {(result.recommendations || []).map((rec: string, i: number) => (
                                     <div key={i} className="p-3 card-glass text-sm text-[var(--text-secondary)] border border-gray-700">

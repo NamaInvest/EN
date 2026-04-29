@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
-const REMOTE_BASE = '/www/wwwroot/n11.namainvist.com';
+const REMOTE_BASE = '/www/wwwroot/mgmg.namainvist.com';
 
 const args = process.argv.slice(2);
 const doBuild = args.includes('--build');

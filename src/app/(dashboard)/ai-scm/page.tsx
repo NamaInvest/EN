@@ -20,7 +20,7 @@ export default function AISCMPage() {
     };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-center min-h-[85vh] p-6 w-full">
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl p-8 text-white shadow-2xl">
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
                     <span className="text-4xl">📦</span> {t('sys.str_321')}</h1>

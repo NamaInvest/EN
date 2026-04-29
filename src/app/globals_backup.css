@@ -2089,7 +2089,7 @@ textarea.input {
   animation: fadeIn 0.2s ease;
 }
 
-/* ============ Mobile Responsive (â‰¤768px) ============ */
+/* ============ Mobile Responsive (≤768px) ============ */
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: flex;
@@ -2313,7 +2313,7 @@ textarea.input {
   }
 }
 
-/* ============ Small phones (â‰¤480px) ============ */
+/* ============ Small phones (≤480px) ============ */
 @media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;

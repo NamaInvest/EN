@@ -1980,7 +1980,7 @@ textarea.input {
   animation: fadeIn 0.2s ease;
 }
 
-/* ============ Mobile Responsive (â‰¤768px) ============ */
+/* ============ Mobile Responsive (≤768px) ============ */
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: flex;
@@ -2204,7 +2204,7 @@ textarea.input {
   }
 }
 
-/* ============ Small phones (â‰¤480px) ============ */
+/* ============ Small phones (≤480px) ============ */
 @media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;
@@ -2290,16 +2290,16 @@ textarea.input {
                 .restaurant-pos {
                     display: flex;
                     height: 100vh;
-                    background: #f0f2f5;
+                    background: var(--bg-dark);
                     font-family: 'Inter', system-ui, sans-serif;
                     overflow: hidden;
-                    color: #333;
+                    color: var(--text);
                 }
                 
                 /* Left Column: Categories */
                 .categories-pane {
                     width: 140px;
-                    background: #ffffff;
+                    background: var(--bg-sidebar); border-color: var(--border);
                     border-left: 1px solid #ddd;
                     display: flex;
                     flex-direction: column;
@@ -2385,7 +2385,7 @@ textarea.input {
                     font-size: 0.9rem;
                     font-weight: 600;
                     margin-bottom: auto;
-                    color: #333;
+                    color: var(--text);
                 }
                 .product-price {
                     font-weight: 700;
@@ -2447,7 +2447,7 @@ textarea.input {
                     border-bottom: 1px solid #e2e8f0;
                     align-items: center;
                 }
-                .col-name { flex: 2; font-size: 0.9rem; font-weight: 600; color: #333; }
+                .col-name { flex: 2; font-size: 0.9rem; font-weight: 600; color: var(--text); }
                 .col-qty { flex: 1; display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
                 .col-price { flex: 1; text-align: center; font-size: 0.9rem; color: #666; }
                 .col-total { flex: 1; text-align: left; font-weight: 700; color: #16a34a; }
@@ -2458,7 +2458,7 @@ textarea.input {
                     background: #e2e8f0;
                     display: flex; align-items: center; justify-content: center;
                     cursor: pointer;
-                    font-weight: bold; color: #333;
+                    font-weight: bold; color: var(--text);
                     border: none;
                 }
 
@@ -2525,7 +2525,7 @@ textarea.input {
                 .pos-container {
                     display: flex;
                     height: 100vh;
-                    background: var(--bg-primary, #0a0a0a);
+                    background: var(--bg-dark);
                     color: var(--text-primary, #ffffff);
                     font-family: 'Inter', system-ui, sans-serif;
                     overflow: hidden;
@@ -2542,7 +2542,7 @@ textarea.input {
                     align-items: center;
                     justify-content: space-between;
                     padding: 1.5rem;
-                    background: var(--card-bg, #111111);
+                    background: var(--bg-sidebar);
                     border-bottom: 1px solid var(--border-color, #2a2a2a);
                 }
                 .search-bar {
@@ -2594,7 +2594,7 @@ textarea.input {
                     width: 4px;
                 }
                 .categories-pane::-webkit-scrollbar-thumb {
-                    background-color: #333;
+                    background-color: var(--text);
                     border-radius: 4px;
                 }
                 .categories-pane::-webkit-scrollbar-track {

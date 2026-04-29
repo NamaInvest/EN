@@ -139,7 +139,7 @@ const THEMES = {
     },
 };
 
-// â”€â”€ Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Progress Bar ────────────────────────────────────────────────────────────
 
 const UNLIMITED_THRESHOLD = 99999;
 const fmtQuota = (n: number) => n >= UNLIMITED_THRESHOLD ? '∞' : n.toLocaleString();
@@ -161,17 +161,17 @@ function ProgressBar({ label, current, total, barColor, theme }: { label: string
     );
 }
 
-// â”€â”€ Status Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Status Badge ────────────────────────────────────────────────────────────
 
 function StatusBadge({ tenant }: { tenant: Tenant }) {
     if (tenant.subscriptionStatus === 'active')
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">â—ڈ PAID</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">● PAID</span>;
     if (tenant.isExpired)
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-100">â—ڈ EXPIRED</span>;
-    return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-100">â—ڈ {tenant.daysRemaining}d</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-100">● EXPIRED</span>;
+    return <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-100">● {tenant.daysRemaining}d</span>;
 }
 
-// â”€â”€ Toggle Switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Toggle Switch ───────────────────────────────────────────────────────────
 
 function ToggleSwitch({ active, loading, onToggle }: { active: boolean; loading: boolean; onToggle: () => void }) {
     return (
@@ -194,7 +194,7 @@ function ToggleSwitch({ active, loading, onToggle }: { active: boolean; loading:
     );
 }
 
-// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main Page ───────────────────────────────────────────────────────────────
 
 export default function IcePage() {
     const [theme, setTheme] = useState<ThemeMode>('light');
@@ -489,7 +489,7 @@ export default function IcePage() {
                 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
             `}} />
 
-            {/* â•گâ•گ TOPBAR â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */}
+            {/* ══ TOPBAR ══════════════════════════════════════════════════════ */}
             <header className={`h-[68px] flex-shrink-0 ${T.nav} border-b px-6 flex items-center justify-between z-50`}>
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -535,10 +535,10 @@ export default function IcePage() {
                 </div>
             </header>
 
-            {/* â•گâ•گ BODY â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ */}
+            {/* ══ BODY ════════════════════════════════════════════════════════ */}
             <div className="flex flex-1 overflow-hidden">
 
-                {/* â”€â”€ SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── SIDEBAR ──────────────────────────────────────────────── */}
                 <aside className={`w-[320px] flex-shrink-0 ${T.sidebar} flex flex-col overflow-hidden`}>
                     {/* View Toggle */}
                     <div className={`p-4 border-b ${isLight ? 'border-slate-100' : 'border-slate-800'} flex-shrink-0`}>
@@ -630,7 +630,7 @@ export default function IcePage() {
                     </div>
                 </aside>
 
-                {/* â”€â”€ MAIN CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── MAIN CONTENT ─────────────────────────────────────────── */}
                 <main className={`flex-1 min-w-0 overflow-y-auto ${T.content} p-6 lg:p-10`}>
                     {!selected ? (
                         <div className="h-full flex flex-col items-center justify-center gap-6 opacity-30">
@@ -722,7 +722,7 @@ export default function IcePage() {
                                 </div>
                             </div>
 
-                            {/* â”€â”€ Control Row â”€â”€ */}
+                            {/* ── Control Row ── */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                                 {/* Panel 1: Subscription & Quotas */}
@@ -855,7 +855,7 @@ export default function IcePage() {
                                                 disabled={!!busy}
                                                 onClick={() => { if (confirm('⚠️ هل أنت متأكد من تعليق الوصول الكامل؟')) doAction('suspend'); }}
                                                 className="text-[10px] font-black uppercase tracking-widest text-rose-300 hover:text-rose-600 transition-all disabled:opacity-50">
-                                                â›” Global Access Suspension
+                                                ⛔ Global Access Suspension
                                             </button>
                                         </div>
                                     </div>
