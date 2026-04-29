@@ -1,107 +1,333 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { CheckCircle, Phone, Pill, ArrowRight, ShieldCheck, Hourglass, Hash, Barcode, FileText, BarChart3, Layers } from 'lucide-react';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'نظام إدارة الصيدليات | نما إنفست – Pharmacy Management System',
-  description: 'نظام متكامل لإدارة الصيدليات: تتبع تواريخ الصلاحية (FEFO)، منع بيع الدواء المنتهي، إدارة البدائل الطبية، والأرقام التسلسلية. The most advanced pharmacy ERP in Saudi Arabia.',
-  keywords: 'نظام صيدلية, برنامج صيدلية, إدارة أدوية, تواريخ انتهاء الصلاحية, FEFO, pharmacy management system, Saudi Arabia pharmacy software',
-};
+import { useState, useEffect, useCallback } from 'react';
 
-const features = [
-  { icon: <Hourglass size={20}/>, title: 'تتبع تواريخ الصلاحية FEFO', desc: 'يستحيل برمجياً تمرير فاتورة بدواء منتهي الصلاحية. النظام يطبق First-Expired-First-Out تلقائياً.' },
-  { icon: <ShieldCheck size={20}/>, title: 'منع بيع الأدوية المنتهية', desc: 'حماية طبقية كاملة من الكاشير لمنع أي منتج منتهي الصلاحية من الوصول للعميل.' },
-  { icon: <Pill size={20}/>, title: 'إدارة البدائل الطبية', desc: 'قاعدة بيانات البدائل العلمية. يقترح الكاشير البديل فوراً عند نفاد الدواء الأصلي.' },
-  { icon: <Hash size={20}/>, title: 'الأرقام التسلسلية للأدوية', desc: 'تتبع كل وحدة دواء من المورد إلى العميل عبر Serial Number فريد – حماية ضد التزوير.' },
-  { icon: <Barcode size={20}/>, title: 'باركود سريع ودقيق', desc: 'مسح الباركود خلال 0.3 ثانية مع عرض معلومات الدواء كاملة: السعر، الصلاحية، والمخزون.' },
-  { icon: <BarChart3 size={20}/>, title: 'تقارير مخزون دوائية', desc: 'تقارير متخصصة: الأدوية على وشك الانتهاء، الأكثر مبيعاً، هامش الربح لكل صنف، ومعدل الدوران.' },
-  { icon: <FileText size={20}/>, title: 'فاتورة ZATCA إلكترونية', desc: 'إصدار الفواتير الإلكترونية المتوافقة مع المرحلة الثانية لهيئة الزكاة والضريبة والجمارك.' },
-  { icon: <CheckCircle size={20}/>, title: 'جرد دوري ذكي', desc: 'دورة جرد متكاملة مع الكشف التلقائي عن الفوارق وإصدار قيود التسوية المحاسبية.' },
-];
+interface PharmacyStats {
+    drugsTotal: number;
+    lowStockCount: number;
+    expiringSoonCount: number;
+    patientsTotal: number;
+    prescriptionsToday: number;
+    claimsOutstanding: number;
+    claimsPending: number;
+    revenueToday: number;
+}
 
-export default function PharmacyPage() {
-  return (
-    <div className="min-h-screen" dir="rtl" style={{ fontFamily: "'Noto Sans Arabic', sans-serif", background: '#F8FAFC' }}>
-      <link href="https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+export default function PharmacyDashboard() {
+    const [stats, setStats] = useState<PharmacyStats | null>(null);
+    const [drugs, setDrugs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQ, setSearchQ] = useState('');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'drugs' | 'prescriptions' | 'patients' | 'insurance'>('dashboard');
 
-      {/* NAV */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <Layers className="w-4 h-4 text-white"/>
+    const fetchDrugs = useCallback(async (q = '') => {
+        const res = await fetch(`/api/pharmacy/drugs?q=${q}&lowStock=false`);
+        const data = await res.json();
+        setDrugs(data.drugs || []);
+    }, []);
+
+    const fetchStats = useCallback(async () => {
+        try {
+            const [drugsRes, lowStockRes, expiringRes, insRes] = await Promise.all([
+                fetch('/api/pharmacy/drugs'),
+                fetch('/api/pharmacy/drugs?lowStock=true'),
+                fetch('/api/pharmacy/drugs?expiringSoon=true'),
+                fetch('/api/pharmacy/insurance'),
+            ]);
+            const drugsData = await drugsRes.json();
+            const lowData = await lowStockRes.json();
+            const expData = await expiringRes.json();
+            const insData = await insRes.json();
+
+            setStats({
+                drugsTotal: drugsData.total || 0,
+                lowStockCount: lowData.total || 0,
+                expiringSoonCount: expData.total || 0,
+                patientsTotal: 0,
+                prescriptionsToday: 0,
+                claimsOutstanding: insData.summary?.outstanding || 0,
+                claimsPending: insData.summary?.pending || 0,
+                revenueToday: 0,
+            });
+            setDrugs(drugsData.drugs || []);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchStats(); }, [fetchStats]);
+
+    const drugClassBadge = (cls: string) => {
+        const map: Record<string, string> = {
+            OTC: 'bg-green-500/20 text-green-400 border border-green-500/30',
+            Rx: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+            CONTROLLED: 'bg-red-500/20 text-red-400 border border-red-500/30',
+        };
+        return map[cls] || 'bg-gray-500/20 text-gray-400';
+    };
+
+    const drugClassLabel = (cls: string) => ({
+        OTC: 'بدون وصفة', Rx: 'بوصفة', CONTROLLED: 'مخدر متحكم',
+    }[cls] || cls);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-950">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-400">جارٍ تحميل وحدة الصيدلية...</p>
+                </div>
             </div>
-            <span className="font-black text-slate-900">نما إنفست</span>
-          </Link>
-          <Link href="/" className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-indigo-600">
-            <ArrowRight size={14}/> الرئيسية
-          </Link>
-        </div>
-      </nav>
+        );
+    }
 
-      {/* HERO */}
-      <div className="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '28px 28px' }}/>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            💊 حلول متخصصة للصيدليات – Pharmacy Solutions
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight">
-            أدر صيدليتك بدقة صيدلانية
-            <br/>
-            <span className="text-emerald-300 text-3xl md:text-4xl">وداعاً لأخطاء المخزون</span>
-          </h1>
-          <p className="text-emerald-100 text-lg mb-4 max-w-2xl mx-auto leading-relaxed">
-            Precision-driven Pharmacy Management. Tracking expiry dates, preventing dispensing errors, and managing alternatives automatically.
-          </p>
-          <p className="text-slate-300 text-base mb-10 max-w-2xl mx-auto">
-            نظام نما إنفست يوفر تحكماً كاملاً في الأدوية، تتبعاً دقيقاً لتواريخ الانتهاء، ونقاط بيع فائقة السرعة لخدمة عملائك في ثوانٍ.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/966531206628" target="_blank" className="px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl shadow-lg transition-all flex items-center gap-2">
-              <Phone size={18}/> طلب عرض توضيحي
-            </a>
-            <Link href="/#modules" className="px-7 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all">
-              استعرض جميع الميزات
-            </Link>
-          </div>
-        </div>
-      </div>
+    return (
+        <div className="min-h-screen bg-gray-950 text-white" dir="rtl">
+            {/* Header */}
+            <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-2xl">💊</div>
+                        <div>
+                            <h1 className="text-xl font-bold text-white">وحدة الصيدلية</h1>
+                            <p className="text-xs text-gray-400">متوافق مع SFDA · Wasfaty · CCHI</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs border border-emerald-500/20">✅ SFDA متوافق</span>
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs border border-blue-500/20">🏥 Wasfaty مفعّل</span>
+                    </div>
+                </div>
 
-      {/* FEATURES */}
-      <div className="max-w-6xl mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-slate-900 mb-3">ميزات مصممة خصيصاً للصيدليات</h2>
-          <p className="text-slate-500 text-lg">Pharmacy-specific features for maximum safety and efficiency</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {features.map((f, i) => (
-            <div key={i} className="bg-white border border-slate-100 rounded-2xl p-5 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-1 transition-all">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-4">{f.icon}</div>
-              <h3 className="font-black text-slate-800 mb-2 text-sm">{f.title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                {/* Tabs */}
+                <div className="flex gap-1 mt-4 overflow-x-auto">
+                    {[
+                        { key: 'dashboard', label: 'لوحة التحكم', icon: '📊' },
+                        { key: 'drugs', label: 'الأدوية', icon: '💊' },
+                        { key: 'prescriptions', label: 'الوصفات', icon: '📋' },
+                        { key: 'patients', label: 'المرضى', icon: '👤' },
+                        { key: 'insurance', label: 'التأمين', icon: '🏥' },
+                    ].map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key as any)}
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                                activeTab === tab.key
+                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                            }`}
+                        >
+                            <span>{tab.icon}</span>
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* CTA */}
-      <div className="bg-gradient-to-br from-emerald-900 to-teal-900 text-white py-16 px-4 text-center">
-        <h2 className="text-3xl font-black mb-4">جاهز لتطوير صيدليتك؟</h2>
-        <p className="text-emerald-200 mb-8">تواصل معنا اليوم للحصول على عرض توضيحي مجاني</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <a href="https://wa.me/966531206628" target="_blank" className="px-8 py-4 bg-white text-emerald-800 font-black rounded-xl shadow-lg transition-all hover:bg-emerald-50 flex items-center gap-2">
-            <Phone size={18}/> تواصل عبر واتساب
-          </a>
-          <Link href="/" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all">
-            العودة للرئيسية
-          </Link>
-        </div>
-      </div>
+            <div className="p-6">
+                {/* Dashboard Tab */}
+                {activeTab === 'dashboard' && stats && (
+                    <div className="space-y-6">
+                        {/* KPI Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <KpiCard icon="💊" label="إجمالي الأدوية" value={stats.drugsTotal} color="emerald" />
+                            <KpiCard icon="⚠️" label="مخزون منخفض" value={stats.lowStockCount} color="amber" alert />
+                            <KpiCard icon="📅" label="تنتهي خلال 30 يوم" value={stats.expiringSoonCount} color="orange" alert />
+                            <KpiCard icon="🏥" label="مطالبات معلقة" value={stats.claimsPending} color="blue" />
+                        </div>
 
-      <footer className="py-6 bg-slate-900 text-center text-slate-400 text-sm font-bold">
-        © {new Date().getFullYear()} نما إنفست – Pharmacy ERP Solution | <Link href="/" className="hover:text-white">namainvist.com</Link>
-      </footer>
-    </div>
-  );
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Alerts panel */}
+                            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                                <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                                    <span>🚨</span> تنبيهات الامتثال
+                                </h3>
+                                <div className="space-y-3">
+                                    {stats.lowStockCount > 0 && (
+                                        <AlertRow icon="🔴" text={`${stats.lowStockCount} دواء وصل لحد إعادة الطلب`} severity="high" />
+                                    )}
+                                    {stats.expiringSoonCount > 0 && (
+                                        <AlertRow icon="🟡" text={`${stats.expiringSoonCount} دواء ينتهي خلال 30 يوم`} severity="medium" />
+                                    )}
+                                    {stats.claimsPending > 0 && (
+                                        <AlertRow icon="⏳" text={`${stats.claimsPending} مطالبة تأمين قيد المراجعة`} severity="low" />
+                                    )}
+                                    {stats.claimsOutstanding > 0 && (
+                                        <AlertRow icon="💰" text={`${stats.claimsOutstanding.toFixed(2)} ر.س مستحقة من شركات التأمين`} severity="medium" />
+                                    )}
+                                    {stats.lowStockCount === 0 && stats.expiringSoonCount === 0 && (
+                                        <div className="text-center py-4 text-emerald-400 text-sm">✅ لا توجد تنبيهات — كل شيء تحت السيطرة</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Quick actions */}
+                            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                                <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                                    <span>⚡</span> إجراءات سريعة
+                                </h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[
+                                        { icon: '📷', label: 'مسح وصفة Wasfaty', tab: 'prescriptions' },
+                                        { icon: '💊', label: 'إضافة دواء جديد', tab: 'drugs' },
+                                        { icon: '👤', label: 'بحث عن مريض', tab: 'patients' },
+                                        { icon: '📊', label: 'تقرير المطالبات', tab: 'insurance' },
+                                    ].map((action) => (
+                                        <button
+                                            key={action.label}
+                                            onClick={() => setActiveTab(action.tab as any)}
+                                            className="flex flex-col items-center gap-2 p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-all group"
+                                        >
+                                            <span className="text-2xl group-hover:scale-110 transition-transform">{action.icon}</span>
+                                            <span className="text-xs text-gray-300 text-center">{action.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Drugs Tab */}
+                {activeTab === 'drugs' && (
+                    <div className="space-y-4">
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                placeholder="بحث بالاسم التجاري | المادة الفعالة | رقم SFDA | الباركود..."
+                                value={searchQ}
+                                onChange={e => { setSearchQ(e.target.value); fetchDrugs(e.target.value); }}
+                                className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 text-sm"
+                            />
+                            <button className="px-4 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-medium transition-colors">
+                                + دواء جديد
+                            </button>
+                        </div>
+
+                        <div className="grid gap-3">
+                            {drugs.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500">
+                                    <div className="text-4xl mb-3">💊</div>
+                                    <p>لا توجد أدوية مسجلة بعد</p>
+                                </div>
+                            ) : drugs.map((drug: any) => (
+                                <div key={drug.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4 hover:border-gray-700 transition-all">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-white">{drug.product?.name}</h3>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${drugClassBadge(drug.drugClass)}`}>
+                                                    {drugClassLabel(drug.drugClass)}
+                                                </span>
+                                                {drug.isControlled && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">⚠️ متحكم</span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-400">{drug.genericName} {drug.genericNameEn && `— ${drug.genericNameEn}`}</p>
+                                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                                <span>SFDA: {drug.sfdaNumber}</span>
+                                                {drug.manufacturer && <span>{drug.manufacturer}</span>}
+                                                <span className={`${drug.storageTemp !== 'room' ? 'text-blue-400' : ''}`}>
+                                                    {drug.storageTemp === 'refrigerated' ? '❄️ تبريد' : drug.storageTemp === 'frozen' ? '🧊 تجميد' : '🌡️ حرارة غرفة'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="text-left text-sm space-y-1">
+                                            <div className={`font-bold ${(drug.product?.currentStock <= drug.product?.minQuantity) ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                {drug.product?.currentStock ?? 0} وحدة
+                                            </div>
+                                            <div className="text-gray-400">{drug.product?.sellPrice?.toFixed(2)} ر.س</div>
+                                            {drug.mohMaxPrice > 0 && <div className="text-xs text-gray-600">سقف MOH: {drug.mohMaxPrice} ر.س</div>}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Prescriptions Tab */}
+                {activeTab === 'prescriptions' && (
+                    <div className="text-center py-16">
+                        <div className="text-6xl mb-4">📋</div>
+                        <h3 className="text-xl font-semibold text-white mb-2">إدارة الوصفات الطبية</h3>
+                        <p className="text-gray-400 mb-6">تسجيل وصرف الوصفات — Wasfaty + ورقية + OTC</p>
+                        <div className="flex gap-3 justify-center">
+                            <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+                                <span>📷</span> مسح QR Wasfaty
+                            </button>
+                            <button className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+                                <span>📝</span> وصفة ورقية
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Patients Tab */}
+                {activeTab === 'patients' && (
+                    <div className="space-y-4">
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                placeholder="بحث برقم الهوية الوطنية | الاسم | الجوال..."
+                                className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 text-sm"
+                            />
+                            <button className="px-4 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-medium transition-colors">
+                                + مريض جديد
+                            </button>
+                        </div>
+                        <div className="text-center py-12 text-gray-500">
+                            <div className="text-4xl mb-3">👤</div>
+                            <p>ابحث عن مريض بالأعلى</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Insurance Tab */}
+                {activeTab === 'insurance' && (
+                    <div className="text-center py-16">
+                        <div className="text-6xl mb-4">🏥</div>
+                        <h3 className="text-xl font-semibold text-white mb-2">مطالبات التأمين الصحي</h3>
+                        <p className="text-gray-400">CCHI / NPHIES — تقديم ومتابعة المطالبات</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// Sub-components
+function KpiCard({ icon, label, value, color, alert }: any) {
+    const colors: Record<string, string> = {
+        emerald: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
+        amber: 'from-amber-500/10 to-amber-500/5 border-amber-500/20',
+        orange: 'from-orange-500/10 to-orange-500/5 border-orange-500/20',
+        blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
+    };
+    const textColors: Record<string, string> = {
+        emerald: 'text-emerald-400', amber: 'text-amber-400', orange: 'text-orange-400', blue: 'text-blue-400',
+    };
+    return (
+        <div className={`bg-gradient-to-br ${colors[color]} border rounded-2xl p-5`}>
+            <div className="text-2xl mb-2">{icon}</div>
+            <div className={`text-3xl font-bold ${textColors[color]} ${alert && value > 0 ? 'animate-pulse' : ''}`}>{value}</div>
+            <div className="text-sm text-gray-400 mt-1">{label}</div>
+        </div>
+    );
+}
+
+function AlertRow({ icon, text, severity }: any) {
+    const bg: Record<string, string> = {
+        high: 'bg-red-500/10 border-red-500/20',
+        medium: 'bg-amber-500/10 border-amber-500/20',
+        low: 'bg-blue-500/10 border-blue-500/20',
+    };
+    return (
+        <div className={`flex items-center gap-3 p-3 rounded-lg border ${bg[severity]}`}>
+            <span className="text-lg">{icon}</span>
+            <span className="text-sm text-gray-300">{text}</span>
+        </div>
+    );
 }
