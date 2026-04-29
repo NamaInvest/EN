@@ -1,45 +1,50 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { apiError } from '@/lib/api-error';
+import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest) {
+    const prisma = getPrisma(request);
+    try {
+        const assets = await prisma.fixedAsset.findMany({
+            include: { depreciations: { orderBy: { depreciationDate: 'desc' } } },
+            orderBy: { id: 'desc' }
+        });
+        return NextResponse.json(assets);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request || req);
+    const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
-        const { id } = await params;
-        const assetId = parseInt(id);
-        const asset = await prisma.fixedAsset.findUnique({ where: { id: assetId } });
-        if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
-        if (asset.status !== 'active') return NextResponse.json({ error: 'لا يمكن إهلاك أصل غير نشط' }, { status: 400 });
-
-        // Calculate annual depreciation: (cost - salvage) / useful life
-        const annualDepreciation = (asset.purchaseCost - asset.salvageValue) / asset.usefulLifeYears;
-        const newValue = Math.max(asset.salvageValue, asset.currentValue - annualDepreciation);
-
-        const result = await prisma.$transaction([
-            prisma.depreciation.create({
-                data: {
-                    assetId,
-                    depreciationDate: new Date(),
-                    amount: asset.currentValue - newValue,
-                }
-            }),
-            prisma.fixedAsset.update({
-                where: { id: assetId },
-                data: {
-                    currentValue: newValue,
-                    status: newValue <= asset.salvageValue ? 'fully_depreciated' : 'active'
-                }
-            })
-        ]);
-
-        return NextResponse.json({ depreciation: result[0], asset: result[1] });
+        const body = await request.json();
+        if (!body.assetName || !body.assetType || !body.purchaseCost) {
+            return NextResponse.json({ error: 'اسم الأصل والنوع وتكلفة الشراء مطلوبة' }, { status: 400 });
+        }
+        const purchaseCost = parseFloat(body.purchaseCost);
+        const asset = await prisma.fixedAsset.create({
+            data: {
+                assetName: body.assetName,
+                assetType: body.assetType,
+                purchaseDate: body.purchaseDate ? new Date(body.purchaseDate) : new Date(),
+                purchaseCost,
+                salvageValue: parseFloat(body.salvageValue || '0'),
+                usefulLifeYears: parseInt(body.usefulLifeYears || '5'),
+                currentValue: purchaseCost,
+                location: body.location || null,
+                status: 'active'
+            }
+        });
+        return NextResponse.json(asset, { status: 201 });
     } catch (error: any) {
         console.error(error);
-        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]/depreciate' });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets' });
     }
 }

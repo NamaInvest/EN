@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
+    const _auth = getUserFromRequest(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request as any);

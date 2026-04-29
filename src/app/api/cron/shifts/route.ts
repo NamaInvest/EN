@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST() {
+export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         console.log(">> CRON EXECUTION: Running EOD Shift Closures...");

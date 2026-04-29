@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 // Nama Invest 4.0: AI Self-Healing Middleware
 // Automatically detects and fixes stuck ZATCA invoices, orphan records, and background sync failures
-export async function POST() {
+export async function POST(request: Request) {
     const prisma = getPrisma(request);
   try {
     const yesterday = new Date();

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
 
         if (event === 'order.created') {
-            await handleSallaOrderCreated(data);
+            await handleSallaOrderCreated(data, prisma);
         } else if (event === 'app.store.authorize') {
             // Store authorized our app
             console.log('✅ Salla App Authorized:', data);
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function handleSallaOrderCreated(order: any) {
+async function handleSallaOrderCreated(order: any, prisma: any) {
     // Determine total and tax based on Salla payload
     const total = order.amounts?.total?.amount || 0;
     const subtotal = order.amounts?.sub_total?.amount || 0;
@@ -71,7 +71,7 @@ async function handleSallaOrderCreated(order: any) {
     const mainStock = await prisma.stock.findFirst({ orderBy: { id: 'asc' } });
     const stockId = mainStock?.id || 1;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         // Find Customer by phone or create
         let customer = await tx.customer.findFirst({ where: { phone: customerPhone } });
         if (customer) {

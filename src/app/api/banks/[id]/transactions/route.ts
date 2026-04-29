@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request || req);
+    const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);

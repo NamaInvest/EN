@@ -125,6 +125,7 @@ model Product {
   rawRecipes           RecipeIngredient[]          @relation("RecipeRawProduct")
   wastages             ManufacturingWastage[]
   salesReturnDetails   SalesReturnDetail[]
+  purchaseReturnDetails PurchaseReturnDetail[]
   SalesOrderDetail     SalesOrderDetail[]
   DeliveryNoteDetail   DeliveryNoteDetail[]
   prDetails            PurchaseRequisitionDetail[]
@@ -200,6 +201,7 @@ model Customer {
   rfqs             RequestForQuotation[]
   goodsReceipts    GoodsReceiptNote[]
   leaseContracts   LeaseContract[]
+  purchaseReturns  PurchaseReturn[]
 
   @@index([phone])
   @@index([name])
@@ -482,13 +484,45 @@ model PurchaseReturn {
   date              DateTime @default(now())
   supplierId        Int?     @map("supplier_id")
   subtotal          Float    @default(0)
+  discountRate      Float    @default(0) @map("discount_rate")
+  discountValue     Float    @default(0) @map("discount_value")
   taxValue          Float    @default(0) @map("tax_value")
   total             Float    @default(0)
   userId            Int?     @map("user_id")
+  branchId          Int?     @map("branch_id")
   notes             String?
+  zatcaStatus       String?  @default("pending") @map("zatca_status")
+  zatcaQr           String?  @map("zatca_qr")
 
+  supplier Customer?              @relation(fields: [supplierId], references: [id])
+  branch   Branch?                @relation(fields: [branchId], references: [id])
+  details  PurchaseReturnDetail[]
+
+  @@index([date])
+  @@index([supplierId])
   @@map("purchase_returns")
 }
+
+// ==================== 13.1 PurchaseReturnDetails ====================
+model PurchaseReturnDetail {
+  id            Int     @id @default(autoincrement())
+  returnId      Int     @map("return_id")
+  productId     Int     @map("product_id")
+  productName   String? @map("product_name")
+  quantity      Float   @default(1)
+  price         Float   @default(0)
+  discountRate  Float   @default(0) @map("discount_rate")
+  discountValue Float   @default(0) @map("discount_value")
+  taxRate       Float   @default(15) @map("tax_rate")
+  taxValue      Float   @default(0) @map("tax_value")
+  total         Float   @default(0)
+
+  return  PurchaseReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id])
+
+  @@map("purchase_return_details")
+}
+
 
 // ==================== 14. StockMovements ====================
 model StockMovement {
@@ -1055,6 +1089,7 @@ model Branch {
   bankAccounts   BankAccount[]
   employees      Employee[]
   costCenters    CostCenter[]
+  purchaseReturns PurchaseReturn[]
 
   @@map("branches")
 }

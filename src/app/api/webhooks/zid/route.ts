@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             const order = payload.data;
             
             if (order.status?.code === 'delivered' || order.status?.code === 'paid' || order.is_paid) {
-                await processOrder(order);
+                await processOrder(order, prisma);
             }
         }
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 }
 
 // دالة معالجة الطلب وتحويله إلى فاتورة مبيعات
-async function processOrder(order: Record<string, any>) {
+async function processOrder(order: Record<string, any>, prisma: any) {
     // التحقق مما إذا كان الطلب مسجل مسبقاً لتجنب التكرار
     const existingInvoice = await prisma.salesInvoice.findFirst({
         where: { notes: { contains: `ZID_ORDER_ID:${order.id}` } }

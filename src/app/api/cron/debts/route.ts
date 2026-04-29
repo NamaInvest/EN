@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // This is an automation endpoint expected to be called by a CRON daemon
-export async function POST() {
+export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         console.log(">> CRON EXECUTION: Running Financial Debt Automation...");

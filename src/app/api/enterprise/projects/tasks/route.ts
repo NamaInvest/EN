@@ -5,6 +5,7 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
+
     try {
         const { searchParams } = new URL(request.url);
         const projectId = searchParams.get('projectId');
@@ -38,9 +39,9 @@ export async function POST(request: NextRequest) {
         const task = await prisma.projectTask.create({
             data: {
                 projectId: parseInt(data.projectId),
-                name: data.taskName,
+                name: data.name || data.taskName || '',
                 description: data.description,
-                cost: parseFloat(data.actualCost) || 0,
+                cost: parseFloat(data.cost ?? data.actualCost) || 0,
                 status: data.status || 'PENDING'
             }
         });
@@ -63,9 +64,8 @@ export async function PUT(request: NextRequest) {
         const updatedTask = await prisma.projectTask.update({
             where: { id: parseInt(data.id) },
             data: {
-                cost: data.actualCost ? parseFloat(data.actualCost) : undefined,
+                cost: (data.cost ?? data.actualCost) != null ? parseFloat(data.cost ?? data.actualCost) : undefined,
                 status: data.status,
-                // assignedTo: data.assignedTo
             }
         });
 
@@ -77,11 +77,6 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-    // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request as any);
 
     try {

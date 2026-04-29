@@ -29,7 +29,7 @@ const clerk = clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host') || '';
 
   // Marketing pages
-  const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services', '/pricing', '/features'];
+  const marketingRoutes = ['/', '', '/pharmacy', '/retail', '/restaurant', '/factory', '/services', '/pricing', '/features', '/design1', '/design2', '/design3', '/design4'];
   if (marketingRoutes.includes(req.nextUrl.pathname)) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-is-marketing', '1');

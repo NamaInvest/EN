@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth'; // Adjust based on your auth pattern
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request as any);

@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
-
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,13 +17,10 @@ export async function GET(req: Request) {
                 order: { select: { orderNo: true } },
                 receiver: { select: { fullName: true } },
                 stock: { select: { name: true } },
-                details: {
-                    include: { product: { select: { name: true, unit: true } } }
-                }
+                details: { include: { product: { select: { name: true, unit: true } } } }
             },
             orderBy: { id: 'desc' }
         });
-
         return NextResponse.json(grns);
     } catch (e) {
         console.error(e);
@@ -34,7 +30,6 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     const prisma = getPrisma(req as any);
-
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,26 +42,32 @@ export async function POST(req: Request) {
         const agg = await prisma.goodsReceiptNote.aggregate({ _max: { grnNo: true } });
         const nextNo = (agg._max.grnNo || 3000) + 1;
 
-        const grn = await prisma.$transaction(async (tx) => {
+        // P1: Fetch supplier name for auto-journal
+        const supplierRecord = supplierId
+            ? await prisma.customer.findUnique({ where: { id: parseInt(supplierId) }, select: { name: true } })
+            : null;
+
+        const grn = await prisma.$transaction(async (tx: any) => {
+            // P5: Status starts as 'pending_qc' — QC must approve before closing
             const newGrn = await tx.goodsReceiptNote.create({
                 data: {
                     grnNo: nextNo,
                     supplierId: supplierId ? parseInt(supplierId) : null,
                     orderId: orderId ? parseInt(orderId) : null,
                     stockId: stockId ? parseInt(stockId) : 1,
-                    notes: notes,
+                    notes,
                     receivedBy: decoded.userId,
-                    status: 'received',
+                    status: 'pending_qc',
                     details: {
                         create: items.map((i: any) => ({
                             productId: parseInt(i.productId),
                             productName: i.productName,
                             quantity: parseFloat(i.quantity),
                             acceptedQty: parseFloat(i.acceptedQty) || parseFloat(i.quantity),
-                            rejectedQty: parseFloat(i.rejectedQty) || 0
-                        }))
-                    }
-                }
+                            rejectedQty: parseFloat(i.rejectedQty) || 0,
+                        })),
+                    },
+                },
             });
 
             let totalGrnCost = 0;
@@ -75,11 +76,11 @@ export async function POST(req: Request) {
                 const accepted = parseFloat(item.acceptedQty) || parseFloat(item.quantity);
                 if (accepted > 0) {
                     const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
-                    totalGrnCost += accepted * (productObj?.buyPrice || productObj?.buyPrice || 0);
+                    totalGrnCost += accepted * (productObj?.buyPrice || 0);
 
                     await tx.product.update({
                         where: { id: parseInt(item.productId) },
-                        data: { currentStock: { increment: accepted } }
+                        data: { currentStock: { increment: accepted } },
                     });
 
                     await tx.stockMovement.create({
@@ -91,24 +92,53 @@ export async function POST(req: Request) {
                             referenceType: 'GRN',
                             referenceId: newGrn.id,
                             userId: decoded.userId,
-                            notes: 'استلام بضاعة سند إدخال رقم ' + nextNo
-                        }
+                            notes: 'استلام بضاعة سند إدخال رقم ' + nextNo,
+                        },
                     });
+
+                    // P2: Reorder point alert
+                    const prod = await tx.product.findUnique({
+                        where: { id: parseInt(item.productId) },
+                        select: { name: true, currentStock: true, minStock: true },
+                    });
+                    if (prod?.minStock && prod.currentStock <= prod.minStock) {
+                        await tx.systemAlert.create({
+                            data: {
+                                userId: decoded.userId,
+                                title: `⚠️ مخزون منخفض: ${prod.name}`,
+                                message: `المخزون الحالي ${prod.currentStock} وصل لحد إعادة الطلب (${prod.minStock}). يُنصح بإنشاء أمر شراء.`,
+                                alertType: 'WARNING',
+                                linkUrl: `/products/${parseInt(item.productId)}`,
+                            },
+                        }).catch(() => {});
+                    }
                 }
             }
 
+            // P1: Auto-journal GRN with real supplier name
             if (totalGrnCost > 0) {
                 try {
                     await postGRN({
                         grnNo: newGrn.grnNo,
                         totalCost: totalGrnCost,
-                        supplierName: 'مورد', // Could fetch from tx.supplier if needed
-                        userId: decoded.userId
+                        supplierName: supplierRecord?.name || 'مورد',
+                        userId: decoded.userId,
                     });
                 } catch (je) {
-                    console.error("Auto Journal Error (GRN):", je);
+                    console.error('Auto Journal Error (GRN):', je);
                 }
             }
+
+            // P5: Auto-create QualityInspection linked to this GRN
+            await tx.qualityInspection.create({
+                data: {
+                    referenceNumber: `GRN-${nextNo}`,
+                    inspectorId: decoded.userId,
+                    status: 'PENDING',
+                    notes: `فحص جودة تلقائي لسند الاستلام #${nextNo}`,
+                    inspectionDate: new Date(),
+                },
+            }).catch(() => {});
 
             return newGrn;
         });

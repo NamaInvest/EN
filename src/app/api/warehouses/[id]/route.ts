@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
+    const _auth = getUserFromRequest(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   const prisma = getPrisma(request);

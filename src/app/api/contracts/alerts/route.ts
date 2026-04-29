@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
                     data: {
                         userId: user.userId,
                         title: `عقد ينتهي قريباً — ${lease.contractNumber}`,
-                        message: `عقد الوحدة ${lease.unit?.name || lease.unitId} ينتهي في ${lease.endDate.toISOString().split('T')[0]}. قيمة الإيجار: ${lease.rentAmount} ر.س`,
+                        message: `عقد الوحدة ${lease.unit?.unitNumber || lease.unitId} ينتهي في ${lease.endDate.toISOString().split('T')[0]}. قيمة الإيجار: ${lease.rentAmount} ر.س`,
                         alertType: 'WARNING',
                         linkUrl: `/rem/leases/${lease.id}`,
                     },

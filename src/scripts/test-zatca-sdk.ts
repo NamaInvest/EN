@@ -1,3 +1,4 @@
+export {};
 // Test using zatca-xml-js library
 // Run: npx tsx src/scripts/test-zatca-sdk.ts
 

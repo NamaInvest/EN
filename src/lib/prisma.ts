@@ -167,10 +167,10 @@ function getTenantFromNextContext(): string | null {
 const smartPrisma = new Proxy({} as PrismaClient, {
     get(_target, prop) {
         // أولوية: tenantContext → Next.js internal context → env → n11
-        let tenant = tenantContext.getStore() || currentRequestStore.getStore();
+        let tenant: string | null | undefined = tenantContext.getStore() || currentRequestStore.getStore();
         if (!tenant) tenant = getTenantFromNextContext();
         if (!tenant) tenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
-        const client = getClient(tenant);
+        const client = getClient(tenant as string);
         const value = (client as unknown as Record<string | symbol, unknown>)[prop];
         if (typeof value === 'function') {
             return value.bind(client);

@@ -1,43 +1,50 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { apiError } from '@/lib/api-error';
+import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const { id } = await params;
-        const body = await request.json();
-        const data: any = {};
-        if (body.assetName) data.assetName = body.assetName;
-        if (body.assetType) data.assetType = body.assetType;
-        if (body.location !== undefined) data.location = body.location || null;
-        if (body.status) data.status = body.status;
-        if (body.salvageValue !== undefined) data.salvageValue = parseFloat(body.salvageValue);
-        if (body.usefulLifeYears) data.usefulLifeYears = parseInt(body.usefulLifeYears);
-
-        const asset = await prisma.fixedAsset.update({ where: { id: parseInt(id) }, data });
-        return NextResponse.json(asset);
-    } catch (error: any) {
+        const assets = await prisma.fixedAsset.findMany({
+            include: { depreciations: { orderBy: { depreciationDate: 'desc' } } },
+            orderBy: { id: 'desc' }
+        });
+        return NextResponse.json(assets);
+    } catch (error) {
         console.error(error);
-        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
+        return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request) {
     // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request || req);
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
-        const { id } = await params;
-        const assetId = parseInt(id);
-        await prisma.depreciation.deleteMany({ where: { assetId } });
-        await prisma.fixedAsset.delete({ where: { id: assetId } });
-        return NextResponse.json({ success: true });
+        const body = await request.json();
+        if (!body.assetName || !body.assetType || !body.purchaseCost) {
+            return NextResponse.json({ error: 'اسم الأصل والنوع وتكلفة الشراء مطلوبة' }, { status: 400 });
+        }
+        const purchaseCost = parseFloat(body.purchaseCost);
+        const asset = await prisma.fixedAsset.create({
+            data: {
+                assetName: body.assetName,
+                assetType: body.assetType,
+                purchaseDate: body.purchaseDate ? new Date(body.purchaseDate) : new Date(),
+                purchaseCost,
+                salvageValue: parseFloat(body.salvageValue || '0'),
+                usefulLifeYears: parseInt(body.usefulLifeYears || '5'),
+                currentValue: purchaseCost,
+                location: body.location || null,
+                status: 'active'
+            }
+        });
+        return NextResponse.json(asset, { status: 201 });
     } catch (error: any) {
         console.error(error);
-        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets' });
     }
 }

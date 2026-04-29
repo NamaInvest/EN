@@ -20,12 +20,11 @@ conn.on('ready', () => {
 cd /www/wwwroot
 echo "[1/2] Dumping ALL PostgreSQL Databases..."
 export PGPASSWORD="Nama2024secure"
-pg_dumpall -U namasoft -h localhost > all_databases.sql 2>/dev/null || pg_dumpall "postgresql://namasoft:Nama2024secure@localhost:5432/postgres" > all_databases.sql
-
+pg_dumpall -U postgres -h localhost > all_databases.sql
 
 echo "[2/2] Compressing N1 to N10 sites and database into a single archive..."
 # Excluding node_modules and .next to prevent a 10GB+ file that would fail to download normally.
-tar -czf Fleet_Full_Backup.tar.gz --exclude="*/node_modules" --exclude="*/.next" all_databases.sql n1.namainvist.com n2.namainvist.com n3.namainvist.com n4.namainvist.com n5.namainvist.com n6.namainvist.com n7.namainvist.com n8.namainvist.com n9.namainvist.com n10.namainvist.com namainvist.com
+tar -czf Fleet_Full_Backup.tar.gz --exclude="*/node_modules" --exclude="*/.next" all_databases.sql *.namainvist.com namainvist.com
 
 echo "Backup generated successfully at /www/wwwroot/Fleet_Full_Backup.tar.gz"
 `;

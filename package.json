@@ -1,6 +1,6 @@
 {
   "name": "namaweb",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
+    "cheerio": "^1.2.0",
     "date-fns": "^4.1.0",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3",

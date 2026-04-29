@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────
-const CATEGORIES = [
+export const CATEGORIES = [
   { id: 'all', label: 'الكل', emoji: '🌐' },
   { id: 'finance', label: 'المالية', emoji: '💰' },
   { id: 'sales', label: 'المبيعات', emoji: '🛒' },
@@ -33,7 +33,7 @@ const CATEGORIES = [
   { id: 'admin', label: 'الإدارة', emoji: '⚙️' },
 ];
 
-const modulesList = [
+export const modulesList = [
   { cat: 'finance', icon: <Calculator size={18}/>, title: "المحاسبة المالية", desc: "قيود يومية وشجرة حسابات متعددة المستويات" },
   { cat: 'finance', icon: <Building size={18}/>, title: "الحسابات البنكية", desc: "تتبع الأرصدة والتسويات البنكية" },
   { cat: 'finance', icon: <BarChart2 size={18}/>, title: "ميزان المراجعة", desc: "Drill-Down حتى القيد الأصلي" },
@@ -134,7 +134,7 @@ const modulesList = [
   { cat: 'admin', icon: <ShieldCheck size={18}/>, title: "الصلاحيات المتقدمة", desc: "104 قسم × مستخدم × صلاحية" },
 ];
 
-const INDUSTRIES = [
+export const INDUSTRIES = [
   {
     id: 'pharmacy', emoji: '💊', icon: <Pill size={26}/>,
     title: 'الصيدليات', titleEn: 'Pharmacies',
@@ -177,7 +177,7 @@ const INDUSTRIES = [
   },
 ];
 
-const POWER_CLUSTERS = [
+export const POWER_CLUSTERS = [
   {
     emoji: '💰', icon: <Calculator size={22}/>,
     title: 'السيطرة المالية', titleEn: 'Financial Mastery',

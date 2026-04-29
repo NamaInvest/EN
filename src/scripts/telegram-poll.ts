@@ -1,3 +1,4 @@
+export {};
 // Telegram Bot Polling Script
 // Run: npx ts-node --skip-project src/scripts/telegram-poll.ts
 
