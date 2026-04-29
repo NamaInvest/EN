@@ -1,0 +1,127 @@
+'use client';
+import { useState } from 'react';
+
+// FIFO/FEFO batch tracker — shows expiry-ordered stock for safe dispensing
+const MOCK_BATCHES = [
+    { id: 1, product: 'باراسيتامول 500مج', lot: 'LOT-2023-12', qty: 240, expiry: '2026-05-15', location: 'A-R2-C3', status: 'critical', daysLeft: 16 },
+    { id: 2, product: 'باراسيتامول 500مج', lot: 'LOT-2024-03', qty: 500, expiry: '2026-09-30', location: 'A-R2-C4', status: 'ok', daysLeft: 154 },
+    { id: 3, product: 'أموكسيسيلين 250مج', lot: 'LOT-2024-01', qty: 180, expiry: '2026-06-10', location: 'B-R1-C2', status: 'warning', daysLeft: 42 },
+    { id: 4, product: 'أموكسيسيلين 250مج', lot: 'LOT-2024-06', qty: 420, expiry: '2026-12-01', location: 'B-R1-C3', status: 'ok', daysLeft: 216 },
+    { id: 5, product: 'ميتفورمين 500مج', lot: 'LOT-2023-10', qty: 60, expiry: '2026-04-30', location: 'C-R3-C1', status: 'expired', daysLeft: 1 },
+    { id: 6, product: 'ميتفورمين 500مج', lot: 'LOT-2024-04', qty: 380, expiry: '2026-10-15', location: 'C-R3-C2', status: 'ok', daysLeft: 169 },
+    { id: 7, product: 'أوميبرازول 20مج', lot: 'LOT-2024-02', qty: 150, expiry: '2026-07-20', location: 'A-R4-C1', status: 'warning', daysLeft: 82 },
+    { id: 8, product: 'فيتامين سي 1000مج', lot: 'LOT-2024-05', qty: 800, expiry: '2027-02-28', location: 'D-R1-C5', status: 'ok', daysLeft: 305 },
+];
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; row: string }> = {
+    expired: { label: '🔴 منتهي', color: 'text-red-400 bg-red-500/10 border-red-500/30', row: 'border-red-500/20 bg-red-500/5' },
+    critical: { label: '🟠 حرج (<30)', color: 'text-orange-400 bg-orange-500/10 border-orange-500/30', row: 'border-orange-500/20' },
+    warning: { label: '🟡 قرب الانتهاء', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30', row: 'border-amber-500/10' },
+    ok: { label: '🟢 جيد', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', row: '' },
+};
+
+export default function FIFOPage() {
+    const [filter, setFilter] = useState('all');
+    const [search, setSearch] = useState('');
+
+    const filtered = MOCK_BATCHES
+        .filter(b => filter === 'all' ? true : b.status === filter)
+        .filter(b => search ? b.product.includes(search) || b.lot.includes(search) : true)
+        .sort((a, b) => a.daysLeft - b.daysLeft); // FEFO: First Expiry First Out
+
+    const counts = {
+        expired: MOCK_BATCHES.filter(b=>b.status==='expired').length,
+        critical: MOCK_BATCHES.filter(b=>b.status==='critical').length,
+        warning: MOCK_BATCHES.filter(b=>b.status==='warning').length,
+        ok: MOCK_BATCHES.filter(b=>b.status==='ok').length,
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-950 text-white p-6" dir="rtl">
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold">📦 إدارة FIFO / FEFO</h1>
+                    <p className="text-gray-400 text-sm mt-1">تتبع الدفعات والصلاحيات — الأول انتهاءً هو الأول صرفاً</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-lg text-blue-400">
+                    ⚡ نظام FEFO مفعّل
+                </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {[
+                    { label: 'منتهي الصلاحية', value: counts.expired, color: 'red', action: 'يجب إتلافه فوراً' },
+                    { label: 'حرج (<30 يوم)', value: counts.critical, color: 'orange', action: 'أولوية الصرف' },
+                    { label: 'قرب الانتهاء', value: counts.warning, color: 'amber', action: 'راقب عن كثب' },
+                    { label: 'دفعات سليمة', value: counts.ok, color: 'emerald', action: 'ضمن المعيار' },
+                ].map(k => (
+                    <div key={k.label} className={`rounded-2xl border p-4 ${
+                        k.color==='red'?'bg-red-500/10 border-red-500/20':
+                        k.color==='orange'?'bg-orange-500/10 border-orange-500/20':
+                        k.color==='amber'?'bg-amber-500/10 border-amber-500/20':
+                        'bg-emerald-500/10 border-emerald-500/20'}`}>
+                        <div className="text-2xl font-bold text-white">{k.value}</div>
+                        <div className="text-xs font-medium mt-1">{k.label}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{k.action}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Search + filter */}
+            <div className="flex flex-wrap gap-3 mb-5">
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث بالمنتج أو الـ LOT..."
+                    className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm w-64 focus:outline-none focus:border-blue-500" />
+                <div className="flex gap-2">
+                    {[['all','الكل'],['expired','منتهي'],['critical','حرج'],['warning','تحذير'],['ok','سليم']].map(([k,l]) => (
+                        <button key={k} onClick={() => setFilter(k)}
+                            className={`px-4 py-2 rounded-lg text-sm transition-all ${filter===k?'bg-blue-500 text-white':'bg-gray-900 text-gray-400 border border-gray-800'}`}>{l} {k!=='all'?`(${counts[k as keyof typeof counts]??''})`:''}</button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Batches table */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+                <div className="p-3 border-b border-gray-800 text-xs text-gray-500">
+                    مرتّب بـ FEFO — الأسرع انتهاءً في الأعلى
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead><tr className="border-b border-gray-800 text-gray-400 text-xs">
+                            <th className="text-right p-3">المنتج</th>
+                            <th className="text-right p-3">رقم الدفعة</th>
+                            <th className="text-right p-3">الكمية</th>
+                            <th className="text-right p-3">الموقع</th>
+                            <th className="text-right p-3">تاريخ الانتهاء</th>
+                            <th className="text-right p-3">الأيام المتبقية</th>
+                            <th className="text-right p-3">الحالة</th>
+                            <th className="text-right p-3">إجراء</th>
+                        </tr></thead>
+                        <tbody>
+                            {filtered.map(b => (
+                                <tr key={b.id} className={`border-b border-gray-800/50 hover:bg-gray-800/30 ${STATUS_CONFIG[b.status]?.row}`}>
+                                    <td className="p-3 font-medium">{b.product}</td>
+                                    <td className="p-3 font-mono text-xs text-gray-400">{b.lot}</td>
+                                    <td className="p-3 text-gray-300">{b.qty}</td>
+                                    <td className="p-3 font-mono text-xs text-blue-400">{b.location}</td>
+                                    <td className="p-3 text-gray-300">{b.expiry}</td>
+                                    <td className={`p-3 font-bold ${b.daysLeft<=0?'text-red-400':b.daysLeft<=30?'text-orange-400':b.daysLeft<=90?'text-amber-400':'text-emerald-400'}`}>
+                                        {b.daysLeft <= 0 ? 'منتهي!' : `${b.daysLeft} يوم`}
+                                    </td>
+                                    <td className="p-3">
+                                        <span className={`text-xs px-2 py-1 rounded-full border ${STATUS_CONFIG[b.status]?.color}`}>{STATUS_CONFIG[b.status]?.label}</span>
+                                    </td>
+                                    <td className="p-3">
+                                        {b.status === 'expired' && <button className="text-xs px-2 py-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30">🗑️ إتلاف</button>}
+                                        {b.status === 'critical' && <button className="text-xs px-2 py-1 bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30">⚡ أولوية</button>}
+                                        {b.status === 'ok' && <button className="text-xs px-2 py-1 bg-gray-800 text-gray-400 rounded hover:bg-gray-700">📋 عرض</button>}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
