@@ -9,13 +9,14 @@ const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 const REMOTE = '/www/wwwroot/n11.namainvist.com';
 const MIGRATION_SQL = 'prisma/migrations/20260501_add_numbering_sequences/migration.sql';
 
+// nama_main_db is owned by `postgres` and the n11_db connection role lacks CREATE
+// on its public schema. Skipping until the user explicitly authorizes a GRANT.
 const TENANTS = [
     'ahmedalyamicompany_db',
     'leave_db',
     'm_db',
     'n11_db',
     'n7_db',
-    'nama_main_db',
 ];
 
 const conn = new Client();
