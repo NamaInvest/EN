@@ -41,7 +41,8 @@ conn.on('ready', async () => {
 
         // ─── Step 2: Apply SQL migration via psql (n11_db) ──────────────
         console.log('━━━ Step 2/5: Apply SQL migration to n11_db ━━━');
-        const psqlCmd = `cd ${REMOTE_BASE} && psql "$(grep '^DATABASE_URL' .env | cut -d '=' -f2- | tr -d '"' | tr -d "'")" -f ${MIGRATION_SQL} 2>&1`;
+        // Strip ?schema=... query (psql doesn't accept it; defaults to public anyway)
+        const psqlCmd = `cd ${REMOTE_BASE} && psql "$(grep '^DATABASE_URL' .env | cut -d '=' -f2- | tr -d '"' | tr -d "'" | sed 's/?.*$//')" -f ${MIGRATION_SQL} 2>&1`;
         const psqlOut = await runCommand(psqlCmd);
         console.log(psqlOut.trim());
         if (psqlOut.toLowerCase().includes('error') && !psqlOut.includes('already exists')) {
