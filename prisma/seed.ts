@@ -146,6 +146,44 @@ async function main() {
         console.log('✅ تم إنشاء وتوسيع كافة صلاحيات المدير');
     }
 
+    // 9. Numbering Sequences (Foundation 0.1) — قوالب التكوين الافتراضية
+    // كل (code) له صف "master" بدون fiscalYear/fiscalMonth (current=0) يُستخدم كقالب.
+    // عند أول استدعاء فعلي، تُنشأ سلاسل فترات (yearly/monthly) مستقلة تلقائياً.
+    const numberingDefaults = [
+        { code: 'JE',  name: 'قيد يومية',     prefix: 'JE-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'INV', name: 'فاتورة مبيعات', prefix: 'INV-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'PO',  name: 'أمر شراء',      prefix: 'PO-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'PR',  name: 'طلب شراء',      prefix: 'PR-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'GRN', name: 'إذن استلام',    prefix: 'GRN-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'RFQ', name: 'طلب عرض سعر',   prefix: 'RFQ-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'SO',  name: 'أمر بيع',       prefix: 'SO-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'DN',  name: 'إذن تسليم',     prefix: 'DN-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'WO',  name: 'أمر تشغيل',     prefix: 'WO-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'FA',  name: 'أصل ثابت',      prefix: 'FA-',  padLength: 6, resetFrequency: 'never'   },
+        { code: 'EMP', name: 'موظف',          prefix: 'EMP-', padLength: 5, resetFrequency: 'never'   },
+        { code: 'SAL', name: 'مسير راتب',     prefix: 'SAL-', padLength: 6, resetFrequency: 'monthly' },
+        { code: 'EXP', name: 'مصروف',         prefix: 'EXP-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'PV',  name: 'سند صرف',       prefix: 'PV-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'RV',  name: 'سند قبض',       prefix: 'RV-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'CHK', name: 'شيك',           prefix: 'CHK-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'SR',  name: 'مرتجع مبيعات',  prefix: 'SR-',  padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'PRT', name: 'مرتجع مشتريات', prefix: 'PRT-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'ADJ', name: 'تسوية مخزون',   prefix: 'ADJ-', padLength: 6, resetFrequency: 'yearly'  },
+        { code: 'TRN', name: 'تحويل مخزون',   prefix: 'TRN-', padLength: 6, resetFrequency: 'yearly'  },
+    ];
+
+    for (const def of numberingDefaults) {
+        const existing = await prisma.numberingSequence.findFirst({
+            where: { code: def.code, branchId: null, fiscalYear: null, fiscalMonth: null },
+        });
+        if (!existing) {
+            await prisma.numberingSequence.create({
+                data: { ...def, current: BigInt(0), branchId: null, isActive: true },
+            });
+        }
+    }
+    console.log('✅ تم إنشاء قوالب سلاسل الترقيم الافتراضية (' + numberingDefaults.length + ' سلسلة)');
+
     console.log('\n🎉 تم إعداد قاعدة البيانات بنجاح!');
     console.log('📌 حساب المدير: admin / admin');
 }

@@ -2941,3 +2941,30 @@ model PayrollInvoiceDetail {
 
   @@map("payroll_invoice_details")
 }
+
+// ==================== Numbering Sequences Engine (Foundation 0.1) ====================
+// محرّك ترقيم موحّد لكل أنواع الوثائق
+// Atomic increment via Prisma $transaction with row-level lock
+model NumberingSequence {
+  id             Int       @id @default(autoincrement())
+  code           String    @map("code") // JE, INV, PO, GRN, PR, RFQ, SO, DN, FA, EMP, SAL, WO, ...
+  name           String?   // وصف اختياري للعرض في الإعدادات
+  prefix         String    @default("")
+  suffix         String    @default("")
+  padLength      Int       @default(6) @map("pad_length") // 6 → 000001
+  current        BigInt    @default(0) // آخر رقم مُولَّد
+  resetFrequency String    @default("never") @map("reset_frequency") // never | yearly | monthly
+  branchId       Int?      @map("branch_id")
+  fiscalYear     Int?      @map("fiscal_year") // السنة المرجعية للـ reset
+  fiscalMonth    Int?      @map("fiscal_month") // الشهر المرجعي (لـ monthly)
+  lastReset      DateTime? @map("last_reset")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // المفتاح الفريد: كل (code, branchId, fiscalYear, fiscalMonth) سلسلة مستقلة
+  // branchId=null → سلسلة عالمية للشركة
+  @@unique([code, branchId, fiscalYear, fiscalMonth], name: "uq_numbering_seq")
+  @@index([code, isActive])
+  @@map("numbering_sequences")
+}

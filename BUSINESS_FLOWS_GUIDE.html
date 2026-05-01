@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تحليل الفجوات الشامل ومقارنة بالأنظمة العالمية</title>
+<style>
+@page { size: A4; margin: 18mm 15mm; }
+* { box-sizing: border-box; }
+html, body {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.85;
+  font-size: 13px;
+  color: #1f2937;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 40px;
+}
+h1 {
+  font-size: 26px;
+  color: #0f172a;
+  border-bottom: 4px solid #2563eb;
+  padding-bottom: 8px;
+  margin-top: 0;
+  page-break-before: auto;
+}
+h2 {
+  font-size: 20px;
+  color: #1e3a8a;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 6px;
+  margin-top: 32px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 16px;
+  color: #1e40af;
+  margin-top: 24px;
+  page-break-after: avoid;
+}
+h4 {
+  font-size: 14px;
+  color: #1e293b;
+  margin-top: 18px;
+  page-break-after: avoid;
+}
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-right: 26px; padding-left: 0; }
+li { margin: 4px 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  direction: rtl;
+  font-size: 12px;
+  page-break-inside: auto;
+}
+thead {
+  background: #1e40af;
+  color: #fff;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 7px 10px;
+  text-align: right;
+  vertical-align: top;
+}
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:hover { background: #eff6ff; }
+code {
+  background: #f1f5f9;
+  color: #be123c;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  direction: ltr;
+  display: inline-block;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+  font-size: 11.5px;
+  line-height: 1.55;
+  page-break-inside: avoid;
+  margin: 12px 0;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+blockquote {
+  border-right: 4px solid #2563eb;
+  background: #eff6ff;
+  margin: 12px 0;
+  padding: 10px 14px;
+  color: #1e3a8a;
+}
+hr {
+  border: none;
+  border-top: 2px dashed #cbd5e1;
+  margin: 28px 0;
+}
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { color: #0f172a; }
+
+/* رموز الحالة */
+p:has(> code) { line-height: 2; }
+
+/* طباعة */
+@media print {
+  body { font-size: 11.5px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 17px; page-break-before: auto; }
+  h3 { font-size: 14px; }
+  table { font-size: 10.5px; }
+  pre { font-size: 10px; }
+  .no-print { display: none; }
+}
+.print-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 13px;
+  z-index: 999;
+}
+.print-banner button {
+  background: #fff;
+  color: #2563eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
+@media print { .print-banner { display: none; } }
+.mermaid {
+  background: #fff;
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  margin: 16px 0;
+  text-align: center;
+  page-break-inside: avoid;
+  direction: ltr;
+  overflow-x: auto;
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { useMaxWidth: true, htmlLabels: true }, securityLevel: 'loose' });
+  }
+});
+</script>
+</head>
+<body>
+<div class="container">
+<h1>دليل الفلوهات (Business Flows) المطلوبة للنظام</h1>
+<h1>Business Flows &amp; Workflow Diagrams Guide</h1>
+<blockquote><strong>لماذا الفلوهات ضرورية؟</strong></blockquote>
+<blockquote>البرومنت يقول "ماذا" تبني، الفلو يقول "كيف يعمل". بدون فلو واضح:</blockquote>
+<blockquote>- المطورون يبنون كود غير متناسق</blockquote>
+<blockquote>- المحاسب لا يعرف متى يدخل البيانات</blockquote>
+<blockquote>- العميل لا يعرف الخطوة التالية</blockquote>
+<blockquote>- المراجع لا يستطيع التدقيق</blockquote>
+<hr>
+<h2>📋 الفلوهات الـ 18 الأساسية التي تحتاجها</h2>
+<h3>مجموعة A: العمليات التجارية الرئيسية (Business Processes)</h3>
+<ol>
+<li><strong>Quote-to-Cash</strong> (دورة المبيعات الكاملة)</li>
+<li><strong>Procure-to-Pay</strong> (دورة المشتريات الكاملة)</li>
+<li><strong>Hire-to-Retire</strong> (دورة الموظف من التعيين للترك)</li>
+<li><strong>Record-to-Report</strong> (دورة المحاسبة من القيد للتقرير)</li>
+<li><strong>Plan-to-Produce</strong> (دورة الإنتاج)</li>
+<li><strong>Acquire-to-Retire (Assets)</strong> (دورة الأصل من الشراء للتخريد)</li>
+<li><strong>Order-to-Cash POS</strong> (دورة بيع نقاط البيع)</li>
+</ol>
+<h3>مجموعة B: فلوهات الموافقات (Approval Workflows)</h3>
+<ol>
+<li><strong>Journal Entry Approval Flow</strong></li>
+<li><strong>Purchase Order Approval Flow</strong></li>
+<li><strong>Vendor Onboarding Approval Flow</strong></li>
+<li><strong>Leave Request Approval Flow</strong></li>
+</ol>
+<h3>مجموعة C: فلوهات الحالات (State Machines)</h3>
+<ol>
+<li><strong>Invoice Lifecycle States</strong></li>
+<li><strong>Manufacturing Order States</strong></li>
+<li><strong>Check Lifecycle</strong></li>
+<li><strong>Fixed Asset Lifecycle</strong></li>
+</ol>
+<h3>مجموعة D: فلوهات الإقفال والامتثال</h3>
+<ol>
+<li><strong>Period Close Flow</strong></li>
+<li><strong>ZATCA E-Invoice Submission Flow</strong></li>
+<li><strong>WPS Salary Submission Flow</strong></li>
+</ol>
+<hr>
+<h2>🎨 الفلو رقم 1: Quote-to-Cash (دورة المبيعات)</h2>
+<pre class="mermaid">flowchart TD
+    A[عميل محتمل Lead] --&gt; B{مهتم؟}
+    B -- لا --&gt; Z1[Lost - أرشيف]
+    B -- نعم --&gt; C[فرصة Opportunity]
+    C --&gt; D[عرض سعر Quotation]
+    D --&gt; E{موافق على السعر؟}
+    E -- لا --&gt; D2[تعديل عرض السعر]
+    D2 --&gt; E
+    E -- نعم --&gt; F[طلب بيع Sales Order]
+    F --&gt; G{المخزون متوفر؟}
+    G -- لا --&gt; G1[طلب شراء/إنتاج]
+    G1 --&gt; G
+    G -- نعم --&gt; H[حجز المخزون Reserve]
+    H --&gt; I[إذن صرف Delivery Note]
+    I --&gt; J[فاتورة بيع Sales Invoice]
+    J --&gt; J2[ZATCA Sign + QR]
+    J2 --&gt; K[القيد المحاسبي:&lt;br/&gt;DR: AR/Cash&lt;br/&gt;CR: Revenue + VAT]
+    K --&gt; L{تم الدفع؟}
+    L -- لا --&gt; L1[فاتورة مفتوحة AR]
+    L1 --&gt; M[متابعة Dunning]
+    M --&gt; L
+    L -- جزئي --&gt; N[سند قبض جزئي]
+    N --&gt; L
+    L -- نعم كاملاً --&gt; O[سند قبض كامل]
+    O --&gt; P[إغلاق Open Item]
+    P --&gt; END[انتهت الدورة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 2: Procure-to-Pay (دورة المشتريات)</h2>
+<pre class="mermaid">flowchart TD
+    A[طلب شراء داخلي PR] --&gt; B{موافقة المدير؟}
+    B -- لا --&gt; Z[رفض]
+    B -- نعم --&gt; C{المبلغ &gt; 50,000؟}
+    C -- نعم --&gt; C1[موافقة المدير المالي]
+    C1 --&gt; D
+    C -- لا --&gt; D[طلب عروض أسعار RFQ]
+    D --&gt; E[استلام عروض الموردين]
+    E --&gt; F[مقارنة العروض Quote Comparison]
+    F --&gt; G[اختيار المورد]
+    G --&gt; H[أمر شراء PO]
+    H --&gt; I[إرسال للمورد]
+    I --&gt; J[استلام البضاعة GRN]
+    J --&gt; J1{فحص الجودة QC؟}
+    J1 -- فشل --&gt; J2[مرتجع للمورد]
+    J1 -- نجح --&gt; K[إثبات المخزون&lt;br/&gt;DR: Inventory&lt;br/&gt;CR: GR/IR]
+    K --&gt; L[فاتورة المورد]
+    L --&gt; M[Three-Way Match]
+    M --&gt; M1{متطابق؟}
+    M1 -- لا --&gt; M2[Hold للمراجعة]
+    M2 --&gt; M
+    M1 -- نعم --&gt; N[ترحيل الفاتورة&lt;br/&gt;DR: GR/IR&lt;br/&gt;CR: AP]
+    N --&gt; O[انتظار تاريخ الاستحقاق]
+    O --&gt; P[Payment Run]
+    P --&gt; Q[سند صرف]
+    Q --&gt; R[القيد:&lt;br/&gt;DR: AP&lt;br/&gt;CR: Bank]
+    R --&gt; END[انتهت الدورة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 3: Hire-to-Retire (دورة الموظف)</h2>
+<pre class="mermaid">flowchart TD
+    A[نشر إعلان وظيفي] --&gt; B[استقبال طلبات]
+    B --&gt; C[فرز السير الذاتية]
+    C --&gt; D[مقابلات]
+    D --&gt; E{قبول؟}
+    E -- لا --&gt; Z1[رفض]
+    E -- نعم --&gt; F[عرض عمل Offer Letter]
+    F --&gt; G[توقيع العقد]
+    G --&gt; H[Onboarding&lt;br/&gt;- Iqama&lt;br/&gt;- مستندات&lt;br/&gt;- بنك&lt;br/&gt;- GOSI تسجيل]
+    H --&gt; I[إنشاء سجل الموظف]
+    I --&gt; J[تعيين راتب وبدلات]
+    J --&gt; K[العمل اليومي:&lt;br/&gt;- حضور&lt;br/&gt;- أداء&lt;br/&gt;- إجازات]
+    K --&gt; L[رواتب شهرية]
+    L --&gt; L1[GOSI خصم]
+    L --&gt; L2[Loans خصم]
+    L --&gt; L3[Net Salary]
+    L3 --&gt; M[WPS File Generation]
+    M --&gt; N[تحويل البنك]
+    N --&gt; O[Payslip]
+    O --&gt; P{استمرار؟}
+    P -- نعم --&gt; K
+    P -- استقالة/انتهاء --&gt; Q[End of Service Calculation]
+    Q --&gt; R[تسوية نهائية:&lt;br/&gt;- EOS&lt;br/&gt;- إجازات متراكمة&lt;br/&gt;- خصم سلف&lt;br/&gt;- رواتب مستحقة]
+    R --&gt; S[إخراج من GOSI]
+    S --&gt; T[إغلاق سجل الموظف]
+    T --&gt; END[انتهت الدورة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 4: Record-to-Report (المحاسبة)</h2>
+<pre class="mermaid">flowchart TD
+    A[المعاملات اليومية] --&gt; A1[فواتير بيع]
+    A --&gt; A2[فواتير شراء]
+    A --&gt; A3[سندات قبض/صرف]
+    A --&gt; A4[حركات مخزون]
+    A --&gt; A5[رواتب]
+    A --&gt; A6[إهلاك أصول]
+    
+    A1 --&gt; B[Auto-Journal Engine]
+    A2 --&gt; B
+    A3 --&gt; B
+    A4 --&gt; B
+    A5 --&gt; B
+    A6 --&gt; B
+    
+    B --&gt; C[General Ledger - GL]
+    
+    D[قيود يدوية Manual JE] --&gt; D1{موافقة؟}
+    D1 -- لا --&gt; Z[Pending]
+    D1 -- نعم --&gt; C
+    
+    C --&gt; E{نهاية الفترة؟}
+    E -- لا --&gt; A
+    E -- نعم --&gt; F[Period Close Process]
+    
+    F --&gt; F1[1. توقف القيود الفرعية]
+    F1 --&gt; F2[2. FX Revaluation]
+    F2 --&gt; F3[3. Allocations Run]
+    F3 --&gt; F4[4. Depreciation Run]
+    F4 --&gt; F5[5. Accruals]
+    F5 --&gt; F6[6. Sub-ledger Match]
+    F6 --&gt; F7[7. Closing Entries]
+    F7 --&gt; F8[8. قفل الفترة]
+    
+    F8 --&gt; G[التقارير المالية]
+    G --&gt; G1[Trial Balance]
+    G --&gt; G2[Balance Sheet]
+    G --&gt; G3[Income Statement]
+    G --&gt; G4[Cash Flow]
+    G --&gt; G5[Statement of Equity]
+    G --&gt; G6[Notes]
+    
+    G1 --&gt; H[مراجعة المحاسب]
+    G2 --&gt; H
+    G3 --&gt; H
+    G4 --&gt; H
+    G5 --&gt; H
+    G6 --&gt; H
+    
+    H --&gt; END[تقارير معتمدة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 5: Plan-to-Produce (الإنتاج)</h2>
+<pre class="mermaid">flowchart TD
+    A[Sales Forecast] --&gt; B[Master Production Schedule MPS]
+    B --&gt; C[MRP Run]
+    C --&gt; D{المواد متوفرة؟}
+    D -- لا --&gt; D1[Purchase Requisition]
+    D1 --&gt; D2[دورة الشراء]
+    D2 --&gt; E
+    D -- نعم --&gt; E[Manufacturing Order MO]
+    E --&gt; F[Capacity Check]
+    F --&gt; G[Schedule على Work Centers]
+    G --&gt; H[Release MO]
+    H --&gt; I[Issue Materials&lt;br/&gt;DR: WIP&lt;br/&gt;CR: Inventory]
+    I --&gt; J[Production Process]
+    J --&gt; K[Labor Tracking]
+    J --&gt; L[Machine Hours]
+    J --&gt; M[Quality Inspection]
+    M --&gt; M1{Pass؟}
+    M1 -- لا --&gt; M2[Rework or Scrap]
+    M1 -- نعم --&gt; N[Receive Finished Goods&lt;br/&gt;DR: FG Inventory&lt;br/&gt;CR: WIP]
+    N --&gt; O[Variance Analysis&lt;br/&gt;Actual vs Standard]
+    O --&gt; P[Close MO]
+    P --&gt; END[منتج جاهز للبيع ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 6: Acquire-to-Retire (الأصول الثابتة)</h2>
+<pre class="mermaid">flowchart TD
+    A[CapEx Approval] --&gt; B[Purchase Order للأصل]
+    B --&gt; C[استلام الأصل GRN]
+    C --&gt; D{قابل للاستخدام مباشرة؟}
+    D -- لا --&gt; D1[CWIP - Capital Work in Progress]
+    D1 --&gt; D2[إضافة تكاليف لاحقة:&lt;br/&gt;- Installation&lt;br/&gt;- Testing]
+    D2 --&gt; D3{مكتمل؟}
+    D3 -- لا --&gt; D2
+    D3 -- نعم --&gt; E[Capitalize&lt;br/&gt;DR: Fixed Asset&lt;br/&gt;CR: CWIP]
+    D -- نعم --&gt; E
+    E --&gt; F[Asset Master Record]
+    F --&gt; G[تحديد:&lt;br/&gt;- طريقة الإهلاك&lt;br/&gt;- العمر الإنتاجي&lt;br/&gt;- Salvage Value&lt;br/&gt;- Custodian]
+    G --&gt; H[Monthly Depreciation Run&lt;br/&gt;DR: Dep Expense&lt;br/&gt;CR: Accum Dep]
+    H --&gt; I{أحداث؟}
+    I -- صيانة --&gt; I1[Capitalize or Expense?]
+    I1 --&gt; H
+    I -- نقل --&gt; I2[Asset Transfer]
+    I2 --&gt; H
+    I -- انخفاض قيمة --&gt; I3[Impairment Test&lt;br/&gt;DR: Impairment Loss]
+    I3 --&gt; H
+    I -- إعادة تقييم --&gt; I4[Revaluation&lt;br/&gt;OCI Surplus]
+    I4 --&gt; H
+    I -- استمرار --&gt; H
+    I -- نهاية العمر --&gt; J[Disposal Decision]
+    J --&gt; J1{نوع التخلص؟}
+    J1 -- بيع --&gt; K1[Sale&lt;br/&gt;DR: Cash + Accum Dep&lt;br/&gt;CR: Asset + Gain]
+    J1 -- خردة --&gt; K2[Scrap&lt;br/&gt;DR: Accum Dep + Loss&lt;br/&gt;CR: Asset]
+    J1 -- تبرع --&gt; K3[Donation]
+    K1 --&gt; END[الأصل مغلق ✓]
+    K2 --&gt; END
+    K3 --&gt; END</pre>
+<hr>
+<h2>🎨 الفلو رقم 7: POS (نقاط البيع)</h2>
+<pre class="mermaid">flowchart TD
+    A[العميل عند الكاشير] --&gt; B[فتح Shift]
+    B --&gt; B1[Starting Cash]
+    B1 --&gt; C[إضافة منتجات]
+    C --&gt; C1[Scan Barcode أو بحث]
+    C1 --&gt; D{نقاط ولاء؟}
+    D -- نعم --&gt; D1[تطبيق نقاط]
+    D --&gt; E{كوبون؟}
+    E -- نعم --&gt; E1[تطبيق كوبون]
+    E --&gt; F[حساب الإجمالي + VAT]
+    F --&gt; G[Payment]
+    G --&gt; G1[Cash]
+    G --&gt; G2[Mada/Card]
+    G --&gt; G3[STC Pay]
+    G --&gt; G4[Multi-payment]
+    G1 --&gt; H[طباعة الإيصال]
+    G2 --&gt; H
+    G3 --&gt; H
+    G4 --&gt; H
+    H --&gt; H1[ZATCA QR Code]
+    H1 --&gt; I[تقليص المخزون&lt;br/&gt;StockMovement out]
+    I --&gt; J[Auto Journal:&lt;br/&gt;DR: Cash/Card&lt;br/&gt;CR: Revenue + VAT]
+    J --&gt; K{نهاية الوردية؟}
+    K -- لا --&gt; A
+    K -- نعم --&gt; L[Close Shift]
+    L --&gt; L1[Counted Cash]
+    L1 --&gt; L2[Reconciliation]
+    L2 --&gt; L3{Match؟}
+    L3 -- لا --&gt; L4[Cash Variance Report]
+    L3 -- نعم --&gt; M[إيداع في الخزينة]
+    L4 --&gt; M
+    M --&gt; END[وردية مغلقة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 8: Journal Entry Approval</h2>
+<pre class="mermaid">flowchart TD
+    A[مستخدم ينشئ JE] --&gt; B[Save as Draft]
+    B --&gt; C{Auto-balance check}
+    C -- غير متوازن --&gt; C1[خطأ - أعد المحاولة]
+    C1 --&gt; A
+    C -- متوازن --&gt; D{المبلغ}
+    D -- &lt; 5,000 --&gt; E[Auto-approve]
+    D -- 5,000-50,000 --&gt; F[Send to Manager]
+    D -- &gt; 50,000 --&gt; G[Send to CFO]
+    F --&gt; F1{موافقة المدير؟}
+    F1 -- رفض --&gt; Z[Reject + Comment]
+    F1 -- موافقة --&gt; H
+    G --&gt; G1{موافقة CFO؟}
+    G1 -- رفض --&gt; Z
+    G1 -- موافقة --&gt; H
+    H[Status: Approved]
+    H --&gt; I[Post to GL]
+    I --&gt; J[Update Account Balances]
+    J --&gt; K[Audit Log Entry]
+    K --&gt; END[JE ترحل ✓]
+    E --&gt; I
+    Z --&gt; A</pre>
+<hr>
+<h2>🎨 الفلو رقم 9: Period Close</h2>
+<pre class="mermaid">flowchart TD
+    Start([بداية إغلاق الفترة]) --&gt; A[Day -3: Pre-Close Notification]
+    A --&gt; B[Day -2: تجميد المعاملات الفرعية]
+    B --&gt; B1[إغلاق POs الجديدة]
+    B --&gt; B2[إغلاق GRNs]
+    B --&gt; B3[إغلاق فواتير]
+    B1 --&gt; C
+    B2 --&gt; C
+    B3 --&gt; C
+    C[Day -1: مراجعة الفواتير المعلقة]
+    C --&gt; D[Day 0: بدء الإقفال]
+    D --&gt; E[1. Bank Reconciliation]
+    E --&gt; F[2. AR Reconciliation]
+    F --&gt; G[3. AP Reconciliation]
+    G --&gt; H[4. Inventory Count]
+    H --&gt; I[5. Fixed Asset Verification]
+    I --&gt; J[6. FX Revaluation]
+    J --&gt; J1[Foreign Balance × Closing Rate]
+    J1 --&gt; J2[Post FX Gain/Loss]
+    J2 --&gt; K[7. Allocations Run]
+    K --&gt; K1[Overhead → Cost Centers]
+    K1 --&gt; L[8. Depreciation Run]
+    L --&gt; M[9. Accruals]
+    M --&gt; M1[Salaries Accrual]
+    M --&gt; M2[Utilities Accrual]
+    M --&gt; M3[Interest Accrual]
+    M1 --&gt; N
+    M2 --&gt; N
+    M3 --&gt; N
+    N[10. Reclassifications]
+    N --&gt; O{Year-End؟}
+    O -- نعم --&gt; P1[Closing Entries:&lt;br/&gt;Revenue → Income Summary&lt;br/&gt;Expenses → Income Summary&lt;br/&gt;Income Summary → Retained Earnings]
+    O -- لا --&gt; P2[Skip]
+    P1 --&gt; Q
+    P2 --&gt; Q
+    Q[11. Sub-ledger to GL Match]
+    Q --&gt; R{التطابق؟}
+    R -- لا --&gt; R1[Investigate Differences]
+    R1 --&gt; Q
+    R -- نعم --&gt; S[12. Trial Balance Check]
+    S --&gt; S1{Balanced؟}
+    S1 -- لا --&gt; S2[خطأ في النظام!]
+    S2 --&gt; Stop([توقف])
+    S1 -- نعم --&gt; T[13. Generate Reports]
+    T --&gt; U[14. CPA Review]
+    U --&gt; V[15. CFO Approval]
+    V --&gt; W[16. Hard Lock Period]
+    W --&gt; END[الفترة مغلقة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 10: ZATCA E-Invoice</h2>
+<pre class="mermaid">flowchart TD
+    A[إنشاء فاتورة بيع] --&gt; B[احسب الإجمالي + VAT]
+    B --&gt; C[توليد UUID]
+    C --&gt; D[احسب ICV&lt;br/&gt;Invoice Counter Value]
+    D --&gt; E[احصل على PIH&lt;br/&gt;Previous Invoice Hash]
+    E --&gt; F[توليد QR Code TLV]
+    F --&gt; G[توليد UBL 2.1 XML]
+    G --&gt; H[Cryptographic Signing]
+    H --&gt; H1{B2B/B2C؟}
+    H1 -- B2B Standard --&gt; I1[Clearance Mode&lt;br/&gt;Real-time submission]
+    H1 -- B2C Simplified --&gt; I2[Reporting Mode&lt;br/&gt;خلال 24 ساعة]
+    I1 --&gt; J1[إرسال إلى ZATCA API]
+    J1 --&gt; K1{موافقة ZATCA؟}
+    K1 -- مرفوضة --&gt; K1R[تصحيح وإعادة الإرسال]
+    K1R --&gt; J1
+    K1 -- مقبولة --&gt; L1[تحديث Status: CLEARED]
+    L1 --&gt; M[طباعة الفاتورة مع QR]
+    I2 --&gt; J2[Queue للإرسال]
+    J2 --&gt; K2[إرسال خلال 24h]
+    K2 --&gt; L2[تحديث Status: REPORTED]
+    L2 --&gt; M
+    M --&gt; N[تخزين في ZATCARecord]
+    N --&gt; O[تحديث PIH للفاتورة التالية]
+    O --&gt; END[الفاتورة معتمدة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 11: WPS Salary Submission</h2>
+<pre class="mermaid">flowchart TD
+    A[نهاية الشهر] --&gt; B[Run Payroll Calculation]
+    B --&gt; C[لكل موظف:]
+    C --&gt; D[احسب Gross Salary]
+    D --&gt; E[خصم GOSI 9%]
+    E --&gt; F[خصم Loans/Advances]
+    F --&gt; G[خصم أخرى]
+    G --&gt; H[Net Salary]
+    H --&gt; I[تجميع كل الموظفين]
+    I --&gt; J[توليد WPS SIF File]
+    J --&gt; J1[Header: Company info]
+    J --&gt; J2[Records: Employee + IBAN + Amount]
+    J --&gt; J3[Trailer: Hash + Total]
+    J1 --&gt; K[رفع على Mudad Portal]
+    J2 --&gt; K
+    J3 --&gt; K
+    K --&gt; L{موافقة Mudad؟}
+    L -- مرفوض --&gt; L1[تصحيح ومحاولة مرة أخرى]
+    L1 --&gt; J
+    L -- مقبول --&gt; M[إرسال للبنك]
+    M --&gt; N[تحويل الرواتب للموظفين]
+    N --&gt; O[Generate Payslips]
+    O --&gt; P[إرسال Payslip بالإيميل]
+    P --&gt; Q[Auto Journal:&lt;br/&gt;DR: Salary Expense&lt;br/&gt;CR: Bank&lt;br/&gt;CR: GOSI Payable]
+    Q --&gt; END[الرواتب صرفت ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 12: Invoice State Machine</h2>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; Draft: إنشاء جديد
+    Draft --&gt; PendingApproval: Submit
+    Draft --&gt; Cancelled: Cancel
+    PendingApproval --&gt; Approved: موافقة
+    PendingApproval --&gt; Rejected: رفض
+    Rejected --&gt; Draft: Edit &amp; Resubmit
+    Approved --&gt; Posted: Post to GL
+    Posted --&gt; ZATCA_Pending: ZATCA Submit
+    ZATCA_Pending --&gt; ZATCA_Cleared: Cleared
+    ZATCA_Pending --&gt; ZATCA_Failed: Failed
+    ZATCA_Failed --&gt; ZATCA_Pending: Retry
+    ZATCA_Cleared --&gt; PartiallyPaid: Partial Payment
+    ZATCA_Cleared --&gt; FullyPaid: Full Payment
+    PartiallyPaid --&gt; FullyPaid: Final Payment
+    FullyPaid --&gt; [*]: Closed
+    Posted --&gt; Reversed: Issue Credit Note
+    Reversed --&gt; [*]
+    Cancelled --&gt; [*]</pre>
+<hr>
+<h2>🎨 الفلو رقم 13: Manufacturing Order States</h2>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; Planned: Create MO
+    Planned --&gt; Released: Release
+    Planned --&gt; Cancelled: Cancel
+    Released --&gt; InProgress: Start Production
+    InProgress --&gt; OnHold: Issue
+    OnHold --&gt; InProgress: Resume
+    InProgress --&gt; QualityCheck: Production Done
+    QualityCheck --&gt; Completed: Pass QC
+    QualityCheck --&gt; Rework: Fail QC
+    Rework --&gt; InProgress: Restart
+    Completed --&gt; Closed: Close MO
+    Cancelled --&gt; [*]
+    Closed --&gt; [*]</pre>
+<hr>
+<h2>🎨 الفلو رقم 14: Bank Reconciliation</h2>
+<pre class="mermaid">flowchart TD
+    A[استلام كشف بنك] --&gt; B[Import File&lt;br/&gt;MT940/CAMT/CSV]
+    B --&gt; C[Parse Transactions]
+    C --&gt; D[مقارنة مع GL]
+    D --&gt; E[Auto-Match Engine]
+    E --&gt; E1[Exact Amount + Date Match]
+    E --&gt; E2[Reference Match]
+    E --&gt; E3[AI Fuzzy Match - Gemini]
+    E1 --&gt; F{مطابق 100%؟}
+    E2 --&gt; F
+    E3 --&gt; F
+    F -- نعم --&gt; G[Mark as Matched]
+    F -- لا --&gt; H[Pending Manual Review]
+    H --&gt; I[المحاسب يراجع]
+    I --&gt; I1{نوع المعاملة؟}
+    I1 -- رسوم بنكية --&gt; I2[Post Bank Charges]
+    I1 -- فوائد --&gt; I3[Post Interest Income]
+    I1 -- تحويل غير معروف --&gt; I4[Suspense Account]
+    I1 -- خطأ --&gt; I5[Adjustment Entry]
+    I2 --&gt; J
+    I3 --&gt; J
+    I4 --&gt; J
+    I5 --&gt; J
+    G --&gt; J[تحديث Reconciliation]
+    J --&gt; K{كل المعاملات matched؟}
+    K -- لا --&gt; H
+    K -- نعم --&gt; L[Generate Reconciliation Report]
+    L --&gt; M[CFO Sign-off]
+    M --&gt; END[Reconciliation مكتملة ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 15: Customer Onboarding</h2>
+<pre class="mermaid">flowchart TD
+    A[طلب اشتراك جديد] --&gt; B[Sign-up Form]
+    B --&gt; C[Email Verification]
+    C --&gt; D[OTP Phone Verification]
+    D --&gt; E[KYC Documents Upload&lt;br/&gt;- CR&lt;br/&gt;- VAT Certificate&lt;br/&gt;- ID]
+    E --&gt; F{المستندات موافق عليها؟}
+    F -- لا --&gt; F1[طلب توضيح]
+    F1 --&gt; E
+    F -- نعم --&gt; G[إنشاء Tenant DB]
+    G --&gt; H[Setup Wizard]
+    H --&gt; H1[Company Info]
+    H --&gt; H2[Chart of Accounts]
+    H --&gt; H3[Branches]
+    H --&gt; H4[Initial Users]
+    H1 --&gt; I
+    H2 --&gt; I
+    H3 --&gt; I
+    H4 --&gt; I
+    I[Initial Data Import&lt;br/&gt;- Customers&lt;br/&gt;- Vendors&lt;br/&gt;- Products]
+    I --&gt; J[ZATCA Onboarding&lt;br/&gt;CSR + CSID]
+    J --&gt; K[Training Session]
+    K --&gt; L[Go Live]
+    L --&gt; M[Support Channel Setup]
+    M --&gt; END[العميل نشط ✓]</pre>
+<hr>
+<h2>🎨 الفلو رقم 16: Approval Routing Engine</h2>
+<pre class="mermaid">flowchart TD
+    A[Document Submitted] --&gt; B[Approval Engine]
+    B --&gt; C[تحديد ApprovalRule]
+    C --&gt; D{نوع المستند؟}
+    D -- JE --&gt; E1[JE Rules]
+    D -- PO --&gt; E2[PO Rules]
+    D -- Salary --&gt; E3[Salary Rules]
+    D -- Asset Disposal --&gt; E4[Asset Rules]
+    E1 --&gt; F[احسب المبلغ + Cost Center]
+    E2 --&gt; F
+    E3 --&gt; F
+    E4 --&gt; F
+    F --&gt; G[تحديد Approval Levels]
+    G --&gt; H[Send to Level 1]
+    H --&gt; I{استجابة؟}
+    I -- موافقة --&gt; J{المستوى الأخير؟}
+    I -- رفض --&gt; Z[Notify Requester]
+    I -- timeout 24h --&gt; Y[Escalate to Manager]
+    Y --&gt; H
+    J -- لا --&gt; K[Next Level]
+    K --&gt; H
+    J -- نعم --&gt; L[Final Approved]
+    L --&gt; M[Execute Document]
+    M --&gt; END[تم ✓]
+    Z --&gt; END2[مرفوض]</pre>
+<hr>
+<h2>🎨 الفلو رقم 17: Three-Way Matching</h2>
+<pre class="mermaid">flowchart TD
+    A[Vendor Invoice Received] --&gt; B[OCR/Manual Entry]
+    B --&gt; C[Find Linked PO]
+    C --&gt; D{PO موجود؟}
+    D -- لا --&gt; Z1[Hold - PO Required]
+    D -- نعم --&gt; E[Find Linked GRNs]
+    E --&gt; F{GRN موجود؟}
+    F -- لا --&gt; Z2[Hold - Goods Not Received]
+    F -- نعم --&gt; G[Compare 3 Documents]
+    G --&gt; H{السعر:&lt;br/&gt;PO vs Invoice}
+    H -- ضمن tolerance --&gt; I
+    H -- خارج tolerance --&gt; Z3[Hold - Price Variance]
+    I{الكمية:&lt;br/&gt;GRN vs Invoice}
+    I -- ضمن tolerance --&gt; J
+    I -- خارج tolerance --&gt; Z4[Hold - Qty Variance]
+    J{الإجمالي:&lt;br/&gt;صحيح؟}
+    J -- نعم --&gt; K[Auto-Approve]
+    J -- لا --&gt; Z5[Hold - Total Mismatch]
+    K --&gt; L[Post to AP&lt;br/&gt;DR: GR/IR&lt;br/&gt;CR: AP]
+    L --&gt; END[مطابقة كاملة ✓]
+    Z1 --&gt; M[Manual Review]
+    Z2 --&gt; M
+    Z3 --&gt; M
+    Z4 --&gt; M
+    Z5 --&gt; M
+    M --&gt; M1{قبول الفرق؟}
+    M1 -- نعم --&gt; K
+    M1 -- لا --&gt; N[Vendor Dispute]
+    N --&gt; END2[نزاع]</pre>
+<hr>
+<h2>🎨 الفلو رقم 18: Architecture Flow (نظرة عامة)</h2>
+<pre class="mermaid">flowchart LR
+    subgraph "Frontend"
+        UI[Next.js Pages]
+        Mobile[PWA Mobile]
+        POS[POS Terminal]
+    end
+    
+    subgraph "API Layer"
+        API[Next.js API Routes]
+        Auth[Clerk Auth]
+        AI[AI Layer - Gemini]
+    end
+    
+    subgraph "Business Logic"
+        AutoJ[Auto-Journal Engine]
+        Approval[Approval Engine]
+        Numbering[Numbering Engine]
+        Period[Period Close Engine]
+        FX[FX Revaluation]
+        Tax[Tax Engine]
+    end
+    
+    subgraph "Data Layer"
+        Prisma[Prisma ORM]
+        Master[Master DB]
+        Tenant1[Tenant 1 DB]
+        Tenant2[Tenant 2 DB]
+        TenantN[Tenant N DB]
+    end
+    
+    subgraph "External Services"
+        ZATCA[ZATCA API]
+        WhatsApp[WhatsApp Cloud]
+        Email[Email SES]
+        Banks[Banks API]
+        Mudad[Mudad WPS]
+        GOSI[GOSI]
+        Mada[Mada Payment]
+    end
+    
+    UI --&gt; API
+    Mobile --&gt; API
+    POS --&gt; API
+    API --&gt; Auth
+    API --&gt; AI
+    API --&gt; AutoJ
+    API --&gt; Approval
+    API --&gt; Numbering
+    API --&gt; Period
+    API --&gt; FX
+    API --&gt; Tax
+    AutoJ --&gt; Prisma
+    Approval --&gt; Prisma
+    Period --&gt; Prisma
+    FX --&gt; Prisma
+    Tax --&gt; Prisma
+    Prisma --&gt; Master
+    Master --&gt; Tenant1
+    Master --&gt; Tenant2
+    Master --&gt; TenantN
+    Tax --&gt; ZATCA
+    API --&gt; WhatsApp
+    API --&gt; Email
+    API --&gt; Banks
+    API --&gt; Mudad
+    API --&gt; GOSI
+    POS --&gt; Mada</pre>
+<hr>
+<h2>🛠️ الأدوات لرسم الفلوهات</h2>
+<h3>1. Mermaid (مجاني، الأبسط)</h3>
+<ul>
+<li>يعمل في GitHub, Notion, ملفات MD</li>
+<li>موقع: mermaid.live</li>
+<li>لا يحتاج تثبيت</li>
+</ul>
+<h3>2. Draw.io / Diagrams.net (مجاني)</h3>
+<ul>
+<li>موقع: app.diagrams.net</li>
+<li>للرسم اليدوي والتعديلات الدقيقة</li>
+<li>يصدّر PNG, PDF, SVG</li>
+<li><strong>الأفضل لـ ERD ومخططات معمارية معقدة</strong></li>
+</ul>
+<h3>3. Lucidchart (مدفوع)</h3>
+<ul>
+<li>احترافي</li>
+<li>تعاون فريق</li>
+<li>BPMN templates جاهزة</li>
+</ul>
+<h3>4. Whimsical (مدفوع، 10$/شهر)</h3>
+<ul>
+<li>جميل وسريع</li>
+<li>للرسم التخطيطي السريع</li>
+</ul>
+<h3>5. Figma (مجاني للمستخدم الواحد)</h3>
+<ul>
+<li>للـ user flows والـ mockups معاً</li>
+</ul>
+<hr>
+<h2>📐 معايير الرسم التي يجب اتباعها</h2>
+<h3>BPMN 2.0 Notation (المعيار الرسمي)</h3>
+<table><thead><tr><th>الرمز</th><th>المعنى</th></tr></thead><tbody>
+<tr><td>⬭ Circle</td><td>Start / End event</td></tr>
+<tr><td>🟦 Rectangle</td><td>Task / Activity</td></tr>
+<tr><td>🔷 Diamond</td><td>Decision / Gateway</td></tr>
+<tr><td>➡️ Arrow</td><td>Flow direction</td></tr>
+<tr><td>📄 Document</td><td>يدل على وثيقة منتجة</td></tr>
+<tr><td>👤 Person/Pool</td><td>الفاعل (المستخدم/النظام)</td></tr>
+<tr><td>🔁 Loop</td><td>تكرار</td></tr>
+</tbody></table>
+<h3>Best Practices</h3>
+<ol>
+<li><strong>اتجاه واحد:</strong> يبدأ من الأعلى/اليسار، ينتهي بالأسفل/اليمين</li>
+<li><strong>لا تتعدى 15 خطوة في فلو واحد</strong> — قسم لفلوهات أصغر</li>
+<li><strong>الفروع (decisions) يجب أن تكون واضحة</strong> بسؤال واحد</li>
+<li><strong>اللون:</strong> أخضر = مسار سعيد، أحمر = خطأ، أصفر = استثناء</li>
+<li><strong>swim lanes:</strong> قسم بأدوار (محاسب، مدير، نظام)</li>
+</ol>
+<hr>
+<h2>📦 ماذا تفعل الآن؟</h2>
+<h3>الترتيب الأمثل لاستخدام كل الوثائق:</h3>
+<pre><code>1. WHAT_YOU_STILL_NEED.pdf
+   → فهم ما تحتاجه إجمالاً (فريق، ميزانية، أدوات)
+
+2. BUSINESS_FLOWS_GUIDE.pdf (هذا الملف)
+   → ارسم/راجع الفلوهات قبل البرمجة
+   → اعرضها على CPA للتحقق من المنطق المحاسبي
+   → اعرضها على 3-5 عملاء حاليين للتأكد أن الفلو يطابق عملهم
+
+3. GLOBAL_ERP_GAP_ANALYSIS.pdf
+   → بعد تأكيد الفلوهات، استخدم البرومنت لبناء الكود
+
+4. التطبيق
+   - كل ميزة جديدة = فلو + برومنت + كود + اختبار</code></pre>
+<h3>❌ الخطأ الشائع</h3>
+<p>أن تبدأ بكتابة الكود <strong>قبل</strong> رسم الفلو. النتيجة:</p>
+<ul>
+<li>إعادة كتابة 70% من الكود لاحقاً</li>
+<li>العميل يقول "ليس هذا ما طلبت"</li>
+<li>المحاسب يقول "هذا منطق خاطئ"</li>
+</ul>
+<h3>✅ التسلسل الصحيح</h3>
+<pre><code>عميل/متطلب → فلو ورسم → موافقة → برومنت → كود → اختبار → نشر</code></pre>
+<hr>
+<h2>🎯 أولوية الفلوهات حسب الأهمية</h2>
+<h3>يجب رسمها قبل البرمجة (Critical):</h3>
+<ol>
+<li>✅ Quote-to-Cash</li>
+<li>✅ Procure-to-Pay</li>
+<li>✅ Period Close</li>
+<li>✅ ZATCA E-Invoice</li>
+<li>✅ Approval Routing</li>
+</ol>
+<h3>يجب رسمها قبل المرحلة 1:</h3>
+<ol>
+<li>✅ Record-to-Report</li>
+<li>✅ Three-Way Matching</li>
+<li>✅ Bank Reconciliation</li>
+<li>✅ JE Approval</li>
+<li>✅ Invoice State Machine</li>
+</ol>
+<h3>يجب رسمها قبل المرحلة 4-7:</h3>
+<ol>
+<li>✅ Acquire-to-Retire (Assets)</li>
+<li>✅ Plan-to-Produce</li>
+<li>✅ Hire-to-Retire</li>
+<li>✅ WPS Salary</li>
+<li>✅ Manufacturing Order States</li>
+</ol>
+<h3>يمكن تأجيلها:</h3>
+<ol>
+<li>POS Flow</li>
+<li>Customer Onboarding</li>
+<li>Architecture Diagram</li>
+</ol>
+<hr>
+<h2>💡 نصيحة ذهبية</h2>
+<p><strong>اطبع كل فلو على A3 وعلقه على جدار المكتب.</strong></p>
+<p>كل مطور، كل محاسب، كل عميل عندما يدخل المكتب يرى <strong>كيف يفترض أن يعمل النظام</strong>.</p>
+<p>عندما يقترح أحد تغييراً، يقول: "بدل هذه الخطوة بهذه" — ليس "غير الكود".</p>
+<p>هذا يجبر الفريق على التفكير في <strong>العملية أولاً</strong>، وليس الكود.</p>
+<hr>
+<p><strong>انتهى الدليل</strong></p>
+</div>
+<div class="print-banner no-print">
+  <button onclick="window.print()">🖨️ احفظ كـ PDF (اضغط هنا أو Ctrl+P)</button>
+  اختر "Save as PDF" من قائمة الطابعة
+</div>
+</body>
+</html>

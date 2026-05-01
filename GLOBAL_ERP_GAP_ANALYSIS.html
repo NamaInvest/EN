@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تحليل الفجوات الشامل ومقارنة بالأنظمة العالمية</title>
+<style>
+@page { size: A4; margin: 18mm 15mm; }
+* { box-sizing: border-box; }
+html, body {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.85;
+  font-size: 13px;
+  color: #1f2937;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 40px;
+}
+h1 {
+  font-size: 26px;
+  color: #0f172a;
+  border-bottom: 4px solid #2563eb;
+  padding-bottom: 8px;
+  margin-top: 0;
+  page-break-before: auto;
+}
+h2 {
+  font-size: 20px;
+  color: #1e3a8a;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 6px;
+  margin-top: 32px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 16px;
+  color: #1e40af;
+  margin-top: 24px;
+  page-break-after: avoid;
+}
+h4 {
+  font-size: 14px;
+  color: #1e293b;
+  margin-top: 18px;
+  page-break-after: avoid;
+}
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-right: 26px; padding-left: 0; }
+li { margin: 4px 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  direction: rtl;
+  font-size: 12px;
+  page-break-inside: auto;
+}
+thead {
+  background: #1e40af;
+  color: #fff;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 7px 10px;
+  text-align: right;
+  vertical-align: top;
+}
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:hover { background: #eff6ff; }
+code {
+  background: #f1f5f9;
+  color: #be123c;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  direction: ltr;
+  display: inline-block;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+  font-size: 11.5px;
+  line-height: 1.55;
+  page-break-inside: avoid;
+  margin: 12px 0;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+blockquote {
+  border-right: 4px solid #2563eb;
+  background: #eff6ff;
+  margin: 12px 0;
+  padding: 10px 14px;
+  color: #1e3a8a;
+}
+hr {
+  border: none;
+  border-top: 2px dashed #cbd5e1;
+  margin: 28px 0;
+}
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { color: #0f172a; }
+
+/* رموز الحالة */
+p:has(> code) { line-height: 2; }
+
+/* طباعة */
+@media print {
+  body { font-size: 11.5px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 17px; page-break-before: auto; }
+  h3 { font-size: 14px; }
+  table { font-size: 10.5px; }
+  pre { font-size: 10px; }
+  .no-print { display: none; }
+}
+.print-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 13px;
+  z-index: 999;
+}
+.print-banner button {
+  background: #fff;
+  color: #2563eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
+@media print { .print-banner { display: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>تقرير تحليل الفجوات الشامل ومقارنة بالأنظمة العالمية</h1>
+<h1>Global ERP Gap Analysis &amp; Implementation Master Prompt</h1>
+<blockquote><strong>تاريخ التقرير:</strong> 2026-05-01</blockquote>
+<blockquote><strong>نطاق الفحص:</strong> d:\namasoft9-3-main (نظام Namasoft ERP - Next.js 16)</blockquote>
+<blockquote><strong>الأنظمة المرجعية:</strong> SAP S/4HANA, Oracle Fusion Cloud ERP, NetSuite, Microsoft Dynamics 365 F&amp;O, Odoo, QuickBooks Advanced, Sage Intacct, Xero</blockquote>
+<blockquote><strong>المعايير المرجعية:</strong> IFRS, US GAAP, Saudi SOCPA, ZATCA Phase 2, IFRS 15/16/9, ASC 606/842</blockquote>
+<hr>
+<h2>الفهرس</h2>
+<ol>
+<li><a href="#1-الملخص-التنفيذي">الملخص التنفيذي</a></li>
+<li><a href="#2-الملاحظة-الكلية-على-البنية">الملاحظة الكلية على البنية</a></li>
+<li><a href="#3-التقييم-بحسب-الموديول-الرئيسي">التقييم بحسب الموديول الرئيسي</a></li>
+<li><a href="#4-مقارنة-جدولية-شاملة-بالأنظمة-العالمية">مقارنة جدولية شاملة بالأنظمة العالمية</a></li>
+<li><a href="#5-البرومنت-الكامل-لتطوير-النظام">البرومنت الكامل لتطوير النظام (Master Implementation Prompt)</a></li>
+<li><a href="#6-خارطة-الطريق-المرتبة-حسب-الأولوية">خارطة الطريق المرتبة حسب الأولوية</a></li>
+</ol>
+<hr>
+<h2>1. الملخص التنفيذي</h2>
+<h3>الوضع الحالي</h3>
+<p>نظامك يحتوي على <strong>157 نموذج بيانات</strong> و<strong>~300 API endpoint</strong> و<strong>~60 صفحة Dashboard</strong>. هو نظام محترم البنية ومتقدم في:</p>
+<ul>
+<li>ZATCA Phase 1 &amp; 2 (84% اكتمال)</li>
+<li>البنية التحتية متعددة المستأجرين (Multi-tenant)</li>
+<li>ميزات الذكاء الاصطناعي (AI CFO, AI Auditor, AI SCM)</li>
+<li>POS متقدم</li>
+<li>التصنيع الأساسي (BOM, MRP, WIP, QC)</li>
+</ul>
+<h3>الفجوة الإجمالية</h3>
+<table><thead><tr><th>المجال</th><th>النسبة الحالية</th><th>الفجوة عن العالمية</th></tr></thead><tbody>
+<tr><td>المحاسبة الأساسية (GL/JE)</td><td>65%</td><td>35%</td></tr>
+<tr><td>AR/AP وإدارة الائتمان</td><td>35%</td><td>65%</td></tr>
+<tr><td>الخزينة والبنوك</td><td>25%</td><td>75%</td></tr>
+<tr><td>الأصول الثابتة</td><td>18%</td><td>82%</td></tr>
+<tr><td>المخزون المتقدم</td><td>34%</td><td>66%</td></tr>
+<tr><td>التصنيع (Industrial)</td><td>40%</td><td>60%</td></tr>
+<tr><td>الموارد البشرية والرواتب</td><td>45%</td><td>55%</td></tr>
+<tr><td>التقارير المالية</td><td>50%</td><td>50%</td></tr>
+<tr><td>الامتثال السعودي (غير ZATCA)</td><td>18%</td><td>82%</td></tr>
+<tr><td><strong>الإجمالي العام</strong></td><td><strong>~37%</strong></td><td><strong>~63%</strong></td></tr>
+</tbody></table>
+<h3>النتيجة</h3>
+<p>نظامك صالح لشركات صغيرة ومتوسطة، لكنه <strong>يحتاج 4 مراحل تطوير ضخمة</strong> ليصل لمستوى SAP/Oracle/NetSuite.</p>
+<hr>
+<h2>2. الملاحظة الكلية على البنية</h2>
+<h3>نقاط قوة جوهرية يجب الحفاظ عليها</h3>
+<ol>
+<li><strong>Schema Prisma متعدد المستأجرين</strong> - مرن وقابل للتوسع.</li>
+<li><strong>محرك القيود التلقائية</strong> <code>src/lib/auto-journal.ts</code> يخدم 8 سيناريوهات.</li>
+<li><strong>التحقق من توازن القيد</strong> بـ tolerance 0.01.</li>
+<li><strong>منع الكتابة على حسابات المراقبة</strong> (Receivables, Payables, Inventory).</li>
+<li><strong>ZATCA Phase 2</strong> كامل (CSR, CSID, ICV, PIH, UBL 2.1, signing).</li>
+<li><strong>AI Layer</strong> متقدم (Gemini OCR للفواتير, AI Bank Reconciliation).</li>
+</ol>
+<h3>نقاط ضعف بنيوية يجب علاجها أولاً</h3>
+<ol>
+<li><strong>لا يوجد Universal Journal Pattern</strong> (موجود في SAP) — كل شيء يدخل GL مع dimensions كثيرة.</li>
+<li><strong>لا يوجد Subledger Accounting (SLA) Framework</strong> — كل مصدر له auto-journal مختلف.</li>
+<li><strong>لا يوجد Sub-Ledger Open Items</strong> (AR/AP open items model).</li>
+<li><strong>لا يوجد Multi-GAAP / Multi-Book Accounting</strong> (NetSuite, Oracle ميزة أساسية).</li>
+<li><strong>لا يوجد Period Closing Engine</strong> كامل (checklist, sequence, lock).</li>
+<li><strong>لا يوجد Audit Trail على مستوى الحقل</strong> (field-level history).</li>
+<li><strong>لا يوجد Numbering Sequences Engine</strong> قابل للتكوين لكل نوع وثيقة.</li>
+<li><strong>لا يوجد Document Status State Machine</strong> موحد.</li>
+<li><strong>لا يوجد Reservation Engine</strong> للمخزون والائتمان.</li>
+<li><strong>لا يوجد Workflow Engine</strong> عام (BPMN-like) مطبق فعلياً.</li>
+</ol>
+<hr>
+<h2>3. التقييم بحسب الموديول الرئيسي</h2>
+<h3>3.1 شجرة الحسابات (Chart of Accounts)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع العالمي</th></tr></thead><tbody>
+<tr><td>أنواع الحسابات الخمسة الرئيسية</td><td>✓</td><td>جميع الأنظمة</td></tr>
+<tr><td>التصنيف الفرعي (Current/Non-current/Operating)</td><td>✗</td><td>SAP, Oracle, NetSuite</td></tr>
+<tr><td>شجرة هرمية متعددة المستويات (5+)</td><td>⚠ 3 مستويات</td><td>NetSuite يدعم unlimited</td></tr>
+<tr><td>Account Categories مرنة</td><td>✗</td><td>Oracle Fusion (مرن جداً)</td></tr>
+<tr><td>Cash Flow Tag لكل حساب</td><td>✗</td><td>QuickBooks, Xero</td></tr>
+<tr><td>Tax Group Tag</td><td>✗</td><td>SAP</td></tr>
+<tr><td>Default Currency per Account</td><td>✗</td><td>Oracle</td></tr>
+<tr><td>Statistical Accounts</td><td>✗</td><td>SAP</td></tr>
+<tr><td>Inactive/Archive logic</td><td>⚠ active flag فقط</td><td>جميع الأنظمة</td></tr>
+<tr><td>Account Templates (IFRS/SOCPA)</td><td>✗</td><td>Odoo (templates per country)</td></tr>
+<tr><td>Reconciliation flag</td><td>✗</td><td>Odoo</td></tr>
+<tr><td>Account merge / split</td><td>✗</td><td>NetSuite</td></tr>
+<tr><td>Opening balance entry tool</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Account reclassification engine</td><td>✗</td><td>SAP</td></tr>
+</tbody></table>
+<h3>3.2 القيود اليومية (General Journal)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Manual JE</td><td>✓</td><td>—</td></tr>
+<tr><td>Auto JE من المصادر</td><td>✓ 8 مصادر</td><td>SAP يوجد له ~200 مصدر</td></tr>
+<tr><td>Multi-line + balanced validation</td><td>✓</td><td>—</td></tr>
+<tr><td>Period Locking</td><td>✓ basic</td><td>SAP بدقيقة</td></tr>
+<tr><td>Reversal entry</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Recurring JE (templates)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Reversing JE (auto next period)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Standard Templates / Memorized</strong></td><td>✗</td><td>QuickBooks, Xero</td></tr>
+<tr><td><strong>Approval Workflow على JE</strong></td><td>⚠ models exist, not wired</td><td>Oracle, SAP</td></tr>
+<tr><td><strong>Posting/Unposting</strong></td><td>✗ (always posted)</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Inter-company Eliminations</strong></td><td>✗</td><td>SAP S/4HANA Group Reporting</td></tr>
+<tr><td><strong>Journal Sources Catalog</strong></td><td>⚠ free-text</td><td>SAP</td></tr>
+<tr><td><strong>Adjusting Entries (period-end)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Reclassification Entries</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Drill-Down to Source Doc</strong></td><td>⚠ partial</td><td>SAP, Oracle (full)</td></tr>
+<tr><td><strong>Multi-currency JE with FX gain/loss line</strong></td><td>⚠ amounts only, no FX line</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Mass Reverse / Mass Post</strong></td><td>✗</td><td>NetSuite</td></tr>
+</tbody></table>
+<h3>3.3 الإقفال (Period Close)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Soft close</td><td>⚠ basic</td><td>جميع الأنظمة</td></tr>
+<tr><td>Hard close</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Closing checklist / runbook</td><td>✗</td><td>BlackLine, Oracle ARCS</td></tr>
+<tr><td>Year-end closing entries (auto)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Retained earnings rollover</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Period reopen with audit</td><td>✗</td><td>SAP</td></tr>
+<tr><td>Cut-off entries</td><td>✗</td><td>—</td></tr>
+<tr><td>Sub-ledger close before GL</td><td>✗</td><td>Oracle, SAP</td></tr>
+<tr><td>Multi-currency revaluation at period end</td><td>✗</td><td>SAP FAGL_FC_VAL</td></tr>
+<tr><td>Allocation engine (overhead)</td><td>✗</td><td>SAP CO, Oracle Allocation</td></tr>
+</tbody></table>
+<h3>3.4 الحسابات المدينة (AR)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Customer master</td><td>⚠ basic</td><td>—</td></tr>
+<tr><td>Multi-ship-to / multi-bill-to</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Contact persons multiple</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Customer hierarchy (parent/sub)</td><td>✗</td><td>SAP, NetSuite</td></tr>
+<tr><td>Customer category/segment</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Payment Terms engine (Net 30, 2/10 Net 30, EOM)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Credit Limit + Credit Hold</td><td>✓</td><td>—</td></tr>
+<tr><td>Credit Risk scoring</td><td>✗</td><td>SAP FSCM Credit Mgmt</td></tr>
+<tr><td>AR Aging (30/60/90/120+)</td><td>✓</td><td>—</td></tr>
+<tr><td>Customer statements</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Dunning letters (multi-level)</td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td>Dunning fee/interest</td><td>✗</td><td>SAP F-28</td></tr>
+<tr><td>Cash Application engine (auto-match)</td><td>✗</td><td>High Radius, Oracle</td></tr>
+<tr><td>Partial payment allocation</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Open Items model</td><td>✗</td><td>SAP (open/cleared)</td></tr>
+<tr><td>Bad debt provision (% aging)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Bad debt write-off</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Refunds processing</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Customer disputes / deductions</td><td>✗</td><td>SAP FSCM Dispute</td></tr>
+<tr><td>Promissory Notes</td><td>✓ model exists</td><td>—</td></tr>
+<tr><td>Factoring (debt sale)</td><td>✗</td><td>SAP</td></tr>
+<tr><td>Customer deposits/advances</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Recurring billing</td><td>⚠</td><td>Zuora, NetSuite ARM</td></tr>
+<tr><td>Subscription billing</td><td>⚠</td><td>Zuora, Stripe Billing</td></tr>
+<tr><td>Late fees automation</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Customer self-service portal</td><td>⚠ flag only</td><td>NetSuite</td></tr>
+</tbody></table>
+<h3>3.5 الحسابات الدائنة (AP)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Vendor master</td><td>⚠ shared with Customer</td><td>جميع الأنظمة بنموذج مستقل</td></tr>
+<tr><td>Vendor categories</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Vendor approval workflow / AVL</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Vendor compliance (CR, VAT, certificates)</td><td>⚠ DocumentArchive</td><td>SAP MM</td></tr>
+<tr><td>Vendor scorecards (KPIs)</td><td>✓ basic</td><td>—</td></tr>
+<tr><td>Three-way matching (auto)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Two-way matching</td><td>✗</td><td>—</td></tr>
+<tr><td>Tolerance limits</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Invoice OCR</td><td>✓ Gemini</td><td>Tradeshift, Stampli</td></tr>
+<tr><td>Vendor advance</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Withholding Tax (WHT)</td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td>Payment runs (batch payments)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Payment proposal</td><td>✗</td><td>SAP F110</td></tr>
+<tr><td>Bank file generation (SEPA/ACH/SWIFT)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Vendor self-service portal</td><td>✗</td><td>SAP Ariba, Coupa</td></tr>
+<tr><td>Spend analysis</td><td>✗</td><td>Coupa, SAP Ariba</td></tr>
+<tr><td>AP open items</td><td>✗</td><td>SAP</td></tr>
+</tbody></table>
+<h3>3.6 الخزينة (Treasury &amp; Cash Management)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Multi-bank cash position</td><td>⚠</td><td>Kyriba, SAP TRM</td></tr>
+<tr><td>Bank statement import (MT940/CAMT.053/OFX)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Auto reconciliation engine (rule-based)</td><td>⚠ AI basic</td><td>Trovata, Kyriba</td></tr>
+<tr><td>Manual reconciliation</td><td>✓</td><td>—</td></tr>
+<tr><td>Outstanding checks tracking</td><td>✗</td><td>—</td></tr>
+<tr><td>Deposits in transit</td><td>✗</td><td>—</td></tr>
+<tr><td>Bank charges auto-post</td><td>✗</td><td>—</td></tr>
+<tr><td>Inter-bank transfer</td><td>✗</td><td>—</td></tr>
+<tr><td>SWIFT / Open Banking</td><td>✗</td><td>Kyriba, SAP TRM</td></tr>
+<tr><td>Cash flow forecasting (Direct method)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Liquidity planning</td><td>✗</td><td>SAP TRM</td></tr>
+<tr><td>FX hedging (forwards/swaps)</td><td>✗</td><td>SAP TRM</td></tr>
+<tr><td>Loans management</td><td>⚠ employee only</td><td>جميع الأنظمة</td></tr>
+<tr><td>Investments (TBills, Bonds, MM)</td><td>✗</td><td>SAP TRM</td></tr>
+<tr><td>Cash pooling</td><td>✗</td><td>Kyriba</td></tr>
+<tr><td>In-house bank</td><td>✗</td><td>SAP TRM</td></tr>
+</tbody></table>
+<h3>3.7 الشيكات (Checks)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Issued (PAYABLE) checks</td><td>✓</td><td>—</td></tr>
+<tr><td>Received (RECEIVABLE) checks</td><td>✓</td><td>—</td></tr>
+<tr><td>Post-dated handling</td><td>⚠ dueDate only</td><td>الأنظمة العربية</td></tr>
+<tr><td>Bounced (returned)</td><td>✓ status</td><td>—</td></tr>
+<tr><td>Check book management</td><td>✗</td><td>الأنظمة العربية (Onyx, Aliphia)</td></tr>
+<tr><td>Check printing template</td><td>✗</td><td>QuickBooks</td></tr>
+<tr><td>Stop payment</td><td>✗</td><td>—</td></tr>
+<tr><td>Replacement</td><td>✗</td><td>—</td></tr>
+<tr><td>Bank guarantee on check</td><td>✗</td><td>—</td></tr>
+</tbody></table>
+<h3>3.8 العهد المالية (Petty Cash)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Petty cash funds</td><td>✓</td><td>—</td></tr>
+<tr><td>Custodian</td><td>✓</td><td>—</td></tr>
+<tr><td>Imprest system (auto top-up)</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Multi-currency petty cash</td><td>✗</td><td>SAP</td></tr>
+<tr><td>Mobile expense capture</td><td>✗</td><td>Concur, Expensify</td></tr>
+<tr><td>Receipt OCR</td><td>✗</td><td>Concur</td></tr>
+</tbody></table>
+<h3>3.9 الأصول الثابتة (Fixed Assets) — أكبر فجوة 82%</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Asset master basic</td><td>✓</td><td>—</td></tr>
+<tr><td>Asset Categories with default GL</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Asset hierarchy (parent/component)</td><td>✗</td><td>SAP AA</td></tr>
+<tr><td><strong>Component accounting (IFRS)</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>CWIP (Capital Work in Progress)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Capitalization from CWIP</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>Asset additions (subsequent costs)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Asset transfers (location/dept)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Asset disposal (sale/scrap)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Gain/Loss on disposal calculation</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Asset impairment (IAS 36)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Asset revaluation (IAS 16)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Insurance tracking + claims</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Asset count / physical verification</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>Barcode/RFID</td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Depreciation methods</strong>:</td><td></td><td></td></tr>
+<tr><td>- Straight Line</td><td>✓</td><td>—</td></tr>
+<tr><td>- Declining Balance</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>- Double Declining</td><td>✗</td><td>—</td></tr>
+<tr><td>- Sum of Years' Digits</td><td>✗</td><td>—</td></tr>
+<tr><td>- Units of Production</td><td>✗</td><td>—</td></tr>
+<tr><td>- MACRS</td><td>✗</td><td>US-GAAP</td></tr>
+<tr><td><strong>Multi-book depreciation (Tax vs Book vs IFRS)</strong></td><td>✗</td><td>NetSuite, Oracle</td></tr>
+<tr><td><strong>Half-year / Mid-month convention</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Catch-up depreciation</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Bonus depreciation / Section 179</strong></td><td>✗</td><td>US</td></tr>
+<tr><td><strong>Asset retirement obligations (ARO)</strong></td><td>✗</td><td>IFRS</td></tr>
+</tbody></table>
+<h3>3.10 عقود الإيجار (Leases — IFRS 16 / ASC 842)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Lease contract master</td><td>⚠ basic</td><td>—</td></tr>
+<tr><td>ROU Asset recognition</td><td>✗</td><td>IFRS 16 mandatory</td></tr>
+<tr><td>Lease Liability recognition</td><td>✗</td><td>IFRS 16 mandatory</td></tr>
+<tr><td>Discount rate / IBR</td><td>✗</td><td>—</td></tr>
+<tr><td>Lease modification</td><td>✗</td><td>—</td></tr>
+<tr><td>Lease termination</td><td>✗</td><td>—</td></tr>
+<tr><td>Sub-lease</td><td>✗</td><td>—</td></tr>
+<tr><td>Lessor accounting</td><td>✗</td><td>—</td></tr>
+<tr><td>Variable lease payments</td><td>✗</td><td>—</td></tr>
+<tr><td>Short-term/Low-value exemption</td><td>✗</td><td>—</td></tr>
+</tbody></table>
+<h3>3.11 المخزون (Inventory)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Multi-warehouse</td><td>✓</td><td>—</td></tr>
+<tr><td>Multi-location (Zone/Rack/Bin)</td><td>✓ models</td><td>SAP EWM</td></tr>
+<tr><td>Multi-UOM with conversion</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Product variants (size/color)</strong></td><td>✗</td><td>Shopify, Odoo, NetSuite</td></tr>
+<tr><td><strong>Item attributes engine</strong></td><td>✗</td><td>Odoo, NetSuite</td></tr>
+<tr><td><strong>Item alternatives/substitutes</strong></td><td>✗</td><td>SAP MM</td></tr>
+<tr><td><strong>HS Codes / Country of Origin</strong></td><td>✗</td><td>SAP GTS</td></tr>
+<tr><td><strong>Hazmat classification</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Storage conditions / temperature</strong></td><td>✗</td><td>SAP EWM</td></tr>
+<tr><td><strong>Min/Max + Reorder Point + Reorder Qty</strong></td><td>⚠ min only</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Safety stock + Lead time</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>ABC/XYZ Analysis</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Slow-moving / Dead stock report</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Demand forecasting</strong></td><td>✗</td><td>SAP IBP, Oracle Demantra</td></tr>
+<tr><td><strong>Putaway / Pick strategies (FEFO, FIFO)</strong></td><td>✗</td><td>SAP EWM, Manhattan</td></tr>
+<tr><td><strong>Wave picking</strong></td><td>✗</td><td>WMS systems</td></tr>
+<tr><td><strong>Cycle count plans</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Stock reservation engine</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>In-transit inventory</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Negative stock control</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Inventory write-off / write-down (NRV)</strong></td><td>✗</td><td>IAS 2</td></tr>
+<tr><td><strong>Costing methods</strong>: FIFO, LIFO, Weighted Avg</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Standard Cost with variance posting</strong></td><td>✗</td><td>SAP CO-PC</td></tr>
+<tr><td><strong>Material ledger (multi-currency cost)</strong></td><td>✗</td><td>SAP S/4HANA</td></tr>
+<tr><td><strong>Landed cost allocation</strong></td><td>✓ model</td><td>—</td></tr>
+<tr><td><strong>Lot/Batch tracking + expiry</strong></td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Serial number tracking</strong></td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Consignment inventory</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>VMI (Vendor Managed Inventory)</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>Drop shipping</strong></td><td>✗</td><td>NetSuite, Odoo</td></tr>
+<tr><td><strong>Kit/Bundle items</strong></td><td>✗</td><td>NetSuite, Shopify</td></tr>
+</tbody></table>
+<h3>3.12 التصنيع (Manufacturing &amp; Planning)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Single-level BOM</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Multi-level BOM with explosion</strong></td><td>⚠ structure only</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Phantom BOM</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>BOM versioning + ECO</strong></td><td>✗</td><td>SAP PLM, Oracle PLM</td></tr>
+<tr><td><strong>BOM where-used</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td>Routing (operations)</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Alternative routings</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td>Work centers + capacity</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Setup/Run/Wait/Move time</strong></td><td>⚠ duration only</td><td>SAP</td></tr>
+<tr><td>Manufacturing Order</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Material issuance to WO</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Backflushing</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>Co-products / By-products / Scrap</strong></td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Rework orders</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>MRP (Material Requirements Planning)</strong></td><td>✓ basic</td><td>—</td></tr>
+<tr><td><strong>MPS (Master Production Schedule)</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>CRP (Capacity Requirements Planning)</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>DDMRP</strong></td><td>✗</td><td>DDMRP-certified ERPs</td></tr>
+<tr><td><strong>Demand Forecasting algorithms</strong></td><td>✗</td><td>SAP IBP</td></tr>
+<tr><td><strong>S&amp;OP</strong></td><td>✗</td><td>Oracle Cloud SCM</td></tr>
+<tr><td><strong>APS (Advanced Planning &amp; Scheduling)</strong></td><td>✗</td><td>OPCENTER, Asprova</td></tr>
+<tr><td><strong>Finite/Infinite scheduling</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Standard cost / variance analysis</strong></td><td>✗</td><td>SAP CO-PC</td></tr>
+<tr><td><strong>WIP valuation</strong></td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Job costing</strong></td><td>⚠ partial</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Process costing</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>ABC costing</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>OEE</strong></td><td>✗</td><td>MES systems</td></tr>
+<tr><td><strong>MTBF/MTTR</strong></td><td>✗</td><td>SAP PM</td></tr>
+<tr><td><strong>Predictive maintenance</strong></td><td>⚠ telemetry only</td><td>SAP IoT</td></tr>
+<tr><td><strong>Subcontracting (job work)</strong></td><td>✗</td><td>SAP MM</td></tr>
+<tr><td><strong>Quality plans / specifications</strong></td><td>⚠ basic</td><td>SAP QM</td></tr>
+<tr><td><strong>NCR / CAPA</strong></td><td>✗</td><td>SAP QM</td></tr>
+</tbody></table>
+<h3>3.13 الموارد البشرية والرواتب (HR &amp; Payroll)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Employee master</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Org chart / hierarchy</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Position management</strong></td><td>⚠ field only</td><td>SAP HCM, Workday</td></tr>
+<tr><td><strong>Job grades / pay scales</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Departments (separate)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Reporting manager hierarchy</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Dependents / family tracking</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Emergency contacts</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Skills matrix / certifications</strong></td><td>✗</td><td>Workday</td></tr>
+<tr><td><strong>Document expiry alerts (Iqama, Visa)</strong></td><td>⚠ field only</td><td>الأنظمة السعودية</td></tr>
+<tr><td>Attendance manual</td><td>✓</td><td>—</td></tr>
+<tr><td>Face ID attendance</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>GPS-based / Geofencing</strong></td><td>✗</td><td>الأنظمة الحديثة</td></tr>
+<tr><td><strong>Multi-shift scheduling</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Overtime rules engine</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Leave types (multi)</td><td>⚠ generic</td><td>—</td></tr>
+<tr><td><strong>Leave accrual / balance / carry-forward</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Leave encashment</strong></td><td>✗</td><td>الأنظمة الخليجية</td></tr>
+<tr><td><strong>Public holiday calendar</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Salary structure (allowances/deductions)</td><td>✓</td><td>—</td></tr>
+<tr><td>GOSI deduction</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>End of Service (EOS) Saudi Labor Law</strong></td><td>✗</td><td>الأنظمة السعودية (must)</td></tr>
+<tr><td><strong>Final settlement</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>Employee loans</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Bonus / variable pay</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>Commission posted to payroll</td><td>✓</td><td>—</td></tr>
+<tr><td>Payroll runs</td><td>✓</td><td>—</td></tr>
+<tr><td>Payslip PDF</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>WPS file (Mudad/Bank)</strong></td><td>✗</td><td>الأنظمة السعودية (must)</td></tr>
+<tr><td><strong>GOSI file generation</strong></td><td>⚠ basic</td><td>—</td></tr>
+<tr><td><strong>Mudad / Qiwa / Absher / Muqeem APIs</strong></td><td>✗</td><td>الأنظمة السعودية الحديثة</td></tr>
+<tr><td><strong>Multi-currency payroll</strong></td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Off-cycle payroll</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Pro-rata for joiners/leavers</strong></td><td>⚠</td><td>—</td></tr>
+<tr><td>Recruitment - Job postings</td><td>✓</td><td>—</td></tr>
+<tr><td>Recruitment - ATS</td><td>⚠</td><td>Greenhouse, Lever</td></tr>
+<tr><td><strong>Onboarding workflow</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Performance evaluation</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>OKRs / Goals</strong></td><td>✗</td><td>Workday, BambooHR</td></tr>
+<tr><td>Training courses</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>LMS integration</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Travel &amp; Expense management</strong></td><td>✗</td><td>Concur, Expensify</td></tr>
+<tr><td><strong>Self-service portal</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Mobile employee app</strong></td><td>⚠</td><td>—</td></tr>
+</tbody></table>
+<h3>3.14 المبيعات (Sales)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Quote → SO → DN → Invoice → Payment</td><td>✓</td><td>—</td></tr>
+<tr><td>Quote revisions / versions</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Quote → SO conversion</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Partial deliveries</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Backorders</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Drop ship</strong></td><td>✗</td><td>NetSuite, Odoo</td></tr>
+<tr><td><strong>Blanket orders / Standing orders</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>RMA workflow</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Warranty management</strong></td><td>✗</td><td>SAP CS, NetSuite</td></tr>
+<tr><td><strong>Multi-ship-to per order</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Sales territory</strong></td><td>✓ Route</td><td>—</td></tr>
+<tr><td><strong>Customer hierarchy</strong></td><td>✗</td><td>SAP, NetSuite</td></tr>
+<tr><td>Sales rep assignment</td><td>✓</td><td>—</td></tr>
+<tr><td>Commission rules</td><td>✓</td><td>—</td></tr>
+<tr><td>Sales targets</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Sales forecast</strong></td><td>✗</td><td>Salesforce, HubSpot</td></tr>
+<tr><td><strong>Multiple Price Lists</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Tier pricing engine</strong></td><td>⚠ basic</td><td>—</td></tr>
+<tr><td><strong>Customer-specific pricing</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Contract pricing</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td>Promotions (BOGO, %, $, time)</td><td>✓</td><td>—</td></tr>
+<tr><td>Coupons</td><td>✓</td><td>—</td></tr>
+<tr><td>Gift cards</td><td>✓</td><td>—</td></tr>
+<tr><td>Loyalty program</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Cashback / store credit</strong></td><td>✗</td><td>—</td></tr>
+</tbody></table>
+<h3>3.15 المشتريات (Purchasing &amp; Procurement)</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>PR → RFQ → PO → GRN → Invoice</td><td>✓</td><td>—</td></tr>
+<tr><td>PR approval</td><td>⚠ status</td><td>SAP, Coupa</td></tr>
+<tr><td>RFQ comparison</td><td>⚠</td><td>SAP Ariba</td></tr>
+<tr><td>PO approval workflow</td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>PO acknowledgment</td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Blanket PO</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>Contract PO</strong></td><td>⚠ supplier contract</td><td>SAP</td></tr>
+<tr><td><strong>Standing PO</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>GRN</td><td>✓</td><td>—</td></tr>
+<tr><td>Partial receipt</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Over-receipt with tolerance</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Quality inspection on receipt</td><td>⚠</td><td>SAP QM</td></tr>
+<tr><td><strong>Three-way matching automated</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Tolerance limits (price/qty)</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>Vendor returns (debit memo)</td><td>✓</td><td>—</td></tr>
+<tr><td>Landed cost</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Import shipments / customs</strong></td><td>⚠</td><td>SAP GTS</td></tr>
+<tr><td><strong>Subcontracting PO</strong></td><td>✗</td><td>SAP MM</td></tr>
+<tr><td>Service PO</td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Spend analysis</strong></td><td>✗</td><td>Coupa, Ariba</td></tr>
+<tr><td><strong>e-Procurement marketplace</strong></td><td>✗</td><td>Ariba Network</td></tr>
+</tbody></table>
+<h3>3.16 CRM والعلاقات</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Leads</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Opportunities</strong></td><td>✗</td><td>Salesforce</td></tr>
+<tr><td><strong>Pipeline / stages</strong></td><td>✗</td><td>Salesforce, HubSpot</td></tr>
+<tr><td><strong>Activities (calls, meetings)</strong></td><td>✗</td><td>Salesforce</td></tr>
+<tr><td><strong>Tasks</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Won/Lost analysis</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Customer 360 view</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>NPS / surveys</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>WhatsApp integration</td><td>✓</td><td>—</td></tr>
+<tr><td>Telegram bot</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Email campaigns / Marketing automation</strong></td><td>✗</td><td>HubSpot, Mailchimp</td></tr>
+</tbody></table>
+<h3>3.17 الضرائب والامتثال</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td><strong>VAT engine (rates, types)</strong></td><td>⚠ basic</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Reverse charge mechanism</strong></td><td>✗</td><td>SAP</td></tr>
+<tr><td><strong>VAT return generation</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>VAT return XML for ZATCA</strong></td><td>✗</td><td>الأنظمة السعودية الحديثة</td></tr>
+<tr><td><strong>Withholding tax</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Excise tax</strong></td><td>✗</td><td>السعودية</td></tr>
+<tr><td><strong>Customs duties</strong></td><td>⚠ landed cost</td><td>SAP GTS</td></tr>
+<tr><td><strong>Income tax / Zakat</strong></td><td>✗</td><td>الأنظمة السعودية</td></tr>
+<tr><td>ZATCA Phase 1 (QR)</td><td>✓</td><td>—</td></tr>
+<tr><td>ZATCA Phase 2 (XML, signing, ICV/PIH)</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>ZATCA Clearance vs Reporting modes</strong></td><td>⚠</td><td>—</td></tr>
+<tr><td>ZATCA Sandbox/Production switch</td><td>✓</td><td>—</td></tr>
+<tr><td>ZATCA Credit/Debit Notes</td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Multi-VAT registration / group VAT</strong></td><td>✗</td><td>—</td></tr>
+</tbody></table>
+<h3>3.18 التقارير المالية والذكية</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Trial Balance</td><td>✓</td><td>—</td></tr>
+<tr><td>Trial Balance comparative</td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Balance Sheet</td><td>✓</td><td>—</td></tr>
+<tr><td>Income Statement (P&amp;L)</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>P&amp;L by Cost Center / Project / Segment</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>Cash Flow (Indirect)</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Cash Flow (Direct)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Statement of Changes in Equity</strong></td><td>✗</td><td>IFRS-mandatory</td></tr>
+<tr><td><strong>Notes to Financial Statements</strong></td><td>✗</td><td>—</td></tr>
+<tr><td><strong>Comparative reports (PY vs CY)</strong></td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Consolidated Financial Statements</strong></td><td>✗</td><td>SAP Group Reporting, Oracle FCCS</td></tr>
+<tr><td><strong>Segment reporting (IFRS 8)</strong></td><td>✗</td><td>—</td></tr>
+<tr><td>GL detailed</td><td>✓</td><td>—</td></tr>
+<tr><td>AR/AP Aging</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Sub-ledger reports complete</strong></td><td>⚠</td><td>—</td></tr>
+<tr><td><strong>Custom Report Builder</strong></td><td>✗</td><td>NetSuite SuiteAnalytics</td></tr>
+<tr><td><strong>Pivot / Drill-down</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Scheduled report email</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>BI dashboard</strong></td><td>✓ basic</td><td>—</td></tr>
+<tr><td><strong>Excel/PDF export</strong></td><td>✓</td><td>—</td></tr>
+</tbody></table>
+<h3>3.19 الميزانيات</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Budget per CC / Account</td><td>✓</td><td>—</td></tr>
+<tr><td>Budget vs Actual</td><td>✓</td><td>—</td></tr>
+<tr><td>Variance</td><td>⚠ basic</td><td>—</td></tr>
+<tr><td><strong>Multi-version (baseline/revised)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Rolling forecast</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Budget approval workflow</strong></td><td>⚠</td><td>Oracle EPBCS</td></tr>
+<tr><td><strong>Encumbrance accounting</strong></td><td>✗</td><td>Oracle Public Sector</td></tr>
+<tr><td><strong>Budget alerts on breach</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+</tbody></table>
+<h3>3.20 الحوكمة والنظام</h3>
+<table><thead><tr><th>البند</th><th>الحالة</th><th>المرجع</th></tr></thead><tbody>
+<tr><td>Audit Log</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Field-level audit (before/after)</strong></td><td>✗</td><td>SAP, Oracle</td></tr>
+<tr><td><strong>Login history / failed attempts</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td>RBAC</td><td>⚠ basic</td><td>—</td></tr>
+<tr><td><strong>Field-level permissions</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td>Approval workflow</td><td>⚠ models, partial wiring</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Multi-level approval</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Approval delegation</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Segregation of Duties (SoD) matrix</strong></td><td>✗</td><td>SAP GRC</td></tr>
+<tr><td>Multi-company</td><td>✓</td><td>—</td></tr>
+<tr><td>Multi-tenant</td><td>✓</td><td>—</td></tr>
+<tr><td>Multi-currency</td><td>✓</td><td>—</td></tr>
+<tr><td>Multi-language (RTL)</td><td>✓</td><td>—</td></tr>
+<tr><td><strong>Multi-time zone</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Backup / Restore</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Custom fields / labels</strong></td><td>✗</td><td>NetSuite, Salesforce</td></tr>
+<tr><td><strong>SSO (SAML/OAuth/OIDC)</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>2FA</strong></td><td>⚠ TOTP fields</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>API rate limiting</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>API keys management</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Webhooks (configurable)</strong></td><td>⚠</td><td>جميع الأنظمة</td></tr>
+<tr><td><strong>Numbering sequences engine</strong></td><td>✗</td><td>جميع الأنظمة</td></tr>
+</tbody></table>
+<hr>
+<h2>4. مقارنة جدولية شاملة بالأنظمة العالمية</h2>
+<h3>4.1 القدرات الأساسية</h3>
+<table><thead><tr><th>القدرة</th><th>نظامك</th><th>SAP S/4HANA</th><th>Oracle Fusion</th><th>NetSuite</th><th>Odoo</th><th>QuickBooks</th></tr></thead><tbody>
+<tr><td>Universal Journal</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+<tr><td>Multi-Book / Multi-GAAP</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓✓✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td>Subledger Accounting Framework</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td>Cash Application Engine</td><td>✗</td><td>✓✓</td><td>✓✓</td><td>✓✓</td><td>⚠</td><td>⚠</td></tr>
+<tr><td>Three-way matching</td><td>✗</td><td>✓✓</td><td>✓✓</td><td>✓✓</td><td>✓</td><td>⚠</td></tr>
+<tr><td>Period close engine</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓✓</td><td>⚠</td><td>⚠</td></tr>
+<tr><td>FX revaluation</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>✓✓</td><td>✓</td><td>⚠</td></tr>
+<tr><td>Group/Consolidation</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td>Allocation engine</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td>Revenue recognition (IFRS 15)</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓✓✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td>Lease accounting (IFRS 16)</td><td>✗</td><td>✓✓</td><td>✓✓</td><td>✓✓</td><td>⚠</td><td>✗</td></tr>
+<tr><td><strong>النتيجة (max 33)</strong></td><td><strong>0</strong></td><td><strong>33</strong></td><td><strong>30</strong></td><td><strong>24</strong></td><td><strong>9</strong></td><td><strong>3</strong></td></tr>
+</tbody></table>
+<h3>4.2 المخزون والتصنيع</h3>
+<table><thead><tr><th>القدرة</th><th>نظامك</th><th>SAP</th><th>Oracle</th><th>NetSuite</th><th>Odoo</th></tr></thead><tbody>
+<tr><td>FIFO/LIFO/Avg</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Standard Cost + Variance</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>✓✓</td><td>⚠</td></tr>
+<tr><td>Material Ledger</td><td>✗</td><td>✓✓✓</td><td>✗</td><td>✗</td><td>✗</td></tr>
+<tr><td>Variants</td><td>✗</td><td>✓✓</td><td>✓✓</td><td>✓✓</td><td>✓✓</td></tr>
+<tr><td>Multi-level BOM explosion</td><td>⚠</td><td>✓✓✓</td><td>✓✓</td><td>✓✓</td><td>✓✓</td></tr>
+<tr><td>ECO/PLM</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>✓</td><td>⚠</td></tr>
+<tr><td>MRP</td><td>⚠</td><td>✓✓✓</td><td>✓✓</td><td>✓✓</td><td>✓✓</td></tr>
+<tr><td>MPS / S&amp;OP</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>⚠</td><td>⚠</td></tr>
+<tr><td>WMS (Bin/Pick/Putaway)</td><td>⚠</td><td>✓✓✓</td><td>✓✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>QM (CAPA/NCR)</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>⚠</td><td>⚠</td></tr>
+<tr><td>OEE/MES integration</td><td>✗</td><td>✓✓</td><td>✓</td><td>✗</td><td>⚠</td></tr>
+<tr><td>Subcontracting</td><td>✗</td><td>✓✓✓</td><td>✓✓</td><td>⚠</td><td>✓</td></tr>
+</tbody></table>
+<h3>4.3 الموارد البشرية والامتثال السعودي</h3>
+<table><thead><tr><th>القدرة</th><th>نظامك</th><th>SAP HCM</th><th>Workday</th><th>الأنظمة السعودية (Aliphia, DEXEF, Onyx)</th></tr></thead><tbody>
+<tr><td>Org chart</td><td>✗</td><td>✓✓✓</td><td>✓✓✓</td><td>✓</td></tr>
+<tr><td>EOS calculation</td><td>✗</td><td>✓</td><td>⚠</td><td>✓✓✓</td></tr>
+<tr><td>WPS file</td><td>✗</td><td>⚠</td><td>⚠</td><td>✓✓✓</td></tr>
+<tr><td>GOSI integration</td><td>⚠</td><td>⚠</td><td>⚠</td><td>✓✓✓</td></tr>
+<tr><td>Mudad / Qiwa</td><td>✗</td><td>✗</td><td>✗</td><td>✓✓</td></tr>
+<tr><td>Iqama/Visa expiry</td><td>⚠</td><td>✓</td><td>✓</td><td>✓✓</td></tr>
+</tbody></table>
+<hr>
+<h2>5. البرومنت الكامل لتطوير النظام</h2>
+<h2>(Master Implementation Prompt — استخدم هذا مع AI لتطوير كل شيء)</h2>
+<h3>كيفية الاستخدام</h3>
+<blockquote>انسخ كل قسم على حدة وأرسله للذكاء الاصطناعي (Claude/GPT) في جلسة منفصلة لتنفيذ ذلك القسم دون تجاوز سعة المحادثة. كل قسم ذاتي الكفاية ويذكر الملفات المتأثرة والـ schema المطلوب.</blockquote>
+<hr>
+<h3>🔵 المرحلة 0 — الأساسات الهيكلية (Foundation Layer)</h3>
+<pre><code>[Prompt-0.1: Numbering Sequences Engine]
+أضف نموذج NumberingSequence إلى prisma/schema.prisma بحقول:
+{ id, code (JE, INV, PO, GRN, PR, RFQ, SO, DN, FA, EMP, SAL, ...), 
+  prefix, suffix, padLength, current, resetFrequency (never|yearly|monthly), 
+  branchId, fiscalYear, lastReset, isActive }
+أنشئ:
+- src/lib/numbering.ts بدالة generateNextNumber(code, branchId?, date?) مع transaction lock
+- API: src/app/api/system/numbering/route.ts للـ CRUD
+- Migration script يحول جميع الأماكن التي تستخدم Date.now() أو counter في الكود الحالي إلى استدعاء generateNextNumber()
+- Seed data للأكواد الأساسية
+المتطلبات: Concurrency-safe, atomic increment via Prisma $transaction with SERIALIZABLE.</code></pre>
+<pre><code>[Prompt-0.2: Universal Document Status State Machine]
+أنشئ src/lib/document-state-machine.ts:
+- enum DocumentStatus { DRAFT, PENDING_APPROVAL, APPROVED, POSTED, PARTIALLY_FULFILLED, FULFILLED, CANCELLED, REVERSED }
+- transitions table لكل document type (Invoice, JE, PO, SO, GRN, ...)
+- function canTransition(from, to, docType, userPermissions) -&gt; boolean
+- function transition(docId, docType, toStatus, userId) -&gt; creates audit row
+طبق هذا على: SalesInvoice, PurchaseInvoice, JournalEntry, PurchaseOrder, SalesOrder, GoodsReceiptNote, DeliveryNote.
+أضف middleware يمنع تعديل document بعد POSTED ما لم يحدث reversal أولاً.</code></pre>
+<pre><code>[Prompt-0.3: Universal Audit Trail (Field-Level)]
+أضف نموذج FieldAuditLog:
+{ id, entityType, entityId, fieldName, oldValue, newValue, 
+  userId, userEmail, ipAddress, userAgent, changedAt, transactionId }
+أنشئ Prisma extension في src/lib/prisma-audit.ts يلتقط كل update/create/delete على الجداول الحساسة:
+JournalEntry, JournalLine, Account, FixedAsset, Customer, Vendor, 
+Product, Salary, FiscalPeriod, Setting.
+أضف API: src/app/api/system/audit-trail/route.ts مع filters (entity, user, dateRange).</code></pre>
+<pre><code>[Prompt-0.4: Period Close Engine]
+أضف نماذج:
+- PeriodCloseChecklist { id, fiscalPeriodId, taskName, sequence, owner, status, completedAt, notes }
+- PeriodCloseTaskTemplate { id, name, sequence, applicableModule, isMandatory }
+- PeriodLockLog { id, fiscalPeriodId, lockedBy, lockedAt, reopenedBy, reopenedAt, reason }
+أنشئ API:
+- POST /api/accounting/period-close/start (creates checklist from templates)
+- POST /api/accounting/period-close/[periodId]/complete-task
+- POST /api/accounting/period-close/[periodId]/soft-close
+- POST /api/accounting/period-close/[periodId]/hard-close (locks all sub-ledgers)
+- POST /api/accounting/period-close/[periodId]/reopen (with reason + admin)
+سلسلة الإغلاق:
+1. توقف القيود الفرعية (POs, GRNs, Invoices, Stock movements)
+2. تشغيل revaluation للعملات
+3. تشغيل allocations
+4. تشغيل depreciation run
+5. تشغيل accruals (auto-reversing بداية الفترة التالية)
+6. مطابقة sub-ledgers مع GL
+7. إنشاء closing entries (year-end)
+8. ترحيل retained earnings
+9. قفل الفترة
+أضف dashboard في src/app/(dashboard)/accounting/period-close/page.tsx.</code></pre>
+<pre><code>[Prompt-0.5: Generic Approval Workflow Engine]
+الـ models موجودة (ApprovalRule, ApprovalRequest, ApprovalStep) لكن غير موصلة.
+أنشئ src/lib/approval-engine.ts:
+- registerApprovableType(type, getAmount, getRequester, getRouteAccounts)
+- requestApproval(docType, docId, amount) -&gt; creates ApprovalRequest + first ApprovalStep
+- evaluateRule(rule, doc) -&gt; matches by amount thresholds, account types, branch
+- approve/reject(stepId, userId, comment)
+- delegate(stepId, fromUser, toUser, until)
+- escalate(stepId, after_hours)
+طبق على: JournalEntry &gt; $5000, PO, Vendor master changes, Salary &gt; X, Stock adjustments.
+أضف email/push notification عند كل خطوة.</code></pre>
+<hr>
+<h3>🔵 المرحلة 1 — المحاسبة المتقدمة</h3>
+<pre><code>[Prompt-1.1: Recurring Journal Entries + Templates]
+أضف نماذج:
+- JournalTemplate { id, name, description, lines: JournalTemplateLine[], isRecurring, frequency, nextRunDate, endDate, autoReverse }
+- JournalTemplateLine { id, templateId, accountId, debitFormula, creditFormula, description, costCenterId }
+صيغ الحساب: تدعم متغيرات مثل {prevMonthSales}, {fixedAmount:1000}, {%5_of_account:6100}.
+أنشئ:
+- src/lib/recurring-journal-runner.ts (يعمل عبر cron يومياً)
+- API: src/app/api/accounting/journal-templates/route.ts
+- UI: صفحة لإدارة templates مع معاينة القيد
+أضف "Reverse on first day of next period" tick box للـ accruals.</code></pre>
+<pre><code>[Prompt-1.2: Multi-Currency FX Revaluation]
+أضف نموذج:
+- FxRevaluationRun { id, fiscalPeriodId, runDate, accountIds, exchangeRateUsed, totalGain, totalLoss, journalEntryId, status, createdBy }
+أنشئ:
+- src/lib/fx-revaluation.ts
+- function revaluate(accountIds, period, rateAtPeriodEnd, fxGainAcct, fxLossAcct):
+  لكل حساب يحمل foreign balance، احسب:
+  - Functional value at booking rate vs rate at period end
+  - Difference -&gt; JE: DR/CR account, opposite to FxGain/Loss
+- API: POST /api/accounting/fx-revaluation/run
+- Dashboard: عرض النتائج قبل الترحيل (preview)
+أضف: تخصيص spot/average/closing rate types في ExchangeRate model.</code></pre>
+<pre><code>[Prompt-1.3: Inter-Company &amp; Consolidation]
+أضف نماذج:
+- IntercompanyTransaction { id, sourceCompanyId, targetCompanyId, sourceJEId, targetJEId, status, reconciledAt }
+- ConsolidationGroup { id, name, parentCompanyId, subsidiaries: [{ companyId, ownership%, consolidationMethod }] }
+- ConsolidationRun { id, groupId, fiscalPeriodId, eliminations: ConsolidationElimination[], status }
+- ConsolidationElimination { id, runId, type (intercompany_AR_AP, intercompany_revenue, intercompany_dividend), amount, debitAcctId, creditAcctId }
+أنشئ:
+- src/lib/consolidation-engine.ts
+- runConsolidation(groupId, periodId): 
+  1. جمع TB لكل شركة بنفس currency (عبر FX)
+  2. تطبيق eliminations
+  3. تطبيق minority interest
+  4. توليد Consolidated TB / BS / IS
+- API: src/app/api/accounting/consolidation/*
+- UI: شاشة لإدارة المجموعات + تشغيل التوحيد</code></pre>
+<pre><code>[Prompt-1.4: Cost Allocations (Overhead/Service)]
+أضف نماذج:
+- AllocationRule { id, name, sourceCostCenterId, targetCostCenters: AllocationTarget[], basis (fixed_%|headcount|sqft|revenue|custom), schedule }
+- AllocationTarget { ruleId, costCenterId, percentage }
+- AllocationRun { id, ruleId, fiscalPeriodId, sourceAmount, journalEntryId, status }
+أنشئ:
+- src/lib/allocation-engine.ts
+- runAllocation(ruleId, period): يقرأ تكاليف المركز المصدر ويوزعها بناءً على basis ويولد JE
+- API و UI</code></pre>
+<pre><code>[Prompt-1.5: Revenue Recognition (IFRS 15 / ASC 606)]
+أضف نماذج:
+- RevenueArrangement { id, customerId, salesOrderId, contractValue, currency, startDate, endDate }
+- PerformanceObligation { id, arrangementId, name, allocatedAmount, recognitionMethod (point_in_time|over_time_straight|over_time_percent|milestone), startDate, endDate, milestones }
+- RevenueSchedule { id, obligationId, period, recognizedAmount, journalEntryId }
+- DeferredRevenueBalance (computed view)
+أنشئ:
+- src/lib/revenue-recognition.ts
+- function generateSchedule(obligation): يولد جدول الاعتراف بالإيراد
+- function runRecognition(period): يولد JE تلقائي:
+  DR: Deferred Revenue
+  CR: Revenue
+- API و UI لإدارة العقود متعددة الأداءات</code></pre>
+<hr>
+<h3>🔵 المرحلة 2 — AR/AP المتقدم</h3>
+<pre><code>[Prompt-2.1: Payment Terms Engine]
+أضف نموذج:
+- PaymentTerm { id, code, name, type (net|due_on_receipt|installments|EOM_plus|2_10_net_30), netDays, discountDays, discountPercent, installments: PaymentTermInstallment[] }
+- PaymentTermInstallment { id, termId, daysAfterInvoice, percentOfTotal }
+- ربط customerId.paymentTermId و supplierId.paymentTermId
+أنشئ:
+- src/lib/payment-terms.ts: function calculateDueSchedule(invoice, term) -&gt; [{dueDate, amount}]
+- عند إصدار فاتورة، أنشئ تلقائياً InvoiceDueSchedule
+- adjust aging logic to use due dates</code></pre>
+<pre><code>[Prompt-2.2: Open Items &amp; Cash Application Engine]
+أضف نماذج:
+- OpenItem { id, partyId, partyType (customer|vendor), documentType (invoice|payment|credit_note|debit_note|advance), documentId, amount, currency, openAmount, dueDate, status, agingBucket }
+- ItemMatch { id, matcherUserId, matchedAt, items: [openItemId, appliedAmount], journalEntryId }
+أنشئ:
+- src/lib/open-items.ts
+- عند POSTED للفاتورة/الدفعة: insert OpenItem
+- function autoApply(payment, customerId): يحاول مطابقة الدفعة مع invoices حسب القواعد (oldest first, exact amount, by reference)
+- function manualApply(matchData): تطبيق يدوي
+- جزئي/كامل/over-payment
+- API و UI للـ matching workbench</code></pre>
+<pre><code>[Prompt-2.3: Customer Statements &amp; Dunning Letters]
+أضف نماذج:
+- CustomerStatement { id, customerId, periodFrom, periodTo, openingBalance, closingBalance, items: [], generatedAt }
+- DunningPolicy { id, name, levels: DunningLevel[] }
+- DunningLevel { policyId, level, daysOverdue, action (email|sms|whatsapp|letter|call|legal), template, fee, interestRate }
+- DunningRun { id, runDate, customerId, level, channelsUsed, status }
+أنشئ:
+- src/lib/dunning-engine.ts (cron daily)
+- function runDunning(): يبحث عن fatura متأخرة، يحدد level، يرسل + يضيف fee/interest كـ open item
+- generateStatement(customerId, period): PDF و email
+- UI لإعداد سياسات + تتبع</code></pre>
+<pre><code>[Prompt-2.4: Three-Way Matching Engine]
+أنشئ:
+- src/lib/three-way-match.ts
+- function match(invoiceId): 
+  - يجد PO المرتبط
+  - يجد GRNs المرتبطة
+  - يقارن: السعر (PO.price vs Invoice.price ± tolerance)
+  - يقارن: الكمية (sum(GRN.qty) vs Invoice.qty ± tolerance)
+  - يقارن: الإجمالي
+  - status: matched | hold_price | hold_qty | hold_total | manual_review
+- إذا hold: تجميد الدفع تلقائياً + إنشاء ApprovalRequest
+- API و UI
+- إعداد tolerance system في Settings</code></pre>
+<pre><code>[Prompt-2.5: Withholding Tax (WHT)]
+أضف نماذج:
+- WithholdingTaxRule { id, code, name, rate, applicableTo (services|royalties|interest|dividends|rent), country, threshold, deductFrom (gross|net) }
+- WithholdingTaxApplication { id, invoiceId, ruleId, baseAmount, withheldAmount, certificateNumber, paidToAuthorityDate }
+على المدفوعات للموردين الأجانب أو حسب القاعدة، احسم WHT تلقائياً وأنشئ JE:
+DR: Vendor (full amount)
+CR: Cash (net)
+CR: WHT Payable (withheld)
+أنشئ تقرير WHT شهري للسلطات (ZATCA لمن يطبق).</code></pre>
+<pre><code>[Prompt-2.6: Payment Runs (Batch Payments)]
+أضف نماذج:
+- PaymentBatch { id, runDate, paymentDate, currencyId, totalAmount, totalCount, status, bankAccountId, fileGenerated, fileFormat (SEPA|ACH|SWIFT|CSV) }
+- PaymentBatchItem { batchId, vendorId, invoices: [openItemId, amount], totalToPay, paymentMethod }
+أنشئ:
+- src/lib/payment-run.ts
+- function proposePayments(criteria: { dueWithinDays, vendors, minAmount, ...}): يولد proposal
+- function approveBatch(batchId, userId)
+- function generateBankFile(batchId): يولد ملف SEPA XML / SAR-WPS / ACH NACHA
+- API + UI</code></pre>
+<hr>
+<h3>🔵 المرحلة 3 — الخزينة والبنوك</h3>
+<pre><code>[Prompt-3.1: Bank Statement Import]
+أضف نماذج:
+- BankStatement { id, bankAccountId, statementDate, openingBalance, closingBalance, fileFormat, fileName, importedAt, lines: BankStatementLine[] }
+- BankStatementLine { id, statementId, valueDate, description, reference, debit, credit, balance, matchedTransactionId, matchStatus }
+أنشئ parser لـ:
+- MT940 (SWIFT)
+- CAMT.053 (ISO 20022)
+- OFX
+- CSV (configurable mapping)
+- src/lib/bank-statement-parsers/*.ts</code></pre>
+<pre><code>[Prompt-3.2: Auto Bank Reconciliation Engine]
+أنشئ:
+- src/lib/bank-recon-engine.ts
+- function autoMatch(statementId):
+  لكل سطر:
+  1. مطابقة بالـ exact amount + date ± 3 days + reference
+  2. fuzzy match على الوصف (Gemini AI fallback)
+  3. أنشئ tentative match — يحتاج موافقة المستخدم إن كانت confidence &lt; 95%
+- قواعد قابلة للتكوين (BankReconciliationRule):
+  - "إذا وصف يحتوي 'STC' → حساب 5500 (مصروفات اتصالات)"
+  - "إذا debit 100-200 من البنك X → bank charges 5800"
+- UI: شاشة matching workbench
+- بعد match: posting JE تلقائياً</code></pre>
+<pre><code>[Prompt-3.3: Cash Flow Forecast]
+أضف نماذج:
+- CashFlowForecast { id, name, fromDate, toDate, currency, scenarios: CashFlowScenario[] }
+- CashFlowScenario { id, forecastId, name (best|expected|worst), assumptions }
+- CashFlowLine { scenarioId, date, category (operating|investing|financing), source, amount, certainty }
+أنشئ:
+- src/lib/cash-flow-forecast.ts: يجمع من
+  - Open AR (expected receipts based on payment terms + history)
+  - Open AP (expected payments)
+  - Recurring (rent, salaries, utilities)
+  - Forecasted sales orders
+  - Capex pipeline
+- UI: 13-week rolling forecast graph
+- AI integration: استخدم Gemini لتحليل السيناريوهات</code></pre>
+<pre><code>[Prompt-3.4: Loans &amp; Investments]
+أضف نماذج:
+- Loan { id, type (received|given), counterpartyId, principal, currencyId, interestRate, interestType (simple|compound), startDate, maturityDate, paymentSchedule, accountId, balance }
+- LoanPayment { loanId, paymentDate, principalAmount, interestAmount, journalEntryId }
+- Investment { id, type (TBill|Bond|MM|Equity), counterpartyId, principal, yieldRate, purchaseDate, maturityDate, accruedInterest, marketValue }
+أنشئ schedule generation (amortization) + monthly accrual JE.</code></pre>
+<pre><code>[Prompt-3.5: Inter-Bank Transfers]
+أنشئ:
+- API POST /api/treasury/transfers مع: fromAccountId, toAccountId, amount, currency, fees, valueDate
+- لو same currency: JE: DR ToBank, CR FromBank
+- لو different currency: JE مع FX gain/loss
+- multi-step approval لو &gt; threshold</code></pre>
+<hr>
+<h3>🔵 المرحلة 4 — الأصول الثابتة (الفجوة الأكبر 82%)</h3>
+<pre><code>[Prompt-4.1: Asset Master Refactor]
+أعد تصميم prisma schema للأصول:
+- AssetCategory { id, code, name, defaultGLAccount (cost), defaultAccumulatedDepAccount, defaultDepExpenseAccount, defaultDisposalGainAccount, defaultDisposalLossAccount, defaultUsefulLifeYears, defaultDepMethod, defaultSalvagePercent }
+- AssetClass { id, code, name } (Tangible/Intangible/Investment Property)
+- FixedAsset (refactor):
+  + categoryId, classId, parentAssetId (component accounting)
+  + custodianEmployeeId, locationId, departmentId, costCenterId
+  + acquisitionDate, capitalizationDate, retirementDate
+  + acquisitionCost, salvageValue, usefulLifeMonths, depreciationStartDate
+  + status (cwip|active|under_maintenance|disposed|impaired|fully_depreciated)
+  + barcodes, photos, insurance fields, warranty
+  + isLeased, leaseContractId
+- AssetEvent { assetId, eventType (acquisition|capitalization|addition|transfer|impairment|revaluation|disposal|insurance_claim|maintenance|count), date, amount, journalEntryId, details }
+- AssetBook { id, assetId, bookType (book|tax|ifrs|us_gaap), depMethod, usefulLife, salvage, basis }  ← multi-book
+- DepreciationSchedule { id, assetBookId, period, plannedDep, actualDep, accumDep, netBookValue, journalEntryId, status }</code></pre>
+<pre><code>[Prompt-4.2: Depreciation Methods Engine]
+أنشئ src/lib/depreciation/*.ts:
+- straightLine(book, periodIndex)
+- decliningBalance(book, periodIndex, factor=2 for double)
+- sumOfYearsDigits(book, periodIndex)
+- unitsOfProduction(book, periodUnits, totalEstUnits)
+- macrs(book, periodIndex, recoveryClass)
+- groupDepreciation
+كل دالة ترجع periodAmount + cumulativeAmount.
+function generateSchedule(assetBookId): يولد كامل الجدول.
+function runDepreciation(period): لكل asset, لكل book, يقفل period:
+  - يحسب dep
+  - posting JE: DR Dep Expense, CR Accumulated Dep
+  - يحدث NBV
+- conventions: half-year, mid-month, full-month, pro-rata
+- catch-up depreciation
+- bonus depreciation flag</code></pre>
+<pre><code>[Prompt-4.3: CWIP &amp; Capitalization]
+أنشئ نموذج:
+- CWIPProject { id, name, plannedCost, status, startDate, expectedCompletionDate }
+- CWIPCost { projectId, date, sourceType (PO|Expense|Labor|Internal), amount, glAccountId, journalEntryId }
+عند الاكتمال: 
+- function capitalize(projectId, assetCategory, capitalizationDate): يولد FixedAsset, JE:
+  DR: Asset (cost) 
+  CR: CWIP (sum of accumulated)
+- يبدأ depreciation</code></pre>
+<pre><code>[Prompt-4.4: Asset Disposal &amp; Retirement]
+أنشئ:
+- AssetDisposal { id, assetId, disposalType (sale|scrap|donation|theft|transfer_out), disposalDate, proceeds, customerId, journalEntryId }
+- function disposeAsset:
+  - posting JE:
+    DR: Cash/AR (proceeds)
+    DR: Accumulated Depreciation
+    DR: Loss on Disposal (if loss)
+    CR: Asset (cost)
+    CR: Gain on Disposal (if gain)
+  - حدث status للأصل
+- API + UI</code></pre>
+<pre><code>[Prompt-4.5: Asset Impairment &amp; Revaluation (IAS 36, IAS 16)]
+أضف:
+- ImpairmentTest { assetId, testDate, recoverableAmount, carryingAmount, impairmentLoss, journalEntryId }
+- Revaluation { assetId, valuationDate, fairValue, previousNBV, gain (OCI) | loss (P&amp;L) }
+دالة impairment: لو NBV &gt; recoverable: post loss
+دالة revaluation: post gain to OCI revaluation surplus.
+دالة reversal of impairment (capped).</code></pre>
+<pre><code>[Prompt-4.6: Lease Accounting (IFRS 16 / ASC 842)]
+أضف نماذج:
+- LeaseContract (refactor):
+  + leaseType (operating_old|finance_old|ifrs16_rou)
+  + commencementDate, leaseTermMonths
+  + monthlyPayment, paymentFrequency, paymentTimingUpfront
+  + discountRate (IBR), variablePaymentRules
+  + isShortTerm, isLowValue (exemptions)
+- ROUAsset { contractId, initialMeasurement, depreciation }
+- LeaseLiability { contractId, initialMeasurement, openingBalance, payments[] }
+- LeasePaymentSchedule { liabilityId, period, openingLiab, interest, principal, payment, closingLiab }
+- LeaseEvent (modification|termination|extension)
+أنشئ:
+- function initializeLease(contract): present value calc, posting:
+  DR: ROU Asset
+  CR: Lease Liability
+- monthly run: 
+  DR: Interest Expense, CR: Lease Liability (interest)
+  DR: Lease Liability, CR: Cash (payment principal)
+  DR: Depreciation Expense, CR: Accumulated Dep ROU (ROU dep)
+- modifications recalculate.</code></pre>
+<hr>
+<h3>🔵 المرحلة 5 — المخزون المتقدم</h3>
+<pre><code>[Prompt-5.1: Product Variants Engine]
+أضف:
+- ProductTemplate { id, name, code }
+- ProductAttribute { id, name (Color, Size, Material) }
+- ProductAttributeValue { attributeId, value, code }
+- ProductVariant { id, templateId, attributeValues: [], sku, barcode, price, cost, ... }
+حول Product الحالي ليكون template + variants متعددة.</code></pre>
+<pre><code>[Prompt-5.2: Reorder Planning + Safety Stock]
+أضف:
+- ReorderRule { productId, warehouseId, minStock, maxStock, reorderPoint, reorderQty, safetyStock, leadTimeDays, supplierId }
+- ReorderProposal { id, runDate, items: [], status }
+- function runReorderPlanning(): فحص الكل ويولد proposal للـ POs
+- function classifyABC(period): تصنيف ABC حسب revenue / volume / quantity
+- function classifyXYZ(period): تصنيف XYZ حسب variance
+- reports: slow-moving (no movement &gt; 90 days), dead stock (&gt; 365 days)</code></pre>
+<pre><code>[Prompt-5.3: Stock Reservation Engine]
+أضف نموذج StockReservation { productId, warehouseId, quantity, sourceType (SO|MO|Transfer), sourceId, reservedAt, expiresAt, status }.
+عند تأكيد SO: reserve stock.
+ProductStock يستعرض available = onHand - reserved.
+عند shipment: convert reservation to issuance.
+عند cancel SO: release reservation.</code></pre>
+<pre><code>[Prompt-5.4: Standard Costing + Variance Analysis]
+أضف:
+- StandardCost { productId, effectiveDate, materialCost, laborCost, overheadCost, totalStdCost }
+- VarianceTransaction { type (purchase_price|material_usage|labor_efficiency|overhead), productId, period, amount, journalEntryId }
+عند GRN بسعر مختلف عن standard:
+DR: Inventory (at standard)
+DR: Purchase Price Variance
+CR: GR/IR Clearing
+عند MO consumption أكثر من BOM:
+DR: Material Usage Variance
+CR: Inventory</code></pre>
+<pre><code>[Prompt-5.5: Cycle Counting Plans]
+أضف:
+- CycleCountPlan { id, name, frequency, abcClassFilter, warehouses, schedule }
+- CycleCountSession { planId, date, items: [productId, expected, counted, variance, reason], status }
+ABC-based: A daily, B weekly, C monthly.</code></pre>
+<pre><code>[Prompt-5.6: Consignment, VMI, Drop Ship, Kit/Bundle]
+- Consignment: نوع inventory ownership (own|customer_consigned|vendor_consigned)
+- VMI: agreement + auto-replenishment trigger
+- Drop ship: SO يولد PO مباشرة من vendor للعميل، لا يدخل المخزون
+- Kit: BOM-like لكن للبيع؛ عند بيع Kit يقلص مكوناته</code></pre>
+<hr>
+<h3>🔵 المرحلة 6 — التصنيع المتقدم</h3>
+<pre><code>[Prompt-6.1: Multi-Level BOM Explosion]
+أنشئ:
+- function explodeBOM(productId, qty, level=0, results=[]): recursion يطبع كل المواد الخام مع المستوى
+- where-used: function findUsages(componentProductId)
+- BOM versioning: BOMVersion { recipeId, versionNumber, effectiveFrom, effectiveTo, status }
+- ECO: EngineeringChangeOrder { id, productId, fromBomVersion, toBomVersion, reason, approvals, effectiveDate }</code></pre>
+<pre><code>[Prompt-6.2: MPS, CRP, S&amp;OP]
+- MPS: Plan { period, productId, demandForecast, plannedProduction, projectedInventory }
+- CRP: لكل MPS بند ، احسب workCenter loading vs capacity → bottleneck warning
+- S&amp;OP: aggregate planning بمستوى product family</code></pre>
+<pre><code>[Prompt-6.3: Subcontracting]
+أضف:
+- SubcontractWorkOrder { id, vendorId, parentMOId, materialsToSend, expectedFinishedProduct, jobCharge }
+- إرسال المواد: stock movement (مخزون vendor)
+- استلام المنتج النهائي: GRN + JE للـ subcontracting cost
+- يدخل cost في WIP</code></pre>
+<pre><code>[Prompt-6.4: OEE / Downtime / NCR / CAPA]
+- MachineDowntimeLog { machineId, startTime, endTime, reason (planned|breakdown|setup|material_shortage|labor), description }
+- ProductionLog { moId, machineId, plannedRunTime, actualRunTime, plannedOutput, actualOutput, goodOutput, defectOutput }
+- OEE = (Availability × Performance × Quality)
+- NCR { id, sourceType (production|inventory|customer|vendor), description, severity, status }
+- CAPA { ncrId, rootCauseAnalysis, correctiveAction, preventiveAction, owner, dueDate, effectivenessReview }</code></pre>
+<hr>
+<h3>🔵 المرحلة 7 — الموارد البشرية المتقدمة (سعودي)</h3>
+<pre><code>[Prompt-7.1: Org Structure &amp; Position Management]
+أضف:
+- Department { id, code, name, parentDeptId, costCenterId, managerId }
+- Position { id, code, title, deptId, jobGradeId, payScale, reportsToPositionId }
+- JobGrade { id, code, level, salaryRangeMin, salaryRangeMax }
+- ربط Employee.positionId
+- Org chart visualization</code></pre>
+<pre><code>[Prompt-7.2: End of Service (EOS) — Saudi Labor Law]
+أضف function calculateEOS(employee, terminationDate, terminationReason):
+- خدمة &lt; 2 سنة: لا
+- 2-5 سنوات: نصف شهر لكل سنة
+- &gt; 5 سنوات: نصف شهر لأول 5 + شهر كامل لكل سنة بعدها
+- إذا استقالة: 1/3 إذا 2-5 سنوات، 2/3 إذا 5-10، كامل إذا &gt; 10
+- إذا فصل لخطأ: لا يوجد
+- على آخر راتب أساسي + بدلات (housing, transport)
+أنشئ FinalSettlement document مع:
+- EOS calculation
+- vacation balance encashment
+- pending salaries
+- loan deductions
+- final JE</code></pre>
+<pre><code>[Prompt-7.3: WPS (Wages Protection System)]
+أنشئ:
+- function generateWPSFile(payrollMonth, bankCode, format='SAR'):
+  ينتج SIF File (Salary Information File) بصيغة:
+  - Header: company info, total amount, count
+  - Records: employee IBAN, salary, allowances
+  - Trailer: hash
+- format compliance with Saudi WPS / Mudad portal upload
+- API: POST /api/payroll/wps/generate</code></pre>
+<pre><code>[Prompt-7.4: GOSI / Mudad / Qiwa Integration]
+- GOSI: 
+  - calculate contributions: 9% employee + 9% employer + 2% unemployment SANED
+  - monthly file generation
+  - API integration if available (otherwise manual upload)
+- Mudad: WPS + contracts upload
+- Qiwa: contracts + employment status queries
+- Absher / Muqeem: iqama validity API checks</code></pre>
+<pre><code>[Prompt-7.5: Leave Engine]
+أضف:
+- LeaveType { code, name, isPaid, accrualBasis (per_year|per_service_period|fixed), accrualRate, carryForwardAllowed, maxCarryForward, encashable, halfDayAllowed }
+- LeaveBalance { employeeId, leaveTypeId, fiscalYear, opening, accrued, taken, encashed, closing }
+- LeaveRequest workflow: draft → pending → approved → taken
+- public holidays calendar per location
+- compensatory off
+- annual leave: 21 يوم سعودي &lt; 5 سنوات، 30 يوم &gt; 5
+- maternity, sick, hajj, bereavement</code></pre>
+<pre><code>[Prompt-7.6: Travel &amp; Expense (T&amp;E)]
+أضف:
+- TravelRequest { employeeId, destination, fromDate, toDate, purpose, estimatedCost, advance }
+- ExpenseClaim { id, employeeId, claimDate, lines: [{ category, date, amount, currency, receiptUrl, project, costCenter }], status }
+- mobile receipt upload + OCR
+- reimbursement runs</code></pre>
+<hr>
+<h3>🔵 المرحلة 8 — المبيعات والمشتريات المتقدمة</h3>
+<pre><code>[Prompt-8.1: Price Lists &amp; Pricing Engine]
+- PriceList { id, name, currency, validFrom, validTo, customerSegment, items: PriceListItem[] }
+- PriceListItem { listId, productId, price, minQty, maxQty }
+- PricingRule { id, condition (customer|segment|product|category|date|qty), action (override_price|discount_%|discount_$), priority }
+- function calculateLinePrice(customer, product, qty, date): يطبق القواعد بالأولوية</code></pre>
+<pre><code>[Prompt-8.2: Backorder &amp; Drop Ship]
+- عند SO بدون stock كافي: backorder line
+- ETA based on supplier lead time
+- auto-fulfill عند وصول stock</code></pre>
+<pre><code>[Prompt-8.3: RMA &amp; Warranty]
+- ReturnMerchandiseAuthorization { id, customerId, originalInvoiceId, items, reason, status, refundMethod }
+- WarrantyContract { productSerialId, customerId, warrantyType, periodMonths, startDate, claims }
+- WarrantyClaim { contractId, issueDate, description, resolution (replace|repair|refund), cost }</code></pre>
+<pre><code>[Prompt-8.4: Vendor Onboarding &amp; Approved List]
+- VendorOnboardingRequest { vendorData, attachedDocs, status, approvals }
+- ApprovedVendorList per category
+- Vendor compliance docs with auto-expiry alerts (CR, VAT cert, ISO, insurance)</code></pre>
+<pre><code>[Prompt-8.5: Spend Analysis Dashboard]
+- spend by vendor / category / period
+- top 10 vendors
+- price trend analysis
+- savings opportunities (consolidation suggestions via AI)</code></pre>
+<hr>
+<h3>🔵 المرحلة 9 — التقارير والامتثال</h3>
+<pre><code>[Prompt-9.1: Comparative &amp; Multi-Period Reports]
+- TB / BS / IS مع أعمدة (current, previous, variance %, YTD, prior YTD)
+- monthly trend
+- multi-currency presentation
+- consolidation</code></pre>
+<pre><code>[Prompt-9.2: Statement of Changes in Equity &amp; Cash Flow Direct]
+- SCE: opening capital + share issuances - dividends + retained + OCI - treasury = closing
+- Cash Flow Direct method: classify all cash movements directly</code></pre>
+<pre><code>[Prompt-9.3: Custom Report Builder]
+- User-defined queries
+- Drag-drop dimensions/measures
+- Save &amp; share reports
+- Schedule email delivery
+- Excel/PDF export
+- Drill-down to source documents</code></pre>
+<pre><code>[Prompt-9.4: Statutory Reports]
+- VAT Return (Saudi ZATCA format)
+- WHT Return
+- Zakat Calculation
+- IFRS-formatted Financial Statements package
+- SOCPA-compliant Saudi format</code></pre>
+<pre><code>[Prompt-9.5: Notes to Financial Statements]
+- مصمم Notes templates
+- auto-fill from data
+- significant accounting policies
+- contingencies disclosure</code></pre>
+<hr>
+<h3>🔵 المرحلة 10 — الحوكمة والأمان</h3>
+<pre><code>[Prompt-10.1: SoD Matrix]
+- conflict pairs (e.g., Vendor master change + Payment posting)
+- matrix UI
+- live conflict detection on user role assignment</code></pre>
+<pre><code>[Prompt-10.2: Field-Level Permissions + Custom Fields]
+- per role: visible fields, editable fields, masked fields
+- CustomField { entityType, fieldName, dataType, validations, defaultValue }
+- dynamic form rendering</code></pre>
+<pre><code>[Prompt-10.3: SSO / 2FA / API Keys / Rate Limiting]
+- SSO: SAML 2.0, OAuth, OIDC (Microsoft, Google, Okta)
+- 2FA: complete TOTP, SMS, biometric webauthn
+- ApiKey { id, ownerId, key (hashed), scopes, rateLimitPerMinute, lastUsed, expiresAt }
+- middleware: rate limit per key, per IP, per user</code></pre>
+<pre><code>[Prompt-10.4: Backup &amp; Disaster Recovery]
+- automated daily backups (PostgreSQL pg_dump → S3)
+- point-in-time recovery
+- restore validation
+- DR runbook
+- per-tenant export/import</code></pre>
+<hr>
+<h3>🔵 المرحلة 11 — التكامل والذكاء الاصطناعي</h3>
+<pre><code>[Prompt-11.1: AI-Powered Modules]
+- AI Cash Application: Gemini يطابق المدفوعات بالفواتير من نص بنكي
+- AI Anomaly Detection: على القيود اليومية (Z-score على المبالغ)
+- AI Forecast: ARIMA / Prophet للمبيعات والمصروفات
+- AI Document Understanding: تصنيف الفواتير الواردة تلقائياً
+- AI Chatbot: للموظفين والعملاء (data grounding)</code></pre>
+<pre><code>[Prompt-11.2: Open Banking &amp; Payment Gateways]
+- Tarabut Gateway / Lean (Saudi)
+- Mada / SADAD / STC Pay
+- HyperPay / PayTabs / Moyasar
+- Stripe / PayPal للدولي</code></pre>
+<pre><code>[Prompt-11.3: Webhook System &amp; Public API]
+- WebhookSubscription { ownerId, eventTypes, url, secret, retryPolicy }
+- emit events: invoice.created, payment.received, ...
+- HMAC signature
+- public REST API documentation (OpenAPI 3.0 spec)
+- API explorer UI</code></pre>
+<hr>
+<h2>6. خارطة الطريق المرتبة حسب الأولوية</h2>
+<h3>الأولوية 1 (3 أشهر) — أساسات لا تستقيم بدونها</h3>
+<ol>
+<li>Numbering Sequences Engine (Prompt 0.1)</li>
+<li>Document State Machine (Prompt 0.2)</li>
+<li>Field-Level Audit (Prompt 0.3)</li>
+<li>Period Close Engine (Prompt 0.4)</li>
+<li>Approval Workflow Engine (Prompt 0.5)</li>
+<li>Open Items + Cash Application (Prompt 2.2)</li>
+<li>Three-Way Matching (Prompt 2.4)</li>
+<li>Payment Terms Engine (Prompt 2.1)</li>
+<li>EOS + WPS (Prompts 7.2, 7.3)</li>
+<li>Asset Master refactor + multi-method depreciation (Prompts 4.1, 4.2)</li>
+</ol>
+<h3>الأولوية 2 (3-6 أشهر) — قدرات الشركات المتوسطة</h3>
+<ol>
+<li>Bank Statement Import + Auto-Recon (Prompts 3.1, 3.2)</li>
+<li>Recurring/Reversing JE (Prompt 1.1)</li>
+<li>FX Revaluation (Prompt 1.2)</li>
+<li>Customer Statements + Dunning (Prompt 2.3)</li>
+<li>WHT (Prompt 2.5)</li>
+<li>Payment Runs (Prompt 2.6)</li>
+<li>Asset Disposal/Impairment/Revaluation (Prompts 4.4, 4.5)</li>
+<li>Lease IFRS 16 (Prompt 4.6)</li>
+<li>Product Variants (Prompt 5.1)</li>
+<li>Reorder Planning + ABC/XYZ (Prompt 5.2)</li>
+<li>Standard Costing + Variance (Prompt 5.4)</li>
+<li>Multi-Level BOM (Prompt 6.1)</li>
+<li>Subcontracting (Prompt 6.3)</li>
+<li>Org structure + Leave engine (Prompts 7.1, 7.5)</li>
+<li>Price Lists Engine (Prompt 8.1)</li>
+<li>Comparative reports + Cash Flow Direct (Prompts 9.1, 9.2)</li>
+</ol>
+<h3>الأولوية 3 (6-12 شهر) — التميّز التنافسي</h3>
+<ol>
+<li>Inter-Company + Consolidation (Prompt 1.3)</li>
+<li>Allocations Engine (Prompt 1.4)</li>
+<li>Revenue Recognition IFRS 15 (Prompt 1.5)</li>
+<li>Cash Flow Forecast + Loans + Investments (Prompts 3.3, 3.4)</li>
+<li>Stock Reservation + Cycle Count (Prompts 5.3, 5.5)</li>
+<li>Consignment/VMI/Drop Ship/Kits (Prompt 5.6)</li>
+<li>MPS/CRP/S&amp;OP (Prompt 6.2)</li>
+<li>OEE/CAPA (Prompt 6.4)</li>
+<li>T&amp;E Management (Prompt 7.6)</li>
+<li>RMA/Warranty (Prompt 8.3)</li>
+<li>Custom Report Builder (Prompt 9.3)</li>
+<li>Statutory Reports (VAT/WHT/Zakat) (Prompt 9.4)</li>
+<li>SoD Matrix (Prompt 10.1)</li>
+<li>SSO + API Keys + Rate Limit (Prompt 10.3)</li>
+</ol>
+<h3>الأولوية 4 (12+ شهر) — أنظمة القمة</h3>
+<ol>
+<li>Multi-GAAP / Multi-Book Universal Journal</li>
+<li>Material Ledger</li>
+<li>Group Reporting / Consolidation متقدم</li>
+<li>Treasury Management كامل (cash pooling, in-house bank, hedging)</li>
+<li>APS (Advanced Planning &amp; Scheduling)</li>
+<li>PLM/ECM متكامل</li>
+<li>ماركت بليس وموردين B2B</li>
+<li>AI-driven CFO insights متقدم</li>
+</ol>
+<hr>
+<h2>7. ملاحظات ختامية</h2>
+<h3>مقاييس النجاح</h3>
+<ul>
+<li>تطبيق المرحلة 1 وحدها يرفع نسبة الاكتمال من 37% إلى ~55%</li>
+<li>المرحلة 2 ترفعه إلى ~75%</li>
+<li>المرحلة 3 ترفعه إلى ~88%</li>
+<li>المرحلة 4 تجعله منافساً لـ NetSuite/Odoo Enterprise</li>
+</ul>
+<h3>التوصيات النهائية</h3>
+<ol>
+<li><strong>لا تبدأ بالـ "حسن الشكل"</strong> — ابدأ بالـ Foundation Layer (المرحلة 0). كل ميزة لاحقة تستفيد منها.</li>
+<li><strong>اختبر على tenant واحد فقط أولاً</strong> قبل النشر على جميع العملاء.</li>
+<li><strong>حافظ على backwards compatibility</strong> خلال الانتقال — الـ auto-journal الحالي يجب أن يستمر بالعمل.</li>
+<li><strong>أنشئ regression test suite</strong> قبل أي migration كبير.</li>
+<li><strong>وثق كل تغيير في schema</strong> مع migration plan مكتوب.</li>
+<li><strong>استعن بمحاسب قانوني سعودي (SOCPA)</strong> لمراجعة منطق EOS, GOSI, WPS, ZATCA.</li>
+<li><strong>تكلفة الإنجاز:</strong> فريق 3-4 مطورين Full-Stack + محاسب لمدة 12-15 شهراً.</li>
+</ol>
+<hr>
+<p><strong>نهاية التقرير</strong></p>
+</div>
+<div class="print-banner no-print">
+  <button onclick="window.print()">🖨️ احفظ كـ PDF (اضغط هنا أو Ctrl+P)</button>
+  اختر "Save as PDF" من قائمة الطابعة
+</div>
+</body>
+</html>

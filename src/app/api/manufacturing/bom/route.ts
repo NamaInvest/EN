@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const recipes = await prisma.recipe.findMany({
+        const recipes: any = await prisma.recipe.findMany({
             include: {
                 finishedProduct: true,
                 ingredients: {
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
                 byProducts: {
                     include: { product: true }
                 }
-            },
+            } as any,
             orderBy: { createdAt: 'desc' }
         });
 
@@ -37,14 +37,14 @@ export async function POST(request: Request) {
         let totalCost = 0;
         
         // Wrap in transaction
-        const recipe = await prisma.$transaction(async (tx) => {
+        const recipe = await prisma.$transaction(async (tx: any) => {
             const newRecipe = await tx.recipe.create({
                 data: {
                     finishedProductId: parseInt(finishedProductId),
                     name,
                     scrapPercentage: parseFloat(scrapPercentage) || 0,
                     totalCost: 0 // Will update after
-                }
+                } as any
             });
 
             // Add ingredients
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
                             quantity: parseFloat(item.quantity),
                             scrapPercentage: parseFloat(item.scrapPercentage) || 0,
                             estimatedCost: estCost
-                        }
+                        } as any
                     });
                 }
             }

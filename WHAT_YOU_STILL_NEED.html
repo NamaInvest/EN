@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تحليل الفجوات الشامل ومقارنة بالأنظمة العالمية</title>
+<style>
+@page { size: A4; margin: 18mm 15mm; }
+* { box-sizing: border-box; }
+html, body {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.85;
+  font-size: 13px;
+  color: #1f2937;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 40px;
+}
+h1 {
+  font-size: 26px;
+  color: #0f172a;
+  border-bottom: 4px solid #2563eb;
+  padding-bottom: 8px;
+  margin-top: 0;
+  page-break-before: auto;
+}
+h2 {
+  font-size: 20px;
+  color: #1e3a8a;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 6px;
+  margin-top: 32px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 16px;
+  color: #1e40af;
+  margin-top: 24px;
+  page-break-after: avoid;
+}
+h4 {
+  font-size: 14px;
+  color: #1e293b;
+  margin-top: 18px;
+  page-break-after: avoid;
+}
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-right: 26px; padding-left: 0; }
+li { margin: 4px 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  direction: rtl;
+  font-size: 12px;
+  page-break-inside: auto;
+}
+thead {
+  background: #1e40af;
+  color: #fff;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 7px 10px;
+  text-align: right;
+  vertical-align: top;
+}
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody tr:hover { background: #eff6ff; }
+code {
+  background: #f1f5f9;
+  color: #be123c;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  direction: ltr;
+  display: inline-block;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+  font-size: 11.5px;
+  line-height: 1.55;
+  page-break-inside: avoid;
+  margin: 12px 0;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+blockquote {
+  border-right: 4px solid #2563eb;
+  background: #eff6ff;
+  margin: 12px 0;
+  padding: 10px 14px;
+  color: #1e3a8a;
+}
+hr {
+  border: none;
+  border-top: 2px dashed #cbd5e1;
+  margin: 28px 0;
+}
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { color: #0f172a; }
+
+/* رموز الحالة */
+p:has(> code) { line-height: 2; }
+
+/* طباعة */
+@media print {
+  body { font-size: 11.5px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 17px; page-break-before: auto; }
+  h3 { font-size: 14px; }
+  table { font-size: 10.5px; }
+  pre { font-size: 10px; }
+  .no-print { display: none; }
+}
+.print-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 13px;
+  z-index: 999;
+}
+.print-banner button {
+  background: #fff;
+  color: #2563eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
+@media print { .print-banner { display: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>ما تحتاجه إضافة للبرومنت لإنجاز العمل 100%</h1>
+<h1>Complete Implementation Requirements Guide</h1>
+<blockquote><strong>الهدف:</strong> قائمة كاملة بكل العناصر غير التقنية والتقنية الإضافية التي يحتاجها مشروعك لينجح بنسبة 100% عند تطبيق برومنت تطوير ERP.</blockquote>
+<hr>
+<h2>🎯 ملخص سريع: 12 عنصر أساسي</h2>
+<table><thead><tr><th>#</th><th>العنصر</th><th>الأهمية</th><th>بدونه ماذا يحدث</th></tr></thead><tbody>
+<tr><td>1</td><td>فريق البشر المؤهل</td><td>🔴 حاسم</td><td>لا يمكن البناء</td></tr>
+<tr><td>2</td><td>محاسب قانوني سعودي SOCPA</td><td>🔴 حاسم</td><td>منطق محاسبي خاطئ</td></tr>
+<tr><td>3</td><td>بيئات منفصلة (Dev/Stg/Prod)</td><td>🔴 حاسم</td><td>تكسر بيانات العملاء</td></tr>
+<tr><td>4</td><td>استراتيجية الاختبارات</td><td>🔴 حاسم</td><td>bugs في الإنتاج</td></tr>
+<tr><td>5</td><td>استراتيجية ترحيل البيانات</td><td>🔴 حاسم</td><td>فقد بيانات العملاء الحاليين</td></tr>
+<tr><td>6</td><td>التوثيق والمعرفة المرجعية</td><td>🟠 مهم جداً</td><td>قرارات خاطئة</td></tr>
+<tr><td>7</td><td>مراجعة قانونية وامتثال</td><td>🟠 مهم جداً</td><td>غرامات حكومية</td></tr>
+<tr><td>8</td><td>بيئة CI/CD وأدوات DevOps</td><td>🟠 مهم جداً</td><td>فوضى في النشر</td></tr>
+<tr><td>9</td><td>خطة الأمان السيبراني</td><td>🟠 مهم جداً</td><td>اختراق وفقد ثقة</td></tr>
+<tr><td>10</td><td>دليل المستخدم والتدريب</td><td>🟡 مهم</td><td>عملاء لا يستخدمون</td></tr>
+<tr><td>11</td><td>برنامج العملاء التجريبي</td><td>🟡 مهم</td><td>تكتشف المشاكل متأخراً</td></tr>
+<tr><td>12</td><td>خطة الميزانية والوقت</td><td>🟡 مهم</td><td>مشروع بلا نهاية</td></tr>
+</tbody></table>
+<hr>
+<h2>1️⃣ الفريق البشري المطلوب</h2>
+<h3>الحد الأدنى (لإنجاز 60% من البرومنت في 12 شهراً)</h3>
+<table><thead><tr><th>الدور</th><th>عدد</th><th>متوسط الراتب الشهري (SAR)</th><th>المسؤوليات</th></tr></thead><tbody>
+<tr><td><strong>Backend Senior Developer</strong></td><td>2</td><td>18,000 - 25,000</td><td>Prisma, Next.js API, business logic</td></tr>
+<tr><td><strong>Frontend Developer</strong></td><td>1</td><td>12,000 - 18,000</td><td>Dashboard pages, forms, reports</td></tr>
+<tr><td><strong>Full-Stack Mid-level</strong></td><td>1</td><td>10,000 - 14,000</td><td>Integration work</td></tr>
+<tr><td><strong>DevOps Engineer (Part-time)</strong></td><td>0.5</td><td>8,000 - 12,000</td><td>CI/CD, deployments, monitoring</td></tr>
+<tr><td><strong>QA Engineer</strong></td><td>1</td><td>8,000 - 12,000</td><td>Testing, regression</td></tr>
+<tr><td><strong>Saudi CPA (SOCPA)</strong></td><td>0.3 (مستشار)</td><td>5,000 - 10,000</td><td>مراجعة المنطق المحاسبي</td></tr>
+<tr><td><strong>Project Manager</strong></td><td>1</td><td>12,000 - 16,000</td><td>إدارة الفرق والمواعيد</td></tr>
+<tr><td><strong>UI/UX Designer (Part-time)</strong></td><td>0.5</td><td>7,000 - 10,000</td><td>تصميم الشاشات الجديدة</td></tr>
+<tr><td><strong>Business Analyst</strong></td><td>1</td><td>10,000 - 14,000</td><td>تحليل المتطلبات والمواصفات</td></tr>
+</tbody></table>
+<p><strong>إجمالي شهري:</strong> ~110,000 - 160,000 ريال</p>
+<p><strong>إجمالي سنوي:</strong> ~1.3 - 1.9 مليون ريال (للحد الأدنى)</p>
+<h3>الفريق المثالي (لإنجاز 100% خلال 12-15 شهراً)</h3>
+<p>أضف:</p>
+<ul>
+<li>مهندس قواعد بيانات (Database Architect)</li>
+<li>خبير أمان سيبراني (Security Engineer)</li>
+<li>خبير ZATCA و TaxEngineer</li>
+<li>Mobile Developer (إذا تريد تطبيق جوال)</li>
+<li>Technical Writer (للتوثيق)</li>
+<li>2 Customer Success Engineers</li>
+</ul>
+<h3>البدائل</h3>
+<ul>
+<li><strong>Outsourcing:</strong> فريق هندي/مصري عن بُعد بنصف التكلفة</li>
+<li><strong>AI-augmented:</strong> استخدام Claude/Cursor لمضاعفة إنتاجية الفريق الصغير</li>
+<li><strong>Freelancers:</strong> للمهام المتخصصة (ZATCA expert, Lease accounting expert)</li>
+</ul>
+<hr>
+<h2>2️⃣ المحاسب القانوني السعودي (SOCPA Certified) — حاسم</h2>
+<h3>لماذا تحتاجه؟</h3>
+<p>البرومنت يصف <strong>التقنية</strong> لكن المحاسب يحدد:</p>
+<ul>
+<li>شجرة الحسابات المعتمدة سعودياً (SOCPA)</li>
+<li>معدلات الإهلاك المسموحة ضريبياً</li>
+<li>طريقة حساب الزكاة والضريبة</li>
+<li>منطق نهاية الخدمة بالضبط</li>
+<li>حدود الـ tolerance في الـ matching</li>
+<li>ما هي الحسابات الرقابية المسموح إدخالها يدوياً</li>
+<li>متى يطبق reverse charge VAT</li>
+<li>معالجة العملات الأجنبية بالضبط</li>
+</ul>
+<h3>ما يجب أن يقدمه</h3>
+<ol>
+<li><strong>Chart of Accounts Template SOCPA-compliant</strong></li>
+<li><strong>مراجعة كل auto-journal logic</strong> قبل البرمجة</li>
+<li><strong>مراجعة دورية للـ outputs</strong> من النظام</li>
+<li><strong>شهادة امتثال</strong> في النهاية</li>
+<li><strong>توقيع على Test Cases</strong> للقيود المعقدة</li>
+</ol>
+<h3>من أين تجده؟</h3>
+<ul>
+<li>موقع SOCPA الرسمي: socpa.org.sa</li>
+<li>مكاتب: KPMG, PwC, EY, Deloitte (غالي - 2000-5000 ريال/ساعة)</li>
+<li>مكاتب محلية أصغر: 200-500 ريال/ساعة (الأفضل لك)</li>
+<li>consultant مستقل عبر LinkedIn</li>
+</ul>
+<h3>عقد ينصح به</h3>
+<ul>
+<li><strong>Retainer شهري:</strong> 8,000 - 15,000 ريال (10-20 ساعة شهرياً)</li>
+<li><strong>Project-based:</strong> 50,000 - 150,000 ريال للمراجعة الكاملة</li>
+</ul>
+<hr>
+<h2>3️⃣ البيئات والبنية التحتية</h2>
+<h3>البيئات المطلوبة (3 بيئات منفصلة)</h3>
+<pre><code>┌─────────────────────────────────────────────────┐
+│  Development (Dev)                              │
+│  - PostgreSQL محلي + Prisma migrate dev         │
+│  - بيانات وهمية / test data                    │
+│  - كل مطور بيئته                                │
+└─────────────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────────┐
+│  Staging / UAT (Pre-Production)                 │
+│  - نسخة كاملة من Production schema              │
+│  - عميل تجريبي واحد فقط                        │
+│  - يستخدمه CPA للمراجعة قبل الإطلاق            │
+│  - ZATCA Sandbox                                │
+└─────────────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────────┐
+│  Production                                     │
+│  - عملاؤك الفعليون                              │
+│  - ZATCA Production                             │
+│  - مع backup يومي                              │
+│  - مع monitoring                                │
+└─────────────────────────────────────────────────┘</code></pre>
+<h3>التكاليف الشهرية للبنية التحتية</h3>
+<table><thead><tr><th>المكوّن</th><th>الموفر المقترح</th><th>تكلفة شهرية</th></tr></thead><tbody>
+<tr><td>Database (PostgreSQL Managed)</td><td>Hetzner Cloud / DigitalOcean / AWS RDS</td><td>$30 - $200</td></tr>
+<tr><td>Application Server</td><td>Hetzner / Vercel / AWS</td><td>$30 - $150</td></tr>
+<tr><td>File Storage (S3)</td><td>AWS S3 / Cloudflare R2</td><td>$5 - $50</td></tr>
+<tr><td>CDN</td><td>Cloudflare</td><td>$0 - $20</td></tr>
+<tr><td>Monitoring (Sentry)</td><td>موجود</td><td>$0 - $80</td></tr>
+<tr><td>Email (SendGrid/AWS SES)</td><td>SES</td><td>$5 - $30</td></tr>
+<tr><td>WhatsApp Cloud API</td><td>Meta (per message)</td><td>$50 - $500</td></tr>
+<tr><td>SMS Gateway (Saudi)</td><td>Unifonic / Yamamah</td><td>$50 - $200</td></tr>
+<tr><td>Backup Storage</td><td>Backblaze B2 / S3 Glacier</td><td>$5 - $30</td></tr>
+<tr><td><strong>إجمالي تقديري</strong></td><td></td><td><strong>$175 - $1,260</strong></td></tr>
+</tbody></table>
+<hr>
+<h2>4️⃣ استراتيجية الاختبارات (Testing Strategy)</h2>
+<p>البرومنت يبني الكود لكنه <strong>لا يضمن صحته</strong>. تحتاج:</p>
+<h3>مستويات الاختبار</h3>
+<h4>4.1 Unit Tests (للوحدات الصغيرة)</h4>
+<pre><code>ملفات حرجة يجب اختبارها 100%:
+✓ src/lib/auto-journal.ts (8 سيناريوهات × 5 حالات)
+✓ src/lib/depreciation/*.ts (6 طرق × 5 حالات)
+✓ src/lib/cost-allocation.ts
+✓ src/lib/numbering.ts
+✓ src/lib/payment-terms.ts (Net 30, 2/10 Net 30, EOM)
+✓ src/lib/tax-engine.ts (VAT, WHT, Reverse charge)
+✓ src/lib/eos-calculator.ts (Saudi labor law)
+✓ src/lib/fx-revaluation.ts
+✓ src/lib/three-way-match.ts
+
+أداة: Jest 30 (موجود بالفعل)
+الهدف: 80%+ code coverage</code></pre>
+<h4>4.2 Integration Tests</h4>
+<pre><code>سيناريوهات end-to-end:
+1. إنشاء فاتورة بيع → posting → AR → cash receipt → reconciliation
+2. PR → RFQ → PO → GRN → 3-way match → AP → payment
+3. MO → consume materials → produce → close → WIP cleared
+4. Asset acquisition → monthly depreciation → disposal → P/L correct
+5. Hire employee → payroll run → WPS file → GL posting
+6. Period close: revaluation → allocations → depreciation → close → reopen
+
+أداة: Playwright / Vitest</code></pre>
+<h4>4.3 Accounting Validation Tests</h4>
+<p><strong>الأهم:</strong> تتأكد من سلامة المنطق المحاسبي</p>
+<pre><code>✓ Trial Balance دائماً صفر (Debit = Credit)
+✓ AR balance = Sum(Open Customer Invoices)
+✓ AP balance = Sum(Open Vendor Invoices)
+✓ Inventory account balance = Sum(Stock × Cost)
+✓ Bank balance = Last reconciled + unreconciled
+✓ Fixed Asset NBV = Cost - Accumulated Depreciation
+✓ Retained Earnings movement = Net Income - Dividends
+✓ ZATCA invoice signing valid (signature verifies)
+✓ Multi-currency: Foreign balance × rate = local balance</code></pre>
+<h4>4.4 Performance Tests</h4>
+<pre><code>- 1000 invoice posting/sec
+- 10000 stock movements/sec
+- Period close on 100,000 transactions في &lt; 5 دقائق
+- Trial Balance generation في &lt; 3 ثواني لمليون قيد
+
+أداة: k6 / Artillery</code></pre>
+<h4>4.5 Security Tests</h4>
+<pre><code>- SQL injection
+- XSS
+- CSRF
+- IDOR (Insecure Direct Object Reference) — هل tenant A يصل لبيانات tenant B؟
+- Authentication bypass
+- Privilege escalation
+
+أداة: OWASP ZAP / Burp Suite</code></pre>
+<h3>قواعد الجودة (Definition of Done)</h3>
+<p>كل ميزة جديدة لا تُعتبر "مكتملة" إلا إذا:</p>
+<ul>
+<li>✅ Unit tests بـ 80% coverage</li>
+<li>✅ Integration test سيناريو end-to-end</li>
+<li>✅ مراجعة من مطور آخر (Code Review)</li>
+<li>✅ مراجعة من CPA (إن كان منطق محاسبي)</li>
+<li>✅ توثيق في الـ docs</li>
+<li>✅ تجربتها على staging</li>
+<li>✅ مراجعة UX/UI</li>
+</ul>
+<hr>
+<h2>5️⃣ استراتيجية ترحيل البيانات (Data Migration)</h2>
+<p>عملاؤك الحاليون لديهم بيانات. عند تطبيق التغييرات الكبيرة، <strong>بياناتهم في خطر</strong>.</p>
+<h3>المراحل</h3>
+<h4>المرحلة 1: التخطيط (قبل أي تغيير)</h4>
+<pre><code>✓ كامل backup لكل tenant
+✓ خريطة من الجداول القديمة للجديدة
+✓ استراتيجية للحقول التي تتغير schema
+✓ طريقة rollback إذا فشل migration</code></pre>
+<h4>المرحلة 2: السكريبتات</h4>
+<pre><code>كل migration يجب أن يكون له:
+✓ migration script (forward)
+✓ rollback script (backward)
+✓ validation script (يتأكد البيانات سليمة بعد الترحيل)
+✓ dry-run mode للاختبار</code></pre>
+<h4>المرحلة 3: الترحيل الفعلي</h4>
+<pre><code>1. أبلغ العملاء قبل 7 أيام
+2. حدد maintenance window (خارج ساعات العمل)
+3. أوقف النظام
+4. خذ backup كامل
+5. شغل migration على tenant واحد كاختبار
+6. validate
+7. شغل على باقي الـ tenants واحد تلو الآخر
+8. validate كل واحد
+9. أعد تشغيل النظام
+10. راقب لمدة 24 ساعة</code></pre>
+<h3>مثال على بيانات حساسة في نظامك</h3>
+<ul>
+<li>شجرة الحسابات لكل عميل (تتغير schema لإضافة tags جديدة)</li>
+<li>الفواتير المرتبطة بـ ZATCA (لا يجوز تعديلها)</li>
+<li>القيود المرحلة (يمكن إضافة dimensions لكن لا تغير المبلغ)</li>
+<li>أرصدة العملاء (يجب أن تبقى كما هي بالضبط)</li>
+</ul>
+<hr>
+<h2>6️⃣ المعرفة المرجعية المطلوبة</h2>
+<h3>معايير محاسبية يجب امتلاكها</h3>
+<table><thead><tr><th>المعيار</th><th>الموضوع</th><th>المصدر</th></tr></thead><tbody>
+<tr><td>IFRS 15</td><td>اعتراف الإيراد</td><td>ifrs.org (paid)</td></tr>
+<tr><td>IFRS 16</td><td>عقود الإيجار</td><td>ifrs.org</td></tr>
+<tr><td>IFRS 9</td><td>الأدوات المالية</td><td>ifrs.org</td></tr>
+<tr><td>IAS 2</td><td>المخزون</td><td>ifrs.org</td></tr>
+<tr><td>IAS 16</td><td>الأصول الثابتة</td><td>ifrs.org</td></tr>
+<tr><td>IAS 36</td><td>انخفاض القيمة</td><td>ifrs.org</td></tr>
+<tr><td>IAS 21</td><td>تأثيرات تغير العملات</td><td>ifrs.org</td></tr>
+<tr><td>IAS 19</td><td>منافع الموظفين (EOS)</td><td>ifrs.org</td></tr>
+<tr><td><strong>SOCPA Saudi GAAP</strong></td><td>المعايير السعودية</td><td>socpa.org.sa</td></tr>
+<tr><td><strong>ZATCA E-invoicing Specs</strong></td><td>الفوترة الإلكترونية</td><td>zatca.gov.sa</td></tr>
+<tr><td><strong>Saudi Labor Law</strong></td><td>نظام العمل السعودي</td><td>mhrsd.gov.sa</td></tr>
+<tr><td><strong>GOSI Specs</strong></td><td>التأمينات الاجتماعية</td><td>gosi.gov.sa</td></tr>
+<tr><td><strong>WPS / Mudad</strong></td><td>حماية الأجور</td><td>mudad.com.sa</td></tr>
+</tbody></table>
+<h3>وثائق تقنية حاسمة</h3>
+<ul>
+<li>ZATCA Phase 2 Technical Specification (UBL 2.1, ICV, PIH, CSR)</li>
+<li>ZATCA Sandbox API documentation</li>
+<li>Mada Payment Integration Guide</li>
+<li>SADAD Integration Guide</li>
+<li>SAMA (البنك المركزي) requirements</li>
+</ul>
+<hr>
+<h2>7️⃣ المراجعة القانونية والامتثال</h2>
+<h3>قبل الإطلاق العلني للنظام، تحتاج:</h3>
+<h4>7.1 امتثال PDPL (نظام حماية البيانات السعودي)</h4>
+<ul>
+<li>معالجة البيانات الشخصية للعملاء والموظفين</li>
+<li>موافقة (consent) من المستخدمين</li>
+<li>حق الوصول والتعديل والحذف</li>
+<li>إشعار خرق البيانات خلال 72 ساعة</li>
+<li><strong>عقوبة المخالفة:</strong> حتى 5 ملايين ريال</li>
+</ul>
+<h4>7.2 امتثال ZATCA</h4>
+<ul>
+<li>شهادة CSID Production</li>
+<li>اختبار on-boarding</li>
+<li>الالتزام بـ Phase 2 timeline حسب تصنيفك</li>
+</ul>
+<h4>7.3 شروط الاستخدام (Terms of Service)</h4>
+<ul>
+<li>محامي يكتبها (تكلفة 5000-15000 ريال)</li>
+<li>اشتراطات السحاب السعودي إن كنت تخزن داخل المملكة</li>
+<li>SLA مع العملاء</li>
+</ul>
+<h4>7.4 سياسة الخصوصية (Privacy Policy)</h4>
+<ul>
+<li>ما البيانات التي تجمعها</li>
+<li>كيف تستخدمها</li>
+<li>مع من تشاركها</li>
+</ul>
+<h4>7.5 ترخيص النشاط</h4>
+<ul>
+<li>سجل تجاري نشاط برمجة وتقنية معلومات</li>
+<li>ضريبة القيمة المضافة (إذا تجاوزت 375,000 ريال سنوياً)</li>
+<li>اشتراك في غرفة التجارة</li>
+</ul>
+<hr>
+<h2>8️⃣ DevOps و CI/CD</h2>
+<p>البرومنت يكتب كود، لكن <strong>النشر</strong> قصة أخرى.</p>
+<h3>الحد الأدنى المطلوب</h3>
+<h4>8.1 Git Workflow</h4>
+<pre><code>main (production)
+  └─ staging
+       └─ develop
+            ├─ feature/period-close-engine
+            ├─ feature/eos-calculator
+            └─ fix/zatca-icv-bug</code></pre>
+<h4>8.2 CI/CD Pipeline (GitHub Actions / GitLab CI)</h4>
+<pre><code># على كل push:
+1. Lint check (eslint)
+2. TypeScript compilation
+3. Run unit tests (Jest)
+4. Build Next.js
+5. Run integration tests
+6. Security scan (npm audit, Snyk)
+7. Deploy to staging (auto)
+
+# على merge to main:
+8. Deploy to production (manual approval)
+9. Run smoke tests
+10. Notify team on Slack</code></pre>
+<h4>8.3 Monitoring &amp; Observability</h4>
+<ul>
+<li><strong>Sentry</strong> (موجود) — لتتبع الأخطاء</li>
+<li><strong>Better Stack / Datadog</strong> — لـ logs وtraces</li>
+<li><strong>Uptime Robot</strong> — لمراقبة up/down</li>
+<li><strong>PostHog / Plausible</strong> — analytics للاستخدام</li>
+</ul>
+<h4>8.4 Backup Strategy</h4>
+<ul>
+<li>يومي: pg_dump → S3 (احتفاظ 30 يوم)</li>
+<li>أسبوعي: full snapshot (احتفاظ 12 أسبوع)</li>
+<li>شهري: archive (احتفاظ سنتين)</li>
+<li>اختبر استعادة backup شهرياً!</li>
+</ul>
+<hr>
+<h2>9️⃣ الأمان السيبراني</h2>
+<h3>قائمة فحص لازمة قبل الإطلاق</h3>
+<h4>9.1 المصادقة والتفويض</h4>
+<ul>
+<li>[ ] كل API endpoint يتحقق من session</li>
+<li>[ ] كل query يتحقق من tenantId</li>
+<li>[ ] لا يوجد user/admin افتراضي بكلمة سر معروفة</li>
+<li>[ ] 2FA إجباري للحسابات الإدارية</li>
+<li>[ ] session timeout: 30 دقيقة على الأقل</li>
+<li>[ ] لا حفظ JWT tokens في localStorage (httpOnly cookies)</li>
+</ul>
+<h4>9.2 إدارة الأسرار</h4>
+<ul>
+<li>[ ] لا توجد كلمات سر في الكود</li>
+<li>[ ] استخدم .env + dotenv</li>
+<li>[ ] في Production: استخدم vault (Doppler, AWS Secrets Manager)</li>
+<li>[ ] دور (rotate) المفاتيح الحرجة كل 90 يوم</li>
+</ul>
+<h4>9.3 حماية API</h4>
+<ul>
+<li>[ ] Rate limiting (مثلاً 100 req/min لكل IP)</li>
+<li>[ ] Input validation بـ Zod (موجود)</li>
+<li>[ ] SQL injection: Prisma آمن لكن تحقق من raw queries</li>
+<li>[ ] CSRF tokens</li>
+</ul>
+<h4>9.4 حماية البيانات</h4>
+<ul>
+<li>[ ] Encryption at rest (PostgreSQL TDE)</li>
+<li>[ ] Encryption in transit (HTTPS فقط)</li>
+<li>[ ] PII data masking في logs</li>
+<li>[ ] Audit log لا يُمحى</li>
+</ul>
+<h4>9.5 اختبارات اختراق</h4>
+<ul>
+<li>توظف pentester مرة سنوياً (10,000-30,000 ريال)</li>
+<li>bug bounty program (اختياري)</li>
+</ul>
+<hr>
+<h2>🔟 الوثائق والتدريب</h2>
+<h3>وثائق المستخدم</h3>
+<table><thead><tr><th>النوع</th><th>الجمهور</th><th>الشكل</th></tr></thead><tbody>
+<tr><td>دليل المستخدم الأساسي</td><td>مستخدم عادي</td><td>PDF / online (عربي)</td></tr>
+<tr><td>دليل المسؤول</td><td>admin</td><td>PDF</td></tr>
+<tr><td>دليل المحاسب</td><td>accountant</td><td>PDF + video</td></tr>
+<tr><td>فيديوهات تدريبية</td><td>الكل</td><td>YouTube (5-10 دقائق لكل ميزة)</td></tr>
+<tr><td>FAQ</td><td>الكل</td><td>online</td></tr>
+<tr><td>Changelog</td><td>الكل</td><td>online</td></tr>
+</tbody></table>
+<h3>الوثائق الفنية</h3>
+<ul>
+<li><strong>API Documentation</strong> (Swagger / OpenAPI)</li>
+<li><strong>Database Schema Diagram</strong> (dbdiagram.io)</li>
+<li><strong>Architecture Diagrams</strong> (draw.io)</li>
+<li><strong>Runbooks</strong> (للحوادث: ماذا تفعل عند X)</li>
+<li><strong>Onboarding Guide</strong> للمطورين الجدد</li>
+</ul>
+<h3>مكان الوثائق</h3>
+<ul>
+<li><strong>الخارجية (للعملاء):</strong> docs.namasoft.sa</li>
+<li><strong>الداخلية (للفريق):</strong> Notion / Confluence / GitBook</li>
+<li><strong>الكود:</strong> README.md + JSDoc</li>
+</ul>
+<hr>
+<h2>1️⃣1️⃣ برنامج العملاء التجريبي (Beta Program)</h2>
+<h3>قبل الإطلاق العام:</h3>
+<h4>المرحلة 1: Alpha Testing (داخلي)</h4>
+<ul>
+<li>2-3 موظفين من شركتك يستخدمون النظام</li>
+<li>مدة: شهر</li>
+<li>هدف: اكتشاف الأخطاء الواضحة</li>
+</ul>
+<h4>المرحلة 2: Closed Beta (5-10 عملاء)</h4>
+<ul>
+<li>اختر عملاء <strong>مختلفين</strong>:</li>
+<li>شركة تجارة (retail)</li>
+<li>مقاول/مشاريع</li>
+<li>مصنع</li>
+<li>مكتب خدمي</li>
+<li>مطعم/مقهى</li>
+<li>اعرض عليهم النظام <strong>مجاناً</strong> لمدة 3-6 أشهر مقابل التغذية الراجعة</li>
+<li>اجتماع أسبوعي معهم</li>
+<li>channel على WhatsApp / Slack للدعم السريع</li>
+</ul>
+<h4>المرحلة 3: Open Beta (50-100 عميل)</h4>
+<ul>
+<li>بسعر مخفض 50%</li>
+<li>يجب توقيعهم على beta agreement (لا ضمانات كاملة)</li>
+</ul>
+<h4>المرحلة 4: General Availability (GA)</h4>
+<ul>
+<li>بسعر كامل</li>
+<li>SLA 99.5% uptime على الأقل</li>
+<li>دعم فني خلال ساعات العمل</li>
+</ul>
+<h3>مقاييس النجاح</h3>
+<ul>
+<li>Net Promoter Score (NPS) &gt; 50</li>
+<li>Daily Active Users / Monthly Active Users &gt; 60%</li>
+<li>Churn rate &lt; 5% شهرياً</li>
+<li>Time to first transaction &lt; 1 ساعة</li>
+</ul>
+<hr>
+<h2>1️⃣2️⃣ الميزانية والجدول الزمني</h2>
+<h3>تقدير ميزانية واقعية (12-15 شهر)</h3>
+<table><thead><tr><th>البند</th><th>تقدير</th></tr></thead><tbody>
+<tr><td>رواتب الفريق (1.5 سنة)</td><td>1,800,000 - 2,800,000 ريال</td></tr>
+<tr><td>استشارات (CPA, محامي, security)</td><td>100,000 - 200,000 ريال</td></tr>
+<tr><td>البنية التحتية (سحابة)</td><td>30,000 - 60,000 ريال</td></tr>
+<tr><td>الأدوات والاشتراكات</td><td>30,000 - 50,000 ريال</td></tr>
+<tr><td>التسويق والمبيعات</td><td>100,000 - 300,000 ريال</td></tr>
+<tr><td>طوارئ (15%)</td><td>300,000 - 500,000 ريال</td></tr>
+<tr><td><strong>الإجمالي</strong></td><td><strong>2,360,000 - 3,910,000 ريال</strong></td></tr>
+</tbody></table>
+<h3>كيف توفر؟</h3>
+<ul>
+<li>ابدأ بفريق صغير (3 أشخاص + AI)</li>
+<li>استخدم Claude/GPT بكثافة لمضاعفة الإنتاجية</li>
+<li>outsource المهام البسيطة</li>
+<li>لا توظف full-time إلا بعد إيراد فعلي</li>
+<li>استهدف seed funding من مستثمر مهتم بـ SaaS</li>
+</ul>
+<h3>الجدول الزمني الموصى به (Roadmap)</h3>
+<pre><code>الأشهر 1-3: المرحلة 0 (الأساسات)
+├─ Numbering Engine
+├─ Document State Machine
+├─ Field-Level Audit
+├─ Period Close Engine
+└─ Approval Workflow Engine
+
+الأشهر 4-6: المرحلة 1 + 2 (المحاسبة + AR/AP)
+├─ Recurring/Reversing JE
+├─ Open Items + Cash Application
+├─ Three-Way Matching
+├─ Payment Terms Engine
+├─ Customer Statements + Dunning
+
+الأشهر 7-9: المرحلة 3 + 4 (الخزينة + الأصول)
+├─ Bank Statement Import
+├─ Auto Reconciliation
+├─ Asset Master Refactor
+├─ Multi-Method Depreciation
+├─ Asset Disposal/Impairment
+
+الأشهر 10-12: المرحلة 5 + 6 (المخزون + التصنيع)
+├─ Product Variants
+├─ Reorder Planning + ABC
+├─ Standard Costing + Variance
+├─ Multi-Level BOM
+├─ Subcontracting
+
+الأشهر 13-15: المرحلة 7-11 (HR + Sales + Reports + AI)
+├─ EOS + WPS + Mudad
+├─ Org Chart + Leave Engine
+├─ Price Lists Engine
+├─ Custom Report Builder
+├─ AI-Powered Modules
+└─ Beta Launch</code></pre>
+<hr>
+<h2>📋 قائمة الفحص النهائية قبل الإطلاق</h2>
+<h3>قبل أول عميل دافع، يجب اكتمال:</h3>
+<h4>قانوني وامتثال</h4>
+<ul>
+<li>[ ] سجل تجاري وشهادة ضريبة</li>
+<li>[ ] شروط استخدام مكتوبة من محامي</li>
+<li>[ ] سياسة خصوصية متوافقة مع PDPL</li>
+<li>[ ] شهادة ZATCA Production CSID للجميع</li>
+<li>[ ] التزام بـ SOCPA review</li>
+</ul>
+<h4>تقني</h4>
+<ul>
+<li>[ ] 3 بيئات منفصلة (Dev/Stg/Prod) تعمل</li>
+<li>[ ] CI/CD يعمل</li>
+<li>[ ] Backup يومي مختبر</li>
+<li>[ ] Monitoring + alerting</li>
+<li>[ ] Disaster Recovery plan موثق</li>
+<li>[ ] HTTPS فقط</li>
+<li>[ ] 2FA متاح للحسابات الحرجة</li>
+<li>[ ] Rate limiting</li>
+</ul>
+<h4>وظيفي</h4>
+<ul>
+<li>[ ] 80% test coverage على business logic</li>
+<li>[ ] 5 سيناريوهات end-to-end تعمل</li>
+<li>[ ] Trial Balance دائماً يوازن</li>
+<li>[ ] ZATCA invoices تنجح في Production</li>
+<li>[ ] WPS file يقبله البنك</li>
+<li>[ ] EOS calculation موافق عليه من CPA</li>
+</ul>
+<h4>تجربة المستخدم</h4>
+<ul>
+<li>[ ] دعم RTL كامل بدون أخطاء</li>
+<li>[ ] الترجمة العربية مكتملة</li>
+<li>[ ] الشاشات responsive (موبايل، تابلت، شاشة كبيرة)</li>
+<li>[ ] performance: pageload &lt; 3 ثواني</li>
+</ul>
+<h4>دعم العملاء</h4>
+<ul>
+<li>[ ] دليل مستخدم عربي</li>
+<li>[ ] 10+ فيديوهات تدريبية</li>
+<li>[ ] قناة دعم (WhatsApp Business + Email)</li>
+<li>[ ] SLA معلن</li>
+<li>[ ] FAQ منشور</li>
+</ul>
+<h4>تجاري</h4>
+<ul>
+<li>[ ] صفحة pricing</li>
+<li>[ ] طريقة الاشتراك مؤتمتة (Mada/Visa)</li>
+<li>[ ] فواتير ZATCA لاشتراكاتك أنت</li>
+<li>[ ] خطة تسويق</li>
+<li>[ ] 5+ عملاء beta راضون</li>
+</ul>
+<hr>
+<h2>🎓 خلاصة: أنت تحتاج 3 أشياء للنجاح بـ 100%</h2>
+<h3>1. <strong>بشر</strong> (الأهم)</h3>
+<p>لا تعتمد على نفسك وحدك + AI. تحتاج:</p>
+<ul>
+<li>مطور سينيور واحد على الأقل غيرك</li>
+<li>محاسب SOCPA</li>
+<li>مصمم UX</li>
+</ul>
+<h3>2. <strong>منهجية</strong></h3>
+<ul>
+<li>Git workflow صارم</li>
+<li>Code reviews دائماً</li>
+<li>Tests قبل الـ merge</li>
+<li>بيئات منفصلة</li>
+<li>Deploy تدريجي</li>
+</ul>
+<h3>3. <strong>مال</strong></h3>
+<ul>
+<li>ميزانية تكفي 18 شهراً (لا 12)</li>
+<li>احتياط للطوارئ (20%)</li>
+<li>لا توقف الرواتب أبداً (يدمر الفريق)</li>
+</ul>
+<hr>
+<h2>✅ نصيحة ختامية</h2>
+<p><strong>لا تحاول إنجاز كل البرومنت دفعة واحدة.</strong></p>
+<p>التطبيق المثالي:</p>
+<ol>
+<li>ابدأ بالمرحلة 0 (الأساسات) — 3 أشهر</li>
+<li>أطلق نسخة "محسنة من الحالي" لعملائك الحاليين</li>
+<li>اجمع feedback → اكتشف ما هو فعلاً مهم لهم</li>
+<li>طبق المرحلة التي يطلبونها أولاً (وليس الترتيب النظري)</li>
+<li>كرر</li>
+</ol>
+<p><strong>أنظمة العالمية لم تُبنى في سنة. SAP عمرها 50 سنة. Odoo عمرها 18 سنة.</strong></p>
+<p>لا تتسرع. ابنِ بقوة. اكسب ثقة العملاء.</p>
+<hr>
+<p><strong>انتهى الدليل</strong></p>
+</div>
+<div class="print-banner no-print">
+  <button onclick="window.print()">🖨️ احفظ كـ PDF (اضغط هنا أو Ctrl+P)</button>
+  اختر "Save as PDF" من قائمة الطابعة
+</div>
+</body>
+</html>

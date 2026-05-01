@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { generateNextNumber } from '@/lib/numbering';
 
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { recipeId, quantityToProduce, startDate, endDate, machineId } = body;
 
-        const orderNumber = `WO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const orderNumber = await generateNextNumber(prisma as any, 'WO', { date: new Date(startDate) });
 
         const order = await prisma.manufacturingOrder.create({
             data: {
