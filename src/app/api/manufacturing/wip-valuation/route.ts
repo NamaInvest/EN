@@ -9,7 +9,7 @@ export async function GET(request: Request) {
             include: {
                 recipe: { include: { finishedProduct: true } },
                 costs: true
-            }
+            } as any
         });
 
         let totalWipValue = 0;

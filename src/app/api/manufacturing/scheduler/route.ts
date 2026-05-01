@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const centers = await prisma.workCenter.findMany({
+        const centers = await (prisma as any).workCenter.findMany({
             include: {
                 operations: {
                     include: {
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
                         }
                     }
                 }
-            }
+            } as any
         });
 
         // Map to Gantt Chart events
