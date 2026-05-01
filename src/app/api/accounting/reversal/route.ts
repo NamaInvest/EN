@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { createJournalEntry } from '@/lib/auto-journal';
 
 export async function POST(request: Request) {
     const prisma = getPrisma(request as any);
@@ -12,71 +13,61 @@ export async function POST(request: Request) {
 
         const originalEntry = await prisma.journalEntry.findUnique({
             where: { id: parseInt(journalEntryId) },
-            include: { lines: true }
+            include: {
+                lines: { include: { account: { select: { code: true } } } },
+            },
         });
 
         if (!originalEntry) return NextResponse.json({ error: 'القيد الأصلي غير موجود' }, { status: 404 });
         if (originalEntry.status !== 'posted') return NextResponse.json({ error: 'لا يمكن عكس قيد غير مُرحل' }, { status: 400 });
+        if (originalEntry.entryNumber.endsWith('-R')) {
+            return NextResponse.json({ error: 'لا يمكن عكس قيد عكسي' }, { status: 400 });
+        }
 
-        // Generate Reversal Entry
-        const reversalEntry = await prisma.$transaction(async (tx: any) => {
-            const newEntry = await tx.journalEntry.create({
-                data: {
-                    entryNumber: `${originalEntry.entryNumber}-R`,
-                    entryDate: reversalDate || new Date().toISOString().split('T')[0],
-                    description: `قيد عكسي للقيد ${originalEntry.entryNumber} - السبب: ${reason || 'تصحيح خطأ'}`,
-                    reference: originalEntry.entryNumber,
-                    totalDebit: originalEntry.totalCredit, // Swapped
-                    totalCredit: originalEntry.totalDebit, // Swapped
-                    status: 'posted',
-                    createdBy: user.userId,
-                    currencyId: originalEntry.currencyId,
-                    exchangeRate: originalEntry.exchangeRate,
-                    branchId: originalEntry.branchId
-                }
-            });
+        // Build reversal lines: swap debits/credits, keep same accounts/cost-centers.
+        // createJournalEntry handles balance updates centrally (CLAUDE.md §3.1).
+        const reversalLines = originalEntry.lines.map((line: any) => ({
+            accountCode: line.account.code,
+            costCenterId: line.costCenterId ?? undefined,
+            debit: line.credit,
+            credit: line.debit,
+            description: `عكس: ${line.description || ''}`.trim(),
+        }));
 
-            // Swap Debits and Credits
-            for (const line of originalEntry.lines) {
-                await tx.journalLine.create({
-                    data: {
-                        journalEntryId: newEntry.id,
-                        accountId: line.accountId,
-                        debit: line.credit,   // Reverse
-                        credit: line.debit,   // Reverse
-                        description: `عكس: ${line.description || ''}`,
-                        costCenterId: line.costCenterId
-                    }
-                });
+        const result = await createJournalEntry({
+            description: `قيد عكسي للقيد ${originalEntry.entryNumber} - السبب: ${reason || 'تصحيح خطأ'}`,
+            reference: originalEntry.entryNumber,
+            date: reversalDate || new Date().toISOString().split('T')[0],
+            lines: reversalLines,
+            userId: user.userId,
+            branchId: originalEntry.branchId,
+            currencyId: originalEntry.currencyId,
+            exchangeRate: originalEntry.exchangeRate,
+        });
 
-                // Update Account Balances (Impact Reversal)
-                await tx.account.update({
-                    where: { id: line.accountId },
-                    data: {
-                        balance: {
-                            increment: line.credit - line.debit // Opposite of normal entry logic
-                        }
-                    }
-                });
-            }
+        if (!result.success) {
+            return NextResponse.json({ error: result.error || 'فشل إنشاء القيد العكسي' }, { status: 500 });
+        }
 
-            // Mark original as reversed
-            await tx.journalEntry.update({
-                where: { id: originalEntry.id },
-                data: { status: 'reversed', description: `${originalEntry.description} [تم عكسه بقيد ${newEntry.entryNumber}]` }
-            });
-
-            return newEntry;
+        // Mark original as reversed (does NOT touch account.balance — handled by createJournalEntry)
+        const reversalEntry = await prisma.journalEntry.findUnique({ where: { id: result.entryId } });
+        await prisma.journalEntry.update({
+            where: { id: originalEntry.id },
+            data: {
+                status: 'reversed',
+                description: `${originalEntry.description} [تم عكسه بقيد ${reversalEntry?.entryNumber || result.entryId}]`,
+            },
         });
 
         return NextResponse.json({
             success: true,
-            reversalEntryNumber: reversalEntry.entryNumber,
-            message: 'تم إنشاء القيد العكسي بنجاح'
+            reversalEntryNumber: reversalEntry?.entryNumber,
+            reversalEntryId: result.entryId,
+            message: 'تم إنشاء القيد العكسي بنجاح',
         });
 
     } catch (error: any) {
-        console.error("Reversal Engine Error:", error);
+        console.error('Reversal Engine Error:', error);
         return NextResponse.json({ error: error.message || 'فشل إنشاء القيد العكسي' }, { status: 500 });
     }
 }

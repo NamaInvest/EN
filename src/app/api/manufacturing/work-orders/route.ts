@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { generateNextNumber } from '@/lib/numbering';
+import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
@@ -64,17 +65,18 @@ export async function PUT(request: Request) {
 
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-        // If status changes to 'in_progress', we simulate Issuing Materials (Raw Materials -> WIP)
+        // ─── draft → in_progress: Issue materials & overhead to WIP ──────
         if (status === 'in_progress' && order.status === 'draft') {
-            await prisma.$transaction(async (tx) => {
+            const { materialCost } = await prisma.$transaction(async (tx) => {
                 let totalCost = 0;
-                
-                // 1. Material Costs
+                let materialCost = 0;
+
+                // 1. Material costs (per ingredient with scrap percentage)
                 for (const item of order.recipe.ingredients) {
                     const scrapPerc = (item as any).scrapPercentage || 0;
                     const qtyNeeded = item.quantity * order.quantityToProduce * (1 + scrapPerc / 100);
                     const cost = item.estimatedCost * order.quantityToProduce;
-                    
+
                     await (tx as any).manufacturingCost.create({
                         data: {
                             manufacturingOrderId: order.id,
@@ -84,13 +86,13 @@ export async function PUT(request: Request) {
                         }
                     });
                     totalCost += cost;
+                    materialCost += cost;
                 }
 
-                // 2. Overhead Costs (Absorption Engine based on Work Centers and Routing)
+                // 2. Overhead costs (Work-Center hourly rate × routing duration)
                 for (const op of (order.recipe as any).operations || []) {
                     const hoursNeeded = (op.durationMinutes / 60) * order.quantityToProduce;
                     const overheadCost = hoursNeeded * op.workCenter.costPerHour;
-                    
                     if (overheadCost > 0) {
                         await (tx as any).manufacturingCost.create({
                             data: {
@@ -106,63 +108,61 @@ export async function PUT(request: Request) {
 
                 await tx.manufacturingOrder.update({
                     where: { id: order.id },
-                    data: { status: 'in_progress', totalCost: totalCost }
+                    data: { status: 'in_progress', totalCost }
                 });
+
+                return { totalCost, materialCost };
             });
+
+            // 3. Auto-journal: Dr WIP / Cr Raw Materials (issuance)
+            //    Done OUTSIDE the tx because auto-journal opens its own atomic flow.
+            if (materialCost > 0) {
+                await postMaterialIssueToWIP({
+                    orderNumber: order.orderNumber,
+                    materialCost,
+                });
+            }
         }
-        // If status changes to 'completed', WIP -> Finished Goods
+        // ─── in_progress → completed: WIP → Finished Goods ──────────────
         else if (status === 'completed' && order.status === 'in_progress') {
-             await prisma.$transaction(async (tx) => {
-                 // 1. Mark Order as Completed
-                 await tx.manufacturingOrder.update({
-                     where: { id: order.id },
-                     data: { status: 'completed', endDate: new Date() }
-                 });
+            const totalActualCost = order.totalCost;
+            const standardCost = order.recipe.totalCost * order.quantityToProduce;
+            const finishedProductName = (order as any).recipe?.finishedProduct?.name;
 
-                 // 2. Increase Finished Product Stock
-                 const finishedProduct = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
-                 if (finishedProduct) {
-                     await tx.product.update({
-                         where: { id: finishedProduct.id },
-                         data: { currentStock: (finishedProduct.currentStock || 0) + order.quantityToProduce }
-                     });
-                     
-                     // Create Stock Movement log
-                     await tx.stockMovement.create({
-                         data: {
-                             productId: finishedProduct.id,
-                             type: 'in',
-                             quantity: order.quantityToProduce,
-                             notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber}`
-                         }
-                     });
-                 }
+            await prisma.$transaction(async (tx) => {
+                // 1. Mark order completed
+                await tx.manufacturingOrder.update({
+                    where: { id: order.id },
+                    data: { status: 'completed', endDate: new Date() }
+                });
 
-                 // 3. Automated WIP Clearing & Variance Accounting (Industry 4.0 Standard)
-                 // This creates a Journal Entry automatically to clear WIP and book Finished Goods value
-                 const totalActualCost = order.totalCost;
-                 const estimatedCost = order.recipe.totalCost * order.quantityToProduce;
-                 const variance = totalActualCost - estimatedCost;
+                // 2. Increase finished-product stock + log movement
+                const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
+                if (fp) {
+                    await tx.product.update({
+                        where: { id: fp.id },
+                        data: { currentStock: (fp.currentStock || 0) + order.quantityToProduce }
+                    });
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: fp.id,
+                            type: 'in',
+                            quantity: order.quantityToProduce,
+                            notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber}`
+                        }
+                    });
+                }
+            });
 
-                 await tx.journalEntry.create({
-                     data: {
-                         entryNumber: `JV-MFG-${order.orderNumber}`,
-                         entryDate: new Date().toISOString(),
-                         description: `إغلاق أمر التصنيع ${order.orderNumber} وإثبات المنتج التام`,
-                         reference: order.orderNumber,
-                         lines: {
-                             create: [
-                                 // Debit Finished Goods Inventory (Asset)
-                                 { accountId: 1200, debit: estimatedCost, credit: 0, description: 'مخزون الإنتاج التام' },
-                                 // Credit WIP Inventory (Asset clearing)
-                                 { accountId: 1210, debit: 0, credit: totalActualCost, description: 'تسوية حساب تحت التشغيل' },
-                                 // Variance Account (If negative, favourable variance. If positive, unfavourable variance)
-                                 { accountId: 5100, debit: variance > 0 ? variance : 0, credit: variance < 0 ? Math.abs(variance) : 0, description: 'انحرافات تكاليف الإنتاج' }
-                             ]
-                         }
-                     }
-                 });
-             });
+            // 3. Auto-journal: Dr FG / Cr WIP / Variance
+            //    Uses account-code lookup (not hardcoded IDs) and balance updates
+            //    handled centrally — complies with CLAUDE.md §3.1.
+            await postManufacturingCompletion({
+                orderNumber: order.orderNumber,
+                standardCost,
+                actualCost: totalActualCost,
+                productName: finishedProductName,
+            });
         }
 
         return NextResponse.json({ message: 'تم تحديث حالة الأمر بنجاح' });

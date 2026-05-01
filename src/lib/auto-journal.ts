@@ -12,8 +12,10 @@ const ACCOUNTS = {
     CASH: '1110',           // الصندوق
     BANK: '1120',           // البنك
     RECEIVABLES: '1200',    // المدينون (العملاء)
-    INVENTORY: '1300',      // المخزون
+    INVENTORY: '1300',      // المخزون (المواد الخام)
     IN_TRANSIT: '1310',     // بضاعة بالطريق
+    WIP: '1330',            // مخزون تحت التشغيل (Work-in-Process)
+    FINISHED_GOODS: '1340', // مخزون البضاعة التامة (Finished Goods)
     VAT_INPUT: '1400',      // ضريبة مدخلات
     PAYABLES: '2100',       // الدائنون (الموردون)
     GRNI: '2110',           // فواتير غير مستلمة (استلام بدون فاتورة)
@@ -25,6 +27,7 @@ const ACCOUNTS = {
     COGS: '5100',           // تكلفة البضاعة المباعة
     PURCHASE_RETURNS: '5110', // مرتجعات المشتريات
     SHRINKAGE: '5120',      // مصروف عجز وتسوية مخزون
+    MFG_VARIANCE: '5130',   // انحرافات تكاليف الإنتاج (Manufacturing Variance)
     SALARIES: '5200',       // الرواتب
 };
 
@@ -522,6 +525,89 @@ export async function postGRN(grn: {
         userId: grn.userId,
         branchId: grn.branchId,
         date: grn.date,
+    });
+}
+
+/**
+ * قيد إغلاق أمر التصنيع وإثبات المنتج التام
+ * ───────────────────────────────────────────
+ * Dr مخزون البضاعة التامة (Finished Goods)         standardCost
+ * Cr مخزون تحت التشغيل (WIP)                       actualCost
+ * Dr/Cr انحرافات تكاليف الإنتاج (Variance)         |actualCost - standardCost|
+ *
+ * إن actualCost > standardCost → فرق غير ملائم (Dr Variance — مصروف أكبر)
+ * إن actualCost < standardCost → فرق ملائم      (Cr Variance — توفير)
+ */
+export async function postManufacturingCompletion(params: {
+    orderNumber: string;
+    standardCost: number;  // التكلفة المعيارية (الأصل من recipe.totalCost × quantity)
+    actualCost: number;    // التكلفة الفعلية المُجمَّعة في WIP
+    productName?: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const variance = params.actualCost - params.standardCost;
+
+    const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [
+        {
+            accountCode: ACCOUNTS.FINISHED_GOODS,
+            debit: params.standardCost,
+            credit: 0,
+            description: `إثبات منتج تام: ${params.productName || ''} - أمر ${params.orderNumber}`,
+        },
+        {
+            accountCode: ACCOUNTS.WIP,
+            debit: 0,
+            credit: params.actualCost,
+            description: `تسوية حساب تحت التشغيل - أمر ${params.orderNumber}`,
+        },
+    ];
+
+    // Variance line — only when there's a delta (avoid zero-amount line)
+    if (Math.abs(variance) > 0.01) {
+        lines.push({
+            accountCode: ACCOUNTS.MFG_VARIANCE,
+            debit: variance > 0 ? variance : 0,   // unfavorable: actual > standard
+            credit: variance < 0 ? Math.abs(variance) : 0, // favorable: actual < standard
+            description: variance > 0
+                ? `انحراف غير ملائم - أمر ${params.orderNumber}`
+                : `انحراف ملائم (توفير) - أمر ${params.orderNumber}`,
+        });
+    }
+
+    return createJournalEntry({
+        description: `إغلاق أمر التصنيع ${params.orderNumber} وإثبات المنتج التام`,
+        reference: params.orderNumber,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد إصدار خامات للإنتاج (Material Issue to WIP)
+ * Dr مخزون تحت التشغيل (WIP)
+ * Cr المخزون (المواد الخام)
+ */
+export async function postMaterialIssueToWIP(params: {
+    orderNumber: string;
+    materialCost: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `إصدار مواد خام لأمر التصنيع ${params.orderNumber}`,
+        reference: params.orderNumber,
+        lines: [
+            { accountCode: ACCOUNTS.WIP, debit: params.materialCost, credit: 0, description: `سحب مواد - أمر ${params.orderNumber}` },
+            { accountCode: ACCOUNTS.INVENTORY, debit: 0, credit: params.materialCost, description: `إخراج مواد خام - أمر ${params.orderNumber}` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
     });
 }
 
