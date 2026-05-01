@@ -65,7 +65,8 @@ export class RecurringJournalRunner {
 
         return prisma.journalEntry.create({
             data: {
-                entryDate: runDate,
+                entryNumber: `REC-${template.id}-${runDate.getTime()}`,
+                entryDate: runDate.toISOString(),
                 reference: `REC-${template.id}-${runDate.getTime()}`,
                 description: `Recurring: ${template.name}`,
                 status: 'draft',

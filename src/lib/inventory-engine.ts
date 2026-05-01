@@ -7,7 +7,7 @@ export class InventoryEngine {
      */
     static async checkReorderLevels(productId: number, warehouseId: number) {
         const stockInfo = await prisma.productStock.findFirst({
-            where: { productId, warehouseId }
+            where: { productId, stockId: warehouseId }
         });
 
         const planning = await prisma.inventoryPlanning.findFirst({
@@ -40,7 +40,7 @@ export class InventoryEngine {
      */
     static async reserveStock(productId: number, warehouseId: number, quantity: number, documentType: string, documentId: number) {
         const stockInfo = await prisma.productStock.findFirst({
-            where: { productId, warehouseId }
+            where: { productId, stockId: warehouseId }
         });
 
         if (!stockInfo) throw new Error("Stock not found for this product/warehouse");

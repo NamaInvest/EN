@@ -90,7 +90,7 @@ export class OpenItemsEngine {
                 data: {
                     matcherUserId,
                     appliedAmount: totalApplied,
-                    matchedItemIds
+                    matchedItemIds: matchedIds
                 }
             });
         }

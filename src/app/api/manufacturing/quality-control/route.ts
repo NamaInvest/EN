@@ -6,8 +6,7 @@ export async function GET(request: Request) {
     try {
         const checks = await prisma.qualityCheck.findMany({
             include: {
-                order: true,
-                inspector: true
+                order: true
             },
             orderBy: { id: 'desc' }
         });
@@ -30,8 +29,8 @@ export async function POST(request: Request) {
         const check = await prisma.qualityCheck.create({
             data: {
                 manufacturingOrderId: parseInt(manufacturingOrderId),
-                inspectorId: inspectorId ? parseInt(inspectorId) : null,
-                checkDate: new Date(),
+                // inspectorId: inspectorId ? parseInt(inspectorId) : null,
+                // checkDate: new Date(),
                 inspectedQuantity: parseFloat(inspectedQuantity) || 0,
                 passedQuantity: parseFloat(passedQuantity) || 0,
                 failedQuantity: parseFloat(failedQuantity) || 0,

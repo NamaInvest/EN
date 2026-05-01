@@ -20,7 +20,7 @@ export class ApprovalEngine {
                 ...(branchId ? { branchId } : {}),
             },
             orderBy: {
-                sequence: 'asc'
+                level: 'asc'
             }
         });
 
@@ -44,15 +44,15 @@ export class ApprovalEngine {
             data: {
                 documentType: docType,
                 documentId: docId,
-                requesterId,
-                amount: amount || null,
+                requestedBy: parseInt(requesterId),
                 status: 'PENDING',
-                currentStepSeq: applicableRules[0].sequence,
+                // amount: amount || null,
+                // currentStepSeq: applicableRules[0].level,
                 steps: {
                     create: applicableRules.map(rule => ({
-                        sequence: rule.sequence,
-                        approverUserId: rule.approverUserId,
-                        status: rule.sequence === applicableRules[0].sequence ? 'PENDING' : 'WAITING'
+                        level: rule.level,
+                        approverId: rule.approverId,
+                        status: rule.level === applicableRules[0].level ? 'PENDING' : 'WAITING'
                     }))
                 }
             },
@@ -79,8 +79,8 @@ export class ApprovalEngine {
         if (!step) throw new Error("Step not found");
         if (step.status !== 'PENDING') throw new Error("Step is not pending");
         
-        // Verify userId matches approverUserId or delegatedTo
-        if (step.approverUserId !== userId && step.delegatedTo !== userId) {
+        // Verify userId matches approverId
+        if (step.approverId !== parseInt(userId)) {
             throw new Error("Unauthorized to approve this step");
         }
 
@@ -89,8 +89,8 @@ export class ApprovalEngine {
             where: { id: stepId },
             data: {
                 status: action,
-                comment,
-                actionAt: new Date()
+                notes: comment,
+                actionDate: new Date()
             }
         });
 
@@ -104,7 +104,7 @@ export class ApprovalEngine {
         }
 
         // 3. If approved, check if there's a next step
-        const nextSteps = step.request.steps.filter(s => s.sequence > step.sequence).sort((a, b) => a.sequence - b.sequence);
+        const nextSteps = step.request.steps.filter(s => s.level > step.level).sort((a, b) => a.level - b.level);
         
         if (nextSteps.length > 0) {
             const nextStep = nextSteps[0];
@@ -112,10 +112,10 @@ export class ApprovalEngine {
                 where: { id: nextStep.id },
                 data: { status: 'PENDING' }
             });
-            await prisma.approvalRequest.update({
-                where: { id: step.requestId },
-                data: { currentStepSeq: nextStep.sequence }
-            });
+            // await prisma.approvalRequest.update({
+            //     where: { id: step.requestId },
+            //     data: { currentStepSeq: nextStep.level }
+            // });
             return { status: 'PARTIALLY_APPROVED' };
         } else {
             // All steps approved
@@ -132,13 +132,13 @@ export class ApprovalEngine {
      */
     static async delegate(stepId: number, fromUserId: string, toUserId: string) {
         const step = await prisma.approvalStep.findUnique({ where: { id: stepId } });
-        if (!step || step.approverUserId !== fromUserId) {
+        if (!step || step.approverId !== parseInt(fromUserId)) {
             throw new Error("Unauthorized to delegate");
         }
         
         return prisma.approvalStep.update({
             where: { id: stepId },
-            data: { delegatedTo: toUserId }
+            data: { approverId: parseInt(toUserId), notes: `Delegated from ${fromUserId}` }
         });
     }
 }

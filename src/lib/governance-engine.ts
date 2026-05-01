@@ -1,5 +1,7 @@
 import { prisma } from './prisma';
 
+// Note: TS Server may need a restart to see new Prisma types
+
 export class GovernanceEngine {
     
     /**
@@ -21,7 +23,7 @@ export class GovernanceEngine {
 
         // 2. Fetch user's historical actions from AuditLog or FieldAuditLog
         // We look for the opposing action from the rule
-        const opposingActions = rules.map(r => r.actionA === requestedAction ? r.actionB : r.actionA);
+        const opposingActions = rules.map((r: any) => r.actionA === requestedAction ? r.actionB : r.actionA);
         
         const userAuditLogs = await prisma.auditLog.findMany({
             where: {
