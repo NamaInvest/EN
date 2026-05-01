@@ -4,14 +4,14 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const orders = await prisma.manufacturingOrder.findMany({
+        const orders: any = await prisma.manufacturingOrder.findMany({
             include: {
                 recipe: {
                     include: { finishedProduct: true, ingredients: { include: { rawProduct: true } } }
                 },
                 machine: true,
                 costs: true
-            },
+            } as any,
             orderBy: { id: 'desc' }
         });
 
@@ -56,9 +56,9 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, status } = body;
 
-        const order = await prisma.manufacturingOrder.findUnique({
+        const order: any = await prisma.manufacturingOrder.findUnique({
             where: { id: parseInt(id) },
-            include: { recipe: { include: { ingredients: true, operations: { include: { workCenter: true } } } } }
+            include: { recipe: { include: { ingredients: true, operations: { include: { workCenter: true } } } } } as any
         });
 
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -74,7 +74,7 @@ export async function PUT(request: Request) {
                     const qtyNeeded = item.quantity * order.quantityToProduce * (1 + scrapPerc / 100);
                     const cost = item.estimatedCost * order.quantityToProduce;
                     
-                    await tx.manufacturingCost.create({
+                    await (tx as any).manufacturingCost.create({
                         data: {
                             manufacturingOrderId: order.id,
                             costType: 'material',
@@ -91,7 +91,7 @@ export async function PUT(request: Request) {
                     const overheadCost = hoursNeeded * op.workCenter.costPerHour;
                     
                     if (overheadCost > 0) {
-                        await tx.manufacturingCost.create({
+                        await (tx as any).manufacturingCost.create({
                             data: {
                                 manufacturingOrderId: order.id,
                                 costType: 'overhead',
