@@ -86,12 +86,10 @@ export async function POST(request: Request) {
 
         return response;
     } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        const errStack = error instanceof Error ? error.stack : '';
-        console.error('Login error:', errMsg);
-        console.error('Login stack:', errStack);
+        const errDump = JSON.stringify(error, Object.getOwnPropertyNames(error));
+        console.error('Login Error Dump:', errDump);
         return NextResponse.json(
-            { error: 'حدث خطأ في الخادم' },
+            { error: 'حدث خطأ في الخادم: ' + errDump },
             { status: 500 }
         );
     }

@@ -117,27 +117,27 @@ export default async function RootLayout({
             .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
             @media (min-width: 640px) {
               .sm\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+              .sm\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+              .sm\\:flex-row { flex-direction: row !important; }
+            }
+            @media (min-width: 768px) {
+              .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+              .md\\:hidden { display: none !important; }
+              .md\\:flex { display: flex !important; }
             }
             @media (min-width: 1024px) {
-              .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
               .lg\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+              .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+              .lg\\:flex-row { flex-direction: row !important; }
+              .lg\\:justify-start { justify-content: flex-start !important; }
+              .lg\\:text-right { text-align: right !important; }
+              .lg\\:w-1\\/2 { width: 50% !important; }
             }
             @media (min-width: 1280px) {
               .xl\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
               .xl\\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
             }
             .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-            @media (min-width: 768px) {
-              .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-              .md\\:hidden { display: none !important; }
-              .md\\:flex { display: flex !important; }
-            }
-            @media (min-width: 640px) {
-              .sm\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-            }
-            @media (min-width: 1024px) {
-              .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
-            }
 
             /* Sections */
             section { width: 100%; }
@@ -145,9 +145,19 @@ export default async function RootLayout({
 
             /* Padding */
             .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+            .px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
             .py-24 { padding-top: 6rem !important; padding-bottom: 6rem !important; }
             .py-20 { padding-top: 5rem !important; padding-bottom: 5rem !important; }
             .py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+            .py-5 { padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; }
+            .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+            .pt-40 { padding-top: 10rem !important; }
+            .pb-20 { padding-bottom: 5rem !important; }
+            @media (min-width: 1024px) {
+              .lg\\:pt-52 { padding-top: 13rem !important; }
+              .lg\\:pb-32 { padding-bottom: 8rem !important; }
+            }
 
             /* Relative / Absolute */
             .relative { position: relative !important; }

@@ -169,6 +169,22 @@ export async function POST(req: Request) {
                     branchId,
                     date: `${year}-${String(month).padStart(2, '0')}-01`,
                 });
+                
+                // Update Loan Balances automatically!
+                const activeLoans = await prisma.employeeLoan.findMany({
+                    where: { employeeId: emp.id, status: 'active' }
+                });
+                
+                for (const loan of activeLoans) {
+                    const newRemaining = Math.max(0, loan.remainingAmount - loan.monthlyDeduction);
+                    await prisma.employeeLoan.update({
+                        where: { id: loan.id },
+                        data: {
+                            remainingAmount: newRemaining,
+                            status: newRemaining === 0 ? 'paid' : 'active'
+                        }
+                    });
+                }
             } catch (je) {
                 console.error('Salary journal error:', je);
             }

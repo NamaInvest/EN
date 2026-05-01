@@ -21,6 +21,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/demo(.*)',
   '/auto-login(.*)',
   '/updates(.*)',
+  '/v3(.*)',
 ]);
 
 const isIceRoute = createRouteMatcher(['/ice', '/ice/(.*)', '/admin/(.*)']);
