@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { createJournalEntry } from '@/lib/auto-journal';
+import { assertReversible, DocumentType } from '@/lib/document-state-machine';
 
 export async function POST(request: Request) {
     const prisma = getPrisma(request as any);
@@ -19,7 +20,13 @@ export async function POST(request: Request) {
         });
 
         if (!originalEntry) return NextResponse.json({ error: 'القيد الأصلي غير موجود' }, { status: 404 });
-        if (originalEntry.status !== 'posted') return NextResponse.json({ error: 'لا يمكن عكس قيد غير مُرحل' }, { status: 400 });
+
+        // Centralized state-machine guard (replaces ad-hoc checks)
+        try {
+            assertReversible(originalEntry.status, DocumentType.JOURNAL_ENTRY);
+        } catch (err: any) {
+            return NextResponse.json({ error: err.message }, { status: 400 });
+        }
         if (originalEntry.entryNumber.endsWith('-R')) {
             return NextResponse.json({ error: 'لا يمكن عكس قيد عكسي' }, { status: 400 });
         }

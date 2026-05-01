@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { generateNextNumber } from '@/lib/numbering';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
+import { canTransition, DocumentType } from '@/lib/document-state-machine';
 
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
@@ -64,6 +65,13 @@ export async function PUT(request: Request) {
         });
 
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+        // Validate state transition before any side effects
+        if (!canTransition(order.status, status, DocumentType.MANUFACTURING_ORDER)) {
+            return NextResponse.json({
+                error: `انتقال غير مسموح: لا يمكن تحويل أمر التشغيل من "${order.status}" إلى "${status}"`,
+            }, { status: 400 });
+        }
 
         // ─── draft → in_progress: Issue materials & overhead to WIP ──────
         if (status === 'in_progress' && order.status === 'draft') {

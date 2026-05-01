@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -43,7 +43,7 @@ model User {
   rfqs             RequestForQuotation[]
   goodsReceipts    GoodsReceiptNote[]
   alerts           SystemAlert[]
-  defaultPage      String?               @map("default_page") // الصفحة الافتراضية بعد الدخول مثل /sales أو /dashboard
+  defaultPage      String?               @map("default_page") // ط§ظ„طµظپط­ط© ط§ظ„ط§ظپطھط±ط§ط¶ظٹط© ط¨ط¹ط¯ ط§ظ„ط¯ط®ظˆظ„ ظ…ط«ظ„ /sales ط£ظˆ /dashboard
   totpSecret       String?               @map("totp_secret")
   totpEnabled      Boolean               @default(false) @map("totp_enabled")
   // Pharmacy
@@ -151,12 +151,12 @@ model ProductUnit {
   barcode      String? @unique
   sellPrice    Float   @map("sell_price")
   buyPrice     Float   @default(0) @map("buy_price")
-  factor       Float   @default(1) // كم حبة (وحدة أساسية) في هذه الوحدة
+  factor       Float   @default(1) // ظƒظ… ط­ط¨ط© (ظˆط­ط¯ط© ط£ط³ط§ط³ظٹط©) ظپظٹ ظ‡ط°ظ‡ ط§ظ„ظˆط­ط¯ط©
   isBase       Boolean @default(false) @map("is_base")
-  unitStock    Float   @default(0) @map("unit_stock") // مخزون هذه الوحدة تحديداً (كرتون=2, درزن=3)
-  parentUnitId Int?    @map("parent_unit_id") // id من ProductUnit الأب (كرتون يحتوي درازن)
-  parentQty    Float   @default(1) @map("parent_qty") // كم من هذه الوحدة في الأب (100 درزن في الكرتون)
-  sortOrder    Int     @default(0) @map("sort_order") // ترتيب الوحدات من الأصغر للأكبر
+  unitStock    Float   @default(0) @map("unit_stock") // ظ…ط®ط²ظˆظ† ظ‡ط°ظ‡ ط§ظ„ظˆط­ط¯ط© طھط­ط¯ظٹط¯ط§ظ‹ (ظƒط±طھظˆظ†=2, ط¯ط±ط²ظ†=3)
+  parentUnitId Int?    @map("parent_unit_id") // id ظ…ظ† ProductUnit ط§ظ„ط£ط¨ (ظƒط±طھظˆظ† ظٹط­طھظˆظٹ ط¯ط±ط§ط²ظ†)
+  parentQty    Float   @default(1) @map("parent_qty") // ظƒظ… ظ…ظ† ظ‡ط°ظ‡ ط§ظ„ظˆط­ط¯ط© ظپظٹ ط§ظ„ط£ط¨ (100 ط¯ط±ط²ظ† ظپظٹ ط§ظ„ظƒط±طھظˆظ†)
+  sortOrder    Int     @default(0) @map("sort_order") // طھط±طھظٹط¨ ط§ظ„ظˆط­ط¯ط§طھ ظ…ظ† ط§ظ„ط£طµط؛ط± ظ„ظ„ط£ظƒط¨ط±
 
   product    Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   unit       Unit          @relation(fields: [unitId], references: [id])
@@ -1218,11 +1218,11 @@ model Recipe {
 }
 
 model RecipeIngredient {
-  id            Int   @id @default(autoincrement())
-  recipeId      Int   @map("recipe_id")
-  rawProductId  Int   @map("raw_product_id")
-  quantity      Float @default(1)
-  estimatedCost Float @default(0) @map("estimated_cost")
+  id              Int   @id @default(autoincrement())
+  recipeId        Int   @map("recipe_id")
+  rawProductId    Int   @map("raw_product_id")
+  quantity        Float @default(1)
+  estimatedCost   Float @default(0) @map("estimated_cost")
   scrapPercentage Float @default(0) @map("scrap_percentage")
 
   recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
@@ -1246,10 +1246,10 @@ model ManufacturingOrder {
   userId            Int?      @map("user_id")
   notes             String?
 
-  recipe   Recipe                 @relation(fields: [recipeId], references: [id])
-  machine  Machine?               @relation(fields: [machineId], references: [id])
-  wastages ManufacturingWastage[]
-  costs    ManufacturingCost[]
+  recipe        Recipe                 @relation(fields: [recipeId], references: [id])
+  machine       Machine?               @relation(fields: [machineId], references: [id])
+  wastages      ManufacturingWastage[]
+  costs         ManufacturingCost[]
   qualityChecks QualityCheck[]
 
   @@map("manufacturing_orders")
@@ -1266,10 +1266,10 @@ model Machine {
   branchId   Int?     @map("branch_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  orders ManufacturingOrder[]
-  workCenters WorkCenter[]
+  orders          ManufacturingOrder[]
+  workCenters     WorkCenter[]
   maintenanceLogs MachineMaintenance[]
-  telemetry MachineTelemetry[]
+  telemetry       MachineTelemetry[]
 
   @@map("machines")
 }
@@ -1290,43 +1290,43 @@ model ManufacturingWastage {
 }
 
 model WorkCenter {
-  id           Int      @id @default(autoincrement())
-  name         String
-  code         String?  @unique
-  costPerHour  Float    @default(0) @map("cost_per_hour")
-  capacity     Float    @default(1)
-  isActive     Boolean  @default(true) @map("is_active")
-  machineId    Int?     @map("machine_id")
+  id          Int     @id @default(autoincrement())
+  name        String
+  code        String? @unique
+  costPerHour Float   @default(0) @map("cost_per_hour")
+  capacity    Float   @default(1)
+  isActive    Boolean @default(true) @map("is_active")
+  machineId   Int?    @map("machine_id")
 
-  operations   RecipeOperation[]
-  machine      Machine? @relation(fields: [machineId], references: [id])
+  operations RecipeOperation[]
+  machine    Machine?          @relation(fields: [machineId], references: [id])
 
   @@map("work_centers")
 }
 
 model RecipeOperation {
-  id              Int      @id @default(autoincrement())
-  recipeId        Int      @map("recipe_id")
-  workCenterId    Int      @map("work_center_id")
-  operationName   String   @map("operation_name")
-  sequenceNumber  Int      @map("sequence_number")
-  durationMinutes Float    @default(0) @map("duration_minutes")
-  
-  recipe          Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  workCenter      WorkCenter @relation(fields: [workCenterId], references: [id])
+  id              Int    @id @default(autoincrement())
+  recipeId        Int    @map("recipe_id")
+  workCenterId    Int    @map("work_center_id")
+  operationName   String @map("operation_name")
+  sequenceNumber  Int    @map("sequence_number")
+  durationMinutes Float  @default(0) @map("duration_minutes")
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id])
 
   @@map("recipe_operations")
 }
 
 model RecipeByProduct {
-  id            Int      @id @default(autoincrement())
-  recipeId      Int      @map("recipe_id")
-  productId     Int      @map("product_id")
-  quantity      Float    @default(0)
-  costShare     Float    @default(0) @map("cost_share_percent") // Percentage of total cost assigned to this byproduct
-  
-  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  product       Product  @relation(fields: [productId], references: [id])
+  id        Int   @id @default(autoincrement())
+  recipeId  Int   @map("recipe_id")
+  productId Int   @map("product_id")
+  quantity  Float @default(0)
+  costShare Float @default(0) @map("cost_share_percent") // Percentage of total cost assigned to this byproduct
+
+  recipe  Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 
   @@map("recipe_byproducts")
 }
@@ -1334,12 +1334,12 @@ model RecipeByProduct {
 model ManufacturingCost {
   id                   Int      @id @default(autoincrement())
   manufacturingOrderId Int      @map("manufacturing_order_id")
-  costType             String   // material, labor, overhead, scrap
+  costType             String // material, labor, overhead, scrap
   amount               Float
   description          String?
   createdAt            DateTime @default(now()) @map("created_at")
-  
-  order      ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
+
+  order ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
 
   @@map("manufacturing_costs")
 }
@@ -1348,41 +1348,41 @@ model QualityCheck {
   id                   Int      @id @default(autoincrement())
   manufacturingOrderId Int      @map("manufacturing_order_id")
   inspectorName        String   @map("inspector_name")
-  checkType            String   // pre_production, in_process, final_inspection
-  status               String   // pass, fail, rework
+  checkType            String // pre_production, in_process, final_inspection
+  status               String // pass, fail, rework
   notes                String?
   createdAt            DateTime @default(now()) @map("created_at")
-  
-  order      ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
+
+  order ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
 
   @@map("quality_checks")
 }
 
 model MachineMaintenance {
-  id              Int      @id @default(autoincrement())
-  machineId       Int      @map("machine_id")
-  maintenanceType String   // preventive, repair
+  id              Int       @id @default(autoincrement())
+  machineId       Int       @map("machine_id")
+  maintenanceType String // preventive, repair
   description     String
-  cost            Float    @default(0)
-  scheduledDate   DateTime @map("scheduled_date")
+  cost            Float     @default(0)
+  scheduledDate   DateTime  @map("scheduled_date")
   completedDate   DateTime? @map("completed_date")
-  status          String   @default("pending") // pending, completed
-  createdAt       DateTime @default(now()) @map("created_at")
-  
-  machine         Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  status          String    @default("pending") // pending, completed
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  machine Machine @relation(fields: [machineId], references: [id], onDelete: Cascade)
 
   @@map("machine_maintenance")
 }
 
 model MachineTelemetry {
-  id              Int      @id @default(autoincrement())
-  machineId       Int      @map("machine_id")
-  temperature     Float?
-  vibration       Float?
-  piecesProduced  Int      @default(0) @map("pieces_produced")
-  recordedAt      DateTime @default(now()) @map("recorded_at")
+  id             Int      @id @default(autoincrement())
+  machineId      Int      @map("machine_id")
+  temperature    Float?
+  vibration      Float?
+  piecesProduced Int      @default(0) @map("pieces_produced")
+  recordedAt     DateTime @default(now()) @map("recorded_at")
 
-  machine         Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  machine Machine @relation(fields: [machineId], references: [id], onDelete: Cascade)
 
   @@map("machine_telemetry")
 }
@@ -1392,7 +1392,7 @@ model TraceabilityLog {
   orderId         Int      @map("order_id")
   rawBatchId      Int?     @map("raw_batch_id")
   finishedBatchId Int?     @map("finished_batch_id")
-  action          String   // consumed, produced
+  action          String // consumed, produced
   recordedAt      DateTime @default(now()) @map("recorded_at")
 
   @@map("traceability_logs")
@@ -1637,7 +1637,7 @@ model LandedCost {
 // ==================== 55. Post-dated Checks & Notes ====================
 model CheckTransaction {
   id            Int      @id @default(autoincrement())
-  type          String // PAYABLE (أوراق دفع), RECEIVABLE (أوراق قبض)
+  type          String // PAYABLE (ط£ظˆط±ط§ظ‚ ط¯ظپط¹), RECEIVABLE (ط£ظˆط±ط§ظ‚ ظ‚ط¨ط¶)
   checkNumber   String   @map("check_number")
   bankName      String   @map("bank_name")
   dueDate       DateTime @map("due_date")
@@ -1809,10 +1809,10 @@ model Project {
 model ProjectBudgetLine {
   id          Int      @id @default(autoincrement())
   projectId   Int      @map("project_id")
-  category    String // مواد، عمالة، معدات، مصاريف إدارية
+  category    String // ظ…ظˆط§ط¯طŒ ط¹ظ…ط§ظ„ط©طŒ ظ…ط¹ط¯ط§طھطŒ ظ…طµط§ط±ظٹظپ ط¥ط¯ط§ط±ظٹط©
   description String
-  planned     Float    @default(0) // المبلغ المخطط
-  actual      Float    @default(0) // المبلغ الفعلي
+  planned     Float    @default(0) // ط§ظ„ظ…ط¨ظ„ط؛ ط§ظ„ظ…ط®ط·ط·
+  actual      Float    @default(0) // ط§ظ„ظ…ط¨ظ„ط؛ ط§ظ„ظپط¹ظ„ظٹ
   notes       String?
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -1832,7 +1832,7 @@ model SupplierContract {
   endDate         DateTime @map("end_date")
   value           Float    @default(0)
   currency        String   @default("SAR")
-  paymentTerms    String?  @map("payment_terms") // مثال: 30 يوم، 60 يوم
+  paymentTerms    String?  @map("payment_terms") // ظ…ط«ط§ظ„: 30 ظٹظˆظ…طŒ 60 ظٹظˆظ…
   status          String   @default("active") // active, expired, terminated
   autoRenew       Boolean  @default(false) @map("auto_renew")
   alertDaysBefore Int      @default(30) @map("alert_days_before")
@@ -1930,7 +1930,7 @@ model LetterOfGuarantee {
 
 // ==================== PHASE 14: ULTIMATE ERP EXPANSION ====================
 
-// --- 1. Fixed Assets (الأصول الثابتة)
+// --- 1. Fixed Assets (ط§ظ„ط£طµظˆظ„ ط§ظ„ط«ط§ط¨طھط©)
 model Asset {
   id               Int      @id @default(autoincrement())
   barcode          String   @unique
@@ -1951,7 +1951,7 @@ model Asset {
   @@map("assets")
 }
 
-// --- 2. CRM Leads & Opportunities (فرص البيع والعملاء المحتملين)
+// --- 2. CRM Leads & Opportunities (ظپط±طµ ط§ظ„ط¨ظٹط¹ ظˆط§ظ„ط¹ظ…ظ„ط§ط، ط§ظ„ظ…ط­طھظ…ظ„ظٹظ†)
 model Lead {
   id              Int      @id @default(autoincrement())
   companyName     String   @map("company_name")
@@ -1971,7 +1971,7 @@ model Lead {
   @@map("crm_leads")
 }
 
-// --- 3. Fleet Management (إدارة الحركة وأسطول السيارات)
+// --- 3. Fleet Management (ط¥ط¯ط§ط±ط© ط§ظ„ط­ط±ظƒط© ظˆط£ط³ط·ظˆظ„ ط§ظ„ط³ظٹط§ط±ط§طھ)
 model Vehicle {
   id              Int         @id @default(autoincrement())
   plateNumber     String      @unique @map("plate_number")
@@ -1993,7 +1993,7 @@ model Vehicle {
   @@map("fleet_vehicles")
 }
 
-// --- 4. Property Management (إدارة الأملاك والعقارات)
+// --- 4. Property Management (ط¥ط¯ط§ط±ط© ط§ظ„ط£ظ…ظ„ط§ظƒ ظˆط§ظ„ط¹ظ‚ط§ط±ط§طھ)
 model Property {
   id         Int      @id @default(autoincrement())
   name       String
@@ -2026,7 +2026,7 @@ model PropertyUnit {
   @@map("property_units")
 }
 
-// --- 5. Quality Control (مراقبة الجودة والفحص المخزني)
+// --- 5. Quality Control (ظ…ط±ط§ظ‚ط¨ط© ط§ظ„ط¬ظˆط¯ط© ظˆط§ظ„ظپط­طµ ط§ظ„ظ…ط®ط²ظ†ظٹ)
 model QualityInspection {
   id              Int      @id @default(autoincrement())
   referenceNumber String   @unique @map("reference_number") // Link to GRN or MO
@@ -2585,10 +2585,10 @@ model DesktopCrashReport {
   @@map("desktop_crash_reports")
 }
 
-// ==================== 106. Work Shifts (ورديات العمل) ====================
+// ==================== 106. Work Shifts (ظˆط±ط¯ظٹط§طھ ط§ظ„ط¹ظ…ظ„) ====================
 model WorkShift {
   id        Int     @id @default(autoincrement())
-  name      String // "صباحي", "مسائي", "ليلي"
+  name      String // "طµط¨ط§ط­ظٹ", "ظ…ط³ط§ط¦ظٹ", "ظ„ظٹظ„ظٹ"
   startTime String  @map("start_time") // "08:00"
   endTime   String  @map("end_time") // "16:00"
   breakMins Int     @default(60) @map("break_mins")
@@ -2597,14 +2597,14 @@ model WorkShift {
   @@map("work_shifts")
 }
 
-// ==================== 107. Vendor Ratings (تقييم الموردين) ====================
+// ==================== 107. Vendor Ratings (طھظ‚ظٹظٹظ… ط§ظ„ظ…ظˆط±ط¯ظٹظ†) ====================
 model VendorRating {
   id         Int      @id @default(autoincrement())
   supplierId Int      @map("supplier_id")
   grnId      Int?     @map("grn_id")
-  quality    Int      @default(5) // 1-5 جودة المنتجات
-  delivery   Int      @default(5) // 1-5 الالتزام بالمواعيد
-  pricing    Int      @default(5) // 1-5 تنافسية الأسعار
+  quality    Int      @default(5) // 1-5 ط¬ظˆط¯ط© ط§ظ„ظ…ظ†طھط¬ط§طھ
+  delivery   Int      @default(5) // 1-5 ط§ظ„ط§ظ„طھط²ط§ظ… ط¨ط§ظ„ظ…ظˆط§ط¹ظٹط¯
+  pricing    Int      @default(5) // 1-5 طھظ†ط§ظپط³ظٹط© ط§ظ„ط£ط³ط¹ط§ط±
   notes      String?
   ratedBy    Int?     @map("rated_by")
   ratedAt    DateTime @default(now()) @map("rated_at")
@@ -2612,7 +2612,7 @@ model VendorRating {
   @@map("vendor_ratings")
 }
 
-// ==================== 108. Fiscal Periods (الفترات المالية) ====================
+// ==================== 108. Fiscal Periods (ط§ظ„ظپطھط±ط§طھ ط§ظ„ظ…ط§ظ„ظٹط©) ====================
 model FiscalPeriod {
   id       Int       @id @default(autoincrement())
   year     Int
@@ -2622,11 +2622,14 @@ model FiscalPeriod {
   closedAt DateTime? @map("closed_at")
   notes    String?
 
+  periodCloseChecklists PeriodCloseChecklist[]
+  periodLockLogs        PeriodLockLog[]
+
   @@unique([year, month])
   @@map("fiscal_periods")
 }
 
-// ==================== 109. Service Tickets (الخدمات الميدانية) ====================
+// ==================== 109. Service Tickets (ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ…ظٹط¯ط§ظ†ظٹط©) ====================
 model ServiceTicket {
   id            Int       @id @default(autoincrement())
   ticketNo      Int       @map("ticket_no")
@@ -2671,25 +2674,25 @@ model Shipment {
   @@map("shipments")
 }
 
-// ══════════════════════════════════════════════════════════════
-// 💊  PHARMACY MODULE — وحدة الصيدليات
-// متوافق مع: SFDA + Wasfaty + CCHI/NPHIES
-// ══════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
+// ًں’ٹ  PHARMACY MODULE â€” ظˆط­ط¯ط© ط§ظ„طµظٹط¯ظ„ظٹط§طھ
+// ظ…طھظˆط§ظپظ‚ ظ…ط¹: SFDA + Wasfaty + CCHI/NPHIES
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 
-// ==================== PH-1. دواء (يمتد من Product) ====================
+// ==================== PH-1. ط¯ظˆط§ط، (ظٹظ…طھط¯ ظ…ظ† Product) ====================
 model PharmacyDrug {
   id              Int      @id @default(autoincrement())
-  productId       Int      @unique @map("product_id") // ربط بـ Product الأساسي
-  sfdaNumber      String   @map("sfda_number") // رقم تسجيل هيئة الغذاء والدواء
-  genericName     String   @map("generic_name") // المادة الفعالة
+  productId       Int      @unique @map("product_id") // ط±ط¨ط· ط¨ظ€ Product ط§ظ„ط£ط³ط§ط³ظٹ
+  sfdaNumber      String   @map("sfda_number") // ط±ظ‚ظ… طھط³ط¬ظٹظ„ ظ‡ظٹط¦ط© ط§ظ„ط؛ط°ط§ط، ظˆط§ظ„ط¯ظˆط§ط،
+  genericName     String   @map("generic_name") // ط§ظ„ظ…ط§ط¯ط© ط§ظ„ظپط¹ط§ظ„ط©
   genericNameEn   String   @default("") @map("generic_name_en")
   drugClass       String   @default("OTC") @map("drug_class") // OTC | Rx | CONTROLLED
   manufacturer    String?
   countryOfOrigin String?  @map("country_of_origin")
   storageTemp     String   @default("room") @map("storage_temp") // room | refrigerated | frozen
-  mohMaxPrice     Float    @default(0) @map("moh_max_price") // السعر الأقصى من وزارة الصحة
+  mohMaxPrice     Float    @default(0) @map("moh_max_price") // ط§ظ„ط³ط¹ط± ط§ظ„ط£ظ‚طµظ‰ ظ…ظ† ظˆط²ط§ط±ط© ط§ظ„طµط­ط©
   requiresRx      Boolean  @default(false) @map("requires_rx")
-  isControlled    Boolean  @default(false) @map("is_controlled") // مخدر متحكم فيه
+  isControlled    Boolean  @default(false) @map("is_controlled") // ظ…ط®ط¯ط± ظ…طھط­ظƒظ… ظپظٹظ‡
   active          Boolean  @default(true)
   createdAt       DateTime @default(now()) @map("created_at")
 
@@ -2702,7 +2705,7 @@ model PharmacyDrug {
   @@map("pharmacy_drugs")
 }
 
-// ==================== PH-2. مريض ====================
+// ==================== PH-2. ظ…ط±ظٹط¶ ====================
 model PharmacyPatient {
   id               Int      @id @default(autoincrement())
   nationalId       String   @unique @map("national_id")
@@ -2714,7 +2717,7 @@ model PharmacyPatient {
   allergies        String? // JSON array of allergy strings
   insuranceCompany String?  @map("insurance_company")
   insuranceCardNo  String?  @map("insurance_card_no")
-  copayPercent     Float    @default(20) @map("copay_percent") // نسبة التحمّل
+  copayPercent     Float    @default(20) @map("copay_percent") // ظ†ط³ط¨ط© ط§ظ„طھط­ظ…ظ‘ظ„
   notes            String?
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -2728,11 +2731,11 @@ model PharmacyPatient {
   @@map("pharmacy_patients")
 }
 
-// ==================== PH-3. وصفة طبية ====================
+// ==================== PH-3. ظˆطµظپط© ط·ط¨ظٹط© ====================
 model Prescription {
   id               Int       @id @default(autoincrement())
   patientId        Int       @map("patient_id")
-  wasfatyRef       String?   @map("wasfaty_ref") // رقم وصفة وصفتي
+  wasfatyRef       String?   @map("wasfaty_ref") // ط±ظ‚ظ… ظˆطµظپط© ظˆطµظپطھظٹ
   doctorName       String?   @map("doctor_name")
   doctorLicense    String?   @map("doctor_license")
   clinicName       String?   @map("clinic_name")
@@ -2740,7 +2743,7 @@ model Prescription {
   expiryDate       String?   @map("expiry_date")
   source           String    @default("wasfaty") // wasfaty | paper | otc
   status           String    @default("pending") // pending | dispensed | partial | cancelled
-  imageUrl         String?   @map("image_url") // صورة الوصفة الورقية
+  imageUrl         String?   @map("image_url") // طµظˆط±ط© ط§ظ„ظˆطµظپط© ط§ظ„ظˆط±ظ‚ظٹط©
   pharmacistId     Int?      @map("pharmacist_id")
   dispensedAt      DateTime? @map("dispensed_at")
   notes            String?
@@ -2756,13 +2759,13 @@ model Prescription {
   @@map("prescriptions")
 }
 
-// ==================== PH-4. أصناف الوصفة ====================
+// ==================== PH-4. ط£طµظ†ط§ظپ ط§ظ„ظˆطµظپط© ====================
 model PrescriptionItem {
   id             Int     @id @default(autoincrement())
   prescriptionId Int     @map("prescription_id")
   drugId         Int     @map("drug_id")
   drugName       String  @map("drug_name")
-  dosage         String? // الجرعة: "2× يومياً بعد الأكل"
+  dosage         String? // ط§ظ„ط¬ط±ط¹ط©: "2أ— ظٹظˆظ…ظٹط§ظ‹ ط¨ط¹ط¯ ط§ظ„ط£ظƒظ„"
   durationDays   Int?    @map("duration_days")
   quantity       Float
   dispensedQty   Float   @default(0) @map("dispensed_qty")
@@ -2774,17 +2777,17 @@ model PrescriptionItem {
   @@map("prescription_items")
 }
 
-// ==================== PH-5. مطالبة تأمين ====================
+// ==================== PH-5. ظ…ط·ط§ظ„ط¨ط© طھط£ظ…ظٹظ† ====================
 model InsuranceClaim {
   id               Int       @id @default(autoincrement())
   patientId        Int       @map("patient_id")
   prescriptionId   Int?      @map("prescription_id")
   salesInvoiceId   Int?      @map("sales_invoice_id")
   insuranceCompany String    @map("insurance_company")
-  claimRef         String?   @unique @map("claim_ref") // رقم المطالبة من NPHIES
+  claimRef         String?   @unique @map("claim_ref") // ط±ظ‚ظ… ط§ظ„ظ…ط·ط§ظ„ط¨ط© ظ…ظ† NPHIES
   totalAmount      Float     @map("total_amount")
-  insuranceAmount  Float     @map("insurance_amount") // المبلغ على التأمين
-  patientAmount    Float     @map("patient_amount") // ما يدفعه المريض
+  insuranceAmount  Float     @map("insurance_amount") // ط§ظ„ظ…ط¨ظ„ط؛ ط¹ظ„ظ‰ ط§ظ„طھط£ظ…ظٹظ†
+  patientAmount    Float     @map("patient_amount") // ظ…ط§ ظٹط¯ظپط¹ظ‡ ط§ظ„ظ…ط±ظٹط¶
   status           String    @default("submitted") // submitted | approved | rejected | paid
   rejectionReason  String?   @map("rejection_reason")
   submittedAt      DateTime  @default(now()) @map("submitted_at")
@@ -2798,7 +2801,7 @@ model InsuranceClaim {
   @@map("insurance_claims")
 }
 
-// ==================== PH-6. سجل الأدوية المخدرة ====================
+// ==================== PH-6. ط³ط¬ظ„ ط§ظ„ط£ط¯ظˆظٹط© ط§ظ„ظ…ط®ط¯ط±ط© ====================
 model ControlledDrugLog {
   id                Int      @id @default(autoincrement())
   drugId            Int      @map("drug_id")
@@ -2811,7 +2814,7 @@ model ControlledDrugLog {
   batchNo           String?  @map("batch_no")
   dispensedAt       DateTime @default(now()) @map("dispensed_at")
   notes             String?
-  // سجل لا يُحذف — SFDA compliance
+  // ط³ط¬ظ„ ظ„ط§ ظٹظڈط­ط°ظپ â€” SFDA compliance
   createdAt         DateTime @default(now()) @map("created_at")
 
   drug       PharmacyDrug @relation(fields: [drugId], references: [id])
@@ -2822,7 +2825,7 @@ model ControlledDrugLog {
   @@map("controlled_drug_logs")
 }
 
-// ==================== PH-7. سجل أدوية المريض ====================
+// ==================== PH-7. ط³ط¬ظ„ ط£ط¯ظˆظٹط© ط§ظ„ظ…ط±ظٹط¶ ====================
 model MedicationLog {
   id           Int      @id @default(autoincrement())
   patientId    Int      @map("patient_id")
@@ -2942,29 +2945,91 @@ model PayrollInvoiceDetail {
   @@map("payroll_invoice_details")
 }
 
+// ==================== Field-Level Audit Trail (Foundation 0.3) ====================
+// ظٹظ„طھظ‚ط· ظƒظ„ طھط¹ط¯ظٹظ„ ط¹ظ„ظ‰ ط§ظ„ط­ظ‚ظˆظ„ ط§ظ„ط­ط³ط§ط³ط© ظ‚ط¨ظ„/ط¨ط¹ط¯ + ظ…ظ† + ظ…ظ† ط£ظٹظ†
+model FieldAuditLog {
+  id            Int      @id @default(autoincrement())
+  entityType    String   @map("entity_type") // ط§ط³ظ… ط§ظ„ظ…ظˆط¯ظٹظ„ (JournalEntry, Account, ...)
+  entityId      Int      @map("entity_id") // PK ط§ظ„ط®ط§طµ ط¨ط§ظ„ط³ط¬ظ„ ط§ظ„ظ…ظڈط¹ط¯ظژظ‘ظ„
+  fieldName     String   @map("field_name") // ط§ط³ظ… ط§ظ„ط­ظ‚ظ„ ط§ظ„ظ…ظڈط¹ط¯ظژظ‘ظ„
+  oldValue      String?  @map("old_value") // JSON-stringified
+  newValue      String?  @map("new_value") // JSON-stringified
+  changeType    String   @map("change_type") // create | update | delete
+  userId        Int?     @map("user_id")
+  userEmail     String?  @map("user_email")
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  transactionId String?  @map("transaction_id") // ظ„ط±ط¨ط· طھط¹ط¯ظٹظ„ط§طھ ظ†ظپط³ ط§ظ„ط¹ظ…ظ„ظٹط©
+  changedAt     DateTime @default(now()) @map("changed_at")
+
+  @@index([entityType, entityId])
+  @@index([userId, changedAt])
+  @@index([changedAt])
+  @@map("field_audit_logs")
+}
+
 // ==================== Numbering Sequences Engine (Foundation 0.1) ====================
-// محرّك ترقيم موحّد لكل أنواع الوثائق
+// ظ…ط­ط±ظ‘ظƒ طھط±ظ‚ظٹظ… ظ…ظˆط­ظ‘ط¯ ظ„ظƒظ„ ط£ظ†ظˆط§ط¹ ط§ظ„ظˆط«ط§ط¦ظ‚
 // Atomic increment via Prisma $transaction with row-level lock
 model NumberingSequence {
   id             Int       @id @default(autoincrement())
   code           String    @map("code") // JE, INV, PO, GRN, PR, RFQ, SO, DN, FA, EMP, SAL, WO, ...
-  name           String?   // وصف اختياري للعرض في الإعدادات
+  name           String? // ظˆطµظپ ط§ط®طھظٹط§ط±ظٹ ظ„ظ„ط¹ط±ط¶ ظپظٹ ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ
   prefix         String    @default("")
   suffix         String    @default("")
-  padLength      Int       @default(6) @map("pad_length") // 6 → 000001
-  current        BigInt    @default(0) // آخر رقم مُولَّد
+  padLength      Int       @default(6) @map("pad_length") // 6 â†’ 000001
+  current        BigInt    @default(0) // ط¢ط®ط± ط±ظ‚ظ… ظ…ظڈظˆظ„ظژظ‘ط¯
   resetFrequency String    @default("never") @map("reset_frequency") // never | yearly | monthly
   branchId       Int?      @map("branch_id")
-  fiscalYear     Int?      @map("fiscal_year") // السنة المرجعية للـ reset
-  fiscalMonth    Int?      @map("fiscal_month") // الشهر المرجعي (لـ monthly)
+  fiscalYear     Int?      @map("fiscal_year") // ط§ظ„ط³ظ†ط© ط§ظ„ظ…ط±ط¬ط¹ظٹط© ظ„ظ„ظ€ reset
+  fiscalMonth    Int?      @map("fiscal_month") // ط§ظ„ط´ظ‡ط± ط§ظ„ظ…ط±ط¬ط¹ظٹ (ظ„ظ€ monthly)
   lastReset      DateTime? @map("last_reset")
   isActive       Boolean   @default(true) @map("is_active")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  // المفتاح الفريد: كل (code, branchId, fiscalYear, fiscalMonth) سلسلة مستقلة
-  // branchId=null → سلسلة عالمية للشركة
+  // ط§ظ„ظ…ظپطھط§ط­ ط§ظ„ظپط±ظٹط¯: ظƒظ„ (code, branchId, fiscalYear, fiscalMonth) ط³ظ„ط³ظ„ط© ظ…ط³طھظ‚ظ„ط©
+  // branchId=null â†’ ط³ظ„ط³ظ„ط© ط¹ط§ظ„ظ…ظٹط© ظ„ظ„ط´ط±ظƒط©
   @@unique([code, branchId, fiscalYear, fiscalMonth], name: "uq_numbering_seq")
   @@index([code, isActive])
   @@map("numbering_sequences")
+}
+model PeriodCloseTaskTemplate {
+  id               Int      @id @default(autoincrement())
+  name             String
+  sequence         Int
+  applicableModule String   @map("applicable_module") 
+  isMandatory      Boolean  @default(true) @map("is_mandatory")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("period_close_task_templates")
+}
+
+model PeriodCloseChecklist {
+  id             Int       @id @default(autoincrement())
+  fiscalPeriodId Int       @map("fiscal_period_id")
+  fiscalPeriod   FiscalPeriod @relation(fields: [fiscalPeriodId], references: [id], onDelete: Cascade)
+  taskName       String    @map("task_name")
+  sequence       Int
+  owner          String?   
+  status         String    @default("PENDING") 
+  completedAt    DateTime? @map("completed_at")
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("period_close_checklists")
+}
+
+model PeriodLockLog {
+  id             Int       @id @default(autoincrement())
+  fiscalPeriodId Int       @map("fiscal_period_id")
+  fiscalPeriod   FiscalPeriod @relation(fields: [fiscalPeriodId], references: [id], onDelete: Cascade)
+  action         String    
+  actionBy       String    @map("action_by")
+  actionAt       DateTime  @default(now()) @map("action_at")
+  reason         String?   @db.Text
+
+  @@map("period_lock_logs")
 }
