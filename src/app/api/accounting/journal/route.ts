@@ -60,6 +60,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` }, { status: 400 });
         }
 
+        const CONTROL_ACCOUNT_PREFIXES = ['1102', '1103', '1104', '2101']; 
+        const isRestricted = lines.some((l: any) => CONTROL_ACCOUNT_PREFIXES.some(p => l.accountCode && l.accountCode.toString().startsWith(p)));
+        if (isRestricted) {
+            return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون). يجب أن تنشأ آلياً من الفواتير.' }, { status: 403 });
+        }
+
         const result = await createJournalEntry({
             description,
             reference,
