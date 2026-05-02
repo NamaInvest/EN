@@ -94,6 +94,10 @@ export async function POST(request: Request) {
         const returnNo = (last?.returnNo || 0) + 1;
 
         // Execute all DB operations in a single transaction
+        let generatedFeeInvoiceNo = null;
+        let generatedFeeSubtotal = 0;
+        let generatedFeeTax = 0;
+
         const ret = await prisma.$transaction(async (tx) => {
             // Create Header AND Details
             const createdReturn = await tx.salesReturn.create({
@@ -169,9 +173,12 @@ export async function POST(request: Request) {
             if (restockingFee > 0) {
                 const feeSubtotal = restockingFee / 1.15;
                 const feeTax = restockingFee - feeSubtotal;
+                generatedFeeSubtotal = feeSubtotal;
+                generatedFeeTax = feeTax;
                 
                 const lastSi = await tx.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
                 const newSiNo = lastSi ? lastSi.invoiceNo + 1 : 1000;
+                generatedFeeInvoiceNo = newSiNo;
 
                 await tx.salesInvoice.create({
                     data: {
@@ -204,7 +211,7 @@ export async function POST(request: Request) {
         });
 
         try {
-            const { postSalesReturn } = await import('@/lib/auto-journal');
+            const { postSalesReturn, postSalesInvoice } = await import('@/lib/auto-journal');
             await postSalesReturn({
                 returnNo,
                 total: ret.total,
@@ -213,6 +220,19 @@ export async function POST(request: Request) {
                 branchId: branchId || undefined,
                 date: new Date().toISOString().split('T')[0],
             });
+
+            if (generatedFeeInvoiceNo && restockingFee > 0) {
+                await postSalesInvoice({
+                    invoiceNo: generatedFeeInvoiceNo,
+                    subtotal: generatedFeeSubtotal,
+                    taxValue: generatedFeeTax,
+                    total: restockingFee,
+                    paymentType: 'cash',
+                    userId: userId || undefined,
+                    branchId: branchId || undefined,
+                    date: new Date().toISOString().split('T')[0],
+                });
+            }
         } catch (journalErr) {
             console.warn('Auto-journal for sales return skipped:', journalErr);
         }

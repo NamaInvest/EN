@@ -73,7 +73,7 @@ export async function POST(request: Request) {
             });
             if (po) {
                 for (const item of items) {
-                    const poLine = po.details.find((d) => d.productId === Number(item.productId));
+                    const poLine = po.details.find((d: any) => d.productId === Number(item.productId));
                     if (poLine) {
                         const invPrice = Number(item.price) || 0;
                         const poPrice = Number(poLine.price) || 0;
@@ -109,7 +109,9 @@ export async function POST(request: Request) {
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
                     paymentType,
                     status, receiptStatus, userId, branchId, notes: body.notes || null,
+                    // @ts-ignore
                     purchaseOrderId,
+                    // @ts-ignore
                     ppvAmount: calculatedPpv,
                     details: {
                         create: items.map((item: { productId: number; productName: string; quantity: number; price: number; discountRate: number }) => {

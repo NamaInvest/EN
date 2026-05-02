@@ -57,6 +57,9 @@ export default function SalesReturnsPage() {
     const [originalInvoice, setOriginalInvoice] = useState<Invoice | null>(null);
     const [returnItems, setReturnItems] = useState<ReturnItem[]>([]);
     const [notes, setNotes] = useState('');
+    const [destinationStockId, setDestinationStockId] = useState('');
+    const [restockingFee, setRestockingFee] = useState('');
+    const [stocks, setStocks] = useState<any[]>([]);
     const [searching, setSearching] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -67,6 +70,8 @@ export default function SalesReturnsPage() {
         try {
             const r = await fetch('/api/sales-returns');
             if (r.ok) setReturns(await r.json());
+            const s = await fetch('/api/stocks');
+            if (s.ok) setStocks(await s.json());
         } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
         setLoading(false);
     }
@@ -158,6 +163,8 @@ export default function SalesReturnsPage() {
         const payload = {
             originalInvoiceId: originalInvoice?.id,
             notes,
+            destinationStockId: destinationStockId ? Number(destinationStockId) : null,
+            restockingFee: restockingFee ? Number(restockingFee) : null,
             items: itemsToReturn
         };
 
@@ -174,6 +181,8 @@ export default function SalesReturnsPage() {
                 setOriginalInvoice(null);
                 setReturnItems([]);
                 setNotes('');
+                setDestinationStockId('');
+                setRestockingFee('');
                 load();
             } else {
                 const err = await r.json();
@@ -264,20 +273,49 @@ export default function SalesReturnsPage() {
                                     </tbody>
                                 </table>
 
-                                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sales.str_1135')}</label>
-                                        <input 
-                                            value={notes} 
-                                            onChange={e => setNotes(e.target.value)} 
-                                            placeholder={t('sales.str_1153')}
-                                            style={{ width: '100%', maxWidth: '300px', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} 
-                                        />
+                                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                                    <div style={{ flex: 1, display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                        <div style={{ minWidth: '200px' }}>
+                                            <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>مستودع الوجهة (للفرز)</label>
+                                            <select 
+                                                value={destinationStockId} 
+                                                onChange={e => setDestinationStockId(e.target.value)} 
+                                                style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}
+                                            >
+                                                <option value="">-- المستودع الافتراضي --</option>
+                                                {stocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div style={{ minWidth: '150px' }}>
+                                            <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>رسوم إعادة التخزين</label>
+                                            <input 
+                                                type="number"
+                                                min="0"
+                                                value={restockingFee} 
+                                                onChange={e => setRestockingFee(e.target.value)} 
+                                                placeholder="0.00"
+                                                style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)', color: 'var(--danger)' }} 
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: '200px' }}>
+                                            <label style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>{t('sales.str_1135')}</label>
+                                            <input 
+                                                value={notes} 
+                                                onChange={e => setNotes(e.target.value)} 
+                                                placeholder={t('sales.str_1153')}
+                                                style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border)' }} 
+                                            />
+                                        </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('sales.str_1136')}{fmt(currentTotals.subtotal)}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('sales.str_1137')}{fmt(currentTotals.tax)}</div>
-                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--danger)' }}>{t('sales.str_1138')}{fmt(currentTotals.total)} {t('sys.str_68')}</div>
+                                    <div style={{ textAlign: 'right', minWidth: '200px', background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px dashed var(--border)' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>إجمالي المرتجع: {fmt(currentTotals.total)}</div>
+                                        {Number(restockingFee) > 0 && (
+                                            <div style={{ fontSize: '12px', color: 'var(--danger)' }}>خصم رسوم تخزين: -{fmt(Number(restockingFee))}</div>
+                                        )}
+                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>الصافي المسترد (ZATCA Legal)</div>
+                                            <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--danger)' }}>{fmt(Math.max(0, currentTotals.total - (Number(restockingFee) || 0)))} {t('sys.str_68')}</div>
+                                        </div>
                                     </div>
                                 </div>
                                 
