@@ -39,10 +39,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  output: 'standalone',
 };
 
 if (process.env.ELECTRON_BUILD) {
-  nextConfig.output = 'standalone';
+  // any electron specific overrides
 }
 
 export default withSentryConfig(nextConfig, {

@@ -26,16 +26,17 @@ export async function POST(request: Request) {
         const order = await prisma.manufacturingOrder.findUnique({ where: { id: parseInt(manufacturingOrderId) } });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
+        const parsedInspected = parseFloat(inspectedQuantity) || 0;
+        const parsedPassed = parseFloat(passedQuantity) || 0;
+        const parsedFailed = parseFloat(failedQuantity) || 0;
+
         const check = await prisma.qualityCheck.create({
             data: {
                 manufacturingOrderId: parseInt(manufacturingOrderId),
-                // inspectorId: inspectorId ? parseInt(inspectorId) : null,
-                // checkDate: new Date(),
-                inspectedQuantity: parseFloat(inspectedQuantity) || 0,
-                passedQuantity: parseFloat(passedQuantity) || 0,
-                failedQuantity: parseFloat(failedQuantity) || 0,
-                status: parseFloat(failedQuantity) > 0 ? 'rejected' : 'passed',
-                notes
+                inspectorName: inspectorId ? `Inspector ${inspectorId}` : 'System',
+                checkType: 'final_inspection',
+                status: parsedFailed > 0 ? 'fail' : 'pass',
+                notes: `Inspected: ${parsedInspected}, Passed: ${parsedPassed}, Failed: ${parsedFailed}. ${notes || ''}`
             }
         });
 
@@ -55,6 +56,18 @@ export async function POST(request: Request) {
             await prisma.manufacturingOrder.update({
                 where: { id: order.id },
                 data: { totalCost: order.totalCost + scrapCost }
+            });
+
+            // Post Scrap Journal Entry
+            const { createJournalEntry, ACCOUNTS } = require('@/lib/auto-journal');
+            await createJournalEntry({
+                description: `إثبات تكلفة هدر (Scrap) لأمر التصنيع ${order.orderNumber} - فحص جودة`,
+                reference: order.orderNumber,
+                lines: [
+                    { accountCode: ACCOUNTS.MFG_VARIANCE, debit: scrapCost, credit: 0, description: 'تكلفة هدر جودة' },
+                    { accountCode: ACCOUNTS.WIP, debit: 0, credit: scrapCost, description: 'خفض حساب تحت التشغيل بسبب التالف' }
+                ],
+                status: 'posted'
             });
         }
 

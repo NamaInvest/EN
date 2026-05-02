@@ -40,9 +40,9 @@ export async function GET(request: Request) {
 // POST - إضافة قيد يدوي
 export async function POST(request: Request) {
     // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const { getUserFromRequest } = require('@/lib/auth');
+    const auth = getUserFromRequest(request);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
@@ -60,9 +60,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` }, { status: 400 });
         }
 
-        const CONTROL_ACCOUNT_PREFIXES = ['1102', '1103', '1104', '2101']; 
-        const isRestricted = lines.some((l: any) => CONTROL_ACCOUNT_PREFIXES.some(p => l.accountCode && l.accountCode.toString().startsWith(p)));
+        const { ACCOUNTS } = require('@/lib/auto-journal');
+        const CONTROL_ACCOUNTS = [ACCOUNTS.RECEIVABLES, ACCOUNTS.PAYABLES, ACCOUNTS.INVENTORY, ACCOUNTS.WIP, ACCOUNTS.FINISHED_GOODS, ACCOUNTS.VAT_INPUT, ACCOUNTS.VAT_OUTPUT]; 
+        const isRestricted = lines.some((l: any) => CONTROL_ACCOUNTS.includes(l.accountCode));
         if (isRestricted) {
+            try {
+                await prisma.auditLog.create({
+                    data: {
+                        userId: auth?.userId || 1,
+                        action: 'GOVERNANCE_VIOLATION_ATTEMPT',
+                        tableName: 'JournalEntry',
+                        recordId: 0,
+                        details: JSON.stringify({ reason: 'Attempted to manually post to control account', attemptedLines: lines })
+                    }
+                });
+            } catch (e) { console.error(e); }
             return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون). يجب أن تنشأ آلياً من الفواتير.' }, { status: 403 });
         }
 
@@ -78,6 +90,7 @@ export async function POST(request: Request) {
                 description: l.description,
             })),
             userId,
+            status: body.status || 'draft',
         });
 
         if (!result.success) {

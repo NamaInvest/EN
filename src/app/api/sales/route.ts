@@ -232,6 +232,7 @@ export async function POST(request: Request) {
             const allowNegativeStock = await prisma.setting.findUnique({ where: { key: 'POS_ALLOW_NEGATIVE_STOCK' } });
             const canGoNegative = allowNegativeStock?.value === 'true';
 
+            let totalCost = 0;
             for (const item of items) {
                 const qty = Number(item.quantity) || 1;
                 const productId = Number(item.productId);
@@ -246,10 +247,12 @@ export async function POST(request: Request) {
                 });
 
                 // إجمالي المخزون (حبة + وحدات محولة)
-                const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
+                const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true, buyPrice: true } });
                 const baseStock = prod?.currentStock || 0;
                 const unitsStock = pUnits.reduce((s, u) => s + Number((u as any).unitStock || 0) * u.factor, 0);
                 const totalBase = baseStock + unitsStock;
+                
+                totalCost += (prod?.buyPrice || 0) * qtyInBase;
 
                 if (!canGoNegative && qtyInBase > totalBase) {
                     throw new Error(`نفد مخزون الصنف ${item.productName}`);
@@ -364,7 +367,7 @@ export async function POST(request: Request) {
                 }
             }
 
-            return createdInvoice;
+            return { createdInvoice, totalCost };
         });
 
         // Auto-journal entry (double-entry accounting)
@@ -380,6 +383,7 @@ export async function POST(request: Request) {
                 userId: userId || undefined,
                 branchId: branchId || undefined,
                 discountValue,
+                totalCost: invoice.totalCost,
                 date: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().split('T')[0],
             });
         } catch (journalErr) {
@@ -460,7 +464,7 @@ export async function POST(request: Request) {
                         });
 
                         const invoiceDataObj = {
-                            id: invoice.invoiceNo?.toString() || invoice.id.toString(),
+                            id: invoice.createdInvoice.invoiceNo?.toString() || invoice.createdInvoice.id.toString(),
                             uuid: invoiceUuid,
                             issueDate,
                             issueTime,
@@ -502,22 +506,22 @@ export async function POST(request: Request) {
                         
                         await prisma.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: hashFinal }, create: { key: 'zatca_last_pih', value: hashFinal, description: 'ZATCA Last PIH' } });
                         await prisma.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
-                        await prisma.salesInvoice.update({ where: { id: invoice.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR, zatcaXml: signOutput.signedXml } });
+                        await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR, zatcaXml: signOutput.signedXml } });
                         
                         if (s['zatca_production_secret']) {
                             try {
                                 const reportResult = await signer.reportInvoice(signOutput.signedXml, hashFinal, invoiceUuid, zatcaSettingsObj);
                                 if (reportResult.status === 'reported') {
-                                    await prisma.salesInvoice.update({ where: { id: invoice.id }, data: { zatcaStatus: 'reported' } });
-                                    console.log(`✅ Invoice ${invoice.invoiceNo} reported to ZATCA`);
+                                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'reported' } });
+                                    console.log(`✅ Invoice ${invoice.createdInvoice.invoiceNo} reported to ZATCA`);
                                 } else {
-                                    await prisma.salesInvoice.update({ where: { id: invoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(reportResult.validationResults) } });
+                                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(reportResult.validationResults) } });
                                 }
                             } catch (reportErr: any) {
-                                await prisma.salesInvoice.update({ where: { id: invoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
+                                await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
                             }
                         }
-                        console.log(`✅ Invoice ${invoice.invoiceNo} signed (Node.js)`);
+                        console.log(`✅ Invoice ${invoice.createdInvoice.invoiceNo} signed (Node.js)`);
                     } catch (signErr: any) {
                         console.error('ZATCA Signing Error:', signErr.message, signErr.stack);
                     }
@@ -526,18 +530,18 @@ export async function POST(request: Request) {
                     const qrData = generateZatcaQRContent({
                         sellerName: s['company_name'],
                         vatNumber: s['tax_number'],
-                        timestamp: invoice.date.toISOString(),
+                        timestamp: invoice.createdInvoice.date.toISOString(),
                         totalWithVat: total,
                         vatAmount: taxValue,
                     });
                     zatcaQR = qrData;
-                    await prisma.salesInvoice.update({ where: { id: invoice.id }, data: { zatcaQr: zatcaQR } });
+                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaQr: zatcaQR } });
                 }
             }
         } catch (zatcaErr) {
             console.warn('ZATCA process skipped/failed:', zatcaErr);
         }
-        return NextResponse.json({ ...invoice, zatcaQR }, { status: 201 });
+        return NextResponse.json({ ...invoice.createdInvoice, zatcaQR }, { status: 201 });
     } catch (error) {
         console.error('Sales create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الفاتورة' }, { status: 500 });

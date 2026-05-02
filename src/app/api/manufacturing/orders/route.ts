@@ -168,6 +168,21 @@ export async function PUT(request: NextRequest) {
                     }
                 });
             });
+
+            // Auto-Journal: WIP -> Finished Goods
+            const { createJournalEntry, ACCOUNTS } = require('@/lib/auto-journal');
+            const finishedGoodsCost = await prisma.manufacturingOrder.findUnique({ where: { id: currentOrder.id }, select: { totalCost: true } });
+            
+            await createJournalEntry({
+                description: `إقفال أمر التصنيع ${currentOrder.orderNumber} وتحويل التكلفة للمنتج التام`,
+                reference: currentOrder.orderNumber,
+                lines: [
+                    { accountCode: ACCOUNTS.FINISHED_GOODS || '1340', debit: finishedGoodsCost?.totalCost || 0, credit: 0, description: 'إثبات المنتج التام' },
+                    { accountCode: ACCOUNTS.WIP || '1330', debit: 0, credit: finishedGoodsCost?.totalCost || 0, description: 'تخفيض حساب تحت التشغيل' }
+                ],
+                status: 'posted'
+            });
+
             return NextResponse.json({ success: true, message: 'Manufacturing Order Completed successfully with stock mutations' });
         } else {
             // Simple status tracking transition (e.g. Draft -> Processing -> Quality)

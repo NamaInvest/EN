@@ -29,7 +29,7 @@ export class GovernanceEngine {
             where: {
                 userId: parseInt(userId), // Assuming userId is numerical in DB
                 action: { in: opposingActions },
-                ...(documentId ? { entityId: documentId } : {})
+                ...(documentId ? { recordId: documentId } : {})
             }
         });
 

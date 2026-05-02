@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
-        const id = parseInt(params.id);
+        const resolvedParams = await params;
+        const id = parseInt(resolvedParams.id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         const invoice = await prisma.payrollInvoice.findUnique({

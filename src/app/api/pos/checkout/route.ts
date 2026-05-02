@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
             });
 
             // Create Invoice Details & Deduct Stock
+            let totalCost = 0;
             for (const item of cart) {
                 const safePrice = validateMoney(item.price, 'السعر');
                 const safeQty = validateMoney(item.qty, 'الكمية');
@@ -75,13 +76,16 @@ export async function POST(req: NextRequest) {
 
                 // Deduct Inventory safely considering Factor (Multi-Units)
                 const deductionQty = safeQty * validateMoney(item.factor || 1, 'المعامل');
-                await tx.product.update({
+                const updatedProduct = await tx.product.update({
                     where: { id: parseInt(item.id) },
                     data: { currentStock: { decrement: deductionQty } }
                 });
+                
+                // Track cost of goods sold
+                totalCost += (updatedProduct.buyPrice || 0) * deductionQty;
             }
 
-            // 3. Handle Coupon Usage if applicable
+        // 3. Handle Coupon Usage if applicable
             if (couponId && discount > 0) {
                 await tx.couponUsage.create({
                     data: {
@@ -141,13 +145,13 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            return newInvoice;
+            return { newInvoice, totalCost };
         });
 
         // 5. Automated Global Dual-Entry Accounting (POS to Master Journal)
         try {
             await postSalesInvoice({
-                invoiceNo: invoice.invoiceNo,
+                invoiceNo: invoice.newInvoice.invoiceNo,
                 subtotal: total,
                 taxValue: tax,
                 total: finalTotal,
@@ -157,6 +161,7 @@ export async function POST(req: NextRequest) {
                 userId: auth.userId,
                 branchId: undefined, 
                 discountValue: discount || 0,
+                totalCost: invoice.totalCost,
                 date: new Date().toISOString().split('T')[0],
             });
         } catch (journalErr) {
@@ -176,14 +181,14 @@ export async function POST(req: NextRequest) {
                 zatcaQr = generateZatcaQRContent({
                     sellerName: s['company_name'],
                     vatNumber: s['tax_number'],
-                    timestamp: invoice.date.toISOString(),
+                    timestamp: invoice.newInvoice.date.toISOString(),
                     totalWithVat: finalTotal,
                     vatAmount: tax,
                 });
                 
                 // Save it to the database so it's persisted for Phase 1 display
                 await prisma.salesInvoice.update({
-                    where: { id: invoice.id },
+                    where: { id: invoice.newInvoice.id },
                     data: { zatcaQr }
                 });
             }
@@ -195,8 +200,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ 
             success: true, 
             invoice: { 
-                id: invoice.id,
-                invoiceNumber: `INV-${invoice.invoiceNo}`,
+                id: invoice.newInvoice.id,
+                invoiceNumber: `INV-${invoice.newInvoice.invoiceNo}`,
                 zatcaQr 
             } 
         });

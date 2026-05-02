@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, PieChart, Pie, Legend } from 'recharts';
 
-type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance' | 'cost_centers';
+type Tab = 'tree' | 'journal' | 'ledger' | 'trial' | 'income' | 'balance' | 'cost_centers' | 'closing';
 
 interface Account { id: number; code: string; name: string; nameEn: string; type: string; level: number; balance: number; isActive: boolean; parentId: number; }
 interface JournalLine { id: number; accountId: number; costCenterId?: number; description: string; debit: number; credit: number; account: { code: string; name: string; type: string }; costCenter?: { name: string } }
@@ -13,6 +14,7 @@ interface TrialRow { id: number; code: string; name: string; type: string; level
 interface StatementItem { code: string; name: string; amount: number }
 interface BSItem { code: string; name: string; level: number; balance: number }
 interface CostCenter { id: number; code: string; name: string; isActive: boolean; }
+interface FiscalPeriod { id: number; year: number; month: number; status: string; periodCloseChecklists: { id: number; taskName: string; status: string }[] }
 
 const TYPE_LABELS: Record<string, string> = { asset: 'أصول', liability: 'خصوم', equity: 'ملكية', revenue: 'إيرادات', expense: 'مصروفات' };
 const TYPE_COLORS: Record<string, string> = { asset: '#22c55e', liability: '#ef4444', equity: '#8b5cf6', revenue: '#3b82f6', expense: '#f59e0b' };
@@ -21,6 +23,7 @@ export default function AccountingPage() {
     const { t } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const [tab, setTab] = useState<Tab>('tree');
+    const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [journals, setJournals] = useState<JournalEntry[]>([]);
     const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
@@ -28,6 +31,7 @@ export default function AccountingPage() {
     const [selectedAccount, setSelectedAccount] = useState<number>(0);
     const [ledgerData, setLedgerData] = useState<{ account: Account; lines: LedgerLine[]; totalDebit: number; totalCredit: number; closingBalance: number } | null>(null);
     const [trialData, setTrialData] = useState<{ rows: TrialRow[]; grandTotalDebit: number; grandTotalCredit: number; isBalanced: boolean } | null>(null);
+    const [violations, setViolations] = useState<any[]>([]);
     const [incomeData, setIncomeData] = useState<{ revenue: { items: StatementItem[]; total: number }; expenses: { items: StatementItem[]; total: number }; netProfit: number } | null>(null);
     const [balanceData, setBalanceData] = useState<{ assets: { items: BSItem[]; total: number }; liabilities: { items: BSItem[]; total: number }; equity: { items: BSItem[]; total: number }; isBalanced: boolean } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -65,7 +69,18 @@ export default function AccountingPage() {
         if (tab === 'trial') loadTrialBalance();
         if (tab === 'income') loadIncomeStatement();
         if (tab === 'balance') loadBalanceSheet();
+        if (tab === 'closing') { loadPeriods(); loadViolations(); }
     }, [tab, loadAccounts, loadCostCenters]);
+
+    async function loadPeriods() {
+        setLoading(true);
+        try { const r = await fetch('/api/accounting/fiscal-periods'); if (r.ok) { const data = await r.json(); setPeriods(data.periods || []); } } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
+        setLoading(false);
+    }
+
+    async function loadViolations() {
+        try { const r = await fetch('/api/accounting/governance-violations'); if (r.ok) { setViolations(await r.json()); } } catch (e: any) { console.error(e); }
+    }
 
     async function loadJournals() {
         setLoading(true);
@@ -171,6 +186,52 @@ export default function AccountingPage() {
         else { const e = await res.json(); alert(e.error); }
     };
 
+    const handlePostJournal = async (e: any, id: number) => {
+        e.stopPropagation();
+        if (!confirm('هل أنت متأكد من ترحيل هذا القيد؟ لا يمكن تعديله بعد الترحيل.')) return;
+        const res = await fetch(`/api/accounting/journal/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'posted' }) });
+        if (res.ok) { loadJournals(); }
+        else { const err = await res.json(); alert(err.error || 'فشل الترحيل'); }
+    };
+
+    const handleReverseJournal = async (e: any, id: number) => {
+        e.stopPropagation();
+        const reason = prompt('أدخل سبب عكس القيد:');
+        if (!reason) return;
+        const res = await fetch(`/api/accounting/reversal`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ journalEntryId: id, reason }) });
+        if (res.ok) { loadJournals(); }
+        else { const err = await res.json(); alert(err.error || 'فشل العكس'); }
+    };
+
+    const handleStartClosing = async (periodId: number) => {
+        setLoading(true);
+        const res = await fetch('/api/accounting/fiscal-periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'start_closing', fiscalPeriodId: periodId }) });
+        if (res.ok) { toastSuccess('تم إنشاء قوائم الإغلاق'); loadPeriods(); } else { const e = await res.json(); toastError(e.error); }
+        setLoading(false);
+    };
+
+    const handleCompleteTask = async (taskId: number) => {
+        setLoading(true);
+        const res = await fetch('/api/accounting/fiscal-periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'complete_task', taskId }) });
+        if (res.ok) { toastSuccess('تم إنجاز المهمة'); loadPeriods(); } else { const e = await res.json(); toastError(e.error); }
+        setLoading(false);
+    };
+
+    const handleSoftClose = async (periodId: number) => {
+        setLoading(true);
+        const res = await fetch('/api/accounting/fiscal-periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'soft_close', fiscalPeriodId: periodId }) });
+        if (res.ok) { toastSuccess('تم الإغلاق المرن'); loadPeriods(); } else { const e = await res.json(); toastError(e.error); }
+        setLoading(false);
+    };
+
+    const handleHardClose = async (periodId: number) => {
+        if (!confirm('تحذير: الإغلاق التام يمنع أي تعديلات نهائياً ولا يفتح إلا بصلاحيات عليا. هل توافق؟')) return;
+        setLoading(true);
+        const res = await fetch('/api/accounting/fiscal-periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'hard_close', fiscalPeriodId: periodId }) });
+        if (res.ok) { toastSuccess('تم الإغلاق التام'); loadPeriods(); } else { const e = await res.json(); toastError(e.error); }
+        setLoading(false);
+    };
+
     const fmt = (n: number) => n.toLocaleString('en-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const tabs: { key: Tab; label: string; icon: string }[] = [
@@ -181,6 +242,7 @@ export default function AccountingPage() {
         { key: 'income', label: t('fin.str_260'), icon: '📊' },
         { key: 'balance', label: t('fin.str_261'), icon: '🏦' },
         { key: 'cost_centers', label: t('fin.str_262'), icon: '🏢' },
+        { key: 'closing', label: 'إغلاق الفترات', icon: '🔒' },
     ];
 
     return (<><div className="page-header"><h1 className="page-title">{t('fin.str_192')}</h1></div>
@@ -335,7 +397,7 @@ export default function AccountingPage() {
                                             <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{fmt(j.totalDebit)}</span>
                                         </div>
                                         {expandedEntry === j.id && (
-                                            <table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
+                                            <><table style={{ width: '100%', marginTop: '12px', borderCollapse: 'collapse' }}>
                                                 <thead><tr style={{ background: 'rgba(108,99,255,0.05)', fontSize: '12px' }}><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_221')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_222')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_223')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_214')}</th><th style={{ padding: '6px', textAlign: 'right' }}>{t('fin.str_215')}</th></tr></thead>
                                                 <tbody>{j.lines.map(l => (
                                                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
@@ -347,6 +409,26 @@ export default function AccountingPage() {
                                                     </tr>
                                                 ))}</tbody>
                                             </table>
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}>
+                                                {j.status === 'draft' && (
+                                                    <button className="btn btn-sm" style={{ background: '#22c55e', color: '#fff' }} onClick={(e) => handlePostJournal(e, j.id)}>
+                                                        ترحيل واعتماد
+                                                    </button>
+                                                )}
+                                                {j.status === 'posted' && !j.entryNumber.endsWith('-R') && (
+                                                    <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff' }} onClick={(e) => handleReverseJournal(e, j.id)}>
+                                                        عكس القيد
+                                                    </button>
+                                                )}
+                                                <span style={{ 
+                                                    padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold',
+                                                    background: j.status === 'draft' ? '#f59e0b20' : j.status === 'posted' ? '#22c55e20' : '#ef444420',
+                                                    color: j.status === 'draft' ? '#f59e0b' : j.status === 'posted' ? '#22c55e' : '#ef4444'
+                                                }}>
+                                                    الحالة: {j.status === 'draft' ? 'مسودة' : j.status === 'posted' ? 'مُرحّل' : 'ملغي/معكوس'}
+                                                </span>
+                                            </div>
+                                            </>
                                         )}
                                     </div>
                                 ))}
@@ -540,6 +622,101 @@ export default function AccountingPage() {
                                     </div>
                                 </div></>}
                 </div>
+            )}
+
+            {tab === 'closing' && (
+                <>
+                <div className="card" style={{ padding: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>إغلاق الفترات المحاسبية</h2>
+                    </div>
+
+                    <table className="table" style={{ width: '100%', textAlign: 'right' }}>
+                        <thead>
+                            <tr style={{ background: 'var(--bg-secondary)' }}>
+                                <th style={{ padding: '12px' }}>الفترة (السنة/الشهر)</th>
+                                <th style={{ padding: '12px' }}>الحالة</th>
+                                <th style={{ padding: '12px' }}>قوائم التحقق (Checklists)</th>
+                                <th style={{ padding: '12px' }}>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {periods.map(p => (
+                                <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '12px' }}>{p.year} / {String(p.month).padStart(2, '0')}</td>
+                                    <td style={{ padding: '12px' }}>
+                                        <span style={{
+                                            padding: '4px 8px', borderRadius: '4px', fontSize: '12px',
+                                            background: p.status === 'open' ? '#22c55e20' : p.status === 'closed' ? '#f59e0b20' : '#ef444420',
+                                            color: p.status === 'open' ? '#22c55e' : p.status === 'closed' ? '#f59e0b' : '#ef4444'
+                                        }}>
+                                            {p.status === 'open' ? 'مفتوحة' : p.status === 'closed' ? 'مغلقة (إغلاق مرن)' : 'مقفلة نهائياً'}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '12px' }}>
+                                        {p.periodCloseChecklists.length === 0 ? (
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>لا توجد مهام</span>
+                                        ) : (
+                                            <ul style={{ margin: 0, paddingInlineStart: '16px', fontSize: '12px' }}>
+                                                {p.periodCloseChecklists.map(c => (
+                                                    <li key={c.id} style={{ color: c.status === 'COMPLETED' ? '#22c55e' : '#f59e0b' }}>
+                                                        {c.taskName} - {c.status}
+                                                        {c.status !== 'COMPLETED' && p.status === 'open' && (
+                                                            <button onClick={() => handleCompleteTask(c.id)} className="btn btn-sm" style={{ padding: '2px 6px', marginInlineStart: '8px', fontSize: '10px' }}>إنجاز</button>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        {p.status === 'open' && p.periodCloseChecklists.length === 0 && (
+                                            <button className="btn btn-sm" onClick={() => handleStartClosing(p.id)}>إنشاء قوائم الإغلاق</button>
+                                        )}
+                                        {p.status === 'open' && p.periodCloseChecklists.length > 0 && p.periodCloseChecklists.every(c => c.status === 'COMPLETED') && (
+                                            <button className="btn btn-sm" style={{ background: '#f59e0b', color: '#fff' }} onClick={() => handleSoftClose(p.id)}>إغلاق مرن</button>
+                                        )}
+                                        {(p.status === 'open' || p.status === 'closed') && (
+                                            <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff' }} onClick={() => handleHardClose(p.id)}>إقفال تام</button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {periods.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center', padding: '24px' }}>لا توجد فترات مالية مسجلة</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="card" style={{ padding: '24px', marginTop: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>سجل الحوكمة والرقابة (Governance Log)</h2>
+                    </div>
+                    <table className="table" style={{ width: '100%', textAlign: 'right' }}>
+                        <thead>
+                            <tr style={{ background: '#ef444410' }}>
+                                <th style={{ padding: '12px', color: '#ef4444' }}>التاريخ</th>
+                                <th style={{ padding: '12px', color: '#ef4444' }}>المستخدم</th>
+                                <th style={{ padding: '12px', color: '#ef4444' }}>التفاصيل ومحاولة الاختراق</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {violations.map(v => (
+                                <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '12px' }}>{new Date(v.date).toLocaleString('ar-SA')}</td>
+                                    <td style={{ padding: '12px' }}>{v.user?.fullName || v.user?.username || 'غير معروف'}</td>
+                                    <td style={{ padding: '12px', color: '#ef4444', fontSize: '13px' }}>
+                                        {(() => {
+                                            try { return JSON.parse(v.details || '{}').reason || 'محاولة تلاعب بالحسابات'; }
+                                            catch (e) { return v.details || 'محاولة تلاعب بالحسابات'; }
+                                        })()}
+                                    </td>
+                                </tr>
+                            ))}
+                            {violations.length === 0 && <tr><td colSpan={3} style={{ textAlign: 'center', padding: '24px', color: '#22c55e' }}>لا توجد أي محاولات اختراق مسجلة لدفاتر الأستاذ العام 🎉</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+                </>
             )}
 
         </div></>);

@@ -116,28 +116,29 @@ model Product {
   expiryDate   String?  @map("expiry_date")
   binLocation  String?  @map("bin_location")
 
-  category              Category?                   @relation(fields: [categoryId], references: [id])
-  unit                  Unit?                       @relation(fields: [unitId], references: [id])
-  salesDetails          SalesInvoiceDetail[]
-  purchaseDetails       PurchaseInvoiceDetail[]
-  purchaseOrderDetails  PurchaseOrderDetail[]
-  stockMovements        StockMovement[]
-  productStocks         ProductStock[]
-  batches               ProductBatch[]
-  finishedRecipes       Recipe[]                    @relation("RecipeFinishedProduct")
-  rawRecipes            RecipeIngredient[]          @relation("RecipeRawProduct")
-  wastages              ManufacturingWastage[]
-  recipeByProducts      RecipeByProduct[]
-  salesReturnDetails    SalesReturnDetail[]
-  purchaseReturnDetails PurchaseReturnDetail[]
-  pharmacyDrug          PharmacyDrug?
-  SalesOrderDetail      SalesOrderDetail[]
-  DeliveryNoteDetail    DeliveryNoteDetail[]
-  prDetails             PurchaseRequisitionDetail[]
-  rfqDetails            RequestForQuotationDetail[]
-  grnDetails            GoodsReceiptNoteDetail[]
-  serialNumbers         ProductSerialNumber[]
-  productUnits          ProductUnit[]
+  category               Category?                   @relation(fields: [categoryId], references: [id])
+  unit                   Unit?                       @relation(fields: [unitId], references: [id])
+  salesDetails           SalesInvoiceDetail[]
+  purchaseDetails        PurchaseInvoiceDetail[]
+  purchaseOrderDetails   PurchaseOrderDetail[]
+  stockMovements         StockMovement[]
+  productStocks          ProductStock[]
+  batches                ProductBatch[]
+  finishedRecipes        Recipe[]                    @relation("RecipeFinishedProduct")
+  rawRecipes             RecipeIngredient[]          @relation("RecipeRawProduct")
+  wastages               ManufacturingWastage[]
+  recipeByProducts       RecipeByProduct[]
+  salesReturnDetails     SalesReturnDetail[]
+  purchaseReturnDetails  PurchaseReturnDetail[]
+  pharmacyDrug           PharmacyDrug?
+  SalesOrderDetail       SalesOrderDetail[]
+  DeliveryNoteDetail     DeliveryNoteDetail[]
+  prDetails              PurchaseRequisitionDetail[]
+  rfqDetails             RequestForQuotationDetail[]
+  grnDetails             GoodsReceiptNoteDetail[]
+  serialNumbers          ProductSerialNumber[]
+  productUnits           ProductUnit[]
+  EngineeringChangeOrder EngineeringChangeOrder[]
 
   @@index([name])
   @@map("products")
@@ -209,6 +210,7 @@ model Customer {
   purchaseReturns   PurchaseReturn[]
   supplierContracts SupplierContract[]    @relation("SupplierContracts")
   RentInvoice       RentInvoice[]
+  DunningLetter     DunningLetter[]
 
   @@index([phone])
   @@index([name])
@@ -285,17 +287,18 @@ model SalesInvoice {
   zatcaXml      String?   @map("zatca_xml")
   salesRepId    Int?      @map("sales_rep_id")
 
-  customer     Customer?            @relation(fields: [customerId], references: [id])
-  stock        Stock?               @relation(fields: [stockId], references: [id])
-  salesRep     Employee?            @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
-  user         User?                @relation(fields: [userId], references: [id])
-  details      SalesInvoiceDetail[]
-  branchId     Int?                 @map("branch_id")
-  branch       Branch?              @relation(fields: [branchId], references: [id])
-  shift        Shift?               @relation(fields: [shiftId], references: [id])
-  shiftId      Int?                 @map("shift_id")
-  costCenterId Int?                 @map("cost_center_id")
-  costCenter   CostCenter?          @relation(fields: [costCenterId], references: [id])
+  customer                Customer?                 @relation(fields: [customerId], references: [id])
+  stock                   Stock?                    @relation(fields: [stockId], references: [id])
+  salesRep                Employee?                 @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
+  user                    User?                     @relation(fields: [userId], references: [id])
+  details                 SalesInvoiceDetail[]
+  branchId                Int?                      @map("branch_id")
+  branch                  Branch?                   @relation(fields: [branchId], references: [id])
+  shift                   Shift?                    @relation(fields: [shiftId], references: [id])
+  shiftId                 Int?                      @map("shift_id")
+  costCenterId            Int?                      @map("cost_center_id")
+  costCenter              CostCenter?               @relation(fields: [costCenterId], references: [id])
+  DeferredRevenueSchedule DeferredRevenueSchedule[]
 
   @@index([invoiceNo])
   @@index([date])
@@ -399,6 +402,7 @@ model PurchaseOrder {
   letterOfCredit LetterOfCredit?       @relation(fields: [letterOfCreditId], references: [id])
   landedCosts    LandedCost[]
   goodsReceipts  GoodsReceiptNote[]
+  ThreeWayMatch  ThreeWayMatch[]
 
   @@map("purchase_orders")
 }
@@ -449,12 +453,13 @@ model PurchaseInvoice {
   exchangeRate Float?    @default(1.0) @map("exchange_rate")
   currency     Currency? @relation(fields: [currencyId], references: [id])
 
-  supplier Customer?               @relation(fields: [supplierId], references: [id])
-  stock    Stock?                  @relation(fields: [stockId], references: [id])
-  user     User?                   @relation(fields: [userId], references: [id])
-  details  PurchaseInvoiceDetail[]
-  branchId Int?                    @map("branch_id")
-  branch   Branch?                 @relation(fields: [branchId], references: [id])
+  supplier      Customer?               @relation(fields: [supplierId], references: [id])
+  stock         Stock?                  @relation(fields: [stockId], references: [id])
+  user          User?                   @relation(fields: [userId], references: [id])
+  details       PurchaseInvoiceDetail[]
+  branchId      Int?                    @map("branch_id")
+  branch        Branch?                 @relation(fields: [branchId], references: [id])
+  ThreeWayMatch ThreeWayMatch?
 
   @@index([invoiceNo])
   @@index([date])
@@ -642,24 +647,26 @@ model Employee {
   branch             Branch?  @relation(fields: [branchId], references: [id])
   faceDescriptor     String?  @map("face_descriptor") @db.Text
 
-  attendance          Attendance[]
-  salaries            Salary[]
-  pettyCashes         PettyCashTransaction[]
-  salesTargets        SalesTarget[]
-  salesOrders         SalesOrder[]
-  salesInvoices       SalesInvoice[]         @relation("SalesInvoiceRep")
-  routes              Route[]                @relation("RouteSalesRep")
-  evaluationsReceived EmployeeEvaluation[]   @relation("Evaluatee")
-  evaluationsGiven    EmployeeEvaluation[]   @relation("Evaluator")
-  trainings           TrainingEnrollment[]
-  fleetTrips          FleetTrip[]
-  fuelLogs            FuelLog[]
-  classesTaught       AcademicClass[]
-  commissions         SalesmanCommission[]
-  pettyCashFunds      PettyCashFund[]
-  Vacation            Vacation[]
-  EmployeeLoan        EmployeeLoan[]
-  PayrollInvoice      PayrollInvoice[]
+  attendance              Attendance[]
+  salaries                Salary[]
+  pettyCashes             PettyCashTransaction[]
+  salesTargets            SalesTarget[]
+  salesOrders             SalesOrder[]
+  salesInvoices           SalesInvoice[]            @relation("SalesInvoiceRep")
+  routes                  Route[]                   @relation("RouteSalesRep")
+  evaluationsReceived     EmployeeEvaluation[]      @relation("Evaluatee")
+  evaluationsGiven        EmployeeEvaluation[]      @relation("Evaluator")
+  trainings               TrainingEnrollment[]
+  fleetTrips              FleetTrip[]
+  fuelLogs                FuelLog[]
+  classesTaught           AcademicClass[]
+  commissions             SalesmanCommission[]
+  pettyCashFunds          PettyCashFund[]
+  Vacation                Vacation[]
+  EmployeeLoan            EmployeeLoan[]
+  PayrollInvoice          PayrollInvoice[]
+  EndOfServiceCalculation EndOfServiceCalculation[]
+  WPSBatchItem            WPSBatchItem[]
 
   @@map("employees")
 }
@@ -1213,6 +1220,7 @@ model Recipe {
   orders          ManufacturingOrder[]
   operations      RecipeOperation[]
   byProducts      RecipeByProduct[]
+  BOMVersion      BOMVersion[]
 
   @@map("recipes")
 }
@@ -1440,6 +1448,7 @@ model BankAccount {
   transactions BankTransaction[]
   lcs          LetterOfCredit[]
   lgs          LetterOfGuarantee[]
+  statements   BankStatement[]
 
   @@map("bank_accounts")
 }
@@ -1932,21 +1941,23 @@ model LetterOfGuarantee {
 
 // --- 1. Fixed Assets (ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آµط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ  ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¨ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ©)
 model Asset {
-  id               Int      @id @default(autoincrement())
-  barcode          String   @unique
+  id               Int                @id @default(autoincrement())
+  barcode          String             @unique
   name             String
   category         String // e.g., 'Vehicles', 'IT Equipment', 'Furniture'
-  purchasePrice    Float    @default(0) @map("purchase_price")
-  currentValue     Float    @default(0) @map("current_value")
-  salvageValue     Float    @default(0) @map("salvage_value")
-  usefulLifeYears  Int      @default(5) @map("useful_life_years")
-  depreciationType String   @default("STRAIGHT_LINE") // STRAIGHT_LINE, DECLINING_BALANCE
-  purchaseDate     DateTime @default(now()) @map("purchase_date")
-  status           String   @default("ACTIVE") // ACTIVE, DEPRECIATED, DISPOSED, SOLD
+  purchasePrice    Float              @default(0) @map("purchase_price")
+  currentValue     Float              @default(0) @map("current_value")
+  salvageValue     Float              @default(0) @map("salvage_value")
+  usefulLifeYears  Int                @default(5) @map("useful_life_years")
+  depreciationType String             @default("STRAIGHT_LINE") // STRAIGHT_LINE, DECLINING_BALANCE
+  purchaseDate     DateTime           @default(now()) @map("purchase_date")
+  status           String             @default("ACTIVE") // ACTIVE, DEPRECIATED, DISPOSED, SOLD
   location         String?
   notes            String?
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  AssetImpairment  AssetImpairment[]
+  AssetRevaluation AssetRevaluation[]
 
   @@map("assets")
 }
@@ -3230,13 +3241,21 @@ model ItemMatch {
 // ==========================================
 
 model BankStatement {
-  id             Int      @id @default(autoincrement())
-  bankAccountId  Int      @map("bank_account_id")
-  statementDate  DateTime @map("statement_date")
-  openingBalance Decimal  @map("opening_balance") @db.Decimal(18, 4)
-  closingBalance Decimal  @map("closing_balance") @db.Decimal(18, 4)
-  status         String   @default("IMPORTED") // IMPORTED, RECONCILED
-  createdAt      DateTime @default(now()) @map("created_at")
+  id              Int         @id @default(autoincrement())
+  bankAccountId   Int         @map("bank_account_id")
+  bankAccount     BankAccount @relation(fields: [bankAccountId], references: [id])
+  statementNumber String?     @map("statement_number")
+  statementDate   DateTime    @map("statement_date")
+  openingBalance  Decimal     @map("opening_balance") @db.Decimal(18, 4)
+  closingBalance  Decimal     @map("closing_balance") @db.Decimal(18, 4)
+  currency        String      @default("SAR")
+  fileFormat      String?     @map("file_format") // MT940, CAMT_053, OFX, CSV
+  fileName        String?     @map("file_name")
+  fileContent     String?     @map("file_content") @db.Text
+  status          String      @default("IMPORTED") // IMPORTED, RECONCILED
+  importedBy      Int?        @map("imported_by")
+  reconciledAt    DateTime?   @map("reconciled_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
 
   lines BankStatementLine[]
 
@@ -3244,18 +3263,64 @@ model BankStatement {
 }
 
 model BankStatementLine {
-  id               Int           @id @default(autoincrement())
-  statementId      Int           @map("statement_id")
-  statement        BankStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
-  transactionDate  DateTime      @map("transaction_date")
-  description      String
-  reference        String?
-  amount           Decimal       @db.Decimal(18, 4)
-  type             String // DEBIT, CREDIT
-  reconciledStatus String        @default("UNRECONCILED") // UNRECONCILED, MATCHED, POSTED
-  matchedDocId     Int?          @map("matched_doc_id")
+  id                     Int           @id @default(autoincrement())
+  statementId            Int           @map("statement_id")
+  statement              BankStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  lineNumber             Int?          @map("line_number")
+  transactionDate        DateTime      @map("transaction_date") // Equivalent to valueDate
+  bookingDate            DateTime?     @map("booking_date")
+  description            String        @db.Text
+  reference              String?
+  counterpartyName       String?       @map("counterparty_name")
+  counterpartyIBAN       String?       @map("counterparty_iban")
+  amount                 Decimal       @db.Decimal(18, 4) // Legacy, but we add debit/credit
+  debit                  Decimal       @default(0) @db.Decimal(18, 4)
+  credit                 Decimal       @default(0) @db.Decimal(18, 4)
+  balance                Decimal?      @db.Decimal(18, 4)
+  type                   String // DEBIT, CREDIT
+  reconciledStatus       String        @default("UNRECONCILED") // UNRECONCILED, MATCHED, POSTED
+  matchedDocId           Int?          @map("matched_doc_id") // Equivalent to matchedTransactionId
+  matchedTransactionType String?       @map("matched_transaction_type") // JE, PAYMENT, RECEIPT
+  matchConfidence        Decimal?      @db.Decimal(5, 2) // 0-100%
+  matchedBy              Int?          @map("matched_by")
+  matchedAt              DateTime?     @map("matched_at")
+
+  BankReconMatch BankReconMatch[]
 
   @@map("bank_statement_lines")
+}
+
+model BankReconRule {
+  id                Int       @id @default(autoincrement())
+  bankAccountId     Int?
+  name              String
+  priority          Int
+  // Match conditions (JSON)
+  conditions        Json // { descriptionContains, amountRange, counterpartyContains, valueDateRange }
+  // Actions
+  postToAccountCode String? // post to this GL account
+  costCenterId      Int?
+  description       String?
+  isActive          Boolean   @default(true)
+  matchedCount      Int       @default(0)
+  lastMatchedAt     DateTime?
+
+  @@map("bank_recon_rules")
+}
+
+model BankReconMatch {
+  id             Int               @id @default(autoincrement())
+  bankLineId     Int
+  bankLine       BankStatementLine @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  matchType      String // EXACT, FUZZY, RULE, AI, MANUAL
+  matchedTo      String // JE_ID, PAYMENT_ID, RECEIPT_ID, NEW_JE
+  confidence     Decimal           @db.Decimal(5, 2)
+  ruleId         Int?
+  journalEntryId Int?
+  matchedBy      Int
+  matchedAt      DateTime          @default(now())
+
+  @@map("bank_recon_matches")
 }
 
 model CashFlowForecast {
@@ -3415,4 +3480,549 @@ model UserDelegation {
   isActive        Boolean  @default(true) @map("is_active")
 
   @@map("user_delegations")
+}
+
+// ==================== Saudi Compliance Sprint ====================
+
+model EndOfServiceCalculation {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int      @map("employee_id")
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  calculationDate  DateTime @default(now()) @map("calculation_date")
+  joinDate         DateTime @map("join_date")
+  endDate          DateTime @map("end_date")
+  reasonForLeaving String   @map("reason_for_leaving") // RESIGNATION, TERMINATION, RETIREMENT, DEATH, FORCE_MAJEURE
+  yearsOfService   Decimal  @map("years_of_service") @db.Decimal(10, 4)
+  lastBasicSalary  Decimal  @map("last_basic_salary") @db.Decimal(15, 2)
+  lastFullSalary   Decimal  @map("last_full_salary") @db.Decimal(15, 2)
+
+  // EOS components
+  firstFiveYearsAmount Decimal @map("first_five_years_amount") @db.Decimal(15, 2) // ��� ��� ��� ���
+  remainingYearsAmount Decimal @map("remaining_years_amount") @db.Decimal(15, 2) // ��� ���� ��� ��� ��� 5
+  resignationFactor    Decimal @map("resignation_factor") @db.Decimal(5, 4) // 0.33 / 0.67 / 1.00
+
+  unpaidVacationAmount  Decimal @map("unpaid_vacation_amount") @db.Decimal(15, 2)
+  unpaidOvertimeAmount  Decimal @map("unpaid_overtime_amount") @db.Decimal(15, 2)
+  outstandingLoanAmount Decimal @map("outstanding_loan_amount") @db.Decimal(15, 2)
+
+  totalEOS      Decimal @map("total_eos") @db.Decimal(15, 2)
+  netSettlement Decimal @map("net_settlement") @db.Decimal(15, 2)
+
+  status         String    @default("DRAFT") // DRAFT, APPROVED, PAID
+  journalEntryId Int?      @map("journal_entry_id")
+  approvedBy     Int?      @map("approved_by")
+  approvedAt     DateTime? @map("approved_at")
+  paidAt         DateTime? @map("paid_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("end_of_service_calculations")
+}
+
+model PayrollRun {
+  id             Int      @id @default(autoincrement())
+  month          Int
+  year           Int
+  runDate        DateTime @default(now()) @map("run_date")
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(18, 2)
+  status         String   @default("DRAFT") // DRAFT, APPROVED, PAID
+  approvedBy     Int?     @map("approved_by")
+  journalEntryId Int?     @map("journal_entry_id")
+
+  wpsBatches        WPSBatch[]
+  gosiContributions GOSIContribution[]
+
+  @@map("payroll_runs")
+}
+
+model WPSBatch {
+  id              Int            @id @default(autoincrement())
+  payrollRunId    Int            @map("payroll_run_id")
+  payrollRun      PayrollRun     @relation(fields: [payrollRunId], references: [id])
+  bankCode        String         @map("bank_code") // SAR, NCB, RJHI, etc.
+  batchNumber     String         @unique @map("batch_number")
+  totalAmount     Decimal        @map("total_amount") @db.Decimal(18, 2)
+  totalEmployees  Int            @map("total_employees")
+  fileFormat      String         @default("SIF_V2") @map("file_format")
+  fileContent     String?        @map("file_content") @db.Text // generated SIF text
+  fileGeneratedAt DateTime?      @map("file_generated_at")
+  uploadedAt      DateTime?      @map("uploaded_at")
+  status          String         @default("PENDING") // PENDING, GENERATED, UPLOADED, ACCEPTED, REJECTED
+  rejectionReason String?        @map("rejection_reason")
+  items           WPSBatchItem[]
+
+  @@map("wps_batches")
+}
+
+model WPSBatchItem {
+  id               Int      @id @default(autoincrement())
+  batchId          Int      @map("batch_id")
+  batch            WPSBatch @relation(fields: [batchId], references: [id])
+  employeeId       Int      @map("employee_id")
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  iban             String // IBAN �������
+  basicSalary      Decimal  @map("basic_salary") @db.Decimal(15, 2)
+  housingAllowance Decimal  @map("housing_allowance") @db.Decimal(15, 2)
+  otherAllowance   Decimal  @map("other_allowance") @db.Decimal(15, 2)
+  totalSalary      Decimal  @map("total_salary") @db.Decimal(15, 2)
+  paymentStatus    String   @default("PENDING") @map("payment_status")
+
+  @@map("wps_batch_items")
+}
+
+model GOSIContribution {
+  id                Int        @id @default(autoincrement())
+  employeeId        Int        @map("employee_id")
+  payrollRunId      Int        @map("payroll_run_id")
+  payrollRun        PayrollRun @relation(fields: [payrollRunId], references: [id])
+  contributionMonth DateTime   @map("contribution_month")
+  isSaudi           Boolean    @map("is_saudi")
+  basicSalary       Decimal    @map("basic_salary") @db.Decimal(15, 2)
+  housingAllowance  Decimal    @map("housing_allowance") @db.Decimal(15, 2)
+  subjectWage       Decimal    @map("subject_wage") @db.Decimal(15, 2) // bounded by min/max
+
+  // Saudis
+  employeePensionAmount Decimal @default(0) @map("employee_pension_amount") @db.Decimal(15, 2) // 9%
+  employerPensionAmount Decimal @default(0) @map("employer_pension_amount") @db.Decimal(15, 2) // 9%
+  employeeSANEDAmount   Decimal @default(0) @map("employee_saned_amount") @db.Decimal(15, 2) // 1%
+  employerSANEDAmount   Decimal @default(0) @map("employer_saned_amount") @db.Decimal(15, 2) // 1%
+
+  // All
+  occupationalHazardsAmount Decimal @default(0) @map("occupational_hazards_amount") @db.Decimal(15, 2) // 1% or 2%
+
+  totalEmployeeDeduction    Decimal @map("total_employee_deduction") @db.Decimal(15, 2)
+  totalEmployerContribution Decimal @map("total_employer_contribution") @db.Decimal(15, 2)
+  totalAmount               Decimal @map("total_amount") @db.Decimal(15, 2)
+
+  status         String @default("PENDING") // PENDING, GENERATED, SUBMITTED, PAID
+  journalEntryId Int?   @map("journal_entry_id")
+
+  @@map("gosi_contributions")
+}
+
+model GOSIMonthlyFile {
+  id                        Int       @id @default(autoincrement())
+  month                     DateTime  @unique
+  totalEmployees            Int       @map("total_employees")
+  totalEmployeeContribution Decimal   @map("total_employee_contribution")
+  totalEmployerContribution Decimal   @map("total_employer_contribution")
+  totalAmount               Decimal   @map("total_amount")
+  fileContent               String    @map("file_content") @db.Text
+  generatedAt               DateTime  @map("generated_at")
+  submittedAt               DateTime? @map("submitted_at")
+  paidAt                    DateTime? @map("paid_at")
+  receiptNumber             String?   @map("receipt_number")
+
+  @@map("gosi_monthly_files")
+}
+
+// ==================== AR/AP Mastery (Phase C) ====================
+
+model ThreeWayMatch {
+  id              Int             @id @default(autoincrement())
+  invoiceId       Int             @unique @map("invoice_id")
+  invoice         PurchaseInvoice @relation(fields: [invoiceId], references: [id])
+  purchaseOrderId Int             @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
+
+  // Calculated values
+  poTotalAmount        Decimal @map("po_total_amount") @db.Decimal(18, 2)
+  poTotalQuantity      Decimal @map("po_total_quantity") @db.Decimal(18, 4)
+  grnTotalAmount       Decimal @map("grn_total_amount") @db.Decimal(18, 2)
+  grnTotalQuantity     Decimal @map("grn_total_quantity") @db.Decimal(18, 4)
+  invoiceTotalAmount   Decimal @map("invoice_total_amount") @db.Decimal(18, 2)
+  invoiceTotalQuantity Decimal @map("invoice_total_quantity") @db.Decimal(18, 4)
+
+  // Variances
+  priceVariance           Decimal @map("price_variance") @db.Decimal(18, 2)
+  priceVariancePercent    Decimal @map("price_variance_percent") @db.Decimal(8, 4)
+  quantityVariance        Decimal @map("quantity_variance") @db.Decimal(18, 4)
+  quantityVariancePercent Decimal @map("quantity_variance_percent") @db.Decimal(8, 4)
+
+  // Tolerances (from settings)
+  priceTolerancePercent    Decimal @map("price_tolerance_percent") @db.Decimal(8, 4)
+  quantityTolerancePercent Decimal @map("quantity_tolerance_percent") @db.Decimal(8, 4)
+
+  // Result
+  matchStatus       String  @map("match_status") // MATCHED, PRICE_HOLD, QTY_HOLD, BOTH_HOLD, MANUAL_REVIEW
+  isWithinTolerance Boolean @map("is_within_tolerance")
+  paymentBlocked    Boolean @default(false) @map("payment_blocked")
+  approvalRequestId Int?    @map("approval_request_id")
+
+  matchedAt       DateTime            @default(now()) @map("matched_at")
+  resolvedBy      Int?                @map("resolved_by")
+  resolvedAt      DateTime?           @map("resolved_at")
+  resolutionNotes String?             @map("resolution_notes")
+  lines           ThreeWayMatchLine[]
+
+  @@map("three_way_matches")
+}
+
+model ThreeWayMatchLine {
+  id               Int           @id @default(autoincrement())
+  matchId          Int           @map("match_id")
+  match            ThreeWayMatch @relation(fields: [matchId], references: [id])
+  productId        Int           @map("product_id")
+  poQuantity       Decimal       @map("po_quantity") @db.Decimal(18, 4)
+  poUnitPrice      Decimal       @map("po_unit_price") @db.Decimal(18, 4)
+  grnQuantity      Decimal       @map("grn_quantity") @db.Decimal(18, 4)
+  invoiceQuantity  Decimal       @map("invoice_quantity") @db.Decimal(18, 4)
+  invoiceUnitPrice Decimal       @map("invoice_unit_price") @db.Decimal(18, 4)
+  priceMatched     Boolean       @map("price_matched")
+  qtyMatched       Boolean       @map("qty_matched")
+
+  @@map("three_way_match_lines")
+}
+
+model TolerancePolicy {
+  id                       Int     @id @default(autoincrement())
+  name                     String
+  appliesTo                String  @map("applies_to") // VENDOR_CATEGORY, PRODUCT_CATEGORY, AMOUNT_RANGE
+  priceTolerancePercent    Decimal @map("price_tolerance_percent") @db.Decimal(8, 4)
+  quantityTolerancePercent Decimal @map("quantity_tolerance_percent") @db.Decimal(8, 4)
+  amountToleranceAbs       Decimal @map("amount_tolerance_abs") @db.Decimal(18, 2)
+  isActive                 Boolean @default(true) @map("is_active")
+
+  @@map("tolerance_policies")
+}
+
+model CashApplicationBatch {
+  id                Int               @id @default(autoincrement())
+  customerId        Int               @map("customer_id")
+  paymentId         Int               @map("payment_id") // ID from OpenItem
+  totalReceived     Decimal           @map("total_received") @db.Decimal(18, 2)
+  totalApplied      Decimal           @map("total_applied") @db.Decimal(18, 2)
+  unappliedAmount   Decimal           @map("unapplied_amount") @db.Decimal(18, 2)
+  applicationMethod String            @map("application_method") // AUTO, MANUAL, AI
+  appliedBy         Int               @map("applied_by")
+  appliedAt         DateTime          @default(now()) @map("applied_at")
+  applications      CashApplication[]
+
+  @@map("cash_application_batches")
+}
+
+model CashApplication {
+  id                      Int                  @id @default(autoincrement())
+  batchId                 Int                  @map("batch_id")
+  batch                   CashApplicationBatch @relation(fields: [batchId], references: [id])
+  invoiceId               Int                  @map("invoice_id") // ID from OpenItem
+  appliedAmount           Decimal              @map("applied_amount") @db.Decimal(18, 2)
+  discountTaken           Decimal              @default(0) @map("discount_taken") @db.Decimal(18, 2)
+  writeOffAmount          Decimal              @default(0) @map("write_off_amount") @db.Decimal(18, 2)
+  remainingInvoiceBalance Decimal              @map("remaining_invoice_balance") @db.Decimal(18, 2)
+
+  @@map("cash_applications")
+}
+
+// ==================== Manufacturing Maturity (Phase D) ====================
+
+model BOMVersion {
+  id            Int       @id @default(autoincrement())
+  recipeId      Int       @map("recipe_id")
+  recipe        Recipe    @relation(fields: [recipeId], references: [id])
+  versionNumber String    @map("version_number")
+  effectiveFrom DateTime  @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  status        String    @default("DRAFT") // DRAFT, ACTIVE, OBSOLETE
+
+  ecoFrom EngineeringChangeOrder[] @relation("FromBOMVersion")
+  ecoTo   EngineeringChangeOrder[] @relation("ToBOMVersion")
+
+  @@map("bom_versions")
+}
+
+model EngineeringChangeOrder {
+  id        Int     @id @default(autoincrement())
+  ecoNumber String  @unique @map("eco_number")
+  productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+
+  fromBomVersionId Int?        @map("from_bom_version_id")
+  fromBomVersion   BOMVersion? @relation("FromBOMVersion", fields: [fromBomVersionId], references: [id])
+
+  toBomVersionId Int?        @map("to_bom_version_id")
+  toBomVersion   BOMVersion? @relation("ToBOMVersion", fields: [toBomVersionId], references: [id])
+
+  reason        String    @db.Text
+  status        String    @default("PENDING") // PENDING, APPROVED, REJECTED, IMPLEMENTED
+  effectiveDate DateTime? @map("effective_date")
+
+  requestedBy Int       @map("requested_by")
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  approvedBy  Int?      @map("approved_by")
+  approvedAt  DateTime? @map("approved_at")
+
+  @@map("engineering_change_orders")
+}
+
+// ==================== IFRS 16 Lease Accounting (Phase E) ====================
+
+model IfrsLeaseContract {
+  id              Int      @id @default(autoincrement())
+  contractNumber  String   @unique @map("contract_number")
+  lessor          String
+  description     String
+  leaseStartDate  DateTime @map("lease_start_date")
+  leaseEndDate    DateTime @map("lease_end_date")
+  leaseTermMonths Int      @map("lease_term_months")
+
+  paymentFrequency   String  @map("payment_frequency") // MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL
+  fixedPayment       Float   @map("fixed_payment")
+  paymentAtBeginning Boolean @default(true) @map("payment_at_beginning")
+
+  incrementalBorrowingRate Float  @map("incremental_borrowing_rate")
+  rateImplicit             Float? @map("rate_implicit")
+
+  initialLiability Float @map("initial_liability")
+  initialROUAsset  Float @map("initial_rou_asset")
+
+  assetCategory        String @map("asset_category") // VEHICLE, BUILDING, EQUIPMENT, IT
+  rouAssetAccountCode  String @map("rou_asset_account_code")
+  liabilityAccountCode String @map("liability_account_code")
+
+  status       String    @default("ACTIVE") // ACTIVE, MODIFIED, TERMINATED, EXPIRED
+  modifiedAt   DateTime? @map("modified_at")
+  terminatedAt DateTime? @map("terminated_at")
+
+  isShortTerm Boolean @default(false) @map("is_short_term")
+  isLowValue  Boolean @default(false) @map("is_low_value")
+
+  schedules     LeaseAmortizationSchedule[]
+  modifications LeaseModification[]
+
+  @@map("ifrs_lease_contracts")
+}
+
+model LeaseAmortizationSchedule {
+  id                 Int               @id @default(autoincrement())
+  contractId         Int               @map("contract_id")
+  contract           IfrsLeaseContract @relation(fields: [contractId], references: [id])
+  periodNumber       Int               @map("period_number")
+  paymentDate        DateTime          @map("payment_date")
+  payment            Float
+  interestExpense    Float             @map("interest_expense")
+  principalReduction Float             @map("principal_reduction")
+  liabilityBalance   Float             @map("liability_balance")
+  rouDepreciation    Float             @map("rou_depreciation")
+  rouBalance         Float             @map("rou_balance")
+  status             String            @default("PENDING") // PENDING, POSTED
+  journalEntryId     Int?              @map("journal_entry_id")
+
+  @@map("ifrs_lease_schedules")
+}
+
+model LeaseModification {
+  id                  Int               @id @default(autoincrement())
+  contractId          Int               @map("contract_id")
+  contract            IfrsLeaseContract @relation(fields: [contractId], references: [id])
+  modificationDate    DateTime          @map("modification_date")
+  modificationType    String            @map("modification_type") // EXTENSION, REDUCTION, RATE_CHANGE, PAYMENT_CHANGE
+  oldLiability        Float             @map("old_liability")
+  newLiability        Float             @map("new_liability")
+  remeasurementAmount Float             @map("remeasurement_amount")
+  newDiscountRate     Float?            @map("new_discount_rate")
+  journalEntryId      Int?              @map("journal_entry_id")
+
+  @@map("ifrs_lease_modifications")
+}
+
+// ==================== IFRS 15 Revenue Recognition ====================
+
+model DeferredRevenueSchedule {
+  id                Int          @id @default(autoincrement())
+  invoiceId         Int          @map("invoice_id")
+  invoice           SalesInvoice @relation(fields: [invoiceId], references: [id])
+  totalAmount       Float        @map("total_amount")
+  recognizedAmount  Float        @default(0) @map("recognized_amount")
+  remainingAmount   Float        @map("remaining_amount")
+  startDate         DateTime     @map("start_date")
+  endDate           DateTime     @map("end_date")
+  recognitionMethod String       @map("recognition_method") // STRAIGHT_LINE, MILESTONE
+  status            String       @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+
+  lines RevenueRecognitionLine[]
+
+  @@map("deferred_revenue_schedules")
+}
+
+model RevenueRecognitionLine {
+  id                Int                     @id @default(autoincrement())
+  scheduleId        Int                     @map("schedule_id")
+  schedule          DeferredRevenueSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  periodDate        DateTime                @map("period_date")
+  amountToRecognize Float                   @map("amount_to_recognize")
+  isRecognized      Boolean                 @default(false) @map("is_recognized")
+  recognizedAt      DateTime?               @map("recognized_at")
+  journalEntryId    Int?                    @map("journal_entry_id")
+
+  @@map("revenue_recognition_lines")
+}
+
+// ==================== IAS 36 Asset Impairment & Revaluation ====================
+
+model AssetImpairment {
+  id                Int      @id @default(autoincrement())
+  assetId           Int      @map("asset_id")
+  asset             Asset    @relation(fields: [assetId], references: [id])
+  date              DateTime
+  carryingAmount    Float    @map("carrying_amount")
+  recoverableAmount Float    @map("recoverable_amount")
+  impairmentLoss    Float    @map("impairment_loss")
+  reason            String?
+  journalEntryId    Int?     @map("journal_entry_id")
+
+  @@map("asset_impairments")
+}
+
+model AssetRevaluation {
+  id                 Int      @id @default(autoincrement())
+  assetId            Int      @map("asset_id")
+  asset              Asset    @relation(fields: [assetId], references: [id])
+  date               DateTime
+  carryingAmount     Float    @map("carrying_amount")
+  fairValue          Float    @map("fair_value")
+  revaluationSurplus Float    @map("revaluation_surplus") // If positive
+  revaluationDeficit Float    @map("revaluation_deficit") // If negative
+  evaluatorName      String?  @map("evaluator_name")
+  journalEntryId     Int?     @map("journal_entry_id")
+
+  @@map("asset_revaluations")
+}
+
+// ==================== Custom Report Builder (Phase 9) ====================
+
+model CustomReport {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  module      String  @default("FINANCIAL") // FINANCIAL, SALES, PURCHASES, INVENTORY, MANUFACTURING
+  config      Json // Stores selected dimensions, measures, filters, sort orders, and chart types
+  isPublic    Boolean @default(false) @map("is_public")
+
+  createdBy Int      @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  schedules ReportSchedule[]
+
+  @@map("custom_reports")
+}
+
+model ReportSchedule {
+  id       Int          @id @default(autoincrement())
+  reportId Int          @map("report_id")
+  report   CustomReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  format          String @default("EXCEL") // EXCEL, PDF, CSV
+  frequency       String @default("WEEKLY") // DAILY, WEEKLY, MONTHLY
+  emailRecipients String @map("email_recipients") // Comma separated emails
+
+  lastRunAt DateTime? @map("last_run_at")
+  nextRunAt DateTime? @map("next_run_at")
+  status    String    @default("ACTIVE") // ACTIVE, PAUSED
+
+  createdBy Int      @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("report_schedules")
+}
+
+// ==================== AR/AP Mastery (Phase C) ====================
+
+model DunningLevel {
+  id            Int     @id @default(autoincrement())
+  levelNumber   Int     @map("level_number") // 1, 2, 3, 4
+  name          String // e.g., "Friendly Reminder", "Final Notice"
+  daysOverdue   Int     @map("days_overdue") // 10, 30, 60
+  feeAmount     Float   @default(0) @map("fee_amount") // Dunning fee
+  interestRate  Float   @default(0) @map("interest_rate")
+  emailTemplate String  @map("email_template") @db.Text
+  blockAccount  Boolean @default(false) @map("block_account")
+
+  @@map("dunning_levels")
+}
+
+model DunningLetter {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id])
+  invoiceId  Int?     @map("invoice_id") // Can be null if sending account statement
+  levelId    Int      @map("level_id")
+
+  issuedDate DateTime @default(now()) @map("issued_date")
+  dueDate    DateTime @map("due_date")
+
+  outstandingAmount Float @map("outstanding_amount")
+  dunningFee        Float @map("dunning_fee")
+  totalDue          Float @map("total_due")
+
+  status     String @default("ISSUED") // ISSUED, PAID, CANCELLED, ESCALATED
+  pdfContent Bytes? @map("pdf_content") // Optional stored PDF
+
+  @@map("dunning_letters")
+}
+
+// ==================== Enterprise BPM / Workflow (Phase F) ====================
+
+model BpmWorkflow {
+  id           Int    @id @default(autoincrement())
+  name         String
+  entityType   String @map("entity_type") // e.g., PurchaseOrder, JournalEntry, LeaveRequest
+  triggerEvent String @map("trigger_event") // ON_CREATE, ON_UPDATE, MANUAL
+
+  // JSON array representing nodes and edges (Start -> Step 1 -> Step 2 -> End)
+  definition Json
+
+  isActive Boolean @default(true) @map("is_active")
+  version  Int     @default(1)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  instances BpmInstance[]
+
+  @@map("bpm_workflows")
+}
+
+model BpmInstance {
+  id         Int         @id @default(autoincrement())
+  workflowId Int         @map("workflow_id")
+  workflow   BpmWorkflow @relation(fields: [workflowId], references: [id])
+
+  entityId Int @map("entity_id") // ID of the specific PO or JE
+
+  status        String @default("RUNNING") // RUNNING, COMPLETED, CANCELLED, FAILED
+  currentStepId String @map("current_step_id") // Node ID from JSON definition
+  contextData   Json?  @map("context_data") // Variables collected during execution
+
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  tasks BpmTask[]
+
+  @@map("bpm_instances")
+}
+
+model BpmTask {
+  id         Int         @id @default(autoincrement())
+  instanceId Int         @map("instance_id")
+  instance   BpmInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  stepId   String @map("step_id")
+  taskName String @map("task_name")
+
+  assigneeId   Int?    @map("assignee_id") // Specific user
+  assigneeRole String? @map("assignee_role") // Or role (e.g., Finance Manager)
+
+  status   String  @default("PENDING") // PENDING, APPROVED, REJECTED, ESCALATED
+  comments String? @db.Text
+
+  slaDueDate  DateTime? @map("sla_due_date")
+  escalatedTo Int?      @map("escalated_to")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+
+  @@map("bpm_tasks")
 }

@@ -17,7 +17,6 @@ export class ApprovalEngine {
             where: {
                 documentType: docType,
                 isActive: true,
-                ...(branchId ? { branchId } : {}),
             },
             orderBy: {
                 level: 'asc'

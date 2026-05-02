@@ -58,6 +58,7 @@ async function createJournalEntry(params: {
     date?: string;
     currencyId?: number | null;
     exchangeRate?: number;
+    status?: string;
 }): Promise<{ success: boolean; entryId?: number; error?: string }> {
     try {
         // Validate: total debit must equal total credit
@@ -90,6 +91,17 @@ async function createJournalEntry(params: {
         const entryNumber = await getNextEntryNumber();
         const entryDate = params.date || new Date().toISOString().split('T')[0];
 
+        // Ensure Fiscal Period is OPEN
+        const [year, month] = entryDate.split('-').map(Number);
+        if (year && month) {
+            const period = await prisma.fiscalPeriod.findUnique({
+                where: { year_month: { year, month } }
+            });
+            if (period && period.status !== 'open') {
+                return { success: false, error: `الفترة المالية (${month}/${year}) مغلقة أو مقفلة، لا يمكن إضافة قيود جديدة.` };
+            }
+        }
+
         // Create entry + lines in transaction
         const entry = await prisma.journalEntry.create({
             data: {
@@ -99,8 +111,9 @@ async function createJournalEntry(params: {
                 reference: params.reference,
                 totalDebit: Math.round(totalDebit * 100) / 100,
                 totalCredit: Math.round(totalCredit * 100) / 100,
-                status: 'posted',
+                status: params.status || 'draft',
                 createdBy: params.userId,
+
                 branchId: params.branchId,
                 // @ts-ignore - Local VSCode lock bypass
                 currencyId: params.currencyId || null,
@@ -165,6 +178,7 @@ export async function postSalesInvoice(invoice: {
     branchId?: number | null;
     date?: string;
     discountValue?: number;
+    totalCost?: number; // تكلفة البضاعة المباعة
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
 
@@ -227,6 +241,24 @@ export async function postSalesInvoice(invoice: {
         });
     }
 
+    // Cost of Goods Sold (Perpetual Inventory)
+    if (invoice.totalCost && invoice.totalCost > 0) {
+        // Debit COGS
+        lines.push({
+            accountCode: ACCOUNTS.COGS,
+            debit: invoice.totalCost,
+            credit: 0,
+            description: `تكلفة بضاعة مباعة فاتورة #${invoice.invoiceNo}`,
+        });
+        // Credit Inventory
+        lines.push({
+            accountCode: ACCOUNTS.INVENTORY,
+            debit: 0,
+            credit: invoice.totalCost,
+            description: `صرف مخزون مباع فاتورة #${invoice.invoiceNo}`,
+        });
+    }
+
     return createJournalEntry({
         description: `فاتورة بيع #${invoice.invoiceNo}`,
         reference: `SALE-${invoice.invoiceNo}`,
@@ -273,9 +305,9 @@ export async function postPurchaseInvoice(invoice: {
         }
     }
 
-    // Debit: COGS (or Inventory) - Base Cost + Landed Costs
+    // Debit: INVENTORY - Base Cost + Landed Costs
     lines.push({
-        accountCode: ACCOUNTS.COGS,
+        accountCode: ACCOUNTS.INVENTORY,
         debit: invoice.subtotal + totalLandedCost,
         credit: 0,
         description: `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''}`,
@@ -357,19 +389,28 @@ export async function postSalesReturn(ret: {
     returnNo: number;
     total: number;
     taxValue: number;
+    totalCost?: number;
     userId?: number;
     branchId?: number | null;
     date?: string;
 }) {
     const netAmount = ret.total - ret.taxValue;
+    const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [
+        { accountCode: ACCOUNTS.SALES_RETURNS, debit: netAmount, credit: 0 },
+        { accountCode: ACCOUNTS.VAT_OUTPUT, debit: ret.taxValue, credit: 0 },
+        { accountCode: ACCOUNTS.CASH, debit: 0, credit: ret.total },
+    ];
+
+    if (ret.totalCost && ret.totalCost > 0) {
+        // Reverse COGS
+        lines.push({ accountCode: ACCOUNTS.INVENTORY, debit: ret.totalCost, credit: 0, description: `استرجاع مخزون - مرتجع #${ret.returnNo}` });
+        lines.push({ accountCode: ACCOUNTS.COGS, debit: 0, credit: ret.totalCost, description: `عكس تكلفة بضاعة مباعة - مرتجع #${ret.returnNo}` });
+    }
+
     return createJournalEntry({
         description: `مرتجع مبيعات #${ret.returnNo}`,
         reference: `SRET-${ret.returnNo}`,
-        lines: [
-            { accountCode: ACCOUNTS.SALES_RETURNS, debit: netAmount, credit: 0 },
-            { accountCode: ACCOUNTS.VAT_OUTPUT, debit: ret.taxValue, credit: 0 },
-            { accountCode: ACCOUNTS.CASH, debit: 0, credit: ret.total },
-        ],
+        lines,
         userId: ret.userId,
         branchId: ret.branchId,
         date: ret.date,
@@ -614,4 +655,5 @@ export async function postMaterialIssueToWIP(params: {
 /**
  * Create manual journal entry
  */
-export { createJournalEntry };
+export { createJournalEntry, ACCOUNTS };
+
