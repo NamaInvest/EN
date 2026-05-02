@@ -512,9 +512,9 @@ export default function RestaurantPOS() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = isTaxInclusive 
-        ? total - (total / (1 + (0.15))) 
-        : total * 0.15; // 15% VAT
+    const tax = taxEnabled ? (isTaxInclusive 
+        ? total - (total / (1 + (taxRate / 100))) 
+        : total * (taxRate / 100)) : 0;
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -782,6 +782,7 @@ export default function RestaurantPOS() {
                 </div>
 
                 {/* Coupon Input Box Container */}
+                {couponsEnabled && (
                 <FeatureGuard featureKey="pos_coupon_module">
                     <div style={{ padding: '0.75rem 1rem', background: '#f1f5f9', borderBottom: '1px solid #ddd', display: 'flex', gap: '0.5rem' }}>
                         <input 
@@ -802,6 +803,7 @@ export default function RestaurantPOS() {
                         )}
                     </div>
                 </FeatureGuard>
+                )}
 
                 <div className="numpad-section" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
