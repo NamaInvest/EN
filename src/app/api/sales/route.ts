@@ -143,7 +143,7 @@ export async function POST(request: Request) {
 
 
         // Calculate totals — support dynamic tax rate and inclusive/exclusive VAT mode
-        const bodyTaxRate = Number(body.taxRate) || 15; // rate sent from frontend settings
+        const bodyTaxRate = body.taxRate !== undefined ? Number(body.taxRate) : 15; // rate sent from frontend settings
         const bodyTaxInclusive = body.isTaxInclusive === true || String(body.isTaxInclusive) === 'true';
         let subtotal = 0;
         const items = body.items || [];
