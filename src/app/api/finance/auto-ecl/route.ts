@@ -1,0 +1,63 @@
+import { NextResponse, NextRequest } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+
+export async function POST(req: NextRequest) {
+    const prisma = getPrisma(req as any);
+    try {
+        const auth = getUserFromRequest(req);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const user = await prisma.user.findUnique({ where: { id: auth.userId } });
+        if (!user || (user.role !== 'admin' && user.role !== 'cfo')) {
+            return NextResponse.json({ error: 'غير مصرح لك بتوليد المخصصات. هذه الصلاحية للمدير المالي (CFO) والمدير العام (Admin) فقط.' }, { status: 403 });
+        }
+
+        const now = new Date();
+        const pendingInvoices = await prisma.salesInvoice.findMany({
+            where: { remaining: { gt: 0 } },
+            select: { id: true, invoiceNo: true, remaining: true, date: true }
+        });
+
+        let totalProvision = 0;
+        pendingInvoices.forEach(inv => {
+            const days = Math.floor((now.getTime() - inv.date.getTime()) / (1000 * 3600 * 24));
+            if (days > 90) {
+                // IFRS 9: Provision 5% of debts older than 90 days
+                totalProvision += inv.remaining * 0.05;
+            }
+        });
+
+        if (totalProvision <= 0) {
+            return NextResponse.json({ message: 'لا توجد ديون تتطلب تكوين مخصص (No ECL required)' }, { status: 200 });
+        }
+
+        // Generate Journal Entry
+        const je = await prisma.$transaction(async (tx: any) => {
+            const entry = await tx.journalEntry.create({
+                data: {
+                    date: new Date(),
+                    description: 'إثبات مخصص ديون مشكوك في تحصيلها آلياً (Auto-ECL IFRS 9)',
+                    reference: 'ECL-' + Date.now(),
+                    lines: {
+                        create: [
+                            { accountId: 5150, debit: totalProvision, credit: 0, description: 'مصروف ديون مشكوك فيها' },
+                            { accountId: 1135, debit: 0, credit: totalProvision, description: 'مخصص ديون مشكوك فيها (Contra-Asset)' }
+                        ]
+                    }
+                }
+            });
+            return entry;
+        });
+
+        return NextResponse.json({ 
+            message: 'تم توليد مخصص خسائر الائتمان المتوقعة بنجاح', 
+            provisionAmount: totalProvision,
+            journalEntry: je.reference
+        }, { status: 201 });
+
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+    }
+}

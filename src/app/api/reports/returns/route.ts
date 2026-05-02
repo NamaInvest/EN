@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
         const auth = getUserFromRequest(req);
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
         const stocks = await prisma.stock.findMany({ select: { id: true, name: true } });
         const stockMap = Object.fromEntries(stocks.map(s => [s.id, s.name]));
 
-        const formattedReturns = returns.map(r => ({
+        const formattedReturns = returns.map((r: any) => ({
             ...r,
             destinationStockName: r.destinationStockId ? (stockMap[r.destinationStockId] || 'مستودع مجهول') : 'المستودع الرئيسي'
         }));
