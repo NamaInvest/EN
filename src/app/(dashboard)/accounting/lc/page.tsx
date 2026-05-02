@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { Ship, Landmark, LandmarkIcon, Building2, Plus, Info } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function LcManagementPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [lcs, setLcs] = useState<any[]>([]);
     const [banks, setBanks] = useState<any[]>([]);

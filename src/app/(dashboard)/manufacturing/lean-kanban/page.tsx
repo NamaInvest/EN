@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Columns, PlayCircle, CheckCircle2, MoreHorizontal, Leaf, QrCode, ArrowRightLeft, RadioReceiver } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function LeanKanbanPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 

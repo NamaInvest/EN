@@ -6,6 +6,8 @@ import { RefreshCw, Plus, Clock, PlayCircle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function RecurringInvoicesPage() {
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { t, lang } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';

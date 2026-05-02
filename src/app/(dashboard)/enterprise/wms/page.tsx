@@ -208,7 +208,7 @@ export default function EnterpriseWMS() {
                             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{t('sys.str_1972')}</h3>
                             <p style={{ fontSize: '13px', opacity: 0.9, marginBottom: '20px', lineHeight: 1.6 }}>
                                 {t('sys.str_1973')}</p>
-                            <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 'bold', border: 'none' }}>{t('sys.str_1974')}</button>
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 'bold', border: 'none' }}>{t('sys.str_1974')}</button>
                         </div>
                     </div>
                 </div>
@@ -251,7 +251,7 @@ export default function EnterpriseWMS() {
                                 )}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? '...' : t('sys.str_1989')}</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" disabled={saving}>{saving ? '...' : t('sys.str_1989')}</button>
                                 </div>
                             </form>
                         </div>

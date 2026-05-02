@@ -13,6 +13,8 @@ import PrintButton from '@/components/PrintButton';
 import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
 import { ToastProvider } from '@/components/Toast';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,6 +24,10 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     return (
         <I18nProvider>
             <SettingsProvider>

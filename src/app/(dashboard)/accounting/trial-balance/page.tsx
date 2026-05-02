@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { Scale, FileText, ChevronDown, ChevronRight, Download, Filter } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function TrialBalancePage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [accounts, setAccounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

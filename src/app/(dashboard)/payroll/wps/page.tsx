@@ -1,8 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function WPSPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [batches, setBatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     

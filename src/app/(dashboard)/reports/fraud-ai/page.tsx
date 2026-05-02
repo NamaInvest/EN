@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Alert {
     severity: 'low' | 'medium' | 'high';
@@ -17,6 +18,8 @@ interface FraudInsights {
 }
 
 export default function FraudMonitoringPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [insights, setInsights] = useState<FraudInsights | null>(null);

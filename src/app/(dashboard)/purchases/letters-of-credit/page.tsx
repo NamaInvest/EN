@@ -257,7 +257,7 @@ export default function LettersOfCreditPage() {
                             </div>
 
                             <div className="modal-footer" style={{ marginTop: '20px' }}>
-                                <button type="submit" className="btn btn-primary">{t('purchases.str_2292')}</button>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary">{t('purchases.str_2292')}</button>
                                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">{t('fin.str_206')}</button>
                             </div>
                         </form>

@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function AIBankPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<string | null>(null);

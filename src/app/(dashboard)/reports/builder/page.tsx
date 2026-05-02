@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react';
 import { LayoutDashboard, Filter, Columns, BarChart2, Save, Play, Download, Send } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CustomReportBuilder() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [dataset, setDataset] = useState('sales');
     const [dimensions, setDimensions] = useState(['customerId']);
     const [measures, setMeasures] = useState([{ field: 'totalAmount', aggregation: 'sum' }]);
@@ -16,11 +22,11 @@ export default function CustomReportBuilder() {
                     <p className="text-gray-500 mt-1 text-sm">Design custom BI reports with drag-and-drop dimensions & measures</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
                         <Save className="w-4 h-4 mr-2 text-gray-500" />
                         Save Report
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <Play className="w-4 h-4 mr-2" />
                         Run Report
                     </button>
@@ -82,7 +88,7 @@ export default function CustomReportBuilder() {
                                     {dimensions.map(dim => (
                                         <span key={dim} className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             {dim}
-                                            <button type="button" className="ml-1.5 inline-flex text-blue-500 hover:text-blue-600 focus:outline-none">
+                                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="button" className="ml-1.5 inline-flex text-blue-500 hover:text-blue-600 focus:outline-none">
                                                 <span>&times;</span>
                                             </button>
                                         </span>
@@ -95,7 +101,7 @@ export default function CustomReportBuilder() {
                                     {measures.map((m, i) => (
                                         <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                             {m.aggregation}({m.field})
-                                            <button type="button" className="ml-1.5 inline-flex text-green-500 hover:text-green-600 focus:outline-none">
+                                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="button" className="ml-1.5 inline-flex text-green-500 hover:text-green-600 focus:outline-none">
                                                 <span>&times;</span>
                                             </button>
                                         </span>
@@ -120,10 +126,10 @@ export default function CustomReportBuilder() {
                                 <LayoutDashboard className="w-4 h-4 mr-2" /> Data Preview
                             </h3>
                             <div className="flex space-x-2">
-                                <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="p-1.5 text-gray-400 hover:text-gray-600 rounded">
                                     <Download className="w-4 h-4" />
                                 </button>
-                                <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="p-1.5 text-gray-400 hover:text-gray-600 rounded">
                                     <Send className="w-4 h-4" />
                                 </button>
                             </div>

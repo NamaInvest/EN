@@ -2,8 +2,14 @@
 
 import React from 'react';
 import { RefreshCw, Search, CheckCircle, AlertTriangle, FileText, UploadCloud, Link } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function BankReconciliation() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
             <div className="flex justify-between items-center pb-6 shrink-0">
@@ -19,11 +25,11 @@ export default function BankReconciliation() {
                         <option>Al Rajhi Bank (SAR) - STMT-2026-05</option>
                         <option>SNB (USD) - STMT-2026-05</option>
                     </select>
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center dark:bg-gray-800 dark:text-white dark:border-gray-700">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center dark:bg-gray-800 dark:text-white dark:border-gray-700">
                         <UploadCloud className="w-4 h-4 mr-2 text-indigo-600" />
                         Import MT940
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 flex items-center">
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Run Auto-Match
                     </button>
@@ -141,10 +147,10 @@ export default function BankReconciliation() {
                                 </div>
                             </div>
 
-                            <button className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md flex justify-center items-center">
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md flex justify-center items-center">
                                 <Link className="w-4 h-4 mr-2" /> Match Selected
                             </button>
-                            <button className="w-full py-2 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-md">
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="w-full py-2 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-md">
                                 Search Manually
                             </button>
                         </div>

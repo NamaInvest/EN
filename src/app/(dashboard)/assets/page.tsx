@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { Truck, Car, Building, Wrench, Plus, Calculator, History } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function FixedAssetsPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

@@ -5,6 +5,7 @@ import { useSettings } from '@/lib/SettingsContext';
 
 import { QZPrinterConfig } from '@/lib/qz';
 import { useToast } from '@/components/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 interface DiscountRule {
     minAmount: number;
@@ -13,6 +14,9 @@ interface DiscountRule {
 }
 
 export default function SalesOptionsPage() {
+    const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { getSetting, refreshSettings, loading: settingsLoading } = useSettings();
     const [loading, setLoading] = useState(true);
     const { error: toastError, success: toastSuccess } = useToast();

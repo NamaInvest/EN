@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Factory, Search, TrendingUp, AlertTriangle, PackageOpen, Boxes, Plus, Hammer, CheckCircle2, Cog, Flame } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function MRPDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ activeOrders: 12, lowStock: 5, completionRate: 85, outputToday: 1450 });
     const [orders, setOrders] = useState([
@@ -44,7 +50,7 @@ export default function MRPDashboard() {
                             <p className="text-slate-400 mt-1">مراقبة أوامر التشغيل، استهلاك المواد، ومراحل الإنتاج</p>
                         </div>
                     </div>
-                    <button className="flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-orange-500/30">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-orange-500/30">
                         <Plus className="w-5 h-5 ml-2" /> أمر تشغيل جديد
                     </button>
                 </div>

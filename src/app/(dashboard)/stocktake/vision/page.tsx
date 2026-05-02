@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface VisionResult {
     productId: number | null;
@@ -16,6 +17,8 @@ interface VisionResult {
 }
 
 export default function VisionInventoryPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);

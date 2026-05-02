@@ -3,8 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { BrainCircuit, TrendingUp, AlertTriangle, Lightbulb, PackageOpen, DollarSign, Activity } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function AICFOPage() {
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { t, lang } = useTranslation();
     const isRTL = lang === 'ar';
 

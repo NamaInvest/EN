@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product { id: number; name: string; sellPrice: number; barcode: string | null }
 interface QuoteItem { productId: number | null; productName: string; quantity: number; price: number }
@@ -8,6 +9,9 @@ interface QuoteDetail { productName: string; quantity: number; price: number; to
 interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: QuoteDetail[] }
 
 export default function PriceQuotesPage() {
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { t } = useTranslation();
     const [quotes, setQuotes]           = useState<Quote[]>([]);
     const [expanded, setExpanded]       = useState<number | null>(null);

@@ -6,6 +6,8 @@ import { Truck, PackageCheck, Send, ArrowRightLeft, RefreshCw, AlertTriangle } f
 import { useToast } from '@/components/Toast';
 
 export default function SmartTransfersPage() {
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { t, lang } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';
@@ -217,7 +219,7 @@ export default function SmartTransfersPage() {
                             </div>
                             
                             <div className="flex justify-end pt-4">
-                                <button 
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
                                     type="submit"
                                     disabled={loading}
                                     className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"

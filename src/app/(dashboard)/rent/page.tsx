@@ -3,11 +3,17 @@
 import React, { useState } from 'react';
 import { Home, Building2, Receipt, Plus, Minus, Save, User, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 // Using Google Fonts for elegant typography
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Cinzel:wght@600&display=swap');`;
 
 export default function RentDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const router = useRouter();
     const [customerId, setCustomerId] = useState('');
     const [details, setDetails] = useState([
@@ -195,7 +201,7 @@ export default function RentDashboard() {
                                 </div>
                             </div>
 
-                            <button 
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
                                 type="submit" 
                                 disabled={loading || total === 0}
                                 className="w-full flex items-center justify-center py-4 px-6 bg-[#0369A1] hover:bg-[#0284C7] text-white rounded-xl font-bold text-lg transition-all shadow-[0_4px_14px_0_rgba(3,105,161,0.39)] hover:shadow-[0_6px_20px_rgba(3,105,161,0.23)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer relative z-10"

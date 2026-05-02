@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Clock, UserCheck, CalendarDays, ArrowRightToLine, ArrowLeftFromLine, ShieldAlert } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function AttendanceDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [records, setRecords] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

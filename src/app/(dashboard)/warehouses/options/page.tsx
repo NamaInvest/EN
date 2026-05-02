@@ -7,6 +7,8 @@ import { useSettings } from '@/lib/SettingsContext';
 import { useToast } from '@/components/Toast';
 
 export default function WarehouseOptionsPage() {
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { lang } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);

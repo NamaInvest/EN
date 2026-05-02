@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Plus, Activity, Search, ShieldCheck, Wallet, ArrowDownRight, Clock } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function LoansDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [loans, setLoans] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -198,7 +204,7 @@ export default function LoansDashboard() {
                                 <input type="text" value={reason} onChange={e => setReason(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" />
                             </div>
                             <div className="flex space-x-4 space-x-reverse pt-4">
-                                <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30">اعتماد السلفة</button>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30">اعتماد السلفة</button>
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl font-medium transition-all">إلغاء</button>
                             </div>
                         </form>

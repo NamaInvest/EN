@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Calculator, Save, UserCircle, Receipt, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function PayrollProcessPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [employees, setEmployees] = useState<any[]>([]);
     const [employeeId, setEmployeeId] = useState('');
     const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
@@ -271,7 +277,7 @@ export default function PayrollProcessPage() {
                                 </div>
                             </div>
 
-                            <button 
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
                                 type="submit" 
                                 disabled={loading || totals.net === 0 || !employeeId}
                                 className="w-full flex items-center justify-center py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed group"

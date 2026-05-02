@@ -237,7 +237,7 @@ export default function EnterpriseLegal() {
                                 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px', gridColumn: '1 / -1' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>{t('sys.str_1821')}</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" disabled={saving}>{t('sys.str_1821')}</button>
                                 </div>
                             </form>
                         </div>

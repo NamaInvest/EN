@@ -1,8 +1,11 @@
 
 'use client';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function AICopilotPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6 flex flex-col items-center justify-center min-h-[60vh] text-center">

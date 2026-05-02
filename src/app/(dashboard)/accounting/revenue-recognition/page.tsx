@@ -2,8 +2,14 @@
 
 import React from 'react';
 import { Calendar, TrendingUp, CheckCircle, Search, Clock, FileSpreadsheet } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function RevenueRecognitionDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -12,7 +18,7 @@ export default function RevenueRecognitionDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">Deferred Revenue Schedules & Performance Obligations</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <CheckCircle className="w-4 h-4 mr-2" />
                         Run Monthly Recognition
                     </button>

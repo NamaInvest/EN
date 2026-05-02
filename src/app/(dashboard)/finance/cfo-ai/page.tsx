@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, DollarSign, BrainCircuit, TrendingUp, AlertOctagon, TrendingDown, RefreshCcw, ShieldAlert, Target } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CFOAIPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -102,7 +108,7 @@ export default function CFOAIPage() {
                                                 </td>
                                                 <td className="py-4 text-slate-400 text-xs w-1/3 leading-relaxed">{rec.reason}</td>
                                                 <td className="py-4">
-                                                    <button className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-lg shadow-indigo-500/20">
+                                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-lg shadow-indigo-500/20">
                                                         <RefreshCcw className="w-3 h-3 ml-1" /> تطبيق 
                                                     </button>
                                                 </td>
@@ -138,7 +144,7 @@ export default function CFOAIPage() {
                             <div className="mt-8 p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
                                 <h4 className="text-xs font-bold text-indigo-400 mb-2 flex items-center"><TrendingUp className="w-3 h-3 ml-1" /> توصية جدار الحماية المالي</h4>
                                 <p className="text-xs text-slate-400">النظام يقترح تجميد البيع الآجل للعميل الذهبي حتى سداد 50% من المستحقات لتجنب أزمة سيولة (Liquidity Crunch).</p>
-                                <button className="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition-colors">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition-colors">
                                     تفعيل التجميد الآلي
                                 </button>
                             </div>

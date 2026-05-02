@@ -25,6 +25,8 @@ interface AiAlert {
 }
 
 export default function DashboardPage() {
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<DashboardData | null>(null);
     const { error: toastError, success: toastSuccess } = useToast();
     const [loading, setLoading] = useState(true);

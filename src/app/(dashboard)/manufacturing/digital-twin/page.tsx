@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Network, Bot, Link, Cpu, Sparkles, AlertTriangle, PlayCircle, Settings2, ShieldCheck, Factory } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function DigitalTwinPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [simulating, setSimulating] = useState(false);
@@ -140,7 +146,7 @@ export default function DigitalTwinPage() {
                                 ))}
                             </div>
                             <div className="mt-4 text-center">
-                                <button className="text-xs text-slate-400 hover:text-white flex items-center justify-center w-full">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs text-slate-400 hover:text-white flex items-center justify-center w-full">
                                     <Settings2 className="w-3 h-3 ml-1" /> إعدادات العقود الذكية (Smart Contracts)
                                 </button>
                             </div>

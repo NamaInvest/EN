@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CommissionRulesPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
   const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +25,7 @@ export default function CommissionRulesPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🎯 Sales Commissions - Rules & Tiers</h1>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
           + Add New Target Rule
         </button>
       </div>

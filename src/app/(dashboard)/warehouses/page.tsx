@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Building, AlertCircle, DollarSign, TrendingUp, AlertTriangle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function WarehousesPage() {
+    const { success, info, error } = useToast();
+
   const { t } = useTranslation();
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -297,7 +300,7 @@ export default function WarehousesPage() {
                 >
                   {t("cancel")}
                 </button>
-                <button
+                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))} 
                   type="submit"
                   className="px-4 py-2 bg-primary text-black font-bold rounded shadow hover:bg-primary/90"
                 >

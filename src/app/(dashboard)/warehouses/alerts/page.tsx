@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, AlertCircle, PackageSearch, RefreshCcw, ShoppingCart } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function LowStockAlertsPage() {
+    const { success, info, error } = useToast();
+
   const { t } = useTranslation();
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

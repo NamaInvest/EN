@@ -7,6 +7,8 @@ import { useSettings } from '@/lib/SettingsContext';
 import { useToast } from '@/components/Toast';
 
 export default function CompanyInfoPage() {
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const { lang } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
@@ -452,7 +454,7 @@ export default function CompanyInfoPage() {
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: '600', fontSize: '13px' }}>{s.label}</div>
                                 </div>
-                                <button className={`btn btn-sm ${fatooraStep >= s.step ? 'btn-success' : 'btn-primary'}`} onClick={() => handleFatooraAction(s.action)} disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)} style={{ minWidth: '80px' }}>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className={`btn btn-sm ${fatooraStep >= s.step ? 'btn-success' : 'btn-primary'}`} onClick={() => handleFatooraAction(s.action)} disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)} style={{ minWidth: '80px' }}>
                                     {fatooraLoading ? '⏳' : (fatooraStep >= s.step ? t('sys.str_4559') : t('sys.str_4560'))}
                                 </button>
                             </div>

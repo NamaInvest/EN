@@ -1,8 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { CalendarClock, Server, Activity, AlertCircle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function SchedulerPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [schedule, setSchedule] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 

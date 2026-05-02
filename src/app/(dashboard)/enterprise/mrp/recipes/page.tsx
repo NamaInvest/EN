@@ -240,7 +240,7 @@ export default function BOMRecipes() {
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" disabled={saving}>
                                         <Save size={18} style={{ marginLeft: '6px' }} />
                                         {saving ? t('sys.str_2839') : t('sys.str_2840')}
                                     </button>

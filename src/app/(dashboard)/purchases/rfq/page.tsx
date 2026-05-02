@@ -109,9 +109,9 @@ export default function RequestForQuotationPage() {
                                 <td>{statusBadge(r.status)}</td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>
-                                        <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2337')}</button>
-                                        {r.status === 'draft' && <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2338')}</button>}
-                                        {r.status === 'received' && <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#10b981', color: 'white' }}>{t('purchases.str_2339')}</button>}
+                                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2337')}</button>
+                                        {r.status === 'draft' && <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2338')}</button>}
+                                        {r.status === 'received' && <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#10b981', color: 'white' }}>{t('purchases.str_2339')}</button>}
                                     </div>
                                 </td>
                             </tr>
@@ -184,7 +184,7 @@ export default function RequestForQuotationPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('fin.str_206')}</button>
-                            <button type="submit" className="btn btn-primary">{t('purchases.str_2320')}</button>
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary">{t('purchases.str_2320')}</button>
                         </div>
                     </form>
                 </div>

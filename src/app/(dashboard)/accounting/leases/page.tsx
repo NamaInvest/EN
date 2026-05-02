@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react';
 import { Building, TrendingDown, Clock, Search, Plus, FileText, ChevronRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function LeasesDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -12,11 +18,11 @@ export default function LeasesDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">Lease Contracts, ROU Assets & Amortization Schedules</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
                         <TrendingDown className="w-4 h-4 mr-2" />
                         Run Monthly Posting
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <Plus className="w-4 h-4 mr-2" />
                         New Contract
                     </button>
@@ -106,7 +112,7 @@ export default function LeasesDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-blue-600">
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
                                         <ChevronRight className="w-5 h-5" />
                                     </button>
                                 </td>
@@ -136,7 +142,7 @@ export default function LeasesDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-blue-600">
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
                                         <ChevronRight className="w-5 h-5" />
                                     </button>
                                 </td>

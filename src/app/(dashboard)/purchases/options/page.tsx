@@ -1,8 +1,11 @@
 'use client';
 
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function PurchasesOptionsPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
 
     return (

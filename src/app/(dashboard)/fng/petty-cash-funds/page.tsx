@@ -275,7 +275,7 @@ export default function PettyCashFundsPage() {
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" disabled={saving}>
                                         {saving ? t('sys.str_852') : t('sys.str_2120')}
                                     </button>
                                 </div>

@@ -227,7 +227,7 @@ export default function LandedCostsPage() {
                                 <option value="quantity">{t('sys.str_2895')}</option>
                             </select>
                         </div>
-                        <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
                             {t('sys.str_2896')}</button>
                     </form>
                 </div>

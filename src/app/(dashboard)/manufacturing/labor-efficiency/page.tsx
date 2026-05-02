@@ -1,8 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Users, TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function LaborEfficiencyPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 

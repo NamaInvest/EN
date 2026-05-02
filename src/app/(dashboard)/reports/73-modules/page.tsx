@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 import {
   Building2, Calculator, Users, Shield, Globe,
   Activity, ShoppingCart, Zap, CreditCard, LayoutDashboard, Database,
@@ -134,6 +136,10 @@ interface ModuleData {
 }
 
 export default function AllModulesDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedMod, setSelectedMod] = useState<ModuleData | null>(null);

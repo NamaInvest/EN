@@ -1,8 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Microscope, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function QCPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [orders, setOrders] = useState([]);
     const [checks, setChecks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -91,7 +97,7 @@ export default function QCPage() {
                             <textarea className="w-full border p-2 rounded" rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
                         </div>
                         <div className="md:col-span-2 flex justify-end">
-                            <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">اعتماد الفحص</button>
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">اعتماد الفحص</button>
                         </div>
                     </form>
                 </div>

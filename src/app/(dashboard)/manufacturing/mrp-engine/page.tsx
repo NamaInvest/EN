@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Cpu, Zap, Activity, AlertTriangle, TrendingDown, ShoppingCart, RefreshCcw, Wifi, BarChart3, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function MRPEnginePage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [running, setRunning] = useState(false);
@@ -98,7 +104,7 @@ export default function MRPEnginePage() {
                                                                 <td className="py-3 text-slate-500 font-mono">{item.currentStock.toFixed(2)}</td>
                                                                 <td className="py-3 text-rose-400 font-mono font-bold bg-rose-500/5 px-2 rounded">{item.shortageQty.toFixed(2)}</td>
                                                                 <td className="py-3">
-                                                                    <button className="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition-colors flex items-center">
+                                                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition-colors flex items-center">
                                                                         <ShoppingCart className="w-3 h-3 ml-1" /> إصدار PO
                                                                     </button>
                                                                 </td>
@@ -127,7 +133,7 @@ export default function MRPEnginePage() {
                                         <p className="text-sm text-slate-400">الربط مع الباركود وتتبع تشغيلات المنتج النهائي نشط.</p>
                                     </div>
                                 </div>
-                                <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-300 border border-slate-700">سجل التتبع</button>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-300 border border-slate-700">سجل التتبع</button>
                             </div>
                         </div>
 

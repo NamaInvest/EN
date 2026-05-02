@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react';
 import { FileText, ArrowRightLeft, Search, PlusCircle, CheckCircle, Save, Settings } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CashApplicationPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [strategy, setStrategy] = useState('FIFO');
     const [isAutoApplying, setIsAutoApplying] = useState(false);
 
@@ -32,11 +38,11 @@ export default function CashApplicationPage() {
                     <p className="text-gray-500 mt-1 text-sm">Allocate incoming customer payments to open invoices (AR Automation)</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 flex items-center">
                         <Settings className="w-4 h-4 mr-2" />
                         Rules
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <Save className="w-4 h-4 mr-2" />
                         Post Batch
                     </button>
@@ -126,7 +132,7 @@ export default function CashApplicationPage() {
                             </div>
                             <div className="text-right">
                                 <div className="font-bold text-gray-900 dark:text-white">12,500 SAR</div>
-                                <button className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 flex items-center transition-opacity">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 flex items-center transition-opacity">
                                     Apply Full <ArrowRightLeft className="w-3 h-3 ml-1" />
                                 </button>
                             </div>
@@ -140,7 +146,7 @@ export default function CashApplicationPage() {
                             </div>
                             <div className="text-right">
                                 <div className="font-bold text-gray-900 dark:text-white">8,000 SAR</div>
-                                <button className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 flex items-center transition-opacity">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 flex items-center transition-opacity">
                                     Apply Full <ArrowRightLeft className="w-3 h-3 ml-1" />
                                 </button>
                             </div>
@@ -168,7 +174,7 @@ export default function CashApplicationPage() {
                                     <div className="font-medium text-sm text-gray-900 dark:text-white">INV-2026-092</div>
                                     <div className="text-xs text-gray-500">Original: 30,000 SAR</div>
                                 </div>
-                                <button className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs text-red-500 hover:text-red-700">Remove</button>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
@@ -193,7 +199,7 @@ export default function CashApplicationPage() {
                                     <div className="font-medium text-sm text-gray-900 dark:text-white">INV-2026-104</div>
                                     <div className="text-xs text-gray-500">Original: 20,000 SAR</div>
                                 </div>
-                                <button className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs text-red-500 hover:text-red-700">Remove</button>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>

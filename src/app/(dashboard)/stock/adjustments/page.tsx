@@ -160,7 +160,7 @@ export default function StockAdjustmentsPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('fin.str_206')}</button>
-                            <button type="submit" disabled={diff === null || diff === 0} className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white', opacity: (diff === null || diff === 0) ? 0.5 : 1 }}>{t('stock.str_2637')}</button>
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" disabled={diff === null || diff === 0} className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white', opacity: (diff === null || diff === 0) ? 0.5 : 1 }}>{t('stock.str_2637')}</button>
                         </div>
                     </form>
                 </div>

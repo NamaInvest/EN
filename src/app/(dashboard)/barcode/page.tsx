@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface Product {
     id: number;
@@ -19,6 +20,8 @@ const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSiz
 ];
 
 export default function BarcodePage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState('');

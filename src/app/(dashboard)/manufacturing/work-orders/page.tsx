@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Cog, Plus, PlayCircle, CheckCircle2, Factory, Search, AlertCircle, TrendingUp } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function WorkOrdersPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [orders, setOrders] = useState<any[]>([]);
     const [recipes, setRecipes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -157,7 +163,7 @@ export default function WorkOrdersPage() {
                         </div>
 
                         <div className="flex justify-end pt-4 border-t border-slate-800">
-                            <button disabled={loading} type="submit" className="flex items-center px-8 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-600/20 disabled:opacity-50">
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  disabled={loading} type="submit" className="flex items-center px-8 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-600/20 disabled:opacity-50">
                                 {loading ? 'جاري الجدولة...' : <><Cog className="w-5 h-5 ml-2" /> اعتماد أوامر التشغيل</>}
                             </button>
                         </div>

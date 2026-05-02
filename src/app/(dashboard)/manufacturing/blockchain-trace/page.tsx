@@ -1,8 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Link, ShieldCheck, Database, Search } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function BlockchainTracePage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [ledger, setLedger] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchOrder, setSearchOrder] = useState('');

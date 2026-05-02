@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Activity, Database, Server, Cpu, HardDrive, RefreshCw } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function SystemHealthDashboard() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);

@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 export default function HRJobsPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

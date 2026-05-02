@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle, Clock, Search, FileText, Lock } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function ThreeWayMatchingPage() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const [activeTab, setActiveTab] = useState('ALL');
 
     return (
@@ -14,10 +20,10 @@ export default function ThreeWayMatchingPage() {
                     <p className="text-gray-500 mt-1 text-sm">Automated AP Invoice matching (PO ↔ GRN ↔ Invoice)</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                         Tolerance Settings
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                         Run Batch Matching
                     </button>
                 </div>
@@ -190,14 +196,14 @@ export default function ThreeWayMatchingPage() {
                         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Resolution Workflow</h3>
                             <div className="flex gap-4">
-                                <button className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm flex justify-center items-center">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm flex justify-center items-center">
                                     <CheckCircle className="w-4 h-4 mr-2" />
                                     Force Approve (Accept Price)
                                 </button>
-                                <button className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md shadow-sm">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md shadow-sm">
                                     Request Vendor Credit Note
                                 </button>
-                                <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm">
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm">
                                     Reject Invoice
                                 </button>
                             </div>

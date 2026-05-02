@@ -3,11 +3,17 @@
 import React, { useState } from 'react';
 import { GraduationCap, BookOpen, Library, Plus, Minus, Check, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 // Academic English + Chunky Arabic font pairing for Claymorphism
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=EB+Garamond:wght@600;700;800&display=swap');`;
 
 export default function SchoolDashboard() {
+    const { lang } = useTranslation();
+    const { success, info, error } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
     const router = useRouter();
     const [studentId, setStudentId] = useState('');
     const [details, setDetails] = useState([
@@ -200,7 +206,7 @@ export default function SchoolDashboard() {
                                 </div>
                             </div>
 
-                            <button 
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
                                 type="submit" 
                                 disabled={loading || total === 0}
                                 className="w-full flex items-center justify-center py-5 px-6 bg-[#10B981] text-white rounded-2xl font-bold text-xl border-[3px] border-[#059669] shadow-[0_8px_0_#059669] hover:shadow-[0_2px_0_#059669] hover:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer relative z-10"

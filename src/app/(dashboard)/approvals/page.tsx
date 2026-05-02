@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import { Check, X, Clock } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function ApprovalsPage() {
+    const { success, info, error } = useToast();
+
     const { t } = useTranslation();
     const [steps, setSteps] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
