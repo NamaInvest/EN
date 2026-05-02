@@ -204,7 +204,7 @@ export default function SchoolDashboard() {
                                 </div>
                             </div>
 
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
+                            <button   
                                 type="submit" 
                                 disabled={loading || total === 0}
                                 className="w-full flex items-center justify-center py-5 px-6 bg-[#10B981] text-white rounded-2xl font-bold text-xl border-[3px] border-[#059669] shadow-[0_8px_0_#059669] hover:shadow-[0_2px_0_#059669] hover:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer relative z-10"

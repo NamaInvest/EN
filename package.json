@@ -60,6 +60,7 @@
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.4.1",
     "recharts": "^3.7.0",
+    "showdown": "^2.1.0",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^12.1.0",
     "tesseract.js": "^7.0.0",

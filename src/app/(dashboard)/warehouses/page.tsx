@@ -300,7 +300,7 @@ export default function WarehousesPage() {
                 >
                   {t("cancel")}
                 </button>
-                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))} 
+                <button  
                   type="submit"
                   className="px-4 py-2 bg-primary text-black font-bold rounded shadow hover:bg-primary/90"
                 >

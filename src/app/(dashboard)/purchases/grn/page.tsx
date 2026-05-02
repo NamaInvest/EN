@@ -115,8 +115,8 @@ export default function GoodsReceiptNotePage() {
                                 <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}><CheckCircle size={12} style={{display:'inline', marginRight:'4px'}}/> {t('purchases.str_2249')}</span></td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '5px' }}>
-                                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2250')}</button>
-                                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2251')}</button>
+                                        <button   className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2250')}</button>
+                                        <button   className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2251')}</button>
                                     </div>
                                 </td>
                             </tr>
@@ -188,7 +188,7 @@ export default function GoodsReceiptNotePage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('purchases.str_2263')}</button>
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" style={{ backgroundColor: '#10b981' }}><Package size={16} style={{display:'inline', marginRight:'5px'}}/> {t('purchases.str_2264')}</button>
+                            <button   type="submit" className="btn btn-primary" style={{ backgroundColor: '#10b981' }}><Package size={16} style={{display:'inline', marginRight:'5px'}}/> {t('purchases.str_2264')}</button>
                         </div>
                     </form>
                 </div>

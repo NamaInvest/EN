@@ -24,7 +24,7 @@ export default function SystemAlertsPage() {
     <div className="p-6" dir="rtl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{t('sys.str_2679')}</h1>
-        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-slate-500 hover:text-slate-800 font-medium transition">
+        <button   className="text-slate-500 hover:text-slate-800 font-medium transition">
           {t('sys.str_2680')}</button>
       </div>
 

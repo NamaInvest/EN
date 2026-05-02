@@ -275,7 +275,7 @@ export default function PayrollProcessPage() {
                                 </div>
                             </div>
 
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
+                            <button   
                                 type="submit" 
                                 disabled={loading || totals.net === 0 || !employeeId}
                                 className="w-full flex items-center justify-center py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed group"

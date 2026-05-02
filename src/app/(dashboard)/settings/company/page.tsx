@@ -453,7 +453,7 @@ export default function CompanyInfoPage() {
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: '600', fontSize: '13px' }}>{s.label}</div>
                                 </div>
-                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className={`btn btn-sm ${fatooraStep >= s.step ? 'btn-success' : 'btn-primary'}`} onClick={() => handleFatooraAction(s.action)} disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)} style={{ minWidth: '80px' }}>
+                                <button   className={`btn btn-sm ${fatooraStep >= s.step ? 'btn-success' : 'btn-primary'}`} onClick={() => handleFatooraAction(s.action)} disabled={fatooraLoading || (s.step > 1 && fatooraStep < s.step - 1)} style={{ minWidth: '80px' }}>
                                     {fatooraLoading ? '⏳' : (fatooraStep >= s.step ? t('sys.str_4559') : t('sys.str_4560'))}
                                 </button>
                             </div>

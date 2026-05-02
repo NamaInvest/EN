@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        let schedules = await prisma.deferredRevenueSchedule.findMany({
+        let schedules = await (prisma as any).deferredRevenueSchedule.findMany({
             include: { invoice: true, lines: true },
             orderBy: { id: 'desc' }
         });
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
                 });
             }
 
-            const schedule = await prisma.deferredRevenueSchedule.create({
+            const schedule = await (prisma as any).deferredRevenueSchedule.create({
                 data: {
                     invoiceId: invoice.id,
                     totalAmount: 120000,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         // Mock running monthly recognition
-        const schedules = await prisma.deferredRevenueSchedule.findMany({
+        const schedules = await (prisma as any).deferredRevenueSchedule.findMany({
             where: { status: 'ACTIVE' }
         });
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
                 const newRecognized = Math.min(schedule.recognizedAmount + amountToRecognize, schedule.totalAmount);
                 const newRemaining = schedule.totalAmount - newRecognized;
                 
-                await prisma.deferredRevenueSchedule.update({
+                await (prisma as any).deferredRevenueSchedule.update({
                     where: { id: schedule.id },
                     data: {
                         recognizedAmount: newRecognized,

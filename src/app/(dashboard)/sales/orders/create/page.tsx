@@ -197,7 +197,7 @@ export default function CreateSalesOrderPage() {
                     <div className="flex justify-end gap-3 mt-6">
                         <button type="button" onClick={() => router.push('/sales/orders')} className="px-6 py-3 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 transition">
                             {t('sys.str_487')}</button>
-                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" disabled={loading} className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 transition disabled:opacity-50">
+                        <button   type="submit" disabled={loading} className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 transition disabled:opacity-50">
                             {loading ? t('sys.str_454') : t('sys.str_448')}
                         </button>
                     </div>

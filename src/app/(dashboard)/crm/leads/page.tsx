@@ -110,7 +110,7 @@ export default function LeadsPipelineView() {
 
             {/* Sub Nav */}
             <div className="flex bg-white rounded-lg p-1 border shadow-sm w-max mb-6">
-                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-6 py-2 rounded-md bg-gray-100/80 font-bold text-gray-800 text-sm">{t('sys.str_1745')}</button>
+                <button   className="px-6 py-2 rounded-md bg-gray-100/80 font-bold text-gray-800 text-sm">{t('sys.str_1745')}</button>
                 <button className="px-6 py-2 text-gray-500 hover:bg-gray-50 rounded-md font-semibold text-sm transition" onClick={() => alert('Kanban Boards are part of the next component iteration!')}>{t('sys.str_1746')}</button>
             </div>
 

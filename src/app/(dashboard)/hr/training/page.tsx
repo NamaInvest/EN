@@ -115,7 +115,7 @@ export default function TrainingCoursesPage() {
               </div>
               <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">{t('fin.str_206')}</button>
-                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">{t('sys.str_4638')}</button>
+                <button   type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">{t('sys.str_4638')}</button>
               </div>
             </form>
           </div>

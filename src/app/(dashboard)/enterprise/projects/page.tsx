@@ -223,7 +223,7 @@ export default function EnterpriseProjects() {
                                     {t('sys.str_1876')}{project.startDate ? new Date(project.startDate).toLocaleDateString('en-GB') : t('sys.str_1894')}
                                 </div>
                                 
-                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }}>
+                                <button   className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '12px', color: 'var(--primary)' }}>
                                     {t('sys.str_1877')}<ChevronRight size={14} />
                                 </button>
                                 <button className="btn btn-primary btn-sm" onClick={() => router.push(`/enterprise/projects/${project.id}`)} title={t('sys.str_1895')} style={{ padding: '6px' }}>
@@ -303,7 +303,7 @@ export default function EnterpriseProjects() {
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
-                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" disabled={saving}>
+                                    <button   type="submit" className="btn btn-primary" disabled={saving}>
                                         {saving ? t('sys.str_852') : t('sys.str_1899')}
                                     </button>
                                 </div>

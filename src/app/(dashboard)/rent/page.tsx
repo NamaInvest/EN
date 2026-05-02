@@ -199,7 +199,7 @@ export default function RentDashboard() {
                                 </div>
                             </div>
 
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  
+                            <button   
                                 type="submit" 
                                 disabled={loading || total === 0}
                                 className="w-full flex items-center justify-center py-4 px-6 bg-[#0369A1] hover:bg-[#0284C7] text-white rounded-xl font-bold text-lg transition-all shadow-[0_4px_14px_0_rgba(3,105,161,0.39)] hover:shadow-[0_6px_20px_rgba(3,105,161,0.23)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer relative z-10"

@@ -102,7 +102,7 @@ export default function BPMDashboard() {
                     <div className="p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center z-10">
                         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">{_t('اعتماد أمر الشراء (المصمم)', 'Purchase Order Approval (Designer)')}</h3>
                         <div className="flex space-x-2">
-                            <button onClick={() => info(_t('إعدادات العقدة...', 'Node settings...'))} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded dark:hover:bg-gray-700"><Settings className="w-4 h-4" /></button>
+                            <button  className="p-1.5 text-gray-500 hover:bg-gray-100 rounded dark:hover:bg-gray-700"><Settings className="w-4 h-4" /></button>
                         </div>
                     </div>
                     

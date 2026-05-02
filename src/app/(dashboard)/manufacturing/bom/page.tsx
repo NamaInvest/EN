@@ -27,11 +27,11 @@ export default function BOMExplosionPage() {
                     <p className="text-gray-500 mt-1 text-sm">Bill of Materials Explosion & Where-Used Analysis</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
+                    <button   className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
                         <Wrench className="w-4 h-4 mr-2" />
                         ECO Approvals
                     </button>
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <Plus className="w-4 h-4 mr-2" />
                         New BOM Version
                     </button>
@@ -54,7 +54,7 @@ export default function BOMExplosionPage() {
                             <span className="text-sm text-gray-500">Target Qty:</span>
                             <input type="number" defaultValue={50} className="w-20 border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-3 text-sm dark:bg-gray-700 dark:text-white" />
                         </div>
-                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded hover:bg-gray-300">
+                        <button   className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded hover:bg-gray-300">
                             Explode
                         </button>
                     </div>

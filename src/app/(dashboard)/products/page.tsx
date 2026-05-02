@@ -514,7 +514,7 @@ export default function ProductsPage() {
                         <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>{t('sys.str_883')}</button>
                         <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
                             {t('sys.str_884')}{page} {t('sys.str_885')}{totalPages} ({products.length} {t('sys.str_886')}</span>
-                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>{t('sys.str_887')}</button>
+                        <button   className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>{t('sys.str_887')}</button>
                     </div>
                 )}
             </div>

@@ -12,7 +12,7 @@ export default function PriceQuotesPage() {
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const [quotes, setQuotes]           = useState<Quote[]>([]);
     const [expanded, setExpanded]       = useState<number | null>(null);
     const [loading, setLoading]         = useState(true);

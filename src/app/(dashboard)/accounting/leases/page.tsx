@@ -62,7 +62,7 @@ export default function LeasesDashboard() {
                         <TrendingDown className="w-4 h-4 mr-2" />
                         Run Monthly Posting
                     </button>
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <Plus className="w-4 h-4 mr-2" />
                         New Contract
                     </button>
@@ -157,7 +157,7 @@ export default function LeasesDashboard() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
+                                        <button   className="text-gray-400 hover:text-blue-600">
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
                                     </td>

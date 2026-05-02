@@ -144,7 +144,7 @@ export default function DigitalTwinPage() {
                                 ))}
                             </div>
                             <div className="mt-4 text-center">
-                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-xs text-slate-400 hover:text-white flex items-center justify-center w-full">
+                                <button   className="text-xs text-slate-400 hover:text-white flex items-center justify-center w-full">
                                     <Settings2 className="w-3 h-3 ml-1" /> إعدادات العقود الذكية (Smart Contracts)
                                 </button>
                             </div>

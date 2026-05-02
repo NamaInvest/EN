@@ -117,7 +117,7 @@ export default function BankReconciliationPage() {
                         <label className="input-label">{t('sys.str_2709')}</label>
                         <input type="number" step="0.01" className="input" required value={form.statementBalance} onChange={e => setForm({...form, statementBalance: e.target.value})} />
                     </div>
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" disabled={loading} className="btn btn-primary" style={{ marginTop: '10px' }}>
+                    <button   type="submit" disabled={loading} className="btn btn-primary" style={{ marginTop: '10px' }}>
                         {loading ? t('sys.str_168') : t('sys.str_2722')}
                     </button>
                 </form>

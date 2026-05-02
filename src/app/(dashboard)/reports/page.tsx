@@ -139,7 +139,7 @@ export default function ReportsPage() {
             <h1>${reportTitle}</h1>
             <div class="date">${dateFrom || dateTo ? `من ${dateFrom || '-'} إلى ${dateTo || '-'}` : new Date().toLocaleDateString('en-GB')}${userName ? ` | المستخدم: ${userName}` : ''}</div>
             ${summaryHtml}${tableHtml}
-            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  onclick="window.print()" style="margin-top:20px;padding:10px 24px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">🖨️ طباعة</button>
+            <button   onclick="window.print()" style="margin-top:20px;padding:10px 24px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">🖨️ طباعة</button>
         </body></html>`);
         printWindow.document.close();
     };

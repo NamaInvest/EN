@@ -70,7 +70,7 @@ export default function FixedAssetsPage() {
             <div className="toolbar">
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('fin.str_1994')}</span>
                 <div className="toolbar-spacer" />
-                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-outline" style={{ fontSize: '12px' }}><Printer size={16} style={{display:'inline', marginRight:'4px'}}/> {t('fin.str_1995')}</button>
+                <button   className="btn btn-outline" style={{ fontSize: '12px' }}><Printer size={16} style={{display:'inline', marginRight:'4px'}}/> {t('fin.str_1995')}</button>
                 <button onClick={() => setShowModal(true)} className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>
                     <Plus size={16} style={{marginRight:'5px'}} /> {t('sys.str_334')}</button>
             </div>
@@ -177,7 +177,7 @@ export default function FixedAssetsPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('fin.str_206')}</button>
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>{t('fin.str_2019')}</button>
+                            <button   type="submit" className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>{t('fin.str_2019')}</button>
                         </div>
                     </form>
                 </div>

@@ -23,7 +23,7 @@ export default function CommissionRulesPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">🎯 Sales Commissions - Rules & Tiers</h1>
-        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+        <button   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
           + Add New Target Rule
         </button>
       </div>

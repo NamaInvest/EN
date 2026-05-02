@@ -95,7 +95,7 @@ export default function QCPage() {
                             <textarea className="w-full border p-2 rounded" rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
                         </div>
                         <div className="md:col-span-2 flex justify-end">
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">اعتماد الفحص</button>
+                            <button   type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">اعتماد الفحص</button>
                         </div>
                     </form>
                 </div>

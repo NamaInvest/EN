@@ -80,7 +80,7 @@ export default function WorkCentersPage() {
                             <input required type="number" step="0.1" className="w-full border p-2 rounded" value={formData.capacity} onChange={e => setFormData({...formData, capacity: parseFloat(e.target.value)})} />
                         </div>
                         <div className="md:col-span-2 flex justify-end">
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">حفظ المركز</button>
+                            <button   type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">حفظ المركز</button>
                         </div>
                     </form>
                 </div>

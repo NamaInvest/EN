@@ -106,7 +106,7 @@ export default function EmployeeEvaluationsPage() {
               </div>
               <div className="mt-6 flex justify-end gap-3">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">إلغاء</button>
-                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ التقييم</button>
+                <button   type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ التقييم</button>
               </div>
             </form>
           </div>

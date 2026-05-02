@@ -48,7 +48,7 @@ export default function MRPDashboard() {
                             <p className="text-slate-400 mt-1">مراقبة أوامر التشغيل، استهلاك المواد، ومراحل الإنتاج</p>
                         </div>
                     </div>
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-orange-500/30">
+                    <button   className="flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-orange-500/30">
                         <Plus className="w-5 h-5 ml-2" /> أمر تشغيل جديد
                     </button>
                 </div>

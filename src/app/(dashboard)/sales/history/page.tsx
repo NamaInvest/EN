@@ -171,7 +171,7 @@ export default function SalesHistoryPage() {
                         />
                     </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
                             {loading ? t('sales.str_2424') : t('sales.str_2425')}
                         </button>
                         <button type="button" className="btn btn-secondary" onClick={resetFilters} title={t('sales.str_2426')}>

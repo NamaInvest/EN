@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const matches = await prisma.threeWayMatch.findMany({
+        const matches = await (prisma as any).threeWayMatch.findMany({
             include: {
                 invoice: { select: { invoiceNo: true, total: true, supplier: { select: { name: true } } } },
                 purchaseOrder: { select: { orderNo: true, total: true } },
@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 });
         }
 
-        const match = await prisma.threeWayMatch.update({
+        const match = await (prisma as any).threeWayMatch.update({
             where: { id: matchId },
             data: { matchStatus: status }
         });

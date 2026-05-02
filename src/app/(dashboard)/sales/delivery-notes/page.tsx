@@ -103,7 +103,7 @@ export default function DeliveryNotesPage() {
                                 <td><span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}>{t('sales.str_2400')}</span></td>
                                 <td>{n.details?.length || 0}</td>
                                 <td>
-                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('sales.str_2401')}</button>
+                                    <button   className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('sales.str_2401')}</button>
                                 </td>
                             </tr>
                         ))}
@@ -165,7 +165,7 @@ export default function DeliveryNotesPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                             <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('sales.str_2409')}</button>
-                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  type="submit" className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white' }}><Truck size={16} style={{display:'inline', marginRight:'5px'}}/> {t('sales.str_2410')}</button>
+                            <button   type="submit" className="btn btn-primary" style={{ backgroundColor: '#f59e0b', color: 'white' }}><Truck size={16} style={{display:'inline', marginRight:'5px'}}/> {t('sales.str_2410')}</button>
                         </div>
                     </form>
                 </div>
