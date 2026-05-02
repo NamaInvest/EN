@@ -20,7 +20,7 @@ const LABEL_SIZES: { value: string; label: string; w: string; h: string; fontSiz
 ];
 
 export default function BarcodePage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [products, setProducts] = useState<Product[]>([]);

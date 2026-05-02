@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function LowStockAlertsPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
   const { t } = useTranslation();
   const [alerts, setAlerts] = useState<any[]>([]);

@@ -8,7 +8,7 @@ import { useToast } from '@/components/Toast';
 
 export default function PayslipViewer() {
     const { lang } = useTranslation();
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const params = useParams();

@@ -137,7 +137,7 @@ interface ModuleData {
 
 export default function AllModulesDashboard() {
     const { lang } = useTranslation();
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
   const router = useRouter();

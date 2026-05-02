@@ -6,7 +6,7 @@ import { Check, X, Clock } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function ApprovalsPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [steps, setSteps] = useState<any[]>([]);

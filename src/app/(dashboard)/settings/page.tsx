@@ -70,9 +70,9 @@ export function getSettingGroups(t: (key: string) => string) {
     ];
 }
 export default function SettingsPage() {
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-
+    
     const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { error: toastError, success: toastSuccess } = useToast();
     const router = useRouter();
     // Create fresh t fn from translate + lang every render - bypasses any context reference issues

@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default function PayrollProcessPage() {
     const { lang } = useTranslation();
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const [employees, setEmployees] = useState<any[]>([]);

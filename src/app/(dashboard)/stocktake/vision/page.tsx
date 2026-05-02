@@ -17,7 +17,7 @@ interface VisionResult {
 }
 
 export default function VisionInventoryPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [imagePreview, setImagePreview] = useState<string | null>(null);

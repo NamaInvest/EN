@@ -9,7 +9,7 @@ interface QuoteDetail { productName: string; quantity: number; price: number; to
 interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: QuoteDetail[] }
 
 export default function PriceQuotesPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const { t } = useTranslation();

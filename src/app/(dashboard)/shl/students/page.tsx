@@ -5,7 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function StudentsPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
     const { t } = useTranslation();
   const [students, setStudents] = useState<any[]>([]);

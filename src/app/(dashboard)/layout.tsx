@@ -25,7 +25,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const { lang } = useTranslation();
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     return (

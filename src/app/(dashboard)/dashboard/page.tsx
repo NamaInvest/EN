@@ -25,8 +25,7 @@ interface AiAlert {
 }
 
 export default function DashboardPage() {
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-
+    
     const [data, setData] = useState<DashboardData | null>(null);
     const { error: toastError, success: toastSuccess } = useToast();
     const [loading, setLoading] = useState(true);
@@ -37,6 +36,7 @@ export default function DashboardPage() {
     const [loadingAi, setLoadingAi] = useState(false);
 
     const { t, lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     // ── حماية لوحة القيادة — فقط مالك/admin/مدير نظام ──
     useEffect(() => {

@@ -18,7 +18,7 @@ interface FraudInsights {
 }
 
 export default function FraudMonitoringPage() {
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);

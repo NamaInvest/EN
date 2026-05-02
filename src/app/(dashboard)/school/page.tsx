@@ -11,7 +11,7 @@ const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Readex
 
 export default function SchoolDashboard() {
     const { lang } = useTranslation();
-    const { success, info, error } = useToast();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const router = useRouter();

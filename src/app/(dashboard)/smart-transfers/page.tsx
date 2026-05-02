@@ -6,9 +6,9 @@ import { Truck, PackageCheck, Send, ArrowRightLeft, RefreshCw, AlertTriangle } f
 import { useToast } from '@/components/Toast';
 
 export default function SmartTransfersPage() {
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-
+    
     const { t, lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';
 
