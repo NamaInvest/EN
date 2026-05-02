@@ -59,6 +59,34 @@ export async function POST(request: Request) {
         const items = body.items || [];
         const isManual = body.isManual === true;
         let subtotal = isManual ? (Number(body.manualSubtotal) || 0) : 0;
+
+        const purchaseOrderId = body.purchaseOrderId ? Number(body.purchaseOrderId) : null;
+        let calculatedPpv = 0;
+        let poTotalAmount = 0;
+        let poTotalQuantity = 0;
+        let invoiceTotalQuantity = 0;
+
+        if (purchaseOrderId && !isManual) {
+            const po = await (prisma.purchaseOrder as any).findUnique({
+                where: { id: purchaseOrderId },
+                include: { details: true }
+            });
+            if (po) {
+                for (const item of items) {
+                    const poLine = po.details.find((d) => d.productId === Number(item.productId));
+                    if (poLine) {
+                        const invPrice = Number(item.price) || 0;
+                        const poPrice = Number(poLine.price) || 0;
+                        const qty = Number(item.quantity) || 1;
+                        const linePpv = (invPrice - poPrice) * qty;
+                        calculatedPpv += linePpv;
+                        poTotalAmount += poPrice * qty;
+                        poTotalQuantity += qty;
+                    }
+                    invoiceTotalQuantity += Number(item.quantity) || 1;
+                }
+            }
+        }
         
         if (!isManual) {
             for (const item of items) { const t = (Number(item.quantity) || 1) * (Number(item.price) || 0); subtotal += t - t * ((Number(item.discountRate) || 0) / 100); }
@@ -81,6 +109,8 @@ export async function POST(request: Request) {
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
                     paymentType,
                     status, receiptStatus, userId, branchId, notes: body.notes || null,
+                    purchaseOrderId,
+                    ppvAmount: calculatedPpv,
                     details: {
                         create: items.map((item: { productId: number; productName: string; quantity: number; price: number; discountRate: number }) => {
                             const qty = Number(item.quantity) || 1;
@@ -140,6 +170,25 @@ export async function POST(request: Request) {
                 });
             }
 
+            if (purchaseOrderId) {
+                const varianceThreshold = subtotal * 0.05;
+                await (tx as any).threeWayMatch.create({
+                    data: {
+                        invoiceId: createdInvoice.id,
+                        purchaseOrderId,
+                        poTotalAmount,
+                        poTotalQuantity,
+                        grnTotalAmount: subtotal - calculatedPpv,
+                        grnTotalQuantity: invoiceTotalQuantity,
+                        invoiceTotalAmount: subtotal,
+                        invoiceTotalQuantity,
+                        varianceAmount: calculatedPpv,
+                        varianceQuantity: invoiceTotalQuantity - poTotalQuantity,
+                        matchStatus: Math.abs(calculatedPpv) > varianceThreshold ? 'pending' : 'approved',
+                    }
+                });
+            }
+
             return createdInvoice;
         });
 
@@ -154,6 +203,7 @@ export async function POST(request: Request) {
                 userId: userId || undefined,
                 branchId: branchId || undefined,
                 date: new Date().toISOString().split('T')[0],
+                ppvAmount: calculatedPpv,
             });
         } catch (journalErr) {
             console.warn('Auto-journal for purchase skipped:', journalErr);

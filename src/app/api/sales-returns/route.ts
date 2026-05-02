@@ -25,6 +25,8 @@ export async function POST(request: Request) {
         const body = salesReturnCreateSchema.parse(rawBody);
 
         let branchId = body.branchId ? Number(body.branchId) : null;
+        const destinationStockId = body.destinationStockId ? Number(body.destinationStockId) : null;
+        const restockingFee = body.restockingFee ? Number(body.restockingFee) : 0;
         
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
@@ -105,6 +107,8 @@ export async function POST(request: Request) {
                     userId, 
                     branchId, 
                     notes: body.notes || null,
+                    destinationStockId,
+                    restockingFee,
                     details: {
                         create: processedItems
                     }
@@ -112,8 +116,8 @@ export async function POST(request: Request) {
                 include: { details: true }
             });
 
-            // Restock Items safely
-            const targetStockId = originalInvoice?.stockId || 1; // Return to original stock or default
+            // Restock Items safely (Point 2: Destination Warehouse)
+            const targetStockId = destinationStockId || originalInvoice?.stockId || 1; 
             for (const item of processedItems) {
                 await tx.product.update({
                     where: { id: item.productId },
@@ -145,18 +149,54 @@ export async function POST(request: Request) {
                 }
             }
 
-            // Treasury out (Refund to customer)
-            if (createdReturn.total > 0) {
+            // Treasury out (Refund to customer) - Point 3: Financial Fees
+            const netRefund = createdReturn.total - restockingFee;
+            if (netRefund > 0) {
                 await tx.treasury.create({ 
                     data: { 
                         type: 'out', 
-                        amount: createdReturn.total, 
-                        description: `مرتجع مبيعات #${returnNo}${originalInvoice ? ` للفاتورة #${originalInvoice.invoiceNo}` : ''}`, 
+                        amount: netRefund, 
+                        description: `مرتجع مبيعات #${returnNo} (الصافي بعد الرسوم)`, 
                         referenceType: 'sales_return', 
                         referenceId: createdReturn.id, 
                         userId, 
                         branchId 
                     } 
+                });
+            }
+
+            // Create Auto-Invoice for Restocking Fee to comply with ZATCA (100% Legal Bypass)
+            if (restockingFee > 0) {
+                const feeSubtotal = restockingFee / 1.15;
+                const feeTax = restockingFee - feeSubtotal;
+                
+                const lastSi = await tx.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+                const newSiNo = lastSi ? lastSi.invoiceNo + 1 : 1000;
+
+                await tx.salesInvoice.create({
+                    data: {
+                        invoiceNo: newSiNo,
+                        customerId: body.customerId || null,
+                        subtotal: feeSubtotal,
+                        taxValue: feeTax,
+                        total: restockingFee,
+                        paid: restockingFee, // Auto-paid by deducting from return!
+                        paymentType: 'cash',
+                        notes: `فاتورة آلية: رسوم إعادة تخزين للمرتجع #${returnNo}`,
+                        userId,
+                        branchId,
+                        details: {
+                            create: [{
+                                productId: processedItems[0].productId, // Fallback to first item id to satisfy FK
+                                productName: 'رسوم إعادة تخزين (Restocking Fee)',
+                                quantity: 1,
+                                price: feeSubtotal,
+                                taxRate: 15,
+                                taxValue: feeTax,
+                                total: restockingFee
+                            }]
+                        }
+                    }
                 });
             }
 

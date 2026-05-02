@@ -68,6 +68,8 @@ export const purchaseCreateSchema = z.object({
   items: z.array(purchaseItemSchema).min(0),
   userId: numericId.optional().nullable(),
   branchId: numericId.optional().nullable(),
+  purchaseOrderId: numericId.optional().nullable(),
+  ppvAmount: z.number().or(z.string().transform(Number)).optional().nullable(),
 }).strip(); // strip unknown fields to prevent mass-assignment
 
 export const purchasePaymentSchema = z.object({
@@ -102,6 +104,8 @@ export const salesReturnCreateSchema = z.object({
   notes: z.string().optional().nullable(),
   userId: numericId.optional().nullable(),
   branchId: numericId.optional().nullable(),
+  destinationStockId: numericId.optional().nullable(),
+  restockingFee: z.number().or(z.string().transform(Number)).optional().nullable(),
 }).strip();
 
 // ── Salaries ──

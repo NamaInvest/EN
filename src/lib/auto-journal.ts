@@ -28,6 +28,7 @@ const ACCOUNTS = {
     PURCHASE_RETURNS: '5110', // مرتجعات المشتريات
     SHRINKAGE: '5120',      // مصروف عجز وتسوية مخزون
     MFG_VARIANCE: '5130',   // انحرافات تكاليف الإنتاج (Manufacturing Variance)
+    PPV: '5140',            // انحراف أسعار المشتريات (Purchase Price Variance)
     SALARIES: '5200',       // الرواتب
 };
 
@@ -285,6 +286,7 @@ export async function postPurchaseInvoice(invoice: {
     branchId?: number | null;
     date?: string;
     landedCosts?: Array<{ accountCode: string; amountValue: number; description: string }>;
+    ppvAmount?: number; // Purchase Price Variance
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
@@ -305,13 +307,26 @@ export async function postPurchaseInvoice(invoice: {
         }
     }
 
-    // Debit: INVENTORY - Base Cost + Landed Costs
+    const ppv = invoice.ppvAmount || 0;
+    const inventoryBase = invoice.subtotal - ppv;
+
+    // Debit: INVENTORY - Base Cost (Standard) + Landed Costs
     lines.push({
         accountCode: ACCOUNTS.INVENTORY,
-        debit: invoice.subtotal + totalLandedCost,
+        debit: inventoryBase + totalLandedCost,
         credit: 0,
-        description: `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''}`,
+        description: `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''} ${ppv !== 0 ? '(بالسعر المعياري)' : ''}`,
     });
+
+    // Debit/Credit: PPV (Purchase Price Variance)
+    if (Math.abs(ppv) > 0.01) {
+        lines.push({
+            accountCode: ACCOUNTS.PPV,
+            debit: ppv > 0 ? ppv : 0,           // Unfavorable (Paid more)
+            credit: ppv < 0 ? Math.abs(ppv) : 0, // Favorable (Paid less)
+            description: ppv > 0 ? `انحراف أسعار غير ملائم - فاتورة #${invoice.invoiceNo}` : `انحراف أسعار ملائم (توفير) - فاتورة #${invoice.invoiceNo}`,
+        });
+    }
 
     // Debit: VAT Input
     if (invoice.taxValue > 0) {
