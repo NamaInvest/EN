@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
-        const { customerId, salesRepId, notes, items, subtotal, taxValue, total, isTaxInclusive } = body;
+        const { customerId, salesRepId, notes, items, subtotal, taxValue, total, isTaxInclusive, isDropShip } = body;
 
         // @ts-ignore
         const lastOrder = await prisma.salesOrder.findFirst({ orderBy: { orderNo: 'desc' } });
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         });
 
         // @ts-ignore
-        const order = await prisma.salesOrder.create({
+        const order = await (prisma.salesOrder as any).create({
             data: {
                 orderNo: newOrderNo,
                 customerId: customerId ? parseInt(customerId) : null,
@@ -69,12 +69,42 @@ export async function POST(request: Request) {
                 taxValue: parseFloat(taxValue),
                 total: parseFloat(total),
                 status: 'pending',
+                isDropShip: !!isDropShip,
                 details: {
                     create: finalItems
                 }
             },
             include: { details: true }
         });
+
+        // 🚀 Auto-generate Purchase Order for Drop Shipping (The Magic Trigger)
+        if (isDropShip) {
+            const lastPo = await prisma.purchaseOrder.findFirst({ orderBy: { orderNo: 'desc' } });
+            const newPoNo = lastPo ? lastPo.orderNo + 1 : 2000;
+            
+            await (prisma.purchaseOrder as any).create({
+                data: {
+                    orderNo: newPoNo,
+                    salesOrderId: order.id,
+                    userId: auth.userId,
+                    // Note: This is a draft PO, cost can be updated by procurement later
+                    subtotal: parseFloat(subtotal), 
+                    taxValue: parseFloat(taxValue),
+                    total: parseFloat(total),
+                    status: 'pending',
+                    notes: `أمر شراء آلي (شحن مباشر - Drop Ship) لطلب المبيعات #${newOrderNo}`,
+                    details: {
+                        create: finalItems.map((fi: any) => ({
+                            productId: fi.productId,
+                            productName: fi.productName,
+                            quantity: fi.quantity,
+                            price: fi.price,
+                            total: fi.total
+                        }))
+                    }
+                }
+            });
+        }
 
         return NextResponse.json(order, { status: 201 });
     } catch (error: any) {

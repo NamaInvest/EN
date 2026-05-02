@@ -11,6 +11,6 @@ Write-Host "Uploading archive..."
 & $scp -o StrictHostKeyChecking=no -i $key "update_n11.tar.gz" "${ip}:${remoteBase}/update_n11.tar.gz"
 
 Write-Host "Extracting and building on server..."
-& $ssh -o StrictHostKeyChecking=no -i $key $ip "cd ${remoteBase} && tar -xzf update_n11.tar.gz && rm update_n11.tar.gz && npx prisma format && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart n11"
+& $ssh -o StrictHostKeyChecking=no -i $key $ip "cd ${remoteBase} && tar -xzf update_n11.tar.gz && rm update_n11.tar.gz && npx prisma format && npx prisma generate && npx prisma db push --accept-data-loss && npm run build && pm2 restart saas-app"
 
 Write-Host "Done!"

@@ -392,8 +392,10 @@ model PurchaseOrder {
   notes            String?
   isForeign        Boolean  @default(false) @map("is_foreign")
   letterOfCreditId Int?     @map("letter_of_credit_id")
+  salesOrderId     Int?     @map("sales_order_id")
 
   supplier       Customer?             @relation(fields: [supplierId], references: [id])
+  salesOrder     SalesOrder?           @relation(fields: [salesOrderId], references: [id])
   stock          Stock?                @relation(fields: [stockId], references: [id])
   user           User?                 @relation(name: "PurchaseOrderCreator", fields: [userId], references: [id])
   approver       User?                 @relation(name: "PurchaseOrderApprover", fields: [approvedBy], references: [id])
@@ -1740,13 +1742,15 @@ model SalesOrder {
   taxValue   Float    @default(0)
   total      Float    @default(0)
   status     String   @default("pending") // pending, approved, delivered, invoiced, cancelled
+  isDropShip Boolean  @default(false) @map("is_drop_ship")
   userId     Int?
   notes      String?
 
-  customer      Customer?          @relation(fields: [customerId], references: [id])
-  salesRep      Employee?          @relation(fields: [salesRepId], references: [id])
-  details       SalesOrderDetail[]
-  deliveryNotes DeliveryNote[]
+  customer       Customer?          @relation(fields: [customerId], references: [id])
+  salesRep       Employee?          @relation(fields: [salesRepId], references: [id])
+  details        SalesOrderDetail[]
+  deliveryNotes  DeliveryNote[]
+  purchaseOrders PurchaseOrder[]
 
   @@map("sales_orders")
 }
