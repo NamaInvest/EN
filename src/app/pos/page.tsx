@@ -243,9 +243,6 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = taxEnabled ? (isTaxInclusive 
-        ? total - (total / (1 + (taxRate / 100))) 
-        : total * (taxRate / 100)) : 0;
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -272,9 +269,21 @@ export default function POSPage() {
             }
         }
     }
+
+    const totalAfterDiscount = Math.max(0, total - finalDiscountValue);
+
+    const tax = taxEnabled ? (isTaxInclusive 
+        ? totalAfterDiscount - (totalAfterDiscount / (1 + (taxRate / 100))) 
+        : totalAfterDiscount * (taxRate / 100)) : 0;
+
     const finalTotal = isTaxInclusive 
-        ? Math.max(0, total - finalDiscountValue) 
-        : Math.max(0, total + tax - finalDiscountValue);
+        ? totalAfterDiscount 
+        : totalAfterDiscount + tax;
+
+    const baseTax = taxEnabled ? (isTaxInclusive ? total - (total / (1 + (taxRate / 100))) : total * (taxRate / 100)) : 0;
+    const displaySubtotal = isTaxInclusive ? (total - baseTax) : total;
+    const displayDiscount = isTaxInclusive ? (finalDiscountValue - (finalDiscountValue - (finalDiscountValue / (1 + (taxRate / 100))))) : finalDiscountValue;
+
 
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -505,12 +514,12 @@ export default function POSPage() {
                 <div className="cart-summary">
                     <div className="summary-row">
                         <span>{t('sys.str_768')}</span>
-                        <span>{total.toLocaleString()} {t('sys.str_68')}</span>
+                        <span>{displaySubtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} {t('sys.str_68')}</span>
                     </div>
                     {appliedCoupon && (
                         <div className="summary-row" style={{ color: '#10b981', fontWeight: 'bold' }}>
                             <span>{t('sys.str_4039')}{appliedCoupon.code})</span>
-                            <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} {t('sys.str_68')}</span>
+                            <span>- {displayDiscount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} {t('sys.str_68')}</span>
                         </div>
                     )}
                     <div className="summary-row">

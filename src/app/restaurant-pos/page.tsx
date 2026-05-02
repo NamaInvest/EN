@@ -513,9 +513,6 @@ export default function RestaurantPOS() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = taxEnabled ? (isTaxInclusive 
-        ? total - (total / (1 + (taxRate / 100))) 
-        : total * (taxRate / 100)) : 0;
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -542,9 +539,20 @@ export default function RestaurantPOS() {
             }
         }
     }
+
+    const totalAfterDiscount = Math.max(0, total - finalDiscountValue);
+
+    const tax = taxEnabled ? (isTaxInclusive 
+        ? totalAfterDiscount - (totalAfterDiscount / (1 + (taxRate / 100))) 
+        : totalAfterDiscount * (taxRate / 100)) : 0;
+
     const finalTotal = isTaxInclusive 
-        ? Math.max(0, total - finalDiscountValue) 
-        : Math.max(0, total + tax - finalDiscountValue);
+        ? totalAfterDiscount 
+        : totalAfterDiscount + tax;
+
+    const baseTax = taxEnabled ? (isTaxInclusive ? total - (total / (1 + (taxRate / 100))) : total * (taxRate / 100)) : 0;
+    const displaySubtotal = isTaxInclusive ? (total - baseTax) : total;
+    const displayDiscount = isTaxInclusive ? (finalDiscountValue - (finalDiscountValue - (finalDiscountValue / (1 + (taxRate / 100))))) : finalDiscountValue;
 
     const handleNumpad = (val: string) => {
         if (val === 'C') {
@@ -722,13 +730,13 @@ export default function RestaurantPOS() {
                     )}
                     <div className="banner-row">
                         <span>{t('sys.str_4088')}</span>
-                        <span>{total.toLocaleString()}</span>
+                        <span>{displaySubtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                     </div>
                     {/* Discount Row */}
                     {appliedCoupon ? (
                         <div className="banner-row" style={{ color: '#fff', background: 'rgba(34, 197, 94, 0.2)', padding: '2px 4px', borderRadius: '4px' }}>
                             <span>{t('sys.str_4039')}{appliedCoupon.code}):</span>
-                            <span>- {finalDiscountValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            <span>- {displayDiscount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </div>
                     ) : (
                         <div className="banner-row">
