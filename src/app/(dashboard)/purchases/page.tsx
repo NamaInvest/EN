@@ -672,7 +672,7 @@ export default function PurchasesPage() {
                                     <div style={{ width: '0%', height: '100%', background: '#10b981' }}></div>
                                 </div>
                             </div>
-                            <button style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}>
+                            <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)' }}>
                                 {t('purchases.str_1004')}</button>
                             <button onClick={() => setShowOcrModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', color: '#ef4444', cursor: 'pointer', marginLeft: '12px' }}>✕</button>
                         </div>
@@ -686,19 +686,19 @@ export default function PurchasesPage() {
                             {/* Toolbar for image */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↻</button>
-                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↺</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↻</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>↺</button>
                                     <div style={{ width: '1px', background: '#cbd5e1', margin: '0 4px' }}></div>
-                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>⛶</button>
-                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍+</button>
-                                    <button style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍-</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>⛶</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍+</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}>🔍-</button>
                                 </div>
                                 <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '4px' }}>
-                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏭</button>
-                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>▶</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏭</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>▶</button>
                                     <span style={{ fontSize: '14px', padding: '0 16px', color: '#475569', fontWeight: '500', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{t('purchases.str_1005')}</span>
-                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>◀</button>
-                                    <button style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏮</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>◀</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: 'none', background: 'none', padding: '6px 12px', cursor: 'pointer', fontSize: '16px', color: '#475569' }}>⏮</button>
                                 </div>
                             </div>
                             
@@ -718,9 +718,9 @@ export default function PurchasesPage() {
                                 <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', background: '#e2e8f0', padding: '6px 12px', borderRadius: '20px' }}>
                                     {t('purchases.str_1006')}</div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button style={{ border: 'none', background: '#fef2f2', color: '#ef4444', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🗑</button>
-                                    <button style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>📄</button>
-                                    <button style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🔄</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: 'none', background: '#fef2f2', color: '#ef4444', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🗑</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>📄</button>
+                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ border: '1px solid #e2e8f0', background: '#fff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '18px' }}>🔄</button>
                                 </div>
                             </div>
 
@@ -802,7 +802,7 @@ export default function PurchasesPage() {
 
                             {/* Action Buttons */}
                             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', borderTop: '1px solid #e2e8f0', background: '#fff' }}>
-                                <button style={{ width: '100%', background: '#3b82f6', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)' }}>
+                                <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  style={{ width: '100%', background: '#3b82f6', color: '#fff', border: 'none', padding: '14px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)' }}>
                                     {t('purchases.str_1014')}{ocrData.items?.length || 0}) <span>📄</span>
                                 </button>
                                 
