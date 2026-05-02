@@ -857,6 +857,8 @@ model JournalEntry {
   createdAt    DateTime @default(now()) @map("created_at")
   currencyId   Int?     @map("currency_id")
   exchangeRate Float    @default(1.0) @map("exchange_rate")
+  autoReverseDate DateTime? @map("auto_reverse_date")
+  isReversal   Boolean  @default(false) @map("is_reversal")
 
   lines    JournalLine[]
   branch   Branch?       @relation(fields: [branchId], references: [id])
@@ -1146,6 +1148,7 @@ model Company {
   commercialRecord String?  @map("commercial_record")
   address          String?
   logoPath         String?  @map("logo_path")
+  ownershipPct     Float    @default(100.0) @map("ownership_pct")
   createdAt        DateTime @default(now()) @map("created_at")
 
   branches      Branch[]
@@ -3136,6 +3139,8 @@ model IntercompanyTransaction {
   targetCompanyId Int       @map("target_company_id")
   sourceJEId      Int       @map("source_je_id")
   targetJEId      Int?      @map("target_je_id")
+  amount          Float     @default(0)
+  type            String    @default("AR_AP") // AR_AP, SALES_COGS, INVESTMENT_EQUITY, UNREALIZED_PROFIT
   status          String    @default("PENDING") // PENDING, RECONCILED, ELIMINATED
   reconciledAt    DateTime? @map("reconciled_at")
 
@@ -3155,8 +3160,29 @@ model ConsolidationRun {
   groupId        Int    @map("group_id")
   fiscalPeriodId Int    @map("fiscal_period_id")
   status         String @default("DRAFT")
+  userId         Int?   @map("user_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  lines          ConsolidationLine[]
 
   @@map("consolidation_runs")
+}
+
+model ConsolidationLine {
+  id              Int      @id @default(autoincrement())
+  runId           Int      @map("run_id")
+  type            String   // ELIMINATION, TRANSLATION, NCI
+  debitAccountId  Int?     @map("debit_account_id")
+  creditAccountId Int?     @map("credit_account_id")
+  amount          Float
+  sourceCompanyId Int?     @map("source_company_id")
+  targetCompanyId Int?     @map("target_company_id")
+  description     String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  run             ConsolidationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("consolidation_lines")
 }
 
 // Phase 1.4: Cost Allocations
