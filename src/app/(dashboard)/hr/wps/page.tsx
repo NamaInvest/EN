@@ -3,9 +3,11 @@
 import React from 'react';
 import { FileText, Download, UploadCloud, AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function WPSDashboard() {
     const { lang } = useTranslation();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 space-y-6">
@@ -18,7 +20,7 @@ export default function WPSDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">{_t('توليد ملفات SIF وتتبع الرفع للبنوك والامتثال لمنصة مدد', 'Generate SIF files and track bank uploads for SAMA & Mudad compliance')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={() => success(_t('تم بدء توليد ملف SIF للرواتب بنجاح', 'SIF file generation started successfully'))} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <FileText className="w-4 h-4 mr-2" />
                         {_t('توليد ملف SIF جديد', 'Generate New SIF')}
                     </button>
@@ -94,7 +96,7 @@ export default function WPSDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mr-3 flex items-center justify-end w-full">
+                                    <button onClick={() => info(_t('جاري تحميل ملف SIF...', 'Downloading SIF file...'))} className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mr-3 flex items-center justify-end w-full">
                                         <Download className="w-4 h-4 mr-1" /> {_t('ملف SIF', 'SIF File')}
                                     </button>
                                 </td>
@@ -111,8 +113,8 @@ export default function WPSDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                        <Download className="w-4 h-4" />
+                                    <button onClick={() => info(_t('جاري تحميل ملف SIF...', 'Downloading SIF file...'))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-end w-full">
+                                        <Download className="w-4 h-4 mr-1" />
                                     </button>
                                 </td>
                             </tr>

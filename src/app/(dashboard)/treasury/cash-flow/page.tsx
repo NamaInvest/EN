@@ -84,7 +84,7 @@ export default function CashFlowDashboard() {
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 05 May 2024
+                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 05 May 2026
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
@@ -97,7 +97,7 @@ export default function CashFlowDashboard() {
                             </tr>
                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 10 May 2024
+                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 10 May 2026
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
@@ -110,14 +110,14 @@ export default function CashFlowDashboard() {
                             </tr>
                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 28 May 2024
+                                    <Calendar className="w-4 h-4 mr-2 text-gray-400" /> 28 May 2026
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
                                         Payroll Run
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Estimated May 2024 Salaries</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Estimated May 2026 Salaries</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-bold text-red-600">- 350,000.00</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Certain (100%)</td>
                             </tr>

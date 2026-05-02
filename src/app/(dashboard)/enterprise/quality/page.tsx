@@ -144,7 +144,7 @@ export default function QualityControlView() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1"><ScanBarcode size={16}/> {t('sys.str_1950')}</label>
-                                    <input value={batchNumber} onChange={e=>setBatchNumber(e.target.value)} type="text" placeholder="BCH-2024..." className="w-full border-2 border-gray-200 rounded-xl p-2.5 focus:border-indigo-600 outline-none dir-ltr text-left font-mono font-bold text-gray-700" />
+                                    <input value={batchNumber} onChange={e=>setBatchNumber(e.target.value)} type="text" placeholder="BCH-2026..." className="w-full border-2 border-gray-200 rounded-xl p-2.5 focus:border-indigo-600 outline-none dir-ltr text-left font-mono font-bold text-gray-700" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1"><User size={16}/> {t('sys.str_1951')}</label>

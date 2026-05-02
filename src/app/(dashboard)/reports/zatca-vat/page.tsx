@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { FileText, Download, Calendar, ArrowRight, ShieldCheck, Calculator } from 'lucide-react';
 
 export default function ZatcaVatReturn() {
-    const [period, setPeriod] = useState('2024-Q1');
+    const [period, setPeriod] = useState('2026-Q1');
 
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -22,10 +22,10 @@ export default function ZatcaVatReturn() {
                         onChange={(e) => setPeriod(e.target.value)}
                         className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white dark:border-gray-700"
                     >
-                        <option value="2024-Q1">Q1 2024 (Jan - Mar)</option>
-                        <option value="2024-Q2">Q2 2024 (Apr - Jun)</option>
-                        <option value="2024-Q3">Q3 2024 (Jul - Sep)</option>
-                        <option value="2024-Q4">Q4 2024 (Oct - Dec)</option>
+                        <option value="2026-Q1">Q1 2026 (Jan - Mar)</option>
+                        <option value="2026-Q2">Q2 2026 (Apr - Jun)</option>
+                        <option value="2026-Q3">Q3 2026 (Jul - Sep)</option>
+                        <option value="2026-Q4">Q4 2026 (Oct - Dec)</option>
                     </select>
                     <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 flex items-center">
                         <Download className="w-4 h-4 mr-2" />

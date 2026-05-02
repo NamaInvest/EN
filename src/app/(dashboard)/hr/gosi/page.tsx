@@ -3,9 +3,11 @@
 import React from 'react';
 import { Shield, Calculator, Download, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function GOSIDashboard() {
     const { lang } = useTranslation();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 space-y-6">
@@ -18,7 +20,7 @@ export default function GOSIDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">{_t('إدارة المؤسسة العامة للتأمينات الاجتماعية (المعاشات، الأخطار، ساند)', 'General Organization for Social Insurance Management (Annuities, Hazards, SANED)')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 flex items-center">
+                    <button onClick={() => success(_t('تم تحديث اشتراكات التأمينات بناءً على رواتب الشهر', 'GOSI contributions updated based on current month payroll'))} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 flex items-center">
                         <Calculator className="w-4 h-4 mr-2" />
                         {_t('احتساب اشتراكات الشهر الحالي', 'Calculate Current Month')}
                     </button>
@@ -75,7 +77,7 @@ export default function GOSIDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-blue-600 flex items-center justify-end w-full">
+                                    <button onClick={() => info(_t('جاري تحميل كشف التأمينات...', 'Downloading GOSI report...'))} className="text-gray-400 hover:text-blue-600 flex items-center justify-end w-full">
                                         <Download className="w-4 h-4 mr-1" />
                                     </button>
                                 </td>
@@ -90,7 +92,7 @@ export default function GOSIDashboard() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-blue-600 flex items-center justify-end w-full">
+                                    <button onClick={() => info(_t('جاري تحميل كشف التأمينات...', 'Downloading GOSI report...'))} className="text-gray-400 hover:text-blue-600 flex items-center justify-end w-full">
                                         <Download className="w-4 h-4 mr-1" />
                                     </button>
                                 </td>

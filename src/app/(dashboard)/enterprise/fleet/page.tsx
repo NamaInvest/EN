@@ -15,7 +15,7 @@ export default function FleetManagementView() {
     const [plateNumber, setPlateNumber] = useState('');
     const [make, setMake] = useState('Isuzu');
     const [model, setModel] = useState('');
-    const [year, setYear] = useState('2024');
+    const [year, setYear] = useState('2026');
     const [type, setType] = useState('VAN');
     const [currentOdometer, setOdometer] = useState('0');
     const [licenseExpiry, setLicenseExpiry] = useState('');

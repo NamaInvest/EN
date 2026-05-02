@@ -16,8 +16,8 @@ export default function BankReconciliation() {
                 </div>
                 <div className="flex gap-2">
                     <select className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700">
-                        <option>Al Rajhi Bank (SAR) - STMT-2024-05</option>
-                        <option>SNB (USD) - STMT-2024-05</option>
+                        <option>Al Rajhi Bank (SAR) - STMT-2026-05</option>
+                        <option>SNB (USD) - STMT-2026-05</option>
                     </select>
                     <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center dark:bg-gray-800 dark:text-white dark:border-gray-700">
                         <UploadCloud className="w-4 h-4 mr-2 text-indigo-600" />
@@ -72,7 +72,7 @@ export default function BankReconciliation() {
                         {/* Unmatched Line */}
                         <div className="p-3 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 rounded-md cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
                             <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">02 May 2024</span>
+                                <span className="text-xs font-semibold text-gray-500">02 May 2026</span>
                                 <span className="text-sm font-bold text-green-600 font-mono">+ 20,000.00</span>
                             </div>
                             <p className="text-sm text-gray-900 dark:text-white font-medium">INWARD TRANSFER REF 88291</p>
@@ -87,7 +87,7 @@ export default function BankReconciliation() {
                         {/* Unmatched Line (Fee) */}
                         <div className="p-3 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 rounded-md cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
                             <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">02 May 2024</span>
+                                <span className="text-xs font-semibold text-gray-500">02 May 2026</span>
                                 <span className="text-sm font-bold text-red-600 font-mono">- 400.50</span>
                             </div>
                             <p className="text-sm text-gray-900 dark:text-white font-medium">BANK CHARGE - MONTHLY</p>
@@ -104,7 +104,7 @@ export default function BankReconciliation() {
                         {/* Matched Line */}
                         <div className="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md opacity-60">
                             <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">01 May 2024</span>
+                                <span className="text-xs font-semibold text-gray-500">01 May 2026</span>
                                 <span className="text-sm font-bold text-red-600 font-mono">- 15,000.00</span>
                             </div>
                             <p className="text-sm text-gray-900 dark:text-white font-medium">OUTWARD TRANSFER REF 1102</p>
@@ -131,11 +131,11 @@ export default function BankReconciliation() {
                             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Suggested Match</h4>
                             <div className="p-4 border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-left mb-6">
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Receipt #REC-2024-089</span>
+                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Receipt #REC-2026-089</span>
                                     <span className="text-sm font-bold text-green-600 font-mono">20,000.00</span>
                                 </div>
                                 <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">Al Sharq Company LLC</p>
-                                <p className="text-xs text-gray-500 mt-1">Date: 01 May 2024</p>
+                                <p className="text-xs text-gray-500 mt-1">Date: 01 May 2026</p>
                                 <div className="mt-3 text-xs flex items-center text-indigo-600">
                                     <CheckCircle className="w-3 h-3 mr-1" /> 98% Confidence (Amount + Name Match)
                                 </div>

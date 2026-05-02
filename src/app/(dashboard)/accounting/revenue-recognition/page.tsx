@@ -80,11 +80,11 @@ export default function RevenueRecognitionDashboard() {
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-blue-600">INV-2024-1055</div>
+                                    <div className="text-sm font-medium text-blue-600">INV-2026-1055</div>
                                     <div className="text-xs text-gray-500">Annual Software Subscription</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900 dark:text-white">Jan 1, 2024 - Dec 31, 2024</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Jan 1, 2026 - Dec 31, 2026</div>
                                     <div className="text-xs text-gray-500">Straight-Line</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
@@ -105,11 +105,11 @@ export default function RevenueRecognitionDashboard() {
                             </tr>
                             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-blue-600">INV-2024-2088</div>
+                                    <div className="text-sm font-medium text-blue-600">INV-2026-2088</div>
                                     <div className="text-xs text-gray-500">Consulting Project</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900 dark:text-white">Mar 1, 2024 - Aug 31, 2024</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Mar 1, 2026 - Aug 31, 2026</div>
                                     <div className="text-xs text-gray-500">Milestone Based</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">

@@ -3,9 +3,11 @@
 import React from 'react';
 import { AlertCircle, Mail, Clock, Filter, ShieldAlert, FileText, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function DunningDashboard() {
     const { lang } = useTranslation();
+    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     return (
@@ -19,11 +21,11 @@ export default function DunningDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">{_t('تذكير آلي متعدد المستويات وتوليد رسوم تأخير للحسابات المتأخرة', 'Automated multi-level reminders and late fee generation for overdue accounts')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center dark:bg-gray-800 dark:text-white dark:border-gray-700">
+                    <button onClick={() => info(_t('تصفية البيانات...', 'Filtering data...'))} className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center dark:bg-gray-800 dark:text-white dark:border-gray-700">
                         <Filter className="w-4 h-4 mr-2" />
                         {_t('تصفية', 'Filter')}
                     </button>
-                    <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 flex items-center">
+                    <button onClick={() => success(_t('تم إرسال 124 رسالة تحصيل آلياً', '124 dunning letters dispatched automatically'))} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 flex items-center">
                         <Mail className="w-4 h-4 mr-2" />
                         {_t('تنفيذ دورة التحصيل', 'Execute Dunning Run')}
                     </button>
@@ -60,8 +62,8 @@ export default function DunningDashboard() {
 
             <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm flex flex-col min-h-0">
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex space-x-4 gap-4">
-                    <button className="text-sm font-medium text-red-600 border-b-2 border-red-600 pb-2">{_t('رسائل التحصيل النشطة', 'Active Dunning Letters')}</button>
-                    <button className="text-sm font-medium text-gray-500 hover:text-gray-700 pb-2">{_t('إعدادات مستويات التحصيل', 'Dunning Levels Setup')}</button>
+                    <button onClick={() => info(_t('عرض رسائل التحصيل النشطة', 'Viewing active dunning letters'))} className="text-sm font-medium text-red-600 border-b-2 border-red-600 pb-2">{_t('رسائل التحصيل النشطة', 'Active Dunning Letters')}</button>
+                    <button onClick={() => info(_t('فتح إعدادات مستويات التحصيل', 'Opening dunning levels setup'))} className="text-sm font-medium text-gray-500 hover:text-gray-700 pb-2">{_t('إعدادات مستويات التحصيل', 'Dunning Levels Setup')}</button>
                 </div>
                 
                 <div className="overflow-y-auto flex-1 p-0">
@@ -100,7 +102,7 @@ export default function DunningDashboard() {
                                     12,500.00
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    <button onClick={() => info(_t('عرض تفاصيل الفاتورة', 'Viewing invoice details'))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                         <FileText className="w-4 h-4 mx-auto" />
                                     </button>
                                 </td>
@@ -128,7 +130,7 @@ export default function DunningDashboard() {
                                     45,200.00
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    <button onClick={() => info(_t('عرض تفاصيل الفاتورة', 'Viewing invoice details'))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                         <FileText className="w-4 h-4 mx-auto" />
                                     </button>
                                 </td>
