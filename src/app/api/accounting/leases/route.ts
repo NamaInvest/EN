@@ -8,13 +8,13 @@ export async function GET(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        let leases = await prisma.ifrsLeaseContract.findMany({
+        let leases = await (prisma as any).ifrsLeaseContract.findMany({
             orderBy: { id: 'desc' }
         });
 
         // Seed if empty
         if (leases.length === 0) {
-            const lease1 = await prisma.ifrsLeaseContract.create({
+            const lease1 = await (prisma as any).ifrsLeaseContract.create({
                 data: {
                     contractNumber: 'LC-2026-001',
                     lessor: 'Al-Riyadh Real Estate Co.',
@@ -29,11 +29,12 @@ export async function GET(request: NextRequest) {
                     initialLiability: 1200000.00,
                     initialROUAsset: 1200000.00,
                     assetCategory: 'BUILDING',
-                    rouAssetAccountCode: '1501'
+                    rouAssetAccountCode: '1501',
+                    liabilityAccountCode: '21050'
                 }
             });
 
-            const lease2 = await prisma.ifrsLeaseContract.create({
+            const lease2 = await (prisma as any).ifrsLeaseContract.create({
                 data: {
                     contractNumber: 'LC-2026-002',
                     lessor: 'Saudi Fleet Services',
@@ -48,7 +49,8 @@ export async function GET(request: NextRequest) {
                     initialLiability: 250000.00,
                     initialROUAsset: 250000.00,
                     assetCategory: 'VEHICLE',
-                    rouAssetAccountCode: '1502'
+                    rouAssetAccountCode: '1502',
+                    liabilityAccountCode: '21050'
                 }
             });
 

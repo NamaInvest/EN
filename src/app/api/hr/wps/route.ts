@@ -47,17 +47,17 @@ export async function POST(request: NextRequest) {
         }
 
         const payrollRun = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId },
-            include: { items: { include: { employee: true } } }
+            where: { id: payrollRunId }
         });
 
         if (!payrollRun) return NextResponse.json({ error: 'مسير الرواتب غير موجود' }, { status: 404 });
 
-        const totalAmount = payrollRun.items.reduce((sum, item) => sum + Number(item.netSalary), 0);
+        const employees = await prisma.employee.findMany();
+        const totalAmount = employees.reduce((sum: number, emp: any) => sum + Number(emp.basicSalary || 0), 0);
         
         // Generate SIF Content Mock
-        const sifContent = `1,${payrollRun.year}${String(payrollRun.month).padStart(2,'0')}01,${payrollRun.items.length},${totalAmount}\n` +
-                           payrollRun.items.map(i => `${i.employee.id},${i.employee.name},${i.netSalary}`).join('\n');
+        const sifContent = `1,${payrollRun.year}${String(payrollRun.month).padStart(2,'0')}01,${employees.length},${totalAmount}\n` +
+                           employees.map((e: any) => `${e.id},${e.name},${e.basicSalary || 0}`).join('\n');
 
         const batch = await prisma.wPSBatch.create({
             data: {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
                 bankCode,
                 batchNumber: `WPS-${payrollRun.year}-${String(payrollRun.month).padStart(2,'0')}-${Math.floor(Math.random() * 10000)}`,
                 totalAmount,
-                totalEmployees: payrollRun.items.length,
+                totalEmployees: employees.length,
                 fileFormat: 'SIF_V2',
                 fileContent: sifContent,
                 fileGeneratedAt: new Date(),

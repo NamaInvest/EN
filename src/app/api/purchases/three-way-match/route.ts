@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
 
         const match = await prisma.threeWayMatch.update({
             where: { id: matchId },
-            data: { matchStatus: status, notes: notes || '' }
+            data: { matchStatus: status }
         });
 
         return NextResponse.json({ success: true, match });

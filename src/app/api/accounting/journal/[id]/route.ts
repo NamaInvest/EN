@@ -14,12 +14,13 @@ async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
+    const params = await context.params;
     const id = parseInt(params.id);
 
     try {
@@ -123,12 +124,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
+    const params = await context.params;
     const id = parseInt(params.id);
 
     try {

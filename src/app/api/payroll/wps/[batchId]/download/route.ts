@@ -3,11 +3,12 @@ import { getPrisma } from '@/lib/prisma';
 
 export async function GET(
     request: Request,
-    { params }: { params: { batchId: string } }
+    context: { params: Promise<{ batchId: string }> }
 ) {
     const prisma = getPrisma(request as any);
 
     try {
+        const params = await context.params;
         const batchId = parseInt(params.batchId);
         
         const batch = await prisma.wPSBatch.findUnique({

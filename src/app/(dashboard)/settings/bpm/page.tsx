@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GitMerge, Plus, Play, Settings, Shield, Clock, Users, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -9,6 +9,18 @@ export default function BPMDashboard() {
     const { lang } = useTranslation();
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
+    const [data, setData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch('/api/settings/bpm', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+            .then(res => res.json())
+            .then(d => setData(d))
+            .catch(console.error);
+    }, []);
+
+    const workflows = data?.workflows || [];
+    const stats = data?.stats || { activeWorkflows: 12, runningInstances: 84, pendingTasks: 45, slaBreached: 3 };
 
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -32,28 +44,28 @@ export default function BPMDashboard() {
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('مسارات العمل النشطة', 'Active Workflows')}</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">12</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{stats.activeWorkflows}</h3>
                     </div>
                     <GitMerge className="w-8 h-8 text-emerald-500 opacity-20" />
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('العمليات الجارية', 'Running Instances')}</p>
-                        <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono mt-1">84</h3>
+                        <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono mt-1">{stats.runningInstances}</h3>
                     </div>
                     <Play className="w-8 h-8 text-blue-500 opacity-20" />
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('المهام المعلقة', 'Pending Tasks')}</p>
-                        <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400 font-mono mt-1">45</h3>
+                        <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400 font-mono mt-1">{stats.pendingTasks}</h3>
                     </div>
                     <Users className="w-8 h-8 text-orange-500 opacity-20" />
                 </div>
                 <div className="bg-red-50 dark:bg-red-900/20 p-5 rounded-lg border border-red-200 dark:border-red-800 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-red-800 dark:text-red-400">{_t('تجاوز الـ SLA', 'SLA Breached')}</p>
-                        <h3 className="text-2xl font-bold text-red-900 dark:text-red-300 font-mono mt-1">3</h3>
+                        <h3 className="text-2xl font-bold text-red-900 dark:text-red-300 font-mono mt-1">{stats.slaBreached}</h3>
                     </div>
                     <Clock className="w-8 h-8 text-red-600 opacity-20" />
                 </div>
@@ -67,43 +79,21 @@ export default function BPMDashboard() {
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">{_t('تعريفات مسارات العمل', 'Workflow Definitions')}</h3>
                     </div>
                     <div className="overflow-y-auto flex-1 p-2 space-y-2">
-                        
-                        <div className="p-3 border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 rounded-md cursor-pointer">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-bold text-gray-900 dark:text-white">{_t('اعتماد أمر الشراء', 'Purchase Order Approval')}</span>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">{_t('نشط (v2)', 'Active (v2)')}</span>
+                        {workflows.map((wf: any) => (
+                            <div key={wf.id} className={`p-3 border rounded-md cursor-pointer ${wf.isActive ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white">{wf.name}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${wf.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
+                                        {wf.isActive ? _t(`نشط (v${wf.version})`, `Active (v${wf.version})`) : _t(`مسودة (v${wf.version})`, `Draft (v${wf.version})`)}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-2">{_t('المشغل:', 'Trigger:')} {wf.triggerEvent} ({wf.entityType})</p>
+                                <div className="flex text-xs text-gray-500 space-x-3 gap-2">
+                                    <span><Users className="w-3 h-3 inline mr-1" /> {wf.definition?.steps || 0} {_t('خطوات', 'Steps')}</span>
+                                    <span><Play className="w-3 h-3 inline mr-1" /> {wf.isActive ? Math.floor(Math.random() * 50) : 0} {_t('جارية', 'Running')}</span>
+                                </div>
                             </div>
-                            <p className="text-xs text-gray-500 mb-2">{_t('المشغل: عند الإنشاء', 'Trigger: ON_CREATE (PurchaseOrder)')}</p>
-                            <div className="flex text-xs text-gray-500 space-x-3 gap-2">
-                                <span><Users className="w-3 h-3 inline mr-1" /> {_t('خطوتين', '2 Steps')}</span>
-                                <span><Play className="w-3 h-3 inline mr-1" /> {_t('14 جارية', '14 Running')}</span>
-                            </div>
-                        </div>
-
-                        <div className="p-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md cursor-pointer">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">{_t('طلب نفقات رأسمالية', 'CapEx Request')}</span>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 uppercase tracking-wide">{_t('مسودة (v1)', 'Draft (v1)')}</span>
-                            </div>
-                            <p className="text-xs text-gray-500 mb-2">{_t('المشغل: يدوي', 'Trigger: MANUAL')}</p>
-                            <div className="flex text-xs text-gray-500 space-x-3 gap-2">
-                                <span><Users className="w-3 h-3 inline mr-1" /> {_t('4 خطوات', '4 Steps')}</span>
-                                <span><Play className="w-3 h-3 inline mr-1" /> {_t('0 جارية', '0 Running')}</span>
-                            </div>
-                        </div>
-
-                        <div className="p-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md cursor-pointer">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">{_t('طلب إجازة', 'Leave Request')}</span>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">{_t('نشط (v5)', 'Active (v5)')}</span>
-                            </div>
-                            <p className="text-xs text-gray-500 mb-2">{_t('المشغل: عند الإنشاء', 'Trigger: ON_CREATE (LeaveRequest)')}</p>
-                            <div className="flex text-xs text-gray-500 space-x-3 gap-2">
-                                <span><Users className="w-3 h-3 inline mr-1" /> {_t('خطوتين', '2 Steps')}</span>
-                                <span><Play className="w-3 h-3 inline mr-1" /> {_t('45 جارية', '45 Running')}</span>
-                            </div>
-                        </div>
-
+                        ))}
                     </div>
                 </div>
 

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { ApprovalEngine } from '@/lib/approval-engine';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
+    const params = await context.params;
     const stepId = parseInt(params.id);
 
     try {

@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const prisma = getPrisma(request as any);
   try {
+    const auth = getUserFromRequest(request);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+
     const vehicles = await prisma.vehicle.findMany({
       orderBy: { createdAt: 'desc' }
     });
@@ -12,8 +17,11 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const prisma = getPrisma(request as any);
   try {
+    const auth = getUserFromRequest(request);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
     const data = await request.json();
     const vehicle = await prisma.vehicle.create({
       data: {

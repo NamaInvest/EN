@@ -4,9 +4,10 @@ import { WPSGenerator } from '@/lib/wps-generator';
 
 export async function POST(
     request: Request,
-    { params }: { params: { batchId: string } }
+    context: { params: Promise<{ batchId: string }> }
 ) {
     try {
+        const params = await context.params;
         const batchId = parseInt(params.batchId);
         
         await WPSGenerator.submitToBank(batchId);
