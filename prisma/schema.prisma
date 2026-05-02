@@ -209,6 +209,7 @@ model Customer {
   leaseContracts    LeaseContract[]
   purchaseReturns   PurchaseReturn[]
   supplierContracts SupplierContract[]    @relation("SupplierContracts")
+  whtTransactions   WHTTransaction[]
   RentInvoice       RentInvoice[]
   DunningLetter     DunningLetter[]
 
@@ -466,6 +467,7 @@ model PurchaseInvoice {
   branchId      Int?                    @map("branch_id")
   branch        Branch?                 @relation(fields: [branchId], references: [id])
   ThreeWayMatch ThreeWayMatch?
+  whtTransactions WHTTransaction[]
 
   @@index([invoiceNo])
   @@index([date])
@@ -4058,4 +4060,54 @@ model BpmTask {
   completedAt DateTime? @map("completed_at")
 
   @@map("bpm_tasks")
+}
+
+// ==================== 51. Withholding Tax (WHT) ====================
+
+model WHTRule {
+  id              Int      @id @default(autoincrement())
+  countryCode     String   @map("country_code")
+  serviceType     String   @map("service_type")
+  residentRate    Float    @map("resident_rate")
+  nonResidentRate Float    @map("non_resident_rate")
+  effectiveFrom   DateTime @map("effective_from")
+  treatyOverrides String?  @map("treaty_overrides") // JSON string
+  isActive        Boolean  @default(true) @map("is_active")
+
+  transactions    WHTTransaction[]
+
+  @@map("fng_wht_rules")
+}
+
+model WHTTransaction {
+  id                Int      @id @default(autoincrement())
+  vendorId          Int      @map("vendor_id")
+  invoiceId         Int?     @map("invoice_id")
+  ruleId            Int      @map("rule_id")
+  baseAmount        Float    @map("base_amount")
+  whtRate           Float    @map("wht_rate")
+  whtAmount         Float    @map("wht_amount")
+  certificateNumber String?  @map("certificate_number")
+  paidToZATCA       Boolean  @default(false) @map("paid_to_zatca")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  rule              WHTRule  @relation(fields: [ruleId], references: [id])
+  vendor            Customer @relation(fields: [vendorId], references: [id])
+  invoice           PurchaseInvoice? @relation(fields: [invoiceId], references: [id])
+
+  @@map("fng_wht_transactions")
+}
+
+// ==================== 52. Manufacturing Cost Variance ====================
+model CostVariance {
+  id              Int      @id @default(autoincrement())
+  type            String   // PPV, MV, YV, LABOR
+  orderId         Int      @map("order_id")
+  expectedCost    Float    @map("expected_cost")
+  actualCost      Float    @map("actual_cost")
+  varianceAmount  Float    @map("variance_amount")
+  isPosted        Boolean  @default(false) @map("is_posted")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("cost_variances")
 }
