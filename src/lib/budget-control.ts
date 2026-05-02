@@ -32,7 +32,7 @@ export class BudgetControlEngine {
         const spent = line.spentAmount || 0;
 
         // 3. Find active encumbrances (committed but not yet spent)
-        const activeEncumbrances = await this.prisma.encumbrance.aggregate({
+        const activeEncumbrances = await (this.prisma as any).encumbrance.aggregate({
             _sum: { amount: true },
             where: {
                 accountId,
@@ -65,7 +65,7 @@ export class BudgetControlEngine {
      * Creates an encumbrance (e.g., when a PO is approved)
      */
     async createEncumbrance(docType: string, docId: number, accountId: number, costCenterId: number | null, amount: number) {
-        const enc = await this.prisma.encumbrance.create({
+        const enc = await (this.prisma as any).encumbrance.create({
             data: {
                 sourceDocType: docType,
                 sourceDocId: docId,
@@ -82,7 +82,7 @@ export class BudgetControlEngine {
      * Releases an encumbrance (e.g., when PO turns into Invoice and is actualized)
      */
     async releaseEncumbrance(docType: string, docId: number) {
-        const encumbrances = await this.prisma.encumbrance.updateMany({
+        const encumbrances = await (this.prisma as any).encumbrance.updateMany({
             where: {
                 sourceDocType: docType,
                 sourceDocId: docId,
@@ -116,7 +116,7 @@ export class BudgetControlEngine {
 
         const variances = [];
         for (const line of budget.lines) {
-            const activeEncumbrances = await this.prisma.encumbrance.aggregate({
+            const activeEncumbrances = await (this.prisma as any).encumbrance.aggregate({
                 _sum: { amount: true },
                 where: {
                     accountId: line.accountId,
