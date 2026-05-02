@@ -427,24 +427,37 @@ export default function RestaurantPOS() {
 
         try {
             setIsProcessing(true);
+            const userStr = localStorage.getItem('user');
+            const userId = userStr ? JSON.parse(userStr).id : null;
+
+            const mappedPaymentType = paymentMethod === 'CASH' ? 'cash' : 
+                                      paymentMethod === 'CARD' ? 'card' : 
+                                      paymentMethod === 'TRANSFER' ? 'transfer' : 
+                                      paymentMethod === 'SPLIT' ? 'split' : 'cash';
+
             const body = {
-                cart,
-                total,
-                tax,
-                discount: finalDiscountValue,
-                couponId: appliedCoupon ? appliedCoupon.id : null,
-                paymentMethod,
-                splitDetails: paymentMethod === 'SPLIT' ? { cash: Number(splitCash), card: Number(splitCard) } : null,
-                
+                items: cart.map((item: any) => ({
+                    productId: item.id,
+                    productName: item.name,
+                    quantity: item.qty,
+                    price: item.price,
+                    discountRate: 0
+                })),
                 customerId: selectedCustomer ? selectedCustomer.id : null,
-                shiftId: null
+                stockId: 1,
+                paymentType: mappedPaymentType,
+                splitCash: paymentMethod === 'SPLIT' ? Number(splitCash) : 0,
+                splitCard: paymentMethod === 'SPLIT' ? Number(splitCard) : 0,
+                discountRate: finalDiscountValue > 0 ? ((finalDiscountValue / total) * 100).toFixed(2) : 0,
+                userId: userId,
+                notes: activeTable ? `طاولة: ${activeTable.name}` : 'Restaurant POS Sale'
             };
-            const data = await saveInvoiceWithSync(body);
+            const data = await saveInvoiceWithSync(body, '/api/sales');
             if (data && data.success) {
                 if (data.offline) {
                     setCompletedInvoiceId(Number(data.uuid)); // For offline printing logic if needed
                 } else {
-                    setCompletedInvoiceId(data.invoice?.id || data.invoiceId);
+                    setCompletedInvoiceId(data.id || data.invoice?.id || data.invoiceId);
                 }
                 
                 setCart([]); // clear cart

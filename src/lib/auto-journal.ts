@@ -5,7 +5,7 @@
  * مبدأ القيد المزدوج: المدين = الدائن دائماً
  */
 
-import prisma from './prisma';
+import { prisma, resolveTenant, withTenant } from './prisma';
 
 // أكواد الحسابات الافتراضية
 const ACCOUNTS = {
@@ -61,7 +61,12 @@ async function createJournalEntry(params: {
     exchangeRate?: number;
     status?: string;
 }): Promise<{ success: boolean; entryId?: number; error?: string }> {
-    try {
+    // 🛡️ 1. Capture tenant BEFORE any await to prevent context leakage
+    const activeTenant = resolveTenant();
+    
+    // 🛡️ 2. Wrap all DB interactions in withTenant
+    return withTenant(activeTenant, async () => {
+        try {
         // Validate: total debit must equal total credit
         const totalDebit = params.lines.reduce((sum, l) => sum + l.debit, 0);
         const totalCredit = params.lines.reduce((sum, l) => sum + l.credit, 0);
@@ -157,6 +162,7 @@ async function createJournalEntry(params: {
         console.error('Auto-journal error:', error);
         return { success: false, error: String(error) };
     }
+    });
 }
 
 // ============ Auto-posting functions ============

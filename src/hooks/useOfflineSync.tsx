@@ -66,7 +66,7 @@ export function useOfflineSync() {
 
                     // Send to server
                     // Send to server using custom endpoint if provided
-                    const endpoint = invoice.data._endpoint || '/api/pos/invoice';
+                    const endpoint = invoice.data._endpoint || '/api/pos';
                     const payload = { ...invoice.data };
                     delete payload._endpoint; // remove internal marker
                     
@@ -102,7 +102,7 @@ export function useOfflineSync() {
     }, [isSyncing, refreshPendingCount]);
 
     // Save invoice either remotely or locally
-    const saveInvoiceWithSync = async (invoiceData: any, endpoint = '/api/pos/invoice') => {
+    const saveInvoiceWithSync = async (invoiceData: any, endpoint = '/api/pos') => {
         if (isOffline) {
             if ((window as any).electron) {
                 const dataWithEndpoint = { ...invoiceData, _endpoint: endpoint };
@@ -142,9 +142,8 @@ export function useOfflineSync() {
         }
     };
 
-    // UI Component for Header
     const OfflineBadge = () => {
-        if (!(window as any).electron) return null; // Only show on desktop
+        if (typeof window === 'undefined' || !(window as any).electron) return null; // Only show on desktop
 
         return (
             <div className="flex items-center gap-3">

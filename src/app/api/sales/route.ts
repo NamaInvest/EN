@@ -541,7 +541,7 @@ export async function POST(request: Request) {
         } catch (zatcaErr) {
             console.warn('ZATCA process skipped/failed:', zatcaErr);
         }
-        return NextResponse.json({ ...invoice.createdInvoice, zatcaQR }, { status: 201 });
+        return NextResponse.json({ success: true, ...invoice.createdInvoice, zatcaQR }, { status: 201 });
     } catch (error) {
         console.error('Sales create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الفاتورة' }, { status: 500 });
