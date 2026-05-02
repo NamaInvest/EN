@@ -24,7 +24,11 @@ export default function POSPage() {
     const [taxRate, setTaxRate] = useState(15);
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
     const [isTaxInclusive, setIsTaxInclusive] = useState(true);
-    
+    const [discountEnabled, setDiscountEnabled] = useState(true);
+    const [couponsEnabled, setCouponsEnabled] = useState(true);
+    const [taxEnabled, setTaxEnabled] = useState(true);
+    const [allowAddProduct, setAllowAddProduct] = useState(true);
+    const [discountRules, setDiscountRules] = useState<any[]>([]);
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -49,7 +53,7 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); const incSetting = data.find((s: any) => s.key === 'POS_TAX_INCLUSIVE'); if (incSetting) setIsTaxInclusive(incSetting.value !== 'false'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); if (data.POS_TAX_INCLUSIVE !== undefined) setIsTaxInclusive(data.POS_TAX_INCLUSIVE !== 'false'); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); const getVal = (key: string, def: string) => { if (Array.isArray(data)) { const s = data.find((x: any) => x.key === key); return s ? s.value : def; } else { return data[key] !== undefined ? String(data[key]) : def; } }; setTaxRate(Number(getVal('tax_rate', '15')) || 0); setAllowNegativeStock(getVal('POS_ALLOW_NEGATIVE_STOCK', 'false') === 'true'); setIsTaxInclusive(getVal('POS_TAX_INCLUSIVE', 'true') !== 'false'); setDiscountEnabled(getVal('POS_DISCOUNT_ENABLED', 'true') !== 'false'); setCouponsEnabled(getVal('POS_COUPONS_ENABLED', 'true') !== 'false'); setTaxEnabled(getVal('POS_TAX_ENABLED', 'true') !== 'false'); setAllowAddProduct(getVal('POS_ALLOW_ADD_PRODUCT', 'true') !== 'false'); try { const rules = JSON.parse(getVal('POS_DISCOUNT_RULES', '[]')); if (Array.isArray(rules)) setDiscountRules(rules); } catch(e) {} } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('pos_held_orders');
         if (saved) {
@@ -239,9 +243,9 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = isTaxInclusive 
+    const tax = taxEnabled ? (isTaxInclusive 
         ? total - (total / (1 + (taxRate / 100))) 
-        : total * (taxRate / 100);
+        : total * (taxRate / 100)) : 0;
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -498,6 +502,7 @@ export default function POSPage() {
                     </div>
                     
                     {/* Coupon Input Box */}
+                    {couponsEnabled && (
                     <FeatureGuard featureKey="pos_coupon_module">
                         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                             <input 
@@ -518,6 +523,7 @@ export default function POSPage() {
                             )}
                         </div>
                     </FeatureGuard>
+                    )}
 
                     <div className="summary-total">
                         <span>{t('sys.str_66')}</span>

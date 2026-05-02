@@ -54,6 +54,11 @@ export default function RestaurantPOS() {
     // Allow Negative Stock Setting
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
     const [isTaxInclusive, setIsTaxInclusive] = useState(true);
+    const [discountEnabled, setDiscountEnabled] = useState(true);
+    const [couponsEnabled, setCouponsEnabled] = useState(true);
+    const [taxEnabled, setTaxEnabled] = useState(true);
+    const [allowAddProduct, setAllowAddProduct] = useState(true);
+    const [discountRules, setDiscountRules] = useState<any[]>([]);
 
     // Pending Orders Notification System
     const [pendingOrders, setPendingOrders] = useState<any[]>([]);
@@ -120,7 +125,7 @@ export default function RestaurantPOS() {
         fetchFloorPlan();
     };
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); const incSetting = data.find((s: any) => s.key === 'POS_TAX_INCLUSIVE'); if (incSetting) setIsTaxInclusive(incSetting.value !== 'false'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); if (data.POS_TAX_INCLUSIVE !== undefined) setIsTaxInclusive(data.POS_TAX_INCLUSIVE !== 'false'); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); const getVal = (key: string, def: string) => { if (Array.isArray(data)) { const s = data.find((x: any) => x.key === key); return s ? s.value : def; } else { return data[key] !== undefined ? String(data[key]) : def; } }; setTaxRate(Number(getVal('tax_rate', '15')) || 0); setAllowNegativeStock(getVal('POS_ALLOW_NEGATIVE_STOCK', 'false') === 'true'); setIsTaxInclusive(getVal('POS_TAX_INCLUSIVE', 'true') !== 'false'); setDiscountEnabled(getVal('POS_DISCOUNT_ENABLED', 'true') !== 'false'); setCouponsEnabled(getVal('POS_COUPONS_ENABLED', 'true') !== 'false'); setTaxEnabled(getVal('POS_TAX_ENABLED', 'true') !== 'false'); setAllowAddProduct(getVal('POS_ALLOW_ADD_PRODUCT', 'true') !== 'false'); try { const rules = JSON.parse(getVal('POS_DISCOUNT_RULES', '[]')); if (Array.isArray(rules)) setDiscountRules(rules); } catch(e) {} } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('rest_held_orders');
         if (saved) {
