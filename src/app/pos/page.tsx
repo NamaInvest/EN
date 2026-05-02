@@ -23,6 +23,7 @@ export default function POSPage() {
 
     const [taxRate, setTaxRate] = useState(15);
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+    const [isTaxInclusive, setIsTaxInclusive] = useState(true);
     
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
@@ -48,7 +49,7 @@ export default function POSPage() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); const incSetting = data.find((s: any) => s.key === 'POS_TAX_INCLUSIVE'); if (incSetting) setIsTaxInclusive(incSetting.value !== 'false'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); if (data.POS_TAX_INCLUSIVE !== undefined) setIsTaxInclusive(data.POS_TAX_INCLUSIVE !== 'false'); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('pos_held_orders');
         if (saved) {
@@ -238,7 +239,9 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = total * (taxRate / 100); // Dynamic VAT
+    const tax = isTaxInclusive 
+        ? total - (total / (1 + (taxRate / 100))) 
+        : total * (taxRate / 100);
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -249,7 +252,9 @@ export default function POSPage() {
             finalDiscountValue = appliedCoupon.discountValue;
         }
     }
-    const finalTotal = Math.max(0, total + tax - finalDiscountValue);
+    const finalTotal = isTaxInclusive 
+        ? Math.max(0, total - finalDiscountValue) 
+        : Math.max(0, total + tax - finalDiscountValue);
 
     const [isProcessing, setIsProcessing] = useState(false);
 
