@@ -1,0 +1,38 @@
+import { NextResponse, NextRequest } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+
+export async function GET(req: NextRequest) {
+    const prisma = getPrisma(req as any);
+    try {
+        const auth = getUserFromRequest(req);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const url = new URL(req.url);
+        const days = parseInt(url.searchParams.get('days') || '30');
+
+        const expiryLimitDate = new Date();
+        expiryLimitDate.setDate(expiryLimitDate.getDate() + days);
+
+        const batches = await prisma.productBatch.findMany({
+            where: {
+                currentQuantity: { gt: 0 },
+                expiryDate: {
+                    not: null,
+                    lte: expiryLimitDate
+                }
+            },
+            include: {
+                product: { select: { name: true, barcode: true } }
+            },
+            orderBy: {
+                expiryDate: 'asc'
+            }
+        });
+
+        return NextResponse.json(batches);
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+    }
+}

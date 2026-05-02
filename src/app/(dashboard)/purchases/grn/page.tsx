@@ -37,7 +37,7 @@ export default function GoodsReceiptNotePage() {
         setLoading(false);
     }
 
-    const addItem = () => setItems([...items, { productId: '', productName: '', quantity: 1, acceptedQty: 1, rejectedQty: 0 }]);
+    const addItem = () => setItems([...items, { productId: '', productName: '', quantity: 1, acceptedQty: 1, rejectedQty: 0, batchNumber: '', productionDate: '', expiryDate: '' }]);
     const updateItem = (index: number, field: string, value: any) => {
         const newItems = [...items];
         newItems[index][field] = value;
@@ -158,10 +158,13 @@ export default function GoodsReceiptNotePage() {
                                     <thead>
                                         <tr>
                                             <th>{t('purchases.str_2257')}</th>
-                                            <th style={{width: '120px'}}>{t('purchases.str_2258')}</th>
-                                            <th style={{width: '120px'}}>{t('purchases.str_2259')}</th>
-                                            <th style={{width: '100px'}}>{t('purchases.str_2260')}</th>
-                                            <th style={{width: '50px'}}></th>
+                                            <th style={{width: '90px'}}>{t('purchases.str_2258')}</th>
+                                            <th style={{width: '90px'}}>{t('purchases.str_2259')}</th>
+                                            <th style={{width: '80px'}}>{t('purchases.str_2260')}</th>
+                                            <th style={{width: '120px'}}>رقم الدفعة (Batch)</th>
+                                            <th style={{width: '130px'}}>تاريخ الإنتاج</th>
+                                            <th style={{width: '130px'}}>تاريخ الانتهاء</th>
+                                            <th style={{width: '40px'}}></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -176,6 +179,9 @@ export default function GoodsReceiptNotePage() {
                                                 <td><input required type="number" min="0.1" step="any" className="input" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} /></td>
                                                 <td><input required type="number" step="any" className="input" value={item.acceptedQty} onChange={e => updateItem(index, 'acceptedQty', e.target.value)} style={{ borderColor: '#10b981' }}/></td>
                                                 <td><input type="number" step="any" className="input" value={item.rejectedQty} readOnly style={{ backgroundColor: '#ef444410', color: '#ef4444' }} /></td>
+                                                <td><input type="text" className="input" placeholder="اختياري" value={item.batchNumber || ''} onChange={e => updateItem(index, 'batchNumber', e.target.value)} /></td>
+                                                <td><input type="date" className="input" value={item.productionDate || ''} onChange={e => updateItem(index, 'productionDate', e.target.value)} /></td>
+                                                <td><input type="date" className="input" value={item.expiryDate || ''} onChange={e => updateItem(index, 'expiryDate', e.target.value)} /></td>
                                                 <td>
                                                     <button type="button" onClick={() => removeItem(index)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>✖</button>
                                                 </td>

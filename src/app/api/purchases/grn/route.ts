@@ -57,16 +57,7 @@ export async function POST(req: Request) {
                     stockId: stockId ? parseInt(stockId) : 1,
                     notes,
                     receivedBy: decoded.userId,
-                    status: 'pending_qc',
-                    details: {
-                        create: items.map((i: any) => ({
-                            productId: parseInt(i.productId),
-                            productName: i.productName,
-                            quantity: parseFloat(i.quantity),
-                            acceptedQty: parseFloat(i.acceptedQty) || parseFloat(i.quantity),
-                            rejectedQty: parseFloat(i.rejectedQty) || 0,
-                        })),
-                    },
+                    status: 'pending_qc'
                 },
             });
 
@@ -74,8 +65,38 @@ export async function POST(req: Request) {
 
             for (const item of items) {
                 const accepted = parseFloat(item.acceptedQty) || parseFloat(item.quantity);
+                const rejected = parseFloat(item.rejectedQty) || 0;
+                const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
+                
+                let createdBatchId = null;
+                if (item.batchNumber && accepted > 0) {
+                    const batch = await tx.productBatch.create({
+                        data: {
+                            productId: parseInt(item.productId),
+                            batchNumber: item.batchNumber,
+                            productionDate: item.productionDate ? new Date(item.productionDate) : null,
+                            expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+                            initialQuantity: accepted,
+                            currentQuantity: accepted,
+                            unitCost: productObj?.buyPrice || 0
+                        }
+                    });
+                    createdBatchId = batch.id;
+                }
+
+                await tx.goodsReceiptNoteDetail.create({
+                    data: {
+                        grnId: newGrn.id,
+                        productId: parseInt(item.productId),
+                        productName: item.productName,
+                        quantity: parseFloat(item.quantity),
+                        acceptedQty: accepted,
+                        rejectedQty: rejected,
+                        batchId: createdBatchId
+                    }
+                });
+
                 if (accepted > 0) {
-                    const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
                     totalGrnCost += accepted * (productObj?.buyPrice || 0);
 
                     await tx.product.update({
@@ -93,6 +114,7 @@ export async function POST(req: Request) {
                             referenceId: newGrn.id,
                             userId: decoded.userId,
                             notes: 'استلام بضاعة سند إدخال رقم ' + nextNo,
+                            batchId: createdBatchId
                         },
                     });
 
