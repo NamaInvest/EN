@@ -6,7 +6,6 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function WhatsAppSettingsPage() {
-    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [qr, setQr] = useState<string | null>(null);

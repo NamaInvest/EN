@@ -8,7 +8,6 @@ import { useToast } from '@/components/Toast';
 export default function SmartTransfersPage() {
     
     const { t, lang } = useTranslation();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { error: toastError, success: toastSuccess } = useToast();
     const isRTL = lang === 'ar';
 

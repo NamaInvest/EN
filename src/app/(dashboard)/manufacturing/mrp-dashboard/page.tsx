@@ -6,9 +6,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function MRPDashboard() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ activeOrders: 12, lowStock: 5, completionRate: 85, outputToday: 1450 });

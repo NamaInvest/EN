@@ -6,9 +6,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function CashFlowDashboard() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">

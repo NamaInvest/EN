@@ -9,7 +9,6 @@ import { useToast } from '@/components/Toast';
 export default function CompanyInfoPage() {
     
     const { lang } = useTranslation();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { error: toastError, success: toastSuccess } = useToast();
     const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
     const { refreshSettings } = useSettings();

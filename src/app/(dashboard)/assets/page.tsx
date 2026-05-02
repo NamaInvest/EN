@@ -6,7 +6,6 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function FixedAssetsPage() {
-    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [assets, setAssets] = useState<any[]>([]);

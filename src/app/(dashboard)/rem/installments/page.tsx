@@ -6,7 +6,6 @@ import { useToast } from '@/components/Toast';
 
 export default function RentInstallmentsPage() {
     const { lang } = useTranslation();
-    const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
   const [installments, setInstallments] = useState<any[]>([]);

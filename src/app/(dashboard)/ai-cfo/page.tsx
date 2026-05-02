@@ -6,7 +6,6 @@ import { BrainCircuit, TrendingUp, AlertTriangle, Lightbulb, PackageOpen, Dollar
 import { useToast } from '@/components/Toast';
 
 export default function AICFOPage() {
-    const { success, info } = useToast();
     
     const { t, lang } = useTranslation();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;

@@ -6,7 +6,6 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function LcManagementPage() {
-    const { success, info } = useToast();
 
     const { t } = useTranslation();
     const [lcs, setLcs] = useState<any[]>([]);

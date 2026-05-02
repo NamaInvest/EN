@@ -10,9 +10,7 @@ import { useToast } from '@/components/Toast';
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=EB+Garamond:wght@600;700;800&display=swap');`;
 
 export default function SchoolDashboard() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const router = useRouter();
     const [studentId, setStudentId] = useState('');

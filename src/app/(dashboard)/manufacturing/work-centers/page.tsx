@@ -5,9 +5,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function WorkCentersPage() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const [centers, setCenters] = useState([]);
     const [loading, setLoading] = useState(true);

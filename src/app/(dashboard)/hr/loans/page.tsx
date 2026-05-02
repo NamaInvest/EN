@@ -6,9 +6,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function LoansDashboard() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const [loans, setLoans] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);

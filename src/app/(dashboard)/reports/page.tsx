@@ -33,7 +33,6 @@ const DAILY_TABS = [
 ];
 
 export default function ReportsPage() {
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const { t } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();

@@ -10,9 +10,7 @@ import { useToast } from '@/components/Toast';
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Cinzel:wght@600&display=swap');`;
 
 export default function RentDashboard() {
-    const { lang } = useTranslation();
     const { success, info } = useToast();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
     const router = useRouter();
     const [customerId, setCustomerId] = useState('');
