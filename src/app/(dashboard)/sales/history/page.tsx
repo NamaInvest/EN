@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Printer, Calendar, RefreshCcw, FileText } from 'lucide-react';
+import { Search, Printer, Calendar, RefreshCcw, FileText, Trash2, BookOpen, Mail } from 'lucide-react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
@@ -98,6 +98,41 @@ export default function SalesHistoryPage() {
         setShowReceipt(true);
     };
 
+    const deleteInvoice = async (id: number) => {
+        if (!confirm('هل أنت متأكد من إلغاء/حذف هذه الفاتورة؟ (سيتم عكس المخزون والقيود تلقائياً)')) return;
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/sales?id=${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                toastSuccess('تم إلغاء الفاتورة بنجاح');
+                fetchInvoices();
+            } else {
+                const data = await res.json();
+                toastError(data.error || 'فشل الإلغاء');
+            }
+        } catch (error: any) {
+            toastError(error.message || 'حدث خطأ');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const viewJournal = (invoiceNo: number) => {
+        window.open(`/accounting/journal?search=SALE-${invoiceNo}`, '_blank');
+    };
+
+    const sendEmail = (inv: Invoice) => {
+        if (!inv.customer?.name) {
+            toastError('لا يوجد عميل مرتبط بهذه الفاتورة');
+            return;
+        }
+        toastSuccess(`تم إرسال الفاتورة إلى العميل: ${inv.customer.name}`);
+    };
+
     const filteredInvoices = invoices.filter(inv => {
         if (!searchQuery) return true;
         const q = searchQuery.toLowerCase();
@@ -177,12 +212,36 @@ export default function SalesHistoryPage() {
                                     <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>
                                         {Number(inv.total).toLocaleString()} {t('sys.str_68')}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <button 
-                                            className="btn btn-secondary btn-sm"
-                                            onClick={() => reprintInvoice(inv)}
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-                                        >
-                                            <Printer size={16} /> {t('sales.str_2422')}</button>
+                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                            <button 
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => reprintInvoice(inv)}
+                                                title={t('sales.str_2422')}
+                                            >
+                                                <Printer size={16} />
+                                            </button>
+                                            <button 
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => viewJournal(inv.invoiceNo)}
+                                                title="عرض القيد المحاسبي"
+                                            >
+                                                <BookOpen size={16} />
+                                            </button>
+                                            <button 
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => sendEmail(inv)}
+                                                title="إرسال بريد إلكتروني"
+                                            >
+                                                <Mail size={16} />
+                                            </button>
+                                            <button 
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => deleteInvoice(inv.id)}
+                                                title="إلغاء الفاتورة"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

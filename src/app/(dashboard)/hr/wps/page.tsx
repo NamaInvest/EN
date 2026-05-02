@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Download, UploadCloud, AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -9,6 +9,51 @@ export default function WPSDashboard() {
     const { lang } = useTranslation();
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/hr/wps', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                setData(await res.json());
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const generateSif = async () => {
+        try {
+            // Demo: Pass payrollRunId=1 as example
+            const res = await fetch('/api/hr/wps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ payrollRunId: 1, bankCode: 'RJHI' })
+            });
+            if (res.ok) {
+                success(_t('تم بدء توليد ملف SIF للرواتب بنجاح', 'SIF file generation started successfully'));
+                fetchData();
+            } else {
+                info(_t('حدث خطأ أثناء التوليد', 'Error during generation'));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const batches = data?.batches || [];
+    const summary = data?.summary || { totalBatches: 0, acceptedCount: 0, pendingCount: 0, ibanErrors: 0 };
+
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -20,7 +65,7 @@ export default function WPSDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">{_t('توليد ملفات SIF وتتبع الرفع للبنوك والامتثال لمنصة مدد', 'Generate SIF files and track bank uploads for SAMA & Mudad compliance')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => success(_t('تم بدء توليد ملف SIF للرواتب بنجاح', 'SIF file generation started successfully'))} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
+                    <button onClick={generateSif} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
                         <FileText className="w-4 h-4 mr-2" />
                         {_t('توليد ملف SIF جديد', 'Generate New SIF')}
                     </button>
@@ -34,7 +79,7 @@ export default function WPSDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('إجمالي دفعات SIF', 'Total SIF Batches')}</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">24</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{summary.totalBatches}</h3>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center">
@@ -43,7 +88,7 @@ export default function WPSDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('مقبول من مدد', 'Accepted by Mudad')}</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">23</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{summary.acceptedCount}</h3>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center">
@@ -52,7 +97,7 @@ export default function WPSDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">{_t('قيد الرفع', 'Pending Upload')}</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">1</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{summary.pendingCount}</h3>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-red-200 dark:border-red-900 shadow-sm flex items-center bg-red-50 dark:bg-red-900/10">
@@ -61,7 +106,7 @@ export default function WPSDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-red-800 dark:text-red-400">{_t('أخطاء الآيبان', 'IBAN Errors')}</p>
-                        <h3 className="text-2xl font-bold text-red-900 dark:text-red-300">2</h3>
+                        <h3 className="text-2xl font-bold text-red-900 dark:text-red-300">{summary.ibanErrors}</h3>
                     </div>
                 </div>
             </div>
@@ -84,40 +129,36 @@ export default function WPSDashboard() {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">WPS-2026-05-8821</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{_t('مايو 2026', 'May 2026')}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-300">45</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-medium text-gray-900 dark:text-gray-300">324,500.00</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Al Rajhi (RJHI)</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
-                                        {_t('تم التوليد', 'GENERATED')}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => info(_t('جاري تحميل ملف SIF...', 'Downloading SIF file...'))} className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mr-3 flex items-center justify-end w-full">
-                                        <Download className="w-4 h-4 mr-1" /> {_t('ملف SIF', 'SIF File')}
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">WPS-2026-04-1093</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{_t('أبريل 2026', 'April 2026')}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-300">44</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-medium text-gray-900 dark:text-gray-300">318,200.00</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Al Rajhi (RJHI)</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                        {_t('مقبول (مدد)', 'ACCEPTED (MUDAD)')}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => info(_t('جاري تحميل ملف SIF...', 'Downloading SIF file...'))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-end w-full">
-                                        <Download className="w-4 h-4 mr-1" />
-                                    </button>
-                                </td>
-                            </tr>
+                            {loading ? (
+                                <tr><td colSpan={7} className="text-center py-10 text-gray-500">{_t('جاري التحميل...', 'Loading...')}</td></tr>
+                            ) : batches.length === 0 ? (
+                                <tr><td colSpan={7} className="text-center py-10 text-gray-500">{_t('لا توجد دفعات حالياً', 'No batches available')}</td></tr>
+                            ) : batches.map((batch: any) => (
+                                <tr key={batch.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{batch.batchNumber}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{batch.payrollRun?.month}/{batch.payrollRun?.year}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-300">{batch.totalEmployees}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-medium text-gray-900 dark:text-gray-300">{Number(batch.totalAmount).toLocaleString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{batch.bankCode}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${batch.status === 'ACCEPTED' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : batch.status === 'GENERATED' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                            {batch.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => {
+                                            const blob = new Blob([batch.fileContent], { type: 'text/plain' });
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `${batch.batchNumber}.csv`;
+                                            a.click();
+                                        }} className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 mr-3 flex items-center justify-end w-full">
+                                            <Download className="w-4 h-4 mr-1" /> {_t('تنزيل', 'Download')}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

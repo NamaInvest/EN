@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building, TrendingDown, Clock, Search, Plus, FileText, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -9,6 +9,46 @@ export default function LeasesDashboard() {
     const { lang } = useTranslation();
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/accounting/leases', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                setData(await res.json());
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const runMonthlyPosting = async () => {
+        try {
+            const res = await fetch('/api/accounting/leases', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                success(_t('تم تسجيل قيود إطفاء الإيجار للشهر بنجاح.', 'Monthly lease amortization posted successfully.'));
+                fetchData();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const leases = data?.leases || [];
+    const summary = data?.summary || { activeLeasesCount: 0, totalROUAssets: 0, totalLiability: 0 };
 
     return (
         <div className="p-6 space-y-6">
@@ -18,7 +58,7 @@ export default function LeasesDashboard() {
                     <p className="text-gray-500 mt-1 text-sm">Lease Contracts, ROU Assets & Amortization Schedules</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
+                    <button onClick={runMonthlyPosting} className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center">
                         <TrendingDown className="w-4 h-4 mr-2" />
                         Run Monthly Posting
                     </button>
@@ -36,7 +76,7 @@ export default function LeasesDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">Active Leases</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">12</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{summary.activeLeasesCount}</h3>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center">
@@ -45,7 +85,7 @@ export default function LeasesDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">Total ROU Assets</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">1,450,000 SAR</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{Number(summary.totalROUAssets).toLocaleString()} SAR</h3>
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center">
@@ -54,7 +94,7 @@ export default function LeasesDashboard() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-gray-500">Lease Liability Balance</p>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">1,120,500 SAR</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{Number(summary.totalLiability).toLocaleString()} SAR</h3>
                     </div>
                 </div>
             </div>
@@ -87,66 +127,42 @@ export default function LeasesDashboard() {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">LC-2026-001</td>
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">Al-Riyadh Real Estate Co.</div>
-                                    <div className="text-sm text-gray-500">HQ Office Building (BUILDING)</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900 dark:text-white">60 Months</div>
-                                    <div className="text-xs text-gray-500">Ends: Dec 2028</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
-                                    25,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium">
-                                    1,200,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium text-red-600">
-                                    980,500.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                        ACTIVE
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">LC-2026-002</td>
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">Saudi Fleet Services</div>
-                                    <div className="text-sm text-gray-500">Delivery Trucks (VEHICLE)</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900 dark:text-white">36 Months</div>
-                                    <div className="text-xs text-gray-500">Ends: Jun 2027</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
-                                    8,500.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium">
-                                    250,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium text-red-600">
-                                    140,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                        ACTIVE
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </td>
-                            </tr>
+                            {loading ? (
+                                <tr><td colSpan={8} className="text-center py-10 text-gray-500">Loading leases...</td></tr>
+                            ) : leases.length === 0 ? (
+                                <tr><td colSpan={8} className="text-center py-10 text-gray-500">No leases found</td></tr>
+                            ) : leases.map((lease: any) => (
+                                <tr key={lease.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{lease.contractNumber}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{lease.lessor}</div>
+                                        <div className="text-sm text-gray-500">{lease.description} ({lease.assetCategory})</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900 dark:text-white">{lease.leaseTermMonths} Months</div>
+                                        <div className="text-xs text-gray-500">Ends: {new Date(lease.leaseEndDate).toLocaleDateString()}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
+                                        {Number(lease.fixedPayment).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium">
+                                        {Number(lease.initialROUAsset).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right font-medium text-red-600">
+                                        {Number(lease.initialLiability).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                            ACTIVE
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="text-gray-400 hover:text-blue-600">
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

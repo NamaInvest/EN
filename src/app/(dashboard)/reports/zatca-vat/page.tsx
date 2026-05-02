@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, ArrowRight, ShieldCheck, Calculator } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -10,6 +10,43 @@ export default function ZatcaVatReturn() {
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [period, setPeriod] = useState('2026-Q1');
+    const [report, setReport] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReport = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch(`/api/reports/zatca-vat?period=${period}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.ok) {
+                    setReport(await res.json());
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReport();
+    }, [period]);
+
+    const formatCurrency = (amount: number) => Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    // Fallback if loading or error
+    const data = report || {
+        sales: { standard: { amount: 0, adjustment: 0, vat: 0 }, zeroRated: { amount: 0, adjustment: 0, vat: 0 }, exports: { amount: 0, adjustment: 0, vat: 0 }, exempt: { amount: 0, adjustment: 0, vat: 0 } },
+        purchases: { standard: { amount: 0, adjustment: 0, vat: 0 }, importsPaidAtCustoms: { amount: 0, adjustment: 0, vat: 0 }, importsReverseCharge: { amount: 0, adjustment: 0, vat: 0 }, zeroRated: { amount: 0, adjustment: 0, vat: 0 }, exempt: { amount: 0, adjustment: 0, vat: 0 } }
+    };
+
+    const totalSales = data.sales.standard.amount + data.sales.zeroRated.amount + data.sales.exports.amount + data.sales.exempt.amount;
+    const totalSalesVat = data.sales.standard.vat;
+    
+    const totalPurchases = data.purchases.standard.amount + data.purchases.importsPaidAtCustoms.amount + data.purchases.importsReverseCharge.amount + data.purchases.zeroRated.amount + data.purchases.exempt.amount;
+    const totalPurchasesVat = data.purchases.standard.vat + data.purchases.importsPaidAtCustoms.vat + data.purchases.importsReverseCharge.vat;
+
+    const netVatDue = totalSalesVat - totalPurchasesVat;
 
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -60,9 +97,9 @@ export default function ZatcaVatReturn() {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('1. المبيعات الخاضعة للنسبة الأساسية (15%)', '1. Standard rated sales (15%)')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">1,500,000.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">225,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.sales.standard.amount)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.sales.standard.adjustment)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">{formatCurrency(data.sales.standard.vat)}</td>
                             </tr>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('2. المبيعات للعملاء في دول مجلس التعاون', '2. Sales to customers in GCC countries')}</td>
@@ -72,27 +109,27 @@ export default function ZatcaVatReturn() {
                             </tr>
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('3. المبيعات المحلية الخاضعة للنسبة الصفرية', '3. Zero-rated domestic sales')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">250,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.sales.zeroRated.amount)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono bg-gray-200 dark:bg-gray-700 text-gray-500">N/A</td>
                             </tr>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('4. الصادرات', '4. Exports')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.sales.exports.amount)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono bg-gray-200 dark:bg-gray-700 text-gray-500">N/A</td>
                             </tr>
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('5. المبيعات المعفاة', '5. Exempt sales')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.sales.exempt.amount)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono bg-gray-200 dark:bg-gray-700 text-gray-500">N/A</td>
                             </tr>
                             <tr className="bg-gray-100 dark:bg-gray-700 font-bold">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{_t('6. إجمالي المبيعات', '6. Total Sales')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">1,750,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(totalSales)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 dark:text-blue-400">225,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 dark:text-blue-400">{formatCurrency(totalSalesVat)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -111,39 +148,39 @@ export default function ZatcaVatReturn() {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('7. المشتريات المحلية الخاضعة للنسبة الأساسية (15%)', '7. Standard rated domestic purchases (15%)')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">800,000.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">120,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.standard.amount)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.standard.adjustment)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">{formatCurrency(data.purchases.standard.vat)}</td>
                             </tr>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('8. الاستيرادات الخاضعة لضريبة القيمة المضافة المدفوعة في الجمارك', '8. Imports subject to VAT paid at customs')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">100,000.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">15,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.importsPaidAtCustoms.amount)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.importsPaidAtCustoms.adjustment)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">{formatCurrency(data.purchases.importsPaidAtCustoms.vat)}</td>
                             </tr>
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('9. الاستيرادات الخاضعة للضريبة والتي تطبق عليها آلية الاحتساب العكسي', '9. Imports subject to VAT accounted for through reverse charge mechanism')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">0.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.importsReverseCharge.amount)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.importsReverseCharge.adjustment)}</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono font-medium text-gray-900 dark:text-white">{formatCurrency(data.purchases.importsReverseCharge.vat)}</td>
                             </tr>
                             <tr className="bg-gray-50 dark:bg-gray-800/50">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('10. المشتريات الخاضعة للنسبة الصفرية', '10. Zero-rated purchases')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">50,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.zeroRated.amount)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono bg-gray-200 dark:bg-gray-700 text-gray-500">N/A</td>
                             </tr>
                             <tr className="bg-white dark:bg-gray-800">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300 font-medium">{_t('11. المشتريات المعفاة', '11. Exempt purchases')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">20,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(data.purchases.exempt.amount)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono bg-gray-200 dark:bg-gray-700 text-gray-500">N/A</td>
                             </tr>
                             <tr className="bg-gray-100 dark:bg-gray-700 font-bold">
                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{_t('12. إجمالي المشتريات', '12. Total Purchases')}</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono">970,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono">{formatCurrency(totalPurchases)}</td>
                                 <td className="px-4 py-3 text-sm text-right font-mono">0.00</td>
-                                <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 dark:text-blue-400">135,000.00</td>
+                                <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 dark:text-blue-400">{formatCurrency(totalPurchasesVat)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -158,8 +195,8 @@ export default function ZatcaVatReturn() {
                             <p className="text-sm text-gray-500 mt-1">{_t('إجمالي ضريبة المخرجات (البند 6) ناقص إجمالي ضريبة المدخلات (البند 12)', 'Total Output VAT (Item 6) minus Total Input VAT (Item 12)')}</p>
                         </div>
                         <div className="text-right">
-                            <span className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 font-mono tracking-tight">
-                                90,000.00
+                            <span className={`text-3xl font-extrabold ${netVatDue < 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'} font-mono tracking-tight`}>
+                                {formatCurrency(Math.abs(netVatDue))}
                             </span>
                             <span className="text-sm text-gray-500 ml-2 font-medium">{_t('ريال', 'SAR')}</span>
                         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, Search, CheckCircle, AlertTriangle, FileText, UploadCloud, Link } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -9,6 +9,69 @@ export default function BankReconciliation() {
     const { lang } = useTranslation();
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/treasury/bank-recon', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                setData(await res.json());
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const runAutoMatch = async () => {
+        try {
+            const res = await fetch('/api/treasury/bank-recon', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ action: 'auto-match' })
+            });
+            if (res.ok) {
+                const result = await res.json();
+                success(_t(`تم تطبيق قواعد المطابقة الآلية. تم مطابقة ${result.matchedCount} حركات.`, `Auto-match rules applied. Matched ${result.matchedCount} transactions.`));
+                fetchData();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const matchLine = async (lineId: number) => {
+        try {
+            const res = await fetch('/api/treasury/bank-recon', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ lineId })
+            });
+            if (res.ok) {
+                success(_t('تمت المطابقة بنجاح', 'Matched successfully'));
+                fetchData();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const lines = data?.lines || [];
+    const summary = data?.summary || { statementBalance: 0, bookBalance: 0, difference: 0, matchRate: 0 };
+    const statement = data?.statement;
+
+    const unmatchedLines = lines.filter((l: any) => l.reconciledStatus !== 'MATCHED');
+    const matchedLines = lines.filter((l: any) => l.reconciledStatus === 'MATCHED');
 
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -29,7 +92,7 @@ export default function BankReconciliation() {
                         <UploadCloud className="w-4 h-4 mr-2 text-indigo-600" />
                         Import MT940
                     </button>
-                    <button onClick={() => info(_t('ميزة تحت التطوير', 'Feature in development'))}  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 flex items-center">
+                    <button onClick={runAutoMatch} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 flex items-center">
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Run Auto-Match
                     </button>
@@ -39,22 +102,22 @@ export default function BankReconciliation() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 shrink-0">
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm text-center">
                     <p className="text-sm font-medium text-gray-500">Statement Balance</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">1,250,400.50</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{Number(summary.statementBalance).toLocaleString()}</h3>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm text-center">
                     <p className="text-sm font-medium text-gray-500">GL Book Balance</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">1,230,000.00</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{Number(summary.bookBalance).toLocaleString()}</h3>
                 </div>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-5 rounded-lg border border-yellow-200 dark:border-yellow-800 shadow-sm text-center">
                     <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Difference to Resolve</p>
-                    <h3 className="text-2xl font-bold text-yellow-900 dark:text-yellow-300 font-mono mt-1">20,400.50</h3>
+                    <h3 className="text-2xl font-bold text-yellow-900 dark:text-yellow-300 font-mono mt-1">{Number(summary.difference).toLocaleString()}</h3>
                 </div>
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm flex items-center justify-center flex-col">
                     <p className="text-sm font-medium text-indigo-800 dark:text-indigo-400">Match Rate</p>
                     <div className="flex items-center mt-1">
-                        <h3 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300 font-mono">85%</h3>
+                        <h3 className="text-2xl font-bold text-indigo-900 dark:text-indigo-300 font-mono">{summary.matchRate}%</h3>
                         <div className="ml-2 w-24 h-2 bg-indigo-200 rounded-full overflow-hidden">
-                            <div className="bg-indigo-600 h-full w-[85%]"></div>
+                            <div className="bg-indigo-600 h-full" style={{ width: `${summary.matchRate}%` }}></div>
                         </div>
                     </div>
                 </div>
@@ -75,51 +138,43 @@ export default function BankReconciliation() {
                         </div>
                     </div>
                     <div className="overflow-y-auto flex-1 p-2 space-y-2">
-                        {/* Unmatched Line */}
-                        <div className="p-3 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 rounded-md cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
-                            <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">02 May 2026</span>
-                                <span className="text-sm font-bold text-green-600 font-mono">+ 20,000.00</span>
+                        {loading && <p className="text-center p-4 text-gray-500">Loading statements...</p>}
+                        
+                        {/* Unmatched Lines */}
+                        {unmatchedLines.map((line: any) => (
+                            <div key={`u-${line.id}`} onClick={() => matchLine(line.id)} className="p-3 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 rounded-md cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
+                                <div className="flex justify-between mb-1">
+                                    <span className="text-xs font-semibold text-gray-500">{new Date(line.transactionDate).toLocaleDateString()}</span>
+                                    <span className={`text-sm font-bold font-mono ${Number(line.amount) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {Number(line.amount) > 0 ? '+ ' : '- '}{Math.abs(Number(line.amount)).toLocaleString()}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-900 dark:text-white font-medium">{line.description}</p>
+                                <div className="mt-2 flex justify-between items-center">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 font-medium">
+                                        UNMATCHED (Click to Match)
+                                    </span>
+                                </div>
                             </div>
-                            <p className="text-sm text-gray-900 dark:text-white font-medium">INWARD TRANSFER REF 88291</p>
-                            <p className="text-xs text-gray-500 truncate">Customer: AL SHARQ COMPANY LLC</p>
-                            <div className="mt-2 flex">
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 font-medium">
-                                    UNMATCHED
-                                </span>
-                            </div>
-                        </div>
+                        ))}
 
-                        {/* Unmatched Line (Fee) */}
-                        <div className="p-3 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 rounded-md cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
-                            <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">02 May 2026</span>
-                                <span className="text-sm font-bold text-red-600 font-mono">- 400.50</span>
+                        {/* Matched Lines */}
+                        {matchedLines.map((line: any) => (
+                            <div key={`m-${line.id}`} className="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md opacity-60">
+                                <div className="flex justify-between mb-1">
+                                    <span className="text-xs font-semibold text-gray-500">{new Date(line.transactionDate).toLocaleDateString()}</span>
+                                    <span className={`text-sm font-bold font-mono ${Number(line.amount) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {Number(line.amount) > 0 ? '+ ' : '- '}{Math.abs(Number(line.amount)).toLocaleString()}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-900 dark:text-white font-medium">{line.description}</p>
+                                <div className="mt-2 flex">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-medium flex items-center">
+                                        <CheckCircle className="w-3 h-3 mr-1" /> MATCHED ({line.matchConfidence || 100}%)
+                                    </span>
+                                </div>
                             </div>
-                            <p className="text-sm text-gray-900 dark:text-white font-medium">BANK CHARGE - MONTHLY</p>
-                            <div className="mt-2 flex justify-between items-center">
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 font-medium">
-                                    UNMATCHED
-                                </span>
-                                <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium flex items-center">
-                                    Rule detected: POST TO 5800 <RefreshCw className="w-3 h-3 ml-1" />
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Matched Line */}
-                        <div className="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md opacity-60">
-                            <div className="flex justify-between mb-1">
-                                <span className="text-xs font-semibold text-gray-500">01 May 2026</span>
-                                <span className="text-sm font-bold text-red-600 font-mono">- 15,000.00</span>
-                            </div>
-                            <p className="text-sm text-gray-900 dark:text-white font-medium">OUTWARD TRANSFER REF 1102</p>
-                            <div className="mt-2 flex">
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-medium flex items-center">
-                                    <CheckCircle className="w-3 h-3 mr-1" /> AUTO-MATCHED
-                                </span>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
@@ -143,7 +198,7 @@ export default function BankReconciliation() {
                                 <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">Al Sharq Company LLC</p>
                                 <p className="text-xs text-gray-500 mt-1">Date: 01 May 2026</p>
                                 <div className="mt-3 text-xs flex items-center text-indigo-600">
-                                    <CheckCircle className="w-3 h-3 mr-1" /> 98% Confidence (Amount + Name Match)
+                                    <CheckCircle className="w-3 h-3 mr-1" /> Waiting for selection...
                                 </div>
                             </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Search, Filter, AlertTriangle, Check, X, Eye } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -9,6 +9,54 @@ export default function ThreeWayMatchDashboard() {
     const { lang } = useTranslation();
     const { success, info } = useToast();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
+    const [matches, setMatches] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchMatches = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/purchases/three-way-match', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                setMatches(await res.json());
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMatches();
+    }, []);
+
+    const updateStatus = async (matchId: number, status: string) => {
+        try {
+            const res = await fetch('/api/purchases/three-way-match', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ matchId, status })
+            });
+            if (res.ok) {
+                success(_t('تم تحديث حالة المطابقة بنجاح', 'Match status updated successfully'));
+                fetchMatches();
+            } else {
+                info(_t('فشل التحديث', 'Update failed'));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const pendingCount = matches.filter(m => m.matchStatus === 'pending' || m.matchStatus === 'hold').length;
+    const matchedCount = matches.filter(m => m.matchStatus === 'matched').length;
+    const totalCount = matches.length;
 
     return (
         <div className="p-6 h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -30,20 +78,20 @@ export default function ThreeWayMatchDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 shrink-0">
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <p className="text-sm font-medium text-gray-500">{_t('فواتير معالجة (30 يوم)', 'Invoices Processed (30d)')}</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">458</h3>
+                    <p className="text-sm font-medium text-gray-500">{_t('فواتير قيد المطابقة', 'Invoices Processed')}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{totalCount}</h3>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">{_t('تطابق آلي (بدون فروقات)', 'Auto-Matched (No Variance)')}</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">412 <span className="text-sm text-gray-400 font-sans ml-1">(90%)</span></h3>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">{_t('تطابق آلي', 'Auto-Matched')}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{matchedCount}</h3>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{_t('ضمن نسبة التسامح', 'Within Tolerance')}</p>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">24 <span className="text-sm text-gray-400 font-sans ml-1">(5%)</span></h3>
+                    <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{_t('قيد المراجعة', 'Pending Review')}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-1">{pendingCount}</h3>
                 </div>
                 <div className="bg-red-50 dark:bg-red-900/20 p-5 rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
                     <p className="text-sm font-medium text-red-800 dark:text-red-400">{_t('استثناءات (مُعلقة)', 'Exceptions (On Hold)')}</p>
-                    <h3 className="text-2xl font-bold text-red-900 dark:text-red-300 font-mono mt-1">22</h3>
+                    <h3 className="text-2xl font-bold text-red-900 dark:text-red-300 font-mono mt-1">{pendingCount}</h3>
                 </div>
             </div>
 
@@ -69,72 +117,49 @@ export default function ThreeWayMatchDashboard() {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-blue-600">INV-99021</div>
-                                    <div className="text-xs text-gray-500">Global Suppliers LLC</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-500">
-                                    10,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-500">
-                                    10,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-bold text-red-600">
-                                    11,500.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                                        {_t('اختلاف سعر (+15%)', 'PRICE_HOLD (+15%)')}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <div className="flex justify-center space-x-2">
-                                        <button onClick={() => success(_t('تم اعتماد الفاتورة وتجاوز نسبة التسامح', 'Invoice approved (tolerance overridden)'))} className="p-1 rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 tooltip" title="Force Approve (Override Tolerance)">
-                                            <Check className="w-5 h-5" />
-                                        </button>
-                                        <button onClick={() => success(_t('تم رفض الفاتورة وطلب إشعار دائن', 'Invoice rejected, credit note requested'))} className="p-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 tooltip" title="Reject / Request Credit Note">
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                        <button onClick={() => info(_t('عرض التفاصيل...', 'Viewing details...'))} className="p-1 rounded text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 tooltip" title="View Details">
-                                            <Eye className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-blue-600">INV-8834</div>
-                                    <div className="text-xs text-gray-500">National Paper Co</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-500">
-                                    5,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-red-600 font-bold">
-                                    2,500.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900 dark:text-gray-300">
-                                    5,000.00
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
-                                        {_t('اختلاف كمية (نقص بالاستلام)', 'QTY_HOLD (Short Receipt)')}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <div className="flex justify-center space-x-2">
-                                        <button onClick={() => success(_t('تم اعتماد الفاتورة وتجاوز نسبة التسامح', 'Invoice approved (tolerance overridden)'))} className="p-1 rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30">
-                                            <Check className="w-5 h-5" />
-                                        </button>
-                                        <button onClick={() => success(_t('تم رفض الفاتورة وطلب إشعار دائن', 'Invoice rejected, credit note requested'))} className="p-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30">
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                        <button onClick={() => info(_t('عرض التفاصيل...', 'Viewing details...'))} className="p-1 rounded text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
-                                            <Eye className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            {loading ? (
+                                <tr><td colSpan={6} className="text-center py-10 text-gray-500">{_t('جاري التحميل...', 'Loading...')}</td></tr>
+                            ) : matches.length === 0 ? (
+                                <tr><td colSpan={6} className="text-center py-10 text-gray-500">{_t('لا توجد مطابقات حالياً', 'No matches found')}</td></tr>
+                            ) : matches.map(match => (
+                                <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-blue-600">INV-{match.invoice?.invoiceNo || 'N/A'}</div>
+                                        <div className="text-xs text-gray-500">{match.invoice?.supplier?.name || 'Unknown Supplier'}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-500">
+                                        {Number(match.purchaseOrder?.total || match.poTotalAmount || 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-500">
+                                        {Number(match.grnTotalAmount || 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-bold text-red-600">
+                                        {Number(match.invoice?.total || match.invoiceTotalAmount || 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${match.matchStatus === 'matched' ? 'bg-green-100 text-green-800' : match.matchStatus === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
+                                            {match.matchStatus.toUpperCase()}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div className="flex justify-center space-x-2">
+                                            {match.matchStatus !== 'matched' && (
+                                                <button onClick={() => updateStatus(match.id, 'matched')} className="p-1 rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 tooltip" title="Force Approve">
+                                                    <Check className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            {match.matchStatus !== 'rejected' && (
+                                                <button onClick={() => updateStatus(match.id, 'rejected')} className="p-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 tooltip" title="Reject / Request Credit Note">
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            <button onClick={() => info(_t('التفاصيل: ', 'Details: ') + (match.notes || 'N/A'))} className="p-1 rounded text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 tooltip" title="View Details">
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
