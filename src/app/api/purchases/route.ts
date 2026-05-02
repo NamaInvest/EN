@@ -173,20 +173,35 @@ export async function POST(request: Request) {
             }
 
             if (purchaseOrderId) {
-                const varianceThreshold = subtotal * 0.05;
+                const priceVariance = calculatedPpv;
+                const quantityVariance = invoiceTotalQuantity - poTotalQuantity;
+                const priceVariancePercent = poTotalAmount > 0 ? (priceVariance / poTotalAmount) * 100 : 0;
+                const quantityVariancePercent = poTotalQuantity > 0 ? (quantityVariance / poTotalQuantity) * 100 : 0;
+                
+                const priceTolerancePercent = 5.0; // Default 5%
+                const quantityTolerancePercent = 5.0; // Default 5%
+
+                const isWithinTolerance = Math.abs(priceVariancePercent) <= priceTolerancePercent && Math.abs(quantityVariancePercent) <= quantityTolerancePercent;
+
                 await (tx as any).threeWayMatch.create({
                     data: {
                         invoiceId: createdInvoice.id,
                         purchaseOrderId,
                         poTotalAmount,
                         poTotalQuantity,
-                        grnTotalAmount: subtotal - calculatedPpv,
+                        grnTotalAmount: subtotal - priceVariance,
                         grnTotalQuantity: invoiceTotalQuantity,
                         invoiceTotalAmount: subtotal,
                         invoiceTotalQuantity,
-                        varianceAmount: calculatedPpv,
-                        varianceQuantity: invoiceTotalQuantity - poTotalQuantity,
-                        matchStatus: Math.abs(calculatedPpv) > varianceThreshold ? 'pending' : 'approved',
+                        priceVariance,
+                        priceVariancePercent,
+                        quantityVariance,
+                        quantityVariancePercent,
+                        priceTolerancePercent,
+                        quantityTolerancePercent,
+                        isWithinTolerance,
+                        matchStatus: isWithinTolerance ? 'MATCHED' : 'MANUAL_REVIEW',
+                        paymentBlocked: !isWithinTolerance
                     }
                 });
             }
