@@ -518,11 +518,27 @@ export default function RestaurantPOS() {
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
-    if (appliedCoupon) {
+    if (appliedCoupon && discountEnabled) {
         if (appliedCoupon.discountType === 'percentage') {
             finalDiscountValue = total * (appliedCoupon.discountValue / 100);
         } else {
             finalDiscountValue = appliedCoupon.discountValue;
+        }
+        
+        if (discountRules && discountRules.length > 0) {
+            let maxAllowed = Infinity;
+            // Find highest applicable rule based on total
+            const applicableRule = [...discountRules].reverse().find((r: any) => total >= r.minAmount);
+            if (applicableRule) {
+                const maxByValue = applicableRule.maxDiscount || Infinity;
+                const maxByPercent = applicableRule.maxDiscountPercent ? (total * applicableRule.maxDiscountPercent / 100) : Infinity;
+                maxAllowed = Math.min(maxByValue, maxByPercent);
+                if (finalDiscountValue > maxAllowed) {
+                    finalDiscountValue = maxAllowed;
+                }
+            } else {
+                finalDiscountValue = 0; // No rule met minAmount
+            }
         }
     }
     const finalTotal = isTaxInclusive 
