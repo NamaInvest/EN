@@ -198,8 +198,8 @@ export default function PurchaseOrdersPage() {
         {/* Create Order Modal */}
         {showModal && (
             <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-                <div className="modal" style={{ maxWidth: '1000px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto', margin: 0 }}>
-                    <div className="modal-header" style={{ position: 'sticky', top: 0, backgroundColor: 'var(--card-bg, white)', zIndex: 10, padding: '20px', borderBottom: '1px solid var(--border)' }}>
+                <div className="modal bg-white dark:bg-gray-800" style={{ maxWidth: '1000px', width: '95%', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto', margin: 0 }}>
+                    <div className="modal-header bg-white dark:bg-gray-800" style={{ position: 'sticky', top: 0, zIndex: 10, padding: '20px', borderBottom: '1px solid var(--border)' }}>
                         <h2>{t('sys.str_952')}</h2>
                         <button onClick={() => setShowModal(false)} className="close-btn">×</button>
                     </div>

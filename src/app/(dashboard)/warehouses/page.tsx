@@ -120,16 +120,16 @@ export default function WarehousesPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
           <Building className="w-8 h-8 text-primary" />
-          {t("manage_warehouses")}
+          {'إدارة المستودعات'}
         </h1>
         <button
           onClick={() => handleOpenModal()}
           className="bg-primary text-white px-4 py-2 rounded shadow flex items-center gap-2 hover:bg-primary/90"
         >
           <Plus size={18} />
-          {t("add_warehouse")}
+          {'إضافة مستودع'}
         </button>
       </div>
 
@@ -168,17 +168,17 @@ export default function WarehousesPage() {
 
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">{t("loading")}</div>
+          <div className="p-8 text-center text-slate-500">{t("sys.str_168")}</div>
         ) : (
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-600">
               <tr>
-                <th className="px-6 py-4">{t("id")}</th>
-                <th className="px-6 py-4">{t("name")}</th>
-                <th className="px-6 py-4">{t("branch")}</th>
-                <th className="px-6 py-4">{t("address")}</th>
-                <th className="px-6 py-4">{t("status")}</th>
-                <th className="px-6 py-4 text-center">{t("actions")}</th>
+                <th className="px-6 py-4">#</th>
+                <th className="px-6 py-4">{'الاسم'}</th>
+                <th className="px-6 py-4">{'الفرع'}</th>
+                <th className="px-6 py-4">{'العنوان'}</th>
+                <th className="px-6 py-4">{'الحالة'}</th>
+                <th className="px-6 py-4 text-center">{'الإجراءات'}</th>
               </tr>
             </thead>
             <tbody>
@@ -189,14 +189,14 @@ export default function WarehousesPage() {
                   <td className="px-6 py-3 text-slate-500">
                     {wh.branch ? wh.branch.name : "-"}
                   </td>
-                  <td className="px-6 py-3 text-slate-500">{wh.address || "-"}</td>
+                  <td className="px-6 py-3 text-slate-500 dark:text-slate-300">{wh.address || "-"}</td>
                   <td className="px-6 py-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         wh.active ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {wh.active ? t("active") : t("inactive")}
+                      {wh.active ? 'نشط' : 'غير نشط'}
                     </span>
                   </td>
                   <td className="px-6 py-3">
@@ -234,34 +234,34 @@ export default function WarehousesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold">
-                {currentWarehouse ? t("edit_warehouse") : t("add_warehouse")}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-gray-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {currentWarehouse ? 'تعديل المستودع' : 'إضافة مستودع'}
               </h2>
             </div>
             
             <form onSubmit={handleSave} className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">{t("warehouse_name")} *</label>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">{'اسم المستودع'} *</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1">{t("link_to_branch")} ({t("optional")})</label>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">{'ارتباط بفرع'} ({'اختياري'})</label>
                   <select
                     value={branchId}
                     onChange={(e) => setBranchId(e.target.value)}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
-                    <option value="">{t("none")}</option>
+                    <option value="">{'بدون فرع'}</option>
                     {branches.map(b => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
@@ -269,12 +269,12 @@ export default function WarehousesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1">{t("address")} ({t("optional")})</label>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">{'العنوان'} ({'اختياري'})</label>
                   <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-primary focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
 
@@ -286,8 +286,8 @@ export default function WarehousesPage() {
                     onChange={(e) => setIsActive(e.target.checked)}
                     className="w-4 h-4 text-primary rounded"
                   />
-                  <label htmlFor="wh-active" className="text-sm font-semibold select-none cursor-pointer">
-                    {t("active")}
+                  <label htmlFor="wh-active" className="text-sm font-semibold select-none cursor-pointer text-gray-700 dark:text-gray-300">
+                    {'نشط'}
                   </label>
                 </div>
               </div>
@@ -296,15 +296,15 @@ export default function WarehousesPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border rounded text-slate-600 dark:text-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700"
                 >
-                  {t("cancel")}
+                  {'إلغاء'}
                 </button>
                 <button  
                   type="submit"
-                  className="px-4 py-2 bg-primary text-black font-bold rounded shadow hover:bg-primary/90"
+                  className="px-4 py-2 bg-primary text-white font-bold rounded shadow hover:bg-primary/90"
                 >
-                  {t("save")}
+                  {'حفظ'}
                 </button>
               </div>
             </form>
