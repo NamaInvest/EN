@@ -1,26 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
     try {
-        // فحص وجود جداول وقاعدة بيانات حقيقية لهذا الدومين
-        const setting = await prisma.setting.findFirst();
-        if (!setting) {
-            return NextResponse.json({ status: 'booting', message: 'DB not seeded yet' }, { status: 503 });
-        }
+        // Test Database Connection
+        const start = Date.now();
+        await prisma.$queryRaw`SELECT 1`;
+        const dbLatency = Date.now() - start;
+
+        // In a real app, also test Redis cache, Queue (RabbitMQ/Bull), External APIs (ZATCA)
         
-        return NextResponse.json(
-            { status: 'ok', timestamp: Date.now() },
-            { 
-                headers: { 
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, OPTIONS'
-                } 
+        return NextResponse.json({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            services: {
+                database: {
+                    status: 'up',
+                    latency: `${dbLatency}ms`
+                },
+                redis: {
+                    status: 'skipped', // placeholder
+                    latency: 'N/A'
+                },
+                zatca_integration: {
+                    status: 'skipped', // placeholder
+                    latency: 'N/A'
+                }
             }
-        );
-    } catch (error) {
-        return NextResponse.json({ status: 'error', message: 'DB not ready' }, { status: 503 });
+        });
+    } catch (error: any) {
+        return NextResponse.json({
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            error: error.message
+        }, { status: 503 });
     }
 }

@@ -43,7 +43,7 @@ export class FxRevaluationEngine {
                 // Mocking: OldRate vs NewRate
                 const oldRate = 3.75; // Rate at invoice date
                 const newRate = 3.78; // Rate at periodEndDate
-                const outstandingForeignAmount = inv.grandTotal; // Assuming fully open
+                const outstandingForeignAmount = inv.total; // Assuming fully open
                 
                 const currentFunctionalAmount = outstandingForeignAmount * oldRate;
                 const revaluatedFunctionalAmount = outstandingForeignAmount * newRate;

@@ -139,6 +139,12 @@ model Product {
   serialNumbers          ProductSerialNumber[]
   productUnits           ProductUnit[]
   EngineeringChangeOrder EngineeringChangeOrder[]
+  StandardCostVersion    StandardCostVersion[]
+  VarianceTransaction    VarianceTransaction[]
+  SubcontractingPO       SubcontractingPO[]
+  SubcontractMovement    SubcontractMovement[]
+  QualitySpec            QualitySpec?
+  QualityInspection      QualityInspection[]
 
   @@index([name])
   @@map("products")
@@ -212,6 +218,9 @@ model Customer {
   whtTransactions   WHTTransaction[]
   RentInvoice       RentInvoice[]
   DunningLetter     DunningLetter[]
+  ECLAssessment     ECLAssessment[]
+  PaymentRunLine    PaymentRunLine[]
+  SubcontractingPO  SubcontractingPO[]
 
   @@index([phone])
   @@index([name])
@@ -460,13 +469,13 @@ model PurchaseInvoice {
   exchangeRate Float?    @default(1.0) @map("exchange_rate")
   currency     Currency? @relation(fields: [currencyId], references: [id])
 
-  supplier      Customer?               @relation(fields: [supplierId], references: [id])
-  stock         Stock?                  @relation(fields: [stockId], references: [id])
-  user          User?                   @relation(fields: [userId], references: [id])
-  details       PurchaseInvoiceDetail[]
-  branchId      Int?                    @map("branch_id")
-  branch        Branch?                 @relation(fields: [branchId], references: [id])
-  ThreeWayMatch ThreeWayMatch?
+  supplier        Customer?               @relation(fields: [supplierId], references: [id])
+  stock           Stock?                  @relation(fields: [stockId], references: [id])
+  user            User?                   @relation(fields: [userId], references: [id])
+  details         PurchaseInvoiceDetail[]
+  branchId        Int?                    @map("branch_id")
+  branch          Branch?                 @relation(fields: [branchId], references: [id])
+  ThreeWayMatch   ThreeWayMatch?
   whtTransactions WHTTransaction[]
 
   @@index([invoiceNo])
@@ -840,29 +849,35 @@ model Account {
   BudgetLine   BudgetLine[]
   Encumbrance  Encumbrance[]
 
+  sourceMappings AccountMapping[] @relation("SourceAccount")
+  targetMappings AccountMapping[] @relation("TargetAccount")
+
   @@map("accounts")
 }
 
 // ==================== 30. JournalEntries ====================
 model JournalEntry {
-  id           Int      @id @default(autoincrement())
-  entryNumber  String   @map("entry_number")
-  entryDate    String   @map("entry_date")
-  description  String?
-  reference    String?
-  totalDebit   Float    @default(0) @map("total_debit")
-  totalCredit  Float    @default(0) @map("total_credit")
-  status       String   @default("posted")
-  createdBy    Int?     @map("created_by")
-  createdAt    DateTime @default(now()) @map("created_at")
-  currencyId   Int?     @map("currency_id")
-  exchangeRate Float    @default(1.0) @map("exchange_rate")
+  id              Int       @id @default(autoincrement())
+  entryNumber     String    @map("entry_number")
+  entryDate       String    @map("entry_date")
+  description     String?
+  reference       String?
+  totalDebit      Float     @default(0) @map("total_debit")
+  totalCredit     Float     @default(0) @map("total_credit")
+  status          String    @default("posted")
+  createdBy       Int?      @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  currencyId      Int?      @map("currency_id")
+  exchangeRate    Float     @default(1.0) @map("exchange_rate")
   autoReverseDate DateTime? @map("auto_reverse_date")
-  isReversal   Boolean  @default(false) @map("is_reversal")
+  isReversal      Boolean   @default(false) @map("is_reversal")
 
   lines    JournalLine[]
   branch   Branch?       @relation(fields: [branchId], references: [id])
   branchId Int?          @map("branch_id")
+
+  bookId Int?            @map("book_id")
+  book   AccountingBook? @relation(fields: [bookId], references: [id])
 
   @@index([entryDate])
   @@index([status])
@@ -1266,11 +1281,12 @@ model ManufacturingOrder {
   userId            Int?      @map("user_id")
   notes             String?
 
-  recipe        Recipe                 @relation(fields: [recipeId], references: [id])
-  machine       Machine?               @relation(fields: [machineId], references: [id])
-  wastages      ManufacturingWastage[]
-  costs         ManufacturingCost[]
-  qualityChecks QualityCheck[]
+  recipe              Recipe                 @relation(fields: [recipeId], references: [id])
+  machine             Machine?               @relation(fields: [machineId], references: [id])
+  wastages            ManufacturingWastage[]
+  costs               ManufacturingCost[]
+  qualityChecks       QualityCheck[]
+  VarianceTransaction VarianceTransaction[]
 
   @@map("manufacturing_orders")
 }
@@ -2058,14 +2074,20 @@ model PropertyUnit {
 
 // --- 5. Quality Control (ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ±ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط·آ¢ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¨ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ© ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¯ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ© ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ­ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آµ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ®ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ²ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹)
 model QualityInspection {
-  id              Int      @id @default(autoincrement())
-  referenceNumber String   @unique @map("reference_number") // Link to GRN or MO
-  inspectorId     Int      @map("inspector_id")
-  status          String   @default("PENDING") // PENDING, PASSED, FAILED, REWORK
-  notes           String?
-  inspectionDate  DateTime @default(now()) @map("inspection_date")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                   Int                    @id @default(autoincrement())
+  referenceNumber      String                 @unique @map("reference_number") // Link to GRN or MO
+  inspectorId          Int                    @map("inspector_id")
+  status               String                 @default("PENDING") // PENDING, PASSED, FAILED, REWORK
+  notes                String?
+  inspectionDate       DateTime               @default(now()) @map("inspection_date")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+  NonConformanceReport NonConformanceReport[]
+
+  productId    Int?     @map("product_id")
+  inspectedQty Float?   @map("inspected_qty")
+  results      String? // JSON string
+  product      Product? @relation(fields: [productId], references: [id])
 
   @@map("quality_inspections")
 }
@@ -2402,18 +2424,18 @@ model BudgetLine {
 }
 
 model Encumbrance {
-  id             Int      @id @default(autoincrement())
-  sourceDocType  String   @map("source_doc_type") // PO, PR, EXPENSE
-  sourceDocId    Int      @map("source_doc_id")
-  accountId      Int      @map("account_id")
-  costCenterId   Int?     @map("cost_center_id")
-  amount         Float
-  status         String   @default("ACTIVE") // ACTIVE, RELEASED, CANCELLED
-  createdAt      DateTime @default(now()) @map("created_at")
-  releasedAt     DateTime? @map("released_at")
+  id            Int       @id @default(autoincrement())
+  sourceDocType String    @map("source_doc_type") // PO, PR, EXPENSE
+  sourceDocId   Int       @map("source_doc_id")
+  accountId     Int       @map("account_id")
+  costCenterId  Int?      @map("cost_center_id")
+  amount        Float
+  status        String    @default("ACTIVE") // ACTIVE, RELEASED, CANCELLED
+  createdAt     DateTime  @default(now()) @map("created_at")
+  releasedAt    DateTime? @map("released_at")
 
-  account        Account     @relation(fields: [accountId], references: [id])
-  costCenter     CostCenter? @relation(fields: [costCenterId], references: [id])
+  account    Account     @relation(fields: [accountId], references: [id])
+  costCenter CostCenter? @relation(fields: [costCenterId], references: [id])
 
   @@map("fng_encumbrances")
 }
@@ -3156,14 +3178,14 @@ model ConsolidationGroup {
 }
 
 model ConsolidationRun {
-  id             Int    @id @default(autoincrement())
-  groupId        Int    @map("group_id")
-  fiscalPeriodId Int    @map("fiscal_period_id")
-  status         String @default("DRAFT")
-  userId         Int?   @map("user_id")
+  id             Int      @id @default(autoincrement())
+  groupId        Int      @map("group_id")
+  fiscalPeriodId Int      @map("fiscal_period_id")
+  status         String   @default("DRAFT")
+  userId         Int?     @map("user_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  lines          ConsolidationLine[]
+  lines ConsolidationLine[]
 
   @@map("consolidation_runs")
 }
@@ -3171,7 +3193,7 @@ model ConsolidationRun {
 model ConsolidationLine {
   id              Int      @id @default(autoincrement())
   runId           Int      @map("run_id")
-  type            String   // ELIMINATION, TRANSLATION, NCI
+  type            String // ELIMINATION, TRANSLATION, NCI
   debitAccountId  Int?     @map("debit_account_id")
   creditAccountId Int?     @map("credit_account_id")
   amount          Float
@@ -3180,7 +3202,7 @@ model ConsolidationLine {
   description     String?
   createdAt       DateTime @default(now()) @map("created_at")
 
-  run             ConsolidationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run ConsolidationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
 
   @@map("consolidation_lines")
 }
@@ -3189,20 +3211,43 @@ model ConsolidationLine {
 model AllocationRule {
   id                 Int     @id @default(autoincrement())
   name               String
-  sourceCostCenterId Int     @map("source_cost_center_id")
-  basis              String // fixed_%, headcount, sqft, revenue
+  sourceAccountId    Int?    @map("source_account_id")
+  sourceCostCenterId Int?    @map("source_cost_center_id")
+  basis              String // fixed_%, headcount, sqft, revenue, custom
   schedule           String?
+  period             String?
+  isActive           Boolean @default(true) @map("is_active")
+  priority           Int     @default(1)
+
+  targets AllocationTarget[]
+  runs    AllocationRun[]
 
   @@map("allocation_rules")
 }
 
+model AllocationTarget {
+  id                 Int    @id @default(autoincrement())
+  ruleId             Int    @map("rule_id")
+  targetCostCenterId Int    @map("target_cost_center_id")
+  targetAccountId    Int?   @map("target_account_id")
+  percentage         Float?
+  customWeight       Float? @map("custom_weight")
+
+  rule AllocationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("allocation_targets")
+}
+
 model AllocationRun {
-  id             Int     @id @default(autoincrement())
-  ruleId         Int     @map("rule_id")
-  fiscalPeriodId Int     @map("fiscal_period_id")
-  sourceAmount   Decimal @map("source_amount") @db.Decimal(18, 4)
-  journalEntryId Int?    @map("journal_entry_id")
-  status         String  @default("COMPLETED")
+  id             Int      @id @default(autoincrement())
+  ruleId         Int      @map("rule_id")
+  fiscalPeriodId Int      @map("fiscal_period_id")
+  sourceAmount   Float    @map("source_amount")
+  journalEntryId Int?     @map("journal_entry_id")
+  status         String   @default("COMPLETED")
+  runAt          DateTime @default(now()) @map("run_at")
+
+  rule AllocationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   @@map("allocation_runs")
 }
@@ -4090,6 +4135,36 @@ model BpmTask {
 
 // ==================== 51. Withholding Tax (WHT) ====================
 
+// Phase B.2: Payment Runs (SAP F110 Equivalent)
+model PaymentRun {
+  id            Int      @id @default(autoincrement())
+  runDate       DateTime @map("run_date")
+  paymentMethod String   @map("payment_method") // CHECK, TRANSFER, WIRE
+  bankAccountId Int      @map("bank_account_id")
+  status        String   @default("DRAFT") // DRAFT, PROPOSED, EXECUTED
+  totalAmount   Float    @default(0) @map("total_amount")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  lines PaymentRunLine[]
+
+  @@map("payment_runs")
+}
+
+model PaymentRunLine {
+  id         Int    @id @default(autoincrement())
+  runId      Int    @map("run_id")
+  supplierId Int    @map("supplier_id")
+  invoiceIds String @map("invoice_ids") // JSON string
+  amount     Float
+  status     String @default("PENDING") // PENDING, PAID, FAILED
+
+  run      PaymentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  supplier Customer   @relation(fields: [supplierId], references: [id])
+
+  @@map("payment_run_lines")
+}
+
+// Phase B.3: Withholding Tax (WHT)
 model WHTRule {
   id              Int      @id @default(autoincrement())
   countryCode     String   @map("country_code")
@@ -4097,19 +4172,15 @@ model WHTRule {
   residentRate    Float    @map("resident_rate")
   nonResidentRate Float    @map("non_resident_rate")
   effectiveFrom   DateTime @map("effective_from")
-  treatyOverrides String?  @map("treaty_overrides") // JSON string
-  isActive        Boolean  @default(true) @map("is_active")
+  treatyOverrides String?  @map("treaty_overrides")
 
-  transactions    WHTTransaction[]
-
-  @@map("fng_wht_rules")
+  @@map("wht_rules")
 }
 
 model WHTTransaction {
   id                Int      @id @default(autoincrement())
-  vendorId          Int      @map("vendor_id")
-  invoiceId         Int?     @map("invoice_id")
-  ruleId            Int      @map("rule_id")
+  supplierId        Int      @map("supplier_id")
+  invoiceId         Int      @map("invoice_id")
   baseAmount        Float    @map("base_amount")
   whtRate           Float    @map("wht_rate")
   whtAmount         Float    @map("wht_amount")
@@ -4117,23 +4188,203 @@ model WHTTransaction {
   paidToZATCA       Boolean  @default(false) @map("paid_to_zatca")
   createdAt         DateTime @default(now()) @map("created_at")
 
-  rule              WHTRule  @relation(fields: [ruleId], references: [id])
-  vendor            Customer @relation(fields: [vendorId], references: [id])
-  invoice           PurchaseInvoice? @relation(fields: [invoiceId], references: [id])
+  supplier Customer        @relation(fields: [supplierId], references: [id])
+  invoice  PurchaseInvoice @relation(fields: [invoiceId], references: [id])
 
-  @@map("fng_wht_transactions")
+  @@map("wht_transactions")
 }
 
-// ==================== 52. Manufacturing Cost Variance ====================
-model CostVariance {
+// Phase B.1: Expected Credit Loss (IFRS 9)
+model ECLModel {
+  id              Int    @id @default(autoincrement())
+  customerSegment String @map("customer_segment")
+  stage1Pct       Float  @map("stage1_pct")
+  stage2Pct       Float  @map("stage2_pct")
+  stage3Pct       Float  @map("stage3_pct")
+  lookbackMonths  Int    @default(12) @map("lookback_months")
+
+  @@map("ecl_models")
+}
+
+model ECLAssessment {
+  id                   Int      @id @default(autoincrement())
+  customerId           Int      @map("customer_id")
+  fiscalPeriodId       Int      @map("fiscal_period_id")
+  exposure             Float
+  stage                Int // 1, 2, or 3
+  probabilityOfDefault Float    @map("probability_of_default")
+  lossGivenDefault     Float    @map("loss_given_default")
+  eclAmount            Float    @map("ecl_amount")
+  runAt                DateTime @default(now()) @map("run_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("ecl_assessments")
+}
+
+// Phase C.1: Standard Costing & Variance
+model StandardCostVersion {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @map("product_id")
+  effectiveFrom DateTime @map("effective_from")
+  materialCost  Float    @map("material_cost")
+  laborCost     Float    @map("labor_cost")
+  overheadCost  Float    @map("overhead_cost")
+  totalStdCost  Float    @map("total_std_cost")
+  isActive      Boolean  @default(true) @map("is_active")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("standard_cost_versions")
+}
+
+model VarianceTransaction {
+  id                   Int      @id @default(autoincrement())
+  type                 String // PURCHASE_PRICE, MATERIAL_USAGE, LABOR_RATE, OVERHEAD_VOLUME
+  productId            Int      @map("product_id")
+  manufacturingOrderId Int?     @map("manufacturing_order_id")
+  amount               Float
+  debit                Float
+  credit               Float
+  postedAt             DateTime @default(now()) @map("posted_at")
+
+  product Product             @relation(fields: [productId], references: [id])
+  mo      ManufacturingOrder? @relation(fields: [manufacturingOrderId], references: [id])
+
+  @@map("variance_transactions")
+}
+
+// Phase C.3: Subcontracting
+model SubcontractingPO {
+  id               Int      @id @default(autoincrement())
+  supplierId       Int      @map("supplier_id")
+  productToReceive Int      @map("product_to_receive")
+  productsToSend   String   @map("products_to_send") // JSON array
+  expectedDate     DateTime @map("expected_date")
+  status           String   @default("DRAFT") // DRAFT, ISSUED, PARTIAL_RECEIPT, COMPLETED
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  supplier  Customer              @relation(fields: [supplierId], references: [id])
+  product   Product               @relation(fields: [productToReceive], references: [id])
+  movements SubcontractMovement[]
+
+  @@map("subcontracting_pos")
+}
+
+model SubcontractMovement {
+  id        Int      @id @default(autoincrement())
+  scPoId    Int      @map("sc_po_id")
+  type      String // ISSUE, RETURN, RECEIVE_FINISHED
+  productId Int      @map("product_id")
+  qty       Float
+  postedAt  DateTime @default(now()) @map("posted_at")
+
+  po      SubcontractingPO @relation(fields: [scPoId], references: [id])
+  product Product          @relation(fields: [productId], references: [id])
+
+  @@map("subcontract_movements")
+}
+
+// Phase C.4: Quality Management (QM / CAPA / NCR)
+model QualitySpec {
+  id         Int      @id @default(autoincrement())
+  productId  Int      @unique @map("product_id")
+  parameters String // JSON e.g. {"moisture": {"min": 2, "max": 5}}
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("quality_specs")
+}
+
+model NonConformanceReport {
   id              Int      @id @default(autoincrement())
-  type            String   // PPV, MV, YV, LABOR
-  orderId         Int      @map("order_id")
-  expectedCost    Float    @map("expected_cost")
-  actualCost      Float    @map("actual_cost")
-  varianceAmount  Float    @map("variance_amount")
-  isPosted        Boolean  @default(false) @map("is_posted")
+  inspectionId    Int      @map("inspection_id")
+  severity        String // LOW, MEDIUM, HIGH, CRITICAL
+  description     String
+  dispositionType String   @map("disposition_type") // USE_AS_IS, REWORK, RETURN_VENDOR, SCRAP
+  costImpact      Float    @default(0) @map("cost_impact")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  @@map("cost_variances")
+  inspection QualityInspection  @relation(fields: [inspectionId], references: [id])
+  capas      CorrectiveAction[]
+
+  @@map("non_conformance_reports")
+}
+
+model CorrectiveAction {
+  id                  Int      @id @default(autoincrement())
+  ncrId               Int      @map("ncr_id")
+  rootCause           String   @map("root_cause")
+  action              String
+  owner               String
+  dueDate             DateTime @map("due_date")
+  status              String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
+  effectivenessReview String?  @map("effectiveness_review")
+
+  ncr NonConformanceReport @relation(fields: [ncrId], references: [id])
+
+  @@map("corrective_actions")
+}
+
+// Phase D.1: Multi-Book / Multi-GAAP
+model AccountingBook {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique // IFRS, TAX, ZAKAT, MGMT
+  baseCurrency    String   @map("base_currency")
+  isPrimary       Boolean  @default(false) @map("is_primary")
+  fiscalYearStart DateTime @map("fiscal_year_start")
+
+  journalEntries JournalEntry[]
+  sourceMappings AccountMapping[] @relation("SourceBook")
+  targetMappings AccountMapping[] @relation("TargetBook")
+
+  @@map("accounting_books")
+}
+
+model AccountMapping {
+  id              Int     @id @default(autoincrement())
+  sourceBookId    Int     @map("source_book_id")
+  targetBookId    Int     @map("target_book_id")
+  sourceAccountId Int     @map("source_account_id")
+  targetAccountId Int     @map("target_account_id")
+  transformRule   String? @map("transform_rule") // e.g., JSON rule for specific GAAP adjustments
+
+  sourceBook    AccountingBook @relation("SourceBook", fields: [sourceBookId], references: [id])
+  targetBook    AccountingBook @relation("TargetBook", fields: [targetBookId], references: [id])
+  sourceAccount Account        @relation("SourceAccount", fields: [sourceAccountId], references: [id])
+  targetAccount Account        @relation("TargetAccount", fields: [targetAccountId], references: [id])
+
+  @@map("account_mappings")
+}
+
+// Phase D.3: Custom Fields Engine
+model CustomFieldDefinition {
+  id             Int     @id @default(autoincrement())
+  entityType     String  @map("entity_type") // Customer, Product, Invoice, etc.
+  fieldName      String  @map("field_name")
+  fieldLabel     String  @map("field_label")
+  fieldType      String  @map("field_type") // TEXT, NUMBER, DATE, DROPDOWN, CHECKBOX
+  validationRule String? @map("validation_rule") // JSON e.g. {"min": 0, "max": 100}
+  isRequired     Boolean @default(false) @map("is_required")
+  displayOrder   Int     @default(0) @map("display_order")
+  sectionName    String? @map("section_name")
+  isActive       Boolean @default(true) @map("is_active")
+
+  values CustomFieldValue[]
+
+  @@unique([entityType, fieldName])
+  @@map("custom_field_definitions")
+}
+
+model CustomFieldValue {
+  id           Int    @id @default(autoincrement())
+  definitionId Int    @map("definition_id")
+  entityId     Int    @map("entity_id") // The ID of the generic entity
+  value        String // Stored as JSON string to preserve type regardless of fieldType
+
+  definition CustomFieldDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@unique([definitionId, entityId])
+  @@map("custom_field_values")
 }

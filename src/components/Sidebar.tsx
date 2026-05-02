@@ -98,6 +98,13 @@ const LABELS: Record<Lang, Record<string, string>> = {
     'i.dunning': 'محرك متابعة المديونيات',
     'i.three_way': 'المطابقة الثلاثية للمشتريات',
     'i.bpm': 'محرك سير العمل (BPM)',
+    'i.payment_run': 'تشغيل الدفعات المجمعة',
+    'i.ecl': 'خسائر الائتمان المتوقعة (ECL)',
+    'i.std_cost': 'التكاليف المعيارية',
+    'i.subcontracting': 'التصنيع الخارجي',
+    'i.quality_mgmt': 'إدارة الجودة (CAPA/NCR)',
+    'i.multi_book': 'الدفاتر المتعددة (Multi-GAAP)',
+    'i.custom_fields': 'الحقول المخصصة',
     's.pharmacy': '💊 الصيدلية والرعاية الصحية',
     's.new_modules': '🚀 الوحدات الجديدة',
 'logout': 'تسجيل الخروج',
@@ -188,6 +195,13 @@ const LABELS: Record<Lang, Record<string, string>> = {
     'i.dunning': 'Dunning & Collections',
     'i.three_way': '3-Way Matching',
     'i.bpm': 'BPM Engine',
+    'i.payment_run': 'Payment Run (F110)',
+    'i.ecl': 'Expected Credit Loss (ECL)',
+    'i.std_cost': 'Standard Costing',
+    'i.subcontracting': 'Subcontracting',
+    'i.quality_mgmt': 'Quality Management (CAPA)',
+    'i.multi_book': 'Multi-Book (Multi-GAAP)',
+    'i.custom_fields': 'Custom Fields',
     's.pharmacy': '💊 Pharmacy & Healthcare',
     's.new_modules': '🚀 New Modules',
 'logout': 'Logout',
@@ -405,6 +419,8 @@ const menuItems = [
     { icon: '🔗', lk: 'i.blockchain', href: '/manufacturing/blockchain-trace', module: 'manufacturing' },
     { icon: '♻️', lk: 'i.kanban', href: '/manufacturing/lean-kanban', module: 'manufacturing' },
     { icon: '🤖', lk: 'i.digital_twin', href: '/manufacturing/digital-twin', module: 'manufacturing' },
+    { icon: '💲', lk: 'i.std_cost', href: '/manufacturing/standard-cost', module: 'manufacturing' },
+    { icon: '🏭', lk: 'i.subcontracting', href: '/manufacturing/subcontracting', module: 'manufacturing' },
   ]},
   { sk: 's.finance', items: [
     { icon: '🧠', lk: 'i.cfo', href: '/finance/cfo-ai', module: 'accounting' },
@@ -424,6 +440,9 @@ const menuItems = [
     { icon: '📚', lk: 'i.73mod', href: '/reports/104-modules', module: 'reports' },
     { icon: '🕵️', lk: 'i.fraud_ai', href: '/reports/fraud-ai', module: 'reports' },
     { icon: '🔄', lk: 'i.bank_recon', href: '/treasury/bank-reconciliation', module: 'treasury' },
+    { icon: '💳', lk: 'i.payment_run', href: '/finance/payment-run', module: 'accounting' },
+    { icon: '📉', lk: 'i.ecl', href: '/finance/ecl', module: 'accounting' },
+    { icon: '📚', lk: 'i.multi_book', href: '/accounting/multi-book', module: 'accounting' },
   ]},
   { sk: 's.crm', items: [
     { icon: '👥', lk: 'i.customers', href: '/customers', module: 'customers' },
@@ -458,6 +477,7 @@ const menuItems = [
     { icon: '🏫', lk: 'i.schools', href: '/school', module: 'schools' },
     { icon: '📚', lk: 'i.classes', href: '/shl/classes', module: 'schools' },
     { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
+    { icon: '🔬', lk: 'i.quality_mgmt', href: '/enterprise/quality-management', module: 'manufacturing' },
   ]},
   // ── قسم الصيدلية ─────────────────────────────────────────────────────────
   { sk: 's.pharmacy', items: [
@@ -504,6 +524,7 @@ const menuItems = [
     { icon: '🛡️', lk: 'i.audit', href: '/audit-logs', module: 'audit_logs' },
     { icon: '🔧', lk: 'i.support', href: '/maintenance', module: 'maintenance' },
     { icon: '💓', lk: 'i.sys_health', href: '/sys/health', module: 'maintenance' },
+    { icon: '🧩', lk: 'i.custom_fields', href: '/settings/custom-fields', module: 'settings' },
   ]},
 ];
 

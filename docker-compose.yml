@@ -1,34 +1,53 @@
 version: '3.8'
 
 services:
-  db:
+  postgres:
     image: postgres:15-alpine
-    restart: always
     environment:
-      POSTGRES_USER: namasoft
+      POSTGRES_USER: namasoft_user
       POSTGRES_PASSWORD: namasoft_password
       POSTGRES_DB: namasoft_db
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U namasoft_user -d namasoft_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  web:
-    build: 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  namasoft-web:
+    build:
       context: .
       dockerfile: Dockerfile
-    restart: always
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://namasoft:namasoft_password@db:5432/namasoft_db?schema=public
-      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - DATABASE_URL=postgresql://namasoft_user:namasoft_password@postgres:5432/namasoft_db?schema=public
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
     depends_on:
-      - db
-    # We should run migrations before starting the web server. 
-    # Usually handled by an init script or entrypoint, but for simplicity, we can do it manually or via another container.
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:
+  redis_data:
