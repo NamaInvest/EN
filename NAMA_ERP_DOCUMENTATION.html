@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nama ERP - Global Enterprise Documentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f9fafb;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e3a8a;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #2563eb;
+            margin-top: 30px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            padding-right: 20px;
+        }
+        li {
+            margin-bottom: 15px;
+        }
+        .en-text {
+            direction: ltr;
+            display: block;
+            color: #4b5563;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+        .ar-text {
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .feature-box {
+            background-color: #f3f4f6;
+            border-right: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .print-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto 30px;
+            padding: 10px;
+            background-color: #2563eb;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        @media print {
+            .print-btn { display: none; }
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">🖨️ طباعة أو حفظ كـ PDF</button>
+
+    <div class="container">
+        <h1>🚀 نظام نماء لإدارة موارد المؤسسات<br><span dir="ltr" style="font-size: 0.7em; color: #4b5563;">Nama ERP - The Global Enterprise Roadmap Documentation</span></h1>
+        
+        <p class="subtitle">
+            الإصدار 9.3 (نسخة الشركات الكبرى) | Version 9.3 (Enterprise Edition)<br>
+            تاريخ الإصدار: 2024 | Generated on: 2024
+        </p>
+
+        <p class="ar-text" style="text-align: center;">تعتبر هذه الوثيقة دليلاً شاملاً ونظرة معمارية عامة لنظام <strong>نماء ERP</strong> بعد اكتمال خارطة الطريق العالمية لنسخة الشركات الكبرى.</p>
+
+        <h2>1. مقدمة | Introduction</h2>
+        <div class="feature-box">
+            <span class="ar-text">تطور نظام نماء من مجرد نقطة بيع وبرنامج محاسبي تقليدي إلى عملاق أنظمة تخطيط موارد المؤسسات (ERP). تم تصميمه لينافس الأنظمة العالمية مثل SAP و Oracle NetSuite، مع تقديم دعم وتوطين عميق وحصري للسوق السعودي (ضريبة القيمة المضافة ZATCA، التأمينات GOSI، حماية الأجور WPS، منصة مدد).</span>
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+            <span class="en-text">Nama ERP has evolved from a standard POS and accounting tool into a full-scale Enterprise Resource Planning (ERP) giant. It is designed to rival international systems like SAP and Oracle NetSuite, while offering deep native localization for the Saudi Arabian market (ZATCA, GOSI, WPS, Mudad).</span>
+        </div>
+
+        <h2>2. النظرة المعمارية | Architectural Overview</h2>
+        <ul>
+            <li><span class="ar-text">إطار العمل الأساسي:</span> <span class="en-text inline">Next.js (React) App Router for Frontend & API</span></li>
+            <li><span class="ar-text">قاعدة البيانات:</span> <span class="en-text inline">PostgreSQL + Prisma ORM (إدارة أكثر من 150 جدول)</span></li>
+            <li><span class="ar-text">أمان البيانات:</span> <span class="en-text inline">قيود مالية غير قابلة للتعديل لضمان التوافق مع المعايير الدولية (IFRS).</span></li>
+            <li><span class="ar-text">البنية التحتية:</span> <span class="en-text inline">جاهز للحاويات والرفع السحابي (Docker-ready).</span></li>
+        </ul>
+
+        <h2>3. المرحلة أ: الموارد البشرية والامتثال السعودي 🇸🇦<br><span class="en-text">Phase A: Saudi HR Compliance</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">نظام حماية الأجور (WPS Generator):</span>
+                <span class="en-text">يولد ملفات SIF المعتمدة لدى البنك المركزي ومدد، ويتحقق من صحة الآيبان. (Generates SIF_V2 files)</span>
+            </li>
+            <li>
+                <span class="ar-text">محرك التأمينات الاجتماعية (GOSI Engine v2):</span>
+                <span class="en-text">حساب آلي للتأمينات لعام 2024: 19% للسعودي و 2% أخطار لغير السعودي مع مراعاة سقف الأجور.</span>
+            </li>
+            <li>
+                <span class="ar-text">مكافأة نهاية الخدمة (End-of-Service):</span>
+                <span class="en-text">احتساب المخصصات بناءً على المادة 84 من نظام العمل.</span>
+            </li>
+        </ul>
+
+        <h2>4. المرحلة ب: إدارة الخزينة والبنوك 🏦<br><span class="en-text">Phase B: Treasury Excellence</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">قارئ كشوفات الحساب (Bank Statement Parser):</span>
+                <span class="en-text">قراءة ملفات MT940 الدولية للبنك.</span>
+            </li>
+            <li>
+                <span class="ar-text">التسوية البنكية الآلية (Auto-Bank Recon Engine):</span>
+                <span class="en-text">يطابق حركات البنك مع القيود الدفترية آلياً ويطبق قواعد الرسوم البنكية (Matches lines within ±3 days).</span>
+            </li>
+            <li>
+                <span class="ar-text">التنبؤ بالسيولة (Cash Flow Forecaster):</span>
+                <span class="en-text">يتنبأ بالسيولة المستقبلية بناءً على فواتير الموردين والعملاء والرواتب.</span>
+            </li>
+        </ul>
+
+        <h2>5. المرحلة ج: إدارة الموردين والعملاء 🤝<br><span class="en-text">Phase C: AR/AP Mastery</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">المطابقة الثلاثية (Three-Way Matching):</span>
+                <span class="en-text">يطابق فاتورة المورد مع أمر الشراء وإيصال الاستلام، ويوقف الدفع عند التجاوز (Validates Invoice ↔ PO ↔ GRN).</span>
+            </li>
+            <li>
+                <span class="ar-text">إشعارات الديون والتأخير (Dunning Letters):</span>
+                <span class="en-text">تصعيد إشعارات متدرج وفرض غرامات تأخير وحظر الحسابات آلياً.</span>
+            </li>
+        </ul>
+
+        <h2>6. المرحلة د: التصنيع وحساب التكاليف 🏭<br><span class="en-text">Phase D: Manufacturing</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">محرك قائمة المواد (BOM Engine):</span>
+                <span class="en-text">يتتبع تكلفة المواد الخام، العمالة، والمصاريف الإضافية.</span>
+            </li>
+            <li>
+                <span class="ar-text">الجرد المستمر (Perpetual Costing):</span>
+                <span class="en-text">ينشئ قيود التكلفة (COGS) وتقييم المخزون آلياً.</span>
+            </li>
+        </ul>
+
+        <h2>7. المرحلة هـ: الامتثال المالي الدولي 📊<br><span class="en-text">Phase E: IFRS Governance</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">حصانة القيود المحاسبية (Journal Entry Immutability):</span>
+                <span class="en-text">يُمنع التعديل والحذف للقيود بعد اعتمادها.</span>
+            </li>
+            <li>
+                <span class="ar-text">إقرارات الزكاة والضريبة (ZATCA VAT Reporting):</span>
+                <span class="en-text">صندوق حساب الإقرار الضريبي ربع السنوي آلياً.</span>
+            </li>
+        </ul>
+
+        <h2>8. المرحلة و: محرك سير العمل ⚙️<br><span class="en-text">Phase F: Enterprise BPM</span></h2>
+        <ul>
+            <li>
+                <span class="ar-text">محرك الاعتمادات (BPM Engine):</span>
+                <span class="en-text">يدعم التوجيه الشرطي للموافقات، ويتتبع أوقات التنفيذ (SLA). يحتوي على لوحة تصميم مرئية.</span>
+            </li>
+        </ul>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; background-color: #eff6ff; border-radius: 8px;">
+            <h3 style="color: #1d4ed8;">🏆 نماء إي آر بي أصبح الآن نظام شركات عالمي متكامل!<br><span class="en-text" style="color: #3b82f6;">Nama ERP is now fully Enterprise-Ready!</span></h3>
+        </div>
+    </div>
+</body>
+</html>
