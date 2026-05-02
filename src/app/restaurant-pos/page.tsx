@@ -457,6 +457,7 @@ export default function RestaurantPOS() {
                 discountRate: finalDiscountValue > 0 ? ((finalDiscountValue / total) * 100).toFixed(2) : 0,
                 userId: userId,
                 isTaxInclusive: isTaxInclusive,
+                taxRate: taxEnabled ? taxRate : 0,
                 notes: activeTable ? `طاولة: ${activeTable.name}` : 'Restaurant POS Sale'
             };
             const data = await saveInvoiceWithSync(body, '/api/sales');
