@@ -836,6 +836,7 @@ model Account {
   bankChecks   CheckTransaction[]   @relation("CheckBankAccount")
   bankRecons   BankReconciliation[]
   BudgetLine   BudgetLine[]
+  Encumbrance  Encumbrance[]
 
   @@map("accounts")
 }
@@ -1511,6 +1512,7 @@ model CostCenter {
   expenses      Expense[]
   salesInvoices SalesInvoice[]
   BudgetLine    BudgetLine[]
+  Encumbrance   Encumbrance[]
 
   @@map("cost_centers")
 }
@@ -2392,6 +2394,23 @@ model BudgetLine {
   costCenter CostCenter? @relation(fields: [costCenterId], references: [id])
 
   @@map("fng_budget_lines")
+}
+
+model Encumbrance {
+  id             Int      @id @default(autoincrement())
+  sourceDocType  String   @map("source_doc_type") // PO, PR, EXPENSE
+  sourceDocId    Int      @map("source_doc_id")
+  accountId      Int      @map("account_id")
+  costCenterId   Int?     @map("cost_center_id")
+  amount         Float
+  status         String   @default("ACTIVE") // ACTIVE, RELEASED, CANCELLED
+  createdAt      DateTime @default(now()) @map("created_at")
+  releasedAt     DateTime? @map("released_at")
+
+  account        Account     @relation(fields: [accountId], references: [id])
+  costCenter     CostCenter? @relation(fields: [costCenterId], references: [id])
+
+  @@map("fng_encumbrances")
 }
 
 // --- 2. Sales Commissions & Targets (COM)
