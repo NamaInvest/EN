@@ -307,6 +307,7 @@ export default function POSPage() {
                 splitCard: paymentMethod === 'SPLIT' ? Number(splitCard) : 0,
                 discountRate: finalDiscountValue > 0 ? ((finalDiscountValue / total) * 100).toFixed(2) : 0,
                 userId: userId,
+                isTaxInclusive: isTaxInclusive,
                 notes: 'POS Sale'
             };
             const data = await saveInvoiceWithSync(body, '/api/sales');

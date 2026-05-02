@@ -53,6 +53,7 @@ export default function RestaurantPOS() {
 
     // Allow Negative Stock Setting
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+    const [isTaxInclusive, setIsTaxInclusive] = useState(true);
 
     // Pending Orders Notification System
     const [pendingOrders, setPendingOrders] = useState<any[]>([]);
@@ -119,7 +120,7 @@ export default function RestaurantPOS() {
         fetchFloorPlan();
     };
 
-    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
+    const initSettings = async () => { try { const res = await fetch('/api/settings'); if (res.ok) { const data = await res.json(); if (Array.isArray(data)) { const taxSetting = data.find((s: any) => s.key === 'tax_rate'); if (taxSetting) setTaxRate(Number(taxSetting.value) || 0); const negSetting = data.find((s: any) => s.key === 'POS_ALLOW_NEGATIVE_STOCK'); if (negSetting) setAllowNegativeStock(negSetting.value === 'true'); const incSetting = data.find((s: any) => s.key === 'POS_TAX_INCLUSIVE'); if (incSetting) setIsTaxInclusive(incSetting.value !== 'false'); } else { if (data.tax_rate !== undefined) setTaxRate(Number(data.tax_rate) || 0); if (data.POS_TAX_INCLUSIVE !== undefined) setIsTaxInclusive(data.POS_TAX_INCLUSIVE !== 'false'); } } } catch (e) {} }; useEffect(() => { initSettings(); }, []);
     useEffect(() => {
         const saved = localStorage.getItem('rest_held_orders');
         if (saved) {
@@ -450,6 +451,7 @@ export default function RestaurantPOS() {
                 splitCard: paymentMethod === 'SPLIT' ? Number(splitCard) : 0,
                 discountRate: finalDiscountValue > 0 ? ((finalDiscountValue / total) * 100).toFixed(2) : 0,
                 userId: userId,
+                isTaxInclusive: isTaxInclusive,
                 notes: activeTable ? `طاولة: ${activeTable.name}` : 'Restaurant POS Sale'
             };
             const data = await saveInvoiceWithSync(body, '/api/sales');
@@ -505,7 +507,9 @@ export default function RestaurantPOS() {
     };
 
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const tax = total * 0.15; // 15% VAT
+    const tax = isTaxInclusive 
+        ? total - (total / (1 + (0.15))) 
+        : total * 0.15; // 15% VAT
     
     // Calculate final with coupon
     let finalDiscountValue = 0;
@@ -516,7 +520,9 @@ export default function RestaurantPOS() {
             finalDiscountValue = appliedCoupon.discountValue;
         }
     }
-    const finalTotal = Math.max(0, total + tax - finalDiscountValue);
+    const finalTotal = isTaxInclusive 
+        ? Math.max(0, total - finalDiscountValue) 
+        : Math.max(0, total + tax - finalDiscountValue);
 
     const handleNumpad = (val: string) => {
         if (val === 'C') {
