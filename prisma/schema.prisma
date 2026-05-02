@@ -331,28 +331,28 @@ model SalesInvoiceDetail {
 
 // ==================== 10. SalesReturns ====================
 model SalesReturn {
-  id                Int                 @id @default(autoincrement())
-  returnNo          Int                 @map("return_no")
-  originalInvoiceId Int?                @map("original_invoice_id")
-  date              DateTime            @default(now())
-  customerId        Int?                @map("customer_id")
-  subtotal          Float               @default(0)
-  taxValue          Float               @default(0) @map("tax_value")
-  total             Float               @default(0)
-  userId            Int?                @map("user_id")
-  notes             String?
-  destinationStockId Int?               @map("destination_stock_id")
-  restockingFee      Float              @default(0) @map("restocking_fee")
-  zatcaStatus       String?             @default("pending") @map("zatca_status")
-  zatcaHash         String?             @map("zatca_hash")
-  zatcaQr           String?             @map("zatca_qr")
-  zatcaResponse     String?             @map("zatca_response")
-  zatcaXml          String?             @map("zatca_xml")
-  branch            Branch?             @relation(fields: [branchId], references: [id])
-  shift             Shift?              @relation(fields: [shiftId], references: [id])
-  branchId          Int?                @map("branch_id")
-  shiftId           Int?                @map("shift_id")
-  details           SalesReturnDetail[]
+  id                 Int                 @id @default(autoincrement())
+  returnNo           Int                 @map("return_no")
+  originalInvoiceId  Int?                @map("original_invoice_id")
+  date               DateTime            @default(now())
+  customerId         Int?                @map("customer_id")
+  subtotal           Float               @default(0)
+  taxValue           Float               @default(0) @map("tax_value")
+  total              Float               @default(0)
+  userId             Int?                @map("user_id")
+  notes              String?
+  destinationStockId Int?                @map("destination_stock_id")
+  restockingFee      Float               @default(0) @map("restocking_fee")
+  zatcaStatus        String?             @default("pending") @map("zatca_status")
+  zatcaHash          String?             @map("zatca_hash")
+  zatcaQr            String?             @map("zatca_qr")
+  zatcaResponse      String?             @map("zatca_response")
+  zatcaXml           String?             @map("zatca_xml")
+  branch             Branch?             @relation(fields: [branchId], references: [id])
+  shift              Shift?              @relation(fields: [shiftId], references: [id])
+  branchId           Int?                @map("branch_id")
+  shiftId            Int?                @map("shift_id")
+  details            SalesReturnDetail[]
 
   @@map("sales_returns")
 }
@@ -1487,9 +1487,11 @@ model ProductBatch {
   unitCost        Float     @map("unit_cost")
   createdAt       DateTime  @default(now()) @map("created_at")
 
-  product        Product              @relation(fields: [productId], references: [id])
-  salesDetails   SalesInvoiceDetail[]
-  stockMovements StockMovement[]
+  product         Product                  @relation(fields: [productId], references: [id])
+  salesDetails    SalesInvoiceDetail[]
+  stockMovements  StockMovement[]
+  grnDetails      GoodsReceiptNoteDetail[]
+  deliveryDetails DeliveryNoteDetail[]
 
   @@map("product_batches")
 }
@@ -1797,8 +1799,10 @@ model DeliveryNoteDetail {
   productName String?
   quantity    Float   @default(1)
 
-  note    DeliveryNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  product Product      @relation(fields: [productId], references: [id])
+  note           DeliveryNote  @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  product        Product       @relation(fields: [productId], references: [id])
+  ProductBatch   ProductBatch? @relation(fields: [productBatchId], references: [id])
+  productBatchId Int?
 
   @@map("delivery_note_details")
 }
@@ -2158,6 +2162,8 @@ model GoodsReceiptNoteDetail {
 
   grn     GoodsReceiptNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
   product Product          @relation(fields: [productId], references: [id])
+  batch   ProductBatch?    @relation(fields: [batchId], references: [id])
+  batchId Int?             @map("batch_id")
 
   @@map("goods_receipt_note_details")
 }
