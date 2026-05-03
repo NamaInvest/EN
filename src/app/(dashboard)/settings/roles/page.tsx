@@ -111,9 +111,76 @@ const MODULE_NAMES: Record<string, string> = {
     'master-panel': 'لوحة التحكم المركزية (Master)',
     'branches': 'الفروع',
     'currencies': 'العملات',
-    'whatsapp': 'الواتساب',
     'salla': 'ربط سلة'
 };
+
+const ROLE_PRESETS = [
+    {
+        name: 'كاشير تجزئة (Retail Cashier)',
+        icon: '💻',
+        modules: ['dashboard', 'pos', 'shifts', 'sales_returns', 'receipt_vouchers']
+    },
+    {
+        name: 'كاشير مطعم (Restaurant Cashier)',
+        icon: '🍔',
+        modules: ['dashboard', 'restaurant_pos', 'shifts', 'receipt_vouchers']
+    },
+    {
+        name: 'محاسب عام (Accountant)',
+        icon: '📊',
+        modules: ['dashboard', 'accounting', 'treasury', 'banks', 'treasury_checks', 'receipt_vouchers', 'expenses', 'petty_cash', 'fixed_assets', 'reports', 'purchases', 'sales']
+    },
+    {
+        name: 'مراجع مالي (Auditor)',
+        icon: '🕵️',
+        modules: ['dashboard', 'reports', 'audit_logs', 'accounting', 'approvals', 'vision_inventory']
+    },
+    {
+        name: 'أمين مستودع (Storekeeper)',
+        icon: '📦',
+        modules: ['dashboard', 'products', 'stock', 'stock_transfers', 'warehouses', 'wms', 'barcode', 'batches', 'vision_inventory', 'purchase_orders']
+    },
+    {
+        name: 'مسؤول مشتريات (Purchaser)',
+        icon: '🛒',
+        modules: ['dashboard', 'purchases', 'purchase_orders', 'purchase_returns', 'letters_of_credit', 'products', 'suppliers']
+    },
+    {
+        name: 'مندوب مبيعات (Sales Rep)',
+        icon: '🎯',
+        modules: ['dashboard', 'sales', 'sales_orders', 'price_quotes', 'customers', 'sales_routes']
+    },
+    {
+        name: 'مدير إنتاج (Manufacturing)',
+        icon: '🏭',
+        modules: ['dashboard', 'manufacturing', 'mrp', 'maintenance', 'products', 'stock']
+    },
+    {
+        name: 'مسؤول موارد بشرية (HR)',
+        icon: '👥',
+        modules: ['dashboard', 'employees', 'attendance', 'salaries', 'vacations', 'hr_loans', 'shifts']
+    },
+    {
+        name: 'إدارة علاقات العملاء (CRM)',
+        icon: '🤝',
+        modules: ['dashboard', 'customers', 'loyalty', 'gift_cards', 'coupons', 'promotions', 'bookings', 'affiliates']
+    },
+    {
+        name: 'مدير أسطول (Fleet Manager)',
+        icon: '🚚',
+        modules: ['dashboard', 'fleet', 'maintenance', 'employees']
+    },
+    {
+        name: 'إدارة المدارس (School Admin)',
+        icon: '🏫',
+        modules: ['dashboard', 'schools', 'employees', 'accounting']
+    },
+    {
+        name: 'صلاحيات كاملة (Admin)',
+        icon: '👑',
+        modules: MODULES_GROUPED.flatMap(g => g.keys)
+    }
+];
 
 export default function RolesAndPermissionsPage() {
     const { lang } = useTranslation();
@@ -170,6 +237,10 @@ export default function RolesAndPermissionsPage() {
         } else {
             setSelectedModules(prev => Array.from(new Set([...prev, ...groupKeys])));
         }
+    };
+
+    const applyPreset = (presetModules: string[]) => {
+        setSelectedModules(presetModules);
     };
 
     const handleSave = async () => {
@@ -254,14 +325,38 @@ export default function RolesAndPermissionsPage() {
                     </div>
                 </div>
 
-                {/* Modules Checklist */}
-                <div className="w-full md:w-3/4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200">{_t('الوحدات البرمجية المتاحة', 'Available Modules')}</h3>
-                        <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">{selectedModules.length} {_t('محددة', 'Selected')}</span>
+                <div className="w-full md:w-3/4 flex flex-col gap-6">
+                    {/* Presets Section */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">{_t('تطبيق قالب جاهز (Role Templates)', 'Apply Role Template')}</h3>
+                        <div className="flex flex-wrap gap-3">
+                            {ROLE_PRESETS.map((preset, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => applyPreset(preset.modules)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors text-gray-800 dark:text-gray-200"
+                                >
+                                    <span>{preset.icon}</span>
+                                    {preset.name}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => applyPreset([])}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors text-red-700 dark:text-red-400"
+                            >
+                                🗑️ {_t('إزالة جميع الصلاحيات', 'Clear All')}
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto">
+
+                    {/* Modules Checklist */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
+                            <h3 className="font-bold text-gray-700 dark:text-gray-200">{_t('الوحدات البرمجية المتاحة', 'Available Modules')}</h3>
+                            <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-bold">{selectedModules.length} {_t('محددة', 'Selected')}</span>
+                        </div>
+                        
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto">
                         {MODULES_GROUPED.map((group, idx) => (
                             <div key={idx} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 bg-gray-50/50 dark:bg-gray-800/50">
                                 <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">
