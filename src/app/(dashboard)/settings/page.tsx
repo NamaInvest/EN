@@ -833,50 +833,10 @@ export default function SettingsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الصلاحيات ({newUserModules.length}/{ALL_MODULES.length})
-                                    {FULL_ACCESS_ROLES.includes(newUser.role) && <span style={{ fontSize: '11px', color: 'var(--success)', marginRight: '8px' }}>✅ وصول كامل</span>}
-                                    {!FULL_ACCESS_ROLES.includes(newUser.role) && <span style={{ fontSize: '11px', color: 'var(--primary)', marginRight: '8px' }}>⚡ محددة تلقائياً — يمكنك إلغاء صلاحيات فقط</span>}
-                                </label>
-                                <input
-                                    className="input" type="text" placeholder="🔍 ابحث في الصلاحيات..."
-                                    value={moduleSearch} onChange={e => setModuleSearch(e.target.value)}
-                                    style={{ marginBottom: '8px', fontSize: '13px' }}
-                                />
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '200px', overflowY: 'auto', padding: '4px', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                                    {FULL_ACCESS_ROLES.includes(newUser.role) ? (
-                                        /* ── أدوار الوصول الكامل: عرض كل الوحدات ── */
-                                        <>
-                                            <button type="button" className={`btn btn-sm ${newUserModules.length === ALL_MODULES.length ? 'btn-primary' : 'btn-ghost'}`}
-                                                onClick={() => setNewUserModules(newUserModules.length === ALL_MODULES.length ? [] : ALL_MODULES.map(m => m.key))} style={{ fontSize: '11px' }}>
-                                                {newUserModules.length === ALL_MODULES.length ? '✗ إلغاء الكل' : '✓ تحديد الكل'}
-                                            </button>
-                                            {ALL_MODULES.filter(m =>
-                                                !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
-                                            ).map(m => (
-                                                <button key={m.key} type="button"
-                                                    className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
-                                                    onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
-                                                    style={{ fontSize: '11px' }}>{m.label}</button>
-                                            ))}
-                                        </>
-                                    ) : (
-                                        /* ── أدوار محدودة: عرض صلاحيات الدور فقط — يمكن إلغاء لا إضافة ── */
-                                        <>
-                                            {(() => {
-                                                const roleModuleKeys = DEFAULT_ROLE_MODULES[newUser.role] || [];
-                                                const roleModules = ALL_MODULES.filter(m => roleModuleKeys.includes(m.key));
-                                                const filtered = roleModules.filter(m =>
-                                                    !moduleSearch || m.label.toLowerCase().includes(moduleSearch.toLowerCase()) || m.key.includes(moduleSearch.toLowerCase())
-                                                );
-                                                return filtered.map(m => (
-                                                    <button key={m.key} type="button"
-                                                        className={`btn btn-sm ${newUserModules.includes(m.key) ? 'btn-success' : 'btn-ghost'}`}
-                                                        onClick={() => setNewUserModules(prev => prev.includes(m.key) ? prev.filter(x => x !== m.key) : [...prev, m.key])}
-                                                        style={{ fontSize: '11px' }}>{m.label}</button>
-                                                ));
-                                            })()}
-                                        </>
-                                    )}
+                                <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>🔐 الصلاحيات</label>
+                                <div style={{ background: 'var(--bg-card)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                    <p style={{ marginBottom: '8px' }}>سيتم منح صلاحيات افتراضية بناءً على الدور المختار.</p>
+                                    <a href="/settings/roles" className="btn btn-ghost btn-sm" style={{ fontSize: '12px', textDecoration: 'none' }}>⚙️ تخصيص متقدم للصلاحيات (مصفوفة الصلاحيات)</a>
                                 </div>
                             </div>
                             <button className="btn btn-primary" onClick={saveUser} disabled={savingUser}>{savingUser ? t('sys.str_4536') : t('sys.str_4580')}</button>
@@ -920,22 +880,9 @@ export default function SettingsPage() {
                                         </td>
                                         <td>
                                             {canManagePerms && (
-                                                <button className="btn btn-ghost btn-sm" onClick={() => { 
-                                                    setEditPermUser(u); 
-                                                    const matrix: Record<string, any> = {};
-                                                    (u.permissions || []).forEach((p: any) => {
-                                                        matrix[p.module] = {
-                                                            canView: p.canView ?? true,
-                                                            canAdd: p.canAdd ?? true,
-                                                            canEdit: p.canEdit ?? true,
-                                                            canDelete: p.canDelete ?? true,
-                                                            canPrint: p.canPrint ?? true,
-                                                        };
-                                                    });
-                                                    setEditPermMatrix(matrix);
-                                                }}
-                                                    style={{ fontSize: '11px' }}>
-                                                    🔐 {(u.permissions || []).length} {t('sys.str_4373')}</button>
+                                                <a href="/settings/roles" className="btn btn-ghost btn-sm" style={{ fontSize: '11px', textDecoration: 'none' }}>
+                                                    🔐 تخصيص الصلاحيات
+                                                </a>
                                             )}
                                         </td>
                                         <td>
@@ -961,98 +908,6 @@ export default function SettingsPage() {
 
 
 
-            {/* Edit Permissions Modal */}
-            {editPermUser && (
-                <div className="modal-overlay" onClick={() => setEditPermUser(null)}>
-                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <h3>{t('sys.str_4384')}{editPermUser.fullName}</h3>
-                            <button className="modal-close" onClick={() => setEditPermUser(null)}>✕</button>
-                        </div>
-                        <div className="modal-body">
-                            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t('sys.str_4385')}</p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <button type="button" className="btn btn-sm btn-ghost"
-                                    onClick={() => {
-                                        const isAll = Object.keys(editPermMatrix).length === ALL_MODULES.length;
-                                        if (isAll) {
-                                            setEditPermMatrix({});
-                                        } else {
-                                            const next: any = {};
-                                            ALL_MODULES.forEach(m => {
-                                                next[m.key] = { canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true };
-                                            });
-                                            setEditPermMatrix(next);
-                                        }
-                                    }} style={{ fontSize: '11px', fontWeight: 'bold' }}>
-                                    {Object.keys(editPermMatrix).length === ALL_MODULES.length ? '✗ إلغاء تحديد الكل' : '✓ تحديد الكل'}
-                                </button>
-                            </div>
-                            <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                                <table className="table" style={{ fontSize: '12px', margin: 0 }}>
-                                    <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1, boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                        <tr>
-                                            <th>القسم</th>
-                                            <th style={{ textAlign: 'center', width: '50px' }}>عرض</th>
-                                            <th style={{ textAlign: 'center', width: '50px' }}>إضافة</th>
-                                            <th style={{ textAlign: 'center', width: '50px' }}>تعديل</th>
-                                            <th style={{ textAlign: 'center', width: '50px' }}>حذف</th>
-                                            <th style={{ textAlign: 'center', width: '50px' }}>طباعة</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {ALL_MODULES.map(m => {
-                                            const p = editPermMatrix[m.key];
-                                            const hasModule = !!p;
-                                            return (
-                                                <tr key={m.key} style={{ background: hasModule ? 'var(--bg-card-hover)' : 'transparent', opacity: hasModule ? 1 : 0.6 }}>
-                                                    <td style={{ fontWeight: '600' }}>
-                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
-                                                            <input type="checkbox" checked={hasModule} onChange={(e) => {
-                                                                const checked = e.target.checked;
-                                                                setEditPermMatrix(prev => {
-                                                                    const next = { ...prev };
-                                                                    if (checked) next[m.key] = { canView: true, canAdd: true, canEdit: true, canDelete: true, canPrint: true };
-                                                                    else delete next[m.key];
-                                                                    return next;
-                                                                });
-                                                            }} style={{ cursor: 'pointer' }} />
-                                                            {m.label}
-                                                        </label>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canView} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canView: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
-                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canAdd} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canAdd: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
-                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canEdit} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canEdit: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
-                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canDelete} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canDelete: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
-                                                    <td style={{ textAlign: 'center' }}><input type="checkbox" disabled={!hasModule} checked={hasModule && p.canPrint} onChange={e => setEditPermMatrix(prev => ({...prev, [m.key]: {...prev[m.key], canPrint: e.target.checked}}))} style={{ cursor: 'pointer' }} /></td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <button className="btn btn-primary" onClick={async () => {
-                                try {
-                                    const token = localStorage.getItem('token');
-                                    await fetch('/api/users', {
-                                        method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                        body: JSON.stringify({ 
-                                            id: editPermUser.id, 
-                                            permissions: Object.entries(editPermMatrix).map(([module, perms]) => ({ module, ...perms })) 
-                                        })
-                                    });
-                                    showToast(t('sys.str_4582'));
-                                    setEditPermUser(null);
-                                    fetchUsers();
-                                } catch { showToast(t('sys.str_4199')); }
-                            }}>{t('sys.str_4252')}</button>
-                            <button className="btn btn-ghost" onClick={() => setEditPermUser(null)}>{t('sys.str_4097')}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Danger Zone */}
             {(canDeleteAllSales || canClearZatca) && !hiddenModules.includes('btn_danger_zone') && (

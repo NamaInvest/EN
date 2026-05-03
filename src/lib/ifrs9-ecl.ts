@@ -2,6 +2,12 @@ import { prisma } from './prisma';
 
 export class IFRS9Engine {
     
+    private static async _getAccountId(codeOrKey: string, fallbackId: number): Promise<number> {
+        const setting = await prisma.setting.findUnique({ where: { key: codeOrKey } });
+        const codeToSearch = setting?.value || codeOrKey;
+        const acc = await prisma.account.findFirst({ where: { code: codeToSearch } });
+        return acc ? acc.id : fallbackId;
+    }
     /**
      * Assess ECL for a single customer
      */
@@ -108,6 +114,9 @@ export class IFRS9Engine {
 
         // Generate Provision Journal Entry
         if (totalECL > 0) {
+            const badDebtExpenseAccountId = await IFRS9Engine._getAccountId('acc_bad_debt_expense', 5010);
+            const allowanceEclAccountId = await IFRS9Engine._getAccountId('acc_allowance_ecl', 1025);
+
             await prisma.journalEntry.create({
                 data: {
                     entryNumber: `ECL-${fiscalPeriodId}-${Date.now()}`,
@@ -121,13 +130,13 @@ export class IFRS9Engine {
                     lines: {
                         create: [
                             {
-                                accountId: 5010, // Mock: Bad Debt Expense Account
+                                accountId: badDebtExpenseAccountId,
                                 debit: totalECL,
                                 credit: 0,
                                 description: 'ECL Provision Expense'
                             },
                             {
-                                accountId: 1025, // Mock: Allowance for ECL (Contra-Asset)
+                                accountId: allowanceEclAccountId,
                                 debit: 0,
                                 credit: totalECL,
                                 description: 'ECL Allowance'

@@ -2,6 +2,14 @@ import { prisma } from './prisma';
 
 export class StandardCostEngine {
     
+    private static async _getAccountId(codeOrKey: string, fallbackId: number): Promise<number> {
+        // First try to check if it's stored in settings (e.g. key like 'acc_ppv')
+        const setting = await prisma.setting.findUnique({ where: { key: codeOrKey } });
+        const codeToSearch = setting?.value || codeOrKey;
+        
+        const acc = await prisma.account.findFirst({ where: { code: codeToSearch } });
+        return acc ? acc.id : fallbackId;
+    }
     /**
      * Set a new standard cost version for a product
      */
@@ -58,6 +66,9 @@ export class StandardCostEngine {
                 }
             });
 
+            const ppvAccountId = await StandardCostEngine._getAccountId('acc_ppv', 5020);
+            const apAccrualAccountId = await StandardCostEngine._getAccountId('acc_ap_accrual', 1040);
+
             // Generate Journal Entry
             const je = await tx.journalEntry.create({
                 data: {
@@ -75,7 +86,7 @@ export class StandardCostEngine {
             await tx.journalLine.create({
                 data: {
                     entryId: je.id,
-                    accountId: 5020, // Mock: Purchase Price Variance Account
+                    accountId: ppvAccountId,
                     debit: isUnfavorable ? Math.abs(varianceAmount) : 0,
                     credit: isUnfavorable ? 0 : Math.abs(varianceAmount),
                     description: 'PPV'
@@ -85,7 +96,7 @@ export class StandardCostEngine {
             await tx.journalLine.create({
                 data: {
                     entryId: je.id,
-                    accountId: 1040, // Mock: Inventory AP Accrual
+                    accountId: apAccrualAccountId,
                     debit: isUnfavorable ? 0 : Math.abs(varianceAmount),
                     credit: isUnfavorable ? Math.abs(varianceAmount) : 0,
                     description: 'Offset'
@@ -125,6 +136,9 @@ export class StandardCostEngine {
                 }
             });
 
+            const muvAccountId = await StandardCostEngine._getAccountId('acc_muv', 5030);
+            const wipAccountId = await StandardCostEngine._getAccountId('acc_wip', 1050);
+
             const je = await tx.journalEntry.create({
                 data: {
                     entryNumber: `MUV-${varianceTx.id}`,
@@ -140,7 +154,7 @@ export class StandardCostEngine {
             await tx.journalLine.create({
                 data: {
                     entryId: je.id,
-                    accountId: 5030, // Mock: Material Usage Variance Account
+                    accountId: muvAccountId,
                     debit: isUnfavorable ? Math.abs(varianceAmount) : 0,
                     credit: isUnfavorable ? 0 : Math.abs(varianceAmount),
                     description: 'MUV'
@@ -150,7 +164,7 @@ export class StandardCostEngine {
             await tx.journalLine.create({
                 data: {
                     entryId: je.id,
-                    accountId: 1050, // Mock: WIP Inventory
+                    accountId: wipAccountId,
                     debit: isUnfavorable ? 0 : Math.abs(varianceAmount),
                     credit: isUnfavorable ? Math.abs(varianceAmount) : 0,
                     description: 'Offset WIP'

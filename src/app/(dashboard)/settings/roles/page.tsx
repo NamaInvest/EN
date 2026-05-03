@@ -118,7 +118,7 @@ const ROLE_PRESETS = [
     {
         name: 'كاشير تجزئة (Retail Cashier)',
         icon: '💻',
-        modules: ['dashboard', 'pos', 'shifts', 'sales_returns', 'receipt_vouchers']
+        modules: ['dashboard', 'pos', 'sales', 'shifts', 'sales_returns', 'receipt_vouchers']
     },
     {
         name: 'كاشير مطعم (Restaurant Cashier)',
@@ -389,6 +389,7 @@ export default function RolesAndPermissionsPage() {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }

@@ -2,6 +2,12 @@ import { prisma } from './prisma';
 
 export class FixedAssetsEngine {
     
+    private static async _getAccountId(codeOrKey: string, fallbackId: number): Promise<number> {
+        const setting = await prisma.setting.findUnique({ where: { key: codeOrKey } });
+        const codeToSearch = setting?.value || codeOrKey;
+        const acc = await prisma.account.findFirst({ where: { code: codeToSearch } });
+        return acc ? acc.id : fallbackId;
+    }
     /**
      * Capitalizes a CWIP (Capital Work In Progress) asset into service
      */
@@ -18,6 +24,27 @@ export class FixedAssetsEngine {
         });
 
         // Generate Journal Entry: DR Asset Account, CR CWIP Account
+        const assetAccountId = await FixedAssetsEngine._getAccountId('acc_fixed_asset', 1200);
+        const cwipAccountId = await FixedAssetsEngine._getAccountId('acc_cwip', 1290);
+        
+        await prisma.journalEntry.create({
+            data: {
+                entryNumber: `CAP-${assetId}-${Date.now()}`,
+                entryDate: placedInServiceDate.toISOString(),
+                description: `Capitalization of Asset #${assetId}`,
+                status: 'posted',
+                totalDebit: Number(asset.purchaseCost),
+                totalCredit: Number(asset.purchaseCost),
+                createdBy: 1,
+                lines: {
+                    create: [
+                        { accountId: assetAccountId, debit: Number(asset.purchaseCost), credit: 0, description: 'Fixed Asset' },
+                        { accountId: cwipAccountId, debit: 0, credit: Number(asset.purchaseCost), description: 'CWIP Offset' }
+                    ]
+                }
+            }
+        });
+
         return true;
     }
 
@@ -82,6 +109,26 @@ export class FixedAssetsEngine {
                 // Generate JE: 
                 // DR Depreciation Expense
                 // CR Accumulated Depreciation
+                const depExpenseAccountId = await FixedAssetsEngine._getAccountId('acc_dep_expense', 5100);
+                const accDepAccountId = await FixedAssetsEngine._getAccountId('acc_accumulated_dep', 1250);
+
+                await prisma.journalEntry.create({
+                    data: {
+                        entryNumber: `DEP-${asset.id}-${fiscalPeriodDate.getTime()}`,
+                        entryDate: fiscalPeriodDate.toISOString(),
+                        description: `Depreciation for Asset #${asset.id}`,
+                        status: 'posted',
+                        totalDebit: depreciationAmount,
+                        totalCredit: depreciationAmount,
+                        createdBy: 1,
+                        lines: {
+                            create: [
+                                { accountId: depExpenseAccountId, debit: depreciationAmount, credit: 0, description: 'Depreciation Expense' },
+                                { accountId: accDepAccountId, debit: 0, credit: depreciationAmount, description: 'Accumulated Depreciation' }
+                            ]
+                        }
+                    }
+                });
 
                 depreciatedCount++;
             }
@@ -116,11 +163,38 @@ export class FixedAssetsEngine {
         });
 
         // Accounting entry:
-        // DR Cash/AR (Proceeds)
-        // DR Accumulated Depreciation (Total)
-        // DR Loss on Disposal (if gainOrLoss < 0)
-        // CR Fixed Asset Cost
-        // CR Gain on Disposal (if gainOrLoss > 0)
+        const cashAccountId = await FixedAssetsEngine._getAccountId('acc_cash', 1010);
+        const accDepAccountId = await FixedAssetsEngine._getAccountId('acc_accumulated_dep', 1250);
+        const assetAccountId = await FixedAssetsEngine._getAccountId('acc_fixed_asset', 1200);
+        const lossAccountId = await FixedAssetsEngine._getAccountId('acc_loss_disposal', 5200);
+        const gainAccountId = await FixedAssetsEngine._getAccountId('acc_gain_disposal', 4200);
+
+        const totalDebit = saleProceeds + Number(asset.accumulatedDepreciation) + (gainOrLoss < 0 ? Math.abs(gainOrLoss) : 0);
+
+        const lines = [
+            { accountId: cashAccountId, debit: saleProceeds, credit: 0, description: 'Proceeds' },
+            { accountId: accDepAccountId, debit: Number(asset.accumulatedDepreciation), credit: 0, description: 'Acc. Depr' },
+            { accountId: assetAccountId, debit: 0, credit: Number(asset.purchaseCost), description: 'Asset Cost' }
+        ];
+
+        if (gainOrLoss < 0) {
+            lines.push({ accountId: lossAccountId, debit: Math.abs(gainOrLoss), credit: 0, description: 'Loss on Disposal' });
+        } else if (gainOrLoss > 0) {
+            lines.push({ accountId: gainAccountId, debit: 0, credit: gainOrLoss, description: 'Gain on Disposal' });
+        }
+
+        await prisma.journalEntry.create({
+            data: {
+                entryNumber: `DISP-${asset.id}-${Date.now()}`,
+                entryDate: disposalDate.toISOString(),
+                description: `Disposal of Asset #${asset.id}`,
+                status: 'posted',
+                totalDebit: totalDebit,
+                totalCredit: totalDebit,
+                createdBy: 1,
+                lines: { create: lines }
+            }
+        });
 
         return { gainOrLoss, netBookValue: nbv };
     }

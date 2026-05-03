@@ -1,7 +1,13 @@
 import { prisma } from './prisma';
 
 export class SubcontractingEngine {
-
+    
+    private static async _getAccountId(tx: any, codeOrKey: string, fallbackId: number): Promise<number> {
+        const setting = await tx.setting.findUnique({ where: { key: codeOrKey } });
+        const codeToSearch = setting?.value || codeOrKey;
+        const acc = await tx.account.findFirst({ where: { code: codeToSearch } });
+        return acc ? acc.id : fallbackId;
+    }
     /**
      * Issue raw materials to subcontractor
      */
@@ -54,10 +60,13 @@ export class SubcontractingEngine {
                     }
                 });
 
+                const wipAccountId = await SubcontractingEngine._getAccountId(tx, 'acc_wip', 1050);
+                const rawMaterialsAccountId = await SubcontractingEngine._getAccountId(tx, 'acc_raw_materials', 1040);
+
                 await tx.journalLine.create({
                     data: {
                         entryId: je.id,
-                        accountId: 1050, // Mock WIP Account
+                        accountId: wipAccountId,
                         debit: totalCost,
                         credit: 0,
                         description: 'WIP - Subcontracting'
@@ -67,7 +76,7 @@ export class SubcontractingEngine {
                 await tx.journalLine.create({
                     data: {
                         entryId: je.id,
-                        accountId: 1040, // Mock Raw Materials Account
+                        accountId: rawMaterialsAccountId,
                         debit: 0,
                         credit: totalCost,
                         description: 'Inventory Out'
