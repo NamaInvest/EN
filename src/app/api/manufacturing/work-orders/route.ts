@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
-        const { id, status } = body;
+        const { id, status, completionData } = body;
 
         const order: any = await prisma.manufacturingOrder.findUnique({
             where: { id: parseInt(id) },
@@ -133,30 +133,57 @@ export async function PUT(request: Request) {
         }
         // ─── in_progress → completed: WIP → Finished Goods ──────────────
         else if (status === 'completed' && order.status === 'in_progress') {
+            const yieldQty = completionData?.yieldQty || order.quantityToProduce;
+            const yieldWeight = completionData?.yieldWeight || 0;
+            const wastageWeight = completionData?.wastageWeight || 0;
+            const reason = completionData?.reason || '';
+            const wastagePhotoUrl = completionData?.wastagePhotoUrl || '';
+            const serialOrBatchNumber = completionData?.serialOrBatchNumber || '';
+
             const totalActualCost = order.totalCost;
-            const standardCost = order.recipe.totalCost * order.quantityToProduce;
+            const standardCost = order.recipe.totalCost * yieldQty;
             const finishedProductName = (order as any).recipe?.finishedProduct?.name;
 
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: any) => {
                 // 1. Mark order completed
                 await tx.manufacturingOrder.update({
                     where: { id: order.id },
-                    data: { status: 'completed', endDate: new Date() }
+                    data: { 
+                        status: 'completed', 
+                        endDate: new Date(),
+                        yieldQty,
+                        yieldWeight
+                    }
                 });
 
-                // 2. Increase finished-product stock + log movement
+                // 2. Log Wastage if applicable
+                if (wastageWeight > 0) {
+                    await tx.manufacturingWastage.create({
+                        data: {
+                            manufacturingOrderId: order.id,
+                            rawProductId: order.recipe.ingredients[0]?.rawProductId || order.recipe.finishedProductId,
+                            lostQuantity: 0,
+                            wastageWeight,
+                            reason,
+                            wastagePhotoUrl,
+                            serialOrBatchNumber
+                        }
+                    });
+                }
+
+                // 3. Increase finished-product stock + log movement
                 const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
                 if (fp) {
                     await tx.product.update({
                         where: { id: fp.id },
-                        data: { currentStock: (fp.currentStock || 0) + order.quantityToProduce }
+                        data: { currentStock: (fp.currentStock || 0) + yieldQty }
                     });
                     await tx.stockMovement.create({
                         data: {
                             productId: fp.id,
                             type: 'in',
-                            quantity: order.quantityToProduce,
-                            notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber}`
+                            quantity: yieldQty,
+                            notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`
                         }
                     });
                 }

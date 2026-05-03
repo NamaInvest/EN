@@ -23,7 +23,9 @@ export default function BOMPage() {
         name: '',
         finishedProductId: '',
         scrapPercentage: 0,
-        ingredients: [{ rawProductId: '', quantity: 1, scrapPercentage: 0 }]
+        expectedYieldQty: 1,
+        expectedYieldWeight: 0,
+        ingredients: [{ rawProductId: '', quantity: 1, scrapPercentage: 0, weightBefore: 0, weightAfter: 0, qtyBefore: 1, qtyAfter: 1 }]
     });
 
     useEffect(() => {
@@ -53,7 +55,7 @@ export default function BOMPage() {
     const handleAddIngredient = () => {
         setFormData(prev => ({
             ...prev,
-            ingredients: [...prev.ingredients, { rawProductId: '', quantity: 1, scrapPercentage: 0 }]
+            ingredients: [...prev.ingredients, { rawProductId: '', quantity: 1, scrapPercentage: 0, weightBefore: 0, weightAfter: 0, qtyBefore: 1, qtyAfter: 1 }]
         }));
     };
 
@@ -89,8 +91,8 @@ export default function BOMPage() {
             success(_t('تم إنشاء معادلة التصنيع بنجاح', 'BOM created successfully'));
             setShowModal(false);
             setFormData({
-                name: '', finishedProductId: '', scrapPercentage: 0,
-                ingredients: [{ rawProductId: '', quantity: 1, scrapPercentage: 0 }]
+                name: '', finishedProductId: '', scrapPercentage: 0, expectedYieldQty: 1, expectedYieldWeight: 0,
+                ingredients: [{ rawProductId: '', quantity: 1, scrapPercentage: 0, weightBefore: 0, weightAfter: 0, qtyBefore: 1, qtyAfter: 1 }]
             });
             fetchData();
         } catch (e: any) {
@@ -276,7 +278,7 @@ export default function BOMPage() {
             {/* Create Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
                                 <Beaker className={`w-5 h-5 text-blue-600 ${lang === 'ar' ? 'ml-2' : 'mr-2'}`} />
@@ -288,8 +290,8 @@ export default function BOMPage() {
                         </div>
 
                         <div className="p-6 overflow-y-auto flex-1 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {_t('اسم المعادلة (النسخة)', 'Formula Name (Version)')} <span className="text-red-500">*</span>
                                     </label>
@@ -301,7 +303,7 @@ export default function BOMPage() {
                                         placeholder={_t('مثال: الاصدار الاساسي V1', 'e.g. Base Version V1')}
                                     />
                                 </div>
-                                <div>
+                                <div className="lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {_t('المنتج النهائي المخرجات', 'Finished Product')} <span className="text-red-500">*</span>
                                     </label>
@@ -315,6 +317,28 @@ export default function BOMPage() {
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {_t('الكمية المتوقعة للمخرجات', 'Expected Yield Qty')}
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        value={formData.expectedYieldQty}
+                                        onChange={e => setFormData({...formData, expectedYieldQty: parseFloat(e.target.value) || 0})}
+                                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {_t('الوزن المتوقع للمخرجات', 'Expected Yield Weight')}
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        value={formData.expectedYieldWeight}
+                                        onChange={e => setFormData({...formData, expectedYieldWeight: parseFloat(e.target.value) || 0})}
+                                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    />
                                 </div>
                             </div>
 
@@ -332,49 +356,100 @@ export default function BOMPage() {
                                     </button>
                                 </div>
 
-                                <div className="space-y-3">
-                                    {formData.ingredients.map((ing, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                                            <div className="flex-1">
-                                                <select 
-                                                    value={ing.rawProductId}
-                                                    onChange={e => {
-                                                        const newIngs = [...formData.ingredients];
-                                                        newIngs[idx].rawProductId = e.target.value;
-                                                        setFormData({...formData, ingredients: newIngs});
-                                                    }}
-                                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-3 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                                >
-                                                    <option value="">{_t('اختر المادة الخام...', 'Select Raw Material...')}</option>
-                                                    {products.map(p => (
-                                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="w-32">
-                                                <input 
-                                                    type="number" 
-                                                    step="0.01"
-                                                    value={ing.quantity}
-                                                    onChange={e => {
-                                                        const newIngs = [...formData.ingredients];
-                                                        newIngs[idx].quantity = parseFloat(e.target.value) || 0;
-                                                        setFormData({...formData, ingredients: newIngs});
-                                                    }}
-                                                    placeholder={_t('الكمية', 'Qty')}
-                                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-3 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                                />
-                                            </div>
-                                            <button 
-                                                onClick={() => handleRemoveIngredient(idx)}
-                                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-right rtl:text-right border-collapse">
+                                        <thead>
+                                            <tr className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm border-b border-gray-200 dark:border-gray-700">
+                                                <th className="px-3 py-2">{_t('المادة الخام', 'Raw Material')}</th>
+                                                <th className="px-3 py-2 w-28">{_t('كمية قبل', 'Qty Before')}</th>
+                                                <th className="px-3 py-2 w-28">{_t('كمية بعد', 'Qty After')}</th>
+                                                <th className="px-3 py-2 w-28">{_t('الوزن قبل', 'Wt Before')}</th>
+                                                <th className="px-3 py-2 w-28">{_t('الوزن بعد', 'Wt After')}</th>
+                                                <th className="px-3 py-2 w-16 text-center"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                            {formData.ingredients.map((ing, idx) => (
+                                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                                    <td className="px-2 py-2">
+                                                        <select 
+                                                            value={ing.rawProductId}
+                                                            onChange={e => {
+                                                                const newIngs = [...formData.ingredients];
+                                                                newIngs[idx].rawProductId = e.target.value;
+                                                                setFormData({...formData, ingredients: newIngs});
+                                                            }}
+                                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-2 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                                        >
+                                                            <option value="">{_t('اختر...', 'Select...')}</option>
+                                                            {products.map(p => (
+                                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
+                                                    <td className="px-2 py-2">
+                                                        <input 
+                                                            type="number" step="0.01"
+                                                            value={ing.qtyBefore}
+                                                            onChange={e => {
+                                                                const newIngs = [...formData.ingredients];
+                                                                newIngs[idx].qtyBefore = parseFloat(e.target.value) || 0;
+                                                                newIngs[idx].quantity = newIngs[idx].qtyBefore;
+                                                                setFormData({...formData, ingredients: newIngs});
+                                                            }}
+                                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-2 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-center"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-2">
+                                                        <input 
+                                                            type="number" step="0.01"
+                                                            value={ing.qtyAfter}
+                                                            onChange={e => {
+                                                                const newIngs = [...formData.ingredients];
+                                                                newIngs[idx].qtyAfter = parseFloat(e.target.value) || 0;
+                                                                setFormData({...formData, ingredients: newIngs});
+                                                            }}
+                                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-2 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-center"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-2">
+                                                        <input 
+                                                            type="number" step="0.01"
+                                                            value={ing.weightBefore}
+                                                            onChange={e => {
+                                                                const newIngs = [...formData.ingredients];
+                                                                newIngs[idx].weightBefore = parseFloat(e.target.value) || 0;
+                                                                setFormData({...formData, ingredients: newIngs});
+                                                            }}
+                                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-2 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-center"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-2">
+                                                        <input 
+                                                            type="number" step="0.01"
+                                                            value={ing.weightAfter}
+                                                            onChange={e => {
+                                                                const newIngs = [...formData.ingredients];
+                                                                newIngs[idx].weightAfter = parseFloat(e.target.value) || 0;
+                                                                setFormData({...formData, ingredients: newIngs});
+                                                            }}
+                                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-1.5 px-2 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-center"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-2 text-center">
+                                                        <button 
+                                                            onClick={() => handleRemoveIngredient(idx)}
+                                                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded inline-flex items-center justify-center"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                     {formData.ingredients.length === 0 && (
-                                        <div className="text-center py-4 text-sm text-gray-500">
+                                        <div className="text-center py-6 text-sm text-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-lg mt-2">
                                             {_t('لم يتم إضافة أي مكونات. المعادلة يجب أن تحتوي على الأقل مكون واحد.', 'No ingredients added. A BOM must have at least one ingredient.')}
                                         </div>
                                     )}

@@ -25,11 +25,10 @@ async function main() {
     // 2. Default Units
     const units = ['حبة', 'كرتون', 'كيلو', 'جرام', 'لتر', 'متر', 'علبة', 'كيس', 'طن'];
     for (const name of units) {
-        await prisma.unit.upsert({
-            where: { id: units.indexOf(name) + 1 },
-            update: { name },
-            create: { name },
-        });
+        const existingUnit = await prisma.unit.findFirst({ where: { name } });
+        if (!existingUnit) {
+            await prisma.unit.create({ data: { name } });
+        }
     }
     console.log('✅ تم إنشاء وحدات القياس');
 

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
-        const { finishedProductId, name, scrapPercentage, ingredients, operations, byProducts } = body;
+        const { finishedProductId, name, scrapPercentage, expectedYieldQty, expectedYieldWeight, ingredients, operations, byProducts } = body;
 
         // Calculate total estimated cost based on ingredients (just raw materials for now)
         let totalCost = 0;
@@ -43,6 +43,8 @@ export async function POST(request: Request) {
                     finishedProductId: parseInt(finishedProductId),
                     name,
                     scrapPercentage: parseFloat(scrapPercentage) || 0,
+                    expectedYieldQty: parseFloat(expectedYieldQty) || 1,
+                    expectedYieldWeight: parseFloat(expectedYieldWeight) || 0,
                     totalCost: 0 // Will update after
                 } as any
             });
@@ -59,6 +61,10 @@ export async function POST(request: Request) {
                             recipeId: newRecipe.id,
                             rawProductId: parseInt(item.rawProductId),
                             quantity: parseFloat(item.quantity),
+                            qtyBefore: parseFloat(item.qtyBefore) || parseFloat(item.quantity),
+                            qtyAfter: parseFloat(item.qtyAfter) || parseFloat(item.quantity),
+                            weightBefore: parseFloat(item.weightBefore) || 0,
+                            weightAfter: parseFloat(item.weightAfter) || 0,
                             scrapPercentage: parseFloat(item.scrapPercentage) || 0,
                             estimatedCost: estCost
                         } as any

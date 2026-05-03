@@ -30,14 +30,21 @@ export default function GlobalAuthGuard() {
         }
 
         if (isLoaded && isSignedIn && user && !synced) {
+            // Skip sync on tenant subdomains (it's forbidden by the API anyway)
+            if (window.location.hostname !== 'namainvist.com' && window.location.hostname !== 'www.namainvist.com' && !window.location.hostname.startsWith('localhost')) {
+                setSynced(true);
+                return;
+            }
+
             fetch('/api/auth/sync', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
-                        setSynced(true);
-                    }
+                    setSynced(true);
                 })
-                .catch(err => console.error("Sync error:", err));
+                .catch(err => {
+                    console.error("Sync error:", err);
+                    setSynced(true);
+                });
         }
 
     }, [pathname, isLoaded, isSignedIn, user, synced]);

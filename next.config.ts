@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  output: 'standalone',
+  // output: 'standalone', // Forbidden for PM2 deployments unless in Docker/Electron
 };
 
 if (process.env.ELECTRON_BUILD) {

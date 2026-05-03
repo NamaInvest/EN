@@ -22,24 +22,23 @@ export async function GET(request: Request) {
                 id: check.id,
                 order: check.order?.orderNumber,
                 product: check.order?.recipe?.name,
-                inspected: check.inspectedQuantity,
-                passed: check.passedQuantity,
-                failed: check.failedQuantity,
-                date: check.checkDate,
+                details: check.notes,
+                date: check.createdAt,
                 previousHash
             });
 
             const currentHash = crypto.createHash('sha256').update(payload).digest('hex');
+            const thisPreviousHash = previousHash;
             previousHash = currentHash;
 
             return {
                 blockId: check.id,
-                timestamp: check.checkDate,
+                timestamp: check.createdAt,
                 productName: check.order?.recipe?.name,
                 batchNumber: check.order?.orderNumber,
                 qcStatus: check.status,
                 hash: currentHash,
-                previousHash: payload.includes("000000") ? "Genesis Block" : previousHash,
+                previousHash: payload.includes("000000") ? "Genesis Block" : thisPreviousHash,
                 isValid: true // Cryptographically verified
             };
         });

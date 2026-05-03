@@ -1243,6 +1243,15 @@ model Recipe {
   totalCost         Float    @default(0) @map("total_cost")
   isActive          Boolean  @default(true) @map("is_active")
   scrapPercentage   Float    @default(0) @map("scrap_percentage")
+  
+  // New yield and weight tracking fields
+  expectedYieldQty    Float?   @map("expected_yield_qty")
+  expectedYieldWeight Float?   @map("expected_yield_weight")
+  weightBefore        Float?   @map("weight_before")
+  weightAfter         Float?   @map("weight_after")
+  qtyBefore           Float?   @map("qty_before")
+  qtyAfter            Float?   @map("qty_after")
+
   createdAt         DateTime @default(now()) @map("created_at")
 
   finishedProduct Product              @relation("RecipeFinishedProduct", fields: [finishedProductId], references: [id])
@@ -1262,6 +1271,12 @@ model RecipeIngredient {
   quantity        Float @default(1)
   estimatedCost   Float @default(0) @map("estimated_cost")
   scrapPercentage Float @default(0) @map("scrap_percentage")
+
+  // New weight and quantity tracking for each ingredient
+  weightBefore    Float? @map("weight_before")
+  weightAfter     Float? @map("weight_after")
+  qtyBefore       Float? @map("qty_before")
+  qtyAfter        Float? @map("qty_after")
 
   recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   rawProduct Product @relation("RecipeRawProduct", fields: [rawProductId], references: [id])
@@ -1283,6 +1298,11 @@ model ManufacturingOrder {
   stockId           Int       @default(1) @map("stock_id")
   userId            Int?      @map("user_id")
   notes             String?
+
+  // Yield and Accounting tracking
+  yieldQty          Float?    @map("yield_qty")
+  yieldWeight       Float?    @map("yield_weight")
+  journalEntryId    Int?      @map("journal_entry_id")
 
   recipe              Recipe                 @relation(fields: [recipeId], references: [id])
   machine             Machine?               @relation(fields: [machineId], references: [id])
@@ -1320,6 +1340,13 @@ model ManufacturingWastage {
   lostQuantity         Float    @map("lost_quantity")
   wastedCost           Float    @default(0) @map("wasted_cost")
   reason               String?
+  
+  // Archiving, Serial Tracking, and Accounting Integration
+  wastageWeight        Float?   @map("wastage_weight")
+  wastagePhotoUrl      String?  @map("wastage_photo_url")
+  serialOrBatchNumber  String?  @map("serial_or_batch_number")
+  journalEntryId       Int?     @map("journal_entry_id")
+
   reportedAt           DateTime @default(now()) @map("reported_at")
 
   order      ManufacturingOrder @relation(fields: [manufacturingOrderId], references: [id], onDelete: Cascade)
@@ -3173,10 +3200,10 @@ model IntercompanyTransaction {
 }
 
 model ConsolidationGroup {
-  id              Int    @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   name            String
-  parentCompanyId Int    @map("parent_company_id")
-  baseCurrency    String @default("SAR") @map("base_currency")
+  parentCompanyId Int     @map("parent_company_id")
+  baseCurrency    String  @default("SAR") @map("base_currency")
   isActive        Boolean @default(true) @map("is_active")
 
   runs ConsolidationRun[]
@@ -3185,13 +3212,13 @@ model ConsolidationGroup {
 }
 
 model ConsolidationRun {
-  id             Int      @id @default(autoincrement())
-  groupId        Int      @map("group_id")
+  id             Int                @id @default(autoincrement())
+  groupId        Int                @map("group_id")
   group          ConsolidationGroup @relation(fields: [groupId], references: [id])
-  fiscalPeriodId Int      @map("fiscal_period_id")
-  status         String   @default("DRAFT")
-  userId         Int?     @map("user_id")
-  createdAt      DateTime @default(now()) @map("created_at")
+  fiscalPeriodId Int                @map("fiscal_period_id")
+  status         String             @default("DRAFT")
+  userId         Int?               @map("user_id")
+  createdAt      DateTime           @default(now()) @map("created_at")
 
   lines ConsolidationLine[]
 
@@ -4406,17 +4433,17 @@ model CustomFieldValue {
 // ==================== Phase A: Saudi Compliance Sprint ====================
 
 model LeaveBalance {
-  id          Int    @id @default(autoincrement())
-  employeeId  Int    @map("employee_id")
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
   employee    Employee @relation(fields: [employeeId], references: [id])
   year        Int
-  leaveType   String @map("leave_type") // ANNUAL, SICK, MATERNITY, etc.
-  entitlement Decimal @db.Decimal(8, 2) // Total days entitled
-  accrued     Decimal @default(0) @db.Decimal(8, 2) // Days accrued so far
-  used        Decimal @default(0) @db.Decimal(8, 2) // Days used
-  pending     Decimal @default(0) @db.Decimal(8, 2) // Days pending approval
-  carryOver   Decimal @default(0) @map("carry_over") @db.Decimal(8, 2) // Carried from prev year
-  balance     Decimal @default(0) @db.Decimal(8, 2) // Available balance (accrued + carryOver - used - pending)
+  leaveType   String   @map("leave_type") // ANNUAL, SICK, MATERNITY, etc.
+  entitlement Decimal  @db.Decimal(8, 2) // Total days entitled
+  accrued     Decimal  @default(0) @db.Decimal(8, 2) // Days accrued so far
+  used        Decimal  @default(0) @db.Decimal(8, 2) // Days used
+  pending     Decimal  @default(0) @db.Decimal(8, 2) // Days pending approval
+  carryOver   Decimal  @default(0) @map("carry_over") @db.Decimal(8, 2) // Carried from prev year
+  balance     Decimal  @default(0) @db.Decimal(8, 2) // Available balance (accrued + carryOver - used - pending)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -4439,15 +4466,15 @@ model LeaveAccrual {
 }
 
 model LeaveRequest {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int      @map("employee_id")
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  leaveType   String   @map("leave_type")
-  startDate   DateTime @map("start_date")
-  endDate     DateTime @map("end_date")
-  days        Decimal  @db.Decimal(8, 2)
-  reason      String?
-  attachmentUrl String? @map("attachment_url")
+  id            Int      @id @default(autoincrement())
+  employeeId    Int      @map("employee_id")
+  employee      Employee @relation(fields: [employeeId], references: [id])
+  leaveType     String   @map("leave_type")
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  days          Decimal  @db.Decimal(8, 2)
+  reason        String?
+  attachmentUrl String?  @map("attachment_url")
 
   status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
   approvedBy      Int?      @map("approved_by")
@@ -4471,15 +4498,15 @@ model DocumentExpiryAlert {
   documentNumber String?  @map("document_number")
   expiryDate     DateTime @map("expiry_date")
   daysRemaining  Int      @map("days_remaining")
-  severity       String   // EXPIRED, CRITICAL, WARNING, INFO
+  severity       String // EXPIRED, CRITICAL, WARNING, INFO
   estimatedCost  Decimal? @map("estimated_cost") @db.Decimal(15, 2)
 
-  status         String    @default("ACTIVE") // ACTIVE, RENEWED, DISMISSED
-  renewedAt      DateTime? @map("renewed_at")
-  renewedBy      Int?      @map("renewed_by")
-  newExpiryDate  DateTime? @map("new_expiry_date")
-  dismissedAt    DateTime? @map("dismissed_at")
-  dismissReason  String?   @map("dismiss_reason")
+  status        String    @default("ACTIVE") // ACTIVE, RENEWED, DISMISSED
+  renewedAt     DateTime? @map("renewed_at")
+  renewedBy     Int?      @map("renewed_by")
+  newExpiryDate DateTime? @map("new_expiry_date")
+  dismissedAt   DateTime? @map("dismissed_at")
+  dismissReason String?   @map("dismiss_reason")
 
   notifiedVia    String?   @map("notified_via") // DASHBOARD, EMAIL, SMS, WHATSAPP
   lastNotifiedAt DateTime? @map("last_notified_at")
@@ -4489,4 +4516,3 @@ model DocumentExpiryAlert {
 
   @@map("document_expiry_alerts")
 }
-

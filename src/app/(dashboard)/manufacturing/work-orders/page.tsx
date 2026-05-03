@@ -19,6 +19,18 @@ export default function WorkOrdersPage() {
     const [quantity, setQuantity] = useState('1');
     const [startDate, setStartDate] = useState('');
 
+    // Completion Modal
+    const [completionModal, setCompletionModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [completionData, setCompletionData] = useState({
+        yieldQty: 0,
+        yieldWeight: 0,
+        wastageWeight: 0,
+        reason: '',
+        wastagePhotoUrl: '',
+        serialOrBatchNumber: ''
+    });
+
     useEffect(() => {
         fetchOrders();
         fetchRecipes();
@@ -83,6 +95,46 @@ export default function WorkOrdersPage() {
             });
             if (res.ok) {
                 setNotification({ type: 'success', message: 'تم تحديث أمر التشغيل وجدولة التكاليف بنجاح' });
+                fetchOrders();
+            } else {
+                setNotification({ type: 'error', message: 'فشل التحديث' });
+            }
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Network error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openCompletionModal = (order: any) => {
+        setSelectedOrder(order);
+        setCompletionData({
+            yieldQty: order.quantityToProduce,
+            yieldWeight: 0,
+            wastageWeight: 0,
+            reason: '',
+            wastagePhotoUrl: '',
+            serialOrBatchNumber: ''
+        });
+        setCompletionModal(true);
+    };
+
+    const submitCompletion = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const res = await fetch('/api/manufacturing/work-orders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: selectedOrder.id, 
+                    status: 'completed',
+                    completionData 
+                })
+            });
+            if (res.ok) {
+                setNotification({ type: 'success', message: 'تم إقفال الأمر واستلام المخرجات بنجاح' });
+                setCompletionModal(false);
                 fetchOrders();
             } else {
                 setNotification({ type: 'error', message: 'فشل التحديث' });
@@ -168,6 +220,64 @@ export default function WorkOrdersPage() {
                     </form>
                 )}
 
+                {/* Completion Modal */}
+                {completionModal && selectedOrder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                        <div className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-700 overflow-hidden">
+                            <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
+                                <h3 className="text-xl font-bold text-white flex items-center">
+                                    <CheckCircle2 className="w-6 h-6 ml-2 text-emerald-400" />
+                                    إقفال أمر التشغيل واستلام المخرجات
+                                </h3>
+                            </div>
+                            
+                            <form onSubmit={submitCompletion} className="p-6 space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <h4 className="text-emerald-400 font-semibold border-b border-slate-800 pb-2">المخرجات (المنتج التام)</h4>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">الكمية الفعلية (Yield Qty)</label>
+                                            <input type="number" step="0.01" required value={completionData.yieldQty} onChange={e => setCompletionData({...completionData, yieldQty: parseFloat(e.target.value) || 0})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">الوزن الفعلي (Yield Weight)</label>
+                                            <input type="number" step="0.01" value={completionData.yieldWeight} onChange={e => setCompletionData({...completionData, yieldWeight: parseFloat(e.target.value) || 0})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">رقم الدفعة / السيريال (Batch)</label>
+                                            <input type="text" value={completionData.serialOrBatchNumber} onChange={e => setCompletionData({...completionData, serialOrBatchNumber: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-4 border-r border-slate-800 pr-6">
+                                        <h4 className="text-red-400 font-semibold border-b border-slate-800 pb-2">الهالك (Wastage)</h4>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">وزن الهالك</label>
+                                            <input type="number" step="0.01" value={completionData.wastageWeight} onChange={e => setCompletionData({...completionData, wastageWeight: parseFloat(e.target.value) || 0})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">سبب الهالك</label>
+                                            <input type="text" value={completionData.reason} onChange={e => setCompletionData({...completionData, reason: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-slate-400 mb-1">صورة إثبات الهالك (URL/Path)</label>
+                                            <input type="text" placeholder="https://..." value={completionData.wastagePhotoUrl} onChange={e => setCompletionData({...completionData, wastagePhotoUrl: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" />
+                                            <p className="text-xs text-slate-500 mt-1">أرفق رابط صورة توثيق وزن الهالك إن لزم</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-end space-x-3 space-x-reverse pt-4 border-t border-slate-800">
+                                    <button type="button" onClick={() => setCompletionModal(false)} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-colors">إلغاء</button>
+                                    <button disabled={loading} type="submit" className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center">
+                                        {loading ? 'جاري المعالجة...' : 'اعتماد وإنشاء القيود'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {/* Orders List */}
                 <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-xl overflow-hidden">
                     <div className="p-6 border-b border-slate-800 flex justify-between items-center">
@@ -217,7 +327,7 @@ export default function WorkOrdersPage() {
                                                         </button>
                                                     )}
                                                     {order.status === 'in_progress' && (
-                                                        <button onClick={() => updateStatus(order.id, 'completed')} className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-colors">
+                                                        <button onClick={() => openCompletionModal(order)} className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-colors">
                                                             <CheckCircle2 className="w-4 h-4 ml-1" /> إقفال الأمر (استلام تام)
                                                         </button>
                                                     )}
