@@ -156,6 +156,7 @@ export default function SalesPage() {
  customerTaxNo?: string | null; customerCrNo?: string | null; customerAddress?: string | null;
  paymentMethod: string; items: { name: string; quantity: number; price: number; total: number }[];
  subtotal: number; discount: number; taxRate: number; taxAmount: number; grandTotal: number;
+ docType?: string;
  } | null>(null);
  const searchRef = useRef<HTMLInputElement>(null);
  const discountRef = useRef<HTMLInputElement>(null);
@@ -767,6 +768,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  taxRate: 15,
  taxAmount: taxValue,
  grandTotal: total,
+ docType: cust?.taxNumber ? 'standard_invoice' : 'simplified_invoice',
  });
  setShowReceipt(true);
  }

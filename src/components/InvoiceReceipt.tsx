@@ -20,13 +20,16 @@ interface ReceiptProps {
         taxRate: number;
         taxAmount: number;
         grandTotal: number;
+        docType?: string;
+        originalReference?: string;
     };
     autoPrint?: boolean;
     isQuote?: boolean;
+    docType?: string;
     onClose: () => void;
 }
 
-export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = false, isQuote = false, onClose }: ReceiptProps) {
+export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = false, isQuote = false, docType, onClose }: ReceiptProps) {
     const { t } = useTranslation();
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [companyName, setCompanyName] = useState('');
@@ -39,6 +42,19 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     const [printed, setPrinted] = useState(false);
     const [printerType, setPrinterType] = useState('80mm');
     const receiptRef = useRef<HTMLDivElement>(null);
+
+    const getDocumentTitle = useCallback(() => {
+        const type = docType || invoiceData?.docType;
+        if (type === 'simplified_debit') return 'إشعار مدين مبسط / Simplified Debit Note';
+        if (type === 'simplified_credit') return 'إشعار دائن مبسط / Simplified Credit Note';
+        if (type === 'standard_debit') return 'إشعار مدين / Standard Debit Note';
+        if (type === 'standard_credit') return 'إشعار دائن / Standard Credit Note';
+        if (type === 'standard_invoice') return 'فاتورة ضريبية / Tax Invoice';
+        if (type === 'simplified_invoice') return 'فاتورة ضريبية مبسطة / Simplified Tax Invoice';
+        
+        if (isQuote) return t('sys.str_79') || 'عرض سعر / Quotation';
+        return ['A4', 'A5'].includes(printerType) ? (t('sys.str_80') || 'فاتورة ضريبية / Tax Invoice') : (t('sys.str_81') || 'فاتورة ضريبية مبسطة / Simplified Tax Invoice');
+    }, [docType, invoiceData?.docType, isQuote, printerType, t]);
 
     useEffect(() => {
         const init = async () => {
@@ -150,7 +166,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
 
     const handlePrint = useCallback((forceSystemDialog: boolean = false) => {
         const ps = paperSizes[printerType] || paperSizes['80mm'];
-        const windowTitle = isQuote ? t('sys.str_79') : (['A4', 'A5'].includes(printerType) ? t('sys.str_80') : t('sys.str_81'));
+        const windowTitle = getDocumentTitle();
         if (!receiptRef.current) return;
 
         const htmlContent = `
@@ -233,7 +249,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 setTimeout(() => { try { document.body.removeChild(iframe); } catch(e){} }, 5000);
             }, 800);
         }
-    }, [printerType, isQuote, t, paperSizes]);
+    }, [printerType, getDocumentTitle, t, paperSizes]);
 
     const handleExportPDF = useCallback(() => {
         const script = document.createElement('script');
@@ -284,7 +300,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <div class="a4-header">
                             <h1>${companyName}</h1>
                             <h2>الرقم الضريبي : <span dir="ltr">${vatNumber}</span></h2>
-                            <h3>${isQuote ? 'عرض سعر / Quotation' : 'فاتورة ضريبية / Tax Invoice'}</h3>
+                            <h3>${getDocumentTitle()}</h3>
                         </div>
                         
                         <table class="info-table">
@@ -307,12 +323,14 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                         <div><strong>العميل:</strong> ${data.customerName || 'عميل نقدي'}</div>
                                         <div><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
                                         <div><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
+                                        ${data.originalReference ? `<div><strong>الفاتورة الأصلية:</strong> <span dir="ltr">${data.originalReference}</span></div>` : ''}
                                     </td>
                                     <td class="en-cell">
                                         <div><strong>Cashier:</strong> ${cashierName}</div>
                                         <div><strong>Customer:</strong> ${data.customerName || 'Cash Customer'}</div>
                                         <div><strong>Invoice No:</strong> ${data.invoiceNumber}</div>
                                         <div><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</div>
+                                        ${data.originalReference ? `<div><strong>Original Ref:</strong> ${data.originalReference}</div>` : ''}
                                     </td>
                                 </tr>
                             </tbody>
@@ -396,7 +414,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
             }).save();
         };
         document.body.appendChild(script);
-    }, [invoiceData, invoiceId, printerType, isQuote, companyName, companyCity, companyAddress, crNumber, vatNumber, cashierName, qrDataUrl]);
+    }, [invoiceData, invoiceId, printerType, getDocumentTitle, companyName, companyCity, companyAddress, crNumber, vatNumber, cashierName, qrDataUrl]);
 
     const data = invoiceData;
     if (!data) return null;
@@ -420,7 +438,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
                         {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>{t('sys.str_56')}{vatNumber}</div>}
                         <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-                            {isQuote ? t('sys.str_82') : (['A4', 'A5'].includes(printerType) ? t('sys.str_80') : t('sys.str_81'))}
+                            {getDocumentTitle()}
                         </div>
                     </div>
 
@@ -431,6 +449,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                             <tr>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
                                     <strong>{t('sys.str_84')}:</strong> <span dir="ltr">{data.invoiceNumber}</span>
+                                    {data.originalReference && <div style={{marginTop: '4px'}}><strong>الفاتورة الأصلية:</strong> <span dir="ltr">{data.originalReference}</span></div>}
                                 </td>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
                                     <strong>التاريخ:</strong> <span dir="ltr">{new Date(data.date).toLocaleString('en-GB')}</span>

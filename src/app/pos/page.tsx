@@ -40,6 +40,7 @@ export default function POSPage() {
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [customerSearch, setCustomerSearch] = useState('');
     const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
+    const [completedInvoiceData, setCompletedInvoiceData] = useState<any>(null);
 
     // Split Payment State
     const [showSplitModal, setShowSplitModal] = useState(false);
@@ -344,8 +345,32 @@ export default function POSPage() {
             if (data && data.success) {
                 if (data.offline) {
                     setCompletedInvoiceId(Number(data.uuid)); // local fallback
+                    setCompletedInvoiceData(body);
                 } else {
-                    setCompletedInvoiceId(data.id || data.invoice?.id || data.invoiceId);
+                    const invoice = data.invoice || data;
+                    setCompletedInvoiceId(invoice.id || invoice.invoiceId);
+                    
+                    const cust = selectedCustomer;
+                    setCompletedInvoiceData({
+                        invoiceNumber: invoice.invoiceNo?.toString() || invoice.id?.toString(),
+                        date: invoice.date || new Date().toISOString(),
+                        customerName: cust?.name || 'عميل نقدي',
+                        customerTaxNo: cust?.taxNumber,
+                        customerCrNo: cust?.crNo,
+                        paymentMethod: paymentMethod,
+                        items: cart.map(i => ({
+                            name: i.name,
+                            quantity: i.qty,
+                            price: i.price,
+                            total: i.qty * i.price
+                        })),
+                        subtotal: displaySubtotal,
+                        discount: finalDiscountValue,
+                        taxRate: taxEnabled ? taxRate : 0,
+                        taxAmount: tax,
+                        grandTotal: finalTotal,
+                        docType: cust?.taxNumber ? 'standard_invoice' : 'simplified_invoice'
+                    });
                 }
                 setCart([]); 
                 removeCoupon(); 
@@ -710,7 +735,30 @@ export default function POSPage() {
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '1.2rem' }}>{inv.total?.toLocaleString()} {t('sys.str_68')}</div>
-                                        <button onClick={() => { setCompletedInvoiceId(inv.id); setShowHistoryModal(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{t('sys.str_4058')}</button>
+                                        <button onClick={() => { 
+                                            setCompletedInvoiceData({
+                                                invoiceNumber: inv.invoiceNo?.toString() || inv.id?.toString(),
+                                                date: inv.date || new Date().toISOString(),
+                                                customerName: inv.customer?.name || 'عميل نقدي',
+                                                customerTaxNo: inv.customer?.taxNumber,
+                                                customerCrNo: inv.customer?.crNo,
+                                                paymentMethod: inv.paymentType || 'cash',
+                                                items: inv.details?.map((i:any) => ({
+                                                    name: i.productName || 'منتج',
+                                                    quantity: i.quantity,
+                                                    price: i.price,
+                                                    total: i.total
+                                                })) || [],
+                                                subtotal: inv.subtotal,
+                                                discount: inv.discountValue,
+                                                taxRate: 15,
+                                                taxAmount: inv.taxValue,
+                                                grandTotal: inv.total,
+                                                docType: inv.customer?.taxNumber ? 'standard_invoice' : 'simplified_invoice'
+                                            });
+                                            setCompletedInvoiceId(inv.id); 
+                                            setShowHistoryModal(false); 
+                                        }} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid #555', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{t('sys.str_4058')}</button>
                                     </div>
                                 </div>
                             ))}
@@ -762,11 +810,11 @@ export default function POSPage() {
             )}
 
             {/* Auto Print ZATCA Receipt */}
-            {completedInvoiceId && (
+            {completedInvoiceData && (
                 <InvoiceReceipt 
-                    invoiceId={completedInvoiceId} 
+                    invoiceData={completedInvoiceData} 
                     autoPrint={true} 
-                    onClose={() => setCompletedInvoiceId(null)} 
+                    onClose={() => { setCompletedInvoiceId(null); setCompletedInvoiceData(null); }} 
                 />
             )}
             <PosReturnsModal isOpen={showReturnsModal} onClose={() => setShowReturnsModal(false)} />

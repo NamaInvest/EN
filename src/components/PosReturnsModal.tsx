@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import { X } from 'lucide-react';
+import InvoiceReceipt from '@/components/InvoiceReceipt';
 
 interface InvoiceDetail {
     productId: number;
@@ -42,6 +43,7 @@ export default function PosReturnsModal({ isOpen, onClose }: { isOpen: boolean, 
     const [searching, setSearching] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [returnReceiptData, setReturnReceiptData] = useState<any>(null);
 
     if (!isOpen) return null;
 
@@ -140,15 +142,36 @@ export default function PosReturnsModal({ isOpen, onClose }: { isOpen: boolean, 
             });
 
             if (r.ok) {
+                const data = await r.json();
                 setSuccessMsg('✅ تم إنشاء فاتورة الاسترجاع بنجاح');
+                
+                // Trigger Receipt Print for ZATCA Credit Note
+                setReturnReceiptData({
+                    invoiceNumber: data.returnNo?.toString() || Date.now().toString(),
+                    date: data.createdAt || new Date().toISOString(),
+                    customerName: (originalInvoice as any)?.customer?.name || 'عميل نقدي',
+                    customerTaxNo: (originalInvoice as any)?.customer?.taxNumber,
+                    customerCrNo: (originalInvoice as any)?.customer?.crNo,
+                    paymentMethod: 'cash',
+                    items: itemsToReturn.map(i => ({
+                        name: i.productName,
+                        quantity: i.quantity,
+                        price: i.price,
+                        total: i.quantity * i.price * (1 - i.discountRate/100)
+                    })),
+                    subtotal: currentTotals.subtotal,
+                    discount: 0,
+                    taxRate: 15,
+                    taxAmount: currentTotals.tax,
+                    grandTotal: currentTotals.total,
+                    docType: (originalInvoice as any)?.customer?.taxNumber ? 'standard_credit' : 'simplified_credit',
+                    originalReference: originalInvoice?.invoiceNo?.toString()
+                });
+
                 setSearchInvoiceNo('');
                 setOriginalInvoice(null);
                 setReturnItems([]);
                 setNotes('');
-                setTimeout(() => {
-                    setSuccessMsg('');
-                    onClose();
-                }, 2000);
             } else {
                 const err = await r.json();
                 setErrorMsg(err.error || t('sales.str_1148'));
@@ -289,6 +312,18 @@ export default function PosReturnsModal({ isOpen, onClose }: { isOpen: boolean, 
                     )}
                 </div>
             </div>
+            
+            {returnReceiptData && (
+                <InvoiceReceipt 
+                    invoiceData={returnReceiptData} 
+                    autoPrint={true} 
+                    onClose={() => {
+                        setReturnReceiptData(null);
+                        setSuccessMsg('');
+                        onClose();
+                    }} 
+                />
+            )}
         </>
     );
 }

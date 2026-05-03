@@ -463,19 +463,22 @@ export async function POST(request: Request) {
                             };
                         });
 
+                        const cust = invoice.createdInvoice.customer;
+                        const isStandard = !!cust?.taxNumber;
+
                         const invoiceDataObj = {
                             id: invoice.createdInvoice.invoiceNo?.toString() || invoice.createdInvoice.id.toString(),
                             uuid: invoiceUuid,
                             issueDate,
                             issueTime,
                             invoiceTypeCode: '388',
-                            invoiceTypeName: '0200000',
+                            invoiceTypeName: isStandard ? '0100000' : '0200000',
                             currencyCode: 'SAR',
                             taxCurrencyCode: 'SAR',
-                            note: body.notes || 'B2C Sales Invoice',
+                            note: body.notes || (isStandard ? 'B2B Standard Sales Invoice' : 'B2C Simplified Sales Invoice'),
                             supplier: {
                                 companyID: s['zatca_crn'] || '1010010000',
-                                registrationName: s['tax_number'],
+                                registrationName: s['company_name'] || s['tax_number'],
                                 taxNumber: s['tax_number'],
                                 address: {
                                     streetName: s['zatca_street'] || 'Main',
@@ -486,9 +489,21 @@ export async function POST(request: Request) {
                                     countryCode: 'SA',
                                 },
                             },
-                            customer: {
+                            customer: isStandard ? {
+                                companyID: cust?.crNo || '300000000000003',
+                                registrationName: cust?.name || 'Customer',
+                                taxNumber: cust?.taxNumber,
+                                address: {
+                                    streetName: cust?.street || 'Test', 
+                                    buildingNumber: cust?.buildingNumber || '1111',
+                                    citySubdivisionName: cust?.district || 'Test', 
+                                    cityName: cust?.city || 'Riyadh',
+                                    postalZone: cust?.postalCode || '11111', 
+                                    countryCode: 'SA',
+                                },
+                            } : {
                                 companyID: '300000000000003',
-                                registrationName: 'Customer',
+                                registrationName: cust?.name || 'Cash Customer',
                                 address: {
                                     streetName: 'Test', buildingNumber: '1111',
                                     citySubdivisionName: 'Test', cityName: 'Riyadh',
