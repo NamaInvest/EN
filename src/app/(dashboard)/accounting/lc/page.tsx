@@ -84,17 +84,18 @@ export default function LcManagementPage() {
  <Plus size={18} /> {t('fin.str_1691')}</button>
  </div>
 
- <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
- <table className="w-full text-sm text-left">
- <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
+ <div className="card p-0 overflow-hidden shadow-sm">
+ <div className="overflow-x-auto bg-white">
+ <table className="table">
+ <thead>
  <tr>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1692')}</th>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1693')}</th>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1694')}</th>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1695')}</th>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1696')}</th>
- <th className="px-6 py-4 font-bold text-right">{t('fin.str_1697')}</th>
- <th className="px-6 py-4 font-bold text-center">{t('fin.str_227')}</th>
+ <th>{t('fin.str_1692')}</th>
+ <th>{t('fin.str_1693')}</th>
+ <th>{t('fin.str_1694')}</th>
+ <th>{t('fin.str_1695')}</th>
+ <th>{t('fin.str_1696')}</th>
+ <th>{t('fin.str_1697')}</th>
+ <th>{t('fin.str_227')}</th>
  </tr>
  </thead>
  <tbody>
@@ -122,6 +123,7 @@ export default function LcManagementPage() {
  ))}
  </tbody>
  </table>
+ </div>
  </div>
 
  {/* Modal */}
