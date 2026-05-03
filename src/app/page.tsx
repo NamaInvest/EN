@@ -359,9 +359,9 @@ export default function NamaInvestLanding() {
             ))}
           </div>
           <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-4 w-full mt-4">
-            <a href={`/updates/desktop/NamaInvest-Setup-${packageJson.version}.exe`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[220px]">
-              <Download size={20} /> 🚀 جرب النظام مجاناً
-            </a>
+            <Link href="/sign-up" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[220px]">
+              🚀 جرب النظام مجاناً
+            </Link>
             <a href="#download" onClick={(e) => scrollToSection(e, 'download')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/40 transition-all text-lg min-w-[220px]">
               <Download size={20} /> تحميل التطبيق
             </a>

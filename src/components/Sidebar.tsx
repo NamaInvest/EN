@@ -533,6 +533,7 @@ const menuItems = [
     { icon: '💬', lk: 'i.wa', href: '/whatsapp-hub', module: 'whatsapp' },
     { icon: '🛒', lk: 'i.salla', href: '/settings#salla', module: 'salla' },
     { icon: '⚙️', lk: 'i.settings', href: '/settings', module: 'settings' },
+    { icon: '🔐', lk: 'i.roles', href: '/settings/roles', module: 'settings' },
     { icon: '🛡️', lk: 'i.audit', href: '/audit-logs', module: 'audit_logs' },
     { icon: '🔧', lk: 'i.support', href: '/maintenance', module: 'maintenance' },
     { icon: '💓', lk: 'i.sys_health', href: '/sys/health', module: 'maintenance' },
