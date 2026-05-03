@@ -1,179 +1,205 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from '@/lib/i18n';
-import { BrainCircuit, TrendingUp, AlertTriangle, Lightbulb, PackageOpen, DollarSign, Activity } from 'lucide-react';
-import { useToast } from '@/components/Toast';
+import React from 'react';
+import { LineChart, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Zap, ArrowRight, BrainCircuit, Activity, FileText } from 'lucide-react';
 
-export default function AICFOPage() {
-    
-    const { t, lang } = useTranslation();
-    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-    const isRTL = lang === 'ar';
+const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
-    const [loading, setLoading] = useState(false);
-    const [report, setReport] = useState<any>(null);
-    const [error, setError] = useState('');
-    const [raw, setRaw] = useState<any>(null);
-
-    const generateReport = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const res = await fetch('/api/ai-cfo/report');
-            const data = await res.json();
-            if (data.success) {
-                setReport(data.report);
-                setRaw(data.raw);
-            } else {
-                setError(data.error || t('sys.str_4133'));
-            }
-        } catch (err) {
-            setError(t('sys.str_4134'));
-        } finally {
-            setLoading(false);
-        }
-    };
-
+export default function AICFODashboard() {
     return (
-        <div className="bg-transparent min-h-screen">
-            <div className="p-6 max-w-7xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] p-6 lg:p-10 transition-colors duration-300" style={{ fontFamily: "'Fira Sans', sans-serif" }}>
+            <style dangerouslySetInnerHTML={{ __html: fontImport }} />
+            
+            <div className="max-w-7xl mx-auto space-y-6">
                 
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 flex items-center gap-3">
-                            <BrainCircuit size={32} className="text-blue-400" />
-                            {t('sys.str_4119')}</h1>
-                        <p className="text-gray-400 mt-2">{t('sys.str_4120')}</p>
+                {/* Header */}
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center space-x-4 space-x-reverse">
+                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                            <BrainCircuit className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">المدير المالي الذكي (AI CFO)</h1>
+                            <p className="text-slate-500 dark:text-slate-400 mt-1">توقعات التدفق النقدي، اكتشاف الحالات الشاذة، وتحليلات الربحية</p>
+                        </div>
                     </div>
-                    
-                    <button 
-                        onClick={generateReport}
-                        disabled={loading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50"
-                    >
-                        {loading ? t('sys.str_4135') : t('sys.str_4136')}
-                    </button>
+                    <div className="mt-4 md:mt-0 flex gap-3">
+                        <button className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors font-medium shadow-sm">
+                            <FileText className="w-4 h-4 ml-2" /> توليد تقرير تنفيذي
+                        </button>
+                        <button className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium shadow-md shadow-indigo-500/20">
+                            <Zap className="w-4 h-4 ml-2" /> تشغيل التحليل العميق
+                        </button>
+                    </div>
                 </div>
 
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg mb-6 flex items-center gap-3">
-                        <AlertTriangle /> {error}
-                    </div>
-                )}
-
-                {!report && !loading && !error && (
-                    <div className="text-center py-24 bg-surface rounded-2xl border border-divider">
-                        <BrainCircuit size={64} className="mx-auto text-gray-500 mb-4 opacity-50" />
-                        <h3 className="text-xl text-gray-300 font-semibold mb-2">{t('sys.str_4121')}</h3>
-                        <p className="text-gray-500">{t('sys.str_4122')}</p>
-                    </div>
-                )}
-
-                {loading && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
-                        {[1,2,3,4].map(i => (
-                            <div key={i} className="h-32 bg-surface rounded-2xl border border-divider"></div>
-                        ))}
-                        <div className="h-64 bg-surface rounded-2xl border border-divider col-span-full"></div>
-                    </div>
-                )}
-
-                {report && !loading && (
-                    <div className="space-y-6">
-                        
-                        {/* Executive Kpis */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            
-                            <div className="bg-gradient-to-br from-surface to-[#111] p-6 rounded-2xl border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.05)]">
-                                <div className="flex items-center gap-3 mb-2 text-green-400">
-                                    <Activity size={24} />
-                                    <h3 className="font-bold">{t('sys.str_4123')}</h3>
-                                </div>
-                                <div className="text-4xl font-bold mt-4">{report.kpi?.healthScore || 0}%</div>
+                {/* AI Executive Summary */}
+                <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-8 rounded-2xl border border-indigo-900/50 shadow-xl relative overflow-hidden text-white">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-center">
+                        <div className="lg:w-2/3">
+                            <div className="flex items-center gap-2 mb-4">
+                                <SparklesIcon className="w-5 h-5 text-indigo-400" />
+                                <h2 className="text-xl font-bold text-indigo-200 tracking-wide uppercase">ملخص الذكاء الاصطناعي الأسبوعي</h2>
                             </div>
-                            
-                            <div className="bg-gradient-to-br from-surface to-[#111] p-6 rounded-2xl border border-blue-500/20">
-                                <div className="flex items-center gap-3 mb-2 text-blue-400">
-                                    <TrendingUp size={24} />
-                                    <h3 className="font-bold">{t('sys.str_4124')}</h3>
-                                </div>
-                                <div className="text-3xl font-bold mt-5 text-white">{report.kpi?.profitability || t('sys.str_4137')}</div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-surface to-[#111] p-6 rounded-2xl border border-purple-500/20">
-                                <div className="flex items-center gap-3 mb-2 text-purple-400">
-                                    <DollarSign size={24} />
-                                    <h3 className="font-bold">{t('sys.str_4125')}</h3>
-                                </div>
-                                <div className="text-3xl font-bold mt-5 text-white">{(raw?.revenue || 0).toLocaleString()} {t('sys.str_68')}</div>
-                            </div>
-
-                        </div>
-
-                        {/* Executive Summary */}
-                        <div className="bg-surface p-6 rounded-2xl border border-divider">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <BrainCircuit className="text-indigo-400" /> {t('sys.str_4126')}</h2>
-                            <p className="text-gray-300 leading-relaxed text-lg">
-                                {report.executiveSummary}
+                            <p className="text-xl leading-relaxed text-slate-200 font-light">
+                                "بناءً على المعاملات المالية للأسبوع الماضي، لاحظت تحسناً في التدفقات النقدية بنسبة <span className="text-emerald-400 font-bold">12%</span> بفضل سرعة تحصيل ذمم العملاء. ومع ذلك، هناك <span className="text-rose-400 font-bold">ارتفاع غير مبرر بقيمة 45,000 ﷼</span> في مصاريف التسويق مقارنة بالموازنة المعتمدة. أنصح بمراجعة فواتير الحملات الإعلانية."
                             </p>
                         </div>
-
-                        {/* Fast Movers & Dead Stock */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            
-                            {/* Fast Movers */}
-                            <div className="bg-surface p-6 rounded-2xl border border-green-500/20">
-                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-green-400">
-                                    <TrendingUp /> {t('sys.str_4127')}</h2>
-                                <div className="space-y-4">
-                                    {report.fastMovers?.map((item: any, i: number) => (
-                                        <div key={i} className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                            <div className="font-bold text-white mb-1">{item.name}</div>
-                                            <div className="text-sm text-green-300">{item.insight}</div>
-                                        </div>
-                                    ))}
-                                    {(!report.fastMovers || report.fastMovers.length === 0) && <p className="text-gray-500">{t('sys.str_4128')}</p>}
-                                </div>
-                            </div>
-
-                            {/* Dead Stock */}
-                            <div className="bg-surface p-6 rounded-2xl border border-red-500/20">
-                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-red-400">
-                                    <PackageOpen /> {t('sys.str_4129')}</h2>
-                                <div className="space-y-4">
-                                    {report.deadStock?.map((item: any, i: number) => (
-                                        <div key={i} className="bg-black/30 p-4 rounded-xl border border-red-500/10">
-                                            <div className="flex justify-between mb-1">
-                                                <span className="font-bold text-white">{item.name}</span>
-                                                <span className="text-red-400 font-bold bg-red-400/10 px-2 rounded">{t('sys.str_4130')}{item.capital?.toLocaleString()} {t('sys.str_68')}</span>
-                                            </div>
-                                            <div className="text-sm text-gray-400">{item.action}</div>
-                                        </div>
-                                    ))}
-                                    {(!report.deadStock || report.deadStock.length === 0) && <p className="text-gray-500">{t('sys.str_4131')}</p>}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* AI Strategies */}
-                        <div className="bg-gradient-to-br from-indigo-900/30 to-surface p-6 rounded-2xl border border-indigo-500/20">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-400">
-                                <Lightbulb /> {t('sys.str_4132')}</h2>
+                        <div className="lg:w-1/3 w-full bg-black/30 p-5 rounded-xl border border-white/10 backdrop-blur-sm">
+                            <h3 className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">نقاط العمل المقترحة</h3>
                             <ul className="space-y-3">
-                                {report.strategicAdvice?.map((advice: string, i: number) => (
-                                    <li key={i} className="flex gap-3 text-gray-200 bg-black/20 p-4 rounded-lg">
-                                        <div className="text-indigo-400 mt-1">●</div>
-                                        <div className="leading-relaxed">{advice}</div>
-                                    </li>
-                                ))}
+                                <li className="flex items-start gap-2">
+                                    <ArrowRight className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                                    <span className="text-sm text-slate-200">تدقيق قيود مصروفات التسويق (قيد رقم 4021)</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <ArrowRight className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                    <span className="text-sm text-slate-200">استثمار الفائض النقدي المؤقت (1.2M ﷼) في وديعة قصيرة الأجل</span>
+                                </li>
                             </ul>
                         </div>
-
                     </div>
-                )}
+                </div>
+
+                {/* KPI Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">توقع التدفق النقدي (30 يوم)</p>
+                                <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">+2.4M ﷼</h3>
+                            </div>
+                            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                                <TrendingUp className="w-5 h-5" />
+                            </div>
+                        </div>
+                        <div className="mt-4 text-xs text-slate-500 flex items-center">
+                            <ShieldCheck className="w-4 h-4 ml-1 text-emerald-500" /> 
+                            درجة ثقة الذكاء الاصطناعي: <span className="font-bold text-emerald-500 mr-1">94%</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors border-t-4 border-t-rose-500">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">حالات شاذة (Anomalies)</p>
+                                <h3 className="text-3xl font-bold text-rose-600 dark:text-rose-500 font-[Fira_Code]">3</h3>
+                            </div>
+                            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg text-rose-600 dark:text-rose-400">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                        </div>
+                        <div className="mt-4 text-xs text-rose-500 font-bold cursor-pointer hover:underline">
+                            عرض القيود المشتبه بها
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">الصحة المالية للعملاء (ECL)</p>
+                                <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">8.2/10</h3>
+                            </div>
+                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                                <Activity className="w-5 h-5" />
+                            </div>
+                        </div>
+                        <div className="mt-4 text-xs text-slate-500">
+                            تم تحديث مخاطر الائتمان (IFRS 9) اليوم
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    {/* Predictive Charts Mockup */}
+                    <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                <LineChart className="w-5 h-5 ml-2 text-indigo-500" /> تنبؤات السيولة (Cash runway)
+                            </h2>
+                            <span className="text-xs font-bold px-3 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
+                                AI Model: v2.4
+                            </span>
+                        </div>
+                        
+                        <div className="h-64 flex items-end justify-between gap-2 border-b border-slate-200 dark:border-slate-700 pb-2 relative">
+                            {/* Target line */}
+                            <div className="absolute w-full border-t border-dashed border-slate-300 dark:border-slate-600 bottom-32"></div>
+                            
+                            {/* Historical Data (Solid) */}
+                            {['60%', '65%', '55%', '70%', '80%'].map((h, i) => (
+                                <div key={i} className="w-full bg-slate-300 dark:bg-slate-700 rounded-t-md relative group transition-all hover:bg-slate-400 dark:hover:bg-slate-600" style={{ height: h }}></div>
+                            ))}
+                            
+                            {/* AI Prediction (Gradient / Glowing) */}
+                            {['75%', '85%', '90%', '82%', '95%'].map((h, i) => (
+                                <div key={`p-${i}`} className="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-md relative group opacity-80 hover:opacity-100 transition-all shadow-[0_0_15px_rgba(99,102,241,0.5)]" style={{ height: h }}>
+                                    <div className="absolute -top-6 w-full text-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 font-[Fira_Code]">توقع</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between mt-4 text-xs font-[Fira_Code] text-slate-400">
+                            <span>يناير (فعلي)</span>
+                            <span className="text-indigo-500 font-bold">يونيو (متوقع)</span>
+                        </div>
+                    </div>
+
+                    {/* Anomaly Detection List */}
+                    <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                <AlertTriangle className="w-5 h-5 ml-2 text-rose-500" /> رادار الرقابة الآلية (Audit Radar)
+                            </h2>
+                        </div>
+                        <div className="p-0">
+                            <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                                
+                                <div className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                            <h3 className="font-bold text-slate-900 dark:text-slate-200 text-sm">تغيير في سعر المورد (حبر طابعات)</h3>
+                                        </div>
+                                        <span className="text-xs font-[Fira_Code] text-slate-500">منذ ساعتين</span>
+                                    </div>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mr-4 mb-3">
+                                        فاتورة المشتريات (PUR-992) تحتوي على سعر الوحدة بزيادة 35% عن المتوسط التاريخي لنفس المورد خلال 6 أشهر.
+                                    </p>
+                                    <div className="mr-4 flex gap-2">
+                                        <button className="px-3 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-bold rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">مراجعة الفاتورة</button>
+                                        <button className="px-3 py-1 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">تجاهل التنبيه</button>
+                                    </div>
+                                </div>
+
+                                <div className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                            <h3 className="font-bold text-slate-900 dark:text-slate-200 text-sm">تأخير متوقع في التحصيل</h3>
+                                        </div>
+                                        <span className="text-xs font-[Fira_Code] text-slate-500">أمس</span>
+                                    </div>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mr-4">
+                                        يتوقع نموذج الائتمان تأخر "شركة الأفق" في سداد فاتورة بقيمة 120,000 ﷼ بناءً على نمط سدادهم في الربع الماضي (احتمالية التأخير: 78%).
+                                    </p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     );
+}
+
+// Inline Icon
+function SparklesIcon(props: any) {
+    return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
 }

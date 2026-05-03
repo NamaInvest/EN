@@ -67,7 +67,7 @@ export default function RestaurantPOS() {
     const [notifFlash, setNotifFlash] = useState(false);
 
     // Floor Management State
-    const [posMode, setPosMode] = useState<'MENU' | 'FLOOR'>('FLOOR');
+    const [posMode, setPosMode] = useState<'MENU' | 'FLOOR'>('MENU');
     const [zones, setZones] = useState<any[]>([]);
     const [activeZone, setActiveZone] = useState<any>(null);
     const [activeTable, setActiveTable] = useState<any>(null);

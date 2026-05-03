@@ -58,11 +58,14 @@ export default function ProductsPage() {
     const [showAddUnit, setShowAddUnit] = useState(false);
     const [newUnitName, setNewUnitName] = useState('');
     const [savingUnit, setSavingUnit] = useState(false);
+    const [showAddBaseUnit, setShowAddBaseUnit] = useState(false);
+    const [newBaseUnitName, setNewBaseUnitName] = useState('');
+    const [savingBaseUnit, setSavingBaseUnit] = useState(false);
 
     const [form, setForm] = useState({
         name: '', barcode: '', categoryId: '', unitId: '1',
         buyPrice: '', sellPrice: '', taxRate: '15', taxType: 'VAT', minQuantity: '0',
-        currentStock: '0', description: '', nameEn: '', sellByWeight: false,
+        currentStock: '0', description: '', nameEn: '', sellByWeight: false, sizeInfo: '',
         addVat: true, expiryDate: '', binLocation: ''
     });
     const [canResetStock, setCanResetStock] = useState(false);
@@ -112,6 +115,27 @@ export default function ProductsPage() {
             }
         } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
         finally { setSavingUnit(false); }
+    };
+
+    const handleAddBaseUnit = async () => {
+        if (!newBaseUnitName.trim()) return;
+        setSavingBaseUnit(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/units', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ name: newBaseUnitName.trim() }),
+            });
+            if (res.ok) {
+                const created = await res.json();
+                await fetchUnits();
+                setForm(f => ({ ...f, unitId: created.id.toString() }));
+                setNewBaseUnitName('');
+                setShowAddBaseUnit(false);
+            }
+        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
+        finally { setSavingBaseUnit(false); }
     };
 
     useEffect(() => {
@@ -176,7 +200,7 @@ export default function ProductsPage() {
         setForm({
             name: '', barcode: '', categoryId: '', unitId: '1',
             buyPrice: '', sellPrice: '', taxRate: '15', minQuantity: '0',
-            currentStock: '0', description: '', nameEn: '', sellByWeight: false,
+            currentStock: '0', description: '', nameEn: '', sellByWeight: false, sizeInfo: '',
             addVat: true, expiryDate: '', binLocation: '', taxType: 'VAT'
         });
         setFormUnits([]);
@@ -192,7 +216,7 @@ export default function ProductsPage() {
             unitId: p.unitId?.toString() || '1', buyPrice: p.buyPrice?.toString() || '',
             sellPrice: p.sellPrice?.toString() || '', taxRate: p.taxRate?.toString() || '15',
             minQuantity: p.minQuantity?.toString() || '0', currentStock: p.currentStock?.toString() || '0',
-            description: p.description || '', nameEn: p.nameEn || '', sellByWeight: p.sellByWeight || false,
+            description: p.description || '', nameEn: p.nameEn || '', sellByWeight: p.sellByWeight || false, sizeInfo: p.sizeInfo || '',
             addVat: true, expiryDate: p.expiryDate || '', binLocation: p.binLocation || '', taxType: p.taxType || 'VAT'
         });
         setFormUnits(p.productUnits ? p.productUnits.map((u: any) => ({
@@ -233,8 +257,15 @@ export default function ProductsPage() {
                 method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ ...form, imagePath, productUnits: formUnits }),
             });
-            if (res.ok) { setShowModal(false); fetchProducts(); }
-        } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
+            if (res.ok) { 
+                setShowModal(false); 
+                fetchProducts(); 
+                showToast('✅ تم الحفظ بنجاح');
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showToast(`❌ ${errData.error || 'حدث خطأ في الحفظ'}`);
+            }
+        } catch (err: any) { showToast(`❌ ${err?.message || 'حدث خطأ'}`); }
     };
 
     const handleDelete = async (id: number) => {
@@ -556,12 +587,17 @@ export default function ProductsPage() {
                                         className="btn btn-primary btn-sm"
                                         onClick={async () => {
                                             try {
-                                                const res = await fetch('/api/settings');
-                                                const data = await res.json();
-                                                const settings = Array.isArray(data) ? data : [];
-                                                const nbSetting = settings.find((s: {key:string}) => s.key === 'next_barcode');
-                                                const nextBarcode = nbSetting ? parseInt(nbSetting.value, 10) : 1000;
-                                                setForm(f => ({ ...f, barcode: String(nextBarcode) }));
+                                                const token = localStorage.getItem('token');
+                                                const res = await fetch('/api/settings/generate-barcode', {
+                                                    method: 'POST',
+                                                    headers: { Authorization: `Bearer ${token}` }
+                                                });
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    setForm(f => ({ ...f, barcode: data.barcode }));
+                                                } else {
+                                                    setForm(f => ({ ...f, barcode: '1000' }));
+                                                }
                                             } catch { setForm(f => ({ ...f, barcode: '1000' })); }
                                         }}
                                         title={t('sys.str_920')}
@@ -611,6 +647,46 @@ export default function ProductsPage() {
                                 )}
                             </div>
                             <div className="input-group">
+                                <label className="input-label">الوحدة الأساسية</label>
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                    <select className="input" style={{ flex: 1 }} value={form.unitId} onChange={e => setForm({ ...form, unitId: e.target.value })}>
+                                        <option value="">-- اختر الوحدة --</option>
+                                        {units.map((u: any) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => { setShowAddBaseUnit(!showAddBaseUnit); setNewBaseUnitName(''); }}
+                                        title="إضافة وحدة جديدة"
+                                        style={{ minWidth: '36px', padding: '6px 10px', fontSize: '16px', borderRadius: '8px' }}
+                                    >
+                                        {showAddBaseUnit ? '✕' : '➕'}
+                                    </button>
+                                </div>
+                                {showAddBaseUnit && (
+                                    <div style={{ display: 'flex', gap: '6px', marginTop: '8px', alignItems: 'center' }}>
+                                        <input
+                                            className="input"
+                                            style={{ flex: 1 }}
+                                            placeholder="اسم الوحدة الجديدة (مثال: كيلو)"
+                                            value={newBaseUnitName}
+                                            onChange={e => setNewBaseUnitName(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddBaseUnit(); } }}
+                                            autoFocus
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            onClick={handleAddBaseUnit}
+                                            disabled={savingBaseUnit || !newBaseUnitName.trim()}
+                                            style={{ whiteSpace: 'nowrap' }}
+                                        >
+                                            {savingBaseUnit ? '⏳' : 'حفظ'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="input-group">
                                 <label className="input-label">{t('sys.str_785')}</label>
                                 <input className="input" type="number" step="0.01" value={form.buyPrice} onChange={e => setForm({ ...form, buyPrice: e.target.value })} placeholder="0.00" dir="ltr" />
                                 {form.addVat && form.buyPrice && (
@@ -642,6 +718,18 @@ export default function ProductsPage() {
                                 <label className="input-label">{t('sys.str_432')}</label>
                                 <input className="input" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} dir="ltr" />
                             </div>
+                            <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center' }}>
+                                <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '28px' }}>
+                                    <input type="checkbox" checked={form.sellByWeight} onChange={e => setForm({ ...form, sellByWeight: e.target.checked })} style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }} />
+                                    <span style={{ fontWeight: '600', fontSize: '15px' }}>يباع بالوزن (ميزان)</span>
+                                </label>
+                            </div>
+                            {form.sellByWeight && (
+                                <div className="input-group">
+                                    <label className="input-label">الوزن الافتراضي (اختياري - KG)</label>
+                                    <input className="input" type="number" step="0.001" value={form.sizeInfo} onChange={e => setForm({ ...form, sizeInfo: e.target.value })} placeholder="مثال: 1.5" dir="ltr" />
+                                </div>
+                            )}
                         </div>
 
                         <div className="input-group" style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-card-hover)', marginTop: '16px', gridColumn: '1 / -1' }}>
@@ -650,7 +738,7 @@ export default function ProductsPage() {
                                     <label className="input-label" style={{ margin: 0, fontSize: '16px', color: 'var(--primary)' }}>{t('sys.str_4265')}</label>
                                     <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowAddUnit(!showAddUnit)}>{showAddUnit ? t('sys.str_771') : t('sys.str_4272')}</button>
                                 </div>
-                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', buyPrice: '', factor: '1', unitStock: '0', parentQty: '12', parentUnitId: '' }])}>{t('sys.str_4266')}</button>
+                                <button type="button" className="btn btn-primary btn-sm" onClick={() => setFormUnits([...formUnits, { unitId: '', barcode: '', sellPrice: '', buyPrice: '', factor: '1', unitStock: '0', parentQty: '12', parentUnitId: '', length: '', width: '' }])}>{t('sys.str_4266')}</button>
                             </div>
                             
                             {showAddUnit && (
@@ -721,8 +809,8 @@ export default function ProductsPage() {
                                                 {/* كم فيها من الوحدة الأدنى */}
                                                 <div>
                                                     <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block', fontWeight: '600' }}>🔢 كم {parentName} في الواحدة؟</label>
-                                                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                                        <input className="input" type="number" min="1" style={{ flex: 1, padding: '6px' }}
+                                                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <input className="input" type="number" min="0.001" step="any" style={{ flex: 1, minWidth: '60px', padding: '6px' }}
                                                             placeholder="12"
                                                             value={fu.parentQty ?? '12'}
                                                             onChange={e => {
@@ -730,7 +818,7 @@ export default function ProductsPage() {
                                                             }} />
                                                         {/* إذا وجدت وحدات سابقة، اسمح باختيار المرجع */}
                                                         {prevUnits.length > 0 && (
-                                                            <select className="input" style={{ flex: 1, padding: '6px', fontSize: '12px' }}
+                                                            <select className="input" style={{ flex: 1, minWidth: '80px', padding: '6px', fontSize: '12px' }}
                                                                 value={fu.parentUnitId || ''}
                                                                 onChange={e => {
                                                                     const newArr = [...formUnits];
@@ -744,6 +832,29 @@ export default function ProductsPage() {
                                                                 })}
                                                             </select>
                                                         )}
+                                                        <div style={{ width: '100%', display: 'flex', gap: '4px', marginTop: '4px' }}>
+                                                            <input className="input" type="number" step="any" placeholder="الطول" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
+                                                                value={fu.length || ''}
+                                                                onChange={e => {
+                                                                    const newArr = [...formUnits]; 
+                                                                    newArr[idx].length = e.target.value;
+                                                                    if (newArr[idx].length && newArr[idx].width) {
+                                                                        newArr[idx].parentQty = (parseFloat(newArr[idx].length) * parseFloat(newArr[idx].width)).toFixed(3);
+                                                                    }
+                                                                    setFormUnits(newArr);
+                                                                }} />
+                                                            <span style={{ fontSize: '10px', alignSelf: 'center', color: '#aaa' }}>×</span>
+                                                            <input className="input" type="number" step="any" placeholder="العرض" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
+                                                                value={fu.width || ''}
+                                                                onChange={e => {
+                                                                    const newArr = [...formUnits]; 
+                                                                    newArr[idx].width = e.target.value;
+                                                                    if (newArr[idx].length && newArr[idx].width) {
+                                                                        newArr[idx].parentQty = (parseFloat(newArr[idx].length) * parseFloat(newArr[idx].width)).toFixed(3);
+                                                                    }
+                                                                    setFormUnits(newArr);
+                                                                }} />
+                                                        </div>
                                                     </div>
                                                 </div>
 
