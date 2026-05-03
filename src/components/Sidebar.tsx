@@ -764,7 +764,7 @@ export default function Sidebar() {
   return (
     <>
       <button
-        className="mobile-menu-btn"
+        className="fixed bottom-4 right-4 z-[60] bg-blue-600 text-white p-3 rounded-full shadow-lg lg:hidden"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Menu"
       >
@@ -772,143 +772,81 @@ export default function Sidebar() {
       </button>
 
       {isOpen && (
-        <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[40] lg:hidden" onClick={() => setIsOpen(false)} />
       )}
 
-      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">🏢</div>
-          <div className="sidebar-logo-text" style={{ flex: 1 }}>{companyName}</div>
+      <aside className={`fixed right-0 top-0 h-screen w-[260px] bg-white border-l border-slate-200 z-50 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+        <div className="flex items-center gap-3 p-5 border-b border-slate-100 min-h-[72px]">
+          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm border border-blue-100 flex-shrink-0">🏢</div>
+          <div className="flex-1 font-bold text-lg text-slate-800 truncate">{companyName}</div>
           <button
-            className="mobile-close-btn"
+            className="lg:hidden text-slate-400 hover:text-slate-600"
             onClick={() => setIsOpen(false)}
-            style={{
-              display: 'none',
-              background: 'rgba(255,255,255,0.1)',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '6px 10px',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
           >✕</button>
         </div>
 
-        <nav className="sidebar-nav" style={{ padding: '10px 0' }}>
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           {filteredMenu.map((group, gIdx) => {
             const isDashboard = group.sk === 's.dashboard';
             const isExpanded = expandedGroup === group.sk || (expandedGroup === null && isDashboard);
 
             return (
-              <div key={gIdx} style={{ marginBottom: '4px' }}>
+              <div key={gIdx} className="mb-1">
                 <button
                   onClick={() => setExpandedGroup(isExpanded ? null : group.sk)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: isExpanded ? 'var(--bg-card-hover)' : 'transparent',
-                    border: 'none',
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    color: isExpanded ? 'var(--primary-light)' : 'var(--text-muted)',
-                    textAlign: isRTL ? 'right' : 'left',
-                    transition: 'all 0.2s ease',
-                    borderRadius: 'var(--radius-sm)'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = isExpanded ? 'var(--bg-card-hover)' : 'transparent'}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
+                    isExpanded ? 'bg-slate-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                  }`}
                 >
-                  <span style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '0.02em' }}>
+                  <span className="text-[15px] tracking-wide">
                     {gl(lang, group.sk)}
                   </span>
-                  <span style={{
-                    fontSize: '14px',
-                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}>▼</span>
+                  <span className={`text-xs transition-transform duration-300 ${isExpanded ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}>▼</span>
                 </button>
 
-                <div style={{
-                  overflow: 'hidden',
-                  transition: 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-                  maxHeight: isExpanded ? '1200px' : '0',
-                  opacity: isExpanded ? 1 : 0,
-                  margin: isExpanded ? '4px 0 12px 0' : '0'
-                }}>
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '9px 20px',
-                        color: pathname === item.href ? 'var(--primary-light)' : 'var(--text-secondary)',
-                        textDecoration: 'none',
-                        background: pathname === item.href ? 'rgba(var(--primary-rgb, 79,70,229),0.12)' : 'transparent',
-                        borderRadius: 'var(--radius-sm)',
-                        margin: '1px 8px',
-                        fontSize: '18px',
-                        fontWeight: pathname === item.href ? 600 : 400,
-                        transition: 'all 0.15s ease',
-                        direction: isRTL ? 'rtl' : 'ltr',
-                      }}
-                      onMouseOver={(e) => {
-                        if (pathname !== item.href) e.currentTarget.style.background = 'var(--bg-card-hover)';
-                      }}
-                      onMouseOut={(e) => {
-                        if (pathname !== item.href) e.currentTarget.style.background = 'transparent';
-                      }}
-                    >
-                      <span style={{ fontSize: '20px', flexShrink: 0 }}>{item.icon}</span>
-                      <span style={{ fontSize: '18px', lineHeight: '1.4' }}>{gl(lang, item.lk)}</span>
-                    </Link>
-                  ))}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100 mt-1 mb-3' : 'max-h-0 opacity-0 m-0'}`}>
+                  {group.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-[15px] transition-all ${
+                          isActive 
+                            ? 'bg-blue-50 text-blue-700 font-bold' 
+                            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 font-medium'
+                        }`}
+                        style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+                      >
+                        <span className={`text-lg flex-shrink-0 ${isActive ? 'opacity-100' : 'opacity-70'}`}>{item.icon}</span>
+                        <span className="leading-snug">{gl(lang, item.lk)}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
         </nav>
 
-        <div style={{
-          padding: '12px 16px',
-          borderTop: '1px solid var(--border-subtle)',
-          marginTop: 'auto'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{
-              width: '34px', height: '34px', borderRadius: '50%',
-              background: 'var(--primary)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontSize: '18px', fontWeight: 700, color: 'white',
-              flexShrink: 0
-            }}>
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 mt-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0">
               {(loggedUser.fullName || 'U')[0].toUpperCase()}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', truncate: true } as any}>
-                {loggedUser.fullName || '...'}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-slate-800 truncate">
+                {loggedUser.fullName || 'User'}
               </div>
-              <div style={{ fontSize: '15px', color: 'var(--text-muted)' }}>
+              <div className="text-xs text-slate-500 font-medium truncate">
                 {loggedUser.role}
               </div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            style={{
-              width: '100%', padding: '8px', background: 'rgba(239,68,68,0.1)',
-              border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius-sm)',
-              color: '#ef4444', cursor: 'pointer', fontSize: '17px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-sm font-bold transition-colors border border-rose-100/50"
           >
             🚪 {gl(lang, 'logout')}
           </button>

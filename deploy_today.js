@@ -17,15 +17,10 @@ const TARGETS = [
 const LOCAL_BASE = 'd:\\namasoft9-3-main';
 
 const FILES = [
-    'src/app/(dashboard)/ai-cfo/page.tsx',
-    'src/app/(dashboard)/ai-copilot/page.tsx',
-    'src/app/(dashboard)/manufacturing/bom/page.tsx',
-    'src/app/(dashboard)/pos-demo/page.tsx',
-    'src/app/(dashboard)/products/page.tsx',
-    'src/app/api/products/route.ts',
-    'src/app/api/settings/generate-barcode/route.ts',
-    'src/app/restaurant-pos/page.tsx',
-    'prisma/schema.prisma'
+    'src/app/globals.css',
+    'src/components/Sidebar.tsx',
+    'src/app/(dashboard)/dashboard/page.tsx',
+    'src/app/(dashboard)/manufacturing/bom/page.tsx'
 ];
 
 function uploadFile(sftp, localPath, remotePath) {
