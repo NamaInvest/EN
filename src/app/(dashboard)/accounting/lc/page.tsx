@@ -127,7 +127,7 @@ export default function LcManagementPage() {
             {/* Modal */}
             {showNewLc && (
                 <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-bold mb-6 text-slate-800 border-b pb-3 flex items-center gap-2">
                             <LandmarkIcon className="text-blue-600" /> {t('fin.str_1699')}</h2>
                         

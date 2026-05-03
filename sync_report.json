@@ -1,3 +1,5 @@
 [
-    "src/app/(dashboard)/manufacturing/bom/page.tsx"
+    "src/app/(dashboard)/accounting/lc/page.tsx",
+    "src/app/(dashboard)/enterprise/property/page.tsx",
+    "src/app/(dashboard)/manufacturing/work-orders/page.tsx"
 ]

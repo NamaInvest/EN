@@ -150,7 +150,7 @@ export default function PropertyManagementView() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
                             <h2 className="font-bold text-lg flex items-center gap-2"><Building2 size={20}/> {t('sys.str_1915')}</h2>
                             <button onClick={()=>setShowModal(false)} className="hover:bg-white/20 p-1.5 rounded-lg transition"><X size={20}/></button>

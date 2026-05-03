@@ -223,7 +223,7 @@ export default function WorkOrdersPage() {
                 {/* Completion Modal */}
                 {completionModal && selectedOrder && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                        <div className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-700 overflow-hidden">
+                        <div className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl border border-slate-700 overflow-hidden">
                             <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
                                 <h3 className="text-xl font-bold text-white flex items-center">
                                     <CheckCircle2 className="w-6 h-6 ml-2 text-emerald-400" />
