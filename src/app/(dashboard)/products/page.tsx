@@ -833,6 +833,17 @@ export default function ProductsPage() {
                                                             </select>
                                                         )}
                                                         <div style={{ width: '100%', display: 'flex', gap: '4px', marginTop: '4px' }}>
+                                                            <input className="input" type="number" step="any" placeholder="الوزن (كجم)" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
+                                                                value={fu.weight || ''}
+                                                                onChange={e => {
+                                                                    const newArr = [...formUnits]; 
+                                                                    newArr[idx].weight = e.target.value;
+                                                                    if (newArr[idx].weight && !newArr[idx].length) {
+                                                                        newArr[idx].parentQty = newArr[idx].weight;
+                                                                    }
+                                                                    setFormUnits(newArr);
+                                                                }} />
+                                                            <span style={{ fontSize: '10px', alignSelf: 'center', color: '#aaa' }}>|</span>
                                                             <input className="input" type="number" step="any" placeholder="الطول" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
                                                                 value={fu.length || ''}
                                                                 onChange={e => {

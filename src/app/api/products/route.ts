@@ -137,13 +137,14 @@ export async function POST(request: Request) {
                 const uId = parseInt(pu.unitId);
                 if (isNaN(uId)) continue; // Skip invalid units
                 await prisma.$queryRawUnsafe(`
-                    INSERT INTO product_units (product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                    INSERT INTO product_units (product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
                     product.id, uId, pu.barcode || null,
                     parseFloat(pu.sellPrice) || 0, parseFloat(pu.buyPrice) || 0,
                     parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
                     Boolean(pu.isBase), parseFloat(pu.unitStock) || 0,
-                    parseFloat(pu.parentQty) || 1, parseInt(pu.sortOrder) || 0
+                    parseFloat(pu.parentQty) || 1, parseInt(pu.sortOrder) || 0,
+                    parseFloat(pu.weight) || 0, parseFloat(pu.length) || 0, parseFloat(pu.width) || 0
                 );
             }
         }
