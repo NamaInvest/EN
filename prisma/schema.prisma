@@ -684,6 +684,9 @@ model Employee {
   PayrollInvoice          PayrollInvoice[]
   EndOfServiceCalculation EndOfServiceCalculation[]
   WPSBatchItem            WPSBatchItem[]
+  LeaveBalance            LeaveBalance[]
+  LeaveAccrual            LeaveAccrual[]
+  LeaveRequest            LeaveRequest[]
 
   @@map("employees")
 }
@@ -3173,6 +3176,10 @@ model ConsolidationGroup {
   id              Int    @id @default(autoincrement())
   name            String
   parentCompanyId Int    @map("parent_company_id")
+  baseCurrency    String @default("SAR") @map("base_currency")
+  isActive        Boolean @default(true) @map("is_active")
+
+  runs ConsolidationRun[]
 
   @@map("consolidation_groups")
 }
@@ -3180,6 +3187,7 @@ model ConsolidationGroup {
 model ConsolidationRun {
   id             Int      @id @default(autoincrement())
   groupId        Int      @map("group_id")
+  group          ConsolidationGroup @relation(fields: [groupId], references: [id])
   fiscalPeriodId Int      @map("fiscal_period_id")
   status         String   @default("DRAFT")
   userId         Int?     @map("user_id")
@@ -3430,13 +3438,19 @@ model BankReconMatch {
 }
 
 model CashFlowForecast {
-  id           Int      @id @default(autoincrement())
-  forecastDate DateTime @map("forecast_date")
-  period       String // DAILY, WEEKLY, MONTHLY
-  inflows      Decimal  @default(0) @db.Decimal(18, 4)
-  outflows     Decimal  @default(0) @db.Decimal(18, 4)
-  netPosition  Decimal  @default(0) @map("net_position") @db.Decimal(18, 4)
-  generatedAt  DateTime @default(now()) @map("generated_at")
+  id             Int      @id @default(autoincrement())
+  forecastDate   DateTime @map("forecast_date")
+  period         String // DAILY, WEEKLY, MONTHLY, QUARTERLY
+  scenario       String?  @default("REALISTIC")
+  inflows        Decimal  @default(0) @db.Decimal(18, 4)
+  outflows       Decimal  @default(0) @db.Decimal(18, 4)
+  netPosition    Decimal  @default(0) @map("net_position") @db.Decimal(18, 4)
+  openingBalance Float?   @map("opening_balance")
+  closingBalance Float?   @map("closing_balance")
+  horizonMonths  Int?     @map("horizon_months")
+  bucketsJson    String?  @map("buckets_json") @db.Text
+  alertsJson     String?  @map("alerts_json") @db.Text
+  generatedAt    DateTime @default(now()) @map("generated_at")
 
   @@map("cash_flow_forecasts")
 }
@@ -4388,3 +4402,91 @@ model CustomFieldValue {
   @@unique([definitionId, entityId])
   @@map("custom_field_values")
 }
+
+// ==================== Phase A: Saudi Compliance Sprint ====================
+
+model LeaveBalance {
+  id          Int    @id @default(autoincrement())
+  employeeId  Int    @map("employee_id")
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  year        Int
+  leaveType   String @map("leave_type") // ANNUAL, SICK, MATERNITY, etc.
+  entitlement Decimal @db.Decimal(8, 2) // Total days entitled
+  accrued     Decimal @default(0) @db.Decimal(8, 2) // Days accrued so far
+  used        Decimal @default(0) @db.Decimal(8, 2) // Days used
+  pending     Decimal @default(0) @db.Decimal(8, 2) // Days pending approval
+  carryOver   Decimal @default(0) @map("carry_over") @db.Decimal(8, 2) // Carried from prev year
+  balance     Decimal @default(0) @db.Decimal(8, 2) // Available balance (accrued + carryOver - used - pending)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([employeeId, year, leaveType])
+  @@map("leave_balances")
+}
+
+model LeaveAccrual {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  accrualDate DateTime @map("accrual_date")
+  leaveType   String   @map("leave_type")
+  daysAccrued Decimal  @map("days_accrued") @db.Decimal(8, 4)
+  runBy       String?  @map("run_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("leave_accruals")
+}
+
+model LeaveRequest {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  leaveType   String   @map("leave_type")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  days        Decimal  @db.Decimal(8, 2)
+  reason      String?
+  attachmentUrl String? @map("attachment_url")
+
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedBy      Int?      @map("approved_by")
+  approvedAt      DateTime? @map("approved_at")
+  rejectedBy      Int?      @map("rejected_by")
+  rejectedAt      DateTime? @map("rejected_at")
+  rejectionReason String?   @map("rejection_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("leave_requests")
+}
+
+model DocumentExpiryAlert {
+  id             Int      @id @default(autoincrement())
+  holderType     String   @map("holder_type") // EMPLOYEE, COMPANY
+  holderId       Int?     @map("holder_id") // Employee ID or null for company docs
+  holderName     String   @map("holder_name")
+  documentType   String   @map("document_type") // IQAMA, WORK_PERMIT, CR, PASSPORT, etc.
+  documentNumber String?  @map("document_number")
+  expiryDate     DateTime @map("expiry_date")
+  daysRemaining  Int      @map("days_remaining")
+  severity       String   // EXPIRED, CRITICAL, WARNING, INFO
+  estimatedCost  Decimal? @map("estimated_cost") @db.Decimal(15, 2)
+
+  status         String    @default("ACTIVE") // ACTIVE, RENEWED, DISMISSED
+  renewedAt      DateTime? @map("renewed_at")
+  renewedBy      Int?      @map("renewed_by")
+  newExpiryDate  DateTime? @map("new_expiry_date")
+  dismissedAt    DateTime? @map("dismissed_at")
+  dismissReason  String?   @map("dismiss_reason")
+
+  notifiedVia    String?   @map("notified_via") // DASHBOARD, EMAIL, SMS, WHATSAPP
+  lastNotifiedAt DateTime? @map("last_notified_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("document_expiry_alerts")
+}
+
