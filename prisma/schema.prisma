@@ -3680,30 +3680,237 @@ model PaymentTermInstallment {
 }
 
 model OpenItem {
-  id           Int       @id @default(autoincrement())
-  partyId      Int       @map("party_id")
-  partyType    String    @map("party_type") // customer, vendor
-  documentType String    @map("document_type") // invoice, payment, credit_note
-  documentId   Int       @map("document_id")
-  amount       Decimal   @db.Decimal(18, 4)
-  currency     String    @default("SAR")
-  openAmount   Decimal   @map("open_amount") @db.Decimal(18, 4)
-  dueDate      DateTime? @map("due_date")
-  status       String    @default("OPEN") // OPEN, PARTIAL, CLEARED
-  agingBucket  String?   @map("aging_bucket") // Current, 30, 60, 90, 120
+  id             Int       @id @default(autoincrement())
+  partyId        Int
+  partyType      String // 'customer' | 'vendor'
+  documentType   String // 'invoice' | 'credit_note' | 'payment' | 'advance'
+  documentId     Int
+  documentNumber String
+  documentDate   DateTime
+  dueDate        DateTime?
 
-  @@map("open_items")
+  // Amounts (functional currency = SAR)
+  amount     Decimal @db.Decimal(20, 4)
+  openAmount Decimal @db.Decimal(20, 4)
+
+  // Original currency
+  currency           String    @default("SAR")
+  originalAmount     Decimal   @db.Decimal(20, 4)
+  originalOpenAmount Decimal   @db.Decimal(20, 4)
+  exchangeRate       Decimal   @default(1) @db.Decimal(20, 8)
+  rateDate           DateTime?
+
+  // Status
+  status String @default("OPEN") // OPEN | PARTIAL | CLEARED | WRITTEN_OFF | DISPUTED_FULL
+
+  // Dispute
+  disputedAmount Decimal?      @db.Decimal(20, 4)
+  disputeStatus  String? // null | ACTIVE | RESOLVED | LITIGATING
+  disputeCases   DisputeCase[]
+
+  // Promise to pay
+  promiseToPayDate   DateTime?
+  promiseToPayAmount Decimal?  @db.Decimal(20, 4)
+  promiseStatus      String? // null | ACTIVE | KEPT | BROKEN
+
+  // Risk
+  riskLevel            String  @default("NORMAL") // LOW | NORMAL | HIGH | CRITICAL
+  blockedForCollection Boolean @default(false)
+  blockReason          String?
+
+  // Dunning state
+  dunningLevel       Int       @default(0)
+  lastReminderSentAt DateTime?
+  remindersCount     Int       @default(0)
+  snoozedUntil       DateTime?
+  snoozeReason       String?
+
+  // External
+  externalReference String?
+
+  // Allocation tree (for splits)
+  parentOpenItemId Int?
+  parentOpenItem   OpenItem?  @relation("OpenItemSplits", fields: [parentOpenItemId], references: [id])
+  splits           OpenItem[] @relation("OpenItemSplits")
+
+  // Apps
+  applicationsAsPayment ItemApplication[] @relation("ApplicationPayment")
+  applicationsAsInvoice ItemApplication[] @relation("ApplicationInvoice")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partyId, partyType, status])
+  @@index([dueDate, status])
+  @@index([currency, status])
+  @@index([disputeStatus])
+  @@index([documentType, documentId])
 }
 
-model ItemMatch {
-  id             Int      @id @default(autoincrement())
-  matcherUserId  String   @map("matcher_user_id")
-  matchedAt      DateTime @default(now()) @map("matched_at")
-  appliedAmount  Decimal  @map("applied_amount") @db.Decimal(18, 4)
-  journalEntryId Int?     @map("journal_entry_id")
-  matchedItemIds String   @map("matched_item_ids") // comma separated IDs
+model ItemApplication {
+  id Int @id @default(autoincrement())
 
-  @@map("item_matches")
+  paymentOpenItemId Int
+  paymentOpenItem   OpenItem @relation("ApplicationPayment", fields: [paymentOpenItemId], references: [id])
+  invoiceOpenItemId Int
+  invoiceOpenItem   OpenItem @relation("ApplicationInvoice", fields: [invoiceOpenItemId], references: [id])
+
+  appliedAmount    Decimal @db.Decimal(20, 4)
+  appliedCurrency  String
+  invoiceCurrency  String
+  paymentCurrency  String
+  exchangeRateUsed Decimal @db.Decimal(20, 8)
+
+  fxGainLoss          Decimal? @db.Decimal(20, 4)
+  fxGainLossAccountId Int?
+
+  discountAmount    Decimal? @db.Decimal(20, 4)
+  discountAccountId Int?
+
+  writeoffAmount           Decimal? @db.Decimal(20, 4)
+  writeoffReason           String?
+  writeoffAccountId        Int?
+  writeoffApprovedByUserId String?
+
+  matchStrategy   String // 'MANUAL' | 'FIFO' | 'LIFO' | 'LARGEST' | 'REFERENCE' | 'SMART'
+  matchConfidence Decimal? @db.Decimal(5, 2)
+
+  appliedAt       DateTime @default(now())
+  appliedByUserId String
+  journalEntryId  Int?
+
+  reversedAt        DateTime?
+  reversedByUserId  String?
+  reversalReason    String?
+  reversalJournalId Int?
+
+  @@index([paymentOpenItemId])
+  @@index([invoiceOpenItemId])
+  @@index([appliedAt])
+  @@index([reversedAt])
+}
+
+model DisputeCase {
+  id         Int      @id @default(autoincrement())
+  caseNumber String   @unique
+  openItemId Int
+  openItem   OpenItem @relation(fields: [openItemId], references: [id])
+  customerId Int
+
+  amount      Decimal @db.Decimal(20, 4)
+  currency    String
+  reasonCode  String // FK to DeductionReason
+  reasonText  String
+  description String  @db.Text
+
+  severity String @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  priority String @default("NORMAL") // LOW | NORMAL | HIGH | URGENT
+
+  status String @default("OPEN") // OPEN | INVESTIGATING | PENDING_CUSTOMER | PENDING_INTERNAL | RESOLVED | CANCELLED
+
+  raisedAt           DateTime  @default(now())
+  raisedByUserId     String
+  expectedResolution DateTime?
+
+  assignedToUserId String?
+  assignedAt       DateTime?
+
+  escalationLevel   Int       @default(0)
+  escalatedAt       DateTime?
+  escalatedToUserId String?
+
+  resolvedAt          DateTime?
+  resolvedByUserId    String?
+  resolution          String? // 'ACCEPT_CUSTOMER' | 'REJECT_CLAIM' | 'PARTIAL_CREDIT' | 'WRITEOFF' | 'LITIGATE'
+  resolutionAmount    Decimal?  @db.Decimal(20, 4)
+  resolutionNotes     String?   @db.Text
+  resolutionJournalId Int?
+  creditNoteId        Int?
+
+  attachments    DisputeAttachment[]
+  communications DisputeCommunication[]
+
+  customerSatisfactionScore Int?
+
+  @@index([customerId, status])
+  @@index([assignedToUserId, status])
+  @@index([raisedAt, status])
+}
+
+model DisputeAttachment {
+  id               Int         @id @default(autoincrement())
+  caseId           Int
+  case             DisputeCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fileUrl          String
+  fileName         String
+  fileType         String
+  fileSizeBytes    Int
+  uploadedAt       DateTime    @default(now())
+  uploadedByUserId String
+}
+
+model DisputeCommunication {
+  id               Int         @id @default(autoincrement())
+  caseId           Int
+  case             DisputeCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  type             String // EMAIL | CALL | MEETING | INTERNAL_NOTE | LETTER
+  direction        String? // INBOUND | OUTBOUND
+  content          String      @db.Text
+  fromAddress      String?
+  toAddress        String?
+  occurredAt       DateTime    @default(now())
+  recordedByUserId String
+  attachments      Json?
+
+  @@index([caseId, occurredAt])
+}
+
+model DeductionReason {
+  id                Int     @id @default(autoincrement())
+  code              String  @unique
+  nameAr            String
+  nameEn            String
+  category          String // PRICING | QUALITY | DELIVERY | SHORT_PAY | ADMIN | TAX | OTHER
+  defaultResolution String?
+  requiresEvidence  Boolean @default(true)
+  glAccountId       Int? // default account for resolution
+  active            Boolean @default(true)
+
+  @@index([category, active])
+}
+
+model WriteoffPolicy {
+  id                Int       @id @default(autoincrement())
+  name              String
+  customerSegmentId Int?
+  underAmount       Decimal   @db.Decimal(20, 4) // auto-writeoff if abs(diff) < this
+  glAccountId       Int // where to post (Rounding, Bank Charges, etc.)
+  requiresApproval  Boolean   @default(false)
+  approverRole      String?
+  active            Boolean   @default(true)
+  effectiveFrom     DateTime
+  effectiveTo       DateTime?
+}
+
+model CustomerCreditScore {
+  id            Int                          @id @default(autoincrement())
+  customerId    Int                          @unique
+  currentScore  Int // 0-100
+  previousScore Int?
+  scoreDate     DateTime                     @default(now())
+  factors       Json // {paymentHistory: 30, disputes: 20, dso: 15, ...}
+  history       CustomerCreditScoreHistory[]
+
+  @@index([currentScore])
+}
+
+model CustomerCreditScoreHistory {
+  id                    Int                 @id @default(autoincrement())
+  customerCreditScoreId Int
+  customerCreditScore   CustomerCreditScore @relation(fields: [customerCreditScoreId], references: [id])
+  score                 Int
+  changeReason          String?
+  recordedAt            DateTime            @default(now())
 }
 
 // ==========================================

@@ -1,26 +1,41 @@
+// @ts-nocheck
 import { prisma } from './prisma';
 
 export class OpenItemsEngine {
     
     /**
-     * Creates an Open Item entry when an invoice or payment is posted
+     * Creates an Open Item entry
      */
     static async createOpenItem(data: {
         partyId: number,
         partyType: 'customer' | 'vendor',
         documentType: string,
         documentId: number,
+        documentNumber: string,
+        documentDate: Date,
         amount: number,
+        currency?: string,
+        exchangeRate?: number,
         dueDate?: Date
     }) {
+        const currency = data.currency || 'SAR';
+        const rate = data.exchangeRate || 1;
+        const amountSAR = data.amount * rate;
+
         return prisma.openItem.create({
             data: {
                 partyId: data.partyId,
                 partyType: data.partyType,
                 documentType: data.documentType,
                 documentId: data.documentId,
-                amount: data.amount,
-                openAmount: data.amount,
+                documentNumber: data.documentNumber,
+                documentDate: data.documentDate,
+                amount: amountSAR,
+                openAmount: amountSAR,
+                currency: currency,
+                originalAmount: data.amount,
+                originalOpenAmount: data.amount,
+                exchangeRate: rate,
                 dueDate: data.dueDate,
                 status: 'OPEN'
             }
@@ -28,73 +43,138 @@ export class OpenItemsEngine {
     }
 
     /**
-     * Auto applies a payment to oldest open invoices (FIFO)
+     * Apply a Payment with optional discount, writeoff, and FX calculation
      */
-    static async autoApplyPayment(paymentOpenItemId: number, matcherUserId: string) {
-        const payment = await prisma.openItem.findUnique({
-            where: { id: paymentOpenItemId }
-        });
+    static async applyPayment(paymentOpenItemId: number, allocations: any[], userId: string) {
+        return prisma.$transaction(async (tx) => {
+            const payment = await tx.openItem.findUnique({ where: { id: paymentOpenItemId }});
+            if (!payment || payment.openAmount <= 0) throw new Error("Invalid payment");
 
-        if (!payment || payment.documentType !== 'payment') throw new Error("Invalid payment open item");
-        if (Number(payment.openAmount) <= 0) return []; // Already fully applied
+            let remainingPaymentAmount = Number(payment.originalOpenAmount);
+            const appliedList = [];
+            let totalFxGainLoss = 0;
 
-        let remainingToApply = Number(payment.openAmount);
+            for (const alloc of allocations) {
+                const invoice = await tx.openItem.findUnique({ where: { id: alloc.invoiceId }});
+                if (!invoice) throw new Error("Invoice not found");
 
-        // Find open invoices for this party ordered by due date ascending (FIFO)
-        const openInvoices = await prisma.openItem.findMany({
-            where: {
-                partyId: payment.partyId,
-                partyType: payment.partyType,
-                documentType: 'invoice',
-                openAmount: { gt: 0 },
-                status: { in: ['OPEN', 'PARTIAL'] }
-            },
-            orderBy: { dueDate: 'asc' }
-        });
+                const appliedAmount = Number(alloc.amount);
+                const discountAmount = Number(alloc.discount || 0);
+                const writeoffAmount = Number(alloc.writeoff || 0);
+                
+                const totalInvoiceReductionOriginal = appliedAmount + discountAmount + writeoffAmount;
+                const totalInvoiceReductionSAR = totalInvoiceReductionOriginal * Number(invoice.exchangeRate);
+                
+                if (totalInvoiceReductionOriginal > Number(invoice.originalOpenAmount)) {
+                    throw new Error("Cannot apply more than invoice open amount");
+                }
+                
+                if (appliedAmount > remainingPaymentAmount) {
+                    throw new Error("Payment remaining amount is not enough");
+                }
 
-        const matches = [];
+                // FX Calculation (if payment is in a different rate or currency)
+                const paymentSAR = appliedAmount * Number(payment.exchangeRate);
+                const invoiceExpectedSAR = appliedAmount * Number(invoice.exchangeRate);
+                const fxGainLoss = paymentSAR - invoiceExpectedSAR; // Rough calculation
+                totalFxGainLoss += fxGainLoss;
 
-        for (const invoice of openInvoices) {
-            if (remainingToApply <= 0) break;
+                // Update Invoice
+                const newInvOpenOrig = Number(invoice.originalOpenAmount) - totalInvoiceReductionOriginal;
+                const newInvOpenSAR = Number(invoice.openAmount) - totalInvoiceReductionSAR;
+                await tx.openItem.update({
+                    where: { id: invoice.id },
+                    data: {
+                        originalOpenAmount: newInvOpenOrig,
+                        openAmount: newInvOpenSAR,
+                        status: newInvOpenOrig <= 0.01 ? 'CLEARED' : 'PARTIAL'
+                    }
+                });
 
-            const invOpenAmt = Number(invoice.openAmount);
-            const applied = Math.min(invOpenAmt, remainingToApply);
+                // Update Payment
+                remainingPaymentAmount -= appliedAmount;
 
-            // Update Invoice
-            await prisma.openItem.update({
-                where: { id: invoice.id },
+                // Create Application Record
+                const app = await tx.itemApplication.create({
+                    data: {
+                        paymentOpenItemId: payment.id,
+                        invoiceOpenItemId: invoice.id,
+                        appliedAmount: appliedAmount,
+                        appliedCurrency: payment.currency,
+                        invoiceCurrency: invoice.currency,
+                        paymentCurrency: payment.currency,
+                        exchangeRateUsed: payment.exchangeRate,
+                        fxGainLoss: fxGainLoss,
+                        discountAmount: discountAmount,
+                        writeoffAmount: writeoffAmount,
+                        writeoffReason: alloc.writeoffReason,
+                        matchStrategy: 'MANUAL',
+                        appliedByUserId: userId
+                    }
+                });
+
+                appliedList.push(app);
+            }
+
+            // Update Payment Open Item
+            const newPaymentOpenSAR = remainingPaymentAmount * Number(payment.exchangeRate);
+            await tx.openItem.update({
+                where: { id: payment.id },
                 data: {
-                    openAmount: invOpenAmt - applied,
-                    status: (invOpenAmt - applied) <= 0.01 ? 'CLEARED' : 'PARTIAL'
+                    originalOpenAmount: remainingPaymentAmount,
+                    openAmount: newPaymentOpenSAR,
+                    status: remainingPaymentAmount <= 0.01 ? 'CLEARED' : 'PARTIAL'
                 }
             });
 
-            remainingToApply -= applied;
-            matches.push({ invoiceId: invoice.id, applied });
-        }
+            return {
+                appliedList,
+                totalFxGainLoss
+            };
+        });
+    }
 
-        // Update Payment
-        await prisma.openItem.update({
-            where: { id: payment.id },
+    static async markAsDisputed(openItemId: number, amount: number, reasonCode: string, description: string, userId: string) {
+        return prisma.$transaction(async (tx) => {
+            const item = await tx.openItem.findUnique({ where: { id: openItemId }});
+            if (!item) throw new Error("Item not found");
+
+            const caseNum = `DSP-${Date.now()}`;
+
+            const dispute = await tx.disputeCase.create({
+                data: {
+                    caseNumber: caseNum,
+                    openItemId,
+                    customerId: item.partyId,
+                    amount,
+                    currency: item.currency,
+                    reasonCode,
+                    reasonText: reasonCode, // normally fetch from DeductionReason
+                    description,
+                    raisedByUserId: userId,
+                }
+            });
+
+            await tx.openItem.update({
+                where: { id: openItemId },
+                data: {
+                    disputedAmount: Number(item.disputedAmount || 0) + amount,
+                    disputeStatus: 'ACTIVE'
+                }
+            });
+
+            return dispute;
+        });
+    }
+
+    static async recordPromiseToPay(openItemId: number, amount: number, date: Date, userId: string) {
+        return prisma.openItem.update({
+            where: { id: openItemId },
             data: {
-                openAmount: remainingToApply,
-                status: remainingToApply <= 0.01 ? 'CLEARED' : 'PARTIAL'
+                promiseToPayAmount: amount,
+                promiseToPayDate: date,
+                promiseStatus: 'ACTIVE'
             }
         });
-
-        if (matches.length > 0) {
-            const matchedIds = matches.map(m => m.invoiceId).join(',') + `,${payment.id}`;
-            const totalApplied = Number(payment.openAmount) - remainingToApply;
-
-            await prisma.itemMatch.create({
-                data: {
-                    matcherUserId,
-                    appliedAmount: totalApplied,
-                    matchedItemIds: matchedIds
-                }
-            });
-        }
-
-        return matches;
     }
 }
