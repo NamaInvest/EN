@@ -44,19 +44,37 @@ C:\Windows\System32\OpenSSH\ssh.exe -o StrictHostKeyChecking=no root@46.4.188.17
 
 Use `deploy_sync.js` or `deploy_today.js` to automatically sync files safely.
 
----
+## ⚠️ Critical: Multi-Tenant Database Schema Updates (FATAL CLIENT-SIDE EXCEPTION Fix)
 
-# Running Remote Commands
+Because this is a **SaaS Multi-Tenant application**, each subdomain uses a completely separate PostgreSQL database. 
+If you modify `prisma/schema.prisma` (e.g., adding `bookId` to a table), you **MUST** push the schema to **EVERY** tenant database individually. If you only push it to `namadb`, the `N11` tenant will crash with `PrismaClientValidationError` and `FATAL CLIENT-SIDE EXCEPTION` during server components render.
 
-Server 1:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\hetzner_key root@95.217.187.44 "<COMMAND>"
+When deploying a schema change, you must SSH into the server and run the push for each tenant explicitly using the Postgres superuser (to bypass tenant user permission restrictions):
+
+```bash
+# 1. Push to SaaS App (N11)
+cd /www/wwwroot/n11.namainvist.com
+DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" npx prisma db push --accept-data-loss
+npx prisma generate
+rm -rf .next && npm run build
+pm2 restart saas-app
+
+# 2. Push to Template App (N1)
+cd /www/wwwroot/n1.namainvist.com
+DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" npx prisma db push --accept-data-loss
+npx prisma generate
+rm -rf .next && npm run build
+pm2 restart n1-main
+
+# 3. Push to Main Site
+cd /www/wwwroot/namainvist.com
+DATABASE_URL="postgresql://postgres@localhost:5432/namadb?schema=public" npx prisma db push --accept-data-loss
+npx prisma generate
+rm -rf .next && npm run build
+pm2 restart main-site
 ```
 
-Server 2:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_key" root@204.168.144.74 "<COMMAND>"
-```
+*(Note: You can use the local script `remote_fix.js` to automate this exact sequence across all 3 environments.)*
 
 Server 3:
 ```powershell
