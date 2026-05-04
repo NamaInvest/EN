@@ -1,0 +1,22 @@
+// @ts-nocheck
+import { NextResponse } from "next/server";
+import { YearEndCloseEngine } from "@/lib/year-end-engine";
+
+export async function POST(req: Request, { params }: { params: { runId: string; taskCode: string } }) {
+  try {
+    const runId = parseInt(params.runId);
+    const { taskCode } = params;
+    const userId = "system-user";
+    const body = await req.json();
+    const { notes, fileId } = body;
+
+    if (isNaN(runId) || !taskCode) {
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+
+    await YearEndCloseEngine.completeManualTask(runId, taskCode, userId, notes, fileId);
+    return NextResponse.json({ success: true, message: `Task ${taskCode} completed successfully` });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
