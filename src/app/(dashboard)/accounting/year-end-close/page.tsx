@@ -1,11 +1,22 @@
-"use client";
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, FileOutput, ShieldAlert, CheckSquare } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function YearEndCloseDashboard() {
+export default async function YearEndCloseDashboard() {
+    // Fetch live data from Prisma
+    const unpostedJEsCount = await prisma.journalEntry.count({
+        where: { status: 'draft' }
+    });
+
+    const pendingDepreciationCount = await prisma.fixedAsset.count({
+        where: { status: 'ACTIVE' } // simplified check for active assets needing depreciation
+    });
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -30,8 +41,8 @@ export default function YearEndCloseDashboard() {
                         <Lock className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">May 2026</div>
-                        <p className="text-xs text-muted-foreground">Closes in 27 days</p>
+                        <div className="text-2xl font-bold">{currentMonth} {currentYear}</div>
+                        <p className="text-xs text-muted-foreground">Active operational period</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -47,10 +58,10 @@ export default function YearEndCloseDashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Unposted JEs</CardTitle>
-                        <ShieldAlert className="h-4 w-4 text-orange-500" />
+                        <ShieldAlert className={`h-4 w-4 ${unpostedJEsCount > 0 ? 'text-orange-500' : 'text-green-500'}`} />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">15</div>
+                        <div className="text-2xl font-bold">{unpostedJEsCount}</div>
                         <p className="text-xs text-muted-foreground">Require posting before close</p>
                     </CardContent>
                 </Card>
@@ -60,7 +71,7 @@ export default function YearEndCloseDashboard() {
                         <Lock className="h-4 w-4 text-gray-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">FY 2025</div>
+                        <div className="text-2xl font-bold">FY {currentYear - 1}</div>
                         <p className="text-xs text-muted-foreground">Locked by Admin</p>
                     </CardContent>
                 </Card>
@@ -68,7 +79,7 @@ export default function YearEndCloseDashboard() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Closing Checklist (May 2026)</CardTitle>
+                    <CardTitle>Closing Checklist ({currentMonth} {currentYear})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -83,9 +94,15 @@ export default function YearEndCloseDashboard() {
                             </thead>
                             <tbody className="divide-y divide-border">
                                 <tr>
-                                    <td className="px-4 py-3 text-sm">Post all pending Journal Entries</td>
+                                    <td className="px-4 py-3 text-sm">Post all pending Journal Entries ({unpostedJEsCount})</td>
                                     <td className="px-4 py-3 text-sm">Accounting Team</td>
-                                    <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">PENDING</span></td>
+                                    <td className="px-4 py-3 text-sm">
+                                        {unpostedJEsCount > 0 ? (
+                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">PENDING</span>
+                                        ) : (
+                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">DONE</span>
+                                        )}
+                                    </td>
                                     <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">Review</Button></td>
                                 </tr>
                                 <tr>
@@ -97,7 +114,9 @@ export default function YearEndCloseDashboard() {
                                 <tr>
                                     <td className="px-4 py-3 text-sm">Run Depreciation (Fixed Assets)</td>
                                     <td className="px-4 py-3 text-sm">Asset Manager</td>
-                                    <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">OVERDUE</span></td>
+                                    <td className="px-4 py-3 text-sm">
+                                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">OVERDUE</span>
+                                    </td>
                                     <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">Execute</Button></td>
                                 </tr>
                             </tbody>
