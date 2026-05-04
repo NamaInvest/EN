@@ -53,32 +53,35 @@ If you modify `prisma/schema.prisma` (e.g., adding `bookId` to a table), you **M
 **NEVER** place a `schema.prisma` file directly in the root directory (e.g., `/www/wwwroot/n11.namainvist.com/schema.prisma`). 
 Prisma prioritizes the root directory over the `prisma/` folder. If an outdated schema exists in the root, `npx prisma generate` and `db push` will silently use the outdated one, ignoring your real updates. This guarantees a `FATAL CLIENT-SIDE EXCEPTION`. Always ensure the only schema file is inside `prisma/schema.prisma`.
 
-When deploying a schema change, you must SSH into the server and run the push for each tenant explicitly using the Postgres superuser (to bypass tenant user permission restrictions):
+### 🚫 FATAL MISTAKE 2: The Hidden PostgreSQL Port (5433 vs 5432)
+The Hetzner VPS runs **TWO** PostgreSQL clusters simultaneously:
+- **Port 5432:** The REAL production database used by the application (`saas-app`, `main-site`, etc.).
+- **Port 5433:** A phantom/secondary instance (often the default for `sudo -u postgres psql`).
+If you run `sudo -u postgres psql` without specifying a port, it will connect to **5433**. If you fix permissions there, the actual app (on 5432) will still crash!
+**Rule:** ALWAYS explicitly specify `-h localhost -p 5432` when running `psql` commands.
 
+### The Correct Way to Push Multi-Tenant Schema & Fix Permissions
+
+When deploying a schema change across the fleet, you must use the `postgres` superuser. However, because `postgres` creates the new tables, the tenant user (e.g. `n11_db`) will NOT have permission to read them (causing `permission denied for table FixedAsset`).
+You MUST run a script to `db push` AND then `GRANT ALL PRIVILEGES` on port `5432`.
+
+Example manual process for `n11.namainvist.com` (`saas-app`):
 ```bash
-# 1. Push to SaaS App (N11)
+# 1. Push Schema using Postgres Superuser
 cd /www/wwwroot/n11.namainvist.com
 DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" npx prisma db push --accept-data-loss
 npx prisma generate
+
+# 2. Grant Permissions to the Application User (n11_db) on Port 5432
+sudo -u postgres psql -h localhost -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n11_db;" n11_db
+sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n11_db;" n11_db
+
+# 3. Rebuild and Restart
 rm -rf .next && npm run build
 pm2 restart saas-app
-
-# 2. Push to Template App (N1)
-cd /www/wwwroot/n1.namainvist.com
-DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" npx prisma db push --accept-data-loss
-npx prisma generate
-rm -rf .next && npm run build
-pm2 restart n1-main
-
-# 3. Push to Main Site
-cd /www/wwwroot/namainvist.com
-DATABASE_URL="postgresql://postgres@localhost:5432/namadb?schema=public" npx prisma db push --accept-data-loss
-npx prisma generate
-rm -rf .next && npm run build
-pm2 restart main-site
 ```
 
-*(Note: You can use the local script `remote_fix.js` to automate this exact sequence across all 3 environments.)*
+*(Note: You can use the local scripts `sync_all_tenants.js` followed by `fix_perms_5432.js` to automate this exact sequence across ALL existing tenant databases.)*
 
 # Deploy to Fleet Server (46.4.188.170) — Main Site or N1
 

@@ -7221,3 +7221,22 @@ model StatementSchedule {
 
   @@index([enabled, nextRunAt])
 }
+
+// ==================== Customer Statement Templates ====================
+model CustomerStatementTemplate {
+  id              Int      @id @default(autoincrement())
+  name            String
+  isDefault       Boolean  @default(false)
+  
+  headerMessage   String?
+  footerMessage   String?
+  showAging       Boolean  @default(true)
+  showPaidInvoices Boolean @default(false)
+  primaryColor    String?  @default("#000000")
+  
+  createdBy       Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("customer_statement_templates")
+}
