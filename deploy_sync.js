@@ -15,7 +15,17 @@ const TARGETS = [
 ];
 
 const LOCAL_BASE = 'd:\\namasoft9-3-main';
-const FILES = JSON.parse(fs.readFileSync('sync_report.json', 'utf8'));
+let FILES = [];
+try {
+    FILES = JSON.parse(fs.readFileSync('sync_report.json', 'utf8'));
+} catch (e) {
+    console.log('No sync_report.json found, deploying only essential files.');
+}
+
+// ALWAYS include schema.prisma to avoid missing schema fields during production builds
+if (!FILES.includes('prisma/schema.prisma')) {
+    FILES.push('prisma/schema.prisma');
+}
 
 function uploadFile(sftp, localPath, remotePath) {
     return new Promise((resolve, reject) => {

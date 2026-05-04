@@ -6,11 +6,7 @@ description: Deploy changes to the production server (Hetzner VPS)
 
 | Server | IP | SSH Key | App Path | PM2 Name | Port | DB |
 |---|---|---|---|---|---|---|
-| Server 1 | 95.217.187.44 | `C:\Users\1\.ssh\hetzner_key` | `/var/www/namasoft` | `namasoft` | 80 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
-| Server 2a | 204.168.144.74 | `C:\Users\1\Desktop\namasoftkey\namasoft_key` | `/var/www/namasoft` | `namasoft` | 80 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
-| Server 2b | 204.168.144.74 | `C:\Users\1\Desktop\namasoftkey\namasoft_key` | `/var/www/namasoft2` | `namasoft2` | 3001 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
-| Server 3 | 185.197.195.202 | `C:\Users\1\.ssh\id_ed25519_deploy` | `/var/www/namasoft` | `namasoft` | 80 | `postgresql://namasoft:Nama2024secure@localhost:5432/namadb` |
-| Fleet Server | 46.4.188.170 | **Password:** `_ee4SWbxLVfH9b` | (see fleet map below) | (see below) | (see below) | postgres@localhost |
+| Fleet Server (Production) | 46.4.188.170 | **Password:** `_ee4SWbxLVfH9b` | `/www/wwwroot/namainvist.com` | `main-site` | 3000 | postgres@localhost |
 
 **App Login**: admin / O_O772040030
 
@@ -24,18 +20,10 @@ description: Deploy changes to the production server (Hetzner VPS)
 | Node | Domain | App Path | PM2 Name | Port |
 |---|---|---|---|---|
 | **Main Site** | `namainvist.com` | `/www/wwwroot/namainvist.com` | `main-site` | **3000** |
-| **N1** | `n1.namainvist.com` | `/www/wwwroot/n1.namainvist.com` | `n1-main` | **3001** |
-| **N2** | `n2.namainvist.com` | `/www/wwwroot/n2.namainvist.com` | `n2` | **3002** |
-| **N3** | `n3.namainvist.com` | `/www/wwwroot/n3.namainvist.com` | `n3` | **3003** |
-| **N4** | `n4.namainvist.com` | `/www/wwwroot/n4.namainvist.com` | `n4` | **3004** |
-| **N5** | `n5.namainvist.com` | `/www/wwwroot/n5.namainvist.com` | `n5` | **3005** |
-| **N6** | `n6.namainvist.com` | `/www/wwwroot/n6.namainvist.com` | `n6` | **3006** |
+| **N1** (Template) | `n1.namainvist.com` | `/www/wwwroot/n1.namainvist.com` | `n1-main` | **3001** |
 | **N7** | `n7.namainvist.com` | `/www/wwwroot/n7.namainvist.com` | `n7` | **3007** |
-| **N8** | `n8.namainvist.com` | `/www/wwwroot/n8.namainvist.com` | `n8` | **3008** |
-| **N9** | `n9.namainvist.com` | `/www/wwwroot/n9.namainvist.com` | `n9` | **3009** |
-| **N10** | `n10.namainvist.com` | `/www/wwwroot/n10.namainvist.com` | `n10` | **3010** |
-| **N11** | `n11.namainvist.com` | `/www/wwwroot/n11.namainvist.com` | `n11` | **3011** |
-| **New tenants** | `*.namainvist.com` | `/www/wwwroot/*.namainvist.com` | subdomain | **3013+** |
+| **N11** (SaaS App) | `n11.namainvist.com` | `/www/wwwroot/n11.namainvist.com` | `saas-app` / `saas-dev` | **3011** / 3500 |
+| **Custom Tenants** | `*.namainvist.com` | `/www/wwwroot/*.namainvist.com` | subdomain | **3013+** |
 
 **Notes:**
 - The **Main Site** (`namainvist.com` on port 3000) contains: Landing page + ICE Panel (`/ice`) + Onboarding
@@ -52,56 +40,9 @@ C:\Windows\System32\OpenSSH\ssh.exe -o StrictHostKeyChecking=no root@46.4.188.17
 
 ---
 
-# Deploy to Server 1 (95.217.187.44)
+# Fleet Server Main Deploy Process (46.4.188.170)
 
-// turbo-all
-
-1. Upload changed files:
-```powershell
-C:\Windows\System32\OpenSSH\scp.exe -i C:\Users\1\.ssh\hetzner_key "<LOCAL_PATH>" "root@95.217.187.44:<REMOTE_PATH>"
-```
-
-2. Build and restart:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\hetzner_key root@95.217.187.44 "cd /var/www/namasoft && npm run build && pm2 restart namasoft"
-```
-
----
-# Deploy to Server 2 (204.168.144.74 — both instances)
-
-// turbo-all
-
-1. Upload changed files to namasoft:
-```powershell
-C:\Windows\System32\OpenSSH\scp.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_key" "<LOCAL_PATH>" "root@204.168.144.74:/var/www/namasoft/<REMOTE_PATH>"
-```
-
-2. Copy files to namasoft2:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_key" root@204.168.144.74 "cp <FILE> /var/www/namasoft2/<SAME_PATH>"
-```
-
-3. Build and restart both:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i "C:\Users\1\Desktop\namasoftkey\namasoft_key" root@204.168.144.74 "cd /var/www/namasoft && npm run build && pm2 restart namasoft && cd /var/www/namasoft2 && npm run build && pm2 restart namasoft2"
-```
-
----
-
-
-# Deploy to Server 3 (185.197.195.202)
-
-// turbo-all
-
-1. Upload changed files:
-```powershell
-C:\Windows\System32\OpenSSH\scp.exe -i C:\Users\1\.ssh\id_ed25519_deploy -o StrictHostKeyChecking=no "<LOCAL_PATH>" "root@185.197.195.202:<REMOTE_PATH>"
-```
-
-2. Build and restart:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\id_ed25519_deploy -o StrictHostKeyChecking=no root@185.197.195.202 "cd /var/www/namasoft && npm run build && pm2 restart namasoft"
-```
+Use `deploy_sync.js` or `deploy_today.js` to automatically sync files safely.
 
 ---
 

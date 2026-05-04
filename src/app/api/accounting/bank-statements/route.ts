@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: NextRequest) {
     try {
         const statements = await prisma.bankStatement.findMany({
-            orderBy: { createdAt: 'desc' },
+            orderBy: { importedAt: 'desc' },
             include: { bankAccount: true },
             take: 50
         });
