@@ -25,13 +25,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'نوع البريد غير صحيح' }, { status: 400 });
         }
 
-        const success = await sendEmail({ to, ...emailData });
+        const { emailQueue } = require('@/lib/queue');
+        await emailQueue.add('sendEmail', { to, ...emailData });
 
-        if (success) {
-            return NextResponse.json({ success: true, message: `✅ تم إرسال البريد إلى ${to}` });
-        } else {
-            return NextResponse.json({ error: 'فشل إرسال البريد الإلكتروني' }, { status: 500 });
-        }
+        return NextResponse.json({ success: true, message: `✅ تمت إضافة البريد إلى الطابور للإرسال إلى ${to}` });
     } catch (err: any) {
         console.error('[API Email]', err);
         return NextResponse.json({ error: err.message || 'حدث خطأ' }, { status: 500 });

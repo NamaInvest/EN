@@ -9,6 +9,14 @@ export async function register() {
         // لا نحتاج أي setup إضافي — الـ tenantContext موجود
         // الـ interceptor يتم عبر الـ API route نفسه أو الـ middleware
         console.log('[Instrumentation] Tenant context initialized');
+
+        // Start Background Task Workers
+        try {
+            const { startWorkers } = await import('./src/lib/queue');
+            startWorkers();
+        } catch (err) {
+            console.error('[Instrumentation] Failed to start background workers:', err);
+        }
     }
 }
 

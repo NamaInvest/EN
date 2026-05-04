@@ -78,6 +78,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون). يجب أن تنشأ آلياً من الفواتير.' }, { status: 403 });
         }
 
+        // --- MFA Step-Up Auth for large amounts ---
+        if (totalDebit > 100000) {
+            const { MFAEngine } = require('@/lib/mfa-engine');
+            if (!body.mfaToken) {
+                try {
+                    const stepUpRes = await MFAEngine.requireStepUpAuth(auth.userId, 'إدخال قيد يتجاوز 100,000');
+                    return NextResponse.json({ requiresStepUpMFA: true, message: stepUpRes.message }, { status: 403 });
+                } catch (e: any) {
+                    return NextResponse.json({ error: e.message }, { status: 403 });
+                }
+            }
+
+            const isValidMfa = await MFAEngine.verifyToken(auth.userId, body.mfaToken);
+            if (!isValidMfa) {
+                return NextResponse.json({ error: 'رمز التحقق الثنائي (2FA) غير صحيح' }, { status: 401 });
+            }
+        }
+        // ------------------------------------------
+
         const result = await createJournalEntry({
             description,
             reference,

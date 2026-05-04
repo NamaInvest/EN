@@ -22,7 +22,7 @@ export class GOSIEngine {
      */
     static calculateForEmployee(employee: any, basicSalary: number, housingAllowance: number): any {
         const subjectWage = this.calculateSubjectWage(basicSalary, housingAllowance);
-        const isSaudi = employee.nationality === 'SA' || employee.nationality === 'Saudi'; // Simplified check
+        const nationality = employee.nationality || 'SAUDI';
         
         let employeePension = 0;
         let employerPension = 0;
@@ -30,15 +30,37 @@ export class GOSIEngine {
         let employerSANED = 0;
         let occupationalHazards = 0;
 
-        if (isSaudi) {
-            employeePension = subjectWage * 0.09;
-            employerPension = subjectWage * 0.09;
-            employeeSANED = subjectWage * 0.01;
-            employerSANED = subjectWage * 0.01;
-            occupationalHazards = subjectWage * 0.01; // 1% for Saudis
-        } else {
-            // Non-Saudis only pay Occupational Hazards (paid entirely by employer)
-            occupationalHazards = subjectWage * 0.02; // 2% for Non-Saudis
+        switch (nationality) {
+            case 'SAUDI':
+            case 'SA':
+            case 'Saudi':
+                employeePension = subjectWage * 0.09;
+                employerPension = subjectWage * 0.09;
+                employeeSANED = subjectWage * 0.0075;
+                employerSANED = subjectWage * 0.0075;
+                occupationalHazards = subjectWage * 0.02; 
+                break;
+            case 'GCC':
+                employeePension = subjectWage * 0.09;
+                employerPension = subjectWage * 0.09;
+                // SANED doesn't apply to GCC, Hazards does (2%)
+                occupationalHazards = subjectWage * 0.02;
+                break;
+            case 'EXPAT':
+                // Non-Saudis only pay Occupational Hazards (paid entirely by employer)
+                occupationalHazards = subjectWage * 0.02; 
+                break;
+            case 'MILITARY':
+                employeePension = subjectWage * 0.09;
+                employerPension = subjectWage * 0.09;
+                break;
+            case 'GOV_EMPLOYEE':
+                employeePension = subjectWage * 0.09;
+                employerPension = subjectWage * 0.09;
+                break;
+            default:
+                occupationalHazards = subjectWage * 0.02; 
+                break;
         }
 
         const totalEmployeeDeduction = employeePension + employeeSANED;
@@ -46,7 +68,7 @@ export class GOSIEngine {
         const totalAmount = totalEmployeeDeduction + totalEmployerContribution;
 
         return {
-            isSaudi,
+            isSaudi: nationality === 'SAUDI' || nationality === 'SA' || nationality === 'Saudi',
             basicSalary,
             housingAllowance,
             subjectWage,

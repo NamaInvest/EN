@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
 
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -27,7 +28,10 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const promptText = `
+        // Apply Privacy Filter to prevent PII leakage
+        const safeProducts = metrics.topProducts ? maskEntityNames(metrics.topProducts, 'name') : [];
+
+        let promptText = `
 أنت المالي الذكي (AI CFO) لشركة تجارية تعمل بنظام نما إنفست.
 مهمتك هي تحليل البيانات المالية الحالية للمبيعات والمشتريات وإصدار 3 تنبيهات أو نصائح مختصرة ومفيدة للمدير.
 
@@ -40,7 +44,10 @@ export async function POST(req: NextRequest) {
 المنتجات منخفضة المخزون: ${metrics.lowStockCount}
 
 المنتجات الأكثر مبيعاً:
-${metrics.topProducts?.map((p: any) => `- ${p.name}: ${p.quantity} وحدة`).join('\n') || 'لا يوجد بيانات'}
+${safeProducts.map((p: any) => `- ${p.name}: ${p.quantity} وحدة`).join('\n') || 'لا يوجد بيانات'}
+`;
+
+        promptText = redactPII(promptText);
 
 المطلوب:
 1. قم بتحليل هذه البيانات واستخرج 3 نقاط فقط.

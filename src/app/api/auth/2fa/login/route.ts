@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
-import { verifyTOTP } from '@/lib/totp';
+import { MFAEngine } from '@/lib/mfa-engine';
 
 /**
  * POST /api/auth/2fa/login — Complete login after 2FA verification
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         const userId = Number(body.userId);
         const token = String(body.token || '').trim();
 
-        if (!userId || !token || token.length !== 6) {
+        if (!userId || !token) {
             return NextResponse.json({ error: 'بيانات غير صالحة' }, { status: 400 });
         }
 
@@ -27,7 +27,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'مستخدم غير صالح' }, { status: 401 });
         }
 
-        const isValid = verifyTOTP((user as any).totpSecret, token);
+        // Try TOTP first, if it fails, try Backup Code
+        let isValid = await MFAEngine.verifyToken(user.id, token);
+        if (!isValid) {
+            isValid = await MFAEngine.verifyBackupCode(user.id, token);
+        }
+
         if (!isValid) {
             return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 401 });
         }
@@ -45,8 +50,8 @@ export async function POST(request: NextRequest) {
                 username: user.username,
                 fullName: user.fullName,
                 role: user.role,
-                defaultPage: user.defaultPage || '',
-                permissions: user.permissions ?? [],
+                defaultPage: (user as any).defaultPage || '',
+                permissions: (user as any).permissions ?? [],
             },
         });
 

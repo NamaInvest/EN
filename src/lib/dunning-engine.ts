@@ -1,109 +1,147 @@
-// @ts-nocheck
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './prisma';
 
 export class DunningEngine {
     
     /**
-     * Executes the dunning run to find overdue invoices and issue letters.
+     * Run daily Dunning Cron to identify overdue invoices and send reminders
      */
-    static async executeDunningRun(): Promise<{ lettersIssued: number }> {
-        const levels = await prisma.dunningLevel.findMany({
-            orderBy: { daysOverdue: 'desc' }
-        });
-
-        if (levels.length === 0) {
-            console.warn("No dunning levels configured.");
-            return { lettersIssued: 0 };
-        }
-
-        // Find all outstanding sales invoices
-        // Assumes SalesInvoice has dueDate, totalAmount, and status
-        // and ideally an open balance, but we'll approximate with status
-        const openInvoices = await prisma.salesInvoice.findMany({
+    static async runDunningCron(asOfDate: Date) {
+        // 1. Find AR open items overdue
+        const overdueInvoices = await prisma.salesInvoice.findMany({
             where: {
-                status: { notIn: ['PAID', 'CANCELLED', 'DRAFT'] },
-                dueDate: { lt: new Date() } // overdue
+                status: 'posted',
+                remaining: { gt: 0 },
+                date: { lt: asOfDate } // Assuming due date = invoice date for simplicity
             },
             include: { customer: true }
         });
 
-        const today = new Date();
-        let issuedCount = 0;
-
-        for (const invoice of openInvoices) {
-            const dueDate = new Date(invoice.dueDate);
-            const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 3600 * 24));
-
-            // Find the highest applicable dunning level
-            const applicableLevel = levels.find(l => daysOverdue >= l.daysOverdue);
-
-            if (applicableLevel) {
-                // Check if a letter for this level (or higher) has already been issued for this invoice
-                const existingLetter = await prisma.dunningLetter.findFirst({
-                    where: {
-                        invoiceId: invoice.id,
-                        levelId: { gte: applicableLevel.id } // assumes higher ID means higher level, or could check levelNumber
-                    }
-                });
-
-                if (!existingLetter) {
-                    // Calculate amounts
-                    const outstanding = Number(invoice.totalAmount); // in a real system, this is total - paid
-                    const fee = applicableLevel.feeAmount;
-                    const interest = (outstanding * (applicableLevel.interestRate / 100)) * (daysOverdue / 365);
-                    const totalDue = outstanding + fee + interest;
-
-                    // Create new Dunning Letter
-                    await prisma.dunningLetter.create({
-                        data: {
-                            customerId: invoice.customerId,
-                            invoiceId: invoice.id,
-                            levelId: applicableLevel.id,
-                            dueDate: new Date(today.getTime() + (7 * 24 * 3600 * 1000)), // Pay within 7 days
-                            outstandingAmount: outstanding,
-                            dunningFee: fee + interest,
-                            totalDue: totalDue,
-                            status: 'ISSUED'
-                        }
-                    });
-
-                    // Send Email
-                    await this.sendDunningEmail(invoice.customer.email, applicableLevel.emailTemplate, {
-                        customerName: invoice.customer.fullName,
-                        invoiceNumber: invoice.id.toString(), // or invoice.reference
-                        daysOverdue,
-                        totalDue,
-                        dueDate: invoice.dueDate
-                    });
-
-                    // Block account if level requires it
-                    if (applicableLevel.blockAccount) {
-                        await prisma.customer.update({
-                            where: { id: invoice.customerId },
-                            data: { status: 'BLOCKED' } // Assumes status field exists
-                        });
-                    }
-
-                    issuedCount++;
-                }
-            }
+        // Group by customer
+        const customerGroups: Record<number, any[]> = {};
+        for (const inv of overdueInvoices) {
+            if (!inv.customerId) continue;
+            if (!customerGroups[inv.customerId]) customerGroups[inv.customerId] = [];
+            customerGroups[inv.customerId].push(inv);
         }
 
-        return { lettersIssued: issuedCount };
+        const results = [];
+
+        // 2. Process each customer
+        for (const [customerIdStr, invoices] of Object.entries(customerGroups)) {
+            const customerId = parseInt(customerIdStr, 10);
+            
+            // Find applicable policy (or default)
+            // @ts-ignore
+            let policy = await prisma.dunningPolicy.findFirst({
+                // @ts-ignore
+                where: { isActive: true, customerSegment: invoices[0].customer.segment || 'DEFAULT' }
+            });
+
+            if (!policy) {
+                policy = await prisma.dunningPolicy.findFirst({ where: { isActive: true, customerSegment: null } });
+            }
+
+            if (!policy) continue; // No policy, skip
+
+            const levels = JSON.parse(policy.levels);
+            levels.sort((a: any, b: any) => b.daysOverdue - a.daysOverdue); // Descending
+
+            // Find max days overdue for this customer
+            let maxDaysOverdue = 0;
+            for (const inv of invoices) {
+                const diffDays = Math.ceil((asOfDate.getTime() - new Date(inv.date).getTime()) / (1000 * 60 * 60 * 24));
+                if (diffDays > maxDaysOverdue) maxDaysOverdue = diffDays;
+            }
+
+            // Determine applicable level
+            const applicableLevel = levels.find((l: any) => maxDaysOverdue >= l.daysOverdue);
+            if (!applicableLevel) continue;
+
+            // Check if we already ran this level recently (e.g. within 7 days)
+            const recentRun = await prisma.dunningRun.findFirst({
+                where: {
+                    customerId,
+                    level: applicableLevel.level,
+                    runDate: { gte: new Date(asOfDate.getTime() - 7 * 24 * 60 * 60 * 1000) }
+                }
+            });
+
+            if (recentRun) continue; // Already dunned for this level recently
+
+            // 3. Execute actions (Channels, Late Fees)
+            const channelsUsed: string[] = [];
+            if (applicableLevel.channels?.includes('EMAIL')) {
+                channelsUsed.push('EMAIL');
+            }
+            if (applicableLevel.channels?.includes('SMS')) {
+                channelsUsed.push('SMS');
+            }
+
+            let totalFeesAdded = 0;
+            if (applicableLevel.lateFeeFlat) {
+                totalFeesAdded += applicableLevel.lateFeeFlat;
+                // Add late fee as new AR Open Item (Sales Invoice)
+                await prisma.salesInvoice.create({
+                    data: {
+                        invoiceNo: Math.floor(Math.random() * 1000000),
+                        date: asOfDate,
+                        customerId,
+                        subtotal: applicableLevel.lateFeeFlat,
+                        taxValue: 0,
+                        total: applicableLevel.lateFeeFlat,
+                        remaining: applicableLevel.lateFeeFlat,
+                        status: 'posted',
+                        notes: `Dunning Level ${applicableLevel.level} Late Fee`
+                    }
+                });
+            }
+
+            if (applicableLevel.interestRatePctMonthly) {
+                const overdueAmount = invoices.reduce((sum, inv) => sum + inv.remaining, 0);
+                const interest = overdueAmount * (applicableLevel.interestRatePctMonthly / 100);
+                totalFeesAdded += interest;
+                // Add Interest
+                await prisma.salesInvoice.create({
+                    data: {
+                        invoiceNo: Math.floor(Math.random() * 1000000),
+                        date: asOfDate,
+                        customerId,
+                        subtotal: interest,
+                        taxValue: 0,
+                        total: interest,
+                        remaining: interest,
+                        status: 'posted',
+                        notes: `Dunning Level ${applicableLevel.level} Interest Charge`
+                    }
+                });
+            }
+
+            // 4. Create Run Record
+            const run = await prisma.dunningRun.create({
+                data: {
+                    runDate: asOfDate,
+                    customerId,
+                    invoiceIds: JSON.stringify(invoices.map(i => i.id)),
+                    level: applicableLevel.level,
+                    channelsUsed: JSON.stringify(channelsUsed),
+                    totalFeesAdded,
+                    status: 'SENT'
+                }
+            });
+
+            results.push(run);
+        }
+
+        return results;
     }
 
-    private static async sendDunningEmail(email: string | null, template: string, data: any) {
-        if (!email) return;
-        
-        let content = template
-            .replace('{{customerName}}', data.customerName)
-            .replace('{{invoiceNumber}}', data.invoiceNumber)
-            .replace('{{daysOverdue}}', data.daysOverdue)
-            .replace('{{totalDue}}', data.totalDue);
-            
-        console.log(`Sending Dunning to ${email}: ${content}`);
-        // Integration with SendGrid/SMTP would go here
+    /**
+     * Get Dunning History for a Customer
+     */
+    static async getDunningHistory(customerId: number) {
+        return prisma.dunningRun.findMany({
+            where: { customerId },
+            orderBy: { runDate: 'desc' }
+        });
     }
 }

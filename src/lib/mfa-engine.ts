@@ -1,29 +1,25 @@
 import { prisma } from './prisma';
+import { authenticator } from 'otplib';
+import QRCode from 'qrcode';
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import { encrypt, decrypt } from './encryption';
 
 export class MFAEngine {
-
     /**
      * Generate a new TOTP Secret for a user
      */
-    static async setupTOTP(userId: number) {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) throw new Error("User not found");
-
-        // In production, use `otplib` or `speakeasy`
-        // const secret = authenticator.generateSecret();
-        const secret = crypto.randomBytes(20).toString('hex'); // Mock secret
+    static async setupTOTP(userId: number, username: string) {
+        const secret = authenticator.generateSecret();
+        const otpauthUrl = authenticator.keyuri(username, 'Namasoft ERP', secret);
         
-        // Generate OTP Auth URL for QR Code
-        const otpauthUrl = `otpauth://totp/namainvistERP:${user.username}?secret=${secret}&issuer=namainvistERP`;
-
-        // Save secret temporarily until verified
         await prisma.user.update({
             where: { id: userId },
-            data: { totpSecret: secret, totpEnabled: false }
+            data: { totpSecret: encrypt(secret), totpEnabled: false }
         });
 
-        return { secret, otpauthUrl };
+        const qrCodeUri = await QRCode.toDataURL(otpauthUrl);
+        return { secret, qrCodeUri };
     }
 
     /**
@@ -33,8 +29,8 @@ export class MFAEngine {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user || !user.totpSecret) throw new Error("MFA setup not initiated");
 
-        // In production: const isValid = authenticator.check(token, user.totpSecret);
-        const isValid = token.length === 6; // Mock validation
+        const secret = decrypt(user.totpSecret);
+        const isValid = authenticator.verify({ token, secret });
 
         if (!isValid) throw new Error("Invalid TOTP token");
 
@@ -53,8 +49,46 @@ export class MFAEngine {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user || !user.totpEnabled || !user.totpSecret) return false;
 
-        // In production: return authenticator.check(token, user.totpSecret);
-        return token.length === 6; // Mock validation
+        const secret = decrypt(user.totpSecret);
+        return authenticator.verify({ token, secret });
+    }
+
+    /**
+     * Generate Backup Codes (10 random 8-char codes)
+     */
+    static async generateBackupCodes(userId: number) {
+        const codes = Array.from({ length: 10 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
+        const hashedCodes = await Promise.all(codes.map(c => bcrypt.hash(c, 10)));
+        
+        await prisma.user.update({
+            where: { id: userId },
+            data: { totpBackupCodes: hashedCodes }
+        });
+        
+        return codes;
+    }
+
+    /**
+     * Verify a backup code and consume it
+     */
+    static async verifyBackupCode(userId: number, code: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !user.totpBackupCodes?.length) return false;
+
+        for (let i = 0; i < user.totpBackupCodes.length; i++) {
+            const hashed = user.totpBackupCodes[i];
+            const isValid = await bcrypt.compare(code, hashed);
+            if (isValid) {
+                const newCodes = [...user.totpBackupCodes];
+                newCodes.splice(i, 1); // Mark as used by removing it
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { totpBackupCodes: newCodes }
+                });
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -64,8 +98,6 @@ export class MFAEngine {
     static async requireStepUpAuth(userId: number, operationContext: string) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         
-        // If MFA is not enabled, we either block or allow depending on tenant policy.
-        // For Enterprise PDPL compliance, we should block highly sensitive ops if MFA is off.
         if (!user?.totpEnabled) {
             throw new Error(`MFA is required for operation: ${operationContext}. Please enable MFA in security settings.`);
         }

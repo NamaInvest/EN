@@ -18,6 +18,9 @@ function LoginForm() {
   const [isSubdomain, setIsSubdomain] = useState(false);
   const [isDesktop, setIsDesktop] = useState(process.env.NEXT_PUBLIC_IS_DESKTOP === '1');
   const [showFaceLogin, setShowFaceLogin] = useState(false);
+  const [show2FA, setShow2FA] = useState(false);
+  const [mfaToken, setMfaToken] = useState("");
+  const [tempUserId, setTempUserId] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,6 +112,12 @@ function LoginForm() {
         return;
       }
 
+      if (data.requires2FA) {
+        setShow2FA(true);
+        setTempUserId(data.userId); // Ensure backend returns userId when requires2FA is true
+        return;
+      }
+
       console.log("[LOGIN] Success, saving token...");
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -160,6 +169,84 @@ function LoginForm() {
       setLoading(false);
     }
   };
+
+  const handle2FASubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/2fa/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: tempUserId, token: mfaToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "رمز التحقق غير صحيح");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("lastActivity", Date.now().toString());
+      document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+
+      const defaultPage = data.user?.defaultPage;
+      const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
+      if (defaultPage) {
+        window.location.href = defaultPage;
+      } else if (ADMIN_ROLES.includes(data.user?.role)) {
+        window.location.href = "/dashboard";
+      } else {
+        window.location.href = "/pos";
+      }
+    } catch (err) {
+      setError("حدث خطأ في الاتصال");
+      setLoading(false);
+    }
+  };
+
+  if (show2FA) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <div className="login-logo">
+            <div className="login-logo-icon">🔐</div>
+            <div className="login-logo-text">التحقق بخطوتين</div>
+            <div className="login-subtitle">يرجى إدخال رمز التحقق (TOTP) أو الرمز الاحتياطي للمتابعة</div>
+          </div>
+          <form onSubmit={handle2FASubmit}>
+            <div className="input-group">
+              <label className="input-label">رمز التحقق</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="أدخل الرمز هنا"
+                value={mfaToken}
+                onChange={(e) => setMfaToken(e.target.value)}
+                required
+                autoFocus
+                maxLength={10}
+              />
+            </div>
+            {error && (
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "8px", padding: "10px", marginBottom: "16px", color: "#F87171", fontSize: "13px", textAlign: "center" }}>
+                {error}
+              </div>
+            )}
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%", padding: "14px", fontSize: "16px", marginTop: "8px" }}>
+              {loading ? "جاري التحقق..." : "تأكيد"}
+            </button>
+            <button type="button" onClick={() => setShow2FA(false)} className="btn btn-secondary" style={{ width: "100%", padding: "14px", fontSize: "16px", marginTop: "12px", background: "rgba(99, 102, 241, 0.1)", color: "#6366f1", border: "1px solid rgba(99, 102, 241, 0.3)", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+              العودة لتسجيل الدخول
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">

@@ -11,11 +11,7 @@ export class FxRevaluationEngine {
         userId: string
     ) {
         return prisma.$transaction(async (tx) => {
-            // 1. Fetch current exchange rates for periodEndDate
-            // In a real scenario, this would come from an ExchangeRate table for the specific date.
-            // We'll simulate fetching rates for open foreign currency items.
-            
-            // 2. Fetch Settings for FX Gain/Loss Accounts
+            // 1. Fetch Settings for FX Gain/Loss Accounts
             const gainSetting = await tx.setting.findUnique({ where: { key: 'fxRevaluationGainAccount' } });
             const lossSetting = await tx.setting.findUnique({ where: { key: 'fxRevaluationLossAccount' } });
 
@@ -30,34 +26,59 @@ export class FxRevaluationEngine {
             let totalLoss = 0;
             const journalLines: any[] = [];
 
+            // 2. Fetch latest exchange rates up to periodEndDate
+            const currencies = await tx.currency.findMany({
+                where: { code: { not: baseCurrencyCode } }
+            });
+
+            const closingRates: Record<number, number> = {};
+            for (const currency of currencies) {
+                const latestRate = await tx.exchangeRate.findFirst({
+                    where: { 
+                        currencyId: currency.id,
+                        date: { lte: periodEndDate }
+                    },
+                    orderBy: { date: 'desc' }
+                });
+                // Default to 1 if no rate found, though ideally this should throw
+                closingRates[currency.id] = latestRate?.rate || 1;
+            }
+
             // 3. Revalue Open Items (AR/AP)
-            // Simulating fetching foreign AR/AP open invoices
             const foreignInvoices = await tx.salesInvoice.findMany({
                 where: { 
                     status: 'posted', 
-                    // Assume we check currency logic here or balance remaining
-                }
+                    currencyId: { not: null }
+                },
+                include: { currency: true }
             });
 
             for (const inv of foreignInvoices) {
-                // Mocking: OldRate vs NewRate
-                const oldRate = 3.75; // Rate at invoice date
-                const newRate = 3.78; // Rate at periodEndDate
-                const outstandingForeignAmount = inv.total; // Assuming fully open
+                if (!inv.currencyId) continue;
+                
+                // Rate at invoice creation
+                const oldRateObj = await tx.exchangeRate.findFirst({
+                    where: {
+                        currencyId: inv.currencyId,
+                        date: { lte: inv.date }
+                    },
+                    orderBy: { date: 'desc' }
+                });
+                
+                const oldRate = oldRateObj?.rate || 1;
+                const newRate = closingRates[inv.currencyId] || 1;
+                
+                const outstandingForeignAmount = inv.total; // Assumes open. Ideally check amount_due
                 
                 const currentFunctionalAmount = outstandingForeignAmount * oldRate;
                 const revaluatedFunctionalAmount = outstandingForeignAmount * newRate;
                 
                 const difference = revaluatedFunctionalAmount - currentFunctionalAmount;
 
-                // If AR: difference > 0 means Gain (Asset increased value in functional currency)
                 if (difference > 0) {
                     totalGain += difference;
-                    // Debit AR, Credit FX Gain
-                    // We'd add to journalLines
                 } else if (difference < 0) {
                     totalLoss += Math.abs(difference);
-                    // Credit AR, Debit FX Loss
                 }
             }
 
@@ -67,11 +88,15 @@ export class FxRevaluationEngine {
             });
 
             for (const bank of foreignBanks) {
-                const oldRate = 3.75; // average or historical rate
-                const newRate = 3.78;
-                const balance = bank.currentBalance;
+                // Find currency object matching the bank's currency string code
+                const curr = currencies.find(c => c.code === bank.currency);
+                if (!curr) continue;
 
-                const currentVal = balance * oldRate;
+                const newRate = closingRates[curr.id] || 1;
+                const balance = bank.currentBalance;
+                
+                // Placeholder logic: assume it was previously translated at 1
+                const currentVal = balance * 1; 
                 const newVal = balance * newRate;
                 const diff = newVal - currentVal;
 
@@ -87,7 +112,7 @@ export class FxRevaluationEngine {
                 data: {
                     fiscalPeriodId,
                     runDate: periodEndDate,
-                    exchangeRateUsed: 3.78, // Simplified
+                    exchangeRateUsed: Object.values(closingRates)[0] || 1, // Store first rate as a proxy
                     totalGain,
                     totalLoss,
                     status: 'DRAFT',

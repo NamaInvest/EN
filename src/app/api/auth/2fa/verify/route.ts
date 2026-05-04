@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
-import { verifyTOTP } from '@/lib/totp';
+import { MFAEngine } from '@/lib/mfa-engine';
 
 /**
  * POST /api/auth/2fa/verify — Verify a TOTP code
@@ -37,22 +37,19 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'التحقق الثنائي غير مفعّل' }, { status: 400 });
         }
 
-        const isValid = verifyTOTP(user.totpSecret, token);
-        if (!isValid) {
-            return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 401 });
-        }
-
         // If 2FA was pending (setup flow), activate it now
         if (!user.totpEnabled) {
-            await prisma.user.update({
-                where: { id: uid },
-                data: { totpEnabled: true },
-            });
+            await MFAEngine.verifyAndEnableTOTP(uid, token);
+        } else {
+            const isValid = await MFAEngine.verifyToken(uid, token);
+            if (!isValid) {
+                return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 401 });
+            }
         }
 
         return NextResponse.json({ ok: true, verified: true });
     } catch (e: any) {
         console.error('[2FA Verify]', e);
-        return NextResponse.json({ error: 'فشل التحقق' }, { status: 500 });
+        return NextResponse.json({ error: 'فشل التحقق' }, { status: e.message === "Invalid TOTP token" ? 401 : 500 });
     }
 }

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>POS Receipt</title>
+    <style>
+        @page { margin: 0; }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            width: 80mm;
+            margin: 0;
+            padding: 5mm;
+            font-size: 12px;
+            color: #000;
+        }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .bold { font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 2px 0; border-bottom: 1px dashed #ccc; }
+        .total-row td { border-bottom: none; border-top: 1px solid #000; font-weight: bold; }
+        .qr-container { margin: 15px auto; text-align: center; }
+        .qr-container img { width: 120px; height: 120px; }
+        .footer { text-align: center; margin-top: 20px; font-size: 10px; }
+        
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <h2 style="margin: 0;">{{companyName}}</h2>
+        <p style="margin: 2px 0;">VAT: {{vatNumber}}</p>
+        <p style="margin: 2px 0;">{{branchName}}</p>
+        <p style="margin: 2px 0;">Phone: {{companyPhone}}</p>
+    </div>
+
+    <hr style="border-top: 1px dashed #000; border-bottom: none; margin: 10px 0;">
+
+    <div>
+        <p style="margin: 2px 0;">Invoice #: <span class="bold">{{invoiceNumber}}</span></p>
+        <p style="margin: 2px 0;">Date: {{date}}</p>
+        <p style="margin: 2px 0;">Cashier: {{cashierName}}</p>
+        <p style="margin: 2px 0;">Customer: {{customerName}}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="text-right">Item</th>
+                <th class="text-center">Qty</th>
+                <th class="text-left">Price</th>
+                <th class="text-left">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td class="text-right">{{this.name}}</td>
+                <td class="text-center">{{this.qty}}</td>
+                <td class="text-left">{{this.price}}</td>
+                <td class="text-left">{{this.total}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right bold" style="padding-top: 10px;">Subtotal:</td>
+                <td class="text-left" style="padding-top: 10px;">{{subtotal}}</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right bold">VAT (15%):</td>
+                <td class="text-left">{{taxAmount}}</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" class="text-right">TOTAL (SAR):</td>
+                <td class="text-left">{{totalAmount}}</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right bold">Paid:</td>
+                <td class="text-left">{{paidAmount}}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="qr-container">
+        <!-- ZATCA Phase 2 QR Code Image injected here -->
+        <img src="{{qrCodeDataUri}}" alt="ZATCA QR Code" />
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your visit!</p>
+        <p>Simplified Tax Invoice</p>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="width: 100%; padding: 10px; margin-top: 20px;">Print Receipt</button>
+</body>
+</html>
