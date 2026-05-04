@@ -43,6 +43,16 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
     const [printerType, setPrinterType] = useState('80mm');
     const receiptRef = useRef<HTMLDivElement>(null);
 
+    const paymentLabel = useCallback((method: string) => {
+        const labels: Record<string, string> = { cash: 'نقدي', card: 'بطاقة / شبكة', transfer: 'تحويل بنكي', credit: 'آجل', split: 'مقسم (نقدي/شبكة)' };
+        return labels[method] || method;
+    }, []);
+
+    const paymentLabelEn = useCallback((method: string) => {
+        const labels: Record<string, string> = { cash: 'Cash', card: 'Card / POS', transfer: 'Transfer', credit: 'Credit', split: 'Split' };
+        return labels[method] || method;
+    }, []);
+
     const getDocumentTitle = useCallback(() => {
         const type = docType || invoiceData?.docType;
         if (type === 'simplified_debit') return 'إشعار مدين مبسط / Simplified Debit Note';
@@ -298,6 +308,12 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                                 <td style="border: none; padding: 0; width: 50%;"><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></td>
                                             </tr>
                                         </table>
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>طريقة الدفع:</strong> ${paymentLabel(data.paymentMethod?.toLowerCase() || 'cash')}</td>
+                                                <td style="border: none; padding: 0; width: 50%;"></td>
+                                            </tr>
+                                        </table>
                                         ${custTaxNoAr}
                                         ${custCrNoAr}
                                         ${custAddressAr}
@@ -314,6 +330,12 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                             <tr>
                                                 <td style="border: none; padding: 0; width: 50%;"><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</td>
                                                 <td style="border: none; padding: 0; width: 50%;"><strong>Customer:</strong> ${data.customerName || 'Cash Customer'}</td>
+                                            </tr>
+                                        </table>
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"></td>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>Payment Method:</strong> ${paymentLabelEn(data.paymentMethod?.toLowerCase() || 'cash')}</td>
                                             </tr>
                                         </table>
                                         ${custTaxNoEn}
@@ -527,6 +549,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                         ${data.customerCrNo ? `<div><strong>سجل العميل:</strong> <span dir="ltr">${data.customerCrNo}</span></div>` : ''}
                                         ${data.customerAddress ? `<div><strong>عنوان العميل:</strong> ${data.customerAddress}</div>` : ''}
                                         <div><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
+                                        <div><strong>طريقة الدفع:</strong> ${paymentLabel(data.paymentMethod?.toLowerCase() || 'cash')}</div>
                                         <div><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
                                         ${data.originalReference ? `<div><strong>الفاتورة الأصلية:</strong> <span dir="ltr">${data.originalReference}</span></div>` : ''}
                                     </td>
@@ -537,6 +560,7 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                         ${data.customerCrNo ? `<div><strong>Customer CR:</strong> ${data.customerCrNo}</div>` : ''}
                                         ${data.customerAddress ? `<div><strong>Customer Address:</strong> ${data.customerAddress}</div>` : ''}
                                         <div><strong>Invoice No:</strong> ${data.invoiceNumber}</div>
+                                        <div><strong>Payment Method:</strong> ${paymentLabelEn(data.paymentMethod?.toLowerCase() || 'cash')}</div>
                                         <div><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</div>
                                         ${data.originalReference ? `<div><strong>Original Ref:</strong> ${data.originalReference}</div>` : ''}
                                     </td>
@@ -631,11 +655,6 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         minimumFractionDigits: 2, maximumFractionDigits: 2,
     }).format(v);
 
-    const paymentLabel = (method: string) => {
-        const labels: Record<string, string> = { cash: 'نقدي', card: 'بطاقة', transfer: 'تحويل بنكي', credit: 'آجل' };
-        return labels[method] || method;
-    };
-
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', background: '#fff', color: '#000' }}>
@@ -669,6 +688,11 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                 </td>
                                 <td colSpan={2} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px' }}>
                                     <strong>العميل:</strong> {data.customerName || 'عميل نقدي'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colSpan={4} style={{ padding: '6px', border: '1px solid #000', borderWidth: '1px', background: '#fafafa' }}>
+                                    <strong>طريقة الدفع / Payment Method:</strong> {paymentLabel(data.paymentMethod?.toLowerCase() || 'cash')} - {paymentLabelEn(data.paymentMethod?.toLowerCase() || 'cash')}
                                 </td>
                             </tr>
 
