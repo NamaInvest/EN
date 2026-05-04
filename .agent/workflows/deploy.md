@@ -76,11 +76,6 @@ pm2 restart main-site
 
 *(Note: You can use the local script `remote_fix.js` to automate this exact sequence across all 3 environments.)*
 
-Server 3:
-```powershell
-C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\1\.ssh\id_ed25519_deploy -o StrictHostKeyChecking=no root@185.197.195.202 "<COMMAND>"
-```
-
 # Deploy to Fleet Server (46.4.188.170) — Main Site or N1
 
 // turbo-all

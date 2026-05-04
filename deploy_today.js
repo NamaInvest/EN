@@ -294,7 +294,12 @@ async function deploy() {
                 await execCommand(conn, `cd ${target.base} && npx prisma generate`);
 
                 console.log('\n🔧 Running prisma db push...');
-                await execCommand(conn, `cd ${target.base} && npx prisma db push --accept-data-loss`);
+                
+                let dbUrl = "postgresql://postgres@localhost:5432/namadb?schema=public";
+                if (target.base.includes("n11")) dbUrl = "postgresql://postgres@localhost:5432/n11_db?schema=public";
+                else if (target.base.includes("n1.")) dbUrl = "postgresql://postgres@localhost:5432/n1_db?schema=public";
+
+                await execCommand(conn, `cd ${target.base} && DATABASE_URL="${dbUrl}" npx prisma db push --accept-data-loss`);
 
                 console.log('\n🗑️  Clearing Next.js cache...');
                 await execCommand(conn, `cd ${target.base} && rm -rf .next`);
