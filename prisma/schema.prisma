@@ -4760,7 +4760,7 @@ model IfrsLeaseContract {
   lessor                          String
   lessorContact                   String?
   lessorVendorId                  Int?
-  lessorVendor                    Vendor?                   @relation(fields: [lessorVendorId], references: [id])
+  lessorVendor                    Customer?                   @relation(fields: [lessorVendorId], references: [id])
   
   // Asset
   leaseClass                      String                    // 'PROPERTY' | 'VEHICLE' | 'EQUIPMENT' | 'IT_EQUIPMENT' | 'FURNITURE' | 'OTHER'
