@@ -7,11 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '@/components/providers/auth-provider';
 import Image from 'next/image';
 
 export default function SecurityProfilePage() {
-    const { user } = useAuth();
     const [totpEnabled, setTotpEnabled] = useState(false);
     const [qrUri, setQrUri] = useState('');
     const [secret, setSecret] = useState('');
@@ -45,7 +43,7 @@ export default function SecurityProfilePage() {
             const res = await fetch('/api/auth/2fa/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: tokenInput, userId: user?.id })
+                body: JSON.stringify({ token: tokenInput })
             });
             const data = await res.json();
             if (res.ok) {

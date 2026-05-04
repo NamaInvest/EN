@@ -1,12 +1,58 @@
-"use client";
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, FileWarning, Handshake, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { format } from 'date-fns';
 
-export default function DunningDashboard() {
+export default async function DunningDashboard() {
+    // 1. Total Overdue
+    const todayDate = new Date();
+    const overdueAgg = await prisma.openItem.aggregate({
+        _sum: { openAmount: true },
+        where: { dueDate: { lt: todayDate }, status: { not: 'CLOSED' } }
+    });
+    const overdueInvoicesCount = await prisma.openItem.count({
+        where: { dueDate: { lt: todayDate }, status: { not: 'CLOSED' } }
+    });
+
+    // 2. Letters Today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lettersToday = await prisma.dunningLetter.count({
+        where: {
+            campaign: { startedAt: { gte: today } } 
+        }
+    });
+
+    // 3. Active Promises
+    const activePromises = await prisma.promiseToPay.aggregate({
+        _sum: { promisedAmount: true },
+        _count: { id: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 4. Blocked Customers
+    const blockedCustomersCount = await prisma.customer.count({
+        where: { creditHold: true }
+    });
+
+    // Recent Letters (from DunningLetter)
+    const recentLetters = await prisma.dunningLetter.findMany({
+        take: 10,
+        orderBy: { id: 'desc' },
+        include: { customer: true, level: true }
+    });
+
+    // Promises to Pay
+    const promises = await prisma.promiseToPay.findMany({
+        take: 10,
+        where: { status: 'ACTIVE' },
+        orderBy: { promisedDate: 'asc' },
+        include: { customer: true }
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -28,8 +74,8 @@ export default function DunningDashboard() {
                         <FileWarning className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 425k</div>
-                        <p className="text-xs text-muted-foreground">Across 84 invoices</p>
+                        <div className="text-2xl font-bold">SAR {Number(overdueAgg._sum?.openAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                        <p className="text-xs text-muted-foreground">Across {overdueInvoicesCount} invoices</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -38,7 +84,7 @@ export default function DunningDashboard() {
                         <FileWarning className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
+                        <div className="text-2xl font-bold">{lettersToday}</div>
                         <p className="text-xs text-muted-foreground">Sent automatically</p>
                     </CardContent>
                 </Card>
@@ -48,8 +94,8 @@ export default function DunningDashboard() {
                         <Handshake className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">5</div>
-                        <p className="text-xs text-muted-foreground">SAR 120k expected</p>
+                        <div className="text-2xl font-bold">{activePromises._count.id}</div>
+                        <p className="text-xs text-muted-foreground">SAR {Number(activePromises._sum.promisedAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} expected</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -58,8 +104,8 @@ export default function DunningDashboard() {
                         <ShieldAlert className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-destructive">2</div>
-                        <p className="text-xs text-muted-foreground">Credit hold (Level 4)</p>
+                        <div className="text-2xl font-bold text-destructive">{blockedCustomersCount}</div>
+                        <p className="text-xs text-muted-foreground">Credit hold</p>
                     </CardContent>
                 </Card>
             </div>
@@ -83,11 +129,13 @@ export default function DunningDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {[1, 2, 3].map((i) => (
-                                        <tr key={i}>
-                                            <td className="px-4 py-3 text-sm">Customer {i}</td>
-                                            <td className="px-4 py-3 text-sm">Level {i}</td>
-                                            <td className="px-4 py-3 text-sm">SAR {(i * 1500).toLocaleString()}</td>
+                                    {recentLetters.length === 0 ? (
+                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">No recent letters.</td></tr>
+                                    ) : recentLetters.map((letter) => (
+                                        <tr key={letter.id}>
+                                            <td className="px-4 py-3 text-sm">{letter.customer?.name || `Customer ID: ${letter.customerId}`}</td>
+                                            <td className="px-4 py-3 text-sm">{letter.level?.nameEn || `Level ${letter.levelId}`}</td>
+                                            <td className="px-4 py-3 text-sm">SAR {Number(letter.totalAmountDue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -114,11 +162,13 @@ export default function DunningDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {[1, 2].map((i) => (
-                                        <tr key={i}>
-                                            <td className="px-4 py-3 text-sm">Customer {i+3}</td>
-                                            <td className="px-4 py-3 text-sm">2026-05-1{i}</td>
-                                            <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">ACTIVE</span></td>
+                                    {promises.length === 0 ? (
+                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">No active promises.</td></tr>
+                                    ) : promises.map((promise) => (
+                                        <tr key={promise.id}>
+                                            <td className="px-4 py-3 text-sm">{promise.customer?.name || `Customer ID: ${promise.customerId}`}</td>
+                                            <td className="px-4 py-3 text-sm">{format(promise.promisedDate, 'yyyy-MM-dd')}</td>
+                                            <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">{promise.status}</span></td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -1,12 +1,44 @@
-"use client";
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Box, Calculator, Settings, ArrowRightLeft } from 'lucide-react';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { format } from 'date-fns';
 
-export default function FixedAssetsDashboard() {
+export default async function FixedAssetsDashboard() {
+    // 1. Total Assets Value (Gross Book Value)
+    const gbaAgg = await prisma.fixedAsset.aggregate({
+        _sum: { acquisitionCost: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 2. Accumulated Depreciation
+    const accDepAgg = await prisma.fixedAsset.aggregate({
+        _sum: { accumulatedDepreciation: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 3. Net Book Value
+    const nbvAgg = await prisma.fixedAsset.aggregate({
+        _sum: { currentBookValue: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 4. Pending Transfers
+    // Simplified assumption: Assets with status 'TRANSFERRED' or something similar.
+    // Or just fetch assets acquired recently if 'TRANSFERRED' isn't available. Let's count recently added.
+    const pendingTransfers = await prisma.fixedAsset.count({
+        where: { status: 'HELD_FOR_SALE' }
+    });
+
+    // Recent Assets
+    const recentAssets = await prisma.fixedAsset.findMany({
+        take: 10,
+        orderBy: { acquisitionDate: 'desc' },
+        include: { category: true }
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -31,7 +63,7 @@ export default function FixedAssetsDashboard() {
                         <Box className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 45.2M</div>
+                        <div className="text-2xl font-bold">SAR {Number(gbaAgg._sum.acquisitionCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-xs text-muted-foreground">Gross book value</p>
                     </CardContent>
                 </Card>
@@ -41,7 +73,7 @@ export default function FixedAssetsDashboard() {
                         <Calculator className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 12.8M</div>
+                        <div className="text-2xl font-bold">SAR {Number(accDepAgg._sum.accumulatedDepreciation || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-xs text-muted-foreground">Life to date</p>
                     </CardContent>
                 </Card>
@@ -51,17 +83,17 @@ export default function FixedAssetsDashboard() {
                         <Settings className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 32.4M</div>
+                        <div className="text-2xl font-bold">SAR {Number(nbvAgg._sum.currentBookValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-xs text-muted-foreground">Current NBV</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Transfers</CardTitle>
+                        <CardTitle className="text-sm font-medium">Held for Sale</CardTitle>
                         <ArrowRightLeft className="h-4 w-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">5</div>
+                        <div className="text-2xl font-bold">{pendingTransfers}</div>
                         <p className="text-xs text-muted-foreground">Location or custodian changes</p>
                     </CardContent>
                 </Card>
@@ -84,13 +116,15 @@ export default function FixedAssetsDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {[1, 2, 3].map((i) => (
-                                    <tr key={i}>
-                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">FA-26-{1000+i}</td>
-                                        <td className="px-4 py-3 text-sm">Industrial Machine Model X{i}</td>
-                                        <td className="px-4 py-3 text-sm">Machinery & Equipment</td>
-                                        <td className="px-4 py-3 text-sm">2026-04-1{i}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {(150000 * i).toLocaleString()}</td>
+                                {recentAssets.length === 0 ? (
+                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No recent assets.</td></tr>
+                                ) : recentAssets.map((asset) => (
+                                    <tr key={asset.id}>
+                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">{asset.assetNumber}</td>
+                                        <td className="px-4 py-3 text-sm">{asset.name}</td>
+                                        <td className="px-4 py-3 text-sm">{asset.category?.nameEn || 'Uncategorized'}</td>
+                                        <td className="px-4 py-3 text-sm">{format(asset.acquisitionDate, 'yyyy-MM-dd')}</td>
+                                        <td className="px-4 py-3 text-sm">SAR {Number(asset.acquisitionCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                     </tr>
                                 ))}
                             </tbody>

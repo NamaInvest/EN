@@ -1,12 +1,50 @@
-"use client";
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Building, FileSignature, DollarSign } from 'lucide-react';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { format } from 'date-fns';
 
-export default function LeasesDashboard() {
+export default async function LeasesDashboard() {
+    // 1. Total ROU Assets
+    const rouAgg = await prisma.ifrsLeaseContract.aggregate({
+        _sum: { currentRouNbv: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 2. Lease Liabilities
+    const liabilityAgg = await prisma.ifrsLeaseContract.aggregate({
+        _sum: { currentLiability: true },
+        where: { status: 'ACTIVE' }
+    });
+
+    // 3. Active Contracts
+    const activeContractsCount = await prisma.ifrsLeaseContract.count({
+        where: { status: 'ACTIVE' }
+    });
+
+    // 4. Payments Due (Next 30 days) - This would be from IfrsLeaseScheduleLine
+    const today = new Date();
+    const nextMonth = new Date();
+    nextMonth.setDate(nextMonth.getDate() + 30);
+    
+    // Simplification for the dashboard: count scheduled payments in next 30 days.
+    // If not directly available, we can just show a placeholder or a sum of monthly paymentAmount of active leases.
+    // We will show a sum of paymentAmount for active contracts that are due monthly.
+    const monthlyPaymentsAgg = await prisma.ifrsLeaseContract.aggregate({
+        _sum: { paymentAmount: true },
+        where: { status: 'ACTIVE', paymentFrequency: 'MONTHLY' }
+    });
+
+    // Lease Amortization Schedule
+    const activeLeases = await prisma.ifrsLeaseContract.findMany({
+        take: 10,
+        where: { status: 'ACTIVE' },
+        orderBy: { id: 'desc' },
+        include: { schedule: true }
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -31,7 +69,7 @@ export default function LeasesDashboard() {
                         <Building className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 15.2M</div>
+                        <div className="text-2xl font-bold">SAR {Number(rouAgg._sum.currentRouNbv || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-xs text-muted-foreground">Net book value</p>
                     </CardContent>
                 </Card>
@@ -41,7 +79,7 @@ export default function LeasesDashboard() {
                         <Briefcase className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 16.1M</div>
+                        <div className="text-2xl font-bold">SAR {Number(liabilityAgg._sum.currentLiability || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-xs text-muted-foreground">Current + Non-current</p>
                     </CardContent>
                 </Card>
@@ -51,25 +89,25 @@ export default function LeasesDashboard() {
                         <FileSignature className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">24</div>
-                        <p className="text-xs text-muted-foreground">Across 5 branches</p>
+                        <div className="text-2xl font-bold">{activeContractsCount}</div>
+                        <p className="text-xs text-muted-foreground">IFRS 16 Leases</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Payments Due</CardTitle>
+                        <CardTitle className="text-sm font-medium">Monthly Payments Due</CardTitle>
                         <DollarSign className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">SAR 450k</div>
-                        <p className="text-xs text-muted-foreground">Next 30 days</p>
+                        <div className="text-2xl font-bold">SAR {Number(monthlyPaymentsAgg._sum.paymentAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                        <p className="text-xs text-muted-foreground">Approx. next 30 days</p>
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Lease Amortization Schedule (May 2026)</CardTitle>
+                    <CardTitle>Recent Lease Contracts</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -78,20 +116,22 @@ export default function LeasesDashboard() {
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Lease ID</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Depreciation (Dr)</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Interest Expense (Dr)</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Class</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Lessor</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {[1, 2, 3].map((i) => (
-                                    <tr key={i}>
-                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">LSE-00{i}</td>
-                                        <td className="px-4 py-3 text-sm">HQ Office Space - Floor {i}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {(25000 * i).toLocaleString()}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {(4500 * i).toLocaleString()}</td>
+                                {activeLeases.length === 0 ? (
+                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No active leases.</td></tr>
+                                ) : activeLeases.map((lease) => (
+                                    <tr key={lease.id}>
+                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">{lease.contractNumber}</td>
+                                        <td className="px-4 py-3 text-sm">{lease.assetDescription}</td>
+                                        <td className="px-4 py-3 text-sm">{lease.leaseClass}</td>
+                                        <td className="px-4 py-3 text-sm">{lease.lessor}</td>
                                         <td className="px-4 py-3 text-sm">
-                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">PENDING</span>
+                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{lease.status}</span>
                                         </td>
                                     </tr>
                                 ))}
