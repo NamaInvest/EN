@@ -361,13 +361,72 @@ model Customer {
   supplierContracts   SupplierContract[]     @relation("SupplierContracts")
   whtTransactions     WHTTransaction[]
   RentInvoice         RentInvoice[]
-  DunningLetter       DunningLetter[]
   ECLAssessment       ECLAssessment[]
   PaymentRunLine      PaymentRunLine[]
   SubcontractingPO    SubcontractingPO[]
   savedPaymentMethods SavedPaymentMethod[]
   dunningRuns         DunningRun[]
   subscriptions       CustomerSubscription[]
+
+  // Statement preferences
+  emailStatementsEnabled    Boolean   @default(false)
+  statementFrequency        String    @default("NEVER")  // NEVER | MONTHLY | QUARTERLY | YEARLY | ON_DEMAND
+  statementChannel          String    @default("EMAIL")  // EMAIL | WHATSAPP | SMS | PORTAL_ONLY | EMAIL_AND_WHATSAPP
+  statementEmail            String?   // override
+  statementWhatsapp         String?   // override
+  statementCcEmails         String?   // comma-separated
+  statementBccEmails        String?
+  statementLanguage         String    @default("ar")    // ar | en | bilingual
+  statementTemplateId       Int?
+  statementTemplate         StatementTemplate? @relation(fields: [statementTemplateId], references: [id])
+  statementDayOfMonth       Int       @default(1)        // when to send (1-28)
+  statementSendTime         String    @default("06:00") // HH:mm
+  statementIncludeAging     Boolean   @default(true)
+  statementIncludeClosed    Boolean   @default(false)
+  statementIncludeOpenOnly  Boolean   @default(false)
+  statementWatermark        String?   // PAID | OVERDUE | CONFIDENTIAL | null
+  statementSinceLastSent    Boolean   @default(false)   // since last statement vs all time
+  
+  emailDeliveryIssue        String?
+  emailDeliveryIssueDate    DateTime?
+  emailLastBounceReason     String?
+  
+  statementDispatchLogs     StatementDispatchLog[]
+  statementAccessLogs       StatementAccessLog[]
+
+  // Dunning state
+  dunningCurrentLevel     Int       @default(0)
+  dunningLastRunAt        DateTime?
+  dunningSnoozeUntil      DateTime?
+  dunningSnoozeReason     String?
+  dunningSnoozedByUserId  String?
+  dunningPaused           Boolean   @default(false)
+  dunningPauseReason      String?
+  
+  // Credit hold
+  creditHold              Boolean   @default(false)
+  creditHoldReason        String?
+  creditHoldDate          DateTime?
+  creditHoldByUserId      String?
+  creditHoldExpiresAt     DateTime?
+  
+  // Legal action
+  legalActionInProgress   Boolean   @default(false)
+  legalCaseId             Int?
+  
+  // Collection agency
+  inCollectionAgency      Boolean   @default(false)
+  
+  // Communication preferences for dunning
+  dunningPreferredChannel String    @default("EMAIL")
+  dunningOptOutChannels   String[]  // ['SMS', 'WHATSAPP']
+  
+  // History
+  promisesToPay           PromiseToPay[]
+  campaigns               DunningCampaign[]
+  letters                 DunningLetter[]
+  collectionAssignments   CollectionAssignment[]
+  creditActions           CustomerCreditAction[]
 
   @@index([phone])
   @@index([name])
@@ -4663,36 +4722,216 @@ model ReportSchedule {
 // ==================== AR/AP Mastery (Phase C) ====================
 
 model DunningLevel {
-  id            Int     @id @default(autoincrement())
-  levelNumber   Int     @map("level_number") // 1, 2, 3, 4
-  name          String // e.g., "Friendly Reminder", "Final Notice"
-  daysOverdue   Int     @map("days_overdue") // 10, 30, 60
-  feeAmount     Float   @default(0) @map("fee_amount") // Dunning fee
-  interestRate  Float   @default(0) @map("interest_rate")
-  emailTemplate String  @map("email_template") @db.Text
-  blockAccount  Boolean @default(false) @map("block_account")
+  id                      Int       @id @default(autoincrement())
+  levelNumber             Int       @unique  // 1, 2, 3, 4
+  nameAr                  String
+  nameEn                  String
+  description             String?
+  
+  // Triggers
+  daysOverdue             Int       // minimum days
+  minOpenAmount           Decimal?  @db.Decimal(20,4)
+  customerSegments        String[]  // applies to which segments
+  
+  // Templates
+  templateHtmlAr          String    @db.Text
+  templateHtmlEn          String?   @db.Text
+  emailSubjectAr          String
+  emailSubjectEn          String?
+  emailBodyAr             String    @db.Text
+  emailBodyEn             String?   @db.Text
+  whatsappTemplateName    String?   // pre-approved by Meta
+  smsTemplate             String?
+  
+  // Fees & Interest
+  lateFeeAmount           Decimal?  @db.Decimal(10,2)
+  lateFeeFormula          String?   // 'FLAT' | 'PERCENT' | 'TIERED'
+  lateFeePercent          Decimal?  @db.Decimal(5,2)
+  interestRateMonthly     Decimal?  @db.Decimal(5,4)  // per month
+  feeAccountId            Int?
+  interestAccountId       Int?
+  
+  // Actions
+  blockCustomer           Boolean   @default(false)
+  legalAction             Boolean   @default(false)
+  escalateToAgency        Boolean   @default(false)
+  
+  // Channels
+  sendEmail               Boolean   @default(true)
+  sendWhatsApp            Boolean   @default(false)
+  sendSms                 Boolean   @default(false)
+  createCallTask          Boolean   @default(false)
+  
+  // Workflow
+  autoRunEnabled          Boolean   @default(true)
+  manualReviewRequired    Boolean   @default(false)
+  approvalRoleRequired    String?   // 'AR_MANAGER' | 'CFO'
+  
+  // A/B testing
+  abTestVariantId         Int?
+  
+  active                  Boolean   @default(true)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  
+  letters                 DunningLetter[]
+  
+  @@index([levelNumber, active])
+}
 
-  @@map("dunning_levels")
+model DunningCampaign {
+  id                      Int       @id @default(autoincrement())
+  campaignNumber          String    @unique
+  customerId              Int
+  customer                Customer  @relation(fields: [customerId], references: [id])
+  startedAt               DateTime  @default(now())
+  endedAt                 DateTime?
+  status                  String    @default("ACTIVE")  // ACTIVE | PAUSED | COMPLETED | CANCELLED
+  totalAmountAtStart      Decimal   @db.Decimal(20,4)
+  amountCollected         Decimal   @default(0) @db.Decimal(20,4)
+  letters                 DunningLetter[]
+  triggeredBy             String    // 'CRON' | 'MANUAL' | 'API'
+  
+  @@index([customerId, status])
 }
 
 model DunningLetter {
-  id         Int      @id @default(autoincrement())
-  customerId Int      @map("customer_id")
-  customer   Customer @relation(fields: [customerId], references: [id])
-  invoiceId  Int?     @map("invoice_id") // Can be null if sending account statement
-  levelId    Int      @map("level_id")
+  id                      Int       @id @default(autoincrement())
+  letterNumber            String    @unique
+  campaignId              Int
+  campaign                DunningCampaign @relation(fields: [campaignId], references: [id])
+  customerId              Int
+  customer                Customer  @relation(fields: [customerId], references: [id])
+  levelId                 Int
+  level                   DunningLevel @relation(fields: [levelId], references: [id])
+  
+  invoiceIds              Int[]     // open items covered
+  totalAmountDue          Decimal   @db.Decimal(20,4)
+  oldestDueDate           DateTime
+  daysOverdue             Int
+  
+  pdfUrl                  String?
+  pdfHash                 String?
+  
+  // Fees applied
+  lateFeeAmount           Decimal?  @db.Decimal(10,2)
+  interestAmount          Decimal?  @db.Decimal(10,2)
+  lateFeeJournalId        Int?
+  
+  // Customer response
+  customerResponseAt      DateTime?
+  customerResponse        String?   @db.Text
+  customerResponseChannel String?
+  
+  // Workflow
+  status                  String    @default("GENERATED")  // GENERATED | SENT | DELIVERED | OPENED | RESPONDED | RESOLVED
+  snoozedUntil            DateTime?
+  snoozedReason           String?
+  snoozedByUserId         String?
+  
+  generatedAt             DateTime  @default(now())
+  
+  communications          DunningCommunication[]
+  
+  @@index([customerId, status])
+  @@index([levelId, generatedAt])
+  @@index([campaignId])
+}
 
-  issuedDate DateTime @default(now()) @map("issued_date")
-  dueDate    DateTime @map("due_date")
+model DunningCommunication {
+  id                  Int             @id @default(autoincrement())
+  letterId            Int
+  letter              DunningLetter   @relation(fields: [letterId], references: [id])
+  channel             String          // 'EMAIL' | 'WHATSAPP' | 'SMS' | 'PHONE_CALL' | 'PHYSICAL_MAIL' | 'PORTAL'
+  direction           String          @default("OUTBOUND")  // OUTBOUND | INBOUND
+  sentAt              DateTime        @default(now())
+  recipientAddress    String
+  status              String          // 'SENT' | 'DELIVERED' | 'READ' | 'OPENED' | 'BOUNCED' | 'FAILED'
+  externalMessageId   String?
+  errorMessage        String?
+  responseReceived    String?         @db.Text
+  responseReceivedAt  DateTime?
+  spokeWith           String?         // for phone calls
+  callDurationSeconds Int?
+  callOutcome         String?         // 'PROMISE' | 'DISPUTE' | 'NO_ANSWER' | 'BUSY' | 'WRONG_NUMBER' | 'PAYMENT_CONFIRMED'
+  
+  @@index([letterId, channel])
+  @@index([sentAt])
+}
 
-  outstandingAmount Float @map("outstanding_amount")
-  dunningFee        Float @map("dunning_fee")
-  totalDue          Float @map("total_due")
+model PromiseToPay {
+  id                  Int       @id @default(autoincrement())
+  customerId          Int
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  openItemIds         Int[]
+  promisedAmount      Decimal   @db.Decimal(20,4)
+  promisedDate        DateTime
+  status              String    @default("ACTIVE")  // ACTIVE | KEPT | BROKEN | CANCELLED
+  recordedByUserId    String
+  recordedAt          DateTime  @default(now())
+  channel             String    // 'PHONE' | 'EMAIL' | 'MEETING' | 'WHATSAPP' | 'PORTAL'
+  spokeTo             String?
+  notes               String?   @db.Text
+  reminderDate        DateTime?
+  reminderSent        Boolean   @default(false)
+  outcomeNotes        String?
+  outcomeRecordedAt   DateTime?
+  outcomeRecordedByUserId String?
+  
+  @@index([customerId, status])
+  @@index([promisedDate, status])
+}
 
-  status     String @default("ISSUED") // ISSUED, PAID, CANCELLED, ESCALATED
-  pdfContent Bytes? @map("pdf_content") // Optional stored PDF
+model CollectionAgency {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  contactPerson       String?
+  contactEmail        String?
+  contactPhone        String?
+  commissionPercent   Decimal   @db.Decimal(5,2)
+  apiEndpoint         String?
+  apiKey              String?   // encrypted
+  active              Boolean   @default(true)
+  performanceScore    Decimal?  @db.Decimal(5,2)
+  totalAssignedCount  Int       @default(0)
+  totalCollected      Decimal   @default(0) @db.Decimal(20,4)
+  totalCommissionPaid Decimal   @default(0) @db.Decimal(20,4)
+  assignments         CollectionAssignment[]
+}
 
-  @@map("dunning_letters")
+model CollectionAssignment {
+  id                  Int       @id @default(autoincrement())
+  agencyId            Int
+  agency              CollectionAgency @relation(fields: [agencyId], references: [id])
+  customerId          Int
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  assignedAt          DateTime  @default(now())
+  assignedByUserId    String
+  amountAssigned      Decimal   @db.Decimal(20,4)
+  invoiceIds          Int[]
+  status              String    @default("ASSIGNED")  // ASSIGNED | IN_PROGRESS | COLLECTED | FAILED | RETURNED
+  collectedAmount     Decimal   @default(0) @db.Decimal(20,4)
+  commissionAmount    Decimal?  @db.Decimal(20,4)
+  closedAt            DateTime?
+  notes               String?   @db.Text
+  
+  @@index([agencyId, status])
+  @@index([customerId])
+}
+
+model CustomerCreditAction {
+  id              Int       @id @default(autoincrement())
+  customerId      Int
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  action          String    // 'HOLD' | 'RELEASE' | 'REDUCE_LIMIT' | 'INCREASE_LIMIT'
+  reason          String
+  performedAt     DateTime  @default(now())
+  performedByUserId String
+  approvedByUserId String?
+  oldValue        Json?
+  newValue        Json?
+  
+  @@index([customerId, performedAt])
 }
 
 // ==================== Enterprise BPM / Workflow (Phase F) ====================
@@ -5551,4 +5790,160 @@ model AttributeGroup {
   values String? // JSON array of values e.g. ["S", "M", "L"]
 
   @@map("attribute_groups")
+}
+
+model StatementTemplate {
+  id                Int       @id @default(autoincrement())
+  name              String
+  nameAr            String
+  description       String?
+  isDefault         Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  language          String    @default("ar")  // ar | en | bilingual
+  layoutType        String    @default("STANDARD")  // STANDARD | DETAILED | SUMMARY | LEGAL
+  
+  // Branding
+  logoUrl           String?
+  primaryColor      String    @default("#1e40af")
+  accentColor       String    @default("#dbeafe")
+  fontFamily        String    @default("Cairo")
+  
+  // Sections (JSON config)
+  sections          Json      // [{type: 'HEADER', visible: true, order: 1, config: {}}, ...]
+  
+  // Header / Footer HTML
+  headerHtml        String?   @db.Text
+  footerHtml        String?   @db.Text
+  
+  // Email template
+  emailSubject      String    // "كشف حساب {{customerName}} - {{period}}"
+  emailBodyHtml     String    @db.Text
+  emailBodyText     String    @db.Text
+  
+  // Features
+  includeQR         Boolean   @default(true)
+  includeSignature  Boolean   @default(false)
+  signatureFileId   Int?
+  signatoryName     String?
+  signatoryRole     String?
+  includePaymentInstructions Boolean @default(true)
+  paymentInstructionsHtml String? @db.Text
+  
+  // VAT compliance (KSA)
+  zatcaCompliant    Boolean   @default(false)
+  showTaxBreakdown  Boolean   @default(false)
+  
+  customers         Customer[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  createdByUserId   String
+}
+
+model StatementDispatchLog {
+  id                  Int       @id @default(autoincrement())
+  customerId          Int
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  templateId          Int?
+  
+  dateFrom            DateTime
+  dateTo              DateTime
+  generatedAt         DateTime  @default(now())
+  
+  pdfUrl              String?
+  pdfHash             String?
+  pdfSizeBytes        Int?
+  
+  // Statement content snapshot
+  openingBalance      Decimal   @db.Decimal(20,4)
+  closingBalance      Decimal   @db.Decimal(20,4)
+  transactionsCount   Int
+  totalDebits         Decimal   @db.Decimal(20,4)
+  totalCredits        Decimal   @db.Decimal(20,4)
+  agingSnapshot       Json?     // {0-30, 31-60, ...}
+  
+  // Delivery
+  deliveryChannel     String    // EMAIL | WHATSAPP | SMS | PORTAL | DOWNLOAD
+  recipientAddress    String?
+  ccAddresses         String?
+  bccAddresses        String?
+  
+  status              String    @default("GENERATED")  // GENERATED | SENT | DELIVERED | OPENED | CLICKED | BOUNCED | FAILED | SOFT_BOUNCED
+  externalMessageId   String?
+  errorMessage        String?
+  retryCount          Int       @default(0)
+  
+  sentAt              DateTime?
+  deliveredAt         DateTime?
+  openedAt            DateTime?
+  clickedAt           DateTime?
+  bouncedAt           DateTime?
+  
+  triggeredBy         String    // 'MANUAL' | 'CRON_MONTHLY' | 'CRON_QUARTERLY' | 'BULK' | 'PORTAL' | 'API'
+  triggeredByUserId   String?
+  batchId             Int?
+  batch               StatementBatch? @relation(fields: [batchId], references: [id])
+  
+  deliveryEvents      Json?     // raw webhook events
+  
+  @@index([customerId, generatedAt])
+  @@index([status])
+  @@index([batchId])
+  @@index([triggeredBy, generatedAt])
+}
+
+model StatementBatch {
+  id                  Int       @id @default(autoincrement())
+  batchNumber         String    @unique
+  startedAt           DateTime  @default(now())
+  startedByUserId     String?
+  triggeredBy         String    // 'CRON_MONTHLY' | 'CRON_QUARTERLY' | 'MANUAL_BULK'
+  
+  totalCount          Int
+  processedCount      Int       @default(0)
+  successCount        Int       @default(0)
+  failedCount         Int       @default(0)
+  
+  status              String    @default("PROCESSING")  // PROCESSING | COMPLETED | FAILED | CANCELLED
+  completedAt         DateTime?
+  
+  filterCriteria      Json      // for reproducibility
+  templateId          Int?
+  dateFrom            DateTime
+  dateTo              DateTime
+  
+  dispatchLogs        StatementDispatchLog[]
+  errorLog            Json?
+  
+  @@index([status, startedAt])
+}
+
+model StatementAccessLog {
+  id              Int       @id @default(autoincrement())
+  customerId      Int
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  dispatchLogId   Int?
+  accessedAt      DateTime  @default(now())
+  accessChannel   String    // 'PORTAL' | 'EMAIL_LINK' | 'DOWNLOAD'
+  ipAddress       String?
+  userAgent       String?
+  countryCode     String?
+  city            String?
+  duration        Int?      // seconds spent (if portal)
+  
+  @@index([customerId, accessedAt])
+  @@index([dispatchLogId])
+}
+
+model StatementSchedule {
+  id                Int       @id @default(autoincrement())
+  name              String
+  cronExpression    String    // standard cron
+  templateId        Int?
+  filterCriteria    Json      // who to send
+  enabled           Boolean   @default(true)
+  lastRunAt         DateTime?
+  nextRunAt         DateTime?
+  successRate       Decimal?  @db.Decimal(5,2)
+  
+  @@index([enabled, nextRunAt])
 }
