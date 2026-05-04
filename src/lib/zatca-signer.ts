@@ -159,12 +159,12 @@ export class ZatcaSigner {
             previous_invoice_hash: settings.lastPih || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==',
             line_items: lineItems,
             // Credit Note (381) or Debit Note (383): add cancelation to reference original invoice
-            ...(invoiceData.invoiceTypeCode === '381' && invoiceData.cancelation ? {
+            ...( (invoiceData.invoiceTypeCode === '381' || invoiceData.invoiceTypeCode === '383') && invoiceData.cancelation ? {
                 cancelation: {
                     canceled_invoice_number: invoiceData.cancelation.canceled_invoice_number,
                     payment_method: ZATCAPaymentMethods.CASH,
-                    cancelation_type: ZATCAInvoiceTypes.CREDIT_NOTE,
-                    reason: invoiceData.cancelation.reason || 'مرتجع مبيعات',
+                    cancelation_type: invoiceData.invoiceTypeCode === '381' ? ZATCAInvoiceTypes.CREDIT_NOTE : ZATCAInvoiceTypes.DEBIT_NOTE,
+                    reason: invoiceData.cancelation.reason || 'تعديل مبيعات',
                 }
             } : {}),
         };

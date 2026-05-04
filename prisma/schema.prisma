@@ -296,6 +296,8 @@ model SalesInvoice {
   zatcaResponse String?   @map("zatca_response")
   zatcaXml      String?   @map("zatca_xml")
   salesRepId    Int?      @map("sales_rep_id")
+  docType       String?   @default("invoice") @map("doc_type") // invoice, simplified_debit, standard_debit
+  originalInvoiceId Int?  @map("original_invoice_id")
 
   customer                Customer?                 @relation(fields: [customerId], references: [id])
   stock                   Stock?                    @relation(fields: [stockId], references: [id])

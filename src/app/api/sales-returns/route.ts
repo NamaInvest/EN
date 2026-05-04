@@ -302,7 +302,7 @@ export async function POST(request: Request) {
                             };
                         });
 
-                        const cust = originalInvoice?.customer;
+                        const cust = (originalInvoice as any)?.customer;
                         const isStandard = !!cust?.taxNumber;
 
                         const creditNoteData = {
@@ -361,7 +361,57 @@ export async function POST(request: Request) {
                             } : {}),
                         };
 
-                        const signOutput = signer.signInvoice(creditNoteData, zatcaSettingsObj);
+                        let signOutput;
+                        if (isStandard && s['zatca_certificate'] && s['zatca_private_key']) {
+                            const { generateZATCAXml } = await import('@/lib/zatca');
+                            const { ZatcaJavaAdapter } = await import('@/lib/zatca-java');
+                            
+                            const mappedZatcaData = {
+                                profileID: 'reporting:1.0',
+                                id: creditNoteData.id,
+                                uuid: creditNoteUuid,
+                                issueDate: issueDate,
+                                issueTime: issueTime,
+                                invoiceTypeCode: creditNoteData.invoiceTypeCode,
+                                invoiceTypeName: creditNoteData.invoiceTypeName,
+                                note: creditNoteData.note,
+                                currencyCode: creditNoteData.currencyCode,
+                                taxCurrencyCode: creditNoteData.taxCurrencyCode,
+                                supplier: creditNoteData.supplier,
+                                customer: creditNoteData.customer,
+                                taxAmount: creditNoteData.taxAmount,
+                                totalAmount: creditNoteData.totalAmount,
+                                previousHash: s['zatca_last_pih'] || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==',
+                                cancelation: creditNoteData.cancelation,
+                                invoiceLines: creditNoteData.invoiceLines.map((line: any, idx: number) => ({
+                                    id: (idx + 1).toString(),
+                                    quantity: line.quantity.toString(),
+                                    unitCode: 'PCE',
+                                    lineExtensionAmount: line.subtotal.toString(),
+                                    itemName: line.name,
+                                    taxPercent: (line.taxRate * 100).toString(),
+                                }))
+                            };
+
+                            const rawXml = generateZATCAXml(mappedZatcaData as any);
+                            const javaAdapter = new ZatcaJavaAdapter();
+                            const signedData = await javaAdapter.signInvoice(
+                                rawXml, 
+                                s['zatca_certificate'], 
+                                s['zatca_private_key'], 
+                                mappedZatcaData.previousHash
+                            );
+                            signOutput = {
+                                signedXml: signedData.signedXml,
+                                hash: signedData.hash,
+                                qr: signedData.qr,
+                                encodedInvoice: Buffer.from(signedData.signedXml).toString('base64')
+                            };
+                            console.log(`✅ Standard Credit Note ${creditNoteData.id} signed (Java SDK)`);
+                        } else {
+                            signOutput = signer.signInvoice(creditNoteData, zatcaSettingsObj);
+                            console.log(`✅ Simplified Credit Note ${creditNoteData.id} signed (Node.js SDK)`);
+                        }
                         zatcaQR = signOutput.qr;
                         const hashFinal = signOutput.hash;
 
@@ -375,12 +425,21 @@ export async function POST(request: Request) {
                         // Report Credit Note to ZATCA
                         if (s['zatca_production_secret']) {
                             try {
-                                const reportResult = await signer.reportInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj);
-                                if (reportResult.status === 'reported') {
-                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'reported' } });
-                                    console.log(`✅ Credit Note CN-${returnNo} reported to ZATCA`);
+                                const zatcaResult = isStandard
+                                    ? await signer.clearInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj)
+                                    : await signer.reportInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj);
+
+                                if (zatcaResult.status === 'reported' || zatcaResult.status === 'cleared') {
+                                    await prisma.salesReturn.update({ 
+                                        where: { id: ret.id }, 
+                                        data: { 
+                                            zatcaStatus: zatcaResult.status,
+                                            ...((zatcaResult as any).clearedInvoice ? { zatcaXml: Buffer.from((zatcaResult as any).clearedInvoice, 'base64').toString('utf-8') } : {})
+                                        } 
+                                    });
+                                    console.log(`✅ Credit Note CN-${returnNo} ${zatcaResult.status} to ZATCA`);
                                 } else {
-                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(reportResult.validationResults) } });
+                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(zatcaResult.validationResults) } });
                                 }
                             } catch (reportErr: any) {
                                 await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });

@@ -60,6 +60,11 @@ export interface InvoiceData {
   invoiceLines: InvoiceLine[];
   taxAmount: string;
   totalAmount: string;
+  previousHash?: string;
+  cancelation?: {
+      canceled_invoice_number: string | number;
+      reason: string;
+  };
 }
 
 export interface QrDataModel {
@@ -187,7 +192,7 @@ export function generateZATCAXml(data: InvoiceData): string {
   ${data.invoiceTypeCode === '381' || data.invoiceTypeCode === '383' ? `
   <cac:BillingReference>
     <cac:InvoiceDocumentReference>
-      <cbc:ID>INV-123456</cbc:ID>
+      <cbc:ID>${escapeXml(data.cancelation?.canceled_invoice_number?.toString() || 'INV-UNKNOWN')}</cbc:ID>
     </cac:InvoiceDocumentReference>
   </cac:BillingReference>` : ''}
   <cac:AdditionalDocumentReference>
@@ -197,7 +202,7 @@ export function generateZATCAXml(data: InvoiceData): string {
   <cac:AdditionalDocumentReference>
     <cbc:ID>PIH</cbc:ID>
     <cac:Attachment>
-      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==</cbc:EmbeddedDocumentBinaryObject>
+      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${data.previousHash || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ=='}</cbc:EmbeddedDocumentBinaryObject>
     </cac:Attachment>
   </cac:AdditionalDocumentReference>
   <cac:AdditionalDocumentReference>
@@ -268,7 +273,7 @@ export function generateZATCAXml(data: InvoiceData): string {
   ${data.invoiceTypeCode === '381' || data.invoiceTypeCode === '383' ? `
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
-    <cbc:InstructionNote>Compliance Test Reason</cbc:InstructionNote>
+    <cbc:InstructionNote>${escapeXml(data.cancelation?.reason || 'تعديل مبيعات')}</cbc:InstructionNote>
   </cac:PaymentMeans>` : ''}
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="SAR">${escapeXml(data.taxAmount)}</cbc:TaxAmount>

@@ -37,6 +37,8 @@ const SalesInvoiceSchema = z.object({
     currencyId: z.union([z.string(), z.number()]).optional().nullable(),
     exchangeRate: z.union([z.string(), z.number()]).optional().default(1.0),
     items: z.array(SalesItemSchema).min(1, 'يجب إضافة منتج واحد على الأقل'),
+    docType: z.string().optional().default('invoice'),
+    originalInvoiceId: z.union([z.string(), z.number()]).optional().nullable(),
 });
 
 export async function GET(request: NextRequest) {
@@ -200,6 +202,8 @@ export async function POST(request: Request) {
                     status: remaining > 0 ? 'pending' : 'completed',
                     userId: userId,
                     notes: body.notes || null,
+                    docType: body.docType || 'invoice',
+                    originalInvoiceId: body.originalInvoiceId ? Number(body.originalInvoiceId) : null,
                     currencyId: body.currencyId ? Number(body.currencyId) : null,
                     exchangeRate: body.exchangeRate ? Number(body.exchangeRate) : 1.0,
                     details: {
@@ -224,7 +228,7 @@ export async function POST(request: Request) {
                             };
                         }),
                     },
-                },
+                } as any,
                 include: { details: true, customer: true },
             });
 
@@ -463,7 +467,7 @@ export async function POST(request: Request) {
                             };
                         });
 
-                        const cust = invoice.createdInvoice.customer;
+                        const cust = (invoice.createdInvoice as any).customer;
                         const isStandard = !!cust?.taxNumber;
 
                         const invoiceDataObj = {
@@ -471,8 +475,12 @@ export async function POST(request: Request) {
                             uuid: invoiceUuid,
                             issueDate,
                             issueTime,
-                            invoiceTypeCode: '388',
+                            invoiceTypeCode: (body.docType === 'standard_debit' || body.docType === 'simplified_debit') ? '383' : '388',
                             invoiceTypeName: isStandard ? '0100000' : '0200000',
+                            cancelation: (body.docType === 'standard_debit' || body.docType === 'simplified_debit') && body.originalInvoiceId ? {
+                                canceled_invoice_number: Number(body.originalInvoiceId),
+                                reason: body.notes || 'تعديل مبيعات'
+                            } : undefined,
                             currencyCode: 'SAR',
                             taxCurrencyCode: 'SAR',
                             note: body.notes || (isStandard ? 'B2B Standard Sales Invoice' : 'B2C Simplified Sales Invoice'),
@@ -515,7 +523,57 @@ export async function POST(request: Request) {
                             totalAmount: total.toFixed(2),
                         };
 
-                        const signOutput = signer.signInvoice(invoiceDataObj, zatcaSettingsObj);
+                        let signOutput;
+                        if (isStandard && s['zatca_certificate'] && s['zatca_private_key']) {
+                            const { generateZATCAXml } = await import('@/lib/zatca');
+                            const { ZatcaJavaAdapter } = await import('@/lib/zatca-java');
+                            
+                            const mappedZatcaData = {
+                                profileID: 'reporting:1.0',
+                                id: invoiceDataObj.id,
+                                uuid: invoiceUuid,
+                                issueDate: issueDate,
+                                issueTime: issueTime,
+                                invoiceTypeCode: invoiceDataObj.invoiceTypeCode,
+                                invoiceTypeName: invoiceDataObj.invoiceTypeName,
+                                note: invoiceDataObj.note,
+                                currencyCode: invoiceDataObj.currencyCode,
+                                taxCurrencyCode: invoiceDataObj.taxCurrencyCode,
+                                supplier: invoiceDataObj.supplier,
+                                customer: invoiceDataObj.customer,
+                                taxAmount: invoiceDataObj.taxAmount,
+                                totalAmount: invoiceDataObj.totalAmount,
+                                previousHash: s['zatca_last_pih'] || 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==',
+                                cancelation: invoiceDataObj.cancelation,
+                                invoiceLines: invoiceDataObj.invoiceLines.map((line: any, idx: number) => ({
+                                    id: (idx + 1).toString(),
+                                    quantity: line.quantity.toString(),
+                                    unitCode: 'PCE',
+                                    lineExtensionAmount: line.subtotal.toString(),
+                                    itemName: line.name,
+                                    taxPercent: (line.taxRate * 100).toString(),
+                                }))
+                            };
+
+                            const rawXml = generateZATCAXml(mappedZatcaData as any);
+                            const javaAdapter = new ZatcaJavaAdapter();
+                            const signedData = await javaAdapter.signInvoice(
+                                rawXml, 
+                                s['zatca_certificate'], 
+                                s['zatca_private_key'], 
+                                mappedZatcaData.previousHash
+                            );
+                            signOutput = {
+                                signedXml: signedData.signedXml,
+                                hash: signedData.hash,
+                                qr: signedData.qr,
+                                encodedInvoice: Buffer.from(signedData.signedXml).toString('base64')
+                            };
+                            console.log(`✅ Standard Invoice ${invoiceDataObj.id} signed (Java SDK)`);
+                        } else {
+                            signOutput = signer.signInvoice(invoiceDataObj, zatcaSettingsObj);
+                            console.log(`✅ Simplified Invoice ${invoiceDataObj.id} signed (Node.js SDK)`);
+                        }
                         zatcaQR = signOutput.qr;
                         const hashFinal = signOutput.hash;
                         
@@ -525,12 +583,21 @@ export async function POST(request: Request) {
                         
                         if (s['zatca_production_secret']) {
                             try {
-                                const reportResult = await signer.reportInvoice(signOutput.signedXml, hashFinal, invoiceUuid, zatcaSettingsObj);
-                                if (reportResult.status === 'reported') {
-                                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'reported' } });
-                                    console.log(`✅ Invoice ${invoice.createdInvoice.invoiceNo} reported to ZATCA`);
+                                const zatcaResult = isStandard
+                                    ? await signer.clearInvoice(signOutput.signedXml, hashFinal, invoiceUuid, zatcaSettingsObj)
+                                    : await signer.reportInvoice(signOutput.signedXml, hashFinal, invoiceUuid, zatcaSettingsObj);
+
+                                if (zatcaResult.status === 'reported' || zatcaResult.status === 'cleared') {
+                                    await prisma.salesInvoice.update({ 
+                                        where: { id: invoice.createdInvoice.id }, 
+                                        data: { 
+                                            zatcaStatus: zatcaResult.status,
+                                            ...((zatcaResult as any).clearedInvoice ? { zatcaXml: Buffer.from((zatcaResult as any).clearedInvoice, 'base64').toString('utf-8') } : {})
+                                        } 
+                                    });
+                                    console.log(`✅ Invoice ${invoice.createdInvoice.invoiceNo} ${zatcaResult.status} to ZATCA`);
                                 } else {
-                                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(reportResult.validationResults) } });
+                                    await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(zatcaResult.validationResults) } });
                                 }
                             } catch (reportErr: any) {
                                 await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
