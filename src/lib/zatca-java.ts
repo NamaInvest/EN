@@ -88,7 +88,7 @@ export class ZatcaJavaAdapter {
 csr.common.name=${config.taxNumber}
 csr.serial.number=1-${config.companyName}|2-${config.branchName || 'Branch'}|3-${config.uuid || '1234567890'}
 csr.organization.identifier=${config.taxNumber}
-csr.organization.unit.name=${config.branchName || 'Nama Soft'}
+csr.organization.unit.name=${config.branchName || 'namainvist'}
 csr.organization.name=${config.companyName}
 csr.country.name=SA
 csr.invoice.type=1100

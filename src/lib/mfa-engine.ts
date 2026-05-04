@@ -15,7 +15,7 @@ export class MFAEngine {
         const secret = crypto.randomBytes(20).toString('hex'); // Mock secret
         
         // Generate OTP Auth URL for QR Code
-        const otpauthUrl = `otpauth://totp/NamasoftERP:${user.username}?secret=${secret}&issuer=NamasoftERP`;
+        const otpauthUrl = `otpauth://totp/namainvistERP:${user.username}?secret=${secret}&issuer=namainvistERP`;
 
         // Save secret temporarily until verified
         await prisma.user.update({

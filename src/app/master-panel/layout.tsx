@@ -30,7 +30,7 @@ export default function MasterPanelLayout({ children }: { children: React.ReactN
                     
                     <button 
                          onClick={() => {
-                            document.cookie = "namasoft_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                            document.cookie = "namainvist_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                             window.location.href = "/login";
                          }}
                          className="px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm font-bold transition-all border border-red-500/30 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:scale-105 active:scale-95"

@@ -57,7 +57,7 @@ export default function SalesOrdersPage() {
  };
 
  const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
- const taxValue = subtotal * 0.15; // Assuming 15% VAT Standard NamaSoft
+ const taxValue = subtotal * 0.15; // Assuming 15% VAT Standard namainvist
  const total = subtotal + taxValue;
 
  const handleCreate = async (e: React.FormEvent) => {

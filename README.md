@@ -1,5 +1,5 @@
-# نما سوفت — نظام نقاط البيع والمحاسبة
-# NamaSoft — POS & Accounting System
+# نما إنفست — نظام نقاط البيع والمحاسبة
+# namainvist — POS & Accounting System
 
 ## المتطلبات | Requirements
 
@@ -53,9 +53,9 @@ npm install -g pm2
 sudo -u postgres psql
 
 # إنشاء مستخدم وقاعدة بيانات
-CREATE USER namasoft WITH PASSWORD 'كلمة_سر_قوية';
-CREATE DATABASE namadb OWNER namasoft;
-GRANT ALL PRIVILEGES ON DATABASE namadb TO namasoft;
+CREATE USER namainvist WITH PASSWORD 'كلمة_سر_قوية';
+CREATE DATABASE namadb OWNER namainvist;
+GRANT ALL PRIVILEGES ON DATABASE namadb TO namainvist;
 \q
 ```
 
@@ -63,8 +63,8 @@ GRANT ALL PRIVILEGES ON DATABASE namadb TO namasoft;
 ```bash
 # نسخ المشروع من GitHub
 cd /var/www
-git clone https://github.com/iceman18ice-sketch/namasoft9-3.git namasoft
-cd namasoft
+git clone https://github.com/iceman18ice-sketch/namainvist9-3.git namainvist
+cd namainvist
 
 # تثبيت المكتبات
 npm install
@@ -77,7 +77,7 @@ npm install qrcode zatca-xml-js
 ```bash
 # إنشاء ملف .env
 cat > .env << 'EOF'
-DATABASE_URL="postgresql://namasoft:كلمة_سر_قوية@localhost:5432/namadb"
+DATABASE_URL="postgresql://namainvist:كلمة_سر_قوية@localhost:5432/namadb"
 JWT_SECRET="مفتاح-سري-طويل-وعشوائي"
 NODE_ENV=production
 EOF
@@ -95,7 +95,7 @@ npx prisma generate
 npx tsx prisma/seed.ts
 
 # إنشاء جدول ZATCA (اختياري)
-psql "postgresql://namasoft:كلمة_سر_قوية@localhost:5432/namadb" -c "
+psql "postgresql://namainvist:كلمة_سر_قوية@localhost:5432/namadb" -c "
 CREATE TABLE IF NOT EXISTS zatca_settings (
     id SERIAL PRIMARY KEY,
     seller_name VARCHAR(300), seller_name_ar VARCHAR(300),
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS zatca_settings (
 npm run build
 
 # تشغيل بـ PM2
-pm2 start npm --name "namasoft" -- start
+pm2 start npm --name "namainvist" -- start
 pm2 save
 pm2 startup
 ```
@@ -138,7 +138,7 @@ pm2 startup
 ```bash
 apt install -y nginx
 
-cat > /etc/nginx/sites-available/namasoft << 'EOF'
+cat > /etc/nginx/sites-available/namainvist << 'EOF'
 server {
     listen 80;
     server_name yourdomain.com;
@@ -154,7 +154,7 @@ server {
 }
 EOF
 
-ln -s /etc/nginx/sites-available/namasoft /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/namainvist /etc/nginx/sites-enabled/
 nginx -t && systemctl restart nginx
 ```
 
@@ -176,8 +176,8 @@ nginx -t && systemctl restart nginx
 
 | الأمر | الوصف |
 |-------|-------|
-| `pm2 restart namasoft` | إعادة تشغيل |
-| `pm2 logs namasoft` | عرض السجلات |
+| `pm2 restart namainvist` | إعادة تشغيل |
+| `pm2 logs namainvist` | عرض السجلات |
 | `pm2 status` | حالة التطبيق |
 | `npx prisma studio` | واجهة قاعدة البيانات |
 | `npm run build` | إعادة بناء |

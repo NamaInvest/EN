@@ -746,7 +746,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  setRetryPosAmount(null); setRetryInvoiceNo('');
  if (print) {
  await dispatchKitchenPrinters(invoice, cart);
- const cust = customers.find(c => c.id.toString() === customerId);
+ const cust = invoice.customer || customers.find((c: any) => c.id.toString() === customerId);
  const customerName = cust?.name || t('sys.str_752');
  setLastInvoiceData({
  invoiceId: invoice.id,
@@ -757,13 +757,21 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  customerCrNo: cust?.crNo,
  customerAddress: cust?.address,
  paymentMethod: paymentType,
- items: cart.map(c => ({
- name: c.productName,
- quantity: c.quantity,
- price: c.price,
- total: c.quantity * c.price * (1 - c.discountRate / 100),
- })),
- subtotal,
+ items: cart.map((c: any) => {
+      const itemPrice = (isTaxInclusive && taxEnabled && actualTaxRate > 0) 
+          ? c.price / (1 + actualTaxRate / 100) 
+          : c.price;
+      const itemTotal = (isTaxInclusive && taxEnabled && actualTaxRate > 0)
+          ? (c.quantity * c.price * (1 - c.discountRate / 100)) / (1 + actualTaxRate / 100)
+          : c.quantity * c.price * (1 - c.discountRate / 100);
+      return {
+          name: c.productName,
+          quantity: c.quantity,
+          price: itemPrice,
+          total: itemTotal,
+      };
+  }),
+ subtotal: displaySubtotal,
  discount: totalDiscountValue,
  taxRate: 15,
  taxAmount: taxValue,

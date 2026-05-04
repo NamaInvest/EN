@@ -13,7 +13,7 @@ const isDesktopMode = process.env.DESKTOP_MODE === 'true';
 export const metadata: Metadata = {
   title: "نما انفست (Nama Invest) - أفضل نظام ERP ونقاط بيع في السعودية",
   description: "أفضل نظام محاسبي سحابي ونقاط بيع (POS) متوافق مع هيئة الزكاة والضريبة والجمارك (المرحلة الثانية). يشمل 104 وحدة برمجية، إدارة المخزون، الموارد البشرية، والمبيعات.",
-  keywords: ["نظام محاسبي", "نقاط بيع", "كاشير", "ZATCA", "الفاتورة الإلكترونية", "تصريح هيئة الزكاة", "Nama Invest", "NamaSoft", "ERP سعودي"],
+  keywords: ["نظام محاسبي", "نقاط بيع", "كاشير", "ZATCA", "الفاتورة الإلكترونية", "تصريح هيئة الزكاة", "Nama Invest", "namainvist", "ERP سعودي"],
   authors: [{ name: "Nama Invest Tech" }],
   openGraph: {
     title: "نما انفست - أقوى نظام ERP ونقاط بيع — 104 وحدة برمجية",

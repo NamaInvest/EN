@@ -63,13 +63,13 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
             // Secure Cashier Fetch
             const tk = window.localStorage.getItem('token');
             if (tk) {
-                fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + tk } })
-                    .then(r=>r.json())
-                    .then(s => { 
-                        if(s?.user?.fullName || s?.user?.username) {
-                            setCashierName(s.user.fullName || s.user.username);
-                        }
-                    }).catch(()=>{});
+                try {
+                    const r = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + tk } });
+                    const s = await r.json();
+                    if(s?.user?.fullName || s?.user?.username) {
+                        setCashierName(s.user.fullName || s.user.username);
+                    }
+                } catch(e) {}
             }
 
             if (!isQuote) {
@@ -108,7 +108,11 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 const vNum = map['tax_number'] || '';
                 setCompanyName(cName);
                 setVatNumber(vNum);
-                setPrinterType(map['printer_type'] || '80mm');
+                
+                const type = docType || invoiceData?.docType;
+                const isStandard = type === 'standard_invoice' || type === 'standard_credit' || type === 'standard_debit';
+                setPrinterType(isStandard ? 'A4' : (map['printer_type'] || '80mm'));
+                
                 setCompanyCity(map['zatca_city'] || map['company_city'] || '');
                 setCrNumber(map['zatca_crn'] || map['cr_number'] || '');
                 setCompanyAddress(map['company_address'] || map['company_address_ar'] || '');
@@ -168,8 +172,205 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         const ps = paperSizes[printerType] || paperSizes['80mm'];
         const windowTitle = getDocumentTitle();
         if (!receiptRef.current) return;
+        
+        const data = invoiceData;
+        if (!data) return;
 
-        const htmlContent = `
+        let htmlContent = '';
+        if (printerType === 'A4' || printerType === 'A5') {
+            const formatCurrency = (v: number) => new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+            
+            const custTaxNoAr = data.customerTaxNo ? `<div><strong>الرقم الضريبي للعميل:</strong> <span dir="ltr">${data.customerTaxNo}</span></div>` : '';
+            const custCrNoAr = data.customerCrNo ? `<div><strong>سجل العميل:</strong> <span dir="ltr">${data.customerCrNo}</span></div>` : '';
+            const custAddressAr = data.customerAddress ? `<div><strong>عنوان العميل:</strong> ${data.customerAddress}</div>` : '';
+            const origRefAr = data.originalReference ? `<div><strong>الفاتورة الأصلية:</strong> <span dir="ltr">${data.originalReference}</span></div>` : '';
+
+            const custTaxNoEn = data.customerTaxNo ? `<div><strong>Customer VAT:</strong> ${data.customerTaxNo}</div>` : '';
+            const custCrNoEn = data.customerCrNo ? `<div><strong>Customer CR:</strong> ${data.customerCrNo}</div>` : '';
+            const custAddressEn = data.customerAddress ? `<div><strong>Customer Address:</strong> ${data.customerAddress}</div>` : '';
+            const origRefEn = data.originalReference ? `<div><strong>Original Ref:</strong> ${data.originalReference}</div>` : '';
+
+            const itemsRows = data.items.map((i: any) => `
+                <tr>
+                    <td>${i.name}</td>
+                    <td>${i.quantity}</td>
+                    <td>${formatCurrency(i.price)}</td>
+                    <td>${formatCurrency(i.total)}</td>
+                </tr>
+            `).join('');
+
+            const discountRow = data.discount > 0 ? `
+                <tr>
+                    <td class="label">الخصم / Discount</td>
+                    <td class="value">-${formatCurrency(data.discount)}</td>
+                </tr>
+            ` : '';
+
+            const qrSection = (!isQuote && qrDataUrl) ? `
+                <div style="text-align: center; margin-top: 40px;">
+                    <img src="${qrDataUrl}" style="width: 150px; height: 150px; border: 1px solid #ddd; padding: 5px;" />
+                </div>
+            ` : '';
+
+            htmlContent = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <title>${windowTitle}</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;800&display=swap');
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Noto Sans Arabic', sans-serif;
+                            line-height: 1.4;
+                            direction: rtl;
+                            color: #000;
+                            background: white;
+                            width: 100%;
+                        }
+                        .a4-container { width: 100%; padding: 20px; }
+                        .a4-header { text-align: center; margin-bottom: 15px; }
+                        .a4-header h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; color: #000; }
+                        .a4-header h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #333; }
+                        .a4-header h3 { font-size: 16px; color: #000; font-weight: bold; border: 2px solid #000; display: inline-block; padding: 3px 10px; margin-top: 6px; }
+                        
+                        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                        .info-table td { border: 1px solid #000; padding: 8px; vertical-align: top; width: 50%; }
+                        .info-table .ar-cell { text-align: right; }
+                        .info-table .en-cell { text-align: left; direction: ltr; }
+                        .info-table strong { font-weight: 800; color: #000; }
+                        .info-table div { margin-bottom: 4px; font-size: 13px; }
+                        .info-table table { margin-bottom: 4px !important; }
+                        
+                        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+                        .items-table th, .items-table td { border: 1px solid #000; padding: 6px; text-align: center; font-size: 13px; }
+                        .items-table th { background-color: #f1f5f9 !important; font-weight: 800; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        
+                        .summary-container { display: flex; justify-content: flex-end; margin-top: -1px; }
+                        .summary-table { width: 50%; border-collapse: collapse; }
+                        .summary-table td { border: 1px solid #000; padding: 6px; font-size: 14px; }
+                        .summary-table .label { font-weight: 800; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .summary-table .value { text-align: center; font-weight: 600; }
+                        .summary-table .grand-row { background-color: #e2e8f0 !important; font-weight: 900; font-size: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        
+                        .footer { margin-top: 25px; text-align: center; border-top: 2px solid #000; padding-top: 15px; }
+                        @media print {
+                            body { width: 210mm; margin: 0; padding: 0; }
+                            @page { margin: 0; size: A4 portrait; }
+                            .a4-container { padding: 10mm; }
+                            table, th, td { border: 1px solid #000 !important; }
+                            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="a4-container">
+                        <div class="a4-header">
+                            <h1>${companyName}</h1>
+                            <h2>الرقم الضريبي : <span dir="ltr">${vatNumber}</span></h2>
+                            <h3>${getDocumentTitle()}</h3>
+                        </div>
+                        
+                        <table class="info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="ar-cell">
+                                        <div><strong>المدينة:</strong> ${companyCity}</div>
+                                        <div><strong>العنوان:</strong> ${companyAddress}</div>
+                                        <div><strong>رقم السجل التجاري:</strong> <span dir="ltr">${crNumber}</span></div>
+                                    </td>
+                                    <td class="en-cell">
+                                        <div><strong>City:</strong> ${companyCity}</div>
+                                        <div><strong>Address:</strong> ${companyAddress}</div>
+                                        <div><strong>CR Number:</strong> ${crNumber}</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ar-cell">
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>الكاشير:</strong> ${cashierName === 'الكاشير' ? 'الرئيسي' : cashierName}</td>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></td>
+                                            </tr>
+                                        </table>
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>العميل:</strong> ${data.customerName || 'عميل نقدي'}</td>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></td>
+                                            </tr>
+                                        </table>
+                                        ${custTaxNoAr}
+                                        ${custCrNoAr}
+                                        ${custAddressAr}
+                                        ${origRefAr}
+                                    </td>
+                                    <td class="en-cell">
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>Invoice No:</strong> ${data.invoiceNumber}</td>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>Cashier:</strong> ${cashierName === 'الكاشير' ? 'Main' : cashierName}</td>
+                                            </tr>
+                                        </table>
+                                        <table style="width: 100%; border: none; margin-bottom: 6px;">
+                                            <tr>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</td>
+                                                <td style="border: none; padding: 0; width: 50%;"><strong>Customer:</strong> ${data.customerName || 'Cash Customer'}</td>
+                                            </tr>
+                                        </table>
+                                        ${custTaxNoEn}
+                                        ${custCrNoEn}
+                                        ${custAddressEn}
+                                        ${origRefEn}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>المنتج<br><span dir="ltr">Product</span></th>
+                                    <th>الكمية<br><span dir="ltr">Qty</span></th>
+                                    <th>السعر<br><span dir="ltr">Price</span></th>
+                                    <th>المجموع<br><span dir="ltr">Total</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsRows}
+                            </tbody>
+                        </table>
+
+                        <div class="summary-container">
+                            <table class="summary-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label">الإجمالي الفرعي / Subtotal</td>
+                                        <td class="value">${formatCurrency(data.subtotal)}</td>
+                                    </tr>
+                                    ${discountRow}
+                                    <tr>
+                                        <td class="label">ضريبة القيمة المضافة / VAT (${data.taxRate}%)</td>
+                                        <td class="value">${formatCurrency(data.taxAmount)}</td>
+                                    </tr>
+                                    <tr class="grand-row">
+                                        <td class="label">الإجمالي الكلي / Grand Total</td>
+                                        <td class="value">${formatCurrency(data.grandTotal)} ر.س</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        ${qrSection}
+
+                        <div class="footer">
+                            <p>شكرًا لتعاملكم معنا - Thank you for your business</p>
+                            <p style="margin-top: 5px; color: #666; font-size: 12px;">مُصدرة إلكترونياً من نظام نما إنفست - ZATCA Compliant</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+        } else {
+            htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
@@ -189,8 +390,8 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
           }
           .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
           .company-name { font-size: ${ps.companySize}; font-weight: 800; }
-          .vat-num { font-size: 10px; color: #666; }
-          .invoice-type { font-size: 10px; color: #999; margin-top: 2px; }
+          .vat-num { font-size: 10px; color: #333; }
+          .invoice-type { font-size: 14px; font-weight: bold; color: #000; margin-top: 4px; border: 1px solid #000; padding: 2px; display: inline-block; }
           .info-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
           .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: ${ps.fontSize}; border: 1px solid #000; }
           .items-table th, .items-table td { border: 1px solid #000 !important; padding: 4px; text-align: center; }
@@ -220,7 +421,8 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
         ${receiptRef.current.innerHTML}
       </body>
       </html>
-        `;
+            `;
+        }
 
         if (forceSystemDialog === true) {
             const printWindow = window.open('', '_blank', `width=${ps.windowWidth},height=600`);
@@ -275,9 +477,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                         }
                         .a4-container { width: 100%; padding: 40px; }
                         .a4-header { text-align: center; margin-bottom: 20px; }
-                        .a4-header h1 { font-size: 26px; font-weight: 800; margin-bottom: 5px; }
-                        .a4-header h2 { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
-                        .a4-header h3 { font-size: 14px; color: #666; font-weight: bold; }
+                        .a4-header h1 { font-size: 26px; font-weight: 800; margin-bottom: 5px; color: #000; }
+                        .a4-header h2 { font-size: 16px; font-weight: 600; margin-bottom: 5px; color: #333; }
+                        .a4-header h3 { font-size: 18px; color: #000; font-weight: bold; border: 2px solid #000; display: inline-block; padding: 4px 12px; margin-top: 8px; }
                         
                         .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 2px solid #000; }
                         .info-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
@@ -321,6 +523,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                     <td class="ar-cell">
                                         <div><strong>الكاشير:</strong> ${cashierName}</div>
                                         <div><strong>العميل:</strong> ${data.customerName || 'عميل نقدي'}</div>
+                                        ${data.customerTaxNo ? `<div><strong>الرقم الضريبي للعميل:</strong> <span dir="ltr">${data.customerTaxNo}</span></div>` : ''}
+                                        ${data.customerCrNo ? `<div><strong>سجل العميل:</strong> <span dir="ltr">${data.customerCrNo}</span></div>` : ''}
+                                        ${data.customerAddress ? `<div><strong>عنوان العميل:</strong> ${data.customerAddress}</div>` : ''}
                                         <div><strong>رقم الفاتورة:</strong> <span dir="ltr">${data.invoiceNumber}</span></div>
                                         <div><strong>تاريخ الإصدار:</strong> <span dir="ltr">${new Date(data.date).toLocaleString('en-GB')}</span></div>
                                         ${data.originalReference ? `<div><strong>الفاتورة الأصلية:</strong> <span dir="ltr">${data.originalReference}</span></div>` : ''}
@@ -328,6 +533,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                                     <td class="en-cell">
                                         <div><strong>Cashier:</strong> ${cashierName}</div>
                                         <div><strong>Customer:</strong> ${data.customerName || 'Cash Customer'}</div>
+                                        ${data.customerTaxNo ? `<div><strong>Customer VAT:</strong> ${data.customerTaxNo}</div>` : ''}
+                                        ${data.customerCrNo ? `<div><strong>Customer CR:</strong> ${data.customerCrNo}</div>` : ''}
+                                        ${data.customerAddress ? `<div><strong>Customer Address:</strong> ${data.customerAddress}</div>` : ''}
                                         <div><strong>Invoice No:</strong> ${data.invoiceNumber}</div>
                                         <div><strong>Issue Date:</strong> ${new Date(data.date).toLocaleString('en-GB')}</div>
                                         ${data.originalReference ? `<div><strong>Original Ref:</strong> ${data.originalReference}</div>` : ''}
@@ -435,9 +643,9 @@ export default function InvoiceReceipt({ invoiceId, invoiceData, autoPrint = fal
                 <div ref={receiptRef} style={{ padding: '20px', fontFamily: 'Noto Sans Arabic, sans-serif', direction: 'rtl' }}>
                     {/* Header */}
                     <div className="header" style={{ textAlign: 'center', paddingBottom: '12px', marginBottom: '12px' }}>
-                        <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px' }}>{companyName}</div>
-                        {vatNumber && <div style={{ fontSize: '11px', color: '#666' }}>{t('sys.str_56')}{vatNumber}</div>}
-                        <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
+                        <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '2px', color: '#000' }}>{companyName}</div>
+                        {vatNumber && <div style={{ fontSize: '11px', color: '#333' }}>{t('sys.str_56')}{vatNumber}</div>}
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000', marginTop: '6px', border: '1px solid #000', padding: '4px', display: 'inline-block' }}>
                             {getDocumentTitle()}
                         </div>
                     </div>

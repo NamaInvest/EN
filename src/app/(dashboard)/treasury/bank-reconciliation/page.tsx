@@ -31,7 +31,7 @@ export default function BankReconciliationPage() {
 
  useEffect(() => {
  // Fetch bank accounts (accounts ending in specific code or having bank subtype)
- // For NamaSoft, usually '1120' is banks, so let's fetch descendants
+ // For namainvist, usually '1120' is banks, so let's fetch descendants
  fetch('/api/accounting/accounts')
  .then(res => res.json())
  .then((data: any[]) => setAccounts(data.filter(a => a.code.startsWith('112') && a.level > 1)));
@@ -91,7 +91,7 @@ export default function BankReconciliationPage() {
  const clearedCredit = session?.unclearedLines.filter(l => selectedLines.has(l.id)).reduce((acc, l) => acc + l.credit, 0) || 0;
  const netCleared = clearedDebit - clearedCredit; 
  
- // In NamaSoft, bank is Asset (Debit positive).
+ // In namainvist, bank is Asset (Debit positive).
  // Statement Balance minus (System Balance - Cleared Uncleared) = 0 if matched
  const isMatched = session?.reconciliation.difference === netCleared; 
 

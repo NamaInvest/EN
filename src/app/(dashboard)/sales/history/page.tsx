@@ -94,6 +94,7 @@ export default function SalesHistoryPage() {
  taxRate: 15,
  taxAmount: inv.taxValue,
  grandTotal: inv.total,
+ docType: inv.customer?.taxNumber ? 'standard_invoice' : 'simplified_invoice'
  });
  setShowReceipt(true);
  };

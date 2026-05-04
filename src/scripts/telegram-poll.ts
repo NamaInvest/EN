@@ -35,7 +35,7 @@ async function processViaApi(text: string): Promise<string> {
 }
 
 async function poll() {
-    console.log('🤖 بوت نما سوفت شغال! انتظار الرسائل...');
+    console.log('🤖 بوت نما إنفست شغال! انتظار الرسائل...');
 
     // Remove any existing webhook
     await fetch(`${API}/deleteWebhook`);
