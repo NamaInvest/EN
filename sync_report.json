@@ -4,5 +4,7 @@
   "src/app/(dashboard)/manufacturing/work-orders/page.tsx",
   "src/app/api/accounting/customer-statements/templates/route.ts",
   "src/app/api/accounting/customer-statements/templates/[id]/route.ts",
-  "src/app/(dashboard)/accounting/customer-statements/templates/page.tsx"
+  "src/app/(dashboard)/accounting/customer-statements/templates/page.tsx",
+  "src/app/(dashboard)/accounting/customer-statements/bulk/page.tsx",
+  "src/app/(dashboard)/accounting/customer-statements/page.tsx"
 ]

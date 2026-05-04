@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileText, Play } from 'lucide-react';
 
 export default function BulkRunPage() {
     const [loading, setLoading] = useState(false);
@@ -19,63 +15,62 @@ export default function BulkRunPage() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Bulk Statement Run</h1>
-                <p className="text-muted-foreground">Generate and dispatch statements for multiple customers</p>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-blue-600" />
+                    التشغيل المجمع (Bulk Statement Run)
+                </h1>
+                <p className="text-gray-500 mt-2">إنشاء وإرسال كشوف حسابات لعدة عملاء دفعة واحدة.</p>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Batch Parameters</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900">إعدادات الدُفعة (Batch Parameters)</h2>
+                </div>
+                <div className="p-6 space-y-6">
                     <div className="space-y-2">
-                        <Label>Customer Segment</Label>
-                        <Select defaultValue="all">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select segment" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Active Customers (Auto-Email Enabled)</SelectItem>
-                                <SelectItem value="vip">VIP Customers</SelectItem>
-                                <SelectItem value="overdue">Customers with Overdue Balance</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <label className="block text-sm font-medium text-gray-700">شريحة العملاء (Customer Segment)</label>
+                        <select className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">كل العملاء النشطين (All Active)</option>
+                            <option value="vip">كبار العملاء (VIP)</option>
+                            <option value="overdue">متأخرين في السداد (Overdue Balance)</option>
+                        </select>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>Date From</Label>
-                            <Input type="date" />
+                            <label className="block text-sm font-medium text-gray-700">من تاريخ</label>
+                            <input type="date" className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                         <div className="space-y-2">
-                            <Label>Date To</Label>
-                            <Input type="date" />
+                            <label className="block text-sm font-medium text-gray-700">إلى تاريخ</label>
+                            <input type="date" className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Template Override</Label>
-                        <Select defaultValue="default">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select template" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="default">Use Customer Default</SelectItem>
-                                <SelectItem value="1">Standard Bilingual</SelectItem>
-                                <SelectItem value="2">Detailed Arabic</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <label className="block text-sm font-medium text-gray-700">القالب (Template Override)</label>
+                        <select className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="default">استخدام القالب الافتراضي</option>
+                            <option value="1">قالب كبار العملاء</option>
+                        </select>
                     </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button variant="outline">Preview Count</Button>
-                    <Button onClick={handleRun} disabled={loading}>
-                        {loading ? 'Processing...' : 'Run Batch Dispatch'}
-                    </Button>
-                </CardFooter>
-            </Card>
+                </div>
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                    <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        معاينة العدد
+                    </button>
+                    <button 
+                        onClick={handleRun} 
+                        disabled={loading}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        <Play className="w-4 h-4" />
+                        {loading ? 'جاري التنفيذ...' : 'بدء التشغيل المجمع'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
