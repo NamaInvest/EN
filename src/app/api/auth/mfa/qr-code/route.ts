@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import QRCode from 'qrcode';
-import { authenticator } from 'otplib';
 import crypto from 'crypto';
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef';
@@ -30,7 +29,7 @@ export async function GET(req: NextRequest) {
         }
 
         const secret = decryptSecret(user.totpSecretEncrypted, user.totpIv, user.totpAuthTag);
-        const otpauthUrl = authenticator.keyuri(user.username, 'Namasoft ERP', secret);
+        const otpauthUrl = `otpauth://totp/Namasoft%20ERP:${user.username}?secret=${secret}&issuer=Namasoft%20ERP`;
         const qrCodeImage = await QRCode.toDataURL(otpauthUrl);
 
         return NextResponse.json({ qrCodeImage });

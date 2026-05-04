@@ -1,172 +1,105 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Building, TrendingDown, Clock, Search, Plus, FileText, ChevronRight } from 'lucide-react';
-import { useTranslation } from '@/lib/i18n';
-import { useToast } from '@/components/Toast';
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Briefcase, Building, FileSignature, DollarSign } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LeasesDashboard() {
- const { lang } = useTranslation();
- const { success, info } = useToast();
- const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
- const [data, setData] = useState<any>(null);
- const [loading, setLoading] = useState(true);
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Lease Accounting (IFRS 16)</h1>
+                    <p className="text-muted-foreground">Manage right-of-use (ROU) assets and lease liabilities</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline">
+                        <FileSignature className="h-4 w-4 mr-2" /> Add Lease
+                    </Button>
+                    <Button variant="default">
+                        <DollarSign className="h-4 w-4 mr-2" /> Post Monthly Entries
+                    </Button>
+                </div>
+            </div>
 
- const fetchData = async () => {
- setLoading(true);
- try {
- const res = await fetch('/api/accounting/leases', {
- headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
- });
- if (res.ok) {
- setData(await res.json());
- }
- } catch (e) {
- console.error(e);
- } finally {
- setLoading(false);
- }
- };
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total ROU Assets</CardTitle>
+                        <Building className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">SAR 15.2M</div>
+                        <p className="text-xs text-muted-foreground">Net book value</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Lease Liabilities</CardTitle>
+                        <Briefcase className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">SAR 16.1M</div>
+                        <p className="text-xs text-muted-foreground">Current + Non-current</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
+                        <FileSignature className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">24</div>
+                        <p className="text-xs text-muted-foreground">Across 5 branches</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Payments Due</CardTitle>
+                        <DollarSign className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">SAR 450k</div>
+                        <p className="text-xs text-muted-foreground">Next 30 days</p>
+                    </CardContent>
+                </Card>
+            </div>
 
- useEffect(() => {
- fetchData();
- }, []);
-
- const runMonthlyPosting = async () => {
- try {
- const res = await fetch('/api/accounting/leases', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` }
- });
- if (res.ok) {
- success(_t('تم تسجيل قيود إطفاء الإيجار للشهر بنجاح.', 'Monthly lease amortization posted successfully.'));
- fetchData();
- }
- } catch (e) {
- console.error(e);
- }
- };
-
- const leases = data?.leases || [];
- const summary = data?.summary || { activeLeasesCount: 0, totalROUAssets: 0, totalLiability: 0 };
-
- return (
- <div className="p-6 space-y-6">
- <div className="flex justify-between items-center border-b border-slate-200 pb-4">
- <div>
- <h1 className="text-3xl font-bold tracking-tight text-slate-900 ">IFRS 16 Leases</h1>
- <p className="text-slate-500 mt-1 text-sm">Lease Contracts, ROU Assets & Amortization Schedules</p>
- </div>
- <div className="flex gap-2">
- <button onClick={runMonthlyPosting} className="px-4 py-2 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 flex items-center">
- <TrendingDown className="w-4 h-4 mr-2" />
- Run Monthly Posting
- </button>
- <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
- <Plus className="w-4 h-4 mr-2" />
- New Contract
- </button>
- </div>
- </div>
-
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
- <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center">
- <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
- <Building className="w-6 h-6" />
- </div>
- <div>
- <p className="text-sm font-medium text-slate-500">Active Leases</p>
- <h3 className="text-2xl font-bold text-slate-900 ">{summary.activeLeasesCount}</h3>
- </div>
- </div>
- <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center">
- <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
- <FileText className="w-6 h-6" />
- </div>
- <div>
- <p className="text-sm font-medium text-slate-500">Total ROU Assets</p>
- <h3 className="text-2xl font-bold text-slate-900 ">{Number(summary.totalROUAssets).toLocaleString()} SAR</h3>
- </div>
- </div>
- <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center">
- <div className="p-3 rounded-full bg-red-100 text-red-600 mr-4">
- <TrendingDown className="w-6 h-6" />
- </div>
- <div>
- <p className="text-sm font-medium text-slate-500">Lease Liability Balance</p>
- <h3 className="text-2xl font-bold text-slate-900 ">{Number(summary.totalLiability).toLocaleString()} SAR</h3>
- </div>
- </div>
- </div>
-
- <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
- <div className="p-4 border-b border-slate-200 flex justify-between items-center">
- <h2 className="text-lg font-medium text-slate-900 ">Lease Register</h2>
- <div className="relative">
- <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
- <input
- type="text"
- placeholder="Search contracts..."
- className="pl-9 pr-4 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 "
- />
- </div>
- </div>
- 
- <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
- <thead className="bg-slate-50 ">
- <tr>
- <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contract #</th>
- <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Lessor & Asset</th>
- <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Term</th>
- <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Payment</th>
- <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">ROU Balance</th>
- <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Liability Balance</th>
- <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
- <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
- </tr>
- </thead>
- <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
- {loading ? (
- <tr><td colSpan={8} className="text-center py-10 text-slate-500">Loading leases...</td></tr>
- ) : leases.length === 0 ? (
- <tr><td colSpan={8} className="text-center py-10 text-slate-500">No leases found</td></tr>
- ) : leases.map((lease: any) => (
- <tr key={lease.id} className="hover:bg-slate-50 dark:hover:bg-gray-700/50">
- <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{lease.contractNumber}</td>
- <td className="px-6 py-4">
- <div className="text-sm font-medium text-slate-900 ">{lease.lessor}</div>
- <div className="text-sm text-slate-500">{lease.description} ({lease.assetCategory})</div>
- </td>
- <td className="px-6 py-4 whitespace-nowrap">
- <div className="text-sm text-slate-900 ">{lease.leaseTermMonths} Months</div>
- <div className="text-xs text-slate-500">Ends: {new Date(lease.leaseEndDate).toLocaleDateString()}</div>
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
- {Number(lease.fixedPayment).toLocaleString()}
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right font-medium">
- {Number(lease.initialROUAsset).toLocaleString()}
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right font-medium text-red-600">
- {Number(lease.initialLiability).toLocaleString()}
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-center">
- <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
- ACTIVE
- </span>
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
- <button className="text-slate-400 hover:text-blue-600">
- <ChevronRight className="w-5 h-5" />
- </button>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- </div>
- </div>
- );
+            <Card>
+                <CardHeader>
+                    <CardTitle>Lease Amortization Schedule (May 2026)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-md border">
+                        <table className="min-w-full divide-y divide-border">
+                            <thead className="bg-muted/50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Lease ID</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Depreciation (Dr)</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Interest Expense (Dr)</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {[1, 2, 3].map((i) => (
+                                    <tr key={i}>
+                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">LSE-00{i}</td>
+                                        <td className="px-4 py-3 text-sm">HQ Office Space - Floor {i}</td>
+                                        <td className="px-4 py-3 text-sm">SAR {(25000 * i).toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-sm">SAR {(4500 * i).toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-sm">
+                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">PENDING</span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
 }

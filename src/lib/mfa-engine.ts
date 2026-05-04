@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { prisma } from './prisma';
-import { authenticator } from 'otplib';
+import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -30,7 +30,8 @@ export class MfaEngine {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new Error('User not found');
 
-        const secret = authenticator.generateSecret();
+        const secretObj = speakeasy.generateSecret({ length: 20, name: `Namasoft ERP (${user.username})` });
+        const secret = secretObj.base32;
         const { encrypted, iv, authTag } = encryptSecret(secret);
 
         await prisma.user.update({
@@ -44,7 +45,7 @@ export class MfaEngine {
             }
         });
 
-        const otpauthUrl = authenticator.keyuri(user.username, 'Namasoft ERP', secret);
+        const otpauthUrl = secretObj.otpauth_url || `otpauth://totp/Namasoft%20ERP:${user.username}?secret=${secret}&issuer=Namasoft%20ERP`;
         const qrCodeImage = await QRCode.toDataURL(otpauthUrl);
 
         return { qrCodeImage, secret };
@@ -57,7 +58,7 @@ export class MfaEngine {
         }
 
         const secret = decryptSecret(user.totpSecretEncrypted, user.totpIv, user.totpAuthTag);
-        const isValid = authenticator.verify({ token: code, secret });
+        const isValid = speakeasy.totp.verify({ secret: secret, encoding: 'base32', token: code, window: 1 });
 
         if (!isValid) throw new Error('Invalid code');
 
@@ -127,7 +128,7 @@ export class MfaEngine {
             }
 
             const secret = decryptSecret(user.totpSecretEncrypted, user.totpIv, user.totpAuthTag);
-            isValid = authenticator.verify({ token: code, secret });
+            isValid = speakeasy.totp.verify({ secret: secret, encoding: 'base32', token: code, window: 1 });
 
             if (isValid) {
                 // Save token for replay protection (TTL 90s)

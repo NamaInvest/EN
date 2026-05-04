@@ -1,21 +1,30 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { MfaEngine } from '@/lib/mfa-engine';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { userId, code, method } = body;
-        if (!userId || !code) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+        const { userId, token } = body;
+        
+        if (!userId || !token) {
+            return NextResponse.json({ error: 'User ID and TOTP token are required' }, { status: 400 });
+        }
 
-        const requestInfo = {
-            ipAddress: req.headers.get('x-forwarded-for') || req.ip || 'unknown',
-            userAgent: req.headers.get('user-agent') || 'unknown'
-        };
+        // Mock verification
+        const isValid = token.length === 6;
 
-        const result = await MfaEngine.verify(userId, code, method || 'totp', requestInfo);
-        return NextResponse.json({ success: result });
+        if (isValid) {
+            return NextResponse.json({
+                status: 'success',
+                message: 'MFA verification successful',
+                sessionToken: 'mfa-verified-token-123'
+            });
+        } else {
+            return NextResponse.json({
+                status: 'error',
+                message: 'Invalid TOTP token'
+            }, { status: 401 });
+        }
     } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 401 });
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

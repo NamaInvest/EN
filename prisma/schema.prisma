@@ -430,6 +430,7 @@ model Customer {
   SupplierBankAccount   SupplierBankAccount[]
   SalesContract         SalesContract[]
   IfrsLeaseContract     IfrsLeaseContract[]
+  FixedAsset            FixedAsset[]
 
   @@index([phone])
   @@index([name])
@@ -1461,37 +1462,6 @@ model SubscriptionPayment {
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@map("subscription_payments")
-}
-
-model FixedAsset {
-  id              Int      @id @default(autoincrement())
-  assetName       String   @map("asset_name")
-  assetType       String   @map("asset_type")
-  purchaseDate    DateTime @map("purchase_date")
-  purchaseCost    Float    @map("purchase_cost")
-  salvageValue    Float    @default(0) @map("salvage_value")
-  usefulLifeYears Int      @map("useful_life_years")
-  currentValue    Float    @map("current_value")
-  location        String?
-  status          String   @default("active")
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  depreciations Depreciation[]
-
-  @@map("fixed_assets")
-}
-
-model Depreciation {
-  id               Int      @id @default(autoincrement())
-  assetId          Int      @map("asset_id")
-  depreciationDate DateTime @map("depreciation_date")
-  amount           Float
-  journalEntryId   Int?     @map("journal_entry_id")
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  asset FixedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  @@map("depreciations")
 }
 
 model Recipe {
@@ -4285,49 +4255,412 @@ model CashFlowForecast {
 // Phase 4: Fixed Assets (Advanced IFRS)
 // ==========================================
 
-model AssetCategory {
-  id                Int    @id @default(autoincrement())
-  name              String
-  assetAccountId    Int    @map("asset_account_id")
-  accumDeprAcctId   Int    @map("accum_depr_acct_id")
-  deprExpenseAcctId Int    @map("depr_expense_acct_id")
-  defaultDeprMethod String @default("STRAIGHT_LINE") @map("default_depr_method")
-  defaultUsefulLife Int    @default(5) @map("default_useful_life") // years
+model FixedAsset {
+  id          Int     @id @default(autoincrement())
+  assetNumber String  @unique
+  name        String
+  nameAr      String?
+  description String? @db.Text
 
-  @@map("asset_categories")
+  // Category
+  categoryId Int?
+  category   FixedAssetCategory? @relation(fields: [categoryId], references: [id])
+
+  // Component structure
+  parentAssetId Int?
+  parentAsset   FixedAsset?  @relation("AssetComponents", fields: [parentAssetId], references: [id])
+  components    FixedAsset[] @relation("AssetComponents")
+  isComposite   Boolean      @default(false)
+  isComponent   Boolean      @default(false)
+  componentType String? // 'STRUCTURE' | 'ROOF' | 'HVAC' | 'OTHER'
+
+  // Acquisition
+  acquisitionDate      DateTime
+  acquisitionCost      Decimal   @db.Decimal(20, 4)
+  currency             String    @default("SAR")
+  vendorId             Int?
+  vendor               Customer? @relation(fields: [vendorId], references: [id])
+  invoiceId            Int?
+  acquisitionJournalId Int?
+
+  // Depreciation method
+  depreciationMethod String // 'STRAIGHT_LINE' | 'DECLINING_BALANCE' | 'DOUBLE_DECLINING' | 'SUM_OF_YEARS_DIGITS' | 'UNITS_OF_PRODUCTION' | 'HOURS_OF_OPERATION' | 'MACRS_3' | 'MACRS_5' | 'MACRS_7' | 'MACRS_10' | 'NO_DEPRECIATION'
+
+  usefulLifeYears  Int?
+  usefulLifeMonths Int?
+
+  declineRate Decimal? @db.Decimal(5, 4)
+
+  totalEstimatedUnits Decimal? @db.Decimal(20, 4)
+  unitsConsumed       Decimal  @default(0) @db.Decimal(20, 4)
+
+  totalEstimatedHours Decimal? @db.Decimal(20, 4)
+  hoursOperated       Decimal  @default(0) @db.Decimal(20, 4)
+
+  salvageValue Decimal @default(0) @db.Decimal(20, 4)
+
+  depreciationConvention String @default("FULL_MONTH") // 'FULL_MONTH' | 'HALF_YEAR' | 'MID_MONTH' | 'MID_QUARTER'
+
+  depreciationStartDate DateTime
+
+  // Current state
+  accumulatedDepreciation Decimal @default(0) @db.Decimal(20, 4)
+  accumulatedImpairment   Decimal @default(0) @db.Decimal(20, 4)
+  currentBookValue        Decimal @db.Decimal(20, 4)
+
+  // Status
+  status          String    @default("ACTIVE") // 'CWIP' | 'ACTIVE' | 'DISPOSED' | 'WRITTEN_OFF' | 'TRANSFERRED' | 'HELD_FOR_SALE' | 'IMPAIRED' | 'IDLE'
+  statusChangedAt DateTime?
+
+  // Disposal
+  disposalDate      DateTime?
+  disposalProceeds  Decimal?  @db.Decimal(20, 4)
+  disposalGainLoss  Decimal?  @db.Decimal(20, 4)
+  disposalJournalId Int?
+  disposalType      String? // 'SALE' | 'SCRAP' | 'DONATION' | 'WRITE_OFF' | 'EXCHANGE'
+
+  // Held for sale
+  heldForSaleDate      DateTime?
+  heldForSaleJournalId Int?
+
+  // Location
+  locationId          Int?
+  branchId            Int?
+  costCenterId        Int?
+  custodianEmployeeId Int?
+
+  // Insurance
+  insurancePolicyNumber String?
+  insuranceProvider     String?
+  insurancePremium      Decimal?  @db.Decimal(10, 2)
+  insuranceExpiryDate   DateTime?
+  insuredValue          Decimal?  @db.Decimal(20, 4)
+
+  // Identification
+  serialNumber       String?
+  barcode            String? @unique
+  rfidTag            String?
+  manufacturer       String?
+  model              String?
+  modelYear          Int?
+  registrationNumber String?
+
+  // Warranty
+  warrantyStartDate DateTime?
+  warrantyEndDate   DateTime?
+  warrantyVendorId  Int?
+
+  // CGU
+  cguId Int?
+  cgu   CashGeneratingUnit? @relation(fields: [cguId], references: [id])
+
+  // GL Accounts (override category defaults)
+  assetAccountId      Int?
+  accumDepAccountId   Int?
+  depExpenseAccountId Int?
+
+  // Maintenance
+  nextMaintenanceDate        DateTime?
+  maintenanceFrequencyMonths Int?
+
+  // Physical count
+  lastPhysicalCountDate   DateTime?
+  lastPhysicalCountStatus String? // 'FOUND' | 'MISSING' | 'WRONG_LOCATION'
+
+  // Audit
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  depreciationLog    AssetDepreciationLog[]
+  impairmentRecords  AssetImpairmentRecord[]
+  transferRecords    AssetTransferRecord[]
+  maintenanceRecords AssetMaintenanceRecord[]
+  insuranceClaims    AssetInsuranceClaim[]
+  usageLog           AssetUsageLog[]
+  documents          AssetDocument[]
+  reclassifications  AssetReclassification[]
+
+  @@index([status, depreciationMethod])
+  @@index([categoryId, status])
+  @@index([locationId, branchId])
+  @@index([insuranceExpiryDate])
+  @@index([nextMaintenanceDate])
+  @@index([parentAssetId])
 }
 
-model FixedAssetAdvanced {
-  id                 Int       @id @default(autoincrement())
-  assetTag           String    @unique @map("asset_tag")
-  name               String
-  categoryId         Int       @map("category_id")
-  parentAssetId      Int?      @map("parent_asset_id") // For Component Accounting
-  purchaseDate       DateTime  @map("purchase_date")
-  placedInService    DateTime? @map("placed_in_service")
-  purchaseCost       Decimal   @map("purchase_cost") @db.Decimal(18, 4)
-  salvageValue       Decimal   @default(0) @map("salvage_value") @db.Decimal(18, 4)
-  usefulLifeYears    Int       @map("useful_life_years")
-  depreciationMethod String    @default("STRAIGHT_LINE") @map("depreciation_method")
-  status             String    @default("ACTIVE") // CWIP, ACTIVE, DISPOSED, IMPAIRED
+model FixedAssetCategory {
+  id               Int                  @id @default(autoincrement())
+  code             String               @unique
+  nameAr           String
+  nameEn           String
+  parentCategoryId Int?
+  parentCategory   FixedAssetCategory?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  childCategories  FixedAssetCategory[] @relation("CategoryHierarchy")
 
-  // Computed / Running totals
-  accumulatedDepreciation Decimal @default(0) @map("accumulated_depreciation") @db.Decimal(18, 4)
-  netBookValue            Decimal @map("net_book_value") @db.Decimal(18, 4)
+  defaultDepreciationMethod  String?
+  defaultUsefulLife          Int?
+  defaultSalvageValuePercent Decimal? @db.Decimal(5, 2)
 
-  @@map("fixed_assets_advanced")
+  // Default GL accounts
+  assetAccountId      Int?
+  accumDepAccountId   Int?
+  depExpenseAccountId Int?
+
+  active Boolean @default(true)
+
+  assets FixedAsset[]
 }
 
-model AssetTransaction {
-  id              Int      @id @default(autoincrement())
-  assetId         Int      @map("asset_id")
-  transactionType String   @map("transaction_type") // ACQUISITION, DEPRECIATION, ADDITION, REVALUATION, IMPAIRMENT, DISPOSAL
-  transactionDate DateTime @map("transaction_date")
-  amount          Decimal  @db.Decimal(18, 4)
-  journalEntryId  Int?     @map("journal_entry_id")
-  notes           String?  @db.Text
+model AssetDepreciationLog {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
-  @@map("asset_transactions")
+  periodStart DateTime
+  periodEnd   DateTime
+
+  openingNbv         Decimal @db.Decimal(20, 4)
+  depreciationAmount Decimal @db.Decimal(20, 4)
+  closingNbv         Decimal @db.Decimal(20, 4)
+
+  method          String
+  unitsThisPeriod Decimal? @db.Decimal(20, 4)
+  hoursThisPeriod Decimal? @db.Decimal(20, 4)
+
+  journalEntryId Int
+
+  recognizedAt DateTime @default(now())
+
+  @@index([assetId, periodEnd])
+}
+
+model AssetImpairmentRecord {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  testDate           DateTime
+  carryingAmount     Decimal  @db.Decimal(20, 4)
+  fairValueLessCosts Decimal? @db.Decimal(20, 4)
+  valueInUse         Decimal? @db.Decimal(20, 4)
+  recoverableAmount  Decimal  @db.Decimal(20, 4)
+  impairmentLoss     Decimal  @db.Decimal(20, 4)
+
+  reversal       Boolean @default(false)
+  reversalReason String?
+
+  calculationMethod String // 'DCF' | 'COMPARABLE_SALES' | 'COST_APPROACH' | 'EXPERT_VALUATION'
+  evidence          String? @db.Text
+  evidenceFileId    Int?
+
+  journalEntryId Int
+
+  testedByUserId   String
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  @@index([assetId, testDate])
+}
+
+model AssetTransferRecord {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  transferDate DateTime
+  transferType String // 'LOCATION' | 'BRANCH' | 'COST_CENTER' | 'CUSTODIAN' | 'COMPOSITE'
+
+  fromLocationId   Int?
+  toLocationId     Int?
+  fromBranchId     Int?
+  toBranchId       Int?
+  fromCostCenterId Int?
+  toCostCenterId   Int?
+  fromCustodianId  Int?
+  toCustodianId    Int?
+
+  bookValueAtTransfer Decimal @db.Decimal(20, 4)
+  reason              String  @db.Text
+
+  journalEntryId Int?
+
+  approvedByUserId String?
+  createdByUserId  String
+  createdAt        DateTime @default(now())
+}
+
+model AssetMaintenanceRecord {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  type          String // 'PREVENTIVE' | 'CORRECTIVE' | 'INSPECTION' | 'OVERHAUL'
+  scheduledDate DateTime?
+  performedDate DateTime?
+
+  cost                 Decimal? @db.Decimal(20, 4)
+  capitalize           Boolean  @default(false)
+  capitalizationReason String?
+
+  description           String @db.Text
+  performedByVendorId   Int?
+  performedByEmployeeId Int?
+
+  partsReplaced Json?
+  hoursWorked   Decimal? @db.Decimal(8, 2)
+
+  journalEntryId Int?
+
+  nextDueDate DateTime?
+
+  attachments Json?
+
+  @@index([assetId, performedDate])
+  @@index([nextDueDate])
+}
+
+model AssetInsuranceClaim {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  claimNumber         String   @unique
+  claimDate           DateTime
+  incidentDate        DateTime
+  incidentDescription String   @db.Text
+
+  claimedAmount  Decimal  @db.Decimal(20, 4)
+  approvedAmount Decimal? @db.Decimal(20, 4)
+  receivedAmount Decimal? @db.Decimal(20, 4)
+
+  status String @default("FILED") // 'FILED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'PAID'
+
+  insuranceCompany String
+  policyNumber     String?
+
+  journalEntryId Int?
+
+  attachments Json?
+
+  filedByUserId String
+  filedAt       DateTime @default(now())
+}
+
+model CashGeneratingUnit {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
+  name        String
+  description String?
+
+  lastTestDate          DateTime?
+  nextScheduledTestDate DateTime?
+  recoverableAmount     Decimal?  @db.Decimal(20, 4)
+
+  responsibleEmployeeId Int?
+
+  assets FixedAsset[]
+}
+
+model AssetUsageLog {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  unitsProduced Decimal? @db.Decimal(20, 4)
+  hoursOperated Decimal? @db.Decimal(20, 4)
+  downtimeHours Decimal? @db.Decimal(20, 4)
+  efficiency    Decimal? @db.Decimal(5, 2)
+
+  recordedByUserId String
+  recordedAt       DateTime @default(now())
+
+  @@index([assetId, periodEnd])
+}
+
+model AssetReclassification {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id])
+
+  reclassificationDate DateTime
+  fromCategoryId       Int?
+  toCategoryId         Int?
+  fromStatus           String
+  toStatus             String
+
+  reason              String   @db.Text
+  fairValueAdjustment Decimal? @db.Decimal(20, 4)
+  journalEntryId      Int?
+
+  approvedByUserId String?
+  createdByUserId  String
+}
+
+model AssetDocument {
+  id      Int        @id @default(autoincrement())
+  assetId Int
+  asset   FixedAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  documentType     String // 'INVOICE' | 'WARRANTY' | 'INSURANCE' | 'PHOTO' | 'MANUAL' | 'CERTIFICATE'
+  fileUrl          String
+  fileName         String
+  uploadedAt       DateTime @default(now())
+  uploadedByUserId String
+
+  expiryDate DateTime?
+
+  @@index([assetId, documentType])
+}
+
+model PhysicalCountSession {
+  id            Int       @id @default(autoincrement())
+  sessionNumber String    @unique
+  scheduledDate DateTime
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  scope               Json // {locationIds, branchIds, categoryIds}
+  totalAssetsExpected Int
+  totalAssetsFound    Int  @default(0)
+  totalVariances      Int  @default(0)
+
+  status String @default("PLANNED") // 'PLANNED' | 'IN_PROGRESS' | 'RECONCILING' | 'COMPLETED'
+
+  scans     PhysicalCountScan[]
+  variances PhysicalCountVariance[]
+
+  startedByUserId   String?
+  completedByUserId String?
+}
+
+model PhysicalCountScan {
+  id              Int                  @id @default(autoincrement())
+  sessionId       Int
+  session         PhysicalCountSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  assetId         Int?
+  scannedCode     String // barcode or serial
+  scannedAt       DateTime             @default(now())
+  scannedByUserId String
+  locationId      Int?
+  conditionNotes  String?
+}
+
+model PhysicalCountVariance {
+  id               Int                  @id @default(autoincrement())
+  sessionId        Int
+  session          PhysicalCountSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  assetId          Int?
+  varianceType     String // 'MISSING' | 'EXTRA' | 'WRONG_LOCATION' | 'DAMAGED'
+  expectedLocation Int?
+  actualLocation   Int?
+  resolution       String? // 'WRITE_OFF' | 'TRANSFER' | 'ADD_NEW' | 'INVESTIGATE'
+  resolvedAt       DateTime?
+  journalEntryId   Int?
 }
 
 // ==========================================
