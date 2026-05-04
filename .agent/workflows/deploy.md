@@ -49,6 +49,10 @@ Use `deploy_sync.js` or `deploy_today.js` to automatically sync files safely.
 Because this is a **SaaS Multi-Tenant application**, each subdomain uses a completely separate PostgreSQL database. 
 If you modify `prisma/schema.prisma` (e.g., adding `bookId` to a table), you **MUST** push the schema to **EVERY** tenant database individually. If you only push it to `namadb`, the `N11` tenant will crash with `PrismaClientValidationError` and `FATAL CLIENT-SIDE EXCEPTION` during server components render.
 
+### 🚫 FATAL MISTAKE: Duplicate `schema.prisma` in Root
+**NEVER** place a `schema.prisma` file directly in the root directory (e.g., `/www/wwwroot/n11.namainvist.com/schema.prisma`). 
+Prisma prioritizes the root directory over the `prisma/` folder. If an outdated schema exists in the root, `npx prisma generate` and `db push` will silently use the outdated one, ignoring your real updates. This guarantees a `FATAL CLIENT-SIDE EXCEPTION`. Always ensure the only schema file is inside `prisma/schema.prisma`.
+
 When deploying a schema change, you must SSH into the server and run the push for each tenant explicitly using the Postgres superuser (to bypass tenant user permission restrictions):
 
 ```bash

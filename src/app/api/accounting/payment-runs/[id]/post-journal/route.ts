@@ -16,30 +16,29 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             throw new Error("Payment run must be CONFIRMED to post journal");
         }
 
-        // Mock Journal Entry Creation
+        // Journal Entry Creation using schema fields
         const newJe = await prisma.journalEntry.create({
             data: {
                 entryNumber: `JE-PRUN-${run.runNumber}`,
-                date: new Date(),
+                entryDate: new Date().toISOString().split('T')[0], // e.g. "2026-05-04"
                 description: `Payment Run ${run.runNumber} via Bank`,
-                source: 'PAYMENT_RUN',
-                sourceDocumentId: run.id,
-                totalDebit: run.totalAmount,
-                totalCredit: run.totalAmount,
-                postedByUserId: userId || 'system',
-                status: 'POSTED',
-                details: {
+                reference: `PR-${run.id}`,
+                totalDebit: Number(run.totalAmount),
+                totalCredit: Number(run.totalAmount),
+                createdBy: typeof userId === 'number' ? userId : null,
+                status: 'posted',
+                lines: {
                     create: [
                         {
                             accountId: 2010, // Accounts Payable
-                            debit: run.totalAmount,
+                            debit: Number(run.totalAmount),
                             credit: 0,
                             description: 'Payment Run Settled'
                         },
                         {
                             accountId: run.bankAccountId, // Bank Account
                             debit: 0,
-                            credit: run.totalAmount,
+                            credit: Number(run.totalAmount),
                             description: 'Cash Outflow'
                         }
                     ]
