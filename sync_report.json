@@ -1,5 +1,8 @@
 [
-    "src/app/(dashboard)/accounting/lc/page.tsx",
-    "src/app/(dashboard)/enterprise/property/page.tsx",
-    "src/app/(dashboard)/manufacturing/work-orders/page.tsx"
+  "src/app/(dashboard)/accounting/lc/page.tsx",
+  "src/app/(dashboard)/enterprise/property/page.tsx",
+  "src/app/(dashboard)/manufacturing/work-orders/page.tsx",
+  "src/app/api/accounting/customer-statements/templates/route.ts",
+  "src/app/api/accounting/customer-statements/templates/[id]/route.ts",
+  "src/app/(dashboard)/accounting/customer-statements/templates/page.tsx"
 ]
