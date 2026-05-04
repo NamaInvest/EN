@@ -1,10 +1,10 @@
-import { NextResponse, NextRequest } from 'next/server';
+﻿import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
-import { MFAEngine } from '@/lib/mfa-engine';
+import { MfaEngine } from '@/lib/mfa-engine';
 
 /**
- * POST /api/auth/2fa/login — Complete login after 2FA verification
+ * POST /api/auth/2fa/login â€” Complete login after 2FA verification
  * Called after user passes password check and receives requires2FA=true
  */
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         const token = String(body.token || '').trim();
 
         if (!userId || !token) {
-            return NextResponse.json({ error: 'بيانات غير صالحة' }, { status: 400 });
+            return NextResponse.json({ error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©' }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({
@@ -24,17 +24,17 @@ export async function POST(request: NextRequest) {
         });
 
         if (!user || !user.active || !(user as any).totpSecret) {
-            return NextResponse.json({ error: 'مستخدم غير صالح' }, { status: 401 });
+            return NextResponse.json({ error: 'ظ…ط³طھط®ط¯ظ… ط؛ظٹط± طµط§ظ„ط­' }, { status: 401 });
         }
 
         // Try TOTP first, if it fails, try Backup Code
-        let isValid = await MFAEngine.verifyToken(user.id, token);
+        let isValid = await MfaEngine.verifyToken(user.id, token);
         if (!isValid) {
-            isValid = await MFAEngine.verifyBackupCode(user.id, token);
+            isValid = await MfaEngine.verifyBackupCode(user.id, token);
         }
 
         if (!isValid) {
-            return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 401 });
+            return NextResponse.json({ error: 'ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­' }, { status: 401 });
         }
 
         const jwt = generateToken({
@@ -65,6 +65,6 @@ export async function POST(request: NextRequest) {
         return response;
     } catch (e: any) {
         console.error('[2FA Login]', e);
-        return NextResponse.json({ error: 'فشل تسجيل الدخول' }, { status: 500 });
+        return NextResponse.json({ error: 'ظپط´ظ„ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„' }, { status: 500 });
     }
 }

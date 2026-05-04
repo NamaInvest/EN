@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 
-// GET - القيود اليومية
+// GET - ط§ظ„ظ‚ظٹظˆط¯ ط§ظ„ظٹظˆظ…ظٹط©
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -33,16 +33,16 @@ export async function GET(request: Request) {
         return NextResponse.json(entries);
     } catch (error) {
         console.error('Journal GET error:', error);
-        return NextResponse.json({ error: 'فشل في جلب القيود' }, { status: 500 });
+        return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¬ظ„ط¨ ط§ظ„ظ‚ظٹظˆط¯' }, { status: 500 });
     }
 }
 
-// POST - إضافة قيد يدوي
+// POST - ط¥ط¶ط§ظپط© ظ‚ظٹط¯ ظٹط¯ظˆظٹ
 export async function POST(request: Request) {
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request);
-    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
@@ -50,14 +50,14 @@ export async function POST(request: Request) {
         const { description, reference, date, lines, userId } = body;
 
         if (!description || !lines || lines.length < 2) {
-            return NextResponse.json({ error: 'الوصف وسطرين على الأقل مطلوبين' }, { status: 400 });
+            return NextResponse.json({ error: 'ط§ظ„ظˆطµظپ ظˆط³ط·ط±ظٹظ† ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„ ظ…ط·ظ„ظˆط¨ظٹظ†' }, { status: 400 });
         }
 
         // Validate balance
         const totalDebit = lines.reduce((s: number, l: { debit: number }) => s + (l.debit || 0), 0);
         const totalCredit = lines.reduce((s: number, l: { credit: number }) => s + (l.credit || 0), 0);
         if (Math.abs(totalDebit - totalCredit) > 0.01) {
-            return NextResponse.json({ error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` }, { status: 400 });
+            return NextResponse.json({ error: `ط§ظ„ظ‚ظٹط¯ ط؛ظٹط± ظ…طھظˆط§ط²ظ†: ظ…ط¯ظٹظ† ${totalDebit} â‰  ط¯ط§ط¦ظ† ${totalCredit}` }, { status: 400 });
         }
 
         const { ACCOUNTS } = require('@/lib/auto-journal');
@@ -75,24 +75,24 @@ export async function POST(request: Request) {
                     }
                 });
             } catch (e) { console.error(e); }
-            return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون). يجب أن تنشأ آلياً من الفواتير.' }, { status: 403 });
+            return NextResponse.json({ error: 'ظ…ظ†ط¹ ط±ظ‚ط§ط¨ظٹ: ظٹظ…ظ†ط¹ ط¥ط¯ط®ط§ظ„ ظ‚ظٹط¯ ظٹط¯ظˆظٹ ظ…ط¨ط§ط´ط± ط¹ظ„ظ‰ ط­ط³ط§ط¨ط§طھ ط§ظ„ظ…ط±ط§ظ‚ط¨ط© (ط¹ظ…ظ„ط§ط،طŒ ظ…ظˆط±ط¯ظٹظ†طŒ ظ…ط®ط²ظˆظ†). ظٹط¬ط¨ ط£ظ† طھظ†ط´ط£ ط¢ظ„ظٹط§ظ‹ ظ…ظ† ط§ظ„ظپظˆط§طھظٹط±.' }, { status: 403 });
         }
 
         // --- MFA Step-Up Auth for large amounts ---
         if (totalDebit > 100000) {
-            const { MFAEngine } = require('@/lib/mfa-engine');
+            const { MfaEngine } = require('@/lib/mfa-engine');
             if (!body.mfaToken) {
                 try {
-                    const stepUpRes = await MFAEngine.requireStepUpAuth(auth.userId, 'إدخال قيد يتجاوز 100,000');
+                    const stepUpRes = await MfaEngine.requireStepUpAuth(auth.userId, 'ط¥ط¯ط®ط§ظ„ ظ‚ظٹط¯ ظٹطھط¬ط§ظˆط² 100,000');
                     return NextResponse.json({ requiresStepUpMFA: true, message: stepUpRes.message }, { status: 403 });
                 } catch (e: any) {
                     return NextResponse.json({ error: e.message }, { status: 403 });
                 }
             }
 
-            const isValidMfa = await MFAEngine.verifyToken(auth.userId, body.mfaToken);
+            const isValidMfa = await MfaEngine.verifyToken(auth.userId, body.mfaToken);
             if (!isValidMfa) {
-                return NextResponse.json({ error: 'رمز التحقق الثنائي (2FA) غير صحيح' }, { status: 401 });
+                return NextResponse.json({ error: 'ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط§ظ„ط«ظ†ط§ط¦ظٹ (2FA) ط؛ظٹط± طµط­ظٹط­' }, { status: 401 });
             }
         }
         // ------------------------------------------
@@ -119,6 +119,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, entryId: result.entryId }, { status: 201 });
     } catch (error) {
         console.error('Journal create error:', error);
-        return NextResponse.json({ error: 'فشل في إنشاء القيد' }, { status: 500 });
+        return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¥ظ†ط´ط§ط، ط§ظ„ظ‚ظٹط¯' }, { status: 500 });
     }
 }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { MfaEngine } from '@/lib/mfa-engine';
 import { prisma } from '@/lib/prisma';
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
                 data: {
                     userId,
                     codeHash,
-                    codeHint: backupCode.substring(0, 2) + '••-••' + backupCode.substring(7),
+                    codeHint: backupCode.substring(0, 2) + 'â€¢â€¢-â€¢â€¢' + backupCode.substring(7),
                     generatedBatchId: batchId
                 }
             });
