@@ -429,6 +429,7 @@ model Customer {
   creditActions         CustomerCreditAction[]
   SupplierBankAccount   SupplierBankAccount[]
   SalesContract         SalesContract[]
+  IfrsLeaseContract     IfrsLeaseContract[]
 
   @@index([phone])
   @@index([name])
@@ -4753,269 +4754,269 @@ model EngineeringChangeOrder {
 // ==================== IFRS 16 Lease Accounting (Phase E) ====================
 
 model IfrsLeaseContract {
-  id                              Int                       @id @default(autoincrement())
-  contractNumber                  String                    @unique
-  
+  id             Int    @id @default(autoincrement())
+  contractNumber String @unique
+
   // Counterparty
-  lessor                          String
-  lessorContact                   String?
-  lessorVendorId                  Int?
-  lessorVendor                    Customer?                   @relation(fields: [lessorVendorId], references: [id])
-  
+  lessor         String
+  lessorContact  String?
+  lessorVendorId Int?
+  lessorVendor   Customer? @relation(fields: [lessorVendorId], references: [id])
+
   // Asset
-  leaseClass                      String                    // 'PROPERTY' | 'VEHICLE' | 'EQUIPMENT' | 'IT_EQUIPMENT' | 'FURNITURE' | 'OTHER'
-  assetDescription                String
-  assetLocation                   String?
-  
+  leaseClass       String // 'PROPERTY' | 'VEHICLE' | 'EQUIPMENT' | 'IT_EQUIPMENT' | 'FURNITURE' | 'OTHER'
+  assetDescription String
+  assetLocation    String?
+
   // Lease term
-  startDate                       DateTime
-  endDate                         DateTime
-  termMonths                      Int
-  hasExtensionOption              Boolean                   @default(false)
-  extensionTerms                  String?
-  exerciseOptionLikely            Boolean?
-  
+  startDate            DateTime
+  endDate              DateTime
+  termMonths           Int
+  hasExtensionOption   Boolean  @default(false)
+  extensionTerms       String?
+  exerciseOptionLikely Boolean?
+
   // Payments
-  paymentAmount                   Decimal                   @db.Decimal(20,4)
-  paymentFrequency                String                    @default("MONTHLY")  // 'MONTHLY' | 'QUARTERLY' | 'SEMI_ANNUAL' | 'ANNUAL'
-  paymentTiming                   String                    @default("END")  // 'BEGIN' (annuity due) | 'END' (ordinary)
-  paymentDayOfMonth               Int                       @default(1)
-  
+  paymentAmount     Decimal @db.Decimal(20, 4)
+  paymentFrequency  String  @default("MONTHLY") // 'MONTHLY' | 'QUARTERLY' | 'SEMI_ANNUAL' | 'ANNUAL'
+  paymentTiming     String  @default("END") // 'BEGIN' (annuity due) | 'END' (ordinary)
+  paymentDayOfMonth Int     @default(1)
+
   // Variable payments
-  hasVariablePayments             Boolean                   @default(false)
-  variablePaymentBasis            String?                   // 'INDEX' | 'USAGE' | 'PERFORMANCE'
-  variablePaymentDescription      String?
-  
+  hasVariablePayments        Boolean @default(false)
+  variablePaymentBasis       String? // 'INDEX' | 'USAGE' | 'PERFORMANCE'
+  variablePaymentDescription String?
+
   // Currency
-  currency                        String                    @default("SAR")
-  
+  currency String @default("SAR")
+
   // Discount rate
-  ibr                             Decimal                   @db.Decimal(8,4)  // annual %
-  ibrSource                       String?                   // 'BANK_QUOTE' | 'MARKET_AVERAGE' | 'GOVERNMENT_BOND'
-  ibrDate                         DateTime?
-  
+  ibr       Decimal   @db.Decimal(8, 4) // annual %
+  ibrSource String? // 'BANK_QUOTE' | 'MARKET_AVERAGE' | 'GOVERNMENT_BOND'
+  ibrDate   DateTime?
+
   // Initial direct costs + incentives
-  initialDirectCosts              Decimal                   @default(0) @db.Decimal(20,4)
-  initialDirectCostsPaidAt        DateTime?
-  leaseIncentive                  Decimal                   @default(0) @db.Decimal(20,4)
-  
+  initialDirectCosts       Decimal   @default(0) @db.Decimal(20, 4)
+  initialDirectCostsPaidAt DateTime?
+  leaseIncentive           Decimal   @default(0) @db.Decimal(20, 4)
+
   // Exemption
-  exemption                       String?                   // 'SHORT_TERM' | 'LOW_VALUE' | null
-  exemptionReason                 String?
-  
+  exemption       String? // 'SHORT_TERM' | 'LOW_VALUE' | null
+  exemptionReason String?
+
   // GL Accounts
-  rouAccountId                    Int
-  liabilityAccountId              Int
-  interestAccountId               Int
-  depreciationAccountId           Int
-  accumDepreciationAccountId      Int
-  cashAccountId                   Int
-  expenseAccountId                Int?                      // for exempt leases
-  
+  rouAccountId               Int
+  liabilityAccountId         Int
+  interestAccountId          Int
+  depreciationAccountId      Int
+  accumDepreciationAccountId Int
+  cashAccountId              Int
+  expenseAccountId           Int? // for exempt leases
+
   // Calculated values
-  pvOfPayments                    Decimal?                  @db.Decimal(20,4)
-  rouAssetValue                   Decimal?                  @db.Decimal(20,4)
-  liabilityValue                  Decimal?                  @db.Decimal(20,4)
-  
+  pvOfPayments   Decimal? @db.Decimal(20, 4)
+  rouAssetValue  Decimal? @db.Decimal(20, 4)
+  liabilityValue Decimal? @db.Decimal(20, 4)
+
   // Current state
-  currentRouNbv                   Decimal?                  @db.Decimal(20,4)
-  currentLiability                Decimal?                  @db.Decimal(20,4)
-  
+  currentRouNbv    Decimal? @db.Decimal(20, 4)
+  currentLiability Decimal? @db.Decimal(20, 4)
+
   // Status
-  status                          String                    @default("DRAFT")  // 'DRAFT' | 'ACTIVE' | 'TERMINATED' | 'EXPIRED' | 'MODIFIED' | 'IMPAIRED'
-  
+  status String @default("DRAFT") // 'DRAFT' | 'ACTIVE' | 'TERMINATED' | 'EXPIRED' | 'MODIFIED' | 'IMPAIRED'
+
   // Approval
-  approvedAt                      DateTime?
-  approvedByUserId                String?
-  
+  approvedAt       DateTime?
+  approvedByUserId String?
+
   // Journals
-  initialJournalId                Int?
-  terminationJournalId            Int?
-  
+  initialJournalId     Int?
+  terminationJournalId Int?
+
   // Sublease
-  hasSublease                     Boolean                   @default(false)
-  
+  hasSublease Boolean @default(false)
+
   // Audit
-  createdByUserId                 String
-  createdAt                       DateTime                  @default(now())
-  updatedAt                       DateTime                  @updatedAt
-  
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
   // Relations
-  schedule                        IfrsLeaseSchedule?
-  modifications                   IfrsLeaseModification[]
-  terminations                    IfrsLeaseTermination[]
-  subleases                       IfrsSublease[]
-  impairments                     IfrsLeaseImpairment[]
-  variablePayments                IfrsVariableLeasePayment[]
-  
+  schedule         IfrsLeaseSchedule?
+  modifications    IfrsLeaseModification[]
+  terminations     IfrsLeaseTermination[]
+  subleases        IfrsSublease[]
+  impairments      IfrsLeaseImpairment[]
+  variablePayments IfrsVariableLeasePayment[]
+
   @@index([status, endDate])
   @@index([lessorVendorId])
   @@index([leaseClass])
 }
 
 model IfrsLeaseSchedule {
-  id                              Int                       @id @default(autoincrement())
-  contractId                      Int                       @unique
-  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  
-  generatedAt                     DateTime                  @default(now())
-  isCurrent                       Boolean                   @default(true)
-  versionNumber                   Int                       @default(1)
-  
-  totalPayments                   Decimal                   @db.Decimal(20,4)
-  totalInterest                   Decimal                   @db.Decimal(20,4)
-  pvAtGeneration                  Decimal                   @db.Decimal(20,4)
-  
-  lines                           IfrsLeaseScheduleLine[]
+  id         Int               @id @default(autoincrement())
+  contractId Int               @unique
+  contract   IfrsLeaseContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  generatedAt   DateTime @default(now())
+  isCurrent     Boolean  @default(true)
+  versionNumber Int      @default(1)
+
+  totalPayments  Decimal @db.Decimal(20, 4)
+  totalInterest  Decimal @db.Decimal(20, 4)
+  pvAtGeneration Decimal @db.Decimal(20, 4)
+
+  lines IfrsLeaseScheduleLine[]
 }
 
 model IfrsLeaseScheduleLine {
-  id                              Int                       @id @default(autoincrement())
-  scheduleId                      Int
-  schedule                        IfrsLeaseSchedule         @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  
-  periodNumber                    Int
-  periodDate                      DateTime
-  
-  openingLiability                Decimal                   @db.Decimal(20,4)
-  interestExpense                 Decimal                   @db.Decimal(20,4)
-  payment                         Decimal                   @db.Decimal(20,4)
-  principal                       Decimal                   @db.Decimal(20,4)
-  closingLiability                Decimal                   @db.Decimal(20,4)
-  
-  rouDepreciation                 Decimal                   @db.Decimal(20,4)
-  rouOpeningNbv                   Decimal                   @db.Decimal(20,4)
-  rouClosingNbv                   Decimal                   @db.Decimal(20,4)
-  
-  recognizedAt                    DateTime?
-  interestJournalId               Int?
-  paymentJournalId                Int?
-  depreciationJournalId           Int?
-  
+  id         Int               @id @default(autoincrement())
+  scheduleId Int
+  schedule   IfrsLeaseSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  periodNumber Int
+  periodDate   DateTime
+
+  openingLiability Decimal @db.Decimal(20, 4)
+  interestExpense  Decimal @db.Decimal(20, 4)
+  payment          Decimal @db.Decimal(20, 4)
+  principal        Decimal @db.Decimal(20, 4)
+  closingLiability Decimal @db.Decimal(20, 4)
+
+  rouDepreciation Decimal @db.Decimal(20, 4)
+  rouOpeningNbv   Decimal @db.Decimal(20, 4)
+  rouClosingNbv   Decimal @db.Decimal(20, 4)
+
+  recognizedAt          DateTime?
+  interestJournalId     Int?
+  paymentJournalId      Int?
+  depreciationJournalId Int?
+
   // For variable
-  variableComponent               Decimal?                  @db.Decimal(20,4)
-  
-  notes                           String?
-  
+  variableComponent Decimal? @db.Decimal(20, 4)
+
+  notes String?
+
   @@index([scheduleId, periodNumber])
   @@index([scheduleId, periodDate])
   @@index([recognizedAt])
 }
 
 model IfrsLeaseModification {
-  id                              Int                       @id @default(autoincrement())
-  contractId                      Int
-  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
-  
-  modificationDate                DateTime
-  modificationType                String                    // 'EXTENSION' | 'REDUCTION' | 'PAYMENT_CHANGE' | 'SCOPE_CHANGE' | 'IBR_CHANGE'
-  
-  oldPaymentAmount                Decimal?                  @db.Decimal(20,4)
-  newPaymentAmount                Decimal?                  @db.Decimal(20,4)
-  oldEndDate                      DateTime?
-  newEndDate                      DateTime?
-  oldIbr                          Decimal?                  @db.Decimal(8,4)
-  newIbr                          Decimal?                  @db.Decimal(8,4)
-  
-  rouAdjustment                   Decimal?                  @db.Decimal(20,4)
-  liabilityAdjustment             Decimal?                  @db.Decimal(20,4)
-  remeasurementJournalId          Int?
-  
-  newScheduleId                   Int?
-  
-  reason                          String                    @db.Text
-  approvedByUserId                String?
-  approvedAt                      DateTime?
-  
-  createdByUserId                 String
-  createdAt                       DateTime                  @default(now())
-  
+  id         Int               @id @default(autoincrement())
+  contractId Int
+  contract   IfrsLeaseContract @relation(fields: [contractId], references: [id])
+
+  modificationDate DateTime
+  modificationType String // 'EXTENSION' | 'REDUCTION' | 'PAYMENT_CHANGE' | 'SCOPE_CHANGE' | 'IBR_CHANGE'
+
+  oldPaymentAmount Decimal?  @db.Decimal(20, 4)
+  newPaymentAmount Decimal?  @db.Decimal(20, 4)
+  oldEndDate       DateTime?
+  newEndDate       DateTime?
+  oldIbr           Decimal?  @db.Decimal(8, 4)
+  newIbr           Decimal?  @db.Decimal(8, 4)
+
+  rouAdjustment          Decimal? @db.Decimal(20, 4)
+  liabilityAdjustment    Decimal? @db.Decimal(20, 4)
+  remeasurementJournalId Int?
+
+  newScheduleId Int?
+
+  reason           String    @db.Text
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  createdByUserId String
+  createdAt       DateTime @default(now())
+
   @@index([contractId, modificationDate])
 }
 
 model IfrsLeaseTermination {
-  id                              Int                       @id @default(autoincrement())
-  contractId                      Int                       @unique
-  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
-  
-  terminationDate                 DateTime
-  terminationType                 String                    // 'EARLY_BY_LESSEE' | 'EARLY_BY_LESSOR' | 'EXPIRED' | 'MUTUAL'
-  
-  remainingLiability              Decimal                   @db.Decimal(20,4)
-  remainingRouNbv                 Decimal                   @db.Decimal(20,4)
-  
-  penaltyAmount                   Decimal                   @default(0) @db.Decimal(20,4)
-  refundAmount                    Decimal                   @default(0) @db.Decimal(20,4)
-  
-  gainLoss                        Decimal                   @db.Decimal(20,4)
-  terminationJournalId            Int
-  
-  reason                          String                    @db.Text
-  
-  createdByUserId                 String
-  createdAt                       DateTime                  @default(now())
+  id         Int               @id @default(autoincrement())
+  contractId Int               @unique
+  contract   IfrsLeaseContract @relation(fields: [contractId], references: [id])
+
+  terminationDate DateTime
+  terminationType String // 'EARLY_BY_LESSEE' | 'EARLY_BY_LESSOR' | 'EXPIRED' | 'MUTUAL'
+
+  remainingLiability Decimal @db.Decimal(20, 4)
+  remainingRouNbv    Decimal @db.Decimal(20, 4)
+
+  penaltyAmount Decimal @default(0) @db.Decimal(20, 4)
+  refundAmount  Decimal @default(0) @db.Decimal(20, 4)
+
+  gainLoss             Decimal @db.Decimal(20, 4)
+  terminationJournalId Int
+
+  reason String @db.Text
+
+  createdByUserId String
+  createdAt       DateTime @default(now())
 }
 
 model IfrsSublease {
-  id                              Int                       @id @default(autoincrement())
-  mainLeaseId                     Int
-  mainLease                       IfrsLeaseContract         @relation(fields: [mainLeaseId], references: [id])
-  
-  sublessee                       String
-  sublessorContractId             Int?                      // separate contract record
-  
-  type                            String                    // 'OPERATING' | 'FINANCE'
-  
-  startDate                       DateTime
-  endDate                         DateTime
-  
-  paymentAmount                   Decimal                   @db.Decimal(20,4)
-  paymentFrequency                String
-  
-  netInvestmentInLease            Decimal?                  @db.Decimal(20,4)
-  derecognitionJournalId          Int?
-  
-  status                          String                    @default("ACTIVE")
+  id          Int               @id @default(autoincrement())
+  mainLeaseId Int
+  mainLease   IfrsLeaseContract @relation(fields: [mainLeaseId], references: [id])
+
+  sublessee           String
+  sublessorContractId Int? // separate contract record
+
+  type String // 'OPERATING' | 'FINANCE'
+
+  startDate DateTime
+  endDate   DateTime
+
+  paymentAmount    Decimal @db.Decimal(20, 4)
+  paymentFrequency String
+
+  netInvestmentInLease   Decimal? @db.Decimal(20, 4)
+  derecognitionJournalId Int?
+
+  status String @default("ACTIVE")
 }
 
 model IfrsLeaseImpairment {
-  id                              Int                       @id @default(autoincrement())
-  contractId                      Int
-  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
-  
-  testDate                        DateTime
-  carryingAmount                  Decimal                   @db.Decimal(20,4)
-  recoverableAmount               Decimal                   @db.Decimal(20,4)
-  impairmentLoss                  Decimal                   @db.Decimal(20,4)
-  
-  reversal                        Boolean                   @default(false)
-  reversalReason                  String?
-  
-  evidence                        String?
-  
-  journalEntryId                  Int
-  
-  approvedByUserId                String?
-  
-  createdByUserId                 String
-  createdAt                       DateTime                  @default(now())
+  id         Int               @id @default(autoincrement())
+  contractId Int
+  contract   IfrsLeaseContract @relation(fields: [contractId], references: [id])
+
+  testDate          DateTime
+  carryingAmount    Decimal  @db.Decimal(20, 4)
+  recoverableAmount Decimal  @db.Decimal(20, 4)
+  impairmentLoss    Decimal  @db.Decimal(20, 4)
+
+  reversal       Boolean @default(false)
+  reversalReason String?
+
+  evidence String?
+
+  journalEntryId Int
+
+  approvedByUserId String?
+
+  createdByUserId String
+  createdAt       DateTime @default(now())
 }
 
 model IfrsVariableLeasePayment {
-  id                              Int                       @id @default(autoincrement())
-  contractId                      Int
-  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
-  
-  periodDate                      DateTime
-  amount                          Decimal                   @db.Decimal(20,4)
-  basisDescription                String                    // "5 SAR per km × 2,000 km"
-  indexValue                      Decimal?                  @db.Decimal(20,8)  // if INDEX-based
-  
-  expenseJournalId                Int?
-  
-  recordedAt                      DateTime                  @default(now())
-  recordedByUserId                String
-  
+  id         Int               @id @default(autoincrement())
+  contractId Int
+  contract   IfrsLeaseContract @relation(fields: [contractId], references: [id])
+
+  periodDate       DateTime
+  amount           Decimal  @db.Decimal(20, 4)
+  basisDescription String // "5 SAR per km × 2,000 km"
+  indexValue       Decimal? @db.Decimal(20, 8) // if INDEX-based
+
+  expenseJournalId Int?
+
+  recordedAt       DateTime @default(now())
+  recordedByUserId String
+
   @@index([contractId, periodDate])
 }
 
