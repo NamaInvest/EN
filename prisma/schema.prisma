@@ -44,15 +44,153 @@ model User {
   goodsReceipts    GoodsReceiptNote[]
   alerts           SystemAlert[]
   defaultPage      String?               @map("default_page") // ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آµط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ­ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ© ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ±ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¶ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ© ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¨ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¯ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¯ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ®ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ  ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ  /sales ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ«ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ  /dashboard
-  totpSecret       String?               @map("totp_secret")
-  totpEnabled      Boolean               @default(false) @map("totp_enabled")
-  totpBackupCodes  String[]              @default([]) @map("totp_backup_codes")
+  // MFA Core
+  totpSecretEncrypted   String?   @db.Text
+  totpIv                String?   @db.VarChar(32)
+  totpAuthTag           String?   @db.VarChar(32)
+  mfaEnabled            Boolean   @default(false)
+  mfaMethod             String?   // 'TOTP' | 'SMS' | 'EMAIL' | 'HARDWARE_KEY'
+  mfaPendingActivation  Boolean   @default(false)
+  mfaEnrolledAt         DateTime?
+  mfaLastUsedAt         DateTime?
+  
+  // Rate Limiting
+  mfaFailedAttempts     Int       @default(0)
+  mfaLockedUntil        DateTime?
+  
+  // Policy enforcement
+  mfaRequiredByPolicy   Boolean   @default(false)
+  mfaPolicyId           Int?
+  mfaPolicy             MfaPolicy? @relation(fields: [mfaPolicyId], references: [id])
+  mfaGracePeriodEndsAt  DateTime?
+  
+  // Backup mobile (optional SMS fallback)
+  mfaPhoneVerified      String?   // E.164 format
+  mfaPhoneVerifiedAt    DateTime?
+  
+  // Relations
+  backupCodes           UserBackupCode[]
+  mfaAttempts           MfaAttempt[]
+  trustedDevices        TrustedDevice[]
+  recoveryRequests      MfaRecoveryRequest[]
+  usedTokens            MfaUsedToken[]
   // Pharmacy
   dispensedRx      Prescription[]        @relation("PrescriptionPharmacist")
   controlledLogs   ControlledDrugLog[]   @relation("ControlledDrugPharmacist")
   posSessions      PosSession[]
 
   @@map("users")
+}
+
+// ==================== 1.1 MFA Subsystem Models ====================
+model UserBackupCode {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash      String    // bcrypt
+  codeHint      String    // first 2 chars in plain (for display "AB••-••CD")
+  usedAt        DateTime?
+  ipUsedFrom    String?
+  userAgentUsed String?
+  createdAt     DateTime  @default(now())
+  generatedBatchId String  // groups 10 codes generated together
+  
+  @@index([userId, usedAt])
+  @@index([generatedBatchId])
+}
+
+model MfaAttempt {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  success       Boolean
+  method        String    // 'totp' | 'backup_code' | 'sms' | 'email'
+  ipAddress     String?
+  userAgent     String?
+  countryCode   String?   // from IP geolocation
+  city          String?
+  failureReason String?   // 'invalid_code' | 'expired' | 'replay' | 'rate_limit'
+  attemptedAt   DateTime  @default(now())
+  sessionId     String?
+  deviceFingerprint String?
+  
+  @@index([userId, attemptedAt])
+  @@index([attemptedAt])
+  @@index([ipAddress])
+}
+
+model TrustedDevice {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceFingerprint String    @unique
+  deviceName        String    // "Chrome on Windows 11"
+  browser           String?
+  os                String?
+  ipAddress         String
+  countryCode       String?
+  city              String?
+  trustedAt         DateTime  @default(now())
+  trustedUntil      DateTime
+  lastUsedAt        DateTime?
+  revokedAt         DateTime?
+  revokedReason     String?
+  revokedByUserId   Int?      // self or admin
+  
+  @@index([userId, trustedUntil])
+  @@index([deviceFingerprint])
+}
+
+model MfaPolicy {
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  description           String?
+  enabled               Boolean   @default(true)
+  requireForRoles       String[]  // ['ADMIN', 'CFO', 'ACCOUNTANT']
+  requireForActions     String[]  // ['DELETE_JE', 'POST_PAYMENT', 'CHANGE_BANK_ACCOUNT']
+  allowedMethods        String[]  // ['TOTP', 'HARDWARE_KEY']
+  trustedDeviceDays     Int       @default(30)
+  sessionTimeoutMinutes Int       @default(480)  // 8 hours
+  enforceFromDate       DateTime
+  gracePeriodDays       Int       @default(7)
+  stepUpRequired        Boolean   @default(false)
+  stepUpAfterMinutes    Int       @default(60)
+  createdByUserId       Int
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  users                 User[]
+  
+  @@index([enforceFromDate])
+}
+
+model MfaRecoveryRequest {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id])
+  requestedAt       DateTime  @default(now())
+  reason            String
+  evidenceFileUrl   String?   // ID upload
+  ipAddress         String
+  status            String    @default("PENDING")  // PENDING | APPROVED | REJECTED | EXPIRED
+  reviewedByUserId  Int?
+  reviewedAt        DateTime?
+  reviewNotes       String?
+  newSecretGenerated Boolean  @default(false)
+  
+  @@index([userId, status])
+  @@index([status, requestedAt])
+}
+
+model MfaUsedToken {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    // SHA-256 of code (for replay protection)
+  usedAt      DateTime  @default(now())
+  expiresAt   DateTime  // 90 seconds after usedAt
+  
+  @@unique([userId, tokenHash])
+  @@index([expiresAt])  // for cleanup cron
 }
 
 // ==================== 2. UserPermissions ====================
@@ -147,6 +285,10 @@ model Product {
   SubcontractMovement    SubcontractMovement[]
   QualitySpec            QualitySpec?
   QualityInspection      QualityInspection[]
+  variants               ProductVariant[]
+
+  hasVariants            Boolean @default(false) @map("has_variants")
+  variantAttributeIds    String? @map("variant_attribute_ids") // JSON array
 
   @@index([name])
   @@map("products")
@@ -225,6 +367,7 @@ model Customer {
   SubcontractingPO  SubcontractingPO[]
   savedPaymentMethods SavedPaymentMethod[]
   dunningRuns       DunningRun[]
+  subscriptions     CustomerSubscription[]
 
   @@index([phone])
   @@index([name])
@@ -256,16 +399,20 @@ model Stock {
 model ProductStock {
   id        Int      @id @default(autoincrement())
   productId Int      @map("product_id")
+  variantId Int?     @map("variant_id")
   stockId   Int      @map("stock_id")
+  binId     Int?     @map("bin_id")
   quantity  Float    @default(0)
   location  String?  @map("location")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
   stock   Stock   @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  bin     WarehouseBin? @relation(fields: [binId], references: [id])
 
-  @@unique([productId, stockId])
+  @@index([productId, stockId, binId])
   @@map("product_stocks")
 }
 
@@ -316,6 +463,7 @@ model SalesInvoice {
   costCenter              CostCenter?               @relation(fields: [costCenterId], references: [id])
   DeferredRevenueSchedule DeferredRevenueSchedule[]
   payments                PaymentTransaction[]
+  subscriptionInvoices    SubscriptionInvoice[]
 
   @@index([invoiceNo])
   @@index([date])
@@ -329,6 +477,7 @@ model SalesInvoiceDetail {
   id            Int     @id @default(autoincrement())
   invoiceId     Int     @map("invoice_id")
   productId     Int     @map("product_id")
+  variantId     Int?    @map("variant_id")
   productName   String? @map("product_name")
   quantity      Float   @default(1)
   price         Float   @default(0)
@@ -340,6 +489,7 @@ model SalesInvoiceDetail {
 
   invoice SalesInvoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product Product       @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
   batch   ProductBatch? @relation(fields: [batchId], references: [id])
   batchId Int?          @map("batch_id")
 
@@ -763,13 +913,32 @@ model PriceQuote {
   date       DateTime @default(now())
   customerId Int?     @map("customer_id")
   total      Float    @default(0)
-  status     String   @default("pending")
+  status     String   @default("pending") // DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED, CONVERTED, SUPERSEDED
   userId     Int?     @map("user_id")
   notes      String?
 
-  details PriceQuoteDetail[]
+  versionNumber           Int       @default(1) @map("version_number")
+  parentQuoteId           Int?      @map("parent_quote_id")
+  convertedToSalesOrderId Int?      @map("converted_to_sales_order_id")
+  convertedAt             DateTime? @map("converted_at")
+
+  details   PriceQuoteDetail[]
+  revisions QuoteRevision[]
 
   @@map("price_quotes")
+}
+
+model QuoteRevision {
+  id        Int      @id @default(autoincrement())
+  quoteId   Int      @map("quote_id")
+  version   Int
+  changes   String?  // JSON
+  revisedBy Int?     @map("revised_by")
+  revisedAt DateTime @default(now()) @map("revised_at")
+
+  quote     PriceQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@map("quote_revisions")
 }
 
 // ==================== 24. PriceQuoteDetails ====================
@@ -1552,6 +1721,12 @@ model ProductBatch {
   initialQuantity Float     @map("initial_quantity")
   currentQuantity Float     @map("current_quantity")
   unitCost        Float     @map("unit_cost")
+  status          String    @default("AVAILABLE") // AVAILABLE, QUARANTINED, EXPIRED, RECALLED, CONSUMED
+  supplierBatchNumber String? @map("supplier_batch_number")
+  qrCode          String?   @map("qr_code")
+  quarantineReason String?  @map("quarantine_reason")
+  recalledAt      DateTime? @map("recalled_at")
+  recallReason    String?   @map("recall_reason")
   createdAt       DateTime  @default(now()) @map("created_at")
 
   product         Product                  @relation(fields: [productId], references: [id])
@@ -1954,6 +2129,7 @@ model WarehouseZone {
   stockId     Int     @map("stock_id")
   name        String
   description String?
+  type        String  @default("BULK") // BULK, PICK, RECEIVING, SHIPPING, QC
 
   stock Stock           @relation(fields: [stockId], references: [id])
   racks WarehouseRack[]
@@ -1962,9 +2138,11 @@ model WarehouseZone {
 }
 
 model WarehouseRack {
-  id     Int    @id @default(autoincrement())
-  zoneId Int    @map("zone_id")
-  name   String
+  id      Int    @id @default(autoincrement())
+  zoneId  Int    @map("zone_id")
+  name    String
+  rows    Int    @default(1)
+  columns Int    @default(1)
 
   zone WarehouseZone  @relation(fields: [zoneId], references: [id], onDelete: Cascade)
   bins WarehouseBin[]
@@ -1973,13 +2151,19 @@ model WarehouseRack {
 }
 
 model WarehouseBin {
-  id        Int     @id @default(autoincrement())
-  rackId    Int     @map("rack_id")
-  name      String
-  barcode   String?
-  maxWeight Float   @default(0) @map("max_weight")
+  id                 Int     @id @default(autoincrement())
+  rackId             Int     @map("rack_id")
+  name               String
+  barcode            String?
+  maxWeight          Float   @default(0) @map("max_weight")
+  maxVolume          Float   @default(0) @map("max_volume")
+  currentUtilization Float   @default(0) @map("current_utilization")
+  position           String? // e.g. "R1-C2"
+  binType            String  @default("EACH") // PALLET, CASE, EACH
+  status             String  @default("AVAILABLE") // AVAILABLE, RESERVED, FULL, BLOCKED
 
   rack WarehouseRack @relation(fields: [rackId], references: [id], onDelete: Cascade)
+  productStocks      ProductStock[]
 
   @@map("warehouse_bins")
 }
@@ -2740,9 +2924,138 @@ model FiscalPeriod {
 
   periodCloseChecklists PeriodCloseChecklist[]
   periodLockLogs        PeriodLockLog[]
+  fiscalYear            FiscalYear? @relation(fields: [year], references: [yearNumber])
 
   @@unique([year, month])
   @@map("fiscal_periods")
+}
+
+// ==================== 108.5 Year-End Close ====================
+model FiscalYear {
+  id                    Int                @id @default(autoincrement())
+  yearNumber            Int                @unique
+  startDate             DateTime
+  endDate               DateTime
+  status                String             @default("OPEN") // OPEN, CLOSING_IN_PROGRESS, LOCKED, REOPENED
+  closingJournalId      Int?
+  rolloverJournalId     Int?
+  closedAt              DateTime?
+  closedByUserId        String?
+  reopenedAt            DateTime?
+  reopenedByUserId      String?
+  reopenedReason        String?
+  periods               FiscalPeriod[]
+  closeRuns             YearEndCloseRun[]
+  openingBalances       OpeningBalance[]
+  immutableReports      ImmutableReport[]
+}
+
+model YearEndCloseRun {
+  id                    Int                @id @default(autoincrement())
+  fiscalYearId          Int
+  fiscalYear            FiscalYear         @relation(fields: [fiscalYearId], references: [id])
+  status                String             // 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'ROLLED_BACK'
+  startedAt             DateTime           @default(now())
+  startedByUserId       String
+  completedAt           DateTime?
+  closingJournalId      Int?
+  rolloverJournalId     Int?
+  reportsGeneratedAt    DateTime?
+  errors                Json?
+  metadata              Json?              // {totalRevenue, totalExpenses, netPL, ...}
+  tasks                 YearEndCloseTask[]
+  
+  @@index([fiscalYearId, status])
+}
+
+model YearEndCloseTask {
+  id                    Int                @id @default(autoincrement())
+  runId                 Int
+  run                   YearEndCloseRun    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  taskCode              String             // unique code per type
+  taskName              String
+  taskNameAr            String
+  category              String             // 'PRE_CLOSE' | 'ADJUSTMENTS' | 'PROVISIONS' | 'TAX' | 'INTER_PERIOD' | 'CLOSING' | 'REPORTING'
+  sequenceNumber        Int                // execution order within category
+  autoExecutable        Boolean            @default(false)
+  status                String             // 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'SKIPPED' | 'FAILED' | 'BLOCKED'
+  dependencies          String[]           // taskCodes that must be done first
+  assigneeUserId        String?
+  estimatedMinutes      Int?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  completedByUserId     String?
+  evidenceFileId        Int?
+  evidenceRequired      Boolean            @default(false)
+  notes                 String?
+  result                Json?              // task-specific output
+  errorMessage          String?
+  retryCount            Int                @default(0)
+  
+  @@unique([runId, taskCode])
+  @@index([runId, status])
+  @@index([assigneeUserId, status])
+}
+
+model OpeningBalance {
+  id                    Int                @id @default(autoincrement())
+  fiscalYearId          Int
+  fiscalYear            FiscalYear         @relation(fields: [fiscalYearId], references: [id])
+  accountId             Int
+  account               Account            @relation(fields: [accountId], references: [id])
+  amountDebit           Decimal            @db.Decimal(20,4)
+  amountCredit          Decimal            @db.Decimal(20,4)
+  currency              String             @default("SAR")
+  costCenterId          Int?
+  branchId              Int?
+  projectId             Int?
+  bookId                Int                @default(1)
+  sourceJournalId       Int                // Brought forward JE
+  createdAt             DateTime           @default(now())
+  
+  @@unique([fiscalYearId, accountId, costCenterId, branchId, projectId, bookId])
+  @@index([fiscalYearId, accountId])
+}
+
+model ImmutableReport {
+  id                    Int                @id @default(autoincrement())
+  fiscalYearId          Int?
+  fiscalYear            FiscalYear?        @relation(fields: [fiscalYearId], references: [id])
+  reportType            String             // 'TRIAL_BALANCE' | 'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'CASH_FLOW' | 'EQUITY_CHANGES' | 'NOTES_TO_FS'
+  asOfDate              DateTime
+  generatedAt           DateTime           @default(now())
+  generatedByUserId     String
+  payload               Json               // full report data
+  pdfFileUrl            String?
+  excelFileUrl          String?
+  jsonFileUrl           String?
+  hash                  String             // SHA-256 of payload
+  signedAt              DateTime?
+  signedByUserId        String?
+  signature             String?            // digital signature (base64)
+  bookId                Int?
+  language              String             @default("ar")
+  
+  @@index([fiscalYearId, reportType])
+  @@index([generatedAt])
+}
+
+model FiscalYearReopenRequest {
+  id                    Int                @id @default(autoincrement())
+  fiscalYearId          Int
+  requestedAt           DateTime           @default(now())
+  requestedByUserId     String
+  reason                String
+  justification         String             @db.Text
+  externalAuditorEmail  String?
+  externalAuditorSignature String?
+  status                String             @default("PENDING")  // PENDING | APPROVED | REJECTED
+  reviewedByUserId      String?
+  reviewedAt            DateTime?
+  reviewNotes           String?
+  approvalChain         Json               // [{userId, approvedAt, role}]
+  
+  @@index([fiscalYearId, status])
 }
 
 // ==================== 109. Service Tickets (ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ®ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¯ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¾ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¯ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ§ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¸ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ©) ====================
@@ -3552,12 +3865,61 @@ model AssetTransaction {
 
 model ProductVariant {
   id              Int     @id @default(autoincrement())
-  productId       Int     @map("product_id")
-  sku             String  @unique
-  attributes      String // JSON string { "Color": "Red", "Size": "L" }
-  priceAdjustment Decimal @default(0) @map("price_adjustment") @db.Decimal(18, 4)
+  parentProductId Int     @map("parent_product_id")
+  sku             String? @unique
+  barcode         String? @unique
+  attributes      String  // JSON object e.g. {"Size": "M", "Color": "Red"}
+  costOverride    Float?  @map("cost_override")
+  priceOverride   Float?  @map("price_override")
+  weight          Float?
+  image           String?
+  isActive        Boolean @default(true) @map("is_active")
+
+  product         Product @relation(fields: [parentProductId], references: [id], onDelete: Cascade)
+  stock           ProductStock[]
+  salesDetails    SalesInvoiceDetail[]
 
   @@map("product_variants")
+}
+
+// ==================== 159. Bin-Level WMS (Pick/Putaway) ====================
+model PickList {
+  id               Int            @id @default(autoincrement())
+  salesOrderId     Int?           @map("sales_order_id") // Optional relation if linking to order
+  status           String         @default("PENDING") // PENDING, PICKING, COMPLETED, CANCELLED
+  assignedTo       Int?           @map("assigned_to")
+  pickStrategyUsed String?        @map("pick_strategy_used")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  lines            PickListLine[]
+
+  @@map("pick_lists")
+}
+
+model PickListLine {
+  id          Int       @id @default(autoincrement())
+  listId      Int       @map("list_id")
+  productId   Int       @map("product_id")
+  variantId   Int?      @map("variant_id")
+  batchId     Int?      @map("batch_id")
+  sourceBinId Int?      @map("source_bin_id")
+  qty         Float
+  status      String    @default("PENDING") // PENDING, PICKED, SHORT
+  pickedAt    DateTime? @map("picked_at")
+
+  list        PickList  @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("pick_list_lines")
+}
+
+model PutawayRule {
+  id              Int     @id @default(autoincrement())
+  productId       Int?    @map("product_id")
+  categoryId      Int?    @map("category_id")
+  preferredZoneId Int     @map("preferred_zone_id")
+  fillStrategy    String  @default("FIRST_EMPTY") // FIRST_EMPTY, FILL_PARTIAL, BY_VELOCITY
+
+  @@map("putaway_rules")
 }
 
 model ProductSubstitute {
@@ -4383,6 +4745,118 @@ model CorrectiveAction {
   @@map("corrective_actions")
 }
 
+// ==================== 160. Production Scheduling & Capacity Planning ====================
+model MasterProductionSchedule {
+  id           Int      @id @default(autoincrement())
+  period       String   // e.g. "2026-W18" or "2026-05"
+  productId    Int      @map("product_id")
+  scheduledQty Float    @map("scheduled_qty")
+  demandSource String?  @map("demand_source") // JSON e.g. {"salesForecast": 500, "openOrders": 200}
+  status       String   @default("DRAFT") // DRAFT, APPROVED, IN_PROGRESS, DONE
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("master_production_schedules")
+}
+
+model CapacityCalendar {
+  id             Int      @id @default(autoincrement())
+  workCenterId   Int      @map("work_center_id")
+  date           DateTime
+  availableHours Float    @default(8) @map("available_hours")
+  plannedHours   Float    @default(0) @map("planned_hours")
+  actualHours    Float    @default(0) @map("actual_hours")
+  utilizationPct Float    @default(0) @map("utilization_pct")
+
+  @@unique([workCenterId, date])
+  @@map("capacity_calendars")
+}
+
+model ScheduledOperation {
+  id                   Int       @id @default(autoincrement())
+  manufacturingOrderId Int       @map("manufacturing_order_id")
+  operationId          Int       @map("operation_id")
+  workCenterId         Int       @map("work_center_id")
+  plannedStart         DateTime  @map("planned_start")
+  plannedEnd           DateTime  @map("planned_end")
+  sequence             Int       @default(1)
+  status               String    @default("PLANNED") // PLANNED, SCHEDULED, IN_PROGRESS, DONE
+  dependencies         String?   // JSON array of operation IDs
+
+  @@map("scheduled_operations")
+}
+
+// ==================== 161. RMA & Warranty Management ====================
+model RMA {
+  id             Int       @id @default(autoincrement())
+  salesInvoiceId Int       @map("sales_invoice_id")
+  customerId     Int       @map("customer_id")
+  requestedAt    DateTime  @default(now()) @map("requested_at")
+  requestedBy    String?   @map("requested_by")
+  reason         String    // DEFECTIVE, WRONG_ITEM, DAMAGED_SHIPPING, CHANGED_MIND, WARRANTY
+  status         String    @default("REQUESTED") // REQUESTED, APPROVED, REJECTED, RECEIVED, REFUNDED, CLOSED
+  resolution     String?   // REFUND, REPLACE, REPAIR, CREDIT_NOTE
+  approvedBy     String?   @map("approved_by")
+  items          String    // JSON
+  notes          String?
+
+  @@map("rmas")
+}
+
+model WarrantyClaim {
+  id                 Int       @id @default(autoincrement())
+  productId          Int       @map("product_id")
+  serialNumber       String?   @map("serial_number")
+  customerId         Int       @map("customer_id")
+  soldDate           DateTime  @map("sold_date")
+  warrantyExpiry     DateTime  @map("warranty_expiry")
+  issueDescription   String    @map("issue_description")
+  claimDate          DateTime  @default(now()) @map("claim_date")
+  status             String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
+  repairOrderId      Int?      @map("repair_order_id")
+  replacementOrderId Int?      @map("replacement_order_id")
+
+  @@map("warranty_claims")
+}
+
+model WarrantyPolicy {
+  id             Int     @id @default(autoincrement())
+  productId      Int?    @map("product_id")
+  categoryId     Int?    @map("category_id")
+  durationMonths Int     @map("duration_months")
+  type           String  @default("LIMITED") // LIMITED, FULL, EXTENDED
+  conditions     String? // TEXT
+  costToCustomer Float   @default(0) @map("cost_to_customer")
+
+  @@map("warranty_policies")
+}
+
+// ==================== 162. Advanced Three-Way Match & Tolerance ====================
+model TolerancePolicy {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  priceTolerancePct  Float   @default(0) @map("price_tolerance_pct")
+  qtyTolerancePct    Float   @default(0) @map("qty_tolerance_pct")
+  totalToleranceFlat Float   @default(0) @map("total_tolerance_flat")
+  action             String  @default("MANUAL") // AUTO_APPROVE, MANUAL, HOLD
+  applicableTo       String  @default("DEFAULT") // DEFAULT, VENDOR_ID, CATEGORY
+
+  @@map("tolerance_policies")
+}
+
+model InvoiceMatchResult {
+  id         Int       @id @default(autoincrement())
+  invoiceId  Int       @map("invoice_id")
+  status     String    @default("MANUAL_REVIEW") // MATCHED, HOLD_PRICE, HOLD_QTY, HOLD_TOTAL, MANUAL_REVIEW
+  priceDiff  Float     @default(0) @map("price_diff")
+  qtyDiff    Float     @default(0) @map("qty_diff")
+  totalDiff  Float     @default(0) @map("total_diff")
+  resolvedBy String?   @map("resolved_by")
+  resolvedAt DateTime? @map("resolved_at")
+  resolution String?
+
+  @@map("invoice_match_results")
+}
+
 // Phase D.1: Multi-Book / Multi-GAAP
 model AccountingBook {
   id              Int      @id @default(autoincrement())
@@ -4595,6 +5069,7 @@ model SavedPaymentMethod {
 
   customer         Customer       @relation(fields: [customerId], references: [id])
   gateway          PaymentGateway @relation(fields: [gatewayId], references: [id])
+  subscriptions    CustomerSubscription[]
 
   @@map("saved_payment_methods")
 }
@@ -4707,3 +5182,165 @@ model PosSessionMovement {
 
   @@map("pos_session_movements")
 }
+
+// ==================== 156. CRM Pipeline ====================
+model CrmAccount {
+  id               Int       @id @default(autoincrement())
+  name             String
+  industry         String?
+  size             String?   // SME, MID, LARGE, ENTERPRISE
+  website          String?
+  parentAccountId  Int?      @map("parent_account_id")
+  ownerId          Int?      @map("owner_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  contacts         Contact[]
+  opportunities    Opportunity[]
+
+  @@map("crm_accounts")
+}
+
+model Contact {
+  id               Int       @id @default(autoincrement())
+  accountId        Int       @map("account_id")
+  firstName        String    @map("first_name")
+  lastName         String    @map("last_name")
+  title            String?
+  email            String?
+  phone            String?
+  mobile           String?
+  isDecisionMaker  Boolean   @default(false) @map("is_decision_maker")
+  reportsToId      Int?      @map("reports_to_id")
+  createdBy        Int?      @map("created_by")
+
+  account          CrmAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("crm_contacts")
+}
+
+model PipelineStage {
+  id                 Int       @id @default(autoincrement())
+  code               String    @unique
+  name               String
+  defaultProbability Float     @map("default_probability")
+  sortOrder          Int       @map("sort_order")
+  isWon              Boolean   @default(false) @map("is_won")
+  isLost             Boolean   @default(false) @map("is_lost")
+
+  opportunities      Opportunity[]
+
+  @@map("crm_pipeline_stages")
+}
+
+model Opportunity {
+  id               Int       @id @default(autoincrement())
+  accountId        Int       @map("account_id")
+  name             String
+  amount           Float     @default(0)
+  currency         String    @default("SAR")
+  stageId          Int       @map("stage_id")
+  probability      Float     @default(0)
+  expectedCloseDate DateTime? @map("expected_close_date")
+  actualCloseDate  DateTime? @map("actual_close_date")
+  ownerId          Int?      @map("owner_id")
+  source           String?
+  leadId           Int?      @map("lead_id")
+  products         String?   // JSON
+  lostReason       String?   @map("lost_reason")
+  wonReason        String?   @map("won_reason")
+  customerId       Int?      @map("customer_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  account          CrmAccount @relation(fields: [accountId], references: [id])
+  stage            PipelineStage @relation(fields: [stageId], references: [id])
+  activities       Activity[]
+
+  @@map("crm_opportunities")
+}
+
+model Activity {
+  id               Int       @id @default(autoincrement())
+  type             String    // CALL, EMAIL, MEETING, TASK, NOTE
+  subject          String
+  description      String?   @db.Text
+  accountId        Int?      @map("account_id")
+  contactId        Int?      @map("contact_id")
+  opportunityId    Int?      @map("opportunity_id")
+  leadId           Int?      @map("lead_id")
+  ownerId          Int?      @map("owner_id")
+  dueDate          DateTime? @map("due_date")
+  completedAt      DateTime? @map("completed_at")
+  durationMinutes  Int?      @map("duration_minutes")
+  outcome          String?   // POSITIVE, NEUTRAL, NEGATIVE
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  opportunity      Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@map("crm_activities")
+}
+
+// ==================== 157. Subscription Billing ====================
+model SubscriptionPlan {
+  id               Int       @id @default(autoincrement())
+  code             String    @unique
+  name             String
+  billingCycle     String    // MONTHLY, QUARTERLY, YEARLY
+  price            Float
+  setupFee         Float?    @map("setup_fee")
+  trialDays        Int       @default(0) @map("trial_days")
+  features         String?   // JSON
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  subscriptions    CustomerSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model CustomerSubscription {
+  id                 Int       @id @default(autoincrement())
+  customerId         Int       @map("customer_id")
+  planId             Int       @map("plan_id")
+  startDate          DateTime  @default(now()) @map("start_date")
+  currentPeriodStart DateTime  @map("current_period_start")
+  currentPeriodEnd   DateTime  @map("current_period_end")
+  nextBillingDate    DateTime  @map("next_billing_date")
+  status             String    @default("ACTIVE") // TRIAL, ACTIVE, PAST_DUE, PAUSED, CANCELLED, ENDED
+  cancelAtPeriodEnd  Boolean   @default(false) @map("cancel_at_period_end")
+  paymentMethodId    Int?      @map("payment_method_id")
+  prorationCredit    Float     @default(0) @map("proration_credit")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  customer           Customer  @relation(fields: [customerId], references: [id])
+  plan               SubscriptionPlan @relation(fields: [planId], references: [id])
+  paymentMethod      SavedPaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  invoices           SubscriptionInvoice[]
+
+  @@map("customer_subscriptions")
+}
+
+model SubscriptionInvoice {
+  id               Int       @id @default(autoincrement())
+  subscriptionId   Int       @map("subscription_id")
+  periodStart      DateTime  @map("period_start")
+  periodEnd        DateTime  @map("period_end")
+  amount           Float
+  salesInvoiceId   Int?      @map("sales_invoice_id")
+  status           String    @default("PENDING") // PENDING, PAID, FAILED
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  subscription     CustomerSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  salesInvoice     SalesInvoice? @relation(fields: [salesInvoiceId], references: [id])
+
+  @@map("subscription_invoices")
+}
+
+// ==================== 158. Product Variants ====================
+model AttributeGroup {
+  id      Int      @id @default(autoincrement())
+  name    String   // e.g. "Size", "Color"
+  values  String?  // JSON array of values e.g. ["S", "M", "L"]
+
+  @@map("attribute_groups")
+}
+
