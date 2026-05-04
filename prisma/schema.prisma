@@ -427,6 +427,8 @@ model Customer {
   letters               DunningLetter[]
   collectionAssignments CollectionAssignment[]
   creditActions         CustomerCreditAction[]
+  SupplierBankAccount   SupplierBankAccount[]
+  SalesContract         SalesContract[]
 
   @@index([phone])
   @@index([name])
@@ -509,20 +511,19 @@ model SalesInvoice {
   docType           String?   @default("invoice") @map("doc_type") // invoice, simplified_debit, standard_debit
   originalInvoiceId Int?      @map("original_invoice_id")
 
-  customer                Customer?                 @relation(fields: [customerId], references: [id])
-  stock                   Stock?                    @relation(fields: [stockId], references: [id])
-  salesRep                Employee?                 @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
-  user                    User?                     @relation(fields: [userId], references: [id])
-  details                 SalesInvoiceDetail[]
-  branchId                Int?                      @map("branch_id")
-  branch                  Branch?                   @relation(fields: [branchId], references: [id])
-  shift                   Shift?                    @relation(fields: [shiftId], references: [id])
-  shiftId                 Int?                      @map("shift_id")
-  costCenterId            Int?                      @map("cost_center_id")
-  costCenter              CostCenter?               @relation(fields: [costCenterId], references: [id])
-  DeferredRevenueSchedule DeferredRevenueSchedule[]
-  payments                PaymentTransaction[]
-  subscriptionInvoices    SubscriptionInvoice[]
+  customer             Customer?             @relation(fields: [customerId], references: [id])
+  stock                Stock?                @relation(fields: [stockId], references: [id])
+  salesRep             Employee?             @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
+  user                 User?                 @relation(fields: [userId], references: [id])
+  details              SalesInvoiceDetail[]
+  branchId             Int?                  @map("branch_id")
+  branch               Branch?               @relation(fields: [branchId], references: [id])
+  shift                Shift?                @relation(fields: [shiftId], references: [id])
+  shiftId              Int?                  @map("shift_id")
+  costCenterId         Int?                  @map("cost_center_id")
+  costCenter           CostCenter?           @relation(fields: [costCenterId], references: [id])
+  payments             PaymentTransaction[]
+  subscriptionInvoices SubscriptionInvoice[]
 
   @@index([invoiceNo])
   @@index([date])
@@ -1126,6 +1127,18 @@ model JournalEntry {
   bookId Int?            @map("book_id")
   book   AccountingBook? @relation(fields: [bookId], references: [id])
 
+  replicatedFromId Int?
+  replicatedFrom   JournalEntry?  @relation("Replications", fields: [replicatedFromId], references: [id])
+  replications     JournalEntry[] @relation("Replications")
+
+  bookOnly Boolean @default(false)
+
+  fxRateUsed   Decimal?  @db.Decimal(20, 8)
+  fxRateDate   DateTime?
+  fxRateSource String?
+
+  @@index([bookId])
+  @@index([replicatedFromId])
   @@index([entryDate])
   @@index([status])
   @@map("journal_entries")
@@ -1746,11 +1759,30 @@ model BankAccount {
   currentBalance Float   @default(0) @map("current_balance")
   isActive       Boolean @default(true) @map("is_active")
 
-  branch       Branch?             @relation(fields: [branchId], references: [id])
-  transactions BankTransaction[]
-  lcs          LetterOfCredit[]
-  lgs          LetterOfGuarantee[]
-  statements   BankStatement[]
+  bankCode            String? // 'ALRAJHI' | 'NCB' | 'SAB' | 'SAMBA' | 'ANB' | 'BSF'
+  preferredFileFormat String?
+  fileEncoding        String  @default("utf-8")
+  fileColumnMapping   Json? // for csv-generic
+
+  // Open Banking
+  openBankingProvider         String? // 'LEAN' | 'TARABUT' | 'NONE'
+  openBankingAccountId        String? // provider's account ID
+  openBankingConsentExpiresAt DateTime?
+  openBankingLastFetchAt      DateTime?
+  openBankingFetchEnabled     Boolean   @default(false)
+  openBankingFetchFrequency   String    @default("DAILY") // 'HOURLY' | 'DAILY' | 'WEEKLY'
+
+  intraDayBalance          Decimal?  @db.Decimal(20, 4)
+  intraDayBalanceUpdatedAt DateTime?
+
+  branch           Branch?             @relation(fields: [branchId], references: [id])
+  transactions     BankTransaction[]
+  lcs              LetterOfCredit[]
+  lgs              LetterOfGuarantee[]
+  statements       BankStatement[]
+  intraDayBalances IntraDayBalance[]
+  BankReconRule    BankReconRule[]
+  BankReconPeriod  BankReconPeriod[]
 
   @@map("bank_accounts")
 }
@@ -3676,39 +3708,6 @@ model AllocationRun {
 }
 
 // Phase 1.5: Revenue Recognition
-model RevenueArrangement {
-  id            Int       @id @default(autoincrement())
-  customerId    Int       @map("customer_id")
-  salesOrderId  Int?      @map("sales_order_id")
-  contractValue Decimal   @map("contract_value") @db.Decimal(18, 4)
-  currency      String    @default("SAR")
-  startDate     DateTime  @map("start_date")
-  endDate       DateTime? @map("end_date")
-
-  @@map("revenue_arrangements")
-}
-
-model PerformanceObligation {
-  id                Int       @id @default(autoincrement())
-  arrangementId     Int       @map("arrangement_id")
-  name              String
-  allocatedAmount   Decimal   @map("allocated_amount") @db.Decimal(18, 4)
-  recognitionMethod String    @map("recognition_method") // point_in_time, over_time_straight
-  startDate         DateTime  @map("start_date")
-  endDate           DateTime? @map("end_date")
-
-  @@map("performance_obligations")
-}
-
-model RevenueSchedule {
-  id               Int      @id @default(autoincrement())
-  obligationId     Int      @map("obligation_id")
-  period           DateTime
-  recognizedAmount Decimal  @map("recognized_amount") @db.Decimal(18, 4)
-  journalEntryId   Int?     @map("journal_entry_id")
-
-  @@map("revenue_schedules")
-}
 
 // ==========================================
 // Phase 2: Advanced AR/AP
@@ -3978,70 +3977,274 @@ model CustomerCreditScoreHistory {
 
 model BankStatement {
   id              Int         @id @default(autoincrement())
-  bankAccountId   Int         @map("bank_account_id")
+  bankAccountId   Int
   bankAccount     BankAccount @relation(fields: [bankAccountId], references: [id])
-  statementNumber String?     @map("statement_number")
-  statementDate   DateTime    @map("statement_date")
-  openingBalance  Decimal     @map("opening_balance") @db.Decimal(18, 4)
-  closingBalance  Decimal     @map("closing_balance") @db.Decimal(18, 4)
-  currency        String      @default("SAR")
-  fileFormat      String?     @map("file_format") // MT940, CAMT_053, OFX, CSV
-  fileName        String?     @map("file_name")
-  fileContent     String?     @map("file_content") @db.Text
-  status          String      @default("IMPORTED") // IMPORTED, RECONCILED
-  importedBy      Int?        @map("imported_by")
-  reconciledAt    DateTime?   @map("reconciled_at")
-  createdAt       DateTime    @default(now()) @map("created_at")
+  statementNumber String?
+  sequenceNumber  Int?
 
-  lines BankStatementLine[]
+  fileFormat    String // 'MT940' | 'MT942' | 'CAMT053' | 'CAMT052' | 'CAMT054' | 'OFX' | 'BAI2' | 'CSV' | 'EXCEL' | 'PDF_OCR' | 'API_OPEN_BANKING'
+  fileUrl       String?
+  fileName      String?
+  fileHash      String?
+  fileSizeBytes Int?
 
+  importedAt       DateTime @default(now())
+  importedByUserId String?
+  importMethod     String // 'MANUAL' | 'API' | 'OCR' | 'WEBHOOK' | 'CRON_AUTO'
+
+  currency       String
+  openingBalance Decimal  @db.Decimal(20, 4)
+  openingDate    DateTime
+  closingBalance Decimal  @db.Decimal(20, 4)
+  closingDate    DateTime
+
+  validationStatus         String   @default("PENDING") // 'PENDING' | 'VALID' | 'BALANCE_MISMATCH' | 'DUPLICATE' | 'INVALID_FORMAT'
+  validationDifference     Decimal? @db.Decimal(20, 4)
+  validationOverridden     Boolean  @default(false)
+  validationOverrideReason String?
+
+  duplicatesCount    Int @default(0)
+  lowConfidenceCount Int @default(0)
+  totalTransactions  Int @default(0)
+
+  parseConfidence Decimal? @db.Decimal(5, 2) // for OCR
+
+  reconStatus      String @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | COMPLETED | PARTIAL
+  reconciliationId Int?
+
+  lines    BankStatementLine[]
+  intraDay Boolean             @default(false)
+
+  @@index([bankAccountId, openingDate])
+  @@index([fileFormat, importedAt])
+  @@index([reconStatus])
   @@map("bank_statements")
 }
 
 model BankStatementLine {
-  id                     Int           @id @default(autoincrement())
-  statementId            Int           @map("statement_id")
-  statement              BankStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
-  lineNumber             Int?          @map("line_number")
-  transactionDate        DateTime      @map("transaction_date") // Equivalent to valueDate
-  bookingDate            DateTime?     @map("booking_date")
-  description            String        @db.Text
-  reference              String?
-  counterpartyName       String?       @map("counterparty_name")
-  counterpartyIBAN       String?       @map("counterparty_iban")
-  amount                 Decimal       @db.Decimal(18, 4) // Legacy, but we add debit/credit
-  debit                  Decimal       @default(0) @db.Decimal(18, 4)
-  credit                 Decimal       @default(0) @db.Decimal(18, 4)
-  balance                Decimal?      @db.Decimal(18, 4)
-  type                   String // DEBIT, CREDIT
-  reconciledStatus       String        @default("UNRECONCILED") // UNRECONCILED, MATCHED, POSTED
-  matchedDocId           Int?          @map("matched_doc_id") // Equivalent to matchedTransactionId
-  matchedTransactionType String?       @map("matched_transaction_type") // JE, PAYMENT, RECEIPT
-  matchConfidence        Decimal?      @db.Decimal(5, 2) // 0-100%
-  matchedBy              Int?          @map("matched_by")
-  matchedAt              DateTime?     @map("matched_at")
+  id          Int           @id @default(autoincrement())
+  statementId Int
+  statement   BankStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+
+  transactionDate DateTime
+  valueDate       DateTime?
+  postingDate     DateTime?
+
+  amount   Decimal @db.Decimal(20, 4)
+  currency String  @default("SAR")
+  type     String // 'DEBIT' | 'CREDIT'
+
+  description       String  @db.Text
+  reference         String?
+  externalReference String? // bank's internal ref
+
+  counterpartyName    String?
+  counterpartyIBAN    String?
+  counterpartyBank    String?
+  counterpartyCountry String?
+
+  category           String? // auto-classified: 'TRANSFER' | 'FEE' | 'INTEREST' | 'CHECK' | 'CARD' | 'CASH' | 'STANDING_ORDER' | 'DIRECT_DEBIT' | 'FX' | 'OTHER'
+  categoryConfidence Decimal? @db.Decimal(5, 2)
+
+  ocrConfidence    Decimal?  @db.Decimal(5, 2) // for PDF OCR per-field
+  needsReview      Boolean   @default(false)
+  reviewedAt       DateTime?
+  reviewedByUserId String?
+
+  isDuplicate       Boolean @default(false)
+  duplicateOfLineId Int?
+
+  hash    String @default("") // SHA-256 of (date+amount+ref+counterparty)
+  rawData Json?
+
+  matchStatus      String    @default("UNMATCHED") // 'UNMATCHED' | 'AUTO_MATCHED' | 'MANUAL_MATCHED' | 'EXCEPTION' | 'IGNORED'
+  matchedToType    String? // 'JE' | 'PAYMENT' | 'CHECK' | 'CASH_RECEIPT'
+  matchedToId      Int?
+  matchedAt        DateTime?
+  matchedByUserId  String?
+  matchConfidence  Decimal?  @db.Decimal(5, 2)
+  matchStrategy    String? // 'EXACT' | 'FUZZY' | 'AI' | 'RULE'
+  aiSuggestion     Json? // raw AI response
+  matchedJournalId Int?
+  matchedToIds     Int[] // for aggregate matches
+  splitParentId    Int? // if this line is part of a split
+
+  reconciliationId Int?
+  reconciliation   BankReconPeriod? @relation(fields: [reconciliationId], references: [id])
+
+  exception BankReconciliationException?
 
   BankReconMatch BankReconMatch[]
+  reviewItem     BankStatementReviewItem?
 
+  @@index([hash])
+  @@index([statementId, type])
+  @@index([transactionDate])
+  @@index([matchStatus])
+  @@index([needsReview])
   @@map("bank_statement_lines")
 }
 
-model BankReconRule {
-  id                Int       @id @default(autoincrement())
-  bankAccountId     Int?
-  name              String
-  priority          Int
-  // Match conditions (JSON)
-  conditions        Json // { descriptionContains, amountRange, counterpartyContains, valueDateRange }
-  // Actions
-  postToAccountCode String? // post to this GL account
-  costCenterId      Int?
-  description       String?
-  isActive          Boolean   @default(true)
-  matchedCount      Int       @default(0)
-  lastMatchedAt     DateTime?
+model IntraDayBalance {
+  id            Int         @id @default(autoincrement())
+  bankAccountId Int
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+  asOfTimestamp DateTime
+  balance       Decimal     @db.Decimal(20, 4)
+  currency      String
+  source        String // 'CAMT052' | 'API' | 'WEBSITE_SCRAPE'
+  receivedAt    DateTime    @default(now())
 
+  @@index([bankAccountId, asOfTimestamp])
+}
+
+model BankImportError {
+  id               Int       @id @default(autoincrement())
+  bankAccountId    Int?
+  fileName         String?
+  errorType        String // 'PARSE_ERROR' | 'BALANCE_MISMATCH' | 'DUPLICATE' | 'UNKNOWN_FORMAT' | 'UNKNOWN_ACCOUNT'
+  errorMessage     String    @db.Text
+  fileSnippet      String?   @db.Text
+  occurredAt       DateTime  @default(now())
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  resolution       String?
+
+  @@index([bankAccountId, occurredAt])
+}
+
+model BankStatementReviewItem {
+  id               Int               @id @default(autoincrement())
+  lineId           Int               @unique
+  line             BankStatementLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  fieldsToReview   String[] // ['amount', 'date', 'description']
+  ocrSnippet       String? // image cropped of the field
+  suggestedValues  Json?
+  reviewerNotes    String?
+  reviewedAt       DateTime?
+  reviewedByUserId String?
+}
+
+model BankReconRule {
+  id         Int    @id @default(autoincrement())
+  ruleNumber String @unique @default(cuid())
+  name       String
+
+  bankAccountId Int? // null = applies to all
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  conditions Json // [{field: 'description', operator: 'contains', value: 'BANK FEE'}]
+
+  action       String // 'CREATE_JE' | 'MATCH_TO_VENDOR' | 'MATCH_TO_CUSTOMER' | 'IGNORE' | 'CATEGORIZE'
+  actionParams Json // {accountId, description, etc.}
+
+  priority Int @default(100)
+
+  successCount Int      @default(0)
+  failureCount Int      @default(0)
+  successRate  Decimal? @db.Decimal(5, 2)
+
+  enabled Boolean @default(true)
+
+  learnedFromLineId Int? // origin of this rule
+
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastAppliedAt   DateTime?
+
+  @@index([bankAccountId, enabled, priority])
   @@map("bank_recon_rules")
+}
+
+model BankReconPeriod {
+  id            Int         @id @default(autoincrement())
+  bankAccountId Int
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  reconciliationNumber String   @unique @default(cuid())
+  periodStart          DateTime
+  periodEnd            DateTime
+
+  bookBalance Decimal @db.Decimal(20, 4)
+  bankBalance Decimal @db.Decimal(20, 4)
+
+  reconcilingItems      Json // {outstandingChecks: [...], depositsInTransit: [...], adjustments: [...]}
+  totalReconcilingItems Decimal @db.Decimal(20, 4)
+
+  adjustedBookBalance Decimal @db.Decimal(20, 4)
+  difference          Decimal @db.Decimal(20, 4)
+
+  status String @default("DRAFT") // DRAFT | PENDING_APPROVAL | APPROVED | LOCKED | REOPENED
+
+  pdfUrl  String?
+  pdfHash String?
+
+  createdByUserId  String
+  createdAt        DateTime  @default(now())
+  submittedAt      DateTime?
+  approvedByUserId String?
+  approvedAt       DateTime?
+  lockedAt         DateTime?
+
+  notes String? @db.Text
+
+  matchedLines BankStatementLine[]
+
+  @@unique([bankAccountId, periodEnd])
+  @@index([bankAccountId, status])
+}
+
+model BankReconciliationException {
+  id     Int               @id @default(autoincrement())
+  lineId Int               @unique
+  line   BankStatementLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  reason      String // 'NO_MATCH' | 'LOW_CONFIDENCE' | 'AMBIGUOUS' | 'AGGREGATE_NEEDED'
+  suggestions Json // candidate matches with confidence
+
+  assignedToUserId String?
+  priority         String  @default("NORMAL")
+
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  resolution       String? // 'MATCHED' | 'JE_CREATED' | 'IGNORED' | 'WRITTEN_OFF'
+  resolutionNotes  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([resolvedAt, assignedToUserId])
+  @@index([priority, createdAt])
+}
+
+model OutstandingCheck {
+  id              Int       @id @default(autoincrement())
+  checkId         Int?
+  checkNumber     String?
+  bankAccountId   Int
+  issuedDate      DateTime
+  amount          Decimal   @db.Decimal(20, 4)
+  payee           String
+  status          String    @default("OUTSTANDING") // OUTSTANDING | CLEARED | STALE | CANCELLED
+  daysOutstanding Int       @default(0)
+  clearedDate     DateTime?
+  matchedLineId   Int?
+
+  @@index([bankAccountId, status])
+  @@index([daysOutstanding])
+}
+
+model DepositInTransit {
+  id            Int       @id @default(autoincrement())
+  bankAccountId Int
+  depositDate   DateTime
+  amount        Decimal   @db.Decimal(20, 4)
+  source        String // customer name or reference
+  status        String    @default("IN_TRANSIT") // IN_TRANSIT | CLEARED | RETURNED
+  clearedDate   DateTime?
+  matchedLineId Int?
+
+  @@index([bankAccountId, status])
 }
 
 model BankReconMatch {
@@ -4550,104 +4753,513 @@ model EngineeringChangeOrder {
 // ==================== IFRS 16 Lease Accounting (Phase E) ====================
 
 model IfrsLeaseContract {
-  id              Int      @id @default(autoincrement())
-  contractNumber  String   @unique @map("contract_number")
-  lessor          String
-  description     String
-  leaseStartDate  DateTime @map("lease_start_date")
-  leaseEndDate    DateTime @map("lease_end_date")
-  leaseTermMonths Int      @map("lease_term_months")
-
-  paymentFrequency   String  @map("payment_frequency") // MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL
-  fixedPayment       Float   @map("fixed_payment")
-  paymentAtBeginning Boolean @default(true) @map("payment_at_beginning")
-
-  incrementalBorrowingRate Float  @map("incremental_borrowing_rate")
-  rateImplicit             Float? @map("rate_implicit")
-
-  initialLiability Float @map("initial_liability")
-  initialROUAsset  Float @map("initial_rou_asset")
-
-  assetCategory        String @map("asset_category") // VEHICLE, BUILDING, EQUIPMENT, IT
-  rouAssetAccountCode  String @map("rou_asset_account_code")
-  liabilityAccountCode String @map("liability_account_code")
-
-  status       String    @default("ACTIVE") // ACTIVE, MODIFIED, TERMINATED, EXPIRED
-  modifiedAt   DateTime? @map("modified_at")
-  terminatedAt DateTime? @map("terminated_at")
-
-  isShortTerm Boolean @default(false) @map("is_short_term")
-  isLowValue  Boolean @default(false) @map("is_low_value")
-
-  schedules     LeaseAmortizationSchedule[]
-  modifications LeaseModification[]
-
-  @@map("ifrs_lease_contracts")
+  id                              Int                       @id @default(autoincrement())
+  contractNumber                  String                    @unique
+  
+  // Counterparty
+  lessor                          String
+  lessorContact                   String?
+  lessorVendorId                  Int?
+  lessorVendor                    Vendor?                   @relation(fields: [lessorVendorId], references: [id])
+  
+  // Asset
+  leaseClass                      String                    // 'PROPERTY' | 'VEHICLE' | 'EQUIPMENT' | 'IT_EQUIPMENT' | 'FURNITURE' | 'OTHER'
+  assetDescription                String
+  assetLocation                   String?
+  
+  // Lease term
+  startDate                       DateTime
+  endDate                         DateTime
+  termMonths                      Int
+  hasExtensionOption              Boolean                   @default(false)
+  extensionTerms                  String?
+  exerciseOptionLikely            Boolean?
+  
+  // Payments
+  paymentAmount                   Decimal                   @db.Decimal(20,4)
+  paymentFrequency                String                    @default("MONTHLY")  // 'MONTHLY' | 'QUARTERLY' | 'SEMI_ANNUAL' | 'ANNUAL'
+  paymentTiming                   String                    @default("END")  // 'BEGIN' (annuity due) | 'END' (ordinary)
+  paymentDayOfMonth               Int                       @default(1)
+  
+  // Variable payments
+  hasVariablePayments             Boolean                   @default(false)
+  variablePaymentBasis            String?                   // 'INDEX' | 'USAGE' | 'PERFORMANCE'
+  variablePaymentDescription      String?
+  
+  // Currency
+  currency                        String                    @default("SAR")
+  
+  // Discount rate
+  ibr                             Decimal                   @db.Decimal(8,4)  // annual %
+  ibrSource                       String?                   // 'BANK_QUOTE' | 'MARKET_AVERAGE' | 'GOVERNMENT_BOND'
+  ibrDate                         DateTime?
+  
+  // Initial direct costs + incentives
+  initialDirectCosts              Decimal                   @default(0) @db.Decimal(20,4)
+  initialDirectCostsPaidAt        DateTime?
+  leaseIncentive                  Decimal                   @default(0) @db.Decimal(20,4)
+  
+  // Exemption
+  exemption                       String?                   // 'SHORT_TERM' | 'LOW_VALUE' | null
+  exemptionReason                 String?
+  
+  // GL Accounts
+  rouAccountId                    Int
+  liabilityAccountId              Int
+  interestAccountId               Int
+  depreciationAccountId           Int
+  accumDepreciationAccountId      Int
+  cashAccountId                   Int
+  expenseAccountId                Int?                      // for exempt leases
+  
+  // Calculated values
+  pvOfPayments                    Decimal?                  @db.Decimal(20,4)
+  rouAssetValue                   Decimal?                  @db.Decimal(20,4)
+  liabilityValue                  Decimal?                  @db.Decimal(20,4)
+  
+  // Current state
+  currentRouNbv                   Decimal?                  @db.Decimal(20,4)
+  currentLiability                Decimal?                  @db.Decimal(20,4)
+  
+  // Status
+  status                          String                    @default("DRAFT")  // 'DRAFT' | 'ACTIVE' | 'TERMINATED' | 'EXPIRED' | 'MODIFIED' | 'IMPAIRED'
+  
+  // Approval
+  approvedAt                      DateTime?
+  approvedByUserId                String?
+  
+  // Journals
+  initialJournalId                Int?
+  terminationJournalId            Int?
+  
+  // Sublease
+  hasSublease                     Boolean                   @default(false)
+  
+  // Audit
+  createdByUserId                 String
+  createdAt                       DateTime                  @default(now())
+  updatedAt                       DateTime                  @updatedAt
+  
+  // Relations
+  schedule                        IfrsLeaseSchedule?
+  modifications                   IfrsLeaseModification[]
+  terminations                    IfrsLeaseTermination[]
+  subleases                       IfrsSublease[]
+  impairments                     IfrsLeaseImpairment[]
+  variablePayments                IfrsVariableLeasePayment[]
+  
+  @@index([status, endDate])
+  @@index([lessorVendorId])
+  @@index([leaseClass])
 }
 
-model LeaseAmortizationSchedule {
-  id                 Int               @id @default(autoincrement())
-  contractId         Int               @map("contract_id")
-  contract           IfrsLeaseContract @relation(fields: [contractId], references: [id])
-  periodNumber       Int               @map("period_number")
-  paymentDate        DateTime          @map("payment_date")
-  payment            Float
-  interestExpense    Float             @map("interest_expense")
-  principalReduction Float             @map("principal_reduction")
-  liabilityBalance   Float             @map("liability_balance")
-  rouDepreciation    Float             @map("rou_depreciation")
-  rouBalance         Float             @map("rou_balance")
-  status             String            @default("PENDING") // PENDING, POSTED
-  journalEntryId     Int?              @map("journal_entry_id")
-
-  @@map("ifrs_lease_schedules")
+model IfrsLeaseSchedule {
+  id                              Int                       @id @default(autoincrement())
+  contractId                      Int                       @unique
+  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  generatedAt                     DateTime                  @default(now())
+  isCurrent                       Boolean                   @default(true)
+  versionNumber                   Int                       @default(1)
+  
+  totalPayments                   Decimal                   @db.Decimal(20,4)
+  totalInterest                   Decimal                   @db.Decimal(20,4)
+  pvAtGeneration                  Decimal                   @db.Decimal(20,4)
+  
+  lines                           IfrsLeaseScheduleLine[]
 }
 
-model LeaseModification {
-  id                  Int               @id @default(autoincrement())
-  contractId          Int               @map("contract_id")
-  contract            IfrsLeaseContract @relation(fields: [contractId], references: [id])
-  modificationDate    DateTime          @map("modification_date")
-  modificationType    String            @map("modification_type") // EXTENSION, REDUCTION, RATE_CHANGE, PAYMENT_CHANGE
-  oldLiability        Float             @map("old_liability")
-  newLiability        Float             @map("new_liability")
-  remeasurementAmount Float             @map("remeasurement_amount")
-  newDiscountRate     Float?            @map("new_discount_rate")
-  journalEntryId      Int?              @map("journal_entry_id")
+model IfrsLeaseScheduleLine {
+  id                              Int                       @id @default(autoincrement())
+  scheduleId                      Int
+  schedule                        IfrsLeaseSchedule         @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  
+  periodNumber                    Int
+  periodDate                      DateTime
+  
+  openingLiability                Decimal                   @db.Decimal(20,4)
+  interestExpense                 Decimal                   @db.Decimal(20,4)
+  payment                         Decimal                   @db.Decimal(20,4)
+  principal                       Decimal                   @db.Decimal(20,4)
+  closingLiability                Decimal                   @db.Decimal(20,4)
+  
+  rouDepreciation                 Decimal                   @db.Decimal(20,4)
+  rouOpeningNbv                   Decimal                   @db.Decimal(20,4)
+  rouClosingNbv                   Decimal                   @db.Decimal(20,4)
+  
+  recognizedAt                    DateTime?
+  interestJournalId               Int?
+  paymentJournalId                Int?
+  depreciationJournalId           Int?
+  
+  // For variable
+  variableComponent               Decimal?                  @db.Decimal(20,4)
+  
+  notes                           String?
+  
+  @@index([scheduleId, periodNumber])
+  @@index([scheduleId, periodDate])
+  @@index([recognizedAt])
+}
 
-  @@map("ifrs_lease_modifications")
+model IfrsLeaseModification {
+  id                              Int                       @id @default(autoincrement())
+  contractId                      Int
+  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
+  
+  modificationDate                DateTime
+  modificationType                String                    // 'EXTENSION' | 'REDUCTION' | 'PAYMENT_CHANGE' | 'SCOPE_CHANGE' | 'IBR_CHANGE'
+  
+  oldPaymentAmount                Decimal?                  @db.Decimal(20,4)
+  newPaymentAmount                Decimal?                  @db.Decimal(20,4)
+  oldEndDate                      DateTime?
+  newEndDate                      DateTime?
+  oldIbr                          Decimal?                  @db.Decimal(8,4)
+  newIbr                          Decimal?                  @db.Decimal(8,4)
+  
+  rouAdjustment                   Decimal?                  @db.Decimal(20,4)
+  liabilityAdjustment             Decimal?                  @db.Decimal(20,4)
+  remeasurementJournalId          Int?
+  
+  newScheduleId                   Int?
+  
+  reason                          String                    @db.Text
+  approvedByUserId                String?
+  approvedAt                      DateTime?
+  
+  createdByUserId                 String
+  createdAt                       DateTime                  @default(now())
+  
+  @@index([contractId, modificationDate])
+}
+
+model IfrsLeaseTermination {
+  id                              Int                       @id @default(autoincrement())
+  contractId                      Int                       @unique
+  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
+  
+  terminationDate                 DateTime
+  terminationType                 String                    // 'EARLY_BY_LESSEE' | 'EARLY_BY_LESSOR' | 'EXPIRED' | 'MUTUAL'
+  
+  remainingLiability              Decimal                   @db.Decimal(20,4)
+  remainingRouNbv                 Decimal                   @db.Decimal(20,4)
+  
+  penaltyAmount                   Decimal                   @default(0) @db.Decimal(20,4)
+  refundAmount                    Decimal                   @default(0) @db.Decimal(20,4)
+  
+  gainLoss                        Decimal                   @db.Decimal(20,4)
+  terminationJournalId            Int
+  
+  reason                          String                    @db.Text
+  
+  createdByUserId                 String
+  createdAt                       DateTime                  @default(now())
+}
+
+model IfrsSublease {
+  id                              Int                       @id @default(autoincrement())
+  mainLeaseId                     Int
+  mainLease                       IfrsLeaseContract         @relation(fields: [mainLeaseId], references: [id])
+  
+  sublessee                       String
+  sublessorContractId             Int?                      // separate contract record
+  
+  type                            String                    // 'OPERATING' | 'FINANCE'
+  
+  startDate                       DateTime
+  endDate                         DateTime
+  
+  paymentAmount                   Decimal                   @db.Decimal(20,4)
+  paymentFrequency                String
+  
+  netInvestmentInLease            Decimal?                  @db.Decimal(20,4)
+  derecognitionJournalId          Int?
+  
+  status                          String                    @default("ACTIVE")
+}
+
+model IfrsLeaseImpairment {
+  id                              Int                       @id @default(autoincrement())
+  contractId                      Int
+  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
+  
+  testDate                        DateTime
+  carryingAmount                  Decimal                   @db.Decimal(20,4)
+  recoverableAmount               Decimal                   @db.Decimal(20,4)
+  impairmentLoss                  Decimal                   @db.Decimal(20,4)
+  
+  reversal                        Boolean                   @default(false)
+  reversalReason                  String?
+  
+  evidence                        String?
+  
+  journalEntryId                  Int
+  
+  approvedByUserId                String?
+  
+  createdByUserId                 String
+  createdAt                       DateTime                  @default(now())
+}
+
+model IfrsVariableLeasePayment {
+  id                              Int                       @id @default(autoincrement())
+  contractId                      Int
+  contract                        IfrsLeaseContract         @relation(fields: [contractId], references: [id])
+  
+  periodDate                      DateTime
+  amount                          Decimal                   @db.Decimal(20,4)
+  basisDescription                String                    // "5 SAR per km × 2,000 km"
+  indexValue                      Decimal?                  @db.Decimal(20,8)  // if INDEX-based
+  
+  expenseJournalId                Int?
+  
+  recordedAt                      DateTime                  @default(now())
+  recordedByUserId                String
+  
+  @@index([contractId, periodDate])
 }
 
 // ==================== IFRS 15 Revenue Recognition ====================
 
+model SalesContract {
+  id             Int      @id @default(autoincrement())
+  contractNumber String   @unique
+  customerId     Int
+  customer       Customer @relation(fields: [customerId], references: [id])
+
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+
+  totalContractValue Decimal @db.Decimal(20, 4)
+  currency           String
+
+  status String @default("DRAFT") // 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'TERMINATED' | 'MODIFIED'
+
+  // Source for modifications
+  parentContractId Int?
+  parentContract   SalesContract?  @relation("ContractModifications", fields: [parentContractId], references: [id])
+  modifications    SalesContract[] @relation("ContractModifications")
+
+  // Variable consideration
+  variableConsideration    Json? // {expectedValue, mostLikelyAmount, scenarios, constraint}
+  variableConstraintAmount Decimal? @db.Decimal(20, 4)
+
+  // Refund liability
+  refundLiabilityEstimate Decimal? @db.Decimal(20, 4)
+  refundLiabilityRate     Decimal? @db.Decimal(5, 4)
+
+  // Discount allocation
+  totalSsp        Decimal? @db.Decimal(20, 4)
+  discountPercent Decimal? @db.Decimal(5, 4)
+
+  // Salesperson
+  salesPersonId Int?
+
+  // Approval
+  approvalStatus   String?   @default("PENDING")
+  approvedAt       DateTime?
+  approvedByUserId String?
+
+  // Audit
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  performanceObligations   PerformanceObligation[]
+  contractModificationsLog ContractModificationRecord[]
+  variableUpdates          VariableConsiderationUpdate[]
+
+  @@index([customerId, status])
+  @@index([startDate])
+}
+
+model PerformanceObligation {
+  id         Int           @id @default(autoincrement())
+  poNumber   String        @unique
+  contractId Int
+  contract   SalesContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  description      String
+  productServiceId Int? // link to Product if applicable
+
+  standaloneSellingPrice Decimal @db.Decimal(20, 4)
+  sspMethod              String  @default("OBSERVABLE") // 'OBSERVABLE' | 'ADJUSTED_MARKET' | 'EXPECTED_COST_PLUS_MARGIN' | 'RESIDUAL'
+
+  allocatedAmount Decimal @db.Decimal(20, 4)
+
+  recognitionPattern String // 'POINT_IN_TIME' | 'OVER_TIME_STRAIGHT_LINE' | 'OVER_TIME_USAGE' | 'OVER_TIME_PCT_COMPLETION_INPUT' | 'OVER_TIME_PCT_COMPLETION_OUTPUT' | 'MILESTONE'
+
+  // Timing
+  startDate              DateTime?
+  endDate                DateTime?
+  expectedCompletionDate DateTime?
+  completedAt            DateTime?
+  completionMethod       String?
+
+  // Progress tracking
+  recognizedAmount Decimal @default(0) @db.Decimal(20, 4)
+  remainingAmount  Decimal @db.Decimal(20, 4)
+  percentComplete  Decimal @default(0) @db.Decimal(5, 4)
+
+  // For % completion
+  totalEstimatedCost     Decimal?  @db.Decimal(20, 4)
+  cumulativeCostIncurred Decimal   @default(0) @db.Decimal(20, 4)
+  costRevisedAt          DateTime?
+
+  // For usage-based
+  totalEstimatedUsage Decimal? @db.Decimal(20, 4)
+  cumulativeUsage     Decimal  @default(0) @db.Decimal(20, 4)
+  pricePerUnit        Decimal? @db.Decimal(20, 8)
+
+  // Schedule
+  schedule DeferredRevenueSchedule?
+
+  // Milestones
+  milestones RevenueMilestone[]
+
+  // GL accounts (override per PO)
+  contractLiabilityAccountId Int?
+  contractAssetAccountId     Int?
+  revenueAccountId           Int?
+
+  status String @default("ACTIVE") // 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'MODIFIED'
+
+  createdAt DateTime @default(now())
+
+  @@index([contractId])
+  @@index([recognitionPattern, status])
+  @@index([endDate])
+}
+
 model DeferredRevenueSchedule {
-  id                Int          @id @default(autoincrement())
-  invoiceId         Int          @map("invoice_id")
-  invoice           SalesInvoice @relation(fields: [invoiceId], references: [id])
-  totalAmount       Float        @map("total_amount")
-  recognizedAmount  Float        @default(0) @map("recognized_amount")
-  remainingAmount   Float        @map("remaining_amount")
-  startDate         DateTime     @map("start_date")
-  endDate           DateTime     @map("end_date")
-  recognitionMethod String       @map("recognition_method") // STRAIGHT_LINE, MILESTONE
-  status            String       @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  id                      Int                   @id @default(autoincrement())
+  performanceObligationId Int                   @unique
+  performanceObligation   PerformanceObligation @relation(fields: [performanceObligationId], references: [id])
+
+  totalAmount          Decimal  @db.Decimal(20, 4)
+  recognitionStartDate DateTime
+  recognitionEndDate   DateTime
+  frequency            String // 'DAILY' | 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'CUSTOM'
+
+  totalLines      Int
+  recognizedLines Int @default(0)
+
+  generatedAt   DateTime @default(now())
+  isCurrent     Boolean  @default(true)
+  versionNumber Int      @default(1)
 
   lines RevenueRecognitionLine[]
-
-  @@map("deferred_revenue_schedules")
 }
 
 model RevenueRecognitionLine {
-  id                Int                     @id @default(autoincrement())
-  scheduleId        Int                     @map("schedule_id")
-  schedule          DeferredRevenueSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  periodDate        DateTime                @map("period_date")
-  amountToRecognize Float                   @map("amount_to_recognize")
-  isRecognized      Boolean                 @default(false) @map("is_recognized")
-  recognizedAt      DateTime?               @map("recognized_at")
-  journalEntryId    Int?                    @map("journal_entry_id")
+  id                      Int                     @id @default(autoincrement())
+  scheduleId              Int
+  schedule                DeferredRevenueSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  performanceObligationId Int
 
-  @@map("revenue_recognition_lines")
+  lineNumber       Int
+  recognitionDate  DateTime
+  scheduledAmount  Decimal   @db.Decimal(20, 4)
+  recognizedAmount Decimal?  @db.Decimal(20, 4)
+  recognizedAt     DateTime?
+
+  status String @default("PENDING") // 'PENDING' | 'RECOGNIZED' | 'ADJUSTED' | 'CANCELLED' | 'DEFERRED'
+
+  journalEntryId Int?
+
+  notes String?
+
+  @@index([scheduleId, recognitionDate])
+  @@index([recognizedAt])
+  @@index([status, recognitionDate])
+}
+
+model RevenueMilestone {
+  id                      Int                   @id @default(autoincrement())
+  performanceObligationId Int
+  performanceObligation   PerformanceObligation @relation(fields: [performanceObligationId], references: [id], onDelete: Cascade)
+
+  milestoneNumber      Int
+  description          String
+  amount               Decimal   @db.Decimal(20, 4)
+  expectedDate         DateTime
+  actualCompletionDate DateTime?
+  status               String    @default("PENDING") // 'PENDING' | 'COMPLETED' | 'DELAYED' | 'CANCELLED'
+
+  evidenceFileId   Int?
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  journalEntryId Int?
+
+  @@unique([performanceObligationId, milestoneNumber])
+}
+
+model ContractModificationRecord {
+  id         Int           @id @default(autoincrement())
+  contractId Int
+  contract   SalesContract @relation(fields: [contractId], references: [id])
+
+  modificationType String // 'NEW_CONTRACT' | 'CUMULATIVE_CATCH_UP' | 'PROSPECTIVE'
+  modificationDate DateTime
+
+  changeInScope    String?
+  changeInPrice    Decimal? @db.Decimal(20, 4)
+  changeInDuration Int? // months
+
+  newContractId    Int? // if NEW_CONTRACT
+  catchUpJournalId Int? // if CUMULATIVE_CATCH_UP
+
+  description      String?   @db.Text
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  createdByUserId String
+  createdAt       DateTime @default(now())
+}
+
+model VariableConsiderationUpdate {
+  id         Int           @id @default(autoincrement())
+  contractId Int
+  contract   SalesContract @relation(fields: [contractId], references: [id])
+
+  estimateMethod    String // 'EXPECTED_VALUE' | 'MOST_LIKELY_AMOUNT'
+  scenarios         Json // [{description, probability, amount}]
+  expectedValue     Decimal @db.Decimal(20, 4)
+  constrainedAmount Decimal @db.Decimal(20, 4)
+
+  effectiveDate   DateTime
+  trueUpRequired  Boolean  @default(false)
+  trueUpJournalId Int?
+
+  reason String?
+
+  estimatedByUserId String
+  estimatedAt       DateTime @default(now())
+}
+
+model StandaloneSellingPrice {
+  id               Int    @id @default(autoincrement())
+  productServiceId Int?
+  description      String
+
+  price    Decimal @db.Decimal(20, 4)
+  currency String  @default("SAR")
+
+  method String // 'OBSERVABLE' | 'ADJUSTED_MARKET' | 'EXPECTED_COST_PLUS_MARGIN' | 'RESIDUAL'
+
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+
+  source String? // 'PRICE_LIST' | 'MARKET_STUDY' | 'COST_BASED' | 'CONTRACT'
+
+  evidence String?
+
+  createdByUserId String
+
+  @@index([productServiceId, effectiveFrom])
 }
 
 // ==================== IAS 36 Asset Impairment & Revaluation ====================
@@ -5002,31 +5614,269 @@ model BpmTask {
 
 // Phase B.2: Payment Runs (SAP F110 Equivalent)
 model PaymentRun {
-  id            Int      @id @default(autoincrement())
-  runDate       DateTime @map("run_date")
-  paymentMethod String   @map("payment_method") // CHECK, TRANSFER, WIRE
-  bankAccountId Int      @map("bank_account_id")
-  status        String   @default("DRAFT") // DRAFT, PROPOSED, EXECUTED
-  totalAmount   Float    @default(0) @map("total_amount")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id          Int     @id @default(autoincrement())
+  runNumber   String  @unique @default(cuid()) // using cuid as default for now
+  description String?
 
-  lines PaymentRunLine[]
+  // Workflow
+  status String @default("DRAFT")
+  // DRAFT | PROPOSED | PENDING_APPROVAL | APPROVED | REJECTED | FILE_GENERATED | SENT_TO_BANK | CONFIRMED | POSTED | FAILED | CANCELLED
 
+  // Filters used
+  dueDateUntil  DateTime
+  currency      String
+  paymentMethod String // 'BANK_TRANSFER' | 'CHECK' | 'WIRE' | 'CASH' | 'BNPL'
+  bankAccountId Int // source account
+
+  // Totals
+  totalAmount      Decimal  @db.Decimal(20, 4)
+  totalCount       Int      @default(0)
+  successCount     Int      @default(0)
+  failedCount      Int      @default(0)
+  estimatedSavings Decimal? @db.Decimal(20, 4)
+  actualSavings    Decimal? @db.Decimal(20, 4)
+  bankCharges      Decimal? @db.Decimal(20, 4)
+
+  // Workflow timestamps
+  proposedAt             DateTime?
+  proposedByUserId       String?
+  submittedForApprovalAt DateTime?
+  approvedAt             DateTime?
+  filesGeneratedAt       DateTime?
+  sentToBankAt           DateTime?
+  sentToBankByUserId     String?
+  confirmedAt            DateTime?
+  confirmedByUserId      String?
+  postedAt               DateTime?
+  postedByUserId         String?
+  cancelledAt            DateTime?
+  cancelledByUserId      String?
+  cancellationReason     String?
+
+  // Journal
+  journalEntryId    Int?
+  reversalJournalId Int?
+
+  // Approval
+  approvalRequiredCount Int @default(1)
+  approvalReceivedCount Int @default(0)
+
+  // Relations
+  lines     PaymentRunLine[]
+  bankFiles PaymentRunBankFile[]
+  approvals PaymentRunApproval[]
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([currency, dueDateUntil])
   @@map("payment_runs")
 }
 
 model PaymentRunLine {
-  id         Int    @id @default(autoincrement())
-  runId      Int    @map("run_id")
-  supplierId Int    @map("supplier_id")
-  invoiceIds String @map("invoice_ids") // JSON string
-  amount     Float
-  status     String @default("PENDING") // PENDING, PAID, FAILED
+  id    Int        @id @default(autoincrement())
+  runId Int
+  run   PaymentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
 
-  run      PaymentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  supplier Customer   @relation(fields: [supplierId], references: [id])
+  // Supplier (mapped from Customer)
+  supplierId Int
+  supplier   Customer @relation(fields: [supplierId], references: [id])
 
+  // Invoice(s) being paid
+  openItemIds  Int[]
+  invoiceCount Int   @default(1)
+
+  // Amount
+  amount           Decimal @db.Decimal(20, 4)
+  currency         String
+  exchangeRate     Decimal @default(1) @db.Decimal(20, 8)
+  amountFunctional Decimal @db.Decimal(20, 4) // converted to base currency
+
+  // Discount
+  discountAmount     Decimal?  @db.Decimal(20, 4)
+  discountTaken      Boolean   @default(false)
+  discountWindowEnds DateTime?
+
+  // Bank details snapshot
+  beneficiaryName          String
+  beneficiaryIBAN          String?
+  beneficiarySwift         String?
+  beneficiaryBankName      String?
+  beneficiaryBankAddress   String?
+  beneficiaryCountry       String?
+  beneficiaryAccountNumber String? // when no IBAN (US)
+  beneficiaryRoutingNumber String? // ABA for US
+
+  // Payment method
+  paymentMethod    String
+  paymentReference String? // for supplier's reference
+  paymentPurpose   String? // for compliance
+
+  // Status
+  status            String // 'PENDING' | 'EXCLUDED' | 'GENERATED' | 'SENT' | 'CONFIRMED' | 'FAILED' | 'RETURNED' | 'CANCELLED'
+  failureReason     String?
+  failureCode       String?
+  externalReference String? // bank's reference
+  bankConfirmedAt   DateTime?
+  bankFees          Decimal?  @db.Decimal(20, 4)
+
+  // Exclusion
+  excludedAt       DateTime?
+  excludedReason   String?
+  excludedByUserId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([runId, status])
+  @@index([supplierId])
+  @@index([currency, status])
   @@map("payment_run_lines")
+}
+
+model PaymentRunBankFile {
+  id    Int        @id @default(autoincrement())
+  runId Int
+  run   PaymentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  fileFormat    String // 'SARIE' | 'SEPA_PAIN001' | 'NACHA' | 'SWIFT_MT103' | 'SWIFT_MT202' | 'CSV_GENERIC' | 'CHECK_PRINT_PDF'
+  bankCode      String? // ALRAJHI, NCB, SAB, SAMBA, etc.
+  bankAccountId Int // source
+
+  fileUrl       String
+  fileName      String
+  fileHash      String // SHA-256
+  fileSizeBytes Int
+
+  generatedAt       DateTime @default(now())
+  generatedByUserId String
+
+  txnCount    Int
+  totalAmount Decimal @db.Decimal(20, 4)
+  currency    String
+
+  // Confirmation
+  uploadedToBankAt      DateTime?
+  uploadedByUserId      String?
+  uploadConfirmationRef String?
+
+  confirmationFileUrl  String?
+  confirmationParsedAt DateTime?
+  successCount         Int?
+  failedCount          Int?
+
+  // Encryption (optional)
+  encrypted       Boolean @default(false)
+  encryptionKeyId String?
+
+  @@index([runId])
+  @@index([fileFormat, generatedAt])
+}
+
+model PaymentRunApproval {
+  id    Int        @id @default(autoincrement())
+  runId Int
+  run   PaymentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  approverUserId String
+  approverRole   String // 'AP_MANAGER' | 'FINANCE_MANAGER' | 'CFO' | 'CEO' | 'BOARD'
+  level          Int // 1, 2, 3
+  isParallel     Boolean @default(false)
+
+  status     String // 'PENDING' | 'APPROVED' | 'REJECTED' | 'DELEGATED' | 'EXPIRED'
+  decisionAt DateTime?
+  comments   String?
+
+  delegatedToUserId String?
+  delegationReason  String?
+
+  reminderSentAt DateTime?
+  expiresAt      DateTime?
+
+  @@index([runId, level])
+  @@index([approverUserId, status])
+}
+
+model SupplierBankAccount {
+  id         Int      @id @default(autoincrement())
+  supplierId Int
+  supplier   Customer @relation(fields: [supplierId], references: [id])
+
+  isDefault          Boolean   @default(false)
+  isActive           Boolean   @default(true)
+  isVerified         Boolean   @default(false)
+  verificationDate   DateTime?
+  verificationMethod String? // 'PENNY_TEST' | 'DOCUMENT' | 'PHONE_CONFIRM'
+
+  beneficiaryName String // may differ from supplier name
+  iban            String?
+  swift           String?
+  bankName        String
+  bankAddress     String?
+  countryCode     String
+  currency        String
+
+  accountNumber String? // for non-IBAN countries
+  routingNumber String? // ABA for US
+  branchCode    String?
+
+  intermediaryBankSwift   String? // for international transfers
+  intermediaryBankAccount String?
+
+  notes String?
+
+  createdAt       DateTime  @default(now())
+  createdByUserId String
+  lastUsedAt      DateTime?
+
+  @@unique([supplierId, iban])
+  @@index([supplierId, isActive])
+}
+
+model PaymentBlock {
+  id         Int    @id @default(autoincrement())
+  type       String // 'SUPPLIER' | 'INVOICE'
+  supplierId Int?
+  invoiceId  Int?
+
+  reason      String // 'COMPLIANCE_CHECK' | 'DISPUTE' | 'QUALITY_HOLD' | 'OTHER'
+  description String?
+
+  blockedAt            DateTime @default(now())
+  blockedByUserId      String
+  approvedReleaseRoles String[] // who can release
+
+  releasedAt       DateTime?
+  releasedByUserId String?
+  releaseReason    String?
+
+  active Boolean @default(true)
+
+  @@index([type, supplierId, active])
+  @@index([type, invoiceId, active])
+}
+
+model DiscountOpportunity {
+  id         Int @id @default(autoincrement())
+  invoiceId  Int
+  supplierId Int
+
+  invoiceAmount   Decimal @db.Decimal(20, 4)
+  discountPercent Decimal @db.Decimal(5, 2)
+  discountAmount  Decimal @db.Decimal(20, 4)
+
+  discountWindowEnds DateTime
+  netDueDate         DateTime
+
+  annualizedReturn Decimal @db.Decimal(8, 4) // implied APR if discount taken
+
+  status       String @default("AVAILABLE") // 'AVAILABLE' | 'TAKEN' | 'FORFEITED' | 'EXPIRED'
+  takenInRunId Int?
+
+  calculatedAt DateTime @default(now())
+
+  @@index([status, discountWindowEnds])
+  @@index([supplierId, status])
 }
 
 // Phase B.3: Withholding Tax (WHT)
@@ -5306,33 +6156,123 @@ model InvoiceMatchResult {
 
 // Phase D.1: Multi-Book / Multi-GAAP
 model AccountingBook {
-  id              Int      @id @default(autoincrement())
-  code            String   @unique // IFRS, TAX, ZAKAT, MGMT
-  baseCurrency    String   @map("base_currency")
-  isPrimary       Boolean  @default(false) @map("is_primary")
-  fiscalYearStart DateTime @map("fiscal_year_start")
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
+  name        String  @default("Book")
+  nameAr      String?
+  description String?
 
+  type         String @default("PRIMARY") // 'PRIMARY' | 'TAX' | 'MANAGEMENT' | 'GROUP' | 'STATUTORY' | 'REGULATORY'
+  gaapStandard String @default("IFRS") // 'IFRS' | 'SOCPA' | 'US_GAAP' | 'IND_AS' | 'ZAKAT' | 'HKFRS' | 'ASPE' | 'CUSTOM'
+  baseCurrency String @default("SAR")
+
+  isPrimary Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  fiscalYearStart String @default("01-01") // MM-DD
+
+  // Source book (for replication)
+  sourceBookId Int?
+  sourceBook   AccountingBook?  @relation("BookReplication", fields: [sourceBookId], references: [id])
+  derivedBooks AccountingBook[] @relation("BookReplication")
+
+  // Replication settings
+  autoReplicate   Boolean @default(true)
+  replicateOnPost Boolean @default(true)
+
+  // Currency
+  exchangeRateSource String @default("ECB") // 'ECB' | 'SAMA' | 'CUSTOM' | 'MANUAL'
+  exchangeRateMethod String @default("AVERAGE") // 'AVERAGE' | 'CLOSING' | 'HISTORICAL' | 'TRANSACTION'
+
+  // Audit
+  createdByUserId String   @default("system")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  mappings       AccountMapping[]
   journalEntries JournalEntry[]
-  sourceMappings AccountMapping[] @relation("SourceBook")
-  targetMappings AccountMapping[] @relation("TargetBook")
 
+  bookAComparisons BookComparison[] @relation("BookCompA")
+  bookBComparisons BookComparison[] @relation("BookCompB")
+
+  @@index([type, isActive])
   @@map("accounting_books")
 }
 
 model AccountMapping {
-  id              Int     @id @default(autoincrement())
-  sourceBookId    Int     @map("source_book_id")
-  targetBookId    Int     @map("target_book_id")
-  sourceAccountId Int     @map("source_account_id")
-  targetAccountId Int     @map("target_account_id")
-  transformRule   String? @map("transform_rule") // e.g., JSON rule for specific GAAP adjustments
+  id     Int            @id @default(autoincrement())
+  bookId Int
+  book   AccountingBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  sourceBook    AccountingBook @relation("SourceBook", fields: [sourceBookId], references: [id])
-  targetBook    AccountingBook @relation("TargetBook", fields: [targetBookId], references: [id])
-  sourceAccount Account        @relation("SourceAccount", fields: [sourceAccountId], references: [id])
-  targetAccount Account        @relation("TargetAccount", fields: [targetAccountId], references: [id])
+  sourceAccountId Int
+  sourceAccount   Account  @relation("SourceAccount", fields: [sourceAccountId], references: [id])
+  targetAccountId Int?
+  targetAccount   Account? @relation("TargetAccount", fields: [targetAccountId], references: [id])
 
+  rule       String // 'PASS' | 'EXCLUDE' | 'AMOUNT_PCT' | 'SPLIT' | 'CURRENCY_TRANSLATE' | 'CUSTOM_FORMULA'
+  ruleParams Json? // {pct: 50, splitTo: [{accountId, pct}], formula: 'amount * 0.85', etc.}
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  notes String?
+
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  @@unique([bookId, sourceAccountId, effectiveFrom])
+  @@index([bookId, sourceAccountId])
   @@map("account_mappings")
+}
+
+model AccountMappingTemplate {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  description String?
+  fromGaap    String // 'IFRS'
+  toGaap      String // 'ZAKAT'
+  countryCode String?
+  industry    String?
+  mappings    Json // [{sourceAccountCode, targetAccountCode, rule, params}]
+  isOfficial  Boolean  @default(false)
+  popularity  Int      @default(0)
+  rating      Decimal? @db.Decimal(3, 2)
+}
+
+model BookComparison {
+  id      Int            @id @default(autoincrement())
+  bookAId Int
+  bookA   AccountingBook @relation("BookCompA", fields: [bookAId], references: [id])
+  bookBId Int
+  bookB   AccountingBook @relation("BookCompB", fields: [bookBId], references: [id])
+
+  asOfDate DateTime
+
+  totalDifference     Decimal @db.Decimal(20, 4)
+  differencesDetailed Json // [{accountCode, balanceA, balanceB, diff, explanation, mappingId?}]
+  explanationsCount   Int     @default(0)
+  unexplainedCount    Int     @default(0)
+
+  generatedAt       DateTime @default(now())
+  generatedByUserId String
+
+  pdfUrl String?
+
+  @@index([bookAId, bookBId, asOfDate])
+}
+
+model BookOnlyJournalCategory {
+  id               Int     @id @default(autoincrement())
+  bookId           Int
+  code             String
+  name             String
+  description      String?
+  defaultAccounts  Int[]
+  requiresApproval Boolean @default(false)
+
+  @@unique([bookId, code])
 }
 
 // Phase D.3: Custom Fields Engine
@@ -5692,258 +6632,4 @@ model Opportunity {
   actualCloseDate   DateTime? @map("actual_close_date")
   ownerId           Int?      @map("owner_id")
   source            String?
-  leadId            Int?      @map("lead_id")
-  products          String? // JSON
-  lostReason        String?   @map("lost_reason")
-  wonReason         String?   @map("won_reason")
-  customerId        Int?      @map("customer_id")
-  createdAt         DateTime  @default(now()) @map("created_at")
-
-  account    CrmAccount    @relation(fields: [accountId], references: [id])
-  stage      PipelineStage @relation(fields: [stageId], references: [id])
-  activities Activity[]
-
-  @@map("crm_opportunities")
-}
-
-model Activity {
-  id              Int       @id @default(autoincrement())
-  type            String // CALL, EMAIL, MEETING, TASK, NOTE
-  subject         String
-  description     String?   @db.Text
-  accountId       Int?      @map("account_id")
-  contactId       Int?      @map("contact_id")
-  opportunityId   Int?      @map("opportunity_id")
-  leadId          Int?      @map("lead_id")
-  ownerId         Int?      @map("owner_id")
-  dueDate         DateTime? @map("due_date")
-  completedAt     DateTime? @map("completed_at")
-  durationMinutes Int?      @map("duration_minutes")
-  outcome         String? // POSITIVE, NEUTRAL, NEGATIVE
-  createdAt       DateTime  @default(now()) @map("created_at")
-
-  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
-
-  @@map("crm_activities")
-}
-
-// ==================== 157. Subscription Billing ====================
-model SubscriptionPlan {
-  id           Int      @id @default(autoincrement())
-  code         String   @unique
-  name         String
-  billingCycle String // MONTHLY, QUARTERLY, YEARLY
-  price        Float
-  setupFee     Float?   @map("setup_fee")
-  trialDays    Int      @default(0) @map("trial_days")
-  features     String? // JSON
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  subscriptions CustomerSubscription[]
-
-  @@map("subscription_plans")
-}
-
-model CustomerSubscription {
-  id                 Int      @id @default(autoincrement())
-  customerId         Int      @map("customer_id")
-  planId             Int      @map("plan_id")
-  startDate          DateTime @default(now()) @map("start_date")
-  currentPeriodStart DateTime @map("current_period_start")
-  currentPeriodEnd   DateTime @map("current_period_end")
-  nextBillingDate    DateTime @map("next_billing_date")
-  status             String   @default("ACTIVE") // TRIAL, ACTIVE, PAST_DUE, PAUSED, CANCELLED, ENDED
-  cancelAtPeriodEnd  Boolean  @default(false) @map("cancel_at_period_end")
-  paymentMethodId    Int?     @map("payment_method_id")
-  prorationCredit    Float    @default(0) @map("proration_credit")
-  createdAt          DateTime @default(now()) @map("created_at")
-
-  customer      Customer              @relation(fields: [customerId], references: [id])
-  plan          SubscriptionPlan      @relation(fields: [planId], references: [id])
-  paymentMethod SavedPaymentMethod?   @relation(fields: [paymentMethodId], references: [id])
-  invoices      SubscriptionInvoice[]
-
-  @@map("customer_subscriptions")
-}
-
-model SubscriptionInvoice {
-  id             Int      @id @default(autoincrement())
-  subscriptionId Int      @map("subscription_id")
-  periodStart    DateTime @map("period_start")
-  periodEnd      DateTime @map("period_end")
-  amount         Float
-  salesInvoiceId Int?     @map("sales_invoice_id")
-  status         String   @default("PENDING") // PENDING, PAID, FAILED
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  subscription CustomerSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  salesInvoice SalesInvoice?        @relation(fields: [salesInvoiceId], references: [id])
-
-  @@map("subscription_invoices")
-}
-
-// ==================== 158. Product Variants ====================
-model AttributeGroup {
-  id     Int     @id @default(autoincrement())
-  name   String // e.g. "Size", "Color"
-  values String? // JSON array of values e.g. ["S", "M", "L"]
-
-  @@map("attribute_groups")
-}
-
-model StatementTemplate {
-  id          Int     @id @default(autoincrement())
-  name        String
-  nameAr      String
-  description String?
-  isDefault   Boolean @default(false)
-  isActive    Boolean @default(true)
-  language    String  @default("ar") // ar | en | bilingual
-  layoutType  String  @default("STANDARD") // STANDARD | DETAILED | SUMMARY | LEGAL
-
-  // Branding
-  logoUrl      String?
-  primaryColor String  @default("#1e40af")
-  accentColor  String  @default("#dbeafe")
-  fontFamily   String  @default("Cairo")
-
-  // Sections (JSON config)
-  sections Json // [{type: 'HEADER', visible: true, order: 1, config: {}}, ...]
-
-  // Header / Footer HTML
-  headerHtml String? @db.Text
-  footerHtml String? @db.Text
-
-  // Email template
-  emailSubject  String // "كشف حساب {{customerName}} - {{period}}"
-  emailBodyHtml String @db.Text
-  emailBodyText String @db.Text
-
-  // Features
-  includeQR                  Boolean @default(true)
-  includeSignature           Boolean @default(false)
-  signatureFileId            Int?
-  signatoryName              String?
-  signatoryRole              String?
-  includePaymentInstructions Boolean @default(true)
-  paymentInstructionsHtml    String? @db.Text
-
-  // VAT compliance (KSA)
-  zatcaCompliant   Boolean @default(false)
-  showTaxBreakdown Boolean @default(false)
-
-  customers       Customer[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  createdByUserId String
-}
-
-model StatementDispatchLog {
-  id         Int      @id @default(autoincrement())
-  customerId Int
-  customer   Customer @relation(fields: [customerId], references: [id])
-  templateId Int?
-
-  dateFrom    DateTime
-  dateTo      DateTime
-  generatedAt DateTime @default(now())
-
-  pdfUrl       String?
-  pdfHash      String?
-  pdfSizeBytes Int?
-
-  // Statement content snapshot
-  openingBalance    Decimal @db.Decimal(20, 4)
-  closingBalance    Decimal @db.Decimal(20, 4)
-  transactionsCount Int
-  totalDebits       Decimal @db.Decimal(20, 4)
-  totalCredits      Decimal @db.Decimal(20, 4)
-  agingSnapshot     Json? // {0-30, 31-60, ...}
-
-  // Delivery
-  deliveryChannel  String // EMAIL | WHATSAPP | SMS | PORTAL | DOWNLOAD
-  recipientAddress String?
-  ccAddresses      String?
-  bccAddresses     String?
-
-  status            String  @default("GENERATED") // GENERATED | SENT | DELIVERED | OPENED | CLICKED | BOUNCED | FAILED | SOFT_BOUNCED
-  externalMessageId String?
-  errorMessage      String?
-  retryCount        Int     @default(0)
-
-  sentAt      DateTime?
-  deliveredAt DateTime?
-  openedAt    DateTime?
-  clickedAt   DateTime?
-  bouncedAt   DateTime?
-
-  triggeredBy       String // 'MANUAL' | 'CRON_MONTHLY' | 'CRON_QUARTERLY' | 'BULK' | 'PORTAL' | 'API'
-  triggeredByUserId String?
-  batchId           Int?
-  batch             StatementBatch? @relation(fields: [batchId], references: [id])
-
-  deliveryEvents Json? // raw webhook events
-
-  @@index([customerId, generatedAt])
-  @@index([status])
-  @@index([batchId])
-  @@index([triggeredBy, generatedAt])
-}
-
-model StatementBatch {
-  id              Int      @id @default(autoincrement())
-  batchNumber     String   @unique
-  startedAt       DateTime @default(now())
-  startedByUserId String?
-  triggeredBy     String // 'CRON_MONTHLY' | 'CRON_QUARTERLY' | 'MANUAL_BULK'
-
-  totalCount     Int
-  processedCount Int @default(0)
-  successCount   Int @default(0)
-  failedCount    Int @default(0)
-
-  status      String    @default("PROCESSING") // PROCESSING | COMPLETED | FAILED | CANCELLED
-  completedAt DateTime?
-
-  filterCriteria Json // for reproducibility
-  templateId     Int?
-  dateFrom       DateTime
-  dateTo         DateTime
-
-  dispatchLogs StatementDispatchLog[]
-  errorLog     Json?
-
-  @@index([status, startedAt])
-}
-
-model StatementAccessLog {
-  id            Int      @id @default(autoincrement())
-  customerId    Int
-  customer      Customer @relation(fields: [customerId], references: [id])
-  dispatchLogId Int?
-  accessedAt    DateTime @default(now())
-  accessChannel String // 'PORTAL' | 'EMAIL_LINK' | 'DOWNLOAD'
-  ipAddress     String?
-  userAgent     String?
-  countryCode   String?
-  city          String?
-  duration      Int? // seconds spent (if portal)
-
-  @@index([customerId, accessedAt])
-  @@index([dispatchLogId])
-}
-
-model StatementSchedule {
-  id             Int       @id @default(autoincrement())
-  name           String
-  cronExpression String // standard cron
-  templateId     Int?
-  filterCriteria Json // who to send
-  enabled        Boolean   @default(true)
-  lastRunAt      DateTime?
-  nextRunAt      DateTime?
-  successRate    Decimal?  @db.Decimal(5, 2)
-
-  @@index([enabled, nextRunAt])
-}
+  leadId            Int?    
