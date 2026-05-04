@@ -4831,17 +4831,17 @@ model WarrantyPolicy {
 }
 
 // ==================== 162. Advanced Three-Way Match & Tolerance ====================
-model TolerancePolicy {
-  id                 Int     @id @default(autoincrement())
-  name               String
-  priceTolerancePct  Float   @default(0) @map("price_tolerance_pct")
-  qtyTolerancePct    Float   @default(0) @map("qty_tolerance_pct")
-  totalToleranceFlat Float   @default(0) @map("total_tolerance_flat")
-  action             String  @default("MANUAL") // AUTO_APPROVE, MANUAL, HOLD
-  applicableTo       String  @default("DEFAULT") // DEFAULT, VENDOR_ID, CATEGORY
-
-  @@map("tolerance_policies")
-}
+// model TolerancePolicy {
+//   id                 Int     @id @default(autoincrement())
+//   name               String
+//   priceTolerancePct  Float   @default(0) @map("price_tolerance_pct")
+//   qtyTolerancePct    Float   @default(0) @map("qty_tolerance_pct")
+//   totalToleranceFlat Float   @default(0) @map("total_tolerance_flat")
+//   action             String  @default("MANUAL") // AUTO_APPROVE, MANUAL, HOLD
+//   applicableTo       String  @default("DEFAULT") // DEFAULT, VENDOR_ID, CATEGORY
+//
+//   @@map("tolerance_policies")
+// }
 
 model InvoiceMatchResult {
   id         Int       @id @default(autoincrement())
