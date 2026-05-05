@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2 } from 'lucide-react';
+import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2, RefreshCcw, BrainCircuit, WifiOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -51,6 +51,8 @@ export default function RetailPOS() {
           <div className="grid grid-cols-2 gap-2 mt-4">
             <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/> Print</Button>
             <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>alert("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/> Pay Now</Button>
+            <Button variant="outline" className="h-12 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100">Layaway</Button>
+            <Button variant="outline" className="h-12 border-slate-300 text-sm hover:bg-slate-100">Gift Receipt</Button>
           </div>
         </div>
       </div>

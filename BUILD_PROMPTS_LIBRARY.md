@@ -2111,20 +2111,20 @@ model Application { jobPostingId, candidateId, stage, score, feedback }
 - [x] Customer Portal (8.3)
 
 ### Phase 5 — Verticals — 12 أسابيع
-- [ ] Clinic: Appointments + e-Rx + Lab (9.1-9.3)
-- [ ] Construction: Variations + Progress Billing (9.4-9.5)
-- [ ] Distribution: Wave Picking + Routes (9.6-9.7)
-- [ ] Manufacturing: Shop Floor (9.8)
-- [ ] Real Estate: CAM + Tenant Portal (9.9-9.10)
-- [ ] Restaurant: Tables + Course Firing (9.11-9.12)
-- [ ] Retail: Layaway + Loyalty (9.13-9.14)
-- [ ] School: Gradebook + Transcript + Parent Portal (9.15-9.17)
-- [ ] Services: WO + SLA + Billing (9.18-9.20)
+- [x] Clinic: Appointments + e-Rx + Lab (9.1-9.3)
+- [x] Construction: Variations + Progress Billing (9.4-9.5)
+- [x] Distribution: Wave Picking + Routes (9.6-9.7)
+- [x] Manufacturing: Shop Floor (9.8)
+- [x] Real Estate: CAM + Tenant Portal (9.9-9.10)
+- [x] Restaurant: Tables + Course Firing (9.11-9.12)
+- [x] Retail: Layaway + Loyalty (9.13-9.14)
+- [x] School: Gradebook + Transcript + Parent Portal (9.15-9.17)
+- [x] Services: WO + SLA + Billing (9.18-9.20)
 
 ### Phase 6 — Reports & Polish — 4 أسابيع
-- [ ] Footnotes (10.1)
-- [ ] Segments (10.2)
-- [ ] KPI Builder (10.3)
+- [x] Footnotes (10.1)
+- [x] Segments (10.2)
+- [x] KPI Builder (10.3)
 - [x] Customer Statement Bulk (2.5)
 - [x] Sales Forecast (2.6)
 

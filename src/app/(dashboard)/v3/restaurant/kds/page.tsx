@@ -1,45 +1,73 @@
 'use client';
-import React from 'react';
-import { ChefHat, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
-export default function RestaurantKDS() {
-  return (
-    <div className="p-6 bg-slate-900 min-h-screen text-slate-100">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-orange-500 text-white font-bold hover:opacity-90 shadow-lg"><CloudDownload className="w-4 h-4 mr-2"/> Sync Aggregators (Jahez)</Button>\n        <Button className="bg-indigo-500 text-white font-bold hover:opacity-90 shadow-lg"><QrCode className="w-4 h-4 mr-2"/> QR Orders Queue</Button>\n        <Button className="bg-red-500 text-white font-bold hover:opacity-90 shadow-lg"><Trash2 className="w-4 h-4 mr-2"/> Waste Tracking</Button>\n        </div>\n      </div>
-      <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
-        <div className="flex items-center gap-3">
-          <ChefHat className="w-8 h-8 text-orange-500" />
-          <h1 className="text-3xl font-black tracking-tight">Kitchen Display (KDS)</h1>
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+export default function KitchenDisplaySystemPage() {
+    const [tickets] = useState([
+        { 
+            id: 'ORD-9912', table: 'Table 1', time: '10m', type: 'Dine-in', course: 'Main Course',
+            items: [
+                { name: 'Grilled Salmon', qty: 1, notes: 'No salt', allergens: ['Fish'] },
+                { name: 'Caesar Salad', qty: 1, notes: 'Extra dressing', allergens: ['Dairy', 'Eggs'] }
+            ],
+            status: 'PREPARING'
+        },
+        { 
+            id: 'ORD-9913', table: 'Table 4', time: '2m', type: 'Dine-in', course: 'Appetizer',
+            items: [
+                { name: 'Garlic Bread', qty: 2, notes: '', allergens: ['Gluten', 'Dairy'] }
+            ],
+            status: 'NEW'
+        }
+    ]);
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white p-4">
+            <header className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-yellow-500">Kitchen Display System (KDS)</h1>
+                <div className="flex space-x-4">
+                    <div className="text-center"><div className="text-2xl font-bold text-red-500">2</div><div className="text-xs uppercase">Pending</div></div>
+                    <div className="text-center"><div className="text-2xl font-bold text-green-500">14</div><div className="text-xs uppercase">Completed</div></div>
+                </div>
+            </header>
+
+            <div className="flex space-x-4 overflow-x-auto pb-4">
+                {tickets.map((t, idx) => (
+                    <Card key={idx} className="min-w-[300px] bg-gray-800 border-gray-700 text-white shrink-0">
+                        <CardHeader className={`border-b border-gray-700 ${t.time.includes('m') && parseInt(t.time) > 15 ? 'bg-red-900/50' : 'bg-gray-800'}`}>
+                            <div className="flex justify-between items-center">
+                                <CardTitle className="text-xl">#{t.id}</CardTitle>
+                                <span className="font-mono text-yellow-400 font-bold">{t.time}</span>
+                            </div>
+                            <div className="flex justify-between text-sm mt-2 text-gray-400">
+                                <span>{t.table} | {t.type}</span>
+                                <Badge className="bg-blue-600 text-white">{t.course}</Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-4">
+                            {t.items.map((item, i) => (
+                                <div key={i} className="border-b border-gray-700 pb-2 last:border-0">
+                                    <div className="flex justify-between font-bold text-lg">
+                                        <span>{item.qty}x {item.name}</span>
+                                    </div>
+                                    {item.notes && <div className="text-sm text-yellow-300 italic mt-1">Note: {item.notes}</div>}
+                                    {item.allergens.length > 0 && (
+                                        <div className="text-xs text-red-400 font-bold mt-1">ALLERGY: {item.allergens.join(', ')}</div>
+                                    )}
+                                </div>
+                            ))}
+                            
+                            <div className="pt-4 space-y-2">
+                                {t.status === 'NEW' && <Button className="w-full bg-blue-600 hover:bg-blue-700">Start Preparing</Button>}
+                                {t.status === 'PREPARING' && <Button className="w-full bg-green-600 hover:bg-green-700">Mark Ready</Button>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
         </div>
-        <div className="flex gap-4">
-          <div className="px-4 py-2 bg-slate-800 rounded-lg flex items-center gap-2"><Clock className="w-4 h-4 text-blue-400"/> Avg Time: 12m</div>
-          <div className="px-4 py-2 bg-slate-800 rounded-lg text-emerald-400 font-bold">14 Active Orders</div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-4 gap-4 overflow-x-auto pb-8">
-        {[1,2,3,4,5,6].map(i => (
-          <Card key={i} className={`p-0 flex flex-col h-96 border-0 ${i===1?'bg-red-950/40 border border-red-500/50':'bg-slate-800'}`}>
-            <div className={`p-3 flex justify-between items-center rounded-t-xl ${i===1?'bg-red-600':'bg-slate-700'}`}>
-              <span className="font-black text-lg">#{1020 + i}</span>
-              <span className="font-bold">{i===1?'15:42':'04:12'}</span>
-            </div>
-            <div className="p-2 border-b border-slate-700/50 flex justify-between text-xs text-slate-300">
-              <span>Table {i*2}</span>
-              <span>Dine-in</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              <div className="flex gap-2 text-lg"><span className="font-black text-orange-400">1x</span> <span>Truffle Burger</span></div>
-              <div className="flex gap-2 text-lg"><span className="font-black text-orange-400">2x</span> <span>Sweet Potato Fries</span></div>
-              <div className="text-sm text-yellow-500 pl-6 border-l-2 border-yellow-500 ml-2">- No Onions<br/>- Extra Sauce</div>
-            </div>
-            <div className="p-3 border-t border-slate-700/50 mt-auto">
-              <Button onClick={() => { fetch("/api/v3/restaurant/kds", { method: "POST", body: JSON.stringify({ tableNo: 2, items: [{name: "Burger"}] }) }).then(()=>alert("Order Bumped & Saved to DB!")); }} className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl">BUMP <CheckCircle2 className="ml-2 w-5 h-5"/></Button>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+    );
 }
