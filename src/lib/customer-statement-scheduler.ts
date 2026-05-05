@@ -78,7 +78,7 @@ export class CustomerStatementScheduler {
                         totalDebits: 0,
                         totalCredits: 0,
                         deliveryChannel: 'EMAIL',
-                        recipientAddress: customer.statementEmail || customer.email || 'unknown',
+                        recipientAddress: (customer as any).statementEmail || (customer as any).email || 'unknown',
                         status: emailResult.status,
                         externalMessageId: emailResult.messageId,
                         errorMessage: emailResult.errorMessage,

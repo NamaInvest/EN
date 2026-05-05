@@ -85,20 +85,27 @@ export class MaterialIssuanceEngine {
                 });
 
                 // Update ProductStock link
-                await tx.productStock.upsert({
+                const existingStock = await tx.productStock.findFirst({
                     where: {
-                        productId_stockId: {
-                            productId: ingredient.rawProductId,
-                            stockId: stockId
-                        }
-                    },
-                    update: { quantity: { decrement: qtyToConsume } },
-                    create: {
                         productId: ingredient.rawProductId,
-                        stockId: stockId,
-                        quantity: -qtyToConsume
+                        stockId: stockId
                     }
                 });
+
+                if (existingStock) {
+                    await tx.productStock.update({
+                        where: { id: existingStock.id },
+                        data: { quantity: { decrement: qtyToConsume } }
+                    });
+                } else {
+                    await tx.productStock.create({
+                        data: {
+                            productId: ingredient.rawProductId,
+                            stockId: stockId,
+                            quantity: -qtyToConsume
+                        }
+                    });
+                }
 
                 // 2. Create StockMovement (OUT)
                 await tx.stockMovement.create({

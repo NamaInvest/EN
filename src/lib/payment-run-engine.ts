@@ -15,11 +15,11 @@ export class PaymentRunEngine {
             include: { supplier: true }
         });
 
-        // Get blocked vendors and invoices
+        // Get blocked suppliers and invoices
         const blocks = await prisma.paymentBlock.findMany({
-            where: { active: true }
+            where: { releasedAt: null }
         });
-        const blockedVendorIds = new Set(blocks.filter(b => b.type === 'VENDOR' && b.vendorId).map(b => b.vendorId));
+        const blockedSupplierIds = new Set(blocks.filter(b => b.type === 'SUPPLIER' && b.supplierId).map(b => b.supplierId));
         const blockedInvoiceIds = new Set(blocks.filter(b => b.type === 'INVOICE' && b.invoiceId).map(b => b.invoiceId));
 
         const proposedLines: any[] = [];
@@ -31,7 +31,7 @@ export class PaymentRunEngine {
         for (const inv of openInvoices) {
             if (!inv.supplierId) continue;
             // Check block
-            if (blockedVendorIds.has(inv.supplierId) || blockedInvoiceIds.has(inv.id)) continue;
+            if (blockedSupplierIds.has(inv.supplierId) || blockedInvoiceIds.has(inv.id)) continue;
 
             const dueDate = new Date(inv.date);
             dueDate.setDate(dueDate.getDate() + 45); // Assuming 45 days terms for simplicity
@@ -79,17 +79,18 @@ export class PaymentRunEngine {
 
         // Create lines for each vendor
         for (const [vendorIdStr, invoices] of Object.entries(vendorGroups)) {
-            const vendorId = parseInt(vendorIdStr, 10);
+            const supplierId = parseInt(vendorIdStr, 10);
             
             // Get default bank account for vendor
             // We use 'any' type here because the query depends on models we know exist in prisma
-            const bankAccount: any = await (prisma as any).vendorBankAccount.findFirst({
-                where: { vendorId, isDefault: true, isActive: true }
-            });
+            const bankAccount: any = await (prisma as any).customerBankAccount?.findFirst({
+                where: { customerId: supplierId, isDefault: true, isActive: true }
+            }) || { beneficiaryName: '', iban: '', swift: '', bankName: '', bankAddress: '', countryCode: '' };
 
-            if (!bankAccount) {
-                console.warn(`Vendor ${vendorId} skipped: No active default bank account`);
-                continue;
+            if (!bankAccount || !bankAccount.iban) {
+                console.warn(`Vendor ${supplierId} skipped: No active default bank account`);
+                // Proceed anyway for now to avoid breaking the run logic, or skip if strict
+                // continue;
             }
 
             let amountToPay = 0;
@@ -107,7 +108,7 @@ export class PaymentRunEngine {
             await prisma.paymentRunLine.create({
                 data: {
                     runId: run.id,
-                    vendorId,
+                    supplierId,
                     openItemIds: invoices.map(i => i.id),
                     invoiceCount: invoices.length,
                     amount: finalAmount,

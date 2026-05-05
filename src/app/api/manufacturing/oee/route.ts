@@ -26,7 +26,7 @@ export async function GET(req: Request) {
                     },
                     include: { recipe: { include: { operations: true } } }
                 }
-            }
+            } as any
         });
 
         const dashboardData = machines.map(machine => {
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 
             const downtimeReasons: Record<string, number> = {};
 
-            machine.machineEvents.forEach((e: any) => {
+            (machine as any).machineEvents.forEach((e: any) => {
                 if (e.status === 'RUNNING') runTime += e.durationMinutes;
                 if (e.status === 'DOWN') {
                     downTime += e.durationMinutes;
@@ -61,12 +61,12 @@ export async function GET(req: Request) {
             let totalIdealTime = 0;
             let totalProduced = 0;
 
-            machine.orders.forEach(o => {
-                totalProduced += o.quantityToProduce;
+            (machine as any).orders.forEach((o: any) => {
+                totalProduced += o.quantityToProduce || 0;
                 // find ideal cycle time for this machine from recipe operations
                 const op = o.recipe?.operations?.find((op: any) => op.workCenterId === machine.id);
                 if (op) {
-                    totalIdealTime += (op.durationMinutes * o.quantityToProduce);
+                    totalIdealTime += (op.durationMinutes * (o.quantityToProduce || 0));
                 }
             });
 

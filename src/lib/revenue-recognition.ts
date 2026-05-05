@@ -8,60 +8,86 @@ export class RevenueRecognitionEngine {
 
         if (!obligation) throw new Error("Performance Obligation not found");
 
-        // Simulate creating schedule based on recognitionMethod
-        const schedules = [];
-        if (obligation.recognitionMethod === 'over_time_straight' && obligation.endDate) {
+        // Create DeferredRevenueSchedule first
+        const schedule = await prisma.deferredRevenueSchedule.create({
+            data: {
+                performanceObligationId: obligationId,
+                totalAmount: obligation.allocatedAmount,
+                recognitionStartDate: obligation.startDate || new Date(),
+                recognitionEndDate: obligation.endDate || new Date(),
+                frequency: 'MONTHLY',
+                totalLines: 0 // Will update later
+            }
+        });
+
+        // Simulate creating schedule lines based on recognitionPattern
+        const linesData = [];
+        if (obligation.recognitionPattern === 'OVER_TIME_STRAIGHT_LINE' && obligation.endDate && obligation.startDate) {
             const months = (obligation.endDate.getFullYear() - obligation.startDate.getFullYear()) * 12 
                          + (obligation.endDate.getMonth() - obligation.startDate.getMonth());
             
-            const monthlyAmount = Number(obligation.allocatedAmount) / (months || 1);
+            const totalMonths = months || 1;
+            const monthlyAmount = Number(obligation.allocatedAmount) / totalMonths;
 
             let current = new Date(obligation.startDate);
-            for (let i = 0; i < (months || 1); i++) {
-                schedules.push({
-                    obligationId,
-                    period: new Date(current),
-                    recognizedAmount: monthlyAmount
+            for (let i = 0; i < totalMonths; i++) {
+                linesData.push({
+                    scheduleId: schedule.id,
+                    performanceObligationId: obligationId,
+                    lineNumber: i + 1,
+                    recognitionDate: new Date(current),
+                    scheduledAmount: monthlyAmount,
+                    status: 'PENDING'
                 });
                 current.setMonth(current.getMonth() + 1);
             }
-        } else if (obligation.recognitionMethod === 'point_in_time') {
-            schedules.push({
-                obligationId,
-                period: obligation.endDate || obligation.startDate,
-                recognizedAmount: Number(obligation.allocatedAmount)
+        } else if (obligation.recognitionPattern === 'POINT_IN_TIME') {
+            linesData.push({
+                scheduleId: schedule.id,
+                performanceObligationId: obligationId,
+                lineNumber: 1,
+                recognitionDate: obligation.endDate || obligation.startDate || new Date(),
+                scheduledAmount: Number(obligation.allocatedAmount),
+                status: 'PENDING'
             });
         }
 
-        // Insert schedules
-        for (const sched of schedules) {
-            await prisma.revenueSchedule.create({ data: sched });
+        // Insert schedules lines
+        if (linesData.length > 0) {
+            await prisma.revenueRecognitionLine.createMany({ data: linesData });
+            await prisma.deferredRevenueSchedule.update({
+                where: { id: schedule.id },
+                data: { totalLines: linesData.length }
+            });
         }
 
         return true;
     }
 
     static async runRecognitionForPeriod(periodEnd: Date) {
-        const pendingSchedules = await prisma.revenueSchedule.findMany({
+        const pendingLines = await prisma.revenueRecognitionLine.findMany({
             where: {
-                period: { lte: periodEnd },
-                journalEntryId: null
+                recognitionDate: { lte: periodEnd },
+                status: 'PENDING'
             }
         });
 
-        for (const sched of pendingSchedules) {
+        for (const line of pendingLines) {
             // Generate Journal Entry
             // DR: Deferred Revenue
             // CR: Revenue
 
-            await prisma.revenueSchedule.update({
-                where: { id: sched.id },
+            await prisma.revenueRecognitionLine.update({
+                where: { id: line.id },
                 data: {
+                    status: 'RECOGNIZED',
+                    recognizedAmount: line.scheduledAmount,
+                    recognizedAt: new Date(),
                     journalEntryId: 999999 // Placeholder ID until hooked to real auto-journal
                 }
             });
         }
 
-        return pendingSchedules.length;
+        return pendingLines.length;
     }
 }

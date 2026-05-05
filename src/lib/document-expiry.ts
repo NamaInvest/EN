@@ -32,11 +32,10 @@ export type AlertSeverity = 'EXPIRED' | 'CRITICAL' | 'WARNING' | 'INFO';
 
 export interface ExpiryAlert {
   id: number;
-  documentId: number;
-  documentType: DocumentType;
-  documentNumber: string;
+    documentType: DocumentType;
+  documentNumber: string | null;
   holderName: string;
-  holderId: number;
+  holderId: number | null;
   holderType: 'EMPLOYEE' | 'COMPANY';
   expiryDate: Date;
   daysRemaining: number;
@@ -100,9 +99,8 @@ export class DocumentExpiryEngine {
 
     try {
       // 1. Scan Employee Documents
-      const employeeDocs = await prisma.employeeDocument.findMany({
-        where: { expiryDate: { not: null } },
-        include: { employee: true },
+      const employeeDocs = await prisma.documentArchive.findMany({
+        where: { documentType: 'EMPLOYEE', expiryDate: { not: null } },
       });
 
       for (const doc of employeeDocs) {
@@ -115,8 +113,7 @@ export class DocumentExpiryEngine {
             // Upsert alert
             const existing = await prisma.documentExpiryAlert.findFirst({
               where: {
-                documentId: doc.id,
-                holderType: 'EMPLOYEE',
+                                holderType: 'EMPLOYEE',
                 status: { not: 'RESOLVED' },
               },
             });
@@ -124,11 +121,10 @@ export class DocumentExpiryEngine {
             if (!existing) {
               await prisma.documentExpiryAlert.create({
                 data: {
-                  documentId: doc.id,
-                  documentType: doc.documentType || 'OTHER',
-                  documentNumber: doc.documentNumber || '',
-                  holderName: doc.employee?.name || doc.employee?.fullName || '',
-                  holderId: doc.employeeId,
+                                    documentType: doc.documentType || 'OTHER',
+                  documentNumber: "",
+                  holderName: doc.docName || "Employee",
+                  holderId: doc.documentId,
                   holderType: 'EMPLOYEE',
                   expiryDate: doc.expiryDate!,
                   daysRemaining,
@@ -156,8 +152,8 @@ export class DocumentExpiryEngine {
       }
 
       // 2. Scan Company Documents
-      const companyDocs = await prisma.companyDocument.findMany({
-        where: { expiryDate: { not: null } },
+      const companyDocs = await prisma.documentArchive.findMany({
+        where: { documentType: 'COMPANY', expiryDate: { not: null } },
       });
 
       for (const doc of companyDocs) {
@@ -169,8 +165,7 @@ export class DocumentExpiryEngine {
           if (daysRemaining <= ALERT_THRESHOLDS.INFO_DAYS) {
             const existing = await prisma.documentExpiryAlert.findFirst({
               where: {
-                documentId: doc.id,
-                holderType: 'COMPANY',
+                                holderType: 'COMPANY',
                 status: { not: 'RESOLVED' },
               },
             });
@@ -178,11 +173,10 @@ export class DocumentExpiryEngine {
             if (!existing) {
               await prisma.documentExpiryAlert.create({
                 data: {
-                  documentId: doc.id,
-                  documentType: doc.documentType || 'CR',
-                  documentNumber: doc.documentNumber || '',
-                  holderName: doc.companyName || 'Company',
-                  holderId: doc.companyId || 0,
+                                    documentType: doc.documentType || 'CR',
+                  documentNumber: "",
+                  holderName: doc.docName || "Company",
+                  holderId: doc.documentId,
                   holderType: 'COMPANY',
                   expiryDate: doc.expiryDate!,
                   daysRemaining,
@@ -227,8 +221,7 @@ export class DocumentExpiryEngine {
     for (const alert of alerts) {
       const mapped: ExpiryAlert = {
         id: alert.id,
-        documentId: alert.documentId,
-        documentType: alert.documentType as DocumentType,
+                documentType: alert.documentType as DocumentType,
         documentNumber: alert.documentNumber,
         holderName: alert.holderName,
         holderId: alert.holderId,
@@ -236,7 +229,7 @@ export class DocumentExpiryEngine {
         expiryDate: new Date(alert.expiryDate),
         daysRemaining: alert.daysRemaining,
         severity: alert.severity as AlertSeverity,
-        notifiedAt: alert.notifiedAt,
+        notifiedAt: alert.lastNotifiedAt,
         renewedAt: alert.renewedAt,
       };
 
@@ -287,17 +280,10 @@ export class DocumentExpiryEngine {
     // Update original document's expiry date
     const alert = await prisma.documentExpiryAlert.findUnique({ where: { id: alertId } });
     if (alert) {
-      if (alert.holderType === 'EMPLOYEE') {
-        await prisma.employeeDocument.update({
-          where: { id: alert.documentId },
-          data: { expiryDate: newExpiryDate },
-        });
-      } else {
-        await prisma.companyDocument.update({
-          where: { id: alert.documentId },
-          data: { expiryDate: newExpiryDate },
-        });
-      }
+      await prisma.documentArchive.updateMany({
+        where: { documentId: alert.holderId || 0, documentType: alert.holderType },
+        data: { expiryDate: newExpiryDate },
+      });
     }
   }
 
@@ -329,8 +315,7 @@ export class DocumentExpiryEngine {
 
     return alerts.map(a => ({
       id: a.id,
-      documentId: a.documentId,
-      documentType: a.documentType as DocumentType,
+            documentType: a.documentType as DocumentType,
       documentNumber: a.documentNumber,
       holderName: a.holderName,
       holderId: a.holderId,
@@ -338,7 +323,7 @@ export class DocumentExpiryEngine {
       expiryDate: new Date(a.expiryDate),
       daysRemaining: a.daysRemaining,
       severity: a.severity as AlertSeverity,
-      notifiedAt: a.notifiedAt,
+      notifiedAt: a.lastNotifiedAt,
       renewedAt: a.renewedAt,
     }));
   }

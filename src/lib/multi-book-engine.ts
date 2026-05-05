@@ -27,7 +27,7 @@ export class MultiBookEngine {
                         // Look for an account mapping rule from Primary to this Book
                         const mapping = await tx.accountMapping.findFirst({
                             where: {
-                                targetBookId: book.id,
+                                bookId: book.id,
                                 sourceAccountId: line.accountId
                             }
                         });

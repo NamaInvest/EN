@@ -66,7 +66,7 @@ export class BudgetEngine {
             where: {
                 accountId,
                 costCenterId,
-                journalEntry: {
+                entry: {
                     status: 'posted',
                     entryDate: {
                         gte: activeBudget.startDate.toISOString(),
@@ -78,7 +78,7 @@ export class BudgetEngine {
         });
 
         // Expenses are typically debit balance
-        const actualSpent = (actualLines._sum.debit || 0) - (actualLines._sum.credit || 0);
+        const actualSpent = (actualLines._sum?.debit || 0) - (actualLines._sum?.credit || 0);
         const projectedTotal = actualSpent + newAmount;
 
         // 4. Check against Budget
@@ -118,7 +118,7 @@ export class BudgetEngine {
                 where: {
                     accountId: line.accountId,
                     costCenterId: line.costCenterId,
-                    journalEntry: {
+                    entry: {
                         status: 'posted',
                         entryDate: {
                             gte: line.budget.startDate.toISOString(),
@@ -129,7 +129,7 @@ export class BudgetEngine {
                 _sum: { debit: true, credit: true }
             });
 
-            const actualSpent = (actualLines._sum.debit || 0) - (actualLines._sum.credit || 0);
+            const actualSpent = (actualLines._sum?.debit || 0) - (actualLines._sum?.credit || 0);
             const variance = line.allocatedAmount - actualSpent;
             const variancePercentage = line.allocatedAmount > 0 ? (variance / line.allocatedAmount) * 100 : 0;
 

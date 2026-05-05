@@ -53,7 +53,7 @@ export class IFRS9Engine {
         else if (maxDaysPastDue > 30) stage = 2;
 
         // Determine ECL Model
-        const segment = customer.category || 'General';
+        const segment = customer.type === 0 ? 'Customer' : 'General';
         let eclModel = await prisma.eCLModel.findFirst({
             where: { customerSegment: segment }
         });
@@ -98,7 +98,7 @@ export class IFRS9Engine {
      */
     static async runPortfolioECL(fiscalPeriodId: number, asOfDate: Date, userId: string) {
         const customers = await prisma.customer.findMany({
-            where: { isActive: true }
+            where: { active: true }
         });
 
         const assessments = [];

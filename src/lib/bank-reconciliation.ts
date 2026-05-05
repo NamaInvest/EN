@@ -9,9 +9,12 @@ export class BankReconciliationEngine {
         const statement = await prisma.bankStatement.create({
             data: {
                 bankAccountId,
-                statementDate,
+                openingDate: statementDate, closingDate: statementDate,
                 openingBalance,
                 closingBalance,
+                fileFormat: 'CSV',
+                importMethod: 'MANUAL',
+                currency: 'SAR',
                 lines: {
                     create: lines.map(l => ({
                         transactionDate: l.date,
@@ -42,7 +45,7 @@ export class BankReconciliationEngine {
         let matchesFound = 0;
 
         for (const line of statement.lines) {
-            if (line.reconciledStatus !== 'UNRECONCILED') continue;
+            if (line.matchStatus !== 'UNMATCHED') continue;
 
             // Search for matching OpenItem (payment or receipt) by exact amount and within +/- 3 days
             const targetDate = new Date(line.transactionDate);
@@ -64,8 +67,8 @@ export class BankReconciliationEngine {
                 await prisma.bankStatementLine.update({
                     where: { id: line.id },
                     data: {
-                        reconciledStatus: 'MATCHED',
-                        matchedDocId: match.id
+                        matchStatus: 'AUTO_MATCHED',
+                        matchedToId: match.id
                     }
                 });
                 matchesFound++;
@@ -74,13 +77,13 @@ export class BankReconciliationEngine {
 
         // If all lines are matched, mark statement as RECONCILED
         const remaining = await prisma.bankStatementLine.count({
-            where: { statementId, reconciledStatus: 'UNRECONCILED' }
+            where: { statementId, matchStatus: 'UNMATCHED' }
         });
 
         if (remaining === 0) {
             await prisma.bankStatement.update({
                 where: { id: statementId },
-                data: { status: 'RECONCILED' }
+                data: { reconStatus: 'COMPLETED' }
             });
         }
 

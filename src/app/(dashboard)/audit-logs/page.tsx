@@ -1,119 +1,106 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useTranslation } from "@/lib/i18n";
-import { useToast } from '@/components/Toast';
-
-interface AuditLog {
- id: number;
- userId: number | null;
- action: string;
- tableName: string | null;
- recordId: number | null;
- details: string | null;
- date: string;
- user?: {
- fullName: string;
- role: string;
- };
-}
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function AuditLogsPage() {
- const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
- const [logs, setLogs] = useState<AuditLog[]>([]);
- const [loading, setLoading] = useState(true);
- const [searchTerm, setSearchTerm] = useState('');
+    const [logs, setLogs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [actionFilter, setActionFilter] = useState('');
+    const [tableFilter, setTableFilter] = useState('');
 
- async function fetchData() {
- const token = localStorage.getItem('token');
- try {
- const res = await fetch('/api/audit-logs', { headers: { Authorization: `Bearer ${token}` } });
- if (res.ok) {
- setLogs(await res.json());
- } else if (res.status === 403) {
- // Not authorized
- setLogs([]);
- }
- } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
- finally { setLoading(false); }
- }
+    const fetchLogs = async () => {
+        setLoading(true);
+        try {
+            let url = '/api/audit-logs?limit=100';
+            if (actionFilter) url += `&action=${actionFilter}`;
+            if (tableFilter) url += `&tableName=${tableFilter}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setLogs(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch audit logs', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
- useEffect(() => {
- fetchData();
- }, []);
+    useEffect(() => {
+        fetchLogs();
+    }, [actionFilter, tableFilter]);
 
- const filteredLogs = logs.filter(l => 
- l.action.toLowerCase().includes(searchTerm.toLowerCase()) || 
- (l.tableName && l.tableName.toLowerCase().includes(searchTerm.toLowerCase())) ||
- (l.user && l.user.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
- (l.details && l.details.toLowerCase().includes(searchTerm.toLowerCase()))
- );
+    return (
+        <div className="p-6 space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold tracking-tight">Audit Trail</h1>
+                <Button variant="outline">Export CSV</Button>
+            </div>
+            
+            <div className="flex space-x-4 mb-4">
+                <Input 
+                    placeholder="Filter by Action (e.g. CREATE)" 
+                    value={actionFilter}
+                    onChange={(e) => setActionFilter(e.target.value)}
+                    className="max-w-xs"
+                />
+                <Input 
+                    placeholder="Filter by Entity (e.g. Invoice)" 
+                    value={tableFilter}
+                    onChange={(e) => setTableFilter(e.target.value)}
+                    className="max-w-xs"
+                />
+                <Button onClick={fetchLogs}>Refresh</Button>
+            </div>
 
- const getActionBadge = (action: string) => {
- if (action.includes('CREATE') || action.includes(t('sys.str_392'))) return 'badge-success';
- if (action.includes('UPDATE') || action.includes(t('sys.str_393'))) return 'badge-warning';
- if (action.includes('DELETE') || action.includes(t('sys.str_394'))) return 'badge-danger';
- return 'badge-outline';
- };
-
- return (
- <>
- <div className="page-header">
- <h1 className="page-title">{t('sys.str_383')}</h1>
- <div style={{ display: 'flex', gap: '10px' }}>
- <input 
- type="text" 
- className="input" 
- placeholder={t('sys.str_395')} 
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- style={{ width: '300px' }}
- />
- <button className="btn btn-ghost" onClick={fetchData}>{t('sys.str_384')}</button>
- </div>
- </div>
-
- <div className="page-content animate-fade-in">
- <div className="table-container">
- <table className="table">
- <thead>
- <tr>
- <th>{t('sys.str_385')}</th>
- <th>{t('sys.str_386')}</th>
- <th>{t('sys.str_387')}</th>
- <th>{t('sys.str_388')}</th>
- <th>{t('sys.str_389')}</th>
- <th>{t('sys.str_390')}</th>
- </tr>
- </thead>
- <tbody>
- {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>{t('sys.str_168')}</td></tr>
- : filteredLogs.length === 0 ? <tr><td colSpan={6}><div className="empty-state"><div className="empty-state-text">{t('sys.str_391')}</div></div></td></tr>
- : filteredLogs.map((log) => (
- <tr key={log.id}>
- <td style={{ whiteSpace: 'nowrap', fontSize: '13px', color: 'var(--text-muted)' }}>
- {new Date(log.date).toLocaleString('en-GB')}
- </td>
- <td style={{ fontWeight: 'bold' }}>
- {log.user ? `${log.user.fullName} (${log.user.role})` : t('sys.str_396')}
- </td>
- <td>
- <span className={`badge ${getActionBadge(log.action)}`}>
- {log.action}
- </span>
- </td>
- <td dir="ltr" style={{ fontSize: '14px' }}>{log.tableName || '-'}</td>
- <td><span className="badge badge-outline">{log.recordId || '-'}</span></td>
- <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={log.details || ''}>
- {log.details || '-'}
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- </div>
- </>
- );
+            <Card>
+                <CardHeader>
+                    <CardTitle>System Activity Logs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {loading ? <p>Loading...</p> : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th className="px-4 py-3">Timestamp</th>
+                                        <th className="px-4 py-3">User</th>
+                                        <th className="px-4 py-3">Action</th>
+                                        <th className="px-4 py-3">Entity</th>
+                                        <th className="px-4 py-3">Entity ID</th>
+                                        <th className="px-4 py-3">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {logs.map((log, idx) => (
+                                        <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                            <td className="px-4 py-3 whitespace-nowrap">{new Date(log.date).toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-medium">{log.user?.fullName || 'System'}</td>
+                                            <td className="px-4 py-3">
+                                                <Badge variant="outline" className={log.action === 'DELETE' ? 'bg-red-100' : 'bg-gray-100'}>
+                                                    {log.action}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3">{log.tableName}</td>
+                                            <td className="px-4 py-3">{log.recordId}</td>
+                                            <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate" title={log.details}>
+                                                {log.details || '-'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {logs.length === 0 && (
+                                        <tr><td colSpan={6} className="text-center py-6 text-gray-500">No logs found matching criteria.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
 }

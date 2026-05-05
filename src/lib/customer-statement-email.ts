@@ -29,7 +29,7 @@ export class CustomerStatementEmailEngine {
             });
         }
 
-        const toEmail = customer.statementEmail || customer.email;
+        const toEmail = (customer as any).statementEmail || (customer as any).email;
         if (!toEmail) throw new Error('Customer has no email address configured for statements');
 
         const subject = templateData?.emailSubject || `Customer Statement - ${customer.name} - ${dateFrom.toDateString()} to ${dateTo.toDateString()}`;

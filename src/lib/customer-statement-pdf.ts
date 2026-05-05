@@ -95,7 +95,7 @@ export class CustomerStatementPdfEngine {
         const crypto = await import('crypto');
         const hash = crypto.createHash('sha256').update(pdfBuffer).digest('hex');
 
-        return { pdfBuffer, html: htmlContent, hash };
+        return { pdfBuffer: Buffer.from(pdfBuffer), html: htmlContent, hash };
     }
 
     private static compileHtml(templateData: any, statementData: any): string {

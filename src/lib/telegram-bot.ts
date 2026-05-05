@@ -291,10 +291,17 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
 
             for (const detail of invoice.details) {
                 await tx.product.update({ where: { id: detail.productId }, data: { currentStock: { increment: detail.quantity } } });
-                await tx.productStock.upsert({
-                    where: { productId_stockId: { productId: detail.productId, stockId: 1 } },
-                    update: { quantity: { increment: detail.quantity } }, create: { productId: detail.productId, stockId: 1, quantity: detail.quantity },
-                });
+                const existingStock = await tx.productStock.findFirst({ where: { productId: detail.productId, stockId: 1 } });
+                if (existingStock) {
+                    await tx.productStock.update({
+                        where: { id: existingStock.id },
+                        data: { quantity: { increment: detail.quantity } }
+                    });
+                } else {
+                    await tx.productStock.create({
+                        data: { productId: detail.productId, stockId: 1, quantity: detail.quantity }
+                    });
+                }
             }
 
             await tx.treasury.create({ data: { type: 'out', amount: verifiedTotal, description: `مشتريات آلي #${invoiceNo} (${invoice.supplier?.name || 'عام'})`, referenceType: 'purchase', referenceId: invoice.id, date: new Date() } });

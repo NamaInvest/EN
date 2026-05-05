@@ -9,7 +9,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         // Fetch stocktake and its items
         const stocktake = await prisma.stocktake.findUnique({
             where: { id },
-            include: { items: { include: { product: true } } }
+            include: { items: { include: { product: true } } } as any
         });
 
         if (!stocktake) return NextResponse.json({ error: 'Stocktake not found' }, { status: 404 });
@@ -23,7 +23,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         const updatePromises: any[] = [];
 
-        for (const item of stocktake.items) {
+        for (const item of (stocktake as any).items) {
             const diff = item.actualQty - item.systemQty;
             let status = 'matched';
             if (diff > 0) { status = 'over'; totalOver++; }

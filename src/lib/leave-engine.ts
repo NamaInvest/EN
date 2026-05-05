@@ -30,13 +30,12 @@ export type AccrualFrequency = 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY';
 export interface LeaveBalance {
   employeeId: number;
   leaveType: LeaveType;
-  totalEntitlement: number;  // الاستحقاق السنوي
+  entitlement: number;       // الاستحقاق السنوي
   accrued: number;           // ما تم تجميعه حتى الآن
-  taken: number;             // ما تم استهلاكه
+  used: number;              // ما تم استهلاكه
   pending: number;           // طلبات معلقة
   available: number;         // المتاح
-  carriedForward: number;    // مرحّل من السنة السابقة
-  expiryDate: Date | null;   // تاريخ انتهاء الرصيد المرحّل
+  carryOver: number;         // مرحّل من السنة السابقة
 }
 
 export interface AccrualResult {
@@ -152,8 +151,10 @@ export class LeaveEngine {
         const existing = await prisma.leaveAccrual.findFirst({
           where: {
             employeeId: emp.id,
-            year,
-            month,
+            accrualDate: {
+              gte: new Date(year, month - 1, 1),
+              lte: new Date(year, month, 0),
+            },
             leaveType: 'ANNUAL',
           },
         });
@@ -182,10 +183,10 @@ export class LeaveEngine {
             },
           });
 
-          let carriedForward = 0;
+          let carryOver = 0;
           if (prevBalance) {
-            const remaining = Number(prevBalance.accrued) + Number(prevBalance.carriedForward) - Number(prevBalance.taken);
-            carriedForward = Math.min(
+            const remaining = Number(prevBalance.accrued) + Number(prevBalance.carryOver) - Number(prevBalance.used);
+            carryOver = Math.min(
               Math.max(0, remaining),
               SAUDI_LEAVE_POLICY.MAX_CARRY_FORWARD_DAYS
             );
@@ -196,14 +197,11 @@ export class LeaveEngine {
               employeeId: emp.id,
               leaveType: 'ANNUAL',
               year,
-              totalEntitlement: annualEntitlement,
+              entitlement: annualEntitlement,
               accrued: 0,
-              taken: 0,
+              used: 0,
               pending: 0,
-              carriedForward,
-              expiryDate: carriedForward > 0
-                ? new Date(year, SAUDI_LEAVE_POLICY.CARRY_FORWARD_EXPIRY_MONTHS - 1, 30)
-                : null,
+              carryOver,
             },
           });
         }
@@ -213,10 +211,9 @@ export class LeaveEngine {
           data: {
             employeeId: emp.id,
             leaveType: 'ANNUAL',
-            year,
-            month,
-            accrualDays: monthlyAccrual,
-            reason: `تجميع شهري — ${month}/${year}`,
+            accrualDate: accrualDate,
+            daysAccrued: monthlyAccrual,
+            runBy: userId ? String(userId) : 'SYSTEM',
           },
         });
 
@@ -230,9 +227,9 @@ export class LeaveEngine {
         result.processed++;
         result.details.push({
           employeeId: emp.id,
-          employeeName: emp.name || emp.fullName || `Employee #${emp.id}`,
+          employeeName: emp.name || `Employee #${emp.id}`,
           accrued: monthlyAccrual,
-          newBalance: newAccrued + Number(balance.carriedForward) - Number(balance.taken),
+          newBalance: newAccrued + Number(balance.carryOver) - Number(balance.used),
         });
 
       } catch (error) {
@@ -257,25 +254,20 @@ export class LeaveEngine {
 
     if (!balance) return null;
 
-    // Check carry-forward expiry
-    let availableCarryForward = Number(balance.carriedForward);
-    if (balance.expiryDate && new Date() > new Date(balance.expiryDate)) {
-      availableCarryForward = 0; // Expired
-    }
+    let availableCarryForward = Number(balance.carryOver);
 
     const available = Number(balance.accrued) + availableCarryForward 
-                      - Number(balance.taken) - Number(balance.pending);
+                      - Number(balance.used) - Number(balance.pending);
 
     return {
       employeeId,
       leaveType: leaveType as LeaveType,
-      totalEntitlement: Number(balance.totalEntitlement),
+      entitlement: Number(balance.entitlement),
       accrued: Number(balance.accrued),
-      taken: Number(balance.taken),
+      used: Number(balance.used),
       pending: Number(balance.pending),
       available: Math.max(0, available),
-      carriedForward: availableCarryForward,
-      expiryDate: balance.expiryDate,
+      carryOver: availableCarryForward,
     };
   }
 
@@ -458,7 +450,7 @@ export class LeaveEngine {
         await tx.leaveBalance.updateMany({
           where: { employeeId: request.employeeId, leaveType: 'ANNUAL', year },
           data: {
-            taken: { increment: days },
+            used: { increment: days },
             pending: { decrement: days },
           },
         });
@@ -607,7 +599,7 @@ export class LeaveEngine {
     const details: Array<{ employeeId: number; carried: number }> = [];
 
     for (const bal of balances) {
-      const remaining = Number(bal.accrued) + Number(bal.carriedForward) - Number(bal.taken);
+      const remaining = Number(bal.accrued) + Number(bal.carryOver) - Number(bal.used);
       const toCarry = Math.min(
         Math.max(0, remaining),
         SAUDI_LEAVE_POLICY.MAX_CARRY_FORWARD_DAYS
@@ -623,8 +615,7 @@ export class LeaveEngine {
           await prisma.leaveBalance.update({
             where: { id: existingNextYear.id },
             data: {
-              carriedForward: toCarry,
-              expiryDate: new Date(year + 1, SAUDI_LEAVE_POLICY.CARRY_FORWARD_EXPIRY_MONTHS - 1, 30),
+              carryOver: toCarry,
             },
           });
         } else {
@@ -633,12 +624,11 @@ export class LeaveEngine {
               employeeId: bal.employeeId,
               leaveType: 'ANNUAL',
               year: year + 1,
-              totalEntitlement: Number(bal.totalEntitlement),
+              entitlement: Number(bal.entitlement),
               accrued: 0,
-              taken: 0,
+              used: 0,
               pending: 0,
-              carriedForward: toCarry,
-              expiryDate: new Date(year + 1, SAUDI_LEAVE_POLICY.CARRY_FORWARD_EXPIRY_MONTHS - 1, 30),
+              carryOver: toCarry,
             },
           });
         }

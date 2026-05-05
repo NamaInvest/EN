@@ -2073,42 +2073,42 @@ model Application { jobPostingId, candidateId, stage, score, feedback }
 ## PART 11 — التنفيذ المقترح (Roadmap)
 
 ### Phase 0 — Foundation (Tier 1) — 6 أسابيع
-- [ ] Numbering Sequences Engine (1.6)
-- [ ] Document State Machine (1.7)
-- [ ] Audit Trail Reporting (1.3)
-- [ ] Approval Workflow Inbox (1.1)
-- [ ] Period Close Checklist (1.5)
+- [x] Numbering Sequences Engine (1.6)
+- [x] Document State Machine (1.7)
+- [x] Audit Trail Reporting (1.3)
+- [x] Approval Workflow Inbox (1.1)
+- [x] Period Close Checklist (1.5)
 
 ### Phase 1 — Core ERP Hardening — 8 أسابيع
-- [ ] Credit Limit Enforcement (2.2)
-- [ ] Pricing Engine (2.1)
-- [ ] Three-Way Match Workflow (3.3)
-- [ ] Landed Cost Allocation (3.4)
-- [ ] Budget Variance Dashboard (1.2)
-- [ ] FEFO Allocation (4.2)
-- [ ] ABC Analysis (4.1)
+- [x] Credit Limit Enforcement (2.2)
+- [x] Pricing Engine (2.1)
+- [x] Three-Way Match Workflow (3.3)
+- [x] Landed Cost Allocation (3.4)
+- [x] Budget Variance Dashboard (1.2)
+- [x] FEFO Allocation (4.2)
+- [x] ABC Analysis (4.1)
 
 ### Phase 2 — Manufacturing Excellence — 6 أسابيع
-- [ ] BOM Versioning (5.1)
-- [ ] Capacity Gantt (5.2)
-- [ ] OEE Dashboard (5.3)
-- [ ] Scrap Tracking (5.4)
+- [x] BOM Versioning (5.1)
+- [x] Capacity Gantt (5.2)
+- [x] OEE Dashboard (5.3)
+- [x] Scrap Tracking (5.4)
 
 ### Phase 3 — Finance Maturity — 6 أسابيع
-- [ ] Intercompany Elimination (6.1)
-- [ ] Cash Flow Forecast (6.2)
-- [ ] Bank Recon Rules (6.3)
-- [ ] ECL Automation (6.4)
-- [ ] FX Revaluation (6.5)
-- [ ] Cost Center Allocations (6.6)
+- [x] Intercompany Elimination (6.1)
+- [x] Cash Flow Forecast (6.2)
+- [x] Bank Recon Rules (6.3)
+- [x] ECL Automation (6.4)
+- [x] FX Revaluation (6.5)
+- [x] Cost Center Allocations (6.6)
 
 ### Phase 4 — HR & CRM — 6 أسابيع
-- [ ] Org Chart (7.1)
-- [ ] Performance 360 (7.2)
-- [ ] ATS (7.3)
-- [ ] CRM Lead Mgmt (8.1)
-- [ ] Opportunity Kanban (8.2)
-- [ ] Customer Portal (8.3)
+- [x] Org Chart (7.1)
+- [x] Performance 360 (7.2)
+- [x] ATS (7.3)
+- [x] CRM Lead Mgmt (8.1)
+- [x] Opportunity Kanban (8.2)
+- [x] Customer Portal (8.3)
 
 ### Phase 5 — Verticals — 12 أسابيع
 - [ ] Clinic: Appointments + e-Rx + Lab (9.1-9.3)
@@ -2125,8 +2125,8 @@ model Application { jobPostingId, candidateId, stage, score, feedback }
 - [ ] Footnotes (10.1)
 - [ ] Segments (10.2)
 - [ ] KPI Builder (10.3)
-- [ ] Customer Statement Bulk (2.5)
-- [ ] Sales Forecast (2.6)
+- [x] Customer Statement Bulk (2.5)
+- [x] Sales Forecast (2.6)
 
 **إجمالي:** ~48 أسبوع (12 شهر) للوصول لمستوى عالمي.
 

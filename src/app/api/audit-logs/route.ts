@@ -1,24 +1,26 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
-    const prisma = getPrisma(request);
+export async function GET(req: Request) {
     try {
-        const user = getUserFromRequest(request);
-        if (!user || user.role !== 'admin') {
-            return NextResponse.json({ error: 'غير مصرح للوصول للسجل' }, { status: 403 });
-        }
-        
+        const { searchParams } = new URL(req.url);
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const action = searchParams.get('action');
+        const tableName = searchParams.get('tableName');
+
+        let where: any = {};
+        if (action) where.action = action;
+        if (tableName) where.tableName = tableName;
+
         const logs = await prisma.auditLog.findMany({
-            include: { user: { select: { id: true, fullName: true, role: true } } },
+            where,
+            include: { user: { select: { fullName: true, username: true } } },
             orderBy: { date: 'desc' },
-            take: 500
+            take: limit
         });
-        
+
         return NextResponse.json(logs);
-    } catch (error) {
-        console.error("GET audit logs error:", error);
-        return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

@@ -90,3 +90,70 @@ export async function getNextNumber(
 
   return { formatted: result, current: Number(current) };
 }
+
+export const NUMBERING_DEFAULTS = [
+    { code: 'INV', name: 'Invoice', prefix: 'INV-{YYYY}-', padLength: 6 },
+    { code: 'PO', name: 'Purchase Order', prefix: 'PO-{YYYY}-', padLength: 6 },
+    { code: 'JE', name: 'Journal Entry', prefix: 'JE-{YY}{MM}-', padLength: 5 },
+    { code: 'WO', name: 'Work Order', prefix: 'WO-', padLength: 6 },
+];
+
+export async function peekNextNumber(
+  tx: any,
+  code: string,
+  options?: { branchId?: number | null }
+): Promise<string> {
+  // Logic to peek the next number without incrementing it
+  // We can do a simple read
+  const branchQuery = options?.branchId ? `= ${options.branchId}` : 'IS NULL';
+  
+  let sequences = (await tx.$queryRawUnsafe(
+    `SELECT * FROM "numbering_sequences" WHERE "code" = $1 AND "branch_id" ${branchQuery} LIMIT 1`,
+    code
+  )) as any[];
+
+  if (!sequences || sequences.length === 0) {
+    sequences = (await tx.$queryRawUnsafe(
+      `SELECT * FROM "numbering_sequences" WHERE "code" = $1 AND "branch_id" IS NULL LIMIT 1`,
+      code
+    )) as any[];
+    if (!sequences || sequences.length === 0) {
+      return `${code}-000001`; // fallback peek
+    }
+  }
+
+  const sequence = sequences[0];
+  const nextVal = BigInt(sequence.current) + BigInt(1);
+  const now = new Date();
+  
+  let prefix = sequence.prefix || '';
+  let suffix = sequence.suffix || '';
+  const padLength = sequence.pad_length || 6;
+  
+  prefix = prefix.replace('{YYYY}', format(now, 'yyyy'))
+                 .replace('{YY}', format(now, 'yy'))
+                 .replace('{MM}', format(now, 'MM'))
+                 .replace('{DD}', format(now, 'dd'));
+
+  const paddedCurrent = nextVal.toString().padStart(padLength, '0');
+  return `${prefix}${paddedCurrent}${suffix}`;
+}
+
+export async function resetSequence(
+  tx: any,
+  code: string,
+  branchId?: number | null,
+  fiscalYear?: number | null,
+  fiscalMonth?: number | null
+): Promise<void> {
+  const branchQuery = branchId ? `= ${branchId}` : 'IS NULL';
+  const yearQuery = fiscalYear ? `= ${fiscalYear}` : 'IS NULL';
+  const monthQuery = fiscalMonth ? `= ${fiscalMonth}` : 'IS NULL';
+  
+  await tx.$executeRawUnsafe(
+    `UPDATE "numbering_sequences" SET "current" = 0, "last_reset" = $1 
+     WHERE "code" = $2 AND "branch_id" ${branchQuery} AND "fiscal_year" ${yearQuery} AND "fiscal_month" ${monthQuery}`,
+    new Date(),
+    code
+  );
+}

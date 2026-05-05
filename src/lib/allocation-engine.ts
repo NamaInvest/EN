@@ -134,7 +134,7 @@ export class AllocationEngine {
             // Credit Source
             await tx.journalLine.create({
                 data: {
-                    entryId: je.id,
+                    journalEntryId: je.id,
                     costCenterId: rule.sourceCostCenterId,
                     accountId: rule.sourceAccountId || 1, // Fallback
                     debit: 0,
@@ -147,7 +147,7 @@ export class AllocationEngine {
             for (const dist of distributions) {
                 await tx.journalLine.create({
                     data: {
-                        entryId: je.id,
+                        journalEntryId: je.id,
                         costCenterId: dist.targetCcId,
                         accountId: rule.sourceAccountId || 1, // Same account, moved to diff CC
                         debit: dist.amount,
@@ -162,7 +162,7 @@ export class AllocationEngine {
                     ruleId,
                     fiscalPeriodId,
                     sourceAmount,
-                    entryId: je.id,
+                    journalEntryId: je.id,
                     status: 'COMPLETED'
                 }
             });

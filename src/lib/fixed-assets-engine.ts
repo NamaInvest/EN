@@ -11,15 +11,15 @@ export class FixedAssetsEngine {
     /**
      * Capitalizes a CWIP (Capital Work In Progress) asset into service
      */
-    static async capitalizeAsset(assetId: number, placedInServiceDate: Date) {
-        const asset = await prisma.fixedAssetAdvanced.findUnique({ where: { id: assetId } });
+    static async capitalizeAsset(assetId: number, depreciationStartDateDate: Date) {
+        const asset = await prisma.fixedAsset.findUnique({ where: { id: assetId } });
         if (!asset || asset.status !== 'CWIP') throw new Error("Asset is not in CWIP status");
 
-        await prisma.fixedAssetAdvanced.update({
+        await prisma.fixedAsset.update({
             where: { id: assetId },
             data: {
                 status: 'ACTIVE',
-                placedInService: placedInServiceDate
+                depreciationStartDate: depreciationStartDateDate
             }
         });
 
@@ -27,19 +27,19 @@ export class FixedAssetsEngine {
         const assetAccountId = await FixedAssetsEngine._getAccountId('acc_fixed_asset', 1200);
         const cwipAccountId = await FixedAssetsEngine._getAccountId('acc_cwip', 1290);
         
-        await prisma.journalEntry.create({
+        const je = await prisma.journalEntry.create({
             data: {
                 entryNumber: `CAP-${assetId}-${Date.now()}`,
-                entryDate: placedInServiceDate.toISOString(),
+                entryDate: depreciationStartDateDate.toISOString(),
                 description: `Capitalization of Asset #${assetId}`,
                 status: 'posted',
-                totalDebit: Number(asset.purchaseCost),
-                totalCredit: Number(asset.purchaseCost),
+                totalDebit: Number(asset.acquisitionCost),
+                totalCredit: Number(asset.acquisitionCost),
                 createdBy: 1,
                 lines: {
                     create: [
-                        { accountId: assetAccountId, debit: Number(asset.purchaseCost), credit: 0, description: 'Fixed Asset' },
-                        { accountId: cwipAccountId, debit: 0, credit: Number(asset.purchaseCost), description: 'CWIP Offset' }
+                        { accountId: assetAccountId, debit: Number(asset.acquisitionCost), credit: 0, description: 'Fixed Asset' },
+                        { accountId: cwipAccountId, debit: 0, credit: Number(asset.acquisitionCost), description: 'CWIP Offset' }
                     ]
                 }
             }
@@ -53,58 +53,52 @@ export class FixedAssetsEngine {
      */
     static async runDepreciation(fiscalPeriodDate: Date) {
         // Find all active assets that have been placed in service
-        const assets = await prisma.fixedAssetAdvanced.findMany({
+        const assets = await prisma.fixedAsset.findMany({
             where: {
                 status: 'ACTIVE',
-                placedInService: { lte: fiscalPeriodDate }
+                depreciationStartDate: { lte: fiscalPeriodDate }
             }
         });
 
         let depreciatedCount = 0;
 
         for (const asset of assets) {
-            if (Number(asset.netBookValue) <= Number(asset.salvageValue)) continue;
+            if (Number(asset.currentBookValue) <= Number(asset.salvageValue)) continue;
 
             let depreciationAmount = 0;
 
+            const usefulLife = asset.usefulLifeYears || 1;
             if (asset.depreciationMethod === 'STRAIGHT_LINE') {
-                const depreciableBase = Number(asset.purchaseCost) - Number(asset.salvageValue);
-                const annualDepreciation = depreciableBase / asset.usefulLifeYears;
+                const depreciableBase = Number(asset.acquisitionCost) - Number(asset.salvageValue);
+                const annualDepreciation = depreciableBase / usefulLife;
                 depreciationAmount = annualDepreciation / 12; // Monthly
             } else if (asset.depreciationMethod === 'DECLINING_BALANCE') {
-                const rate = 1 / asset.usefulLifeYears;
-                const annualDepreciation = Number(asset.netBookValue) * rate;
+                const rate = 1 / usefulLife;
+                const annualDepreciation = Number(asset.currentBookValue) * rate;
                 depreciationAmount = annualDepreciation / 12; // Monthly
             } else if (asset.depreciationMethod === 'DOUBLE_DECLINING') {
-                const rate = (1 / asset.usefulLifeYears) * 2;
-                const annualDepreciation = Number(asset.netBookValue) * rate;
+                const rate = (1 / usefulLife) * 2;
+                const annualDepreciation = Number(asset.currentBookValue) * rate;
                 depreciationAmount = annualDepreciation / 12; // Monthly
             }
 
             // Don't depreciate below salvage value
-            if (Number(asset.netBookValue) - depreciationAmount < Number(asset.salvageValue)) {
-                depreciationAmount = Number(asset.netBookValue) - Number(asset.salvageValue);
+            if (Number(asset.currentBookValue) - depreciationAmount < Number(asset.salvageValue)) {
+                depreciationAmount = Number(asset.currentBookValue) - Number(asset.salvageValue);
             }
 
             if (depreciationAmount > 0) {
                 // Update Asset
-                await prisma.fixedAssetAdvanced.update({
+                await prisma.fixedAsset.update({
                     where: { id: asset.id },
                     data: {
                         accumulatedDepreciation: Number(asset.accumulatedDepreciation) + depreciationAmount,
-                        netBookValue: Number(asset.netBookValue) - depreciationAmount
+                        currentBookValue: Number(asset.currentBookValue) - depreciationAmount
                     }
                 });
 
-                // Record Transaction
-                await prisma.assetTransaction.create({
-                    data: {
-                        assetId: asset.id,
-                        transactionType: 'DEPRECIATION',
-                        transactionDate: fiscalPeriodDate,
-                        amount: depreciationAmount
-                    }
-                });
+                // Record Transaction (Deferred to after JE)
+                let tempDepAmount = depreciationAmount;
 
                 // Generate JE: 
                 // DR Depreciation Expense
@@ -112,7 +106,7 @@ export class FixedAssetsEngine {
                 const depExpenseAccountId = await FixedAssetsEngine._getAccountId('acc_dep_expense', 5100);
                 const accDepAccountId = await FixedAssetsEngine._getAccountId('acc_accumulated_dep', 1250);
 
-                await prisma.journalEntry.create({
+                const je = await prisma.journalEntry.create({
                     data: {
                         entryNumber: `DEP-${asset.id}-${fiscalPeriodDate.getTime()}`,
                         entryDate: fiscalPeriodDate.toISOString(),
@@ -130,6 +124,19 @@ export class FixedAssetsEngine {
                     }
                 });
 
+                await prisma.assetDepreciationLog.create({
+                    data: {
+                        assetId: asset.id,
+                        periodStart: new Date(fiscalPeriodDate.getFullYear(), fiscalPeriodDate.getMonth(), 1),
+                        periodEnd: fiscalPeriodDate,
+                        openingNbv: Number(asset.currentBookValue),
+                        depreciationAmount: tempDepAmount,
+                        closingNbv: Number(asset.currentBookValue) - tempDepAmount,
+                        method: asset.depreciationMethod,
+                        journalEntryId: je.id
+                    }
+                });
+
                 depreciatedCount++;
             }
         }
@@ -141,24 +148,24 @@ export class FixedAssetsEngine {
      * Process an asset disposal (Sale or Scrap)
      */
     static async disposeAsset(assetId: number, disposalDate: Date, saleProceeds: number = 0) {
-        const asset = await prisma.fixedAssetAdvanced.findUnique({ where: { id: assetId } });
+        const asset = await prisma.fixedAsset.findUnique({ where: { id: assetId } });
         if (!asset || asset.status !== 'ACTIVE') throw new Error("Asset not active");
 
-        const nbv = Number(asset.netBookValue);
+        const nbv = Number(asset.currentBookValue);
         const gainOrLoss = saleProceeds - nbv;
 
-        await prisma.fixedAssetAdvanced.update({
+        await prisma.fixedAsset.update({
             where: { id: assetId },
             data: { status: 'DISPOSED' }
         });
 
-        await prisma.assetTransaction.create({
-            data: {
-                assetId: asset.id,
-                transactionType: 'DISPOSAL',
-                transactionDate: disposalDate,
-                amount: saleProceeds,
-                notes: `Proceeds: ${saleProceeds}, NBV: ${nbv}, Gain/Loss: ${gainOrLoss}`
+        // Disposal tracked in FixedAsset status + fields
+        await prisma.fixedAsset.update({
+            where: { id: assetId },
+            data: { 
+                disposalDate,
+                disposalProceeds: saleProceeds,
+                disposalGainLoss: gainOrLoss
             }
         });
 
@@ -174,7 +181,7 @@ export class FixedAssetsEngine {
         const lines = [
             { accountId: cashAccountId, debit: saleProceeds, credit: 0, description: 'Proceeds' },
             { accountId: accDepAccountId, debit: Number(asset.accumulatedDepreciation), credit: 0, description: 'Acc. Depr' },
-            { accountId: assetAccountId, debit: 0, credit: Number(asset.purchaseCost), description: 'Asset Cost' }
+            { accountId: assetAccountId, debit: 0, credit: Number(asset.acquisitionCost), description: 'Asset Cost' }
         ];
 
         if (gainOrLoss < 0) {
@@ -183,7 +190,7 @@ export class FixedAssetsEngine {
             lines.push({ accountId: gainAccountId, debit: 0, credit: gainOrLoss, description: 'Gain on Disposal' });
         }
 
-        await prisma.journalEntry.create({
+        const je = await prisma.journalEntry.create({
             data: {
                 entryNumber: `DISP-${asset.id}-${Date.now()}`,
                 entryDate: disposalDate.toISOString(),
@@ -196,6 +203,6 @@ export class FixedAssetsEngine {
             }
         });
 
-        return { gainOrLoss, netBookValue: nbv };
+        return { gainOrLoss, currentBookValue: nbv };
     }
 }

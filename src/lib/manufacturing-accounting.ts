@@ -48,20 +48,27 @@ export class ManufacturingAccountingEngine {
                 data: { currentStock: { increment: completedQty } }
             });
 
-            await tx.productStock.upsert({
+            const existingStock = await tx.productStock.findFirst({
                 where: {
-                    productId_stockId: {
-                        productId: finishedProductId,
-                        stockId: mo.stockId
-                    }
-                },
-                update: { quantity: { increment: completedQty } },
-                create: {
                     productId: finishedProductId,
-                    stockId: mo.stockId,
-                    quantity: completedQty
+                    stockId: mo.stockId
                 }
             });
+
+            if (existingStock) {
+                await tx.productStock.update({
+                    where: { id: existingStock.id },
+                    data: { quantity: { increment: completedQty } }
+                });
+            } else {
+                await tx.productStock.create({
+                    data: {
+                        productId: finishedProductId,
+                        stockId: mo.stockId,
+                        quantity: completedQty
+                    }
+                });
+            }
 
             // 5. Create Stock Movement (IN)
             await tx.stockMovement.create({

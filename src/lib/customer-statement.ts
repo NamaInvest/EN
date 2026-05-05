@@ -16,17 +16,17 @@ export class CustomerStatementEngine {
         // In reality, this relies on JournalLines for this customer's AR account
         // For demonstration, we aggregate Sales Invoices and Receipts prior to fromDate
         const priorInvoices = await prisma.salesInvoice.aggregate({
-            where: { customerId, status: 'posted', date: { lt: fromDate } },
-            _sum: { netAmount: true, taxAmount: true } // Assuming total is net + tax
+            where: { customerId, date: { lt: fromDate } },
+            _sum: { subtotal: true, taxValue: true } // Assuming total is net + tax
         });
         
-        const priorReceipts = await prisma.receipt.aggregate({
-            where: { customerId, status: 'posted', date: { lt: fromDate } },
-            _sum: { amount: true }
+        const priorReceipts = await prisma.cashApplicationBatch.aggregate({
+            where: { customerId, appliedAt: { lt: fromDate } },
+            _sum: { totalReceived: true }
         });
 
-        const priorInvTotal = (priorInvoices._sum.netAmount || 0) + (priorInvoices._sum.taxAmount || 0);
-        const priorRecTotal = (priorReceipts._sum.amount || 0);
+        const priorInvTotal = (priorInvoices._sum.subtotal || 0) + (priorInvoices._sum.taxValue || 0);
+        const priorRecTotal = Number(priorReceipts._sum?.totalReceived || 0);
         const openingBalance = priorInvTotal - priorRecTotal;
 
         // 2. Fetch Transactions in the period
@@ -40,19 +40,15 @@ export class CustomerStatementEngine {
             orderBy: { date: 'asc' }
         });
 
-        const periodReceipts = await prisma.receipt.findMany({
-            where: {
-                customerId,
-                status: 'posted',
-                date: { gte: fromDate, lte: toDate }
-            },
-            orderBy: { date: 'asc' }
+        const periodReceipts = await prisma.cashApplicationBatch.findMany({
+            where: { customerId, appliedAt: { gte: fromDate, lte: toDate } },
+            orderBy: { appliedAt: 'asc' }
         });
 
         // Merge and sort transactions by date
         const transactions: any[] = [];
         periodInvoices.forEach(inv => {
-            const total = inv.netAmount + inv.taxAmount;
+            const total = inv.subtotal + inv.taxValue;
             transactions.push({
                 type: 'INVOICE',
                 id: inv.id,
@@ -65,15 +61,15 @@ export class CustomerStatementEngine {
         });
 
         if (!includeOnlyOpen) {
-            periodReceipts.forEach(rec => {
+            periodReceipts.forEach((rec: any) => {
                 transactions.push({
                     type: 'RECEIPT',
                     id: rec.id,
-                    reference: `REC-${rec.receiptNo}`,
-                    date: rec.date,
-                    amount: rec.amount,
+                    reference: `REC-${rec.id}`,
+                    date: rec.appliedAt,
+                    amount: Number(rec.totalReceived),
                     debit: 0,
-                    credit: rec.amount
+                    credit: Number(rec.totalReceived)
                 });
             });
         }
@@ -121,7 +117,7 @@ export class CustomerStatementEngine {
             customer: {
                 id: customer.id,
                 name: customer.name,
-                nameAr: customer.nameAr
+                nameAr: customer.name
             },
             statementPeriod: { from: fromDate, to: toDate },
             openingBalance,

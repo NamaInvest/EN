@@ -19,7 +19,7 @@ export async function checkCredit(
 ): Promise<CreditCheckResult> {
     const customer = await tx.customer.findUnique({
         where: { id: customerId },
-        select: { creditLimit: true, status: true, creditTermsDays: true }
+        select: { creditLimit: true, status: true,  }
     });
 
     if (!customer) {

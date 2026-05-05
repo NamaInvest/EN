@@ -70,8 +70,8 @@ export class CashFlowEngine {
         }
 
         // Add Revenue Arrangements (if any)
-        const activeArrangements = await prisma.revenueArrangement.findMany({
-            where: { status: 'ACTIVE' }
+        const activeArrangements = await prisma.deferredRevenueSchedule.findMany({
+            where: { isCurrent: true }
         });
         
         for (const arr of activeArrangements) {
@@ -80,7 +80,7 @@ export class CashFlowEngine {
             if (nextBilling >= today && nextBilling <= forecastDate) {
                 const dateStr = nextBilling.toISOString().split('T')[0];
                 if (forecast[dateStr]) {
-                    const monthlyValue = Number(arr.contractValue) / 12; // simplified
+                    const monthlyValue = Number(arr.totalAmount) / 12; // simplified
                     forecast[dateStr].inflow += monthlyValue;
                     forecast[dateStr].details.push({
                         type: 'REVENUE_CONTRACT',

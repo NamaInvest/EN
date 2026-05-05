@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
                     status: 'IMPORTED',
                     lines: {
                         create: [
-                            { transactionDate: new Date('2026-05-02'), description: 'INWARD TRANSFER REF 88291 (AL SHARQ)', amount: 20000.00, type: 'CREDIT', reconciledStatus: 'UNRECONCILED' },
-                            { transactionDate: new Date('2026-05-02'), description: 'BANK CHARGE - MONTHLY', amount: -400.50, type: 'DEBIT', reconciledStatus: 'UNRECONCILED' },
-                            { transactionDate: new Date('2026-05-01'), description: 'OUTWARD TRANSFER REF 1102', amount: -15000.00, type: 'DEBIT', reconciledStatus: 'MATCHED', matchConfidence: 100 }
+                            { transactionDate: new Date('2026-05-02'), description: 'INWARD TRANSFER REF 88291 (AL SHARQ)', amount: 20000.00, type: 'CREDIT', matchStatus: 'UNMATCHED' },
+                            { transactionDate: new Date('2026-05-02'), description: 'BANK CHARGE - MONTHLY', amount: -400.50, type: 'DEBIT', matchStatus: 'UNMATCHED' },
+                            { transactionDate: new Date('2026-05-01'), description: 'OUTWARD TRANSFER REF 1102', amount: -15000.00, type: 'DEBIT', matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
                         ]
                     }
                 },
@@ -47,12 +47,12 @@ export async function GET(request: NextRequest) {
 
 
         const lines = statement.lines;
-        const matchedLines = lines.filter(l => l.reconciledStatus === 'MATCHED');
+        const matchedLines = lines.filter(l => l.matchStatus === 'MATCHED');
         const matchRate = lines.length > 0 ? (matchedLines.length / lines.length) * 100 : 0;
         
         // Mock book balance calculation based on statement balance and unmatched lines
         const statementBalance = Number(statement.closingBalance || 0);
-        const difference = lines.filter(l => l.reconciledStatus !== 'MATCHED').reduce((acc, curr) => acc + Number(curr.amount), 0);
+        const difference = lines.filter(l => l.matchStatus !== 'MATCHED').reduce((acc, curr) => acc + Number(curr.amount), 0);
         const bookBalance = statementBalance - difference;
 
         return NextResponse.json({
@@ -82,13 +82,13 @@ export async function PUT(request: NextRequest) {
 
         if (action === 'auto-match') {
             // Mock auto-matching logic: match all lines that have 'auto' in description or similar heuristics
-            const lines = await prisma.bankStatementLine.findMany({ where: { reconciledStatus: 'UNRECONCILED' } });
+            const lines = await prisma.bankStatementLine.findMany({ where: { matchStatus: 'UNMATCHED' } });
             let matchedCount = 0;
             for (const line of lines) {
                 // If it's a generic outward transfer or fee, mock it as matched
                 await prisma.bankStatementLine.update({
                     where: { id: line.id },
-                    data: { reconciledStatus: 'MATCHED', matchConfidence: 95 }
+                    data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 95 }
                 });
                 matchedCount++;
             }
@@ -96,7 +96,7 @@ export async function PUT(request: NextRequest) {
         } else if (lineId) {
             await prisma.bankStatementLine.update({
                 where: { id: lineId },
-                data: { reconciledStatus: 'MATCHED', matchConfidence: 100 }
+                data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
             });
             return NextResponse.json({ success: true });
         }

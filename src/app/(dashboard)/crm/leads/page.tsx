@@ -1,228 +1,246 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Search, Plus, User, Phone, Mail, DollarSign, Target, Settings, X, Save } from 'lucide-react';
-import { useTranslation } from "@/lib/i18n";
-import { useToast } from '@/components/Toast';
 
-export default function LeadsPipelineView() {
- const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
- const [leads, setLeads] = useState<any[]>([]);
- const [isLoaded, setIsLoaded] = useState(false);
- const [showModal, setShowModal] = useState(false);
+import React, { useState, useEffect } from 'react';
 
- // Form
- const [companyName, setCompany] = useState('');
- const [contactPerson, setContact] = useState('');
- const [phone, setPhone] = useState('');
- const [email, setEmail] = useState('');
- const [expectedRevenue, setExpectedRev] = useState('0');
- const [probability, setProbability] = useState('10');
+const STAGES = ['NEW', 'CONTACTED', 'QUALIFIED', 'DISQUALIFIED'];
 
- useEffect(() => {
- fetchLeads();
- }, []);
+export default function CRMLeadsPage() {
+    const [leads, setLeads] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    
+    const [formData, setFormData] = useState({
+        companyName: '', contactPerson: '', email: '', phone: '', source: 'Website', industry: '', expectedRevenue: ''
+    });
 
- const fetchLeads = async () => {
- try {
- const res = await fetch('/api/crm/leads');
- if(res.ok) {
- const data = await res.json();
- setLeads(data);
- }
- } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
- setIsLoaded(true);
- }
- };
+    useEffect(() => {
+        fetchLeads();
+    }, []);
 
- const handleSave = async () => {
- try {
- const res = await fetch('/api/crm/leads', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({
- companyName, contactPerson, phone, email, expectedRevenue, probability
- })
- });
- if(res.ok) {
- setShowModal(false);
- fetchLeads();
- }
- } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
- };
+    const fetchLeads = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/crm/leads');
+            const data = await res.json();
+            if (data.success) {
+                setLeads(data.data);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
- const getStatusColor = (status: string) => {
- switch(status) {
- case 'NEW': return 'bg-blue-100 text-blue-700';
- case 'CONTACTED': return 'bg-yellow-100 text-yellow-700';
- case 'QUALIFIED': return 'bg-orange-100 text-orange-700';
- case 'CONVERTED': return 'bg-emerald-100 text-emerald-700';
- case 'LOST': return 'bg-red-100 text-red-700';
- default: return 'bg-slate-100 text-slate-700';
- }
- };
+    const handleCreateLead = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/crm/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'CREATE', payload: formData })
+            });
+            if (res.ok) {
+                setShowModal(false);
+                setFormData({ companyName: '', contactPerson: '', email: '', phone: '', source: 'Website', industry: '', expectedRevenue: '' });
+                fetchLeads();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
- const getStatusLabel = (status: string) => {
- switch(status) {
- case 'NEW': return t('sys.str_1764');
- case 'CONTACTED': return t('sys.str_1765');
- case 'QUALIFIED': return t('sys.str_1766');
- case 'CONVERTED': return t('sys.str_1767');
- case 'LOST': return t('sys.str_1768');
- default: return status;
- }
- };
+    const handleUpdateStatus = async (leadId: number, status: string) => {
+        try {
+            await fetch('/api/crm/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'UPDATE_STATUS', payload: { leadId, status } })
+            });
+            fetchLeads();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
- return (
- <div className="p-6 animate-in fade-in zoom-in-95 duration-500">
- <div className="flex justify-between items-center mb-6">
- <div>
- <h1 className="text-2xl font-bold flex items-center gap-2">
- <span>📊</span> {t('sys.str_1740')}</h1>
- <p className="text-slate-500 mt-1 text-sm">
- {t('sys.str_1741')}</p>
- </div>
- <button 
- onClick={() => setShowModal(true)}
- className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 flex items-center gap-2 rounded-lg font-semibold shadow-md transition"
- >
- <Plus size={20} />
- {t('sys.str_1742')}</button>
- </div>
+    const handleConvertToOpp = async (leadId: number) => {
+        if (!confirm('هل تريد تحويل هذا العميل المحتمل إلى فرصة بيعية حقيقية (Opportunity)؟')) return;
+        try {
+            await fetch('/api/crm/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'CONVERT_TO_OPPORTUNITY', payload: { leadId } })
+            });
+            fetchLeads();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
- {/* Quick Stats */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
- <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-2xl border flex items-center gap-4">
- <div className="bg-blue-100 text-blue-600 p-3 rounded-xl"><Target size={24}/></div>
- <div>
- <p className="text-xs text-blue-600 font-bold mb-1">{t('sys.str_1743')}</p>
- <p className="text-2xl font-black">{leads.filter(x => x.status !== 'LOST' && x.status !== 'CONVERTED').length}</p>
- </div>
- </div>
- <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 p-6 rounded-2xl border flex items-center gap-4">
- <div className="bg-orange-100 text-orange-600 p-3 rounded-xl"><DollarSign size={24}/></div>
- <div>
- <p className="text-xs text-orange-600 font-bold mb-1">{t('sys.str_1744')}</p>
- <p className="text-2xl font-black">{leads.reduce((sum, l) => sum + (l.expectedRevenue * (l.probability/100)), 0).toLocaleString()}</p>
- </div>
- </div>
- </div>
+    // Calculate total pipeline value
+    const pipelineValue = leads.filter(l => l.status !== 'DISQUALIFIED' && l.status !== 'CONVERTED')
+                               .reduce((sum, l) => sum + (Number(l.expectedRevenue) || 0), 0);
 
- {/* Sub Nav */}
- <div className="flex bg-white rounded-lg p-1 border shadow-sm w-max mb-6">
- <button className="px-6 py-2 rounded-md bg-slate-100/80 font-bold text-slate-800 text-sm">{t('sys.str_1745')}</button>
- <button className="px-6 py-2 text-slate-500 hover:bg-slate-50 rounded-md font-semibold text-sm transition" onClick={() => alert('Kanban Boards are part of the next component iteration!')}>{t('sys.str_1746')}</button>
- </div>
+    if (loading && leads.length === 0) return <div className="p-8 text-indigo-600">جاري تحميل العملاء المحتملين...</div>;
 
- {/* The List Data Grid */}
- <div className="bg-card border rounded-2xl shadow-sm overflow-hidden">
- {!isLoaded ? (
- <div className="p-16 text-center text-slate-400">
- <Settings className="animate-spin mx-auto mb-4" size={32} />
- {t('sys.str_1747')}</div>
- ) : leads.length === 0 ? (
- <div className="p-20 text-center text-slate-500">
- <Target size={48} className="mx-auto mb-4 opacity-20" />
- <h3 className="text-lg font-bold mb-2">{t('sys.str_1748')}</h3>
- <p className="max-w-md mx-auto text-sm text-slate-400">{t('sys.str_1749')}</p>
- </div>
- ) : (
- <table className="w-full text-sm text-right">
- <thead className="bg-[#f8f9fa] border-b">
- <tr>
- <th className="p-4 text-slate-600">{t('sys.str_1750')}</th>
- <th className="p-4 text-slate-600">{t('sys.str_1751')}</th>
- <th className="p-4 text-slate-600">{t('sys.str_1752')}</th>
- <th className="p-4 text-slate-600">{t('sys.str_1753')}</th>
- <th className="p-4 text-slate-600">{t('sys.str_1754')}</th>
- </tr>
- </thead>
- <tbody className="divide-y text-slate-700">
- {leads.map((l) => (
- <tr key={l.id} className="hover:bg-slate-50 transition">
- <td className="p-4">
- <div className="font-bold text-slate-900 text-base">{l.companyName}</div>
- <div className="flex items-center gap-1 text-slate-500 mt-1 max-w-[150px] truncate">
- <User size={14} /> {l.contactPerson}
- </div>
- </td>
- <td className="p-4 text-xs space-y-1">
- {l.phone && <div className="flex items-center gap-2"><Phone size={12}/> <span className="dir-ltr inline-block">{l.phone}</span></div>}
- {l.email && <div className="flex items-center gap-2 text-blue-500"><Mail size={12}/> {l.email}</div>}
- </td>
- <td className="p-4">
- <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(l.status)}`}>
- {getStatusLabel(l.status)}
- </span>
- </td>
- <td className="p-4 font-bold text-slate-800">
- {l.expectedRevenue.toLocaleString()} <span className="text-xs font-normal text-slate-400">{t('sys.str_68')}</span>
- </td>
- <td className="p-4">
- <div className="flex items-center gap-3">
- <div className="w-full bg-slate-200 rounded-full h-2.5 flex-grow">
- <div className="bg-primary h-2.5 rounded-full" style={{ width: `${l.probability}%` }}></div>
- </div>
- <span className="font-bold text-slate-600 tabular-nums">{l.probability}%</span>
- </div>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- )}
- </div>
+    return (
+        <div className="p-8 max-w-[1400px] mx-auto space-y-6">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex justify-between items-center border-b-4 border-indigo-600">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة العملاء المحتملين (Leads Pipeline & Scoring)</h1>
+                    <p className="text-gray-500 mt-1">تتبع العملاء المحتملين مع نظام تقييم تلقائي (Scoring) بناءً على الإيرادات والاكتمال.</p>
+                </div>
+                <div className="flex gap-4 items-center">
+                    <div className="text-left rtl:text-right hidden sm:block">
+                        <div className="text-xs text-gray-500 uppercase">قيمة خط الأنابيب (Pipeline)</div>
+                        <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{pipelineValue.toLocaleString()} SAR</div>
+                    </div>
+                    <button 
+                        onClick={() => setShowModal(true)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-md font-bold shadow hover:bg-indigo-700"
+                    >
+                        + إضافة Lead
+                    </button>
+                </div>
+            </div>
 
- {showModal && (
- <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
- <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
- <div className="bg-primary p-5 text-white flex justify-between items-center">
- <h2 className="font-bold text-lg">{t('sys.str_1755')}</h2>
- <button onClick={() => setShowModal(false)} className="hover:bg-white/20 p-1.5 rounded-md transition"><X size={20}/></button>
- </div>
- <div className="p-6 space-y-4 text-right">
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-semibold mb-1">{t('sys.str_1756')}</label>
- <input value={companyName} onChange={e=>setCompany(e.target.value)} type="text" className="w-full border rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary outline-none" />
- </div>
- <div>
- <label className="block text-sm font-semibold mb-1">{t('sys.str_1757')}</label>
- <input value={contactPerson} onChange={e=>setContact(e.target.value)} type="text" className="w-full border rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary outline-none" />
- </div>
- </div>
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-semibold mb-1">{t('sys.str_1758')}</label>
- <input value={phone} onChange={e=>setPhone(e.target.value)} type="text" className="w-full border rounded-lg p-2.5 bg-slate-50 focus:bg-white outline-none dir-ltr text-left" />
- </div>
- <div>
- <label className="block text-sm font-semibold mb-1">{t('sys.str_1759')}</label>
- <input value={email} onChange={e=>setEmail(e.target.value)} type="text" className="w-full border rounded-lg p-2.5 bg-slate-50 focus:bg-white outline-none dir-ltr text-left" />
- </div>
- </div>
- <div className="border-t pt-4 mt-6">
- <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><DollarSign size={18} className="text-emerald-500"/> {t('sys.str_1760')}</h4>
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-semibold mb-1">{t('sys.str_1761')}</label>
- <input value={expectedRevenue} onChange={e=>setExpectedRev(e.target.value)} type="number" className="w-full border rounded-lg p-2.5 font-bold text-orange-600 outline-none" />
- </div>
- <div>
- <label className="block text-sm font-semibold mb-2">{t('sys.str_1762')}{probability}%)</label>
- <input value={probability} onChange={e=>setProbability(e.target.value)} type="range" min="0" max="100" step="10" className="w-full accent-primary" />
- </div>
- </div>
- </div>
- <div className="pt-4 mt-6 flex justify-end gap-3">
- <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition font-bold">{t('fin.str_206')}</button>
- <button onClick={handleSave} className="px-6 py-2.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition flex items-center gap-2 font-bold shadow-lg shadow-primary/30">
- <Target size={18} /> {t('sys.str_1763')}</button>
- </div>
- </div>
- </div>
- </div>
- )}
- </div>
- );
+            <div className="flex gap-6 overflow-x-auto pb-4 items-start">
+                {STAGES.map(stage => {
+                    const stageLeads = leads.filter(l => l.status === stage);
+                    
+                    return (
+                        <div key={stage} className="min-w-[320px] max-w-[320px] bg-gray-50 dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-[700px]">
+                            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-t-lg flex justify-between items-center sticky top-0">
+                                <h2 className="font-bold text-gray-700 dark:text-gray-300">{stage}</h2>
+                                <span className="bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full shadow-sm">{stageLeads.length}</span>
+                            </div>
+                            
+                            <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                                {stageLeads.map(lead => (
+                                    <div key={lead.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition group">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-gray-900 dark:text-white truncate" title={lead.companyName}>{lead.companyName}</h3>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-bold" title="Lead Score">
+                                                    ⭐ {lead.score}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">👤 {lead.contactPerson}</div>
+                                        {lead.phone && <div className="text-xs text-gray-500">📞 {lead.phone}</div>}
+                                        
+                                        <div className="mt-3 flex justify-between items-end border-t border-gray-100 dark:border-gray-700 pt-2">
+                                            <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                                {Number(lead.expectedRevenue).toLocaleString()} SAR
+                                            </div>
+                                            <div className="text-[10px] text-gray-400">{lead.source}</div>
+                                        </div>
+
+                                        {/* Actions (Visible on hover) */}
+                                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                            <select 
+                                                value="" 
+                                                onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                                                className="w-full text-xs border-gray-300 rounded p-1 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                <option value="" disabled>نقل إلى...</option>
+                                                {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                            
+                                            {stage === 'QUALIFIED' && (
+                                                <button 
+                                                    onClick={() => handleConvertToOpp(lead.id)}
+                                                    className="bg-green-100 text-green-700 p-1 rounded text-xs font-bold hover:bg-green-200"
+                                                    title="Convert to Opportunity"
+                                                >
+                                                    تحويل
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {stageLeads.length === 0 && (
+                                    <div className="text-center text-sm text-gray-400 mt-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        لا يوجد
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+                
+                {/* Converted Column (Read-Only) */}
+                <div className="min-w-[320px] max-w-[320px] bg-green-50 dark:bg-green-900/10 rounded-lg shadow-sm border border-green-200 dark:border-green-800 flex flex-col h-[700px] opacity-75">
+                    <div className="p-4 border-b border-green-200 dark:border-green-800 bg-green-100 dark:bg-green-900/30 rounded-t-lg flex justify-between items-center">
+                        <h2 className="font-bold text-green-700 dark:text-green-400">CONVERTED (Opportunities)</h2>
+                    </div>
+                    <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                        {leads.filter(l => l.status === 'CONVERTED').map(lead => (
+                            <div key={lead.id} className="bg-white dark:bg-gray-800 p-3 rounded shadow-sm border border-green-200 dark:border-green-700">
+                                <div className="font-bold text-gray-900 dark:text-white line-through">{lead.companyName}</div>
+                                <div className="text-xs text-green-600 mt-1">✓ تم التحويل لفرصة بيعية</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-xl p-6">
+                        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white border-b pb-2">إضافة عميل محتمل (Lead)</h2>
+                        <form onSubmit={handleCreateLead} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة</label>
+                                    <input required type="text" value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الشخص المسؤول (Contact)</label>
+                                    <input required type="text" value={formData.contactPerson} onChange={e => setFormData({...formData, contactPerson: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">البريد الإلكتروني</label>
+                                    <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم الهاتف</label>
+                                    <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">المصدر (Source)</label>
+                                    <select value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white">
+                                        <option value="Website">موقع إلكتروني</option>
+                                        <option value="Referral">إحالة</option>
+                                        <option value="Cold Call">اتصال مباشر</option>
+                                        <option value="Social Media">شبكات تواصل</option>
+                                        <option value="Exhibition">معرض/مؤتمر</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الصناعة / المجال</label>
+                                    <input type="text" value={formData.industry} onChange={e => setFormData({...formData, industry: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الإيراد المتوقع (SAR)</label>
+                                    <input type="number" value={formData.expectedRevenue} onChange={e => setFormData({...formData, expectedRevenue: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" placeholder="مثال: 50000" />
+                                </div>
+                            </div>
+                            
+                            <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">إلغاء</button>
+                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-bold">حفظ العميل</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }

@@ -436,6 +436,9 @@ model Customer {
   IfrsLeaseContract     IfrsLeaseContract[]
   FixedAsset            FixedAsset[]
   PriceList             PriceList[]
+  Appointment           Appointment[]
+  ClinicPrescription    ClinicPrescription[]
+  LabOrder              LabOrder[]
 
   @@index([phone])
   @@index([name])
@@ -900,12 +903,12 @@ model Employee {
   maritalStatus  String?   @map("marital_status")
   faceDescriptor String?   @map("face_descriptor") @db.Text
 
-  department String?
-    managerId Int? @map("manager_id")
-    manager Employee? @relation("EmployeeToManager", fields: [managerId], references: [id])
-    subordinates Employee[] @relation("EmployeeToManager")
-  
-    attendance              Attendance[]
+  department   String?
+  managerId    Int?       @map("manager_id")
+  manager      Employee?  @relation("EmployeeToManager", fields: [managerId], references: [id])
+  subordinates Employee[] @relation("EmployeeToManager")
+
+  attendance              Attendance[]
   salaries                Salary[]
   pettyCashes             PettyCashTransaction[]
   salesTargets            SalesTarget[]
@@ -928,6 +931,10 @@ model Employee {
   LeaveBalance            LeaveBalance[]
   LeaveAccrual            LeaveAccrual[]
   LeaveRequest            LeaveRequest[]
+  DoctorSchedule          DoctorSchedule[]
+  Appointment             Appointment[]
+  ClinicPrescription      ClinicPrescription[]
+  LabOrder                LabOrder[]
 
   @@map("employees")
 }
@@ -7568,4 +7575,138 @@ model PriceRule {
   formula           String? // e.g. "cost * 1.25"
 
   @@map("price_rules")
+}
+
+// -----------------------------------------
+// Clinic (V3 Verticals)
+// -----------------------------------------
+
+model ClinicRoom {
+  id       Int     @id @default(autoincrement())
+  name     String
+  type     String  @default("CONSULTATION") // CONSULTATION, PROCEDURE, LAB, RECEPTION
+  isActive Boolean @default(true) @map("is_active")
+
+  appointments Appointment[]
+
+  @@map("clinic_rooms")
+}
+
+model DoctorSchedule {
+  id           Int    @id @default(autoincrement())
+  doctorId     Int    @map("doctor_id")
+  dayOfWeek    Int    @map("day_of_week") // 0 = Sunday, etc.
+  startTime    String @map("start_time") // "08:00"
+  endTime      String @map("end_time") // "16:00"
+  slotDuration Int    @default(15) @map("slot_duration") // minutes
+
+  doctor Employee @relation(fields: [doctorId], references: [id])
+
+  @@map("clinic_schedules")
+}
+
+model Appointment {
+  id        Int  @id @default(autoincrement())
+  patientId Int  @map("patient_id")
+  doctorId  Int  @map("doctor_id")
+  roomId    Int? @map("room_id")
+
+  type   String @default("CONSULT") // CONSULT, FOLLOWUP, PROCEDURE
+  status String @default("SCHEDULED") // SCHEDULED, ARRIVED, IN_PROGRESS, COMPLETED, NO_SHOW, CANCELLED
+
+  date      DateTime
+  startTime String   @map("start_time")
+  duration  Int      @default(15)
+
+  notes String?
+
+  patient Customer    @relation(fields: [patientId], references: [id])
+  doctor  Employee    @relation(fields: [doctorId], references: [id])
+  room    ClinicRoom? @relation(fields: [roomId], references: [id])
+
+  @@map("clinic_appointments")
+}
+
+model Medication {
+  id        Int    @id @default(autoincrement())
+  code      String @unique // SFDA code
+  name      String
+  activeIng String @map("active_ingredient")
+  form      String // TABLET, SYRUP, INJECTION
+  strength  String
+
+  @@map("clinic_medications")
+}
+
+model ClinicPrescription {
+  id        Int      @id @default(autoincrement())
+  patientId Int      @map("patient_id")
+  doctorId  Int      @map("doctor_id")
+  date      DateTime @default(now())
+  status    String   @default("ACTIVE") // ACTIVE, DISPENSED, CANCELLED
+  notes     String?
+
+  patient Customer @relation(fields: [patientId], references: [id])
+  doctor  Employee @relation(fields: [doctorId], references: [id])
+
+  items ClinicPrescriptionItem[]
+
+  @@map("clinic_rx")
+}
+
+model ClinicPrescriptionItem {
+  id             Int     @id @default(autoincrement())
+  prescriptionId Int     @map("prescription_id")
+  medicationId   Int     @map("medication_id")
+  dose           String
+  frequency      String
+  duration       String
+  route          String
+  instructions   String?
+
+  prescription ClinicPrescription @relation(fields: [prescriptionId], references: [id])
+
+  @@map("clinic_rx_items")
+}
+
+model LabTest {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // LOINC or local code
+  name        String
+  category    String
+  price       Float   @default(0)
+  normalRange String? @map("normal_range")
+  unit        String?
+
+  @@map("clinic_lab_tests")
+}
+
+model LabOrder {
+  id        Int      @id @default(autoincrement())
+  patientId Int      @map("patient_id")
+  doctorId  Int      @map("doctor_id")
+  date      DateTime @default(now())
+  status    String   @default("PENDING") // PENDING, IN_PROCESS, COMPLETED
+  notes     String?
+
+  patient Customer @relation(fields: [patientId], references: [id])
+  doctor  Employee @relation(fields: [doctorId], references: [id])
+
+  results LabResult[]
+
+  @@map("clinic_lab_orders")
+}
+
+model LabResult {
+  id         Int      @id @default(autoincrement())
+  orderId    Int      @map("order_id")
+  testId     Int      @map("test_id")
+  value      String
+  isAbnormal Boolean  @default(false) @map("is_abnormal")
+  enteredBy  Int?     @map("entered_by")
+  date       DateTime @default(now())
+
+  order LabOrder @relation(fields: [orderId], references: [id])
+
+  @@map("clinic_lab_results")
 }
