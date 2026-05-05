@@ -1,0 +1,19 @@
+import { NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+    const prisma = getPrisma(req as any);
+    try {
+        const id = Number(params.id);
+        const updated = await prisma.paymentRun.update({
+            where: { id },
+            data: {
+                status: 'APPROVED',
+                approvedAt: new Date()
+            }
+        });
+        return NextResponse.json({ success: true, data: updated });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

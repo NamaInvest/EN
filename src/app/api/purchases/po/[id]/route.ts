@@ -1,0 +1,23 @@
+import { NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+    const prisma = getPrisma(req as any);
+    try {
+        const id = Number(params.id);
+        const po = await prisma.purchaseOrder.findUnique({
+            where: { id },
+            include: {
+                details: {
+                    include: { product: true }
+                },
+                supplier: true
+            }
+        });
+
+        if (!po) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        return NextResponse.json({ data: po });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

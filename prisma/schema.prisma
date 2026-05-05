@@ -78,6 +78,7 @@ model User {
   dispensedRx      Prescription[]       @relation("PrescriptionPharmacist")
   controlledLogs   ControlledDrugLog[]  @relation("ControlledDrugPharmacist")
   posSessions      PosSession[]
+  DocumentStateLog DocumentStateLog[]
 
   @@map("users")
 }
@@ -287,8 +288,9 @@ model Product {
   QualityInspection      QualityInspection[]
   variants               ProductVariant[]
 
-  hasVariants         Boolean @default(false) @map("has_variants")
-  variantAttributeIds String? @map("variant_attribute_ids") // JSON array
+  hasVariants         Boolean     @default(false) @map("has_variants")
+  variantAttributeIds String?     @map("variant_attribute_ids") // JSON array
+  PriceRule           PriceRule[]
 
   @@index([name])
   @@map("products")
@@ -336,6 +338,7 @@ model Customer {
   crNo           String?  @map("cr_no")
   notes          String?
   active         Boolean  @default(true)
+  status         String   @default("ACTIVE")
   password       String? // For B2B Portal
   b2bEnabled     Boolean  @default(false) @map("b2b_enabled")
   createdAt      DateTime @default(now()) @map("created_at")
@@ -432,6 +435,7 @@ model Customer {
   SalesContract         SalesContract[]
   IfrsLeaseContract     IfrsLeaseContract[]
   FixedAsset            FixedAsset[]
+  PriceList             PriceList[]
 
   @@index([phone])
   @@index([name])
@@ -578,6 +582,7 @@ model SalesReturn {
   zatcaQr            String?             @map("zatca_qr")
   zatcaResponse      String?             @map("zatca_response")
   zatcaXml           String?             @map("zatca_xml")
+  status             String              @default("REQUESTED") // REQUESTED, APPROVED, RECEIVED, INSPECTED, REFUNDED, REJECTED
   branch             Branch?             @relation(fields: [branchId], references: [id])
   shift              Shift?              @relation(fields: [shiftId], references: [id])
   branchId           Int?                @map("branch_id")
@@ -600,6 +605,8 @@ model SalesReturnDetail {
   taxRate       Float   @default(15) @map("tax_rate")
   taxValue      Float   @default(0) @map("tax_value")
   total         Float   @default(0)
+  reason        String?
+  condition     String? // good, repairable, scrap
 
   return  SalesReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
   product Product     @relation(fields: [productId], references: [id])
@@ -7297,13 +7304,32 @@ model VendorPortalUser {
 }
 
 model VendorBid {
-  id        Int              @id @default(autoincrement())
+  id        Int               @id @default(autoincrement())
   rfqId     Int
   vendorId  Int
-  vendor    VendorPortalUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  vendor    VendorPortalUser  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   amount    Float
-  status    String           @default("SUBMITTED")
-  createdAt DateTime         @default(now())
+  status    String            @default("SUBMITTED")
+  createdAt DateTime          @default(now())
+  details   VendorBidDetail[]
+}
+
+model VendorBidDetail {
+  id           Int       @id @default(autoincrement())
+  bidId        Int
+  bid          VendorBid @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  rfqDetailId  Int
+  unitPrice    Float
+  deliveryDays Int       @default(0)
+}
+
+model VendorPortalToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  vendorId  Int
+  rfqId     Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 // ==================== v2: Specific Journey Orchestration ====================
@@ -7502,4 +7528,39 @@ model DocumentStateLog {
 
   @@index([entityType, entityId])
   @@map("document_state_logs")
+}
+
+// ==================== Pricing Engine ====================
+model PriceList {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  currency           String      @default("SAR")
+  validFrom          DateTime    @map("valid_from")
+  validTo            DateTime?   @map("valid_to")
+  customerId         Int?        @map("customer_id")
+  customer           Customer?   @relation(fields: [customerId], references: [id])
+  customerCategoryId Int?        @map("customer_category_id")
+  channelId          String?     @map("channel_id") // e.g. POS, Online, Wholesale
+  priority           Int         @default(0)
+  isActive           Boolean     @default(true) @map("is_active")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  rules              PriceRule[]
+
+  @@map("price_lists")
+}
+
+model PriceRule {
+  id                Int       @id @default(autoincrement())
+  priceListId       Int       @map("price_list_id")
+  priceList         PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  productId         Int?      @map("product_id")
+  product           Product?  @relation(fields: [productId], references: [id])
+  productCategoryId Int?      @map("product_category_id")
+  minQty            Decimal   @default(0) @map("min_qty") @db.Decimal(18, 4)
+  maxQty            Decimal?  @map("max_qty") @db.Decimal(18, 4)
+  unitPrice         Decimal   @map("unit_price") @db.Decimal(18, 4)
+  discountPct       Decimal?  @map("discount_pct") @db.Decimal(8, 4)
+  formula           String? // e.g. "cost * 1.25"
+
+  @@map("price_rules")
 }

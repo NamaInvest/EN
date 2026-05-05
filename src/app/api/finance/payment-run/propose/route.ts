@@ -1,0 +1,76 @@
+import { NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+
+export async function POST(req: Request) {
+    const prisma = getPrisma(req as any);
+    try {
+        const body = await req.json();
+        const { dueBefore, currency, bankAccountId } = body;
+
+        // Fetch pending approved invoices
+        const pendingInvoices = await prisma.purchaseInvoice.findMany({
+            where: {
+                status: 'APPROVED_FOR_PAYMENT',
+                date: { lte: new Date(dueBefore) },
+                supplierId: { not: null },
+            },
+            include: {
+                supplier: true
+            }
+        });
+
+        if (pendingInvoices.length === 0) {
+            return NextResponse.json({ error: 'No approved invoices found for this criteria' }, { status: 400 });
+        }
+
+        // Group by vendor
+        const groupedByVendor = new Map<number, any>();
+        pendingInvoices.forEach(inv => {
+            const supplierId = inv.supplierId!;
+            if (!groupedByVendor.has(supplierId)) {
+                groupedByVendor.set(supplierId, {
+                    supplierId,
+                    supplierName: inv.supplier!.name,
+                    totalAmount: 0,
+                    invoices: []
+                });
+            }
+            const group = groupedByVendor.get(supplierId);
+            group.totalAmount += inv.total;
+            group.invoices.push(inv.id);
+        });
+
+        const totalAmount = Array.from(groupedByVendor.values()).reduce((sum, g) => sum + g.totalAmount, 0);
+
+        // Create PaymentRun
+        const run = await prisma.paymentRun.create({
+            data: {
+                status: 'PROPOSED',
+                dueDateUntil: new Date(dueBefore),
+                currency: currency || 'SAR',
+                paymentMethod: 'BANK_TRANSFER',
+                bankAccountId: Number(bankAccountId),
+                totalAmount: totalAmount,
+                totalCount: groupedByVendor.size,
+                proposedAt: new Date(),
+                lines: {
+                    create: Array.from(groupedByVendor.values()).map(g => ({
+                        supplierId: g.supplierId,
+                        openItemIds: g.invoices, // We use openItemIds to store invoice IDs
+                        invoiceCount: g.invoices.length,
+                        amount: g.totalAmount,
+                        currency: currency || 'SAR',
+                        amountFunctional: g.totalAmount,
+                        beneficiaryName: g.supplierName,
+                        paymentMethod: 'BANK_TRANSFER',
+                        status: 'PENDING'
+                    }))
+                }
+            }
+        });
+
+        return NextResponse.json({ success: true, data: run });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
