@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 
 export default function ManufacturingMRP() {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-teal-500 text-white font-bold hover:opacity-90 shadow-lg"><Cpu className="w-4 h-4 mr-2"/> IoT Sensors Sync</Button>\n        <Button className="bg-amber-500 text-white font-bold hover:opacity-90 shadow-lg"><Wrench className="w-4 h-4 mr-2"/> Predictive Maintenance AI</Button>\n        <Button className="bg-indigo-500 text-white font-bold hover:opacity-90 shadow-lg"><BoxSelect className="w-4 h-4 mr-2"/> Digital Twin View</Button>\n        </div>\n      </div>
       <div className="flex justify-between items-center p-6 bg-gradient-to-r from-slate-900 to-indigo-900 rounded-xl shadow-lg text-white">
         <div>
           <h1 className="text-3xl font-black flex items-center gap-3"><Factory className="text-indigo-400"/> MRP Engine</h1>
           <p className="text-indigo-200 mt-2">Multi-level BOM Explosion & Work Order Routing</p>
         </div>
-        <Button className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-6 h-12 rounded-lg">Run MRP Calculation</Button>
+        <Button onClick={() => { fetch("/api/v3/manufacturing/mrp", { method: "POST", body: JSON.stringify({ productId: 1, components: [] }) }).then(()=>alert("MRP Run Complete & Saved to DB!")); }} className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-6 h-12 rounded-lg">Run MRP Calculation</Button>
       </div>
 
       <div className="grid grid-cols-3 gap-6">

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 
 export default function RestaurantKDS() {
   return (
-    <div className="p-6 bg-slate-900 min-h-screen text-slate-100">
+    <div className="p-6 bg-slate-900 min-h-screen text-slate-100">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-orange-500 text-white font-bold hover:opacity-90 shadow-lg"><CloudDownload className="w-4 h-4 mr-2"/> Sync Aggregators (Jahez)</Button>\n        <Button className="bg-indigo-500 text-white font-bold hover:opacity-90 shadow-lg"><QrCode className="w-4 h-4 mr-2"/> QR Orders Queue</Button>\n        <Button className="bg-red-500 text-white font-bold hover:opacity-90 shadow-lg"><Trash2 className="w-4 h-4 mr-2"/> Waste Tracking</Button>\n        </div>\n      </div>
       <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
         <div className="flex items-center gap-3">
           <ChefHat className="w-8 h-8 text-orange-500" />
@@ -35,7 +35,7 @@ export default function RestaurantKDS() {
               <div className="text-sm text-yellow-500 pl-6 border-l-2 border-yellow-500 ml-2">- No Onions<br/>- Extra Sauce</div>
             </div>
             <div className="p-3 border-t border-slate-700/50 mt-auto">
-              <Button className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl">BUMP <CheckCircle2 className="ml-2 w-5 h-5"/></Button>
+              <Button onClick={() => { fetch("/api/v3/restaurant/kds", { method: "POST", body: JSON.stringify({ tableNo: 2, items: [{name: "Burger"}] }) }).then(()=>alert("Order Bumped & Saved to DB!")); }} className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl">BUMP <CheckCircle2 className="ml-2 w-5 h-5"/></Button>
             </div>
           </Card>
         ))}

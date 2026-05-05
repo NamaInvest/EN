@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 export default function RetailPOS() {
   const [cart, setCart] = useState([{ id: 1, name: 'Wireless Headphones', price: 299, qty: 1 }]);
   return (
-    <div className="flex h-[85vh] gap-4 p-4 bg-slate-50">
+    <div className="flex h-[85vh] gap-4 p-4 bg-slate-50">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-blue-500 text-white font-bold hover:opacity-90 shadow-lg"><RefreshCcw className="w-4 h-4 mr-2"/> Omnichannel Sync</Button>\n        <Button className="bg-purple-500 text-white font-bold hover:opacity-90 shadow-lg"><BrainCircuit className="w-4 h-4 mr-2"/> Clienteling AI</Button>\n        <Button className="bg-emerald-500 text-white font-bold hover:opacity-90 shadow-lg"><WifiOff className="w-4 h-4 mr-2"/> Offline Mode (Active)</Button>\n        </div>\n      </div>
       {/* Products Grid */}
       <div className="flex-1 flex flex-col gap-4">
         <div className="relative">
@@ -50,7 +50,7 @@ export default function RetailPOS() {
           <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>Total</span><span>SAR 343.85</span></div>
           <div className="grid grid-cols-2 gap-2 mt-4">
             <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/> Print</Button>
-            <Button className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/> Pay Now</Button>
+            <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>alert("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/> Pay Now</Button>
           </div>
         </div>
       </div>

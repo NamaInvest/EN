@@ -1,49 +1,81 @@
 'use client';
 import React from 'react';
-import { Users, Search, Plus, Filter, Save } from 'lucide-react';
+import { Users, GraduationCap, Bus, Bell, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-export default function SISModule() {
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-xl shadow-lg">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-slate-800 rounded-lg">
-                        <Users className="w-8 h-8 text-indigo-400" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold">Student Information System</h1>
-                        <p className="text-slate-400 text-sm mt-1">Enrollment, gradebooks, bus routing, and strict tuition installment tracking.</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="secondary" className="flex gap-2"><Plus className="w-4 h-4"/> New Record</Button>
-                </div>
-            </div>
-
-            <div className="flex gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                    <input 
-                        type="text" 
-                        placeholder="Search records, IDs, or references..." 
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <Button variant="outline" className="flex gap-2"><Filter className="w-4 h-4"/> Filters</Button>
-            </div>
-
-            <Card className="p-12 flex flex-col items-center justify-center border-dashed bg-slate-50 text-center">
-                <div className="p-4 bg-indigo-100 rounded-full mb-4 animate-pulse">
-                    <Users className="w-12 h-12 text-indigo-600" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800">Operational Workspace Active</h3>
-                <p className="text-slate-500 max-w-md mt-2">
-                    This transactional interface is connected to the V3 EventBus. Data entered here will automatically trigger the respective accounting, inventory, and operational events.
-                </p>
-                <Button className="mt-6 flex gap-2"><Save className="w-4 h-4"/> Save Configuration</Button>
-            </Card>
+export default function SchoolSIS() {
+  return (
+    <div className="p-6 bg-slate-50 min-h-screen text-slate-800 space-y-6 max-w-7xl mx-auto">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-purple-600 text-white font-bold hover:opacity-90 shadow-lg"><Brain className="w-4 h-4 mr-2"/> Predictive Dropout AI</Button>\n        <Button className="bg-slate-600 text-white font-bold hover:opacity-90 shadow-lg"><ScanSearch className="w-4 h-4 mr-2"/> Plagiarism Scanner</Button>\n        <Button className="bg-red-500 text-white font-bold hover:opacity-90 shadow-lg"><MapPin className="w-4 h-4 mr-2"/> RFID Live Tracking</Button>\n        </div>\n      </div>
+      <div className="flex justify-between items-center bg-indigo-900 text-white p-6 rounded-2xl shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-indigo-800 rounded-full flex items-center justify-center border-4 border-indigo-400">
+            <GraduationCap className="w-8 h-8 text-indigo-100"/>
+          </div>
+          <div>
+            <h1 className="text-2xl font-black">Student Information System (SIS)</h1>
+            <p className="text-indigo-200 text-sm mt-1">Academic Year 2025-2026 • Term 2</p>
+          </div>
         </div>
-    );
+        <div className="flex gap-3">
+          <Button variant="secondary" className="bg-white text-indigo-900 hover:bg-slate-100 font-bold"><BookOpen className="w-4 h-4 mr-2"/> LMS Portal</Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-6">
+        <div className="col-span-1 space-y-6">
+          <Card className="p-6 border-indigo-100 shadow-sm bg-white">
+            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><Bus className="w-4 h-4 text-indigo-500"/> Transport</h3>
+            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+              <p className="font-black text-yellow-800 text-lg">Route B</p>
+              <p className="text-sm text-yellow-700 mt-1">Driver: Ahmed Ali</p>
+              <p className="text-xs font-bold text-emerald-600 mt-2">● En Route</p>
+            </div>
+          </Card>
+          <Card className="p-6 border-red-100 shadow-sm bg-red-50">
+            <h3 className="font-bold text-red-800 mb-2 flex items-center gap-2"><Bell className="w-4 h-4"/> Dunning Alert</h3>
+            <p className="text-sm text-red-700 font-medium">Installment #2 is overdue by 14 days. LMS access will be restricted in 48 hours.</p>
+            <Button onClick={() => { fetch("/api/v3/school/sis", { method: "POST", body: JSON.stringify({ name: "Student 1", grade: "G4" }) }).then(()=>alert("Reminder Sent & Logged to DB!")); }} size="sm" variant="destructive" className="w-full mt-4">Send Reminder</Button>
+          </Card>
+        </div>
+        
+        <div className="col-span-3 space-y-6">
+          <Card className="p-6 bg-white shadow-sm border-slate-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold flex items-center gap-2"><Users className="text-indigo-600"/> Class 4A Attendance & Grades</h2>
+              <input type="text" placeholder="Search student..." className="px-4 py-2 border rounded-lg text-sm bg-slate-50"/>
+            </div>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b-2 border-slate-100 text-sm text-slate-500">
+                  <th className="pb-3 pl-2">Student Name</th>
+                  <th className="pb-3">ID</th>
+                  <th className="pb-3">Attendance</th>
+                  <th className="pb-3">Math</th>
+                  <th className="pb-3">Science</th>
+                  <th className="pb-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {[
+                  { name: 'Omar Khalid', id: 'STU-1021', att: '98%', m: 'A', s: 'A+', st: 'Active' },
+                  { name: 'Sarah Ahmed', id: 'STU-1022', att: '85%', m: 'B', s: 'B+', st: 'Active' },
+                  { name: 'Fahad Yaser', id: 'STU-1023', att: '60%', m: 'C', s: 'D', st: 'Warning' }
+                ].map((s, i) => (
+                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                    <td className="py-4 pl-2 font-bold text-slate-700">{s.name}</td>
+                    <td className="py-4 font-mono text-xs text-slate-500">{s.id}</td>
+                    <td className="py-4 font-bold text-slate-600">{s.att}</td>
+                    <td className="py-4 font-bold text-indigo-600">{s.m}</td>
+                    <td className="py-4 font-bold text-emerald-600">{s.s}</td>
+                    <td className="py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${s.st==='Warning'?'bg-red-100 text-red-700':'bg-emerald-100 text-emerald-700'}`}>{s.st}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }

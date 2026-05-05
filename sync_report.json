@@ -48,5 +48,16 @@
     "src/app/(dashboard)/v3/school/sis/page.tsx",
     "src/app/(dashboard)/v3/realestate/leases/page.tsx",
     "src/app/(dashboard)/v3/distribution/wms/page.tsx",
-    "src/app/(dashboard)/v3/services/timesheet/page.tsx"
+    "src/app/(dashboard)/v3/services/timesheet/page.tsx",
+    "src/app/api/v3/retail/pos/route.ts",
+    "src/app/api/v3/restaurant/kds/route.ts",
+    "src/app/api/v3/manufacturing/mrp/route.ts",
+    "src/app/api/v3/construction/boq/route.ts",
+    "src/app/api/v3/clinic/emr/route.ts",
+    "src/app/api/v3/school/sis/route.ts",
+    "src/app/api/v3/realestate/leases/route.ts",
+    "src/app/api/v3/distribution/wms/route.ts",
+    "src/app/api/v3/services/timesheet/route.ts",
+    "src/app/(dashboard)/v3/page.tsx",
+    "src/app/(dashboard)/v3/master/page.tsx"
 ]

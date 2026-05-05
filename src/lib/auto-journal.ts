@@ -6,6 +6,7 @@
  */
 
 import { prisma, resolveTenant, withTenant } from './prisma';
+import { getNextNumber } from './numbering';
 
 // أكواد الحسابات الافتراضية
 const ACCOUNTS = {
@@ -39,12 +40,9 @@ async function getAccountId(code: string): Promise<number | null> {
 }
 
 // Generate next entry number
-async function getNextEntryNumber(): Promise<string> {
-    const last = await prisma.journalEntry.findFirst({
-        orderBy: { id: 'desc' },
-    });
-    const lastNum = last ? parseInt(last.entryNumber.replace('JE', '')) : 0;
-    return `JE${(lastNum + 1).toString().padStart(6, '0')}`;
+async function getNextEntryNumber(tx: any = prisma): Promise<string> {
+    const seqResult = await getNextNumber(tx, 'JE');
+    return seqResult.formatted;
 }
 
 /**
@@ -94,7 +92,7 @@ async function createJournalEntry(params: {
             });
         }
 
-        const entryNumber = await getNextEntryNumber();
+        const entryNumber = await getNextEntryNumber(prisma);
         const entryDate = params.date || new Date().toISOString().split('T')[0];
 
         // Ensure Fiscal Period is OPEN

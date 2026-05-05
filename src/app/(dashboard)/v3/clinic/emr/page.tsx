@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 
 export default function ClinicEMR() {
   return (
-    <div className="flex h-screen bg-slate-100 p-4 gap-4">
+    <div className="flex h-screen bg-slate-100 p-4 gap-4">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-blue-500 text-white font-bold hover:opacity-90 shadow-lg"><Video className="w-4 h-4 mr-2"/> Start Telehealth Call</Button>\n        <Button className="bg-rose-500 text-white font-bold hover:opacity-90 shadow-lg"><Watch className="w-4 h-4 mr-2"/> Sync Apple Health</Button>\n        <Button className="bg-emerald-600 text-white font-bold hover:opacity-90 shadow-lg"><ShieldCheck className="w-4 h-4 mr-2"/> AI Claim Scrubbing</Button>\n        </div>\n      </div>
       <div className="w-1/4 space-y-4 flex flex-col">
         <Card className="p-6 bg-indigo-600 text-white shadow-lg rounded-2xl">
           <div className="flex gap-4 items-center mb-6">
@@ -45,7 +45,7 @@ export default function ClinicEMR() {
             <h3 className="font-black text-xl text-slate-800 flex items-center gap-2"><FileText className="text-indigo-600"/> Clinical Notes (SOAP)</h3>
             <div className="flex gap-2">
               <Button variant="outline" className="flex items-center gap-2"><Pill className="w-4 h-4"/> e-Prescribe</Button>
-              <Button className="bg-slate-900 text-white">Save Encounter</Button>
+              <Button onClick={() => { fetch("/api/v3/clinic/emr", { method: "POST", body: JSON.stringify({ patientName: "Sami Ahmed" }) }).then(()=>alert("Encounter Saved to DB!")); }} className="bg-slate-900 text-white">Save Encounter</Button>
             </div>
           </div>
           <div className="space-y-4 flex-1">

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { getNextNumber } from '@/lib/numbering';
 import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
 
@@ -39,8 +40,8 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { supplierId, orderId, stockId, notes, items } = body;
 
-        const agg = await prisma.goodsReceiptNote.aggregate({ _max: { grnNo: true } });
-        const nextNo = (agg._max.grnNo || 3000) + 1;
+        const seqResult = await getNextNumber(prisma, 'GRN');
+        const nextNo = seqResult.current;
 
         // P1: Fetch supplier name for auto-journal
         const supplierRecord = supplierId

@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { getNextNumber } from '@/lib/numbering';
 
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
@@ -34,8 +35,8 @@ export async function POST(request: Request) {
             branchId = user?.branchId || null;
         }
 
-        const last = await prisma.purchaseOrder.findFirst({ orderBy: { id: 'desc' } });
-        const orderNo = ((last?.orderNo || 0) + 1);
+        const seqResult = await getNextNumber(prisma, 'PO', branchId);
+        const orderNo = seqResult.current;
 
         let subtotal = 0;
         const details = (body.items || []).map((item: any) => {

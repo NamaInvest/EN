@@ -4,6 +4,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { generateZatcaQRContent } from '@/lib/zatca';
 import { round2, validateMoney } from '@/lib/money';
+import { getNextNumber } from '@/lib/numbering';
 
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -29,10 +30,9 @@ export async function POST(req: NextRequest) {
         const invoice = await prisma.$transaction(async (tx) => {
             
             // Generate Invoice Number inside transaction to prevent race conditions
-            const lastInvoice = await tx.salesInvoice.findFirst({
-                orderBy: { invoiceNo: 'desc' }
-            });
-            const invoiceNo = lastInvoice ? lastInvoice.invoiceNo + 1 : 10001;
+            const seqResult = await getNextNumber(tx, 'INV');
+            const invoiceNo = seqResult.current;
+            const formattedInvoiceNo = seqResult.formatted;
 
             // Create Invoice Header
             const newInvoice = await tx.salesInvoice.create({
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            return { newInvoice, totalCost };
+            return { newInvoice, totalCost, formattedInvoiceNo };
         });
 
         // 5. Automated Global Dual-Entry Accounting (POS to Master Journal)
@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
             success: true, 
             invoice: { 
                 id: invoice.newInvoice.id,
-                invoiceNumber: `INV-${invoice.newInvoice.invoiceNo}`,
+                invoiceNumber: invoice.formattedInvoiceNo,
                 zatcaQr 
             } 
         });
