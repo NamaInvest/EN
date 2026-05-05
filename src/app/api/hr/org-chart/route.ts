@@ -1,0 +1,39 @@
+import { NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+
+export async function GET(req: Request) {
+    const prisma = getPrisma(req as any);
+    try {
+        const employees = await prisma.employee.findMany({
+            where: { active: true },
+            select: {
+                id: true,
+                name: true,
+                position: true,
+                department: true,
+                managerId: true,
+                branch: { select: { name: true } }
+            } as any
+        });
+
+        // Build Tree
+        const map = new Map();
+        const roots: any[] = [];
+
+        employees.forEach((emp: any) => {
+            map.set(emp.id, { ...emp, children: [] });
+        });
+
+        employees.forEach((emp: any) => {
+            if (emp.managerId && map.has(emp.managerId)) {
+                map.get(emp.managerId).children.push(map.get(emp.id));
+            } else {
+                roots.push(map.get(emp.id));
+            }
+        });
+
+        return NextResponse.json({ success: true, data: roots });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

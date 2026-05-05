@@ -1,0 +1,102 @@
+import { NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+    const prisma = getPrisma(req as any);
+    try {
+        const productId = Number(params.id);
+
+        // Fetch Product and its associated BOM versions
+        // A product has multiple recipes, each recipe might have a BOMVersion
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: {
+                finishedRecipes: {
+                    include: {
+                        ingredients: { include: { rawProduct: true } },
+                        BOMVersion: true
+                    }
+                }
+            }
+        });
+
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+
+        // Flatten BOM versions
+        const versions: any[] = [];
+        product.finishedRecipes.forEach(recipe => {
+            recipe.BOMVersion.forEach(version => {
+                versions.push({
+                    ...version,
+                    recipeId: recipe.id,
+                    recipeName: recipe.name,
+                    ingredients: recipe.ingredients
+                });
+            });
+        });
+
+        // Sort by effective date descending
+        versions.sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
+
+        return NextResponse.json({ success: true, data: { product, versions } });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+    const prisma = getPrisma(req as any);
+    try {
+        const productId = Number(params.id);
+        const body = await req.json();
+        const { sourceVersionId, newVersionNumber, ingredients, ecrReference } = body;
+
+        // Clone flow:
+        // 1. Create new Recipe
+        // 2. Create new RecipeIngredients
+        // 3. Create new BOMVersion (DRAFT)
+        // 4. Optionally create ECO if ecrReference is provided
+
+        const newRecipe = await prisma.recipe.create({
+            data: {
+                finishedProductId: productId,
+                name: `BOM ${newVersionNumber} for Product ${productId}`,
+                ingredients: {
+                    create: ingredients.map((ing: any) => ({
+                        rawProductId: Number(ing.rawProductId),
+                        quantity: Number(ing.quantity),
+                        estimatedCost: Number(ing.estimatedCost || 0),
+                        scrapPercentage: Number(ing.scrapPercentage || 0)
+                    }))
+                }
+            }
+        });
+
+        const newVersion = await prisma.bOMVersion.create({
+            data: {
+                recipeId: newRecipe.id,
+                versionNumber: newVersionNumber,
+                effectiveFrom: new Date(),
+                status: 'DRAFT'
+            }
+        });
+
+        if (ecrReference && sourceVersionId) {
+            await prisma.engineeringChangeOrder.create({
+                data: {
+                    ecoNumber: `ECO-${Date.now()}`,
+                    productId: productId,
+                    fromBomVersionId: Number(sourceVersionId),
+                    toBomVersionId: newVersion.id,
+                    reason: `Update from ${ecrReference}`,
+                    status: 'PENDING',
+                    requestedBy: 1 // Default user
+                }
+            });
+        }
+
+        return NextResponse.json({ success: true, data: newVersion });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

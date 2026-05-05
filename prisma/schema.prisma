@@ -900,7 +900,12 @@ model Employee {
   maritalStatus  String?   @map("marital_status")
   faceDescriptor String?   @map("face_descriptor") @db.Text
 
-  attendance              Attendance[]
+  department String?
+    managerId Int? @map("manager_id")
+    manager Employee? @relation("EmployeeToManager", fields: [managerId], references: [id])
+    subordinates Employee[] @relation("EmployeeToManager")
+  
+    attendance              Attendance[]
   salaries                Salary[]
   pettyCashes             PettyCashTransaction[]
   salesTargets            SalesTarget[]
