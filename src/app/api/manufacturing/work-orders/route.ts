@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { generateNextNumber } from '@/lib/numbering';
+import { getNextNumber } from '@/lib/numbering';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 import { canTransition, DocumentType } from '@/lib/document-state-machine';
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { recipeId, quantityToProduce, startDate, endDate, machineId } = body;
 
-        const orderNumber = await generateNextNumber(prisma as any, 'WO', { date: new Date(startDate) });
+        const { formatted: orderNumber } = await getNextNumber(prisma as any, 'WO');
 
         const order = await prisma.manufacturingOrder.create({
             data: {
