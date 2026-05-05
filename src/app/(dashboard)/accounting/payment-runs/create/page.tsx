@@ -1,0 +1,199 @@
+'use client';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Check, ChevronRight, Calculator, FileSpreadsheet } from 'lucide-react';
+import Link from 'next/link';
+
+export default function CreatePaymentRunPage() {
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({
+        dueDateUntil: '',
+        currency: 'SAR',
+        includeDiscountWindow: true,
+        paymentMethod: 'SARIE'
+    });
+    
+    const [loading, setLoading] = useState(false);
+    const [proposalData, setProposalData] = useState<any>(null);
+
+    const handlePropose = async () => {
+        setLoading(true);
+        // Simulate API call for proposing payment run
+        setTimeout(() => {
+            setProposalData({
+                invoicesCount: 250,
+                discountOpportunitiesCount: 80,
+                discountSavings: 18000,
+                totalAmount: 1850000,
+                vendorsCount: 78
+            });
+            setStep(2);
+            setLoading(false);
+        }, 1500);
+    };
+
+    const handleCreateRun = async () => {
+        setLoading(true);
+        // Simulate API call for saving the run
+        setTimeout(() => {
+            alert('Payment Run submitted for approval successfully!');
+            window.location.href = '/accounting/payment-runs';
+        }, 1000);
+    };
+
+    return (
+        <div className="max-w-5xl mx-auto space-y-6 p-6">
+            <div className="flex items-center gap-4">
+                <Link href="/accounting/payment-runs">
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                        <ArrowLeft className="w-5 h-5 text-gray-500" />
+                    </Button>
+                </Link>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">New Payment Run</h1>
+                    <p className="text-gray-500">Generate a new proposal for vendor payments</p>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2 mb-8">
+                <div className={`flex items-center gap-2 ${step >= 1 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>1</div>
+                    <span>Parameters</span>
+                </div>
+                <div className="flex-1 h-px bg-gray-200 mx-2"></div>
+                <div className={`flex items-center gap-2 ${step >= 2 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>2</div>
+                    <span>Proposal Preview</span>
+                </div>
+                <div className="flex-1 h-px bg-gray-200 mx-2"></div>
+                <div className={`flex items-center gap-2 ${step >= 3 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 3 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>3</div>
+                    <span>Confirmation</span>
+                </div>
+            </div>
+
+            {step === 1 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Selection Criteria</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Due Date Until</label>
+                                <input 
+                                    type="date" 
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.dueDateUntil}
+                                    onChange={e => setFormData({...formData, dueDateUntil: e.target.value})}
+                                />
+                                <p className="text-xs text-gray-500">Include all open AP items due on or before this date.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Currency</label>
+                                <select 
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.currency}
+                                    onChange={e => setFormData({...formData, currency: e.target.value})}
+                                >
+                                    <option value="SAR">SAR - Saudi Riyal</option>
+                                    <option value="USD">USD - US Dollar</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Payment Method / Format</label>
+                                <select 
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.paymentMethod}
+                                    onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
+                                >
+                                    <option value="SARIE">SARIE (Saudi Banks Excel/CSV)</option>
+                                    <option value="SEPA">SEPA XML (pain.001.001.09)</option>
+                                    <option value="SWIFT">SWIFT MT103</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2 pt-8">
+                                <label className="flex items-center gap-3">
+                                    <input 
+                                        type="checkbox" 
+                                        className="w-5 h-5 text-blue-600 rounded"
+                                        checked={formData.includeDiscountWindow}
+                                        onChange={e => setFormData({...formData, includeDiscountWindow: e.target.checked})}
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">Include future invoices within cash discount windows</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-6 border-t border-gray-100">
+                            <Button onClick={handlePropose} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                                {loading ? 'Analyzing...' : 'Generate Proposal'}
+                                {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {step === 2 && proposalData && (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Card className="bg-blue-50 border-blue-100">
+                            <CardContent className="p-4">
+                                <p className="text-xs font-medium text-blue-600 uppercase tracking-wider">Total Amount</p>
+                                <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.totalAmount.toLocaleString()} <span className="text-sm font-normal text-gray-500">{formData.currency}</span></h3>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Invoices</p>
+                                <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.invoicesCount}</h3>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Vendors</p>
+                                <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.vendorsCount}</h3>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-green-50 border-green-100">
+                            <CardContent className="p-4">
+                                <p className="text-xs font-medium text-green-600 uppercase tracking-wider">Discount Savings</p>
+                                <h3 className="text-2xl font-bold text-gray-900 mt-1">+{proposalData.discountSavings.toLocaleString()} <span className="text-sm font-normal text-gray-500">{formData.currency}</span></h3>
+                                <p className="text-xs text-green-700 mt-1">From {proposalData.discountOpportunitiesCount} opportunities</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
+                            <CardTitle className="text-lg">Proposal Line Items</CardTitle>
+                            <Button variant="outline" size="sm">
+                                <FileSpreadsheet className="w-4 h-4 mr-2" /> Export to Excel
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="p-12 text-center text-gray-500">
+                                <Calculator className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <p>Interactive data grid would appear here showing grouped vendors and invoices.</p>
+                                <p className="text-sm mt-2 text-gray-400">Users can uncheck specific invoices to block them from this run.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <div className="flex justify-between items-center pt-4">
+                        <Button variant="outline" onClick={() => setStep(1)}>
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                        </Button>
+                        <Button onClick={handleCreateRun} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                            {loading ? 'Submitting...' : 'Submit for Approval'}
+                            {!loading && <Check className="w-4 h-4 ml-2" />}
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

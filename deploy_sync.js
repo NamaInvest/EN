@@ -11,6 +11,7 @@ const SERVER = {
 
 const TARGETS = [
     { base: '/www/wwwroot/namainvist.com', pm2: 'main-site' },
+    { base: '/www/wwwroot/n1.namainvist.com', pm2: 'n1-main' },
     { base: '/www/wwwroot/n11.namainvist.com', pm2: 'saas-app' }
 ];
 
@@ -113,10 +114,17 @@ async function deploy() {
                 await execCommand(conn, `cd ${target.base} && npx prisma generate`);
 
                 console.log('\n🔧 Running prisma db push...');
-                await execCommand(conn, `cd ${target.base} && npx prisma db push --accept-data-loss`);
+                let dbUrl = "postgresql://postgres@localhost:5432/namadb?schema=public";
+                if (target.base.includes("n11")) dbUrl = "postgresql://postgres@localhost:5432/n11_db?schema=public";
+                else if (target.base.includes("n1.")) dbUrl = "postgresql://postgres@localhost:5432/n1_db?schema=public";
+                
+                await execCommand(conn, `cd ${target.base} && DATABASE_URL="${dbUrl}" npx prisma db push --accept-data-loss`);
 
                 console.log('\n🧹 Clearing .next cache...');
                 await execCommand(conn, `cd ${target.base} && rm -rf .next`);
+
+                console.log('\n📦 Installing ZATCA dependencies...');
+                await execCommand(conn, `cd ${target.base} && npm install zatca-xml-js qrcode`);
 
                 console.log('\n🏗️  Building Next.js...');
                 await execCommand(conn, `cd ${target.base} && npm run build`);

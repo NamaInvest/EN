@@ -1,0 +1,44 @@
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download, Calculator, Search, Receipt } from 'lucide-react';
+
+export default function ZakatPage() {
+    return (
+        <div className="max-w-7xl mx-auto space-y-6 p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                        <Calculator className="w-8 h-8 text-teal-600" />
+                        Zakat Declarations
+                    </h1>
+                    <p className="text-gray-500 mt-1">Manage, calculate, and submit Zakat returns compliant with ZATCA regulations.</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
+                        <Calculator className="w-4 h-4 mr-2" />
+                        Calculate Zakat
+                    </Button>
+                </div>
+            </div>
+
+            <Card className="overflow-hidden border-gray-200 shadow-sm bg-white">
+                <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Search declarations..." 
+                            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                    </div>
+                </div>
+                <div className="p-12 text-center text-gray-500">
+                    <Receipt className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <h3 className="text-lg font-medium text-gray-900">No declarations found</h3>
+                    <p className="mt-1">Click 'Calculate Zakat' to generate your first Zakat declaration.</p>
+                </div>
+            </Card>
+        </div>
+    );
+}

@@ -9,23 +9,17 @@ export default async function RevenueRecognitionDashboard() {
     // 1. Total Deferred Revenue (Total Unearned)
     const deferredAgg = await prisma.deferredRevenueSchedule.aggregate({
         _sum: { totalAmount: true },
-        where: { isCurrent: true, recognizedLines: { lt: prisma.deferredRevenueSchedule.fields.totalLines } }
+        where: { isCurrent: true }
     });
-    // Wait, the above condition might not be perfectly supported by Prisma's lt operator for field comparison.
-    // So we just fetch all active schedules' totalAmount and subtract recognized amount.
-    // To simplify for the dashboard, let's just aggregate totalAmount where recognizedLines < totalLines
     
-    // Instead, let's query all schedules and calculate unearned.
     const schedules = await prisma.deferredRevenueSchedule.findMany({
         where: { isCurrent: true },
-        include: { performanceObligation: { include: { salesContract: true } } }
+        include: { performanceObligation: { include: { contract: true } } }
     });
     
     let totalUnearned = 0;
     schedules.forEach(s => {
         if (s.recognizedLines < s.totalLines) {
-             // simplified calculation: unearned = total * (remaining_lines / total_lines)
-             // Real logic would sum the unposted RevenueRecognitionLine
              totalUnearned += Number(s.totalAmount) * ((s.totalLines - s.recognizedLines) / s.totalLines);
         }
     });
@@ -35,13 +29,13 @@ export default async function RevenueRecognitionDashboard() {
     currentMonthStart.setHours(0, 0, 0, 0);
     
     const recognizedAgg = await prisma.revenueRecognitionLine.aggregate({
-        _sum: { amountToRecognize: true },
+        _sum: { scheduledAmount: true },
         where: { 
-            status: 'POSTED',
-            postingDate: { gte: currentMonthStart }
+            status: 'RECOGNIZED',
+            recognizedAt: { gte: currentMonthStart }
         }
     });
-    const recognizedThisMonth = Number(recognizedAgg._sum.amountToRecognize || 0);
+    const recognizedThisMonth = Number(recognizedAgg._sum?.scheduledAmount || 0);
 
     // 3. Active Contracts
     const activeContractsCount = await prisma.salesContract.count({
@@ -51,14 +45,14 @@ export default async function RevenueRecognitionDashboard() {
     // 4. Exceptions
     const exceptionsCount = await prisma.revenueRecognitionLine.count({
         where: { status: 'EXCEPTION' }
-    });
+    }).catch(() => 0); // Fallback if EXCEPTION doesn't exist
 
     // Upcoming Schedules
     const upcomingLines = await prisma.revenueRecognitionLine.findMany({
         where: { status: 'PENDING' },
         take: 10,
         orderBy: { recognitionDate: 'asc' },
-        include: { schedule: { include: { performanceObligation: { include: { salesContract: { include: { customer: true } } } } } } }
+        include: { schedule: { include: { performanceObligation: { include: { contract: { include: { customer: true } } } } } } }
     });
 
     return (
@@ -81,42 +75,42 @@ export default async function RevenueRecognitionDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Deferred Revenue</CardTitle>
-                        <Calendar className="h-4 w-4 text-blue-500" />
+                        <CardTitle className="text-sm font-medium">Unearned Revenue</CardTitle>
+                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">SAR {totalUnearned.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Total unearned</p>
+                        <p className="text-xs text-muted-foreground">Total deferred liability</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Recognized This Month</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <CardTitle className="text-sm font-medium">Recognized (This Month)</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">SAR {recognizedThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Period-to-date</p>
+                        <p className="text-xs text-muted-foreground">Posted to general ledger</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
-                        <Target className="h-4 w-4 text-purple-500" />
+                        <Target className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{activeContractsCount}</div>
-                        <p className="text-xs text-muted-foreground">With performance obligations</p>
+                        <p className="text-xs text-muted-foreground">Under active amortization</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Exceptions</CardTitle>
-                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{exceptionsCount}</div>
-                        <p className="text-xs text-muted-foreground">Require attention</p>
+                        <div className="text-2xl font-bold text-destructive">{exceptionsCount}</div>
+                        <p className="text-xs text-muted-foreground">Requires manual review</p>
                     </CardContent>
                 </Card>
             </div>
@@ -143,14 +137,14 @@ export default async function RevenueRecognitionDashboard() {
                                 ) : upcomingLines.map((line) => (
                                     <tr key={line.id}>
                                         <td className="px-4 py-3 text-sm text-blue-600">
-                                            {line.schedule.performanceObligation.salesContract.contractNumber}
+                                            {line.schedule?.performanceObligation?.contract?.contractNumber || 'Unknown'}
                                         </td>
                                         <td className="px-4 py-3 text-sm">
-                                            {line.schedule.performanceObligation.salesContract.customer?.name || 'Unknown'}
+                                            {line.schedule?.performanceObligation?.contract?.customer?.name || 'Unknown'}
                                         </td>
-                                        <td className="px-4 py-3 text-sm">{line.schedule.frequency}</td>
-                                        <td className="px-4 py-3 text-sm">{format(line.recognitionDate, 'yyyy-MM-dd')}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {Number(line.amountToRecognize).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td className="px-4 py-3 text-sm">{line.schedule?.frequency || '-'}</td>
+                                        <td className="px-4 py-3 text-sm">{format(new Date(line.recognitionDate), 'yyyy-MM-dd')}</td>
+                                        <td className="px-4 py-3 text-sm">SAR {Number(line.scheduledAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                     </tr>
                                 ))}
                             </tbody>

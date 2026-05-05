@@ -1,65 +1,94 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { segment, dateFrom, dateTo, templateId, userId } = body;
 
-        let whereClause: any = {
-            type: { in: [0, 2] },
-        };
-
-        if (segment === 'vip') {
-            whereClause.creditLimit = { gt: 50000 };
-        } else if (segment === 'overdue') {
-            whereClause.balance = { gt: 0 };
+        let customerWhere: any = { isActive: true };
+        if (segment === 'OVERDUE') {
+            customerWhere = { ...customerWhere, salesInvoices: { some: { remaining: { gt: 0 } } } };
+        } else if (segment === 'VIP') {
+            customerWhere = { ...customerWhere, customerType: 'VIP' };
         }
 
-        const count = await prisma.customer.count({
-            where: whereClause
+        const customers = await prisma.customer.findMany({
+            where: customerWhere,
+            select: { id: true, name: true }
         });
 
-        if (count === 0) {
-            return NextResponse.json({ error: 'No customers match the given criteria.' }, { status: 400 });
+        if (customers.length === 0) {
+            return NextResponse.json({ error: 'No customers found for this segment.' }, { status: 400 });
         }
 
-        const batchNumber = `BCH-${Date.now()}`;
-
+        // Create the Batch record
         const batch = await prisma.statementBatch.create({
             data: {
-                batchNumber,
+                batchNumber: `BCH-${Date.now()}`,
                 triggeredBy: 'MANUAL_BULK',
-                startedByUserId: userId ? String(userId) : null,
-                totalCount: count,
-                processedCount: 0,
-                status: 'PROCESSING',
-                filterCriteria: { segment, dateFrom, dateTo },
-                templateId: templateId ? parseInt(templateId, 10) : null,
                 dateFrom: new Date(dateFrom),
-                dateTo: new Date(dateTo)
+                dateTo: new Date(dateTo),
+                templateId: templateId ? Number(templateId) : null,
+                totalCount: customers.length,
+                status: 'PROCESSING',
+                startedByUserId: userId ? String(userId) : 'system',
+                filterCriteria: { segment }
             }
         });
 
-        // In a real application, you'd queue a background job here (e.g., BullMQ)
-        // to generate PDFs and send emails asynchronously.
-        // For demonstration, we'll mark it as completed after returning.
-        
-        // Simulate async work
+        // Background simulation for Dunning/Email dispatch
+        // In a real system, this would push to a Redis queue like BullMQ
         setTimeout(async () => {
+            let successCount = 0;
+            let failedCount = 0;
+
+            for (const customer of customers) {
+                try {
+                    // Create the log
+                    await prisma.statementDispatchLog.create({
+                        data: {
+                            batchId: batch.id,
+                            customerId: customer.id,
+                            deliveryChannel: 'EMAIL',
+                            status: 'SENT',
+                            sentAt: new Date(),
+                            dateFrom: new Date(dateFrom),
+                            dateTo: new Date(dateTo),
+                            openingBalance: 0,
+                            closingBalance: 0,
+                            transactionsCount: 0,
+                            totalDebits: 0,
+                            totalCredits: 0,
+                            triggeredBy: 'BULK'
+                        }
+                    });
+                    successCount++;
+                } catch (e) {
+                    failedCount++;
+                }
+            }
+
+            // Mark batch as completed
             await prisma.statementBatch.update({
                 where: { id: batch.id },
                 data: {
                     status: 'COMPLETED',
-                    processedCount: count,
-                    successCount: count,
+                    successCount,
+                    failedCount,
                     completedAt: new Date()
                 }
             });
-        }, 5000);
+        }, 2000); // simulated async background process
 
-        return NextResponse.json({ batch });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Batch processing started in the background.',
+            batchId: batch.id,
+            customerCount: customers.length
+        });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

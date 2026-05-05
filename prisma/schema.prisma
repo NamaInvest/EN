@@ -7240,3 +7240,174 @@ model CustomerStatementTemplate {
 
   @@map("customer_statement_templates")
 }
+
+// ==================== v2: Enterprise Event Bus & Saga Orchestrator ====================
+model EventLog {
+  id            Int       @id @default(autoincrement())
+  eventType     String    
+  payload       Json
+  sourceModule  String    
+  status        String    @default("PENDING") 
+  errorReason   String?   @db.Text
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+}
+
+model SagaTransaction {
+  id            String    @id @default(uuid())
+  journeyType   String    
+  currentState  String    
+  context       Json      
+  status        String    @default("ACTIVE") 
+  startedAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  steps         OrchestrationStep[]
+}
+
+model OrchestrationStep {
+  id            Int       @id @default(autoincrement())
+  sagaId        String
+  saga          SagaTransaction @relation(fields: [sagaId], references: [id], onDelete: Cascade)
+  stepName      String
+  status        String    
+  timestamp     DateTime  @default(now())
+}
+
+// ==================== v2: Product Lifecycle Management (PLM) ====================
+model PLMProject {
+  id            Int       @id @default(autoincrement())
+  name          String
+  phase         String    @default("IDEATION") 
+  productId     Int?      
+  budget        Float     @default(0)
+  createdAt     DateTime  @default(now())
+}
+
+
+// ==================== v2: Vendor Portal ====================
+model VendorPortalUser {
+  id            Int       @id @default(autoincrement())
+  vendorName    String
+  email         String    @unique
+  passwordHash  String
+  status        String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  bids          VendorBid[]
+}
+
+model VendorBid {
+  id            Int       @id @default(autoincrement())
+  rfqId         Int       
+  vendorId      Int
+  vendor        VendorPortalUser @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  amount        Float
+  status        String    @default("SUBMITTED") 
+  createdAt     DateTime  @default(now())
+}
+
+// ==================== v2: Specific Journey Orchestration ====================
+model Q2CJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  leadId         Int?
+  quoteId        Int?
+  salesOrderId   Int?
+  invoiceId      Int?
+  paymentId      Int?
+  status         String    @default("ACTIVE") // ACTIVE, CLOSED, CANCELLED
+  slaBreached    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  totalValue     Float     @default(0)
+}
+
+model P2PJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  prId           Int?
+  rfqId          Int?
+  poId           Int?
+  grnId          Int?
+  invoiceId      Int?
+  paymentId      Int?
+  status         String    @default("ACTIVE")
+  slaBreached    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  totalValue     Float     @default(0)
+}
+
+model H2RJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  candidateId    Int?
+  employeeId     Int?
+  status         String    @default("ACTIVE") // RECRUITING, ONBOARDING, ACTIVE, RETIRED
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model R2RJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  periodId       Int
+  status         String    @default("ACTIVE") // RECONCILIATION, ADJUSTMENTS, CLOSING, REPORTING
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model O2DJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  salesOrderId   Int
+  fulfillmentId  Int?
+  dispatchId     Int?
+  status         String    @default("ACTIVE") // PICKING, PACKING, DISPATCHED, DELIVERED
+  slaBreached    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model PlanToProduceJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  forecastId     Int?
+  mrpId          Int?
+  workOrderId    Int?
+  status         String    @default("ACTIVE") // PLANNING, PROCUREMENT, PRODUCTION, QUALITY, FINISHED
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model A2RJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  prId           Int?
+  assetId        Int?
+  status         String    @default("ACTIVE") // CAPEX, ACQUIRED, DEPRECIATING, DISPOSED
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model I2RJourney {
+  id             Int       @id @default(autoincrement())
+  sagaId         String    @unique
+  ticketId       Int
+  resolutionId   Int?
+  status         String    @default("ACTIVE") // LOGGED, ASSIGNED, RESOLVING, CLOSED
+  slaBreached    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+// ==================== v2: Cross-Cutting Compliance Matrix ====================
+model ComplianceAuditLog {
+  id             Int       @id @default(autoincrement())
+  concernArea    String    // e.g. "Data Privacy", "Access Control", "ZATCA"
+  severity       String    // LOW, MEDIUM, HIGH, CRITICAL
+  description    String    @db.Text
+  isResolved     Boolean   @default(false)
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+}
+

@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         }
 
         // ── 2FA Check ──────────────────────────────────────────────
-        if ((user as any).totpEnabled) {
+        if (user.mfaEnabled) {
             return NextResponse.json({
                 requires2FA: true,
                 userId: user.id,

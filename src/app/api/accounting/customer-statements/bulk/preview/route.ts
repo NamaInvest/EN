@@ -1,28 +1,46 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export async function GET(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const segment = searchParams.get('segment') || 'all'; // all, vip, overdue
+        const body = await req.json();
+        const { segment, dateFrom, dateTo } = body;
 
-        let whereClause: any = {
-            type: { in: [0, 2] }, // Customer or Both
-            // In a real system, you'd check active status and email opt-in
-        };
+        // Base where clause for active customers
+        let customerWhere: any = { isActive: true };
 
-        if (segment === 'vip') {
-            whereClause.creditLimit = { gt: 50000 };
-        } else if (segment === 'overdue') {
-            whereClause.balance = { gt: 0 };
+        // Handle segmentation
+        if (segment === 'OVERDUE') {
+            customerWhere = {
+                ...customerWhere,
+                salesInvoices: {
+                    some: { remaining: { gt: 0 }, date: { lt: new Date() } } // simplified overdue logic
+                }
+            };
+        } else if (segment === 'VIP') {
+            customerWhere = { ...customerWhere, customerType: 'VIP' };
         }
 
         const count = await prisma.customer.count({
-            where: whereClause
+            where: customerWhere
         });
 
-        return NextResponse.json({ count });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        // Calculate some basic stats for preview
+        const aggregated = await prisma.salesInvoice.aggregate({
+            where: {
+                customerId: { in: (await prisma.customer.findMany({ where: customerWhere, select: { id: true } })).map(c => c.id) },
+                remaining: { gt: 0 }
+            },
+            _sum: { remaining: true }
+        });
+
+        return NextResponse.json({ 
+            success: true, 
+            customerCount: count,
+            estimatedOverdueDebt: aggregated._sum.remaining || 0
+        });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

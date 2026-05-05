@@ -1,181 +1,155 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { FileText, Plus, CheckCircle, Clock } from 'lucide-react';
-import { useTranslation } from "@/lib/i18n";
-import { useToast } from '@/components/Toast';
+import React from 'react';
+import { prisma } from '@/lib/prisma';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Search, Plus, ClipboardList, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import Link from 'next/link';
 
-export default function PurchaseRequisitionsPage() {
- const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
- const [prs, setPrs] = useState<any[]>([]);
- const [products, setProducts] = useState<any[]>([]);
- const [loading, setLoading] = useState(true);
- const [showModal, setShowModal] = useState(false);
- 
- const [form, setForm] = useState({ department: '', notes: '' });
- const [items, setItems] = useState<any[]>([]);
+export default async function PurchaseRequisitionsPage() {
+    const requisitions = await prisma.purchaseRequisition.findMany({
+        include: {
+            requester: true,
+            approver: true
+        },
+        orderBy: { date: 'desc' },
+        take: 50
+    });
 
- useEffect(() => { loadData(); }, []);
+    const pendingCount = requisitions.filter(r => r.status === 'pending').length;
+    const approvedCount = requisitions.filter(r => r.status === 'approved').length;
 
- async function loadData() {
- setLoading(true);
- try {
- const token = localStorage.getItem('token') || '';
- const [prRes, pRes] = await Promise.all([
- fetch('/api/purchases/requisitions', { headers: { Authorization: `Bearer ${token}` } }),
- fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } })
- ]);
- if (prRes.ok) setPrs(await prRes.json());
- if (pRes.ok) setProducts(await pRes.json());
- } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
- setLoading(false);
- }
+    return (
+        <div className="max-w-7xl mx-auto space-y-6 p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                        <ClipboardList className="w-8 h-8 text-indigo-600" />
+                        Purchase Requisitions
+                    </h1>
+                    <p className="text-gray-500 mt-1">Internal requests for goods and services.</p>
+                </div>
+                <div className="flex gap-2">
+                    <Link href="/purchases/orders">
+                        <Button variant="outline" className="bg-white">View POs</Button>
+                    </Link>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Request
+                    </Button>
+                </div>
+            </div>
 
- const addItem = () => setItems([...items, { productId: '', productName: '', quantity: 1, notes: '' }]);
- const updateItem = (index: number, field: string, value: any) => {
- const newItems = [...items];
- newItems[index][field] = value;
- if (field === 'productId') {
- const p = products.find(x => x.id.toString() === value.toString());
- if (p) newItems[index].productName = p.name;
- }
- setItems(newItems);
- };
- const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index));
+            {/* Metrics Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-indigo-600">Pending Approvals</p>
+                            <Clock className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{pendingCount}</h3>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-500">Approved (Ready for PO)</p>
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{approvedCount}</h3>
+                    </CardContent>
+                </Card>
+            </div>
 
- const handleCreate = async (e: React.FormEvent) => {
- e.preventDefault();
- if (items.length === 0) return alert(t('purchases.str_2265'));
- 
- try {
- const token = localStorage.getItem('token') || '';
- const res = await fetch('/api/purchases/requisitions', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify({ ...form, items })
- });
- if (res.ok) {
- setShowModal(false);
- setForm({ department: '', notes: '' });
- setItems([]);
- loadData();
- } else {
- alert(t('purchases.str_2321'));
- }
- } catch (e) {}
- };
-
- const statusBadge = (s: string) => {
- if (s === 'pending') return <span style={{ padding: '6px 12px', backgroundColor: '#f59e0b20', color: '#f59e0b', borderRadius: '20px', fontSize: '12px' }}><Clock size={12} style={{display:'inline', marginRight:'4px'}}/> {t('purchases.str_2298')}</span>;
- if (s === 'approved') return <span style={{ padding: '6px 12px', backgroundColor: '#10b98120', color: '#10b981', borderRadius: '20px', fontSize: '12px' }}><CheckCircle size={12} style={{display:'inline', marginRight:'4px'}}/> {t('purchases.str_2299')}</span>;
- if (s === 'rejected') return <span style={{ padding: '6px 12px', backgroundColor: '#ef444420', color: '#ef4444', borderRadius: '20px', fontSize: '12px' }}>{t('purchases.str_2300')}</span>;
- return <span>{s}</span>;
- }
-
- return (<>
- <div className="page-header"><h1 className="page-title">{t('purchases.str_2301')}</h1></div>
- 
- <div className="page-content animate-fade-in">
- <div className="toolbar">
- <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('purchases.str_2302')}</span>
- <div className="toolbar-spacer" />
- <button onClick={() => setShowModal(true)} className="primary-btn">
- <Plus size={16} /> {t('purchases.str_2303')}</button>
- </div>
-
- <div className="card" style={{ padding: '0', overflowX: 'auto' }}>
- <table className="table" style={{ width: '100%' }}>
- <thead>
- <tr>
- <th>{t('purchases.str_2304')}</th>
- <th>{t('fin.str_232')}</th>
- <th>{t('purchases.str_2305')}</th>
- <th>{t('purchases.str_2306')}</th>
- <th>{t('purchases.str_2307')}</th>
- <th>{t('purchases.str_2247')}</th>
- </tr>
- </thead>
- <tbody>
- {loading ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('sys.str_168')}</td></tr> : prs.length === 0 ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>{t('purchases.str_2308')}</td></tr> : prs.map(p => (
- <tr key={p.id}>
- <td><strong style={{color: '#6366f1'}}>PR-{p.reqNo}</strong></td>
- <td>{new Date(p.date).toLocaleDateString('en-GB')}</td>
- <td>{p.department || t('sys.str_733')}</td>
- <td>{p.requester?.fullName || p.requester?.username || '-'}</td>
- <td>{statusBadge(p.status)}</td>
- <td>
- <div style={{ display: 'flex', gap: '5px' }}>
- <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 8px' }}>{t('purchases.str_2309')}</button>
- {p.status === 'pending' && <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#10b981', color: 'white' }}>{t('purchases.str_2310')}</button>}
- {p.status === 'approved' && <button className="btn" style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white' }}>{t('purchases.str_2311')}</button>}
- </div>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- </div>
-
- {/* Create Modal */}
- {showModal && (
- <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
- <div className="modal animate-scale-in bg-white "style={{ maxWidth: '800px', width: '95%', borderRadius: '12px', padding: '24px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
- <h2>{t('purchases.str_2312')}</h2>
- <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
- <div style={{ display: 'flex', gap: '15px' }}>
- <div className="input-group" style={{ margin: 0, flex: 1 }}>
- <label className="input-label">{t('purchases.str_2313')}</label>
- <input required className="input" value={form.department} onChange={e => setForm({...form, department: e.target.value})} placeholder={t('purchases.str_2322')} />
- </div>
- <div className="input-group" style={{ margin: 0, flex: 1 }}>
- <label className="input-label">{t('purchases.str_2314')}</label>
- <input className="input" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} placeholder={t('purchases.str_2323')} />
- </div>
- </div>
- 
- <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '8px' }}>
- <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
- <h4>{t('purchases.str_2315')}</h4>
- <button type="button" onClick={addItem} className="btn btn-outline" style={{fontSize: '12px'}}>{t('purchases.str_2316')}</button>
- </div>
- <table className="table" style={{ width: '100%', marginTop: '10px' }}>
- <thead>
- <tr>
- <th>{t('sys.str_801')}</th>
- <th style={{width: '100px'}}>{t('purchases.str_2317')}</th>
- <th style={{width: '180px'}}>{t('purchases.str_2291')}</th>
- <th style={{width: '50px'}}></th>
- </tr>
- </thead>
- <tbody>
- {items.map((item, index) => (
- <tr key={index}>
- <td>
- <select required className="input" value={item.productId} onChange={e => updateItem(index, 'productId', e.target.value)}>
- <option value="">{t('purchases.str_2318')}</option>
- {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
- </select>
- </td>
- <td><input required type="number" min="0.1" step="any" className="input" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} /></td>
- <td><input type="text" className="input" value={item.notes} onChange={e => updateItem(index, 'notes', e.target.value)} placeholder={t('purchases.str_2324')} /></td>
- <td>
- <button type="button" onClick={() => removeItem(index)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}>✖</button>
- </td>
- </tr>
- ))}
- {items.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', color:'var(--text-muted)'}}>{t('purchases.str_2319')}</td></tr>}
- </tbody>
- </table>
- </div>
-
- <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
- <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('fin.str_206')}</button>
- <button type="submit" className="btn btn-primary">{t('purchases.str_2320')}</button>
- </div>
- </form>
- </div>
- </div>
- )}
- </>);
+            {/* Data Grid */}
+            <Card className="overflow-hidden border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row items-center gap-4 bg-white">
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Search PRs or departments..." 
+                            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 text-gray-600 border-b">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">Req #</th>
+                                <th className="px-4 py-3 font-medium">Department</th>
+                                <th className="px-4 py-3 font-medium">Requested By</th>
+                                <th className="px-4 py-3 font-medium">Date</th>
+                                <th className="px-4 py-3 font-medium">Status</th>
+                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-white">
+                            {requisitions.map((req) => (
+                                <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 font-medium text-gray-900">
+                                        PR-{req.reqNo}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-700">
+                                        {req.department || 'N/A'}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-700">
+                                        {req.requester?.fullName || 'Unknown User'}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-500">
+                                        {format(new Date(req.date), 'MMM dd, yyyy')}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                            req.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                            req.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                            'bg-orange-100 text-orange-800'
+                                        }`}>
+                                            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        {req.status === 'pending' && (
+                                            <>
+                                                <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50 mr-1" title="Approve">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 mr-1" title="Reject">
+                                                    <XCircle className="w-4 h-4" />
+                                                </Button>
+                                            </>
+                                        )}
+                                        {req.status === 'approved' && (
+                                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 mr-1">
+                                                Convert to PO
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                                            View
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {requisitions.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                                        <div className="flex flex-col items-center">
+                                            <ClipboardList className="w-10 h-10 text-gray-300 mb-3" />
+                                            <p className="text-lg font-medium text-gray-900">No Purchase Requisitions</p>
+                                            <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white">
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                Create First Request
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+        </div>
+    );
 }

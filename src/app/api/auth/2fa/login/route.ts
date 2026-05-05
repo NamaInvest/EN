@@ -1,4 +1,4 @@
-﻿import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { MfaEngine } from '@/lib/mfa-engine';
@@ -23,18 +23,25 @@ export async function POST(request: NextRequest) {
             include: { permissions: true },
         });
 
-        if (!user || !user.active || !(user as any).totpSecret) {
-            return NextResponse.json({ error: 'ظ…ط³طھط®ط¯ظ… ط؛ظٹط± طµط§ظ„ط­' }, { status: 401 });
+        if (!user || !user.active || !user.mfaEnabled) {
+            return NextResponse.json({ error: 'مستخدم غير صالح أو لا يملك ميزة 2FA مفعلة' }, { status: 401 });
         }
 
         // Try TOTP first, if it fails, try Backup Code
-        let isValid = await MfaEngine.verifyToken(user.id, token);
-        if (!isValid) {
-            isValid = await MfaEngine.verifyBackupCode(user.id, token);
+        let isValid = false;
+        try {
+            isValid = await MfaEngine.verify(user.id, token, 'totp', { ipAddress: request.headers.get('x-forwarded-for') || undefined, userAgent: request.headers.get('user-agent') });
+        } catch (e: any) {
+            // TOTP failed, try backup code
+            try {
+                isValid = await MfaEngine.verifyBackupCode(user.id, token, { ipAddress: request.headers.get('x-forwarded-for') || undefined, userAgent: request.headers.get('user-agent') });
+            } catch (err: any) {
+                isValid = false;
+            }
         }
 
         if (!isValid) {
-            return NextResponse.json({ error: 'ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­' }, { status: 401 });
+            return NextResponse.json({ error: 'رمز التحقق غير صحيح' }, { status: 401 });
         }
 
         const jwt = generateToken({

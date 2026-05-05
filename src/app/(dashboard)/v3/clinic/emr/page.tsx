@@ -1,0 +1,65 @@
+'use client';
+import React from 'react';
+import { Activity, Stethoscope, FileText, Pill, CalendarDays } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+export default function ClinicEMR() {
+  return (
+    <div className="flex h-screen bg-slate-100 p-4 gap-4">
+      <div className="w-1/4 space-y-4 flex flex-col">
+        <Card className="p-6 bg-indigo-600 text-white shadow-lg rounded-2xl">
+          <div className="flex gap-4 items-center mb-6">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center font-black text-indigo-600 text-xl border-4 border-indigo-300">SA</div>
+            <div>
+              <h2 className="font-bold text-xl">Sami Ahmed</h2>
+              <p className="text-indigo-200 text-sm">ID: PAT-99213 • 34Y Male</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm font-medium">
+            <div className="bg-indigo-700/50 p-3 rounded-lg"><span className="text-indigo-300 block text-xs">Blood Type</span> O+</div>
+            <div className="bg-indigo-700/50 p-3 rounded-lg"><span className="text-indigo-300 block text-xs">Allergies</span> Penicillin</div>
+          </div>
+        </Card>
+        <Card className="flex-1 p-4 bg-white shadow-sm overflow-y-auto">
+          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CalendarDays className="w-4 h-4"/> Past Visits</h3>
+          <div className="space-y-4 border-l-2 border-slate-100 ml-2 pl-4">
+            <div className="relative"><div className="w-3 h-3 bg-indigo-500 rounded-full absolute -left-[23px] top-1"></div><p className="font-bold text-sm">12 Oct 2025</p><p className="text-xs text-slate-500">Hypertension Follow-up</p></div>
+            <div className="relative"><div className="w-3 h-3 bg-slate-300 rounded-full absolute -left-[23px] top-1"></div><p className="font-bold text-sm text-slate-600">05 Mar 2025</p><p className="text-xs text-slate-500">General Checkup</p></div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-4">
+        <div className="flex gap-4">
+          <Card className="flex-1 p-6 flex items-center gap-4 shadow-sm border-t-4 border-t-rose-500">
+            <Activity className="w-8 h-8 text-rose-500"/><div><p className="text-sm text-slate-500 font-bold">BP</p><p className="text-2xl font-black">120/80</p></div>
+          </Card>
+          <Card className="flex-1 p-6 flex items-center gap-4 shadow-sm border-t-4 border-t-blue-500">
+            <Stethoscope className="w-8 h-8 text-blue-500"/><div><p className="text-sm text-slate-500 font-bold">HR</p><p className="text-2xl font-black">72 bpm</p></div>
+          </Card>
+        </div>
+
+        <Card className="flex-1 p-6 shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-4 border-b pb-4">
+            <h3 className="font-black text-xl text-slate-800 flex items-center gap-2"><FileText className="text-indigo-600"/> Clinical Notes (SOAP)</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex items-center gap-2"><Pill className="w-4 h-4"/> e-Prescribe</Button>
+              <Button className="bg-slate-900 text-white">Save Encounter</Button>
+            </div>
+          </div>
+          <div className="space-y-4 flex-1">
+            <div><label className="font-bold text-sm text-slate-700 mb-1 block">Subjective</label><textarea className="w-full h-24 p-3 border rounded-lg bg-slate-50 resize-none focus:ring-2 focus:ring-indigo-500" placeholder="Patient complains of..."></textarea></div>
+            <div>
+              <label className="font-bold text-sm text-slate-700 mb-1 block">Assessment (ICD-10)</label>
+              <div className="p-3 border rounded-lg bg-slate-50 text-slate-600 flex items-center justify-between">
+                <span>[I10] Essential (primary) hypertension</span>
+                <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">Primary</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}

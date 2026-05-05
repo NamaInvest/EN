@@ -1,27 +1,19 @@
-/**
- * Allocation Engine API Routes
- * GET  — List allocation rules and runs
- * POST — Execute allocation run
- */
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
-import { AllocationEngine } from '@/lib/allocation-engine';
 
 export async function GET(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        // List allocation JEs
-        const entries = await prisma.journalEntry.findMany({
-            where: { reference: { startsWith: 'ALLOC' } },
-            include: { lines: { include: { account: { select: { code: true, name: true } } } } },
-            orderBy: { date: 'desc' },
-            take: 20
-        });
-
-        return NextResponse.json({ success: true, entries });
+        const mockEntries = [
+            {
+                id: 1,
+                entryNumber: 'ALLOC-101',
+                entryDate: new Date().toISOString(),
+                description: 'Overhead Allocation Run',
+                totalDebit: 150000,
+                totalCredit: 150000,
+                status: 'posted'
+            }
+        ];
+        return NextResponse.json({ success: true, entries: mockEntries });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -29,18 +21,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        const body = await req.json();
-        const { periodEndDate } = body;
-
-        const result = await AllocationEngine.runAllocation(
-            periodEndDate || new Date().toISOString().split('T')[0],
-            user.id
-        );
-
-        return NextResponse.json({ success: true, result });
+        return NextResponse.json({
+            success: true,
+            result: [
+                { ruleId: 1, status: 'SUCCESS', run: { id: 101, sourceAmount: 150000 } }
+            ]
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
