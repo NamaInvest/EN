@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         const auth = getUserFromRequest(req);
         if (!auth) return NextResponse.json({ success: false, error: ' ' }, { status: 401 });
 
-        const allowed = await hasPermission(auth.userId, 'view_fraud_ai');
+        const allowed = await hasPermission(auth.userId, 'view_fraud_ai', prisma);
         // Fallback: If not explicitly allowed, at least let admin access it
         if (!allowed && auth.role !== 'admin') {
             return NextResponse.json({ success: false, error: '     ' }, { status: 403 });

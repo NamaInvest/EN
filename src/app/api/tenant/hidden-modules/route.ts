@@ -7,8 +7,10 @@ export async function GET(request: NextRequest) {
         if (tenant) {
             // SaaS mode: read from tenant-specific database
             const { Pool } = require('pg');
+            if (!process.env.MASTER_DB_URL) return NextResponse.json({ hiddenModules: [] });
+            const tenantConnString = process.env.MASTER_DB_URL.replace(/\/[^/?]+(\?|$)/, `/${tenant}_db$1`);
             const pool = new Pool({
-                connectionString: `postgresql://n11_db:n11_pass123@localhost:5432/${tenant}_db`,
+                connectionString: tenantConnString,
                 max: 2,
             });
             try {

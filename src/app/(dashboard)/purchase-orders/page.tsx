@@ -51,7 +51,7 @@ export default function PurchaseOrdersPage() {
 
  async function fetchSuppliers() {
  try {
- const res = await fetch('/api/parties/suppliers');
+ const res = await fetch('/api/customers?type=1');
  if (res.ok) setSuppliers(await res.json());
  } catch(e){}
  }

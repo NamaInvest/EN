@@ -8,12 +8,15 @@ export const dynamic = 'force-dynamic';
 
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 
-const getMasterPool = () => new Pool({
-    connectionString: process.env.MASTER_DB_URL || 'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
-    max: 2,
-    idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 3000,
-});
+const getMasterPool = () => {
+    if (!process.env.MASTER_DB_URL) throw new Error('MASTER_DB_URL is required');
+    return new Pool({
+        connectionString: process.env.MASTER_DB_URL,
+        max: 2,
+        idleTimeoutMillis: 5000,
+        connectionTimeoutMillis: 3000,
+    });
+};
 
 /**
  * GET /api/auth/sso-redirect?userId=clerk_xxx

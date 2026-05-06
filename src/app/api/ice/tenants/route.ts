@@ -5,17 +5,18 @@ import crypto from 'crypto';
 
 const ICE_SECRET = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
 
+if (!process.env.MASTER_DB_URL) throw new Error('MASTER_DB_URL is required for ICE panel');
 const masterPool = new Pool({
-    connectionString: process.env.MASTER_DB_URL ||
-        'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+    connectionString: process.env.MASTER_DB_URL,
     max: 3,
 });
 
 const TENANT_DB_BASE = {
     host: 'localhost', port: 5432,
     user: 'postgres',
-    password: process.env.POSTGRES_ROOT_PASSWORD || 'RootPassNama123',
+    password: process.env.POSTGRES_ROOT_PASSWORD || '',
 };
+if (!TENANT_DB_BASE.password) throw new Error('POSTGRES_ROOT_PASSWORD is required for ICE panel');
 
 function verifyIceToken(token: string): boolean {
     try {

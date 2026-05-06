@@ -282,7 +282,7 @@ export async function DELETE(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'delete_invoices');
+        const allowed = await hasPermission(auth.userId, 'delete_invoices', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف الفواتير' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);

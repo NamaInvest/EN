@@ -34,7 +34,7 @@ export async function POST(
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const allowed = await hasPermission(auth.userId, 'purchases');
+        const allowed = await hasPermission(auth.userId, 'purchases', prisma);
         if (!allowed && auth.role !== 'admin') return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         const orderId = parseInt((await params).id);

@@ -5,11 +5,10 @@ import { BackupEngine } from '@/lib/backup-engine';
 
 export async function GET(req: NextRequest) {
     const auth = getUserFromRequest(req);
-    if (!auth || !(await hasPermission(auth.userId, 'manage_system'))) {
+    const prisma = getPrisma(req);
+    if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
-
-    const prisma = getPrisma(req);
     const backups = await prisma.backupRecord.findMany({
         orderBy: { startedAt: 'desc' },
         take: 50
@@ -26,7 +25,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     const auth = getUserFromRequest(req);
-    if (!auth || !(await hasPermission(auth.userId, 'manage_system'))) {
+    const prisma = getPrisma(req);
+    if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

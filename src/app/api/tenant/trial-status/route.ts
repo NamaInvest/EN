@@ -11,11 +11,11 @@ export async function GET(request: NextRequest) {
 
         if (!tenant) return NextResponse.json({ isTrialActive: false });
 
-        // نجلب بيانات الاشتراك من n11_db
+        // نجلب بيانات الاشتراك من Master DB
         const { Pool } = require('pg');
+        if (!process.env.MASTER_DB_URL) return NextResponse.json({ isTrialActive: false });
         const pool = new Pool({
-            connectionString: process.env.MASTER_DB_URL ||
-                'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+            connectionString: process.env.MASTER_DB_URL,
         });
 
         let row: any = null;
@@ -46,8 +46,9 @@ export async function GET(request: NextRequest) {
             const { getPrisma } = require('@/lib/prisma');
             // نستخدم اتصال مباشر بـ tenant DB
             const { Pool: TenantPool } = require('pg');
+            const tenantConnString = process.env.MASTER_DB_URL!.replace(/\/[^/?]+(\?|$)/, `/${tenant}_db$1`);
             const tenantPool = new TenantPool({
-                connectionString: `postgresql://n11_db:n11_pass123@localhost:5432/${tenant}_db`,
+                connectionString: tenantConnString,
             });
             try {
                 const countRes = await tenantPool.query('SELECT COUNT(*) as cnt FROM sales_invoices');

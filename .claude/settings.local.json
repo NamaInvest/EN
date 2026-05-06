@@ -1,0 +1,12 @@
+{
+    "permissions": {
+        "defaultMode": "bypassPermissions",
+        "allow": [
+            "Bash(node check_remote_db.js)",
+            "Bash(node check_remote_db.js *)",
+            "Bash(cd d:/namasoft9-3-main && node *)",
+            "Bash(ssh root@46.4.188.170:*)",
+            "Bash(scp *@46.4.188.170:*)"
+        ]
+    }
+}

@@ -9,13 +9,15 @@ export async function GET(req: NextRequest) {
         const auth = getUserFromRequest(req);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const engine = new WHTEngine(prisma as any);
-        const pending = await engine.getPendingWHTTransactions();
-        
+        const pending = await WHTEngine.getPendingWHTTransactions();
+
         return NextResponse.json({
             pendingCount: pending.length,
-            totalAmount: pending.reduce((sum: number, tx: any) => sum + tx.whtAmount, 0),
-            transactions: pending
+            totalAmount: pending.reduce((sum: number, tx: { whtAmount: number | { toNumber?: () => number } }) => {
+                const amt = typeof tx.whtAmount === 'number' ? tx.whtAmount : Number(tx.whtAmount);
+                return sum + amt;
+            }, 0),
+            transactions: pending,
         });
     } catch (e: any) {
         console.error(e);
@@ -30,17 +32,15 @@ export async function POST(req: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const { action, invoiceId, isResident, serviceType, transactionIds, certificateNumber } = body;
-
-        const engine = new WHTEngine(prisma as any);
+        const { action, invoiceId, serviceType, transactionIds, certificateNumber } = body;
 
         if (action === 'apply') {
-            const tx = await engine.applyWHT(invoiceId, isResident, serviceType);
+            const tx = await WHTEngine.applyWHT(invoiceId, serviceType, String(auth.userId));
             return NextResponse.json({ message: 'WHT Applied successfully', data: tx });
         }
 
         if (action === 'mark_paid') {
-            const result = await engine.markAsPaid(transactionIds, certificateNumber);
+            const result = await WHTEngine.markAsPaid(transactionIds, certificateNumber);
             return NextResponse.json({ message: 'Marked as paid', count: result.count });
         }
 

@@ -1,3 +1,7 @@
 [
-  "src/app/api/manufacturing/work-orders/route.ts"
+    "src/app/(dashboard)/purchases/letters-of-credit/page.tsx",
+    "src/app/(dashboard)/treasury/checks/page.tsx",
+    "src/app/(dashboard)/purchase-orders/page.tsx",
+    "src/app/(dashboard)/purchases/grn/page.tsx",
+    "src/app/(dashboard)/purchases/page.tsx"
 ]

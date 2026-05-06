@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
         if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
 
         const { Pool } = require('pg');
+        if (!process.env.MASTER_DB_URL) throw new Error('MASTER_DB_URL is required');
         const masterPool = new Pool({
-            connectionString: process.env.MASTER_DB_URL || 'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+            connectionString: process.env.MASTER_DB_URL,
             max: 2,
         });
 
@@ -31,8 +32,9 @@ export async function POST(request: NextRequest) {
 
         // 2. Deep check: search in each tenant's users table
         for (const t of tenants) {
+            const tenantConnString = process.env.MASTER_DB_URL!.replace(/\/[^/?]+(\?|$)/, `/${t.subdomain}_db$1`);
             const tenantPool = new Pool({
-                connectionString: `postgresql://n11_db:n11_pass123@localhost:5432/${t.subdomain}_db`,
+                connectionString: tenantConnString,
                 max: 1,
             });
             try {

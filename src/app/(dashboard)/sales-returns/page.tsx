@@ -70,7 +70,7 @@ export default function SalesReturnsPage() {
  try {
  const r = await fetch('/api/sales-returns');
  if (r.ok) setReturns(await r.json());
- const s = await fetch('/api/stocks');
+ const s = await fetch('/api/warehouses');
  if (s.ok) setStocks(await s.json());
  } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
  setLoading(false);

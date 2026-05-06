@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const allowed = await hasPermission(auth.userId, 'dashboard'); // Admin or products editor
+        const allowed = await hasPermission(auth.userId, 'dashboard', prisma); // Admin or products editor
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const user = await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } });

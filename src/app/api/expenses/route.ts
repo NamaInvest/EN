@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-        const allowed = await hasPermission(auth.userId, 'edit_expense');
+        const allowed = await hasPermission(auth.userId, 'edit_expense', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تعديل المصروفات' }, { status: 403 });
 
         const rawBody = await request.json();
@@ -164,7 +164,7 @@ export async function DELETE(request: NextRequest) {
 
         // Delete ALL expenses
         if (deleteAll) {
-            const allowed = await hasPermission(auth.userId, 'delete_all_expenses');
+            const allowed = await hasPermission(auth.userId, 'delete_all_expenses', prisma);
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كافة المصروفات' }, { status: 403 });
 
             const count = await prisma.$transaction(async (tx) => {
@@ -178,7 +178,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         // Delete SINGLE expense
-        const allowed = await hasPermission(auth.userId, 'delete_expense');
+        const allowed = await hasPermission(auth.userId, 'delete_expense', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف المصروفات' }, { status: 403 });
 
         if (!id) return NextResponse.json({ error: 'معرف المصروف مطلوب' }, { status: 400 });

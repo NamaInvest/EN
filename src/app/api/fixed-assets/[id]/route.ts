@@ -1,23 +1,24 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { apiError, validateAmount, requireFields } from '@/lib/api-error';
+import { apiError } from '@/lib/api-error';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const prisma = getPrisma(request);
     try {
-        const assets = await prisma.fixedAsset.findMany({
-            include: { depreciations: { orderBy: { depreciationDate: 'desc' } } },
-            orderBy: { id: 'desc' }
+        const asset = await prisma.fixedAsset.findUnique({
+            where: { id: parseInt(id, 10) },
         });
-        return NextResponse.json(assets);
+        if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
+        return NextResponse.json(asset);
     } catch (error) {
         console.error(error);
-        return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
+        return apiError(error, 'فشل جلب الأصل', { context: 'fixed-assets/[id]' });
     }
 }
 
-export async function POST(request: Request) {
-    // Auth guard
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -25,26 +26,43 @@ export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
-        if (!body.assetName || !body.assetType || !body.purchaseCost) {
-            return NextResponse.json({ error: 'اسم الأصل والنوع وتكلفة الشراء مطلوبة' }, { status: 400 });
-        }
-        const purchaseCost = parseFloat(body.purchaseCost);
-        const asset = await prisma.fixedAsset.create({
-            data: {
-                assetName: body.assetName,
-                assetType: body.assetType,
-                purchaseDate: body.purchaseDate ? new Date(body.purchaseDate) : new Date(),
-                purchaseCost,
-                salvageValue: parseFloat(body.salvageValue || '0'),
-                usefulLifeYears: parseInt(body.usefulLifeYears || '5'),
-                currentValue: purchaseCost,
-                location: body.location || null,
-                status: 'active'
-            }
+        const data: Record<string, unknown> = {};
+        if (body.name !== undefined) data.name = body.name;
+        if (body.nameAr !== undefined) data.nameAr = body.nameAr;
+        if (body.salvageValue !== undefined) data.salvageValue = parseFloat(body.salvageValue);
+        if (body.usefulLifeYears !== undefined) data.usefulLifeYears = parseInt(body.usefulLifeYears);
+        if (body.depreciationMethod !== undefined) data.depreciationMethod = body.depreciationMethod;
+        if (body.locationId !== undefined) data.locationId = body.locationId;
+        if (body.status !== undefined) data.status = body.status;
+
+        const asset = await prisma.fixedAsset.update({
+            where: { id: parseInt(id, 10) },
+            data,
         });
-        return NextResponse.json(asset, { status: 201 });
-    } catch (error: any) {
+        return NextResponse.json(asset);
+    } catch (error) {
         console.error(error);
-        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets' });
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
+    }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    const _auth = _getAuth(request);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+    const prisma = getPrisma(request);
+    try {
+        const asset = await prisma.fixedAsset.findUnique({ where: { id: parseInt(id, 10) } });
+        if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
+        if (asset.accumulatedDepreciation && Number(asset.accumulatedDepreciation) > 0) {
+            return NextResponse.json({ error: 'لا يمكن حذف أصل بدأ إهلاكه — استخدم Disposal' }, { status: 400 });
+        }
+        await prisma.fixedAsset.delete({ where: { id: parseInt(id, 10) } });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
     }
 }

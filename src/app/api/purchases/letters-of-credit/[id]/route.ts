@@ -8,7 +8,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const allowed = await hasPermission(auth.userId, 'purchases');
+        const allowed = await hasPermission(auth.userId, 'purchases', prisma);
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         const id = parseInt((await params).id);
@@ -48,7 +48,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const allowed = await hasPermission(auth.userId, 'purchases');
+        const allowed = await hasPermission(auth.userId, 'purchases', prisma);
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         const id = parseInt((await params).id);

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/email';
+import { getPrisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const allowed = await hasPermission(auth.userId, 'manage_users');
+        const prisma = getPrisma(request);
+        const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();

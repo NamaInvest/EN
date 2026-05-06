@@ -211,6 +211,45 @@ export class MfaEngine {
         });
     }
 
+    static async regenerateBackupCodes(userId: number) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !user.mfaEnabled) throw new Error('MFA not enabled');
+
+        // Invalidate old codes
+        await prisma.userBackupCode.deleteMany({ where: { userId } });
+
+        // Generate fresh batch
+        const codes = Array.from({ length: 10 }, () => {
+            const c1 = crypto.randomBytes(2).toString('hex').toUpperCase();
+            const c2 = crypto.randomBytes(2).toString('hex').toUpperCase();
+            return `${c1}-${c2}`;
+        });
+
+        const batchId = crypto.randomUUID();
+        await Promise.all(codes.map(async code => {
+            const codeHash = await bcrypt.hash(code, 10);
+            await prisma.userBackupCode.create({
+                data: {
+                    userId,
+                    codeHash,
+                    codeHint: code.substring(0, 2) + '••-••' + code.substring(7),
+                    generatedBatchId: batchId,
+                },
+            });
+        }));
+
+        await prisma.auditLog.create({
+            data: {
+                action: 'MFA_BACKUP_CODES_REGENERATED',
+                entity: 'User',
+                entityId: userId.toString(),
+                userId,
+            },
+        });
+
+        return codes;
+    }
+
     static async disable(userId: number) {
         // Assume password/code were verified before calling this
         await prisma.user.update({

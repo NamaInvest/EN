@@ -27,7 +27,7 @@ export default function GoodsReceiptNotePage() {
  fetch('/api/purchases/grn', { headers: { Authorization: `Bearer ${token}` } }),
  fetch('/api/customers?type=1', { headers: { Authorization: `Bearer ${token}` } }), // suppliers
  fetch('/api/products', { headers: { Authorization: `Bearer ${token}` } }),
- fetch('/api/config/stocks', { headers: { Authorization: `Bearer ${token}` } })
+ fetch('/api/warehouses', { headers: { Authorization: `Bearer ${token}` } })
  ]);
  if (gRes.ok) setGrns(await gRes.json());
  if (sRes.ok) setSuppliers(await sRes.json());

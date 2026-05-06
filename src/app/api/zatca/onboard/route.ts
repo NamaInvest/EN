@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         
-        const isAdmin = await hasPermission(auth.userId, 'admin');
+        const isAdmin = await hasPermission(auth.userId, 'admin', prisma);
         if (!isAdmin) return NextResponse.json({ error: 'صلاحيات المدير مطلوبة' }, { status: 403 });
 
         const body = await request.json();

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { BarChart3, Settings, Table as TableIcon, Download, Play } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const MODELS = ['SalesInvoice', 'PurchaseInvoice', 'Customer', 'Product', 'JournalEntry', 'Employee'];
 const MODEL_FIELDS: Record<string, string[]> = {

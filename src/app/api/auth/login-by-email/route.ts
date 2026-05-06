@@ -6,12 +6,15 @@ import { Pool } from 'pg';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const getMasterPool = () => new Pool({
-    connectionString: process.env.MASTER_DB_URL || 'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
-    max: 2,
-    idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 3000,
-});
+const getMasterPool = () => {
+    if (!process.env.MASTER_DB_URL) throw new Error('MASTER_DB_URL is required');
+    return new Pool({
+        connectionString: process.env.MASTER_DB_URL,
+        max: 2,
+        idleTimeoutMillis: 5000,
+        connectionTimeoutMillis: 3000,
+    });
+};
 
 /**
  * POST /api/auth/login-by-email

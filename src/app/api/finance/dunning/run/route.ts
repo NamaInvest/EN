@@ -6,9 +6,9 @@ export async function POST(req: NextRequest) {
         const body = await req.json().catch(() => ({}));
         const asOfDate = body.asOfDate ? new Date(body.asOfDate) : new Date();
         
-        const results = await DunningEngine.runDunningCron(asOfDate);
+        const results = await DunningEngine.executeDailyRun(asOfDate);
 
-        return NextResponse.json({ success: true, count: results.length, runs: results });
+        return NextResponse.json({ success: true, ...results });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

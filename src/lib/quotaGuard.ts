@@ -18,11 +18,14 @@ export interface QuotaResult {
  */
 export async function checkQuota(tenant: string, resource: 'invoice' | 'product' | 'user'): Promise<QuotaResult> {
     try {
-        // جلب بيانات الاشتراك من n11_db
+        // جلب بيانات الاشتراك من Master DB
         const { Pool } = require('pg');
+        if (!process.env.MASTER_DB_URL) {
+            console.warn('MASTER_DB_URL not set; skipping quota check');
+            return { allowed: true, reason: 'ok' };
+        }
         const masterPool = new Pool({
-            connectionString: process.env.MASTER_DB_URL ||
-                'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+            connectionString: process.env.MASTER_DB_URL,
         });
 
         let row: any = null;
@@ -64,8 +67,10 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
         }
 
         // ── فحص الحصص (Quotas) ─────────────────────────────────────────
+        // Reuse MASTER_DB_URL but swap database name to tenant DB
+        const tenantConnString = process.env.MASTER_DB_URL!.replace(/\/[^/?]+(\?|$)/, `/${tenant}_db$1`);
         const tenantPool = new Pool({
-            connectionString: `postgresql://n11_db:n11_pass123@localhost:5432/${tenant}_db`,
+            connectionString: tenantConnString,
         });
 
         let current = 0;

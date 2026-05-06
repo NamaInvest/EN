@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Layers, BookOpen, GraduationCap, Users, Settings, Plus, Search, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Layers, BookOpen, GraduationCap, Users, Settings, Plus, Search, MoreVertical, Edit2, Trash2, ChevronRight } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 

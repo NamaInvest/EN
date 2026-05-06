@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const allowed = await hasPermission(auth.userId, 'dashboard'); // Basically any product viewer
+        const allowed = await hasPermission(auth.userId, 'dashboard', prisma); // Basically any product viewer
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const user = await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } });

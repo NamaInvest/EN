@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma(request);
   try {
     const assets = await prisma.asset.findMany({
-      include: { depreciations: true },
       orderBy: { id: "desc" },
     });
     return NextResponse.json(assets, { status: 200 });

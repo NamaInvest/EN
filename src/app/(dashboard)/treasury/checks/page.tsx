@@ -41,7 +41,7 @@ export default function ChecksPage() {
 
  useEffect(() => {
  // Fetch parties based on type
- fetch(tab === 'RECEIVABLE' ? '/api/parties/customers' : '/api/parties/suppliers')
+ fetch(tab === 'RECEIVABLE' ? '/api/customers?type=0' : '/api/customers?type=1')
  .then(res => res.json())
  .then(data => setParties(Array.isArray(data) ? data : []));
  }, [tab]);

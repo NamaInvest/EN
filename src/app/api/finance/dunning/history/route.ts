@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { DunningEngine } from '@/lib/dunning-engine';
 
 export async function GET(req: NextRequest) {
     try {
+        const prisma = getPrisma(req);
         const { searchParams } = new URL(req.url);
         const customerId = searchParams.get('customerId');
 
@@ -11,10 +11,14 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'customerId is required' }, { status: 400 });
         }
 
-        const history = await DunningEngine.getDunningHistory(parseInt(customerId, 10));
+        const history = await prisma.dunningCommunication.findMany({
+            where: { customerId: parseInt(customerId, 10) },
+            orderBy: { sentAt: 'desc' },
+            take: 100,
+        });
 
         return NextResponse.json(history);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
 }

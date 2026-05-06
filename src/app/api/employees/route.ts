@@ -90,7 +90,6 @@ export async function PUT(request: Request) {
     const updated = await prisma.employee.update({
       where: { id: parseInt(body.employeeId) },
       data: {
-        employeeNo: seqResult.formatted,
         faceDescriptor: body.faceDescriptor,
       },
     });

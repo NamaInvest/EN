@@ -32,7 +32,7 @@ export default function LettersOfCreditPage() {
  const [lcsRes, banksRes, suppliersRes, currenciesRes] = await Promise.all([
  fetch('/api/purchases/letters-of-credit', opts),
  fetch('/api/banks', opts),
- fetch('/api/customers?type=supplier', opts),
+ fetch('/api/customers?type=1', opts),
  fetch('/api/settings/currencies', opts)
  ]);
  

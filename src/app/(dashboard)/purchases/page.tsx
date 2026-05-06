@@ -35,7 +35,7 @@ export default function ProcurementDashboard() {
                 </Link>
 
                 {/* Purchase Orders Card */}
-                <Link href="/purchases/orders">
+                <Link href="/purchase-orders">
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-blue-100 hover:border-blue-300">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl flex items-center gap-2 text-blue-700">
@@ -53,7 +53,7 @@ export default function ProcurementDashboard() {
                 </Link>
 
                 {/* Suppliers Card */}
-                <Link href="/crm/customers"> {/* Suppliers use the same model but could be filtered */}
+                <Link href="/customers"> {/* Suppliers use the same model but could be filtered */}
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-green-100 hover:border-green-300">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl flex items-center gap-2 text-green-700">
@@ -80,7 +80,7 @@ export default function ProcurementDashboard() {
                             Goods Receipt (GRN)
                         </h3>
                         <p className="text-sm text-gray-600 mb-4">Record goods received from suppliers against Purchase Orders. Integrated with Inventory/Warehousing module.</p>
-                        <Link href="/inventory" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
+                        <Link href="/stock" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
                             Go to Inventory <ArrowRight className="w-4 h-4 ml-1" />
                         </Link>
                     </CardContent>
@@ -93,7 +93,7 @@ export default function ProcurementDashboard() {
                             Purchase Invoices
                         </h3>
                         <p className="text-sm text-gray-600 mb-4">Process incoming vendor invoices and perform 3-way matching. Integrated with Accounting (Accounts Payable).</p>
-                        <Link href="/accounting/purchase-invoices" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
+                        <Link href="/reports/manual-purchases" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
                             Go to AP Module <ArrowRight className="w-4 h-4 ml-1" />
                         </Link>
                     </CardContent>

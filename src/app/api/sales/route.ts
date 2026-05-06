@@ -642,7 +642,7 @@ export async function DELETE(request: NextRequest) {
 
         // Bulk delete all sales invoices
         if (action === 'delete_all') {
-            const allowed = await hasPermission(auth.userId, 'delete_all_sales');
+            const allowed = await hasPermission(auth.userId, 'delete_all_sales', prisma);
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كل الفواتير' }, { status: 403 });
 
             // Reverse stock for ALL items before deleting
@@ -680,7 +680,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         // Single invoice delete
-        const allowed = await hasPermission(auth.userId, 'delete_invoices');
+        const allowed = await hasPermission(auth.userId, 'delete_invoices', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف الفواتير' }, { status: 403 });
 
         if (!id) return NextResponse.json({ error: 'معرف الفاتورة مطلوب' }, { status: 400 });

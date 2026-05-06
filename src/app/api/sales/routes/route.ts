@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const auth = await getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         // Assume sales module permissions
-        if (!(await hasPermission(auth.userId, 'sales'))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // @ts-ignore
         const routes = await prisma.route.findMany({
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'sales'))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await request.json();
         

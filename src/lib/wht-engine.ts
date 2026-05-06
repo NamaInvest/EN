@@ -106,6 +106,31 @@ export class WHTEngine {
     }
 
     /**
+     * List WHT transactions not yet paid to ZATCA
+     */
+    static async getPendingWHTTransactions() {
+        return prisma.wHTTransaction.findMany({
+            where: { paidToZATCA: false },
+            include: { supplier: true },
+            orderBy: { createdAt: 'desc' },
+            take: 200,
+        });
+    }
+
+    /**
+     * Mark a batch of WHT transactions as paid to ZATCA (after submitting Form 14)
+     */
+    static async markAsPaid(transactionIds: number[], certificateNumber: string) {
+        return prisma.wHTTransaction.updateMany({
+            where: { id: { in: transactionIds } },
+            data: {
+                paidToZATCA: true,
+                certificateNumber,
+            },
+        });
+    }
+
+    /**
      * Generate Monthly XML Return for ZATCA
      */
     static async generateZatcaReturn(year: number, month: number) {

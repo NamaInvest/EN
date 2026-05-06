@@ -212,4 +212,28 @@ export class PaymentRunEngine {
             });
         }
     }
+
+    /**
+     * Execute approved payments — moves run to SENT_TO_BANK status.
+     * Full bank-file generation + invoice marking TODO.
+     */
+    static async executePayments(runId: number, userId: string) {
+        const run = await prisma.paymentRun.findUnique({
+            where: { id: runId },
+            include: { lines: true },
+        });
+        if (!run) throw new Error('Payment run not found');
+        if (run.status !== 'APPROVED') throw new Error('Run must be APPROVED before execution');
+
+        await prisma.paymentRun.update({
+            where: { id: runId },
+            data: {
+                status: 'SENT_TO_BANK',
+                sentToBankAt: new Date(),
+                sentToBankByUserId: userId,
+            },
+        });
+
+        return { runId, executed: true, paymentCount: run.lines.length };
+    }
 }

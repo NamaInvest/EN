@@ -22,7 +22,7 @@ export async function DELETE(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const prisma = getPrisma(request);
-        const allowed = await hasPermission(auth.userId, 'clear_zatca');
+        const allowed = await hasPermission(auth.userId, 'clear_zatca', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف بيانات الزكاة' }, { status: 403 });
 
         const zatcaKeys = [

@@ -28,9 +28,10 @@ const pool = new Map<string, PrismaClient>();
 
 // ── DB URL builder ──────────────────────────────────────────────
 export function getDbUrl(tenant: string): string {
-    const base =
-        process.env.DATABASE_URL ||
-        'postgresql://postgres:RootPassNama123@localhost:5432/n11_db?schema=public';
+    const base = process.env.DATABASE_URL;
+    if (!base) {
+        throw new Error('DATABASE_URL environment variable is required (set in .env)');
+    }
     // Desktop mode: use DATABASE_URL directly (single local DB, no multi-tenant)
     if (process.env.DESKTOP_MODE === 'true') {
         return base;

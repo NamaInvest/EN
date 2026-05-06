@@ -8,15 +8,17 @@ export const dynamic = 'force-dynamic';
 
 // ─── Build DB URL for a given tenant ─────────────────────────────────────────
 function getDbUrl(tenant: string): string {
-    const base =
-        process.env.DATABASE_URL ||
-        'postgresql://n11_db:n11_pass123@localhost:5432/n11_db?schema=public';
+    const base = process.env.DATABASE_URL;
+    if (!base) throw new Error('DATABASE_URL is required');
     return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
-const SSH_HOST = '46.4.188.170';
-const SSH_USER = 'root';
-const SSH_PASS = '_ee4SWbxLVfH9b';
+const SSH_HOST = process.env.PROVISION_SSH_HOST;
+const SSH_USER = process.env.PROVISION_SSH_USER;
+const SSH_PASS = process.env.PROVISION_SSH_PASS;
+if (!SSH_HOST || !SSH_USER || !SSH_PASS) {
+    console.warn('[provision] PROVISION_SSH_* env vars missing — provisioning disabled');
+}
 const BASE_URL  = process.env.NEXT_PUBLIC_API_URL || 'https://namainvist.com';
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 const PROVISION_SECRET = process.env.PROVISION_SECRET || 'namainvest-provision-2024';
@@ -70,7 +72,8 @@ async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: 
                 `sudo -u postgres psql -h localhost -p 5432 -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE ${dbName} TO n11_db;" 2>/dev/null || true`,
                 // الخطوة 2: Prisma db push
                 `echo "[PRISMA_PUSH]"`,
-                `cd ${MASTER_APP} && DATABASE_URL="postgresql://n11_db:n11_pass123@localhost:5432/${dbName}?schema=public" npx prisma db push --schema=${MASTER_APP}/prisma/schema.prisma --accept-data-loss 2>&1`,
+                // Build DB URL from MASTER_DB_URL but switch dbname
+                `cd ${MASTER_APP} && DATABASE_URL="${(process.env.MASTER_DB_URL || '').replace(/\/[^/?]+(\?|$)/, `/${dbName}$1`)}" npx prisma db push --schema=${MASTER_APP}/prisma/schema.prisma --accept-data-loss 2>&1`,
                 `echo "[DONE]"`,
             ].join('\n');
 

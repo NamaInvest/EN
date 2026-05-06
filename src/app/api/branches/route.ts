@@ -55,8 +55,9 @@ export async function POST(request: NextRequest) {
             // Need Professional plan to add 2nd branch
             try {
                 const { Pool } = require('pg');
+                if (!process.env.MASTER_DB_URL) throw new Error('MASTER_DB_URL is required');
                 const masterPool = new Pool({
-                    connectionString: process.env.MASTER_DB_URL || 'postgresql://n11_db:n11_pass123@localhost:5432/n11_db',
+                    connectionString: process.env.MASTER_DB_URL,
                     max: 1,
                 });
                 const host = request.headers.get('host') || '';

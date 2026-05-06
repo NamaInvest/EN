@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const auth = getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const allowed = await hasPermission(auth.userId, 'purchases');
+        const allowed = await hasPermission(auth.userId, 'purchases', prisma);
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         // @ts-ignore - Prisma Language Server sync lock
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const allowed = await hasPermission(auth.userId, 'purchases');
+        const allowed = await hasPermission(auth.userId, 'purchases', prisma);
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         const body = await request.json();

@@ -11,7 +11,7 @@ export async function PUT(
     try {
         const auth = await getUserFromRequest(request);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury'))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // Await params correctly for Next.js 15
         const params = 'then' in context.params ? await context.params : context.params;
