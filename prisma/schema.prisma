@@ -1112,6 +1112,10 @@ model Account {
   isActive Boolean @default(true) @map("is_active")
   balance  Float   @default(0)
 
+  // Zakat classification — used by zakat-engine to compute zakatable base
+  // Values: NONE | EQUITY | LT_LIAB | LT_INV | FIXED_ASSET | NET_PROFIT | ADJ_ADD | ADJ_DEDUCT
+  zakatCategory String? @map("zakat_category")
+
   journalLines JournalLine[]
   LandedCost   LandedCost[]
   bankChecks   CheckTransaction[]   @relation("CheckBankAccount")
@@ -7709,4 +7713,61 @@ model LabResult {
   order LabOrder @relation(fields: [orderId], references: [id])
 
   @@map("clinic_lab_results")
+}
+
+// ==================== Zakat (Saudi Mandatory) ====================
+// Computes the zakat base = (Equity + LT Liabilities) − (Fixed Assets NBV + LT Investments) + Net Profit ± Adjustments
+// Then zakatDue = base × 2.5%
+
+model ZakatAssessment {
+  id             Int      @id @default(autoincrement())
+  fiscalYearId   Int      @map("fiscal_year_id")
+  assessmentDate DateTime @default(now()) @map("assessment_date")
+  status         String   @default("DRAFT") // DRAFT | FINALIZED | FILED | PAID | AMENDED
+  hijriYear      String?  @map("hijri_year") // 1447, 1448
+
+  // Components of zakat base (Decimal for precision)
+  equity               Decimal @default(0) @db.Decimal(20, 4)
+  longTermLiabilities  Decimal @default(0) @map("long_term_liabilities") @db.Decimal(20, 4)
+  netProfit            Decimal @default(0) @map("net_profit") @db.Decimal(20, 4)
+  fixedAssetsBookValue Decimal @default(0) @map("fixed_assets_book_value") @db.Decimal(20, 4)
+  longTermInvestments  Decimal @default(0) @map("long_term_investments") @db.Decimal(20, 4)
+  adjustmentsTotal     Decimal @default(0) @map("adjustments_total") @db.Decimal(20, 4)
+
+  zakatableBase Decimal @default(0) @map("zakatable_base") @db.Decimal(20, 4)
+  zakatRate     Decimal @default(0.025) @map("zakat_rate") @db.Decimal(5, 4)
+  zakatDue      Decimal @default(0) @map("zakat_due") @db.Decimal(20, 4)
+
+  // Ownership split (for mixed Saudi/non-Saudi entities)
+  saudiOwnershipPct Decimal @default(1.0000) @map("saudi_ownership_pct") @db.Decimal(5, 4)
+
+  // Filing metadata
+  zatcaTransactionId String?   @map("zatca_transaction_id")
+  filingReference    String?   @map("filing_reference")
+  filedAt            DateTime? @map("filed_at")
+  filedByUserId      Int?      @map("filed_by_user_id")
+  journalEntryId     Int?      @map("journal_entry_id")
+  notes              String?   @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  adjustments ZakatAdjustment[]
+
+  @@index([fiscalYearId, status])
+  @@map("zakat_assessments")
+}
+
+model ZakatAdjustment {
+  id           Int     @id @default(autoincrement())
+  assessmentId Int     @map("assessment_id")
+  category     String // ADD | DEDUCT
+  description  String
+  amount       Decimal @db.Decimal(20, 4)
+  glAccountId  Int?    @map("gl_account_id")
+
+  assessment ZakatAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@map("zakat_adjustments")
 }
