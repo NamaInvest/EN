@@ -56,7 +56,14 @@ export const startWorkers = () => {
     }, { connection: redisConnection });
 
     // Global Error Handling
+    redisConnection.on('error', (err) => {
+        console.error('[Redis] Connection error:', err.message);
+    });
+
     [emailWorker, pdfWorker, syncWorker, reportWorker].forEach(worker => {
+        worker.on('error', (err) => {
+            console.error(`[Queue] ${worker.name} encountered an error:`, err.message);
+        });
         worker.on('failed', (job, err) => {
             console.error(`${worker.name} Job ${job?.id} failed:`, err);
         });
