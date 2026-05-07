@@ -1,14 +1,11 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Map, Layers, Archive } from 'lucide-react';
 import Link from 'next/link';
 
-export default function WarehouseZonesPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function WarehouseZonesPage() {
     const zones = await prisma.warehouseZone.findMany({
         include: {
             stock: true,

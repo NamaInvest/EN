@@ -49,14 +49,14 @@ export default function BudgetVarianceDashboard() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Account</th>
-                                        <th className="px-4 py-3 text-right">Budget</th>
-                                        <th className="px-4 py-3 text-right">Actual</th>
+                                        <th className="px-4 py-3">{_t('حساب', 'Account')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('الميزانية', 'Budget')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('الفعلي', 'Actual')}</th>
                                         <th className="px-4 py-3 text-right">Encumbered</th>
                                         <th className="px-4 py-3 text-right">Available</th>
                                         <th className="px-4 py-3 text-right">Variance</th>
                                         <th className="px-4 py-3 text-right">Var %</th>
-                                        <th className="px-4 py-3 text-center">Status</th>
+                                        <th className="px-4 py-3 text-center">{_t('الحالة', 'Status')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

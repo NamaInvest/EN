@@ -45,13 +45,13 @@ export default function ConstructionProgressBillingPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">Certificate No</th>
-                                        <th className="px-4 py-3">Period</th>
-                                        <th className="px-4 py-3">Project</th>
+                                        <th className="px-4 py-3">{_t('الفترة (Period)', 'Period')}</th>
+                                        <th className="px-4 py-3">{_t('منتج', 'Project')}</th>
                                         <th className="px-4 py-3 text-right">Work Done</th>
                                         <th className="px-4 py-3 text-right">Retention</th>
                                         <th className="px-4 py-3 text-right font-bold text-blue-600">Net Payable</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -67,11 +67,11 @@ export default function ConstructionProgressBillingPage() {
                                                 {pb.status === 'CERTIFIED' ? (
                                                     <Badge className="bg-green-100 text-green-800">Certified</Badge>
                                                 ) : (
-                                                    <Badge variant="outline">Draft</Badge>
+                                                    <Badge variant="outline">{_t('مسودة', 'Draft')}</Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline">Print</Button>
+                                                <Button size="sm" variant="outline">{_t('طباعة / Print', 'Print')}</Button>
                                                 {pb.status === 'DRAFT' && (
                                                     <Button size="sm" variant="outline" className="text-green-600 border-green-500">Certify</Button>
                                                 )}

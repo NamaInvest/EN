@@ -45,13 +45,13 @@ export default function DistributionWavePickingPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">Wave ID</th>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Type</th>
+                                        <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
+                                        <th className="px-4 py-3">{_t('النوع', 'Type')}</th>
                                         <th className="px-4 py-3">Total Orders</th>
                                         <th className="px-4 py-3">Assigned Picker</th>
                                         <th className="px-4 py-3">Progress</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -73,7 +73,7 @@ export default function BlockchainTracePage() {
 
  <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
  <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
- <p className="text-xs text-slate-500 mb-1">Product</p>
+ <p className="text-xs text-slate-500 mb-1">{_t('المنتج', 'Product')}</p>
  <p className="font-bold text-white">{block.productName || 'N/A'}</p>
  </div>
  <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">

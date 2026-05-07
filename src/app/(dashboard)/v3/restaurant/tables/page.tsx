@@ -29,7 +29,7 @@ export default function RestaurantTablesPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Table Management & Reservations</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Table إدارةment & Reservations', 'Table Management & Reservations')}</h1>
                 <div className="space-x-2">
                     <Button variant="outline">Reservations List</Button>
                     <Button>New Reservation</Button>

@@ -33,7 +33,7 @@ export default function KitchenDisplaySystemPage() {
                 <h1 className="text-2xl font-bold text-yellow-500">Kitchen Display System (KDS)</h1>
                 <div className="flex space-x-4">
                     <div className="text-center"><div className="text-2xl font-bold text-red-500">2</div><div className="text-xs uppercase">Pending</div></div>
-                    <div className="text-center"><div className="text-2xl font-bold text-green-500">14</div><div className="text-xs uppercase">Completed</div></div>
+                    <div className="text-center"><div className="text-2xl font-bold text-green-500">14</div><div className="text-xs uppercase">{_t('مكتملة (Completed)', 'Completed')}</div></div>
                 </div>
             </header>
 

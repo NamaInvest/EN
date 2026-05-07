@@ -78,9 +78,9 @@ export default function CashFlowDashboard() {
  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
  <thead className="bg-slate-50 ">
  <tr>
- <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
- <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Description</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{_t('التاريخ', 'Date')}</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{_t('النوع', 'Type')}</th>
+ <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{_t('الوصف', 'Description')}</th>
  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Amount (SAR)</th>
  <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Probability</th>
  </tr>

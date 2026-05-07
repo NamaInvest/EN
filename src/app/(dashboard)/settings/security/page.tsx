@@ -1,11 +1,8 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import SecuritySettingsClient from './SecuritySettingsClient';
 
-export default function SecuritySettingsPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function SecuritySettingsPage() {
     // We assume tenant/user is 1 for now (mock user until auth is fully integrated in layout)
     // Normally we would get user ID from session/JWT
     const userId = 1; 

@@ -35,13 +35,13 @@ export default function ProjectTimeBillingPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Entry ID</th>
-                                    <th className="px-4 py-3">Employee</th>
+                                    <th className="px-4 py-3">{_t('الموظف', 'Employee')}</th>
                                     <th className="px-4 py-3">Project / Task</th>
                                     <th className="px-4 py-3 text-center">Hours</th>
                                     <th className="px-4 py-3 text-center">Billable</th>
                                     <th className="px-4 py-3 text-right">Total (SAR)</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -62,11 +62,11 @@ export default function ProjectTimeBillingPage() {
                                             {ts.status === 'APPROVED' ? (
                                                 <Badge className="bg-green-100 text-green-800">Approved</Badge>
                                             ) : (
-                                                <Badge variant="outline">Draft</Badge>
+                                                <Badge variant="outline">{_t('مسودة', 'Draft')}</Badge>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
-                                            <Button size="sm" variant="outline">Edit</Button>
+                                            <Button size="sm" variant="outline">{_t('تعديل', 'Edit')}</Button>
                                         </td>
                                     </tr>
                                 ))}

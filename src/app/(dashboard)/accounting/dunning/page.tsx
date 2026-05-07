@@ -1,15 +1,12 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, FileWarning, Handshake, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
-export default function DunningDashboard() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function DunningDashboard() {
     // 1. Total Overdue
     const todayDate = new Date();
     const overdueAgg = await prisma.openItem.aggregate({

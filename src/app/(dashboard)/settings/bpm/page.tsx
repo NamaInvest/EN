@@ -19,9 +19,7 @@ export default function BpmDashboard() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <Network className="text-indigo-600 w-8 h-8" />
-                        BPM Engine (Business Process Management)
-                    </h1>
+                        <Network className="text-indigo-600 w-8 h-8" />{_t('BPM Engine (Business Process إدارةment)', 'BPM Engine (Business Process Management)')}</h1>
                     <p className="text-gray-500 mt-2">
                         Configure automated workflows, approval chains, and EventBus triggers.
                     </p>
@@ -43,7 +41,7 @@ export default function BpmDashboard() {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm">Edit</Button>
+                            <Button variant="outline" size="sm">{_t('تعديل', 'Edit')}</Button>
                             <Button variant="destructive" size="sm">Disable</Button>
                         </div>
                     </Card>

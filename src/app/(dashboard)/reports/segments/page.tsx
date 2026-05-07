@@ -45,7 +45,7 @@ export default function SegmentReportingPage() {
                                     <th className="px-4 py-3 text-right">Cost (SAR)</th>
                                     <th className="px-4 py-3 text-right">Gross Margin (SAR)</th>
                                     <th className="px-4 py-3 text-center">Margin %</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>

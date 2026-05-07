@@ -92,11 +92,11 @@ export default function PeriodCloseChecklistPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">Step #</th>
-                                        <th className="px-4 py-3">Task</th>
+                                        <th className="px-4 py-3">{_t('المهمة (Task)', 'Task')}</th>
                                         <th className="px-4 py-3">Owner</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3">Notes</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3">{_t('ملاحظات', 'Notes')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

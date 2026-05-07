@@ -90,11 +90,11 @@ export default function CustomerStatementGeneratorPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Customer Name</th>
-                                        <th className="px-4 py-3">Balance</th>
+                                        <th className="px-4 py-3">{_t('اسم العميل', 'Customer Name')}</th>
+                                        <th className="px-4 py-3">{_t('الرصيد', 'Balance')}</th>
                                         <th className="px-4 py-3">Days Overdue</th>
                                         <th className="px-4 py-3">Dunning Level</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

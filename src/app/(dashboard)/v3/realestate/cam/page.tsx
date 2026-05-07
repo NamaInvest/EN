@@ -31,12 +31,12 @@ export default function CAMReconciliationPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Property ID</th>
-                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
                                     <th className="px-4 py-3">Total Area (sqm)</th>
-                                    <th className="px-4 py-3">Period</th>
+                                    <th className="px-4 py-3">{_t('الفترة (Period)', 'Period')}</th>
                                     <th className="px-4 py-3 text-right">Total CAM Expenses (SAR)</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>

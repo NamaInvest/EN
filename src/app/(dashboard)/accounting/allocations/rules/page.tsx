@@ -20,7 +20,7 @@ export default function CostCenterAllocationRulesPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">Cost Center Allocations</h1>
                 <div className="space-x-2">
-                    <Button>Create Allocation Rule</Button>
+                    <Button>{_t('إنشاء Allocation Rule', 'Create Allocation Rule')}</Button>
                     <Button variant="outline">Run Allocations Now</Button>
                 </div>
             </div>
@@ -37,8 +37,8 @@ export default function CostCenterAllocationRulesPage() {
                                     <th className="px-4 py-3">Rule Name</th>
                                     <th className="px-4 py-3">Source Cost Center</th>
                                     <th className="px-4 py-3">Distribution Method / Targets</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -58,13 +58,13 @@ export default function CostCenterAllocationRulesPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             {rule.active ? (
-                                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                                <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                             ) : (
-                                                <Badge variant="outline">Draft</Badge>
+                                                <Badge variant="outline">{_t('مسودة', 'Draft')}</Badge>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
-                                            <Button size="sm" variant="outline">Edit</Button>
+                                            <Button size="sm" variant="outline">{_t('تعديل', 'Edit')}</Button>
                                         </td>
                                     </tr>
                                 ))}

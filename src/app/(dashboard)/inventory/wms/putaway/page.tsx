@@ -20,7 +20,7 @@ export default function PutawayRulesPage() {
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">WMS Putaway Rules</h1>
-                <Button>Create New Rule</Button>
+                <Button>{_t('إنشاء New Rule', 'Create New Rule')}</Button>
             </div>
             
             <Card>
@@ -35,8 +35,8 @@ export default function PutawayRulesPage() {
                                     <th className="px-4 py-3">Rule Name</th>
                                     <th className="px-4 py-3">Condition (Criteria)</th>
                                     <th className="px-4 py-3">Target Zone / Bin</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -47,14 +47,14 @@ export default function PutawayRulesPage() {
                                         <td className="px-4 py-3 text-blue-600 font-bold">{rule.targetZone}</td>
                                         <td className="px-4 py-3">
                                             {rule.active ? (
-                                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                                <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                             ) : (
                                                 <Badge variant="outline">Disabled</Badge>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
-                                            <Button size="sm" variant="outline">Edit</Button>
-                                            <Button size="sm" variant="outline" className="text-red-600 border-red-500">Delete</Button>
+                                            <Button size="sm" variant="outline">{_t('تعديل', 'Edit')}</Button>
+                                            <Button size="sm" variant="outline" className="text-red-600 border-red-500">{_t('حذف', 'Delete')}</Button>
                                         </td>
                                     </tr>
                                 ))}

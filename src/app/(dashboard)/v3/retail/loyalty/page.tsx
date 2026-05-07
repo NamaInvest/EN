@@ -29,7 +29,7 @@ export default function LoyaltyRedemptionPage() {
                 <CardContent>
                     <div className="flex mb-4 space-x-2">
                         <Input placeholder="Search by Phone or Name..." className="max-w-sm" />
-                        <Button variant="outline">Search</Button>
+                        <Button variant="outline">{_t('بحث', 'Search')}</Button>
                     </div>
 
                     <div className="overflow-x-auto">
@@ -37,12 +37,12 @@ export default function LoyaltyRedemptionPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Customer ID</th>
-                                    <th className="px-4 py-3">Name</th>
-                                    <th className="px-4 py-3">Phone</th>
+                                    <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
+                                    <th className="px-4 py-3">{_t('الهاتف', 'Phone')}</th>
                                     <th className="px-4 py-3">Tier</th>
                                     <th className="px-4 py-3 text-right">Points Balance</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -56,7 +56,7 @@ export default function LoyaltyRedemptionPage() {
                                         </td>
                                         <td className="px-4 py-3 text-right font-bold text-blue-600">{acc.pointsBalance.toLocaleString()}</td>
                                         <td className="px-4 py-3">
-                                            <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                            <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
                                             <Button size="sm" variant="outline">View History</Button>

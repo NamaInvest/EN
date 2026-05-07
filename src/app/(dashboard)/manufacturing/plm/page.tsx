@@ -10,9 +10,7 @@ export default function PLMDashboard() {
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Layers className="w-8 h-8 text-blue-600" />
-                Product Lifecycle Management (PLM)
-            </h1>
+                <Layers className="w-8 h-8 text-blue-600" />{_t('Product Lifecycle إدارةment (PLM)', 'Product Lifecycle Management (PLM)')}</h1>
             <p className="text-gray-500">Manage engineering change orders, product revisions, and technical documentation.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

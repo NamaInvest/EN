@@ -41,7 +41,7 @@ export default function CashFlowDashboard() {
  <div className="flex gap-2">
  <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md shadow-sm hover:bg-slate-50">30 Days</button>
  <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md shadow-sm hover:bg-slate-50">60 Days</button>
- <button className="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700">Export PDF</button>
+ <button className="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700">{_t('تصدير PDF', 'Export PDF')}</button>
  </div>
  </div>
 
@@ -79,7 +79,7 @@ export default function CashFlowDashboard() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="border-b border-slate-200 bg-slate-50">
- <th className="py-3 px-4 font-medium text-slate-500 text-sm rounded-tl-lg">Date</th>
+ <th className="py-3 px-4 font-medium text-slate-500 text-sm rounded-tl-lg">{_t('التاريخ', 'Date')}</th>
  <th className="py-3 px-4 font-medium text-slate-500 text-sm">Inflows</th>
  <th className="py-3 px-4 font-medium text-slate-500 text-sm">Outflows</th>
  <th className="py-3 px-4 font-medium text-slate-500 text-sm">Projected Balance</th>

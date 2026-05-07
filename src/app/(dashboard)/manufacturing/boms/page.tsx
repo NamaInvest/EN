@@ -1,14 +1,11 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, ClipboardList, Plus, FileText, Settings, Layers } from 'lucide-react';
 import Link from 'next/link';
 
-export default function BomsPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function BomsPage() {
     const recipes = await prisma.recipe.findMany({
         orderBy: { name: 'asc' }
     });
@@ -19,17 +16,17 @@ export default function BomsPage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
                         <ClipboardList className="w-8 h-8 text-indigo-600" />
-                        Bill of Materials (BOM) & Recipes
+                        {_t('وصفات التصنيع (BOM)', 'Bill of Materials (BOM) & Recipes')}
                     </h1>
-                    <p className="text-gray-500 mt-1">Manage product formulas, yield expectations, and standard costs.</p>
+                    <p className="text-gray-500 mt-1">{_t('إدارة مكونات الإنتاج، التوقعات، والتكاليف المعيارية.', 'Manage product formulas, yield expectations, and standard costs.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/manufacturing">
-                        <Button variant="outline" className="bg-white">Back to Dashboard</Button>
+                        <Button variant="outline" className="bg-white">{_t('العودة للرئيسية', 'Back to Dashboard')}</Button>
                     </Link>
                     <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
                         <Plus className="w-4 h-4 mr-2" />
-                        Create BOM
+                        {_t('إنشاء وصفة', 'Create BOM')}
                     </Button>
                 </div>
             </div>
@@ -41,7 +38,7 @@ export default function BomsPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input 
                             type="text" 
-                            placeholder="Search recipes..." 
+                            placeholder={_t("ابحث عن وصفة...", "Search recipes...")} 
                             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
@@ -50,13 +47,13 @@ export default function BomsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Recipe Name</th>
-                                <th className="px-4 py-3 font-medium">Finished Product ID</th>
-                                <th className="px-4 py-3 font-medium">Total Cost (Standard)</th>
-                                <th className="px-4 py-3 font-medium">Expected Yield Qty</th>
-                                <th className="px-4 py-3 font-medium">Scrap %</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('اسم الوصفة', 'Recipe Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('معرف المنتج النهائي', 'Finished Product ID')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('التكلفة الإجمالية', 'Total Cost (Standard)')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الكمية المتوقعة', 'Expected Yield Qty')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('نسبة الهدر', 'Scrap %')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -82,12 +79,12 @@ export default function BomsPage() {
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                             recipe.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                         }`}>
-                                            {recipe.isActive ? 'Active' : 'Inactive'}
+                                            {recipe.isActive ? _t('نشط', 'Active') : _t('غير نشط', 'Inactive')}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                            <FileText className="w-4 h-4 mr-1" /> Details
+                                            <FileText className="w-4 h-4 mr-1" /> {_t('التفاصيل', 'Details')}
                                         </Button>
                                     </td>
                                 </tr>
@@ -97,8 +94,8 @@ export default function BomsPage() {
                                     <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <ClipboardList className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No BOMs Defined</p>
-                                            <p className="text-sm mt-1">Create your first recipe to start manufacturing.</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لا توجد وصفات', 'No BOMs Defined')}</p>
+                                            <p className="text-sm mt-1">{_t('قم بإنشاء الوصفة الأولى لبدء التصنيع.', 'Create your first recipe to start manufacturing.')}</p>
                                         </div>
                                     </td>
                                 </tr>

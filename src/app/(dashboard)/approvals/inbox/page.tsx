@@ -71,12 +71,12 @@ export default function ApprovalInboxPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Document Type</th>
+                                        <th className="px-4 py-3">{_t('نوع المستند', 'Document Type')}</th>
                                         <th className="px-4 py-3">Document ID</th>
                                         <th className="px-4 py-3">Submitted By</th>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -124,7 +124,7 @@ export default function ApprovalInboxPage() {
                                         <option value="insufficient docs">Insufficient Docs</option>
                                         <option value="over budget">Over Budget</option>
                                         <option value="unauthorized">Unauthorized</option>
-                                        <option value="other">Other</option>
+                                        <option value="other">{_t('أخرى', 'Other')}</option>
                                     </select>
                                 </div>
                             )}
@@ -139,7 +139,7 @@ export default function ApprovalInboxPage() {
                                 />
                             </div>
                             <div className="flex justify-end space-x-2 pt-4">
-                                <Button variant="outline" onClick={() => setActionType(null)}>Cancel</Button>
+                                <Button variant="outline" onClick={() => setActionType(null)}>{_t('إلغاء', 'Cancel')}</Button>
                                 <Button 
                                     variant="default" 
                                     className={actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}

@@ -32,7 +32,7 @@ export default function ClinicERxPage() {
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">Electronic Prescriptions (e-Rx)</h1>
-                <Button>Create New Prescription</Button>
+                <Button>{_t('إنشاء New Prescription', 'Create New Prescription')}</Button>
             </div>
             
             <Card>
@@ -46,12 +46,12 @@ export default function ClinicERxPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">e-Rx ID</th>
-                                        <th className="px-4 py-3">Date</th>
+                                        <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
                                         <th className="px-4 py-3">Patient</th>
                                         <th className="px-4 py-3">Prescribing Doctor</th>
                                         <th className="px-4 py-3">Medications</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -64,7 +64,7 @@ export default function ClinicERxPage() {
                                             <td className="px-4 py-3 text-gray-500">{rx.medications.join(', ')}</td>
                                             <td className="px-4 py-3">
                                                 {rx.status === 'ACTIVE' ? (
-                                                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                                    <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                                 ) : (
                                                     <Badge variant="outline">Dispensed</Badge>
                                                 )}

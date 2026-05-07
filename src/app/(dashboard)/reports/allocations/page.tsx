@@ -139,7 +139,7 @@ export default function AllocationsDashboard() {
  </div>
  
  <div className="mt-8 flex justify-end gap-3">
- <button className="px-4 py-2 bg-slate-200 text-slate-700 rounded-md shadow-sm hover:bg-slate-300 font-medium">Cancel</button>
+ <button className="px-4 py-2 bg-slate-200 text-slate-700 rounded-md shadow-sm hover:bg-slate-300 font-medium">{_t('إلغاء', 'Cancel')}</button>
  <button className="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 font-medium">Execute & Post Journal</button>
  </div>
  </div>

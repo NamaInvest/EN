@@ -57,7 +57,7 @@ export default function AuditLogsPage() {
                     onChange={(e) => setTableFilter(e.target.value)}
                     className="max-w-xs"
                 />
-                <Button onClick={fetchLogs}>Refresh</Button>
+                <Button onClick={fetchLogs}>{_t('تحديث', 'Refresh')}</Button>
             </div>
 
             <Card>
@@ -71,11 +71,11 @@ export default function AuditLogsPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">Timestamp</th>
-                                        <th className="px-4 py-3">User</th>
-                                        <th className="px-4 py-3">Action</th>
+                                        <th className="px-4 py-3">{_t('المستخدم', 'User')}</th>
+                                        <th className="px-4 py-3">{_t('✅ جميع المنتجات لديها باركود', 'Action')}</th>
                                         <th className="px-4 py-3">Entity</th>
                                         <th className="px-4 py-3">Entity ID</th>
-                                        <th className="px-4 py-3">Details</th>
+                                        <th className="px-4 py-3">{_t('التفاصيل', 'Details')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

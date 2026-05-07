@@ -23,8 +23,8 @@ export default function WorkOrdersPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Work Order Management</h1>
-                <Button>Create Work Order</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Work Order إدارةment', 'Work Order Management')}</h1>
+                <Button>{_t('إنشاء Work Order', 'Create Work Order')}</Button>
             </div>
             
             <Card>
@@ -37,12 +37,12 @@ export default function WorkOrdersPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">WO Number</th>
-                                    <th className="px-4 py-3">Client</th>
+                                    <th className="px-4 py-3">{_t('العميل', 'Client')}</th>
                                     <th className="px-4 py-3">Issue Description</th>
                                     <th className="px-4 py-3">Assigned To</th>
                                     <th className="px-4 py-3">Priority</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,11 +59,11 @@ export default function WorkOrdersPage() {
                                             {wo.status === 'IN_PROGRESS' ? (
                                                 <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>
                                             ) : (
-                                                <Badge variant="outline">New</Badge>
+                                                <Badge variant="outline">{_t('جديد', 'New')}</Badge>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
-                                            <Button size="sm" variant="outline">Update</Button>
+                                            <Button size="sm" variant="outline">{_t('تحديث', 'Update')}</Button>
                                             {wo.status === 'NEW' && (
                                                 <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">Dispatch</Button>
                                             )}

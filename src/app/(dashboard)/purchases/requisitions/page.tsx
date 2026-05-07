@@ -1,15 +1,12 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, ClipboardList, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
-export default function PurchaseRequisitionsPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function PurchaseRequisitionsPage() {
     const requisitions = await prisma.purchaseRequisition.findMany({
         include: {
             requester: true,

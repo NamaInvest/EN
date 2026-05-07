@@ -1,14 +1,11 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, Plus, ToggleLeft, ToggleRight, Trash2, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function MfaPolicyPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function MfaPolicyPage() {
     const policies = await prisma.mfaPolicy.findMany({
         orderBy: { createdAt: 'desc' }
     });

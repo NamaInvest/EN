@@ -30,11 +30,11 @@ export default function TranscriptGeneratorPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Student ID</th>
-                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
                                     <th className="px-4 py-3">Grade Level</th>
                                     <th className="px-4 py-3">Cumulative GPA</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>

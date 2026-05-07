@@ -1,13 +1,10 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { format } from 'date-fns';
 import { Shield, ShieldAlert, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-export default function MfaAuditPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function MfaAuditPage() {
     const logs = await prisma.mfaAttempt.findMany({
         orderBy: { attemptedAt: 'desc' },
         take: 100,

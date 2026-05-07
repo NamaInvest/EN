@@ -159,7 +159,7 @@ export default function MRPDashboard() {
  <p className="text-xs text-slate-400">يعمل بكفاءة 98%</p>
  </div>
  </div>
- <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg">Active</span>
+ <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg">{_t('نشطة', 'Active')}</span>
  </div>
  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700 flex justify-between items-center">
  <div className="flex items-center">

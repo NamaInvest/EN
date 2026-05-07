@@ -54,9 +54,9 @@ export default function TraceabilityPage() {
                             onChange={(e) => setSearchType(e.target.value)}
                         >
                             <option value="serial">Serial Number</option>
-                            <option value="batch">Batch Number</option>
+                            <option value="batch">{_t('رقم التشغيلة (Batch)', 'Batch Number')}</option>
                             <option value="lot">Production Lot</option>
-                            <option value="invoice">Sales Invoice</option>
+                            <option value="invoice">{_t('فاتورة مبيعات', 'Sales Invoice')}</option>
                         </select>
                         <Input 
                             placeholder={`Enter ${searchType}...`} 
@@ -78,12 +78,12 @@ export default function TraceabilityPage() {
                             <CardTitle>Item Details</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div><strong className="block text-sm text-gray-500">Product</strong>{result.product}</div>
+                            <div><strong className="block text-sm text-gray-500">{_t('المنتج', 'Product')}</strong>{result.product}</div>
                             <div><strong className="block text-sm text-gray-500">Serial Number</strong>{result.id}</div>
-                            <div><strong className="block text-sm text-gray-500">Batch Number</strong>{result.batch}</div>
+                            <div><strong className="block text-sm text-gray-500">{_t('رقم التشغيلة (Batch)', 'Batch Number')}</strong>{result.batch}</div>
                             <div><strong className="block text-sm text-gray-500">Production Lot</strong>{result.productionLot}</div>
                             <div><strong className="block text-sm text-gray-500">Customer</strong>{result.customer} ({result.salesInvoice})</div>
-                            <div><strong className="block text-sm text-gray-500">Current Status</strong>
+                            <div><strong className="block text-sm text-gray-500">{_t('الوضع الحالي', 'Current Status')}</strong>
                                 <span className="text-green-600 font-bold">{result.status}</span>
                             </div>
                         </CardContent>

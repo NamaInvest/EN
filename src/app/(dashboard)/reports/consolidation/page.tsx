@@ -134,7 +134,7 @@ export default function ConsolidationDashboard() {
  </thead>
  <tbody className="divide-y divide-slate-100">
  <tr className="hover:bg-slate-50">
- <td className="py-4 px-4 text-sm font-medium text-slate-800">Total Assets</td>
+ <td className="py-4 px-4 text-sm font-medium text-slate-800">{_t('إجمالي الأصول', 'Total Assets')}</td>
  <td className="py-4 px-4 text-sm text-right text-slate-600">$5,200,000</td>
  <td className="py-4 px-4 text-sm text-right text-rose-500 cursor-pointer hover:underline group relative">
  -$400,000
@@ -143,7 +143,7 @@ export default function ConsolidationDashboard() {
  <td className="py-4 px-4 text-sm text-right font-bold text-slate-800 border-l border-slate-100">$4,800,000</td>
  </tr>
  <tr className="hover:bg-slate-50">
- <td className="py-4 px-4 text-sm font-medium text-slate-800">Total Liabilities</td>
+ <td className="py-4 px-4 text-sm font-medium text-slate-800">{_t('إجمالي الخصوم', 'Total Liabilities')}</td>
  <td className="py-4 px-4 text-sm text-right text-slate-600">$2,100,000</td>
  <td className="py-4 px-4 text-sm text-right text-rose-500 cursor-pointer hover:underline group relative">
  -$400,000
@@ -152,7 +152,7 @@ export default function ConsolidationDashboard() {
  <td className="py-4 px-4 text-sm text-right font-bold text-slate-800 border-l border-slate-100">$1,700,000</td>
  </tr>
  <tr className="hover:bg-slate-50">
- <td className="py-4 px-4 text-sm font-medium text-slate-800">Total Revenue</td>
+ <td className="py-4 px-4 text-sm font-medium text-slate-800">{_t('إجمالي الإيرادات', 'Total Revenue')}</td>
  <td className="py-4 px-4 text-sm text-right text-slate-600">$3,500,000</td>
  <td className="py-4 px-4 text-sm text-right text-rose-500 cursor-pointer hover:underline group relative">
  -$150,000

@@ -119,12 +119,12 @@ export default function BankStatementImportsPage() {
                         <table className="min-w-full divide-y divide-border">
                             <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Account</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('حساب', 'Account')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Format</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Date Imported</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Closing Balance</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('رصيد الإغلاق', 'Closing Balance')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('الحالة', 'Status')}</th>
+                                    <th className="px-4 py-3 text-right text-sm font-medium">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">

@@ -50,8 +50,8 @@ export default function DistributionRoutesPage() {
                                         <th className="px-4 py-3">Vehicle</th>
                                         <th className="px-4 py-3 text-center">Stops</th>
                                         <th className="px-4 py-3">Est. Completion</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

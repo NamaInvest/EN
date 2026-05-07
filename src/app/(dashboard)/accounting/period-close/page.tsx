@@ -43,11 +43,11 @@ export default function PeriodCloseDashboard() {
 
             <div className="flex gap-4 p-4 bg-gray-50 border rounded-lg">
                 <div>
-                    <label className="block text-sm font-medium">Year</label>
+                    <label className="block text-sm font-medium">{_t('سنة', 'Year')}</label>
                     <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="p-2 border rounded w-24" />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium">Month</label>
+                    <label className="block text-sm font-medium">{_t('شهر', 'Month')}</label>
                     <input type="number" value={month} onChange={(e) => setMonth(Number(e.target.value))} className="p-2 border rounded w-24" />
                 </div>
             </div>

@@ -47,7 +47,7 @@ export default function GradebookPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Student ID</th>
-                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
                                     <th className="px-4 py-3">Assignment 1 (20%)</th>
                                     <th className="px-4 py-3">Mid-Term (30%)</th>
                                     <th className="px-4 py-3">Final Exam (50%)</th>

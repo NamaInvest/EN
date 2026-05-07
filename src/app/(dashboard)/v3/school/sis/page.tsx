@@ -51,12 +51,12 @@ export default function SchoolSIS() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b-2 border-slate-100 text-sm text-slate-500">
-                  <th className="pb-3 pl-2">Student Name</th>
+                  <th className="pb-3 pl-2">{_t('اسم الطالب', 'Student Name')}</th>
                   <th className="pb-3">ID</th>
                   <th className="pb-3">Attendance</th>
                   <th className="pb-3">Math</th>
                   <th className="pb-3">Science</th>
-                  <th className="pb-3">Status</th>
+                  <th className="pb-3">{_t('الحالة', 'Status')}</th>
                 </tr>
               </thead>
               <tbody className="text-sm">

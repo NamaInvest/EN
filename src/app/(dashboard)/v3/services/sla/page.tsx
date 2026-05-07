@@ -31,11 +31,11 @@ export default function SLATrackingPage() {
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">Reference ID</th>
-                                    <th className="px-4 py-3">Client</th>
+                                    <th className="px-4 py-3">{_t('العميل', 'Client')}</th>
                                     <th className="px-4 py-3">SLA Type</th>
                                     <th className="px-4 py-3">Target Time</th>
                                     <th className="px-4 py-3">Elapsed Time</th>
-                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                 </tr>
                             </thead>
                             <tbody>

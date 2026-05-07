@@ -1,15 +1,12 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Send, CheckCircle, AlertTriangle, Clock, Play, Paintbrush, Layers } from 'lucide-react';
 import Link from 'next/link';
 
+import prisma from '@/lib/prisma';
 // Revalidate every 60 seconds or make it dynamic
 export const dynamic = 'force-dynamic';
 
-export default function CustomerStatementsOverview() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+export default async function CustomerStatementsOverview() {
     let thisMonthSent = 0;
     let deliveryIssues = 0;
     let activeSchedules = 0;

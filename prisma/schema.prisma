@@ -3851,7 +3851,9 @@ model ConsolidationGroup {
   baseCurrency    String  @default("SAR") @map("base_currency")
   isActive        Boolean @default(true) @map("is_active")
 
-  runs ConsolidationRun[]
+  runs             ConsolidationRun[]
+  members          ConsolidationMember[]
+  eliminationRules EliminationRule[]
 
   @@map("consolidation_groups")
 }
@@ -9496,8 +9498,139 @@ model TenantQuota {
   usedApiCalls   Int      @default(0) @map("used_api_calls")
   usedStorageGb  Float    @default(0) @map("used_storage_gb")
   resetAt        DateTime @map("reset_at")
-  
+
   @@map("tenant_quotas")
+}
+
+// ==================== H-04: Missing Audit-Spec Models ====================
+
+// AI-02 — provider-side prompt cache record (Gemini Context Cache, Anthropic ephemeral, etc.)
+// Lets all instances share a single createCachedContent() call instead of paying full prompt
+// tokens on every request. Only an ID + expiry is stored — never the prompt body.
+model LlmContextCache {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  cacheKey        String   @map("cache_key") // sha256 of (systemPrompt + staticContext)
+  provider        String // gemini | anthropic | openai
+  providerCacheId String   @map("provider_cache_id") // returned by provider
+  tokenCount      Int      @map("token_count")
+  expiresAt       DateTime @map("expires_at")
+  hitCount        Int      @default(0) @map("hit_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, cacheKey])
+  @@index([expiresAt])
+  @@map("llm_context_cache")
+}
+
+// AI-07 — registry of LLM-callable tools.
+// Lets us add/remove tools per tenant via DB rather than redeploying code.
+// `parameters` is a JSON-Schema object passed to the model's tool-calling API.
+model AiToolDefinition {
+  id          String   @id @default(cuid())
+  tenantId    String?  @map("tenant_id") // null = global default
+  name        String // get_customer_balance, list_open_invoices, ...
+  description String   @db.Text
+  parameters  Json // JSON-Schema for arguments
+  handlerType String   @map("handler_type") // DB_QUERY | API_CALL | MUTATION
+  permission  String? // role required to invoke
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, name])
+  @@map("ai_tool_definition")
+}
+
+// AI-07 — audit log of every tool invocation by the LLM. Required for SOX/ICFR
+// when tools can mutate accounting data (DB_QUERY is read-only; MUTATION is not).
+model AiToolCallLog {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  conversationId String? @map("conversation_id")
+  toolName     String   @map("tool_name")
+  arguments    Json
+  result       Json?
+  success      Boolean
+  errorMessage String?  @map("error_message") @db.Text
+  durationMs   Int      @map("duration_ms")
+  invokedBy    String   @map("invoked_by") // userId or "agent"
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([toolName])
+  @@map("ai_tool_call_log")
+}
+
+// AI-15 — chunked text + embedding for RAG. One KnowledgeDocument has many chunks.
+// We store the embedding as Float[] until pgvector migration lands; once live, swap
+// to `embedding vector(768)` via raw SQL ALTER TABLE.
+model KnowledgeChunk {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  documentId  String   @map("document_id")
+  chunkIndex  Int      @map("chunk_index")
+  content     String   @db.Text
+  embedding   Float[]  // 768-dim for gemini text-embedding-004
+  tokenCount  Int      @map("token_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, documentId])
+  @@map("knowledge_chunk")
+}
+
+// xP&A — driver master. A driver is a measurable input (Sales Volume, Headcount,
+// FX Rate) that budget formulas reference via {{driver}} placeholders.
+model BudgetDriver {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  versionId    String   @map("version_id") // FK to BudgetVersion (loose)
+  driverName   String   @map("driver_name")
+  unit         String? // SAR, USD, PERSONS, %
+  values       Json // { "2026-01": 1000, "2026-02": 1100, ... }
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([versionId, driverName])
+  @@map("budget_driver")
+}
+
+// P0-02 — IFRS Consolidation: ownership of each member entity inside a group.
+// Method drives elimination behavior (FULL = full consolidation + minority interest,
+// PROPORTIONAL = pro-rata, EQUITY = single-line equity pickup).
+model ConsolidationMember {
+  id                  String   @id @default(cuid())
+  groupId             String   @map("group_id")
+  entityId            String   @map("entity_id") // tenant or sub-tenant id
+  ownership           Decimal  @db.Decimal(7, 4) // e.g. 0.7500
+  consolidationMethod String   @map("consolidation_method") // FULL | PROPORTIONAL | EQUITY
+  acquisitionDate     DateTime @map("acquisition_date")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  group ConsolidationGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, entityId])
+  @@map("consolidation_member")
+}
+
+// P0-02 — IFRS Consolidation: rule-driven eliminations (intercompany AR/AP,
+// intercompany revenue/COGS, investment vs. equity, unrealized profit).
+// `formula` is evaluated by the consolidation engine against the staged TB.
+model EliminationRule {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  groupId       String   @map("group_id")
+  ruleName      String   @map("rule_name")
+  ruleType      String   @map("rule_type") // INTERCOMPANY_AR_AP | INTERCOMPANY_REVENUE_COGS | INVESTMENT_EQUITY | UNREALIZED_PROFIT
+  sourceAccount String?  @map("source_account") // GL code
+  targetAccount String?  @map("target_account") // GL code (offset)
+  formula       String?  @db.Text // expression: e.g. "abs(A.4100) - abs(B.5100)"
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  group ConsolidationGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, groupId])
+  @@map("elimination_rule")
 }
 
 

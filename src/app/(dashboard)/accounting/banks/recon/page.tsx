@@ -80,12 +80,12 @@ export default function BankReconciliationPage() {
                         <table className="min-w-full divide-y divide-border">
                             <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('التاريخ', 'Date')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('الوصف', 'Description')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('النوع', 'Type')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('المبلغ', 'Amount')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">AI Suggestion</th>
-                                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                                    <th className="px-4 py-3 text-right text-sm font-medium">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -104,7 +104,7 @@ export default function BankReconciliationPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-right space-x-2">
-                                            <Button variant="outline" size="sm">Create JE</Button>
+                                            <Button variant="outline" size="sm">{_t('إنشاء JE', 'Create JE')}</Button>
                                             <Button variant="default" size="sm">Match</Button>
                                         </td>
                                     </tr>

@@ -1,15 +1,12 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, FileWarning, Plus, AlertCircle, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
-export default function NcrPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function NcrPage() {
     const ncrs = await prisma.nonConformanceReport.findMany({
         include: {
             inspection: true

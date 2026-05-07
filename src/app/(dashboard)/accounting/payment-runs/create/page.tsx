@@ -94,7 +94,7 @@ export default function CreatePaymentRunPage() {
                                 <p className="text-xs text-gray-500">Include all open AP items due on or before this date.</p>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Currency</label>
+                                <label className="text-sm font-medium text-gray-700">{_t('العملة', 'Currency')}</label>
                                 <select 
                                     className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={formData.currency}
@@ -145,7 +145,7 @@ export default function CreatePaymentRunPage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Card className="bg-blue-50 border-blue-100">
                             <CardContent className="p-4">
-                                <p className="text-xs font-medium text-blue-600 uppercase tracking-wider">Total Amount</p>
+                                <p className="text-xs font-medium text-blue-600 uppercase tracking-wider">{_t('المبلغ الإجمالي', 'Total Amount')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.totalAmount.toLocaleString()} <span className="text-sm font-normal text-gray-500">{formData.currency}</span></h3>
                             </CardContent>
                         </Card>
@@ -188,8 +188,7 @@ export default function CreatePaymentRunPage() {
 
                     <div className="flex justify-between items-center pt-4">
                         <Button variant="outline" onClick={() => setStep(1)}>
-                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                        </Button>
+                            <ArrowLeft className="w-4 h-4 mr-2" />{_t('رجوع', 'Back')}</Button>
                         <Button onClick={handleCreateRun} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
                             {loading ? 'Submitting...' : 'Submit for Approval'}
                             {!loading && <Check className="w-4 h-4 ml-2" />}

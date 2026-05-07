@@ -20,9 +20,7 @@ export default function VATReturnsPage() {
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export
-                    </Button>
+                        <Download className="w-4 h-4 mr-2" />{_t('تصدير', 'Export')}</Button>
                     <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
                         <Calculator className="w-4 h-4 mr-2" />
                         Generate Return

@@ -48,11 +48,11 @@ export default function RetailPOS() {
           ))}
         </div>
         <div className="p-4 border-t bg-slate-50 rounded-b-xl space-y-3">
-          <div className="flex justify-between text-sm text-slate-600"><span>Subtotal</span><span>SAR 299.00</span></div>
+          <div className="flex justify-between text-sm text-slate-600"><span>{_t('المجموع الفرعي', 'Subtotal')}</span><span>SAR 299.00</span></div>
           <div className="flex justify-between text-sm text-slate-600"><span>VAT (15%)</span><span>SAR 44.85</span></div>
-          <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>Total</span><span>SAR 343.85</span></div>
+          <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>{_t('الإجمالي', 'Total')}</span><span>SAR 343.85</span></div>
           <div className="grid grid-cols-2 gap-2 mt-4">
-            <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/> Print</Button>
+            <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/>{_t('طباعة / Print', 'Print')}</Button>
             <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>alert("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/> Pay Now</Button>
             <Button variant="outline" className="h-12 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100">Layaway</Button>
             <Button variant="outline" className="h-12 border-slate-300 text-sm hover:bg-slate-100">Gift Receipt</Button>

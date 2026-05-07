@@ -68,7 +68,7 @@ export default function CashApplicationPage() {
 
  <div className="bg-white rounded-md p-3 shadow-sm border border-slate-200 flex items-center space-x-4">
  <div className="text-center px-4 border-r border-slate-200 ">
- <div className="text-xs text-slate-500">Applied</div>
+ <div className="text-xs text-slate-500">{_t('مطبّق', 'Applied')}</div>
  <div className="text-lg font-bold text-slate-900 ">{(payment.amount - payment.unapplied).toLocaleString()} SAR</div>
  </div>
  <div className="text-center px-4">
@@ -178,7 +178,7 @@ export default function CashApplicationPage() {
  </div>
  <div className="grid grid-cols-3 gap-2">
  <div>
- <label className="text-[10px] uppercase text-slate-500 font-semibold mb-1 block">Applied</label>
+ <label className="text-[10px] uppercase text-slate-500 font-semibold mb-1 block">{_t('مطبّق', 'Applied')}</label>
  <input type="text" defaultValue="30000.00" className="w-full text-sm border-slate-300 rounded font-medium px-2 py-1" />
  </div>
  <div>
@@ -203,7 +203,7 @@ export default function CashApplicationPage() {
  </div>
  <div className="grid grid-cols-3 gap-2">
  <div>
- <label className="text-[10px] uppercase text-slate-500 font-semibold mb-1 block">Applied</label>
+ <label className="text-[10px] uppercase text-slate-500 font-semibold mb-1 block">{_t('مطبّق', 'Applied')}</label>
  <input type="text" defaultValue="15000.00" className="w-full text-sm border-slate-300 rounded font-medium px-2 py-1 border-orange-300 focus:ring-orange-500" />
  </div>
  <div>

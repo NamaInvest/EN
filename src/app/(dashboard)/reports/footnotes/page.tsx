@@ -43,7 +43,7 @@ export default function FootnotesBuilderPage() {
                                 <p className="text-gray-700 dark:text-gray-300">{fn.content}</p>
                                 <div className="mt-4 flex space-x-2">
                                     <Button size="sm" variant="outline">Edit Content</Button>
-                                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">Delete</Button>
+                                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">{_t('حذف', 'Delete')}</Button>
                                 </div>
                             </div>
                         ))}

@@ -59,7 +59,7 @@ export default function TechnicianPortalPage() {
                     <p className="text-gray-700 dark:text-gray-300 my-3 text-sm">{ticket.description}</p>
                     
                     <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">
-                        <div className="flex items-center gap-1"><Clock className="w-3 h-3"/> Today</div>
+                        <div className="flex items-center gap-1"><Clock className="w-3 h-3"/>{_t('اليوم', 'Today')}</div>
                         <div className="flex items-center gap-1 text-blue-600"><Navigation className="w-3 h-3"/> Navigate</div>
                     </div>
 
@@ -71,8 +71,7 @@ export default function TechnicianPortalPage() {
                             disabled={loading}
                             onClick={() => completeTicket(ticket.id)}
                             className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm font-medium flex justify-center items-center gap-2 transition-colors">
-                            <CheckCircle className="w-4 h-4" /> Complete
-                        </button>
+                            <CheckCircle className="w-4 h-4" />{_t('مكتملة', 'Complete')}</button>
                     </div>
                 </Card>
             ))}

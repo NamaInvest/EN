@@ -45,12 +45,12 @@ export default function ConstructionVariationsPage() {
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">VO Number</th>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Project</th>
-                                        <th className="px-4 py-3">Description</th>
+                                        <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
+                                        <th className="px-4 py-3">{_t('منتج', 'Project')}</th>
+                                        <th className="px-4 py-3">{_t('الوصف', 'Description')}</th>
                                         <th className="px-4 py-3 text-right">Amount (SAR)</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -69,7 +69,7 @@ export default function ConstructionVariationsPage() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline">View</Button>
+                                                <Button size="sm" variant="outline">{_t('عرض', 'View')}</Button>
                                                 {vo.status === 'PENDING_APPROVAL' && (
                                                     <Button size="sm" variant="outline" className="text-green-600 border-green-500">Approve</Button>
                                                 )}

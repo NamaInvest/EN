@@ -43,8 +43,8 @@ export default function CustomReportBuilder() {
  onChange={(e) => setDataset(e.target.value)}
  className="w-full border border-slate-300 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500 "
  >
- <option value="sales">Sales Invoices</option>
- <option value="purchases">Purchase Invoices</option>
+ <option value="sales">{_t('فواتير المبيعات', 'Sales Invoices')}</option>
+ <option value="purchases">{_t('فواتير المشتريات', 'Purchase Invoices')}</option>
  <option value="inventory">Inventory Movements</option>
  <option value="journal_entries">General Ledger (GL)</option>
  </select>

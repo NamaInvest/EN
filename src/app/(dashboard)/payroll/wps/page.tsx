@@ -150,12 +150,12 @@ export default function WPSPage() {
  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
  <thead>
  <tr style={{ background: 'rgba(0,0,0,0.03)' }}>
- <th style={{ padding: '10px' }}>Batch Number</th>
- <th style={{ padding: '10px' }}>Bank</th>
+ <th style={{ padding: '10px' }}>{_t('رقم التشغيلة (Batch)', 'Batch Number')}</th>
+ <th style={{ padding: '10px' }}>{_t('البنك', 'Bank')}</th>
  <th style={{ padding: '10px' }}>Employees</th>
- <th style={{ padding: '10px' }}>Total Amount</th>
- <th style={{ padding: '10px' }}>Status</th>
- <th style={{ padding: '10px', textAlign: 'right' }}>Actions</th>
+ <th style={{ padding: '10px' }}>{_t('المبلغ الإجمالي', 'Total Amount')}</th>
+ <th style={{ padding: '10px' }}>{_t('الحالة', 'Status')}</th>
+ <th style={{ padding: '10px', textAlign: 'right' }}>{_t('إجراءات', 'Actions')}</th>
  </tr>
  </thead>
  <tbody>

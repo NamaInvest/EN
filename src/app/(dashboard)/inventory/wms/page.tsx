@@ -1,14 +1,11 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Boxes, MapPin, Truck, ArrowRight, ScanLine, Activity, Layers } from 'lucide-react';
 import Link from 'next/link';
 
-export default function WmsDashboardPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function WmsDashboardPage() {
     // Basic stats
     const stocks = await prisma.stock.findMany();
     const zones = await prisma.warehouseZone.count();

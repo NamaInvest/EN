@@ -1,15 +1,12 @@
-'use client';
 import React from 'react';
-import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, FileText, Send, Download, Mail, Filter } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
-export default function VendorStatementsPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+import prisma from '@/lib/prisma';
+export default async function VendorStatementsPage() {
     // Fetch unique vendors that have purchase invoices
     // For this mock, we just fetch from purchase invoices and group by supplierName
     const invoices = await prisma.purchaseInvoice.findMany({
