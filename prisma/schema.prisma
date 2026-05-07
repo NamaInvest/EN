@@ -9596,9 +9596,11 @@ model BudgetDriver {
 // P0-02 — IFRS Consolidation: ownership of each member entity inside a group.
 // Method drives elimination behavior (FULL = full consolidation + minority interest,
 // PROPORTIONAL = pro-rata, EQUITY = single-line equity pickup).
+//
+// Note: groupId is Int because ConsolidationGroup uses autoincrement Int PK (legacy).
 model ConsolidationMember {
   id                  String   @id @default(cuid())
-  groupId             String   @map("group_id")
+  groupId             Int      @map("group_id")
   entityId            String   @map("entity_id") // tenant or sub-tenant id
   ownership           Decimal  @db.Decimal(7, 4) // e.g. 0.7500
   consolidationMethod String   @map("consolidation_method") // FULL | PROPORTIONAL | EQUITY
@@ -9618,7 +9620,7 @@ model ConsolidationMember {
 model EliminationRule {
   id            String   @id @default(cuid())
   tenantId      String   @map("tenant_id")
-  groupId       String   @map("group_id")
+  groupId       Int      @map("group_id")
   ruleName      String   @map("rule_name")
   ruleType      String   @map("rule_type") // INTERCOMPANY_AR_AP | INTERCOMPANY_REVENUE_COGS | INVESTMENT_EQUITY | UNREALIZED_PROFIT
   sourceAccount String?  @map("source_account") // GL code

@@ -34,11 +34,12 @@ jobs:
 
       # NOTE: TypeScript currently has known errors documented in HARDENING.md.
       # We capture the count and fail the build only if it INCREASES vs. the baseline.
+      # Baseline drops as we fix legacy errors; never raise it without good reason.
       - name: TypeScript Check (baseline-aware)
         run: |
           npx tsc --noEmit --skipLibCheck 2>&1 | tee tsc-output.log || true
           ERR_COUNT=$(grep -c "error TS" tsc-output.log || echo 0)
-          BASELINE=230
+          BASELINE=95
           echo "TypeScript errors: $ERR_COUNT (baseline: $BASELINE)"
           if [ "$ERR_COUNT" -gt "$BASELINE" ]; then
             echo "❌ TypeScript error count increased. New errors must be fixed before merge."
