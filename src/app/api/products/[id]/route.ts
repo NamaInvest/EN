@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncProductToSalla } from '@/lib/salla';
+import { getUserFromRequest } from '@/lib/auth';
+import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
@@ -24,7 +27,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
+        const productId = parseInt(id);
+        const auth = getUserFromRequest(request as unknown as NextRequest);
         const body = await request.json();
+
+        // Read before state for audit trail
+        const before = await prisma.product.findUnique({ where: { id: productId } });
+
         const product = await prisma.product.update({
             where: { id: parseInt(id) },
             data: {
@@ -85,6 +94,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // Output to Salla Network
         await syncProductToSalla(product);
 
+        // Audit trail — log field changes
+        try {
+            await logFieldChanges(prisma, 'Product', productId, before, product, auditContextFromRequest(request, auth ?? undefined));
+        } catch (e) { console.error('[audit] Product update audit failed:', e); }
+
         return NextResponse.json(product);
     } catch (error) {
         console.error('Product update error:', error);
@@ -93,10 +107,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const auth = getUserFromRequest(request as unknown as NextRequest);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
@@ -111,14 +123,23 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         if (usedInSales > 0 || usedInPurchases > 0 || usedInStockMovements > 0) {
             // Soft delete: keep the product but mark it inactive so it doesn't appear in POS/Purchases
+            const beforeProduct = await prisma.product.findUnique({ where: { id: productId } });
             await prisma.product.update({
                 where: { id: productId },
                 data: { active: false },
             });
+            try {
+                await logFieldChanges(prisma, 'Product', productId, beforeProduct, { ...beforeProduct, active: false } as any, auditContextFromRequest(request, auth));
+            } catch (e) { console.error('[audit] Product archive audit failed:', e); }
             return NextResponse.json({ message: 'تم أرشفة المنتج وإيقاف تفعيله (لوجود حركات مالية مرتبطة)' });
         }
 
-        // Only hard delete if STRICTLY unused anywhere
+        // Only hard delete if STRICTLY unused anywhere — audit first
+        const beforeDel = await prisma.product.findUnique({ where: { id: productId } });
+        try {
+            if (beforeDel) await logDelete(prisma, 'Product', productId, beforeDel as any, auditContextFromRequest(request, auth));
+        } catch (e) { console.error('[audit] Product delete audit failed:', e); }
+
         await prisma.$transaction(async (tx) => {
             await tx.productStock.deleteMany({ where: { productId } });
             await tx.product.delete({ where: { id: productId } });

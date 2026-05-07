@@ -9,6 +9,7 @@ import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 import { resolveStockAndBranch } from '@/lib/getDefaults';
 import { z } from 'zod';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
+import { logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -728,6 +729,11 @@ export async function DELETE(request: NextRequest) {
             // Delete invoice (cascade deletes details)
             await tx.salesInvoice.delete({ where: { id } });
         });
+
+        // Field-level audit trail (post-transaction)
+        try {
+            await logDelete(prisma, 'SalesInvoice', id, invoice as any, auditContextFromRequest(request, auth));
+        } catch (e) { console.error('[audit] Sales delete field-audit failed:', e); }
 
         return NextResponse.json({ success: true, message: 'تم حذف الفاتورة بنجاح' });
     } catch (error) {

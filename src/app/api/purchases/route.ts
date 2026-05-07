@@ -5,6 +5,7 @@ import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { purchaseCreateSchema, purchasePaymentSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { resolveStockAndBranch } from '@/lib/getDefaults';
+import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
@@ -274,6 +275,11 @@ export async function PUT(request: Request) {
             return updatedInvoice;
         });
 
+        // Audit trail — log payment changes
+        try {
+            await logFieldChanges(prisma, 'PurchaseInvoice', Number(invoiceId), invoice, updated, auditContextFromRequest(request, { userId: userId ? Number(userId) : undefined }));
+        } catch (e) { console.error('[audit] Purchase payment audit failed:', e); }
+
         return NextResponse.json(updated);
     } catch (error) { return handleApiError(error); }
 }
@@ -320,6 +326,11 @@ export async function DELETE(request: NextRequest) {
             // Delete invoice (cascade deletes details)
             await tx.purchaseInvoice.delete({ where: { id } });
         });
+
+        // Audit trail — log deletion (after transaction succeeds)
+        try {
+            await logDelete(prisma, 'PurchaseInvoice', id, invoice as any, auditContextFromRequest(request, auth));
+        } catch (e) { console.error('[audit] Purchase delete audit failed:', e); }
 
         return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
     } catch (error) {

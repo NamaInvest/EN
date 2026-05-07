@@ -47,6 +47,7 @@
 | 04 | [04_SAUDI_GAPS.md](04_SAUDI_GAPS.md) | فجوات سعودية (88 بند) — برومنت + سيناريو + فلو |
 | 05 | [05_ROADMAP.md](05_ROADMAP.md) | خارطة الطريق المقترحة (12 شهر) |
 | 06 | [06_ACCOUNTING_ENGINE_COMPARISON.md](06_ACCOUNTING_ENGINE_COMPARISON.md) | مقارنة محرك المحاسبة بـ SAP/Oracle/NetSuite/Dynamics/Odoo (18 فجوة محرك + 3 أخطاء كارثية مكتشفة) |
+| 07 | [07_AI_STACK_AUDIT.md](07_AI_STACK_AUDIT.md) | فحص الـ AI Stack الكامل: Prompt/Workflow/Backend/RAG/Frontend/Infra/Testing (28 فجوة + 10 P0) |
 
 ---
 

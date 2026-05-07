@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
@@ -18,9 +21,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
+        const customerId = parseInt(id);
+        const auth = getUserFromRequest(request as unknown as NextRequest);
         const body = await request.json();
+
+        // 1. Read before state for audit
+        const before = await prisma.customer.findUnique({ where: { id: customerId } });
+
+        // 2. Perform update
         const customer = await prisma.customer.update({
-            where: { id: parseInt(id) },
+            where: { id: customerId },
             data: {
                 name: body.name, phone: body.phone || null, address: body.address || null,
                 street: body.street || null, buildingNumber: body.buildingNumber || null,
@@ -32,6 +42,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 routeId: body.routeId ? parseInt(body.routeId) : null,
             },
         });
+
+        // 3. Audit trail — log all field changes
+        try {
+            await logFieldChanges(prisma, 'Customer', customerId, before, customer, auditContextFromRequest(request, auth ?? undefined));
+        } catch (e) { console.error('[audit] Customer update audit failed:', e); }
+
         return NextResponse.json(customer);
     } catch (error) {
         console.error(error);
@@ -40,15 +56,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const auth = getUserFromRequest(request as unknown as NextRequest);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
-        await prisma.customer.delete({ where: { id: parseInt(id) } });
+        const customerId = parseInt(id);
+
+        // Audit trail — log deletion before it happens
+        try {
+            const before = await prisma.customer.findUnique({ where: { id: customerId } });
+            if (before) await logDelete(prisma, 'Customer', customerId, before as any, auditContextFromRequest(request, auth));
+        } catch (e) { console.error('[audit] Customer delete audit failed:', e); }
+
+        await prisma.customer.delete({ where: { id: customerId } });
         return NextResponse.json({ message: 'تم الحذف' });
     } catch (error) {
         console.error(error);
