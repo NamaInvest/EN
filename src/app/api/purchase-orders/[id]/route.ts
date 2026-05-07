@@ -142,7 +142,8 @@ export async function PUT(
                     userId: userId || undefined,
                     branchId: currentOrder.branchId || undefined,
                     date: new Date().toISOString().split('T')[0],
-                    landedCosts: mappedLandedCosts
+                    landedCosts: mappedLandedCosts,
+                    hasGRN: true, // [EG-02] PO completion always has stock received → clear GRNI
                 });
             } catch (err) {
                 console.error('Failed to post PO auto-journal', err);

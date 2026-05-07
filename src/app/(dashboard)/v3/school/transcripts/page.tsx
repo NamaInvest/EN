@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function TranscriptGeneratorPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [students] = useState([
         { id: 'STU-101', name: 'Omar Ali', grade: '10th Grade', gpa: 3.8, status: 'Graduated' },
         { id: 'STU-102', name: 'Sara Khalid', grade: '12th Grade', gpa: 3.9, status: 'Active' },

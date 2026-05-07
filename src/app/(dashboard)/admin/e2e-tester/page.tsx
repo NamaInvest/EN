@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Play, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function E2ETesterDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [loading, setLoading] = useState<string | null>(null);
     const [results, setResults] = useState<Record<string, any>>({});
 

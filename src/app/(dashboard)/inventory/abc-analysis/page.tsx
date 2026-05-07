@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import {
   ComposedChart,
   Line,
@@ -14,6 +15,8 @@ import {
 } from 'recharts';
 
 export default function AbcAnalysisPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [period, setPeriod] = useState('12m');

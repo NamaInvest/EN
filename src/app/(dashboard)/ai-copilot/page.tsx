@@ -1,11 +1,15 @@
+'use client';
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Bot, Send, Sparkles, TrendingUp, Search, AlertCircle, FileText, PieChart, MessageSquare, Plus, ExternalLink, Zap } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function AICopilot() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const [query, setQuery] = useState('');
  const [chat, setChat] = useState<{role: 'user'|'ai', text: string, widget?: string}[]>([
  { role: 'ai', text: 'أهلاً بك في Nama Copilot ✨ أنا مساعدك الذكي المربوط بكافة بيانات النظام. كيف يمكنني مساعدتك اليوم؟' }

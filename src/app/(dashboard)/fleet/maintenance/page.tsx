@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function FleetMaintenancePage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 

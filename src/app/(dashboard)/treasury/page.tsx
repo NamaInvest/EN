@@ -1,171 +1,124 @@
-import React from 'react';
-import { prisma } from '@/lib/prisma';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+'use client';
+import { useState, useEffect } from 'react';
 import { Building2, ArrowRightLeft, TrendingUp, Landmark, FileText, ArrowUpRight, ArrowDownRight, RefreshCcw } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function TreasuryDashboardPage() {
-    // 1. Bank Accounts & Cash Position
-    const accounts = await prisma.bankAccount.findMany({
-        where: { isActive: true },
-        select: { id: true, bankName: true, accountName: true, accountNumber: true, currentBalance: true, currency: true }
-    });
+export default function TreasuryDashboardPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [stats, setStats] = useState({ totalCash: 0, accounts: 0, pendingChecks: 0, pettyCash: 0 });
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const totalCash = accounts.reduce((acc, curr) => acc + (curr.currentBalance || 0), 0);
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/treasury/dashboard', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.stats) setStats(d.stats);
+          setBankAccounts(d.bankAccounts || []);
+          setTransactions(d.transactions || []);
+        }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-    // 2. Pending Checks (PDC & Received)
-    const pendingChecks = await prisma.checkTransaction.count({
-        where: { status: { in: ['PENDING', 'UNDER_COLLECTION'] } }
-    });
+  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const kpis = [
+    { l: _t('إجمالي النقدية', 'Total Cash Position'), v: `${fmt(stats.totalCash)} ${_t('ر.س', 'SAR')}`, s: _t(`عبر ${stats.accounts} حساب بنكي`, `Across ${stats.accounts} bank accounts`), c: '#6366F1', ic: Building2 },
+    { l: _t('شيكات معلقة (PDC)', 'Pending Checks (PDC)'), v: stats.pendingChecks, s: _t('قيد التحصيل', 'Under collection'), c: '#F59E0B', ic: FileText, href: '/treasury/checks' },
+    { l: _t('صناديق نثرية نشطة', 'Active Petty Cash'), v: stats.pettyCash, s: _t('صناديق تعمل', 'Active funds'), c: '#22C55E', ic: Landmark, href: '/treasury/petty-cash' },
+  ];
 
-    // 3. Active Petty Cash Funds
-    const pettyCashFunds = await prisma.pettyCashFund.count({
-        where: { status: 'ACTIVE' }
-    });
+  const TX_COLORS: Record<string, { bg: string; color: string }> = {
+    DEPOSIT: { bg: '#22C55E20', color: '#22C55E' }, INCOME: { bg: '#22C55E20', color: '#22C55E' },
+    TRANSFER: { bg: '#3B82F620', color: '#3B82F6' },
+    WITHDRAWAL: { bg: '#EF444420', color: '#EF4444' }, EXPENSE: { bg: '#EF444420', color: '#EF4444' },
+  };
 
-    // 4. Recent Bank Transactions
-    const recentTransactions = await prisma.bankTransaction.findMany({
-        take: 5,
-        orderBy: { transactionDate: 'desc' },
-        include: { bankAccount: true }
-    });
-
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Landmark className="w-8 h-8 text-indigo-600" />
-                        Treasury & Cash Management
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage bank accounts, cash positions, checks, and petty cash.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-                        <ArrowRightLeft className="w-4 h-4 mr-2" />
-                        Inter-account Transfer
-                    </Button>
-                </div>
-            </div>
-
-            {/* Metrics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-indigo-600">Total Cash Position</p>
-                            <Building2 className="w-4 h-4 text-indigo-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">SAR {totalCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-                        <p className="text-xs text-indigo-500 mt-1">Across {accounts.length} active bank accounts</p>
-                    </CardContent>
-                </Card>
-                <Link href="/treasury/checks">
-                    <Card className="bg-gradient-to-br from-amber-50 to-white border-amber-100 hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-amber-600">Pending Checks (PDC)</p>
-                                <FileText className="w-4 h-4 text-amber-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mt-2">{pendingChecks}</h3>
-                            <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">Manage Checks <ArrowRightLeft className="w-3 h-3" /></p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/treasury/petty-cash">
-                    <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100 hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-emerald-600">Active Petty Cash Funds</p>
-                                <Landmark className="w-4 h-4 text-emerald-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mt-2">{pettyCashFunds}</h3>
-                            <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1">Manage Funds <ArrowRightLeft className="w-3 h-3" /></p>
-                        </CardContent>
-                    </Card>
-                </Link>
-            </div>
-
-            {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Bank Accounts List */}
-                <Card className="border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100 pb-3 bg-gray-50">
-                        <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-                            <span className="flex items-center gap-2">
-                                <Building2 className="w-5 h-5 text-gray-500" />
-                                Bank Accounts Balance
-                            </span>
-                            <Button variant="ghost" size="sm" className="h-8 text-indigo-600">View All</Button>
-                        </CardTitle>
-                    </CardHeader>
-                    <div className="divide-y divide-gray-100 bg-white">
-                        {accounts.map(account => (
-                            <div key={account.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <div>
-                                    <p className="font-medium text-gray-900">{account.bankName}</p>
-                                    <p className="text-xs text-gray-500">{account.accountNumber} • {account.accountName}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-gray-900">
-                                        {account.currentBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </p>
-                                    <p className="text-xs text-gray-500">{account.currency}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-
-                {/* Recent Transactions */}
-                <Card className="border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-100 pb-3 bg-gray-50">
-                        <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-                            <span className="flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-gray-500" />
-                                Recent Bank Transactions
-                            </span>
-                            <Button variant="ghost" size="sm" className="h-8 text-indigo-600">Refresh</Button>
-                        </CardTitle>
-                    </CardHeader>
-                    <div className="divide-y divide-gray-100 bg-white">
-                        {recentTransactions.map(tx => (
-                            <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-full ${
-                                        tx.type === 'DEPOSIT' || tx.type === 'INCOME' ? 'bg-green-100 text-green-600' : 
-                                        tx.type === 'TRANSFER' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'
-                                    }`}>
-                                        {tx.type === 'DEPOSIT' || tx.type === 'INCOME' ? <ArrowDownRight className="w-4 h-4" /> : 
-                                         tx.type === 'TRANSFER' ? <RefreshCcw className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">{tx.description || tx.type}</p>
-                                        <p className="text-xs text-gray-500">{tx.bankAccount.bankName} • {new Date(tx.transactionDate).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className={`text-sm font-bold ${
-                                        tx.type === 'DEPOSIT' || tx.type === 'INCOME' ? 'text-green-600' : 
-                                        tx.type === 'TRANSFER' ? 'text-blue-600' : 'text-red-600'
-                                    }`}>
-                                        {tx.type === 'DEPOSIT' || tx.type === 'INCOME' ? '+' : '-'}{tx.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                    </p>
-                                    <p className="text-xs text-gray-400">{tx.reference}</p>
-                                </div>
-                            </div>
-                        ))}
-                        {recentTransactions.length === 0 && (
-                            <div className="p-8 text-center text-gray-500 text-sm bg-white">
-                                No recent bank transactions found.
-                            </div>
-                        )}
-                    </div>
-                </Card>
-
-            </div>
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Landmark size={28} color="#6366F1" /> {_t('الخزينة وإدارة النقد', 'Treasury & Cash Management')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14px' }}>{_t('إدارة الحسابات البنكية والمركز النقدي والشيكات والصناديق النثرية', 'Manage bank accounts, cash positions, checks, and petty cash')}</p>
         </div>
-    );
+        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ArrowRightLeft size={16} /> {_t('تحويل بين حسابات', 'Inter-account Transfer')}</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {kpis.map((c, i) => {
+          const inner = (
+            <div className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}`, cursor: (c as any).href ? 'pointer' : undefined }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+                <c.ic size={18} color={c.c} />
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '800' }}>{loading ? '...' : c.v}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+            </div>
+          );
+          return (c as any).href ? <Link key={i} href={(c as any).href} style={{ textDecoration: 'none', color: 'inherit' }}>{inner}</Link> : <div key={i}>{inner}</div>;
+        })}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="card">
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}><Building2 size={18} color="var(--text-muted)" /> {_t('أرصدة الحسابات البنكية', 'Bank Accounts Balance')}</h3>
+            <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('عرض الكل', 'View All')}</button>
+          </div>
+          {bankAccounts.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>{_t('لا توجد حسابات', 'No accounts')}</div>
+          ) : bankAccounts.map((a: any) => (
+            <div key={a.id} style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: '600' }}>{a.bankName}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{a.accountNumber} • {a.accountName}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: '800' }}>{fmt(a.currentBalance || 0)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{a.currency || 'SAR'}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}><TrendingUp size={18} color="var(--text-muted)" /> {_t('آخر العمليات البنكية', 'Recent Bank Transactions')}</h3>
+            <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('تحديث', 'Refresh')}</button>
+          </div>
+          {transactions.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>{_t('لا توجد عمليات', 'No transactions')}</div>
+          ) : transactions.map((tx: any) => {
+            const c = TX_COLORS[tx.type] || TX_COLORS.WITHDRAWAL;
+            const isIncome = tx.type === 'DEPOSIT' || tx.type === 'INCOME';
+            return (
+              <div key={tx.id} style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: c.bg, color: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {isIncome ? <ArrowDownRight size={18} /> : tx.type === 'TRANSFER' ? <RefreshCcw size={18} /> : <ArrowUpRight size={18} />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '600' }}>{tx.description || tx.type}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{tx.bankAccount?.bankName} • {tx.transactionDate?.slice?.(0, 10)}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: '700', color: c.color }}>{isIncome ? '+' : '-'}{fmt(tx.amount || 0)}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tx.reference}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }

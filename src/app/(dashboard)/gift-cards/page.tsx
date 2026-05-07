@@ -1,11 +1,14 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, CreditCard, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default async function GiftCardsPage() {
+export default function GiftCardsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const giftCards = await prisma.giftCard.findMany({
         orderBy: { createdAt: 'desc' },
         take: 50

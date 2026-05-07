@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, BarChart3, Flag, AlertTriangle, Users, Clock, Plus, CheckCircle, Target } from 'lucide-react';
 import { useToast } from '@/components/Toast';
@@ -9,6 +10,8 @@ const riskColors: any = { LOW:'#22C55E', MEDIUM:'#EAB308', HIGH:'#F97316', CRITI
 const msColors: any = { PENDING:'#94A3B8', ACHIEVED:'#22C55E', MISSED:'#EF4444', CANCELLED:'#6B7280' };
 
 export default function ProjectGantt({ params }: { params: { id: string } }) {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const router = useRouter();
   const { error: toastError } = useToast();
   const [project, setProject] = useState<any>(null);

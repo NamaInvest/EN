@@ -1,9 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, Navigation, Clock, Box } from 'lucide-react';
 
 export default function TechnicianPortalPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(false);
 

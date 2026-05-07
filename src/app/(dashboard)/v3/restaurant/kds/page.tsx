@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function KitchenDisplaySystemPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [tickets] = useState([
         { 
             id: 'ORD-9912', table: 'Table 1', time: '10m', type: 'Dine-in', course: 'Main Course',

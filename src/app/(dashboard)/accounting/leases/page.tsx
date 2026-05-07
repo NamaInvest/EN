@@ -1,145 +1,98 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Briefcase, Building, FileSignature, DollarSign } from 'lucide-react';
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { format } from 'date-fns';
+'use client';
+import { useState, useEffect } from 'react';
+import { Briefcase, Building, FileSignature, DollarSign, Plus } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function LeasesDashboard() {
-    // 1. Total ROU Assets
-    const rouAgg = await prisma.ifrsLeaseContract.aggregate({
-        _sum: { currentRouNbv: true },
-        where: { status: 'ACTIVE' }
-    });
+export default function LeasesDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [stats, setStats] = useState({ rou: 0, liability: 0, contracts: 0, monthly: 0 });
+  const [leases, setLeases] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    // 2. Lease Liabilities
-    const liabilityAgg = await prisma.ifrsLeaseContract.aggregate({
-        _sum: { currentLiability: true },
-        where: { status: 'ACTIVE' }
-    });
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/accounting/leases', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.stats) setStats(d.stats);
+          setLeases(d.leases || d.data || d || []);
+        }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-    // 3. Active Contracts
-    const activeContractsCount = await prisma.ifrsLeaseContract.count({
-        where: { status: 'ACTIVE' }
-    });
+  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  const STATUS_COLORS: Record<string, string> = { ACTIVE: '#22C55E', EXPIRED: '#9CA3AF', TERMINATED: '#EF4444' };
+  const cards = [
+    { l: _t('أصول حق الاستخدام', 'Total ROU Assets'), v: `${fmt(stats.rou)} ${_t('ر.س', 'SAR')}`, s: _t('صافي القيمة الدفترية', 'Net book value'), c: '#3B82F6', ic: Building },
+    { l: _t('التزامات الإيجار', 'Lease Liabilities'), v: `${fmt(stats.liability)} ${_t('ر.س', 'SAR')}`, s: _t('جارية + غير جارية', 'Current + Non-current'), c: '#EF4444', ic: Briefcase },
+    { l: _t('عقود نشطة', 'Active Contracts'), v: stats.contracts, s: 'IFRS 16', c: '#22C55E', ic: FileSignature },
+    { l: _t('أقساط شهرية مستحقة', 'Monthly Payments Due'), v: `${fmt(stats.monthly)} ${_t('ر.س', 'SAR')}`, s: _t('خلال 30 يوماً', 'Next 30 days'), c: '#F97316', ic: DollarSign },
+  ];
 
-    // 4. Payments Due (Next 30 days) - This would be from IfrsLeaseScheduleLine
-    const today = new Date();
-    const nextMonth = new Date();
-    nextMonth.setDate(nextMonth.getDate() + 30);
-    
-    // Simplification for the dashboard: count scheduled payments in next 30 days.
-    // If not directly available, we can just show a placeholder or a sum of monthly paymentAmount of active leases.
-    // We will show a sum of paymentAmount for active contracts that are due monthly.
-    const monthlyPaymentsAgg = await prisma.ifrsLeaseContract.aggregate({
-        _sum: { paymentAmount: true },
-        where: { status: 'ACTIVE', paymentFrequency: 'MONTHLY' }
-    });
-
-    // Lease Amortization Schedule
-    const activeLeases = await prisma.ifrsLeaseContract.findMany({
-        take: 10,
-        where: { status: 'ACTIVE' },
-        orderBy: { id: 'desc' },
-        include: { schedule: true }
-    });
-
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Lease Accounting (IFRS 16)</h1>
-                    <p className="text-muted-foreground">Manage right-of-use (ROU) assets and lease liabilities</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline">
-                        <FileSignature className="h-4 w-4 mr-2" /> Add Lease
-                    </Button>
-                    <Button variant="default">
-                        <DollarSign className="h-4 w-4 mr-2" /> Post Monthly Entries
-                    </Button>
-                </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total ROU Assets</CardTitle>
-                        <Building className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(rouAgg._sum.currentRouNbv || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Net book value</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Lease Liabilities</CardTitle>
-                        <Briefcase className="h-4 w-4 text-red-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(liabilityAgg._sum.currentLiability || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Current + Non-current</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
-                        <FileSignature className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{activeContractsCount}</div>
-                        <p className="text-xs text-muted-foreground">IFRS 16 Leases</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Monthly Payments Due</CardTitle>
-                        <DollarSign className="h-4 w-4 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(monthlyPaymentsAgg._sum.paymentAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Approx. next 30 days</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Recent Lease Contracts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <table className="min-w-full divide-y divide-border">
-                            <thead className="bg-muted/50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Lease ID</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Class</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Lessor</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {activeLeases.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No active leases.</td></tr>
-                                ) : activeLeases.map((lease) => (
-                                    <tr key={lease.id}>
-                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">{lease.contractNumber}</td>
-                                        <td className="px-4 py-3 text-sm">{lease.assetDescription}</td>
-                                        <td className="px-4 py-3 text-sm">{lease.leaseClass}</td>
-                                        <td className="px-4 py-3 text-sm">{lease.lessor}</td>
-                                        <td className="px-4 py-3 text-sm">
-                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{lease.status}</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+  return (
+    <div style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Building size={28} color="var(--primary)" /> {_t('محاسبة الإيجارات (IFRS 16)', 'Lease Accounting (IFRS 16)')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>{_t('إدارة أصول حق الاستخدام والتزامات الإيجار', 'Manage right-of-use (ROU) assets and lease liabilities')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FileSignature size={16} /> {_t('إضافة عقد', 'Add Lease')}</button>
+          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><DollarSign size={16} /> {_t('ترحيل القيود الشهرية', 'Post Monthly Entries')}</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {cards.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '22px', fontWeight: '800' }}>{c.v}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ overflow: 'auto' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('عقود الإيجار الأخيرة', 'Recent Lease Contracts')}</h3>
+        </div>
+        {loading ? <div style={{ textAlign: 'center', padding: '40px' }}>{_t('جاري التحميل...', 'Loading...')}</div> : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{_t('رقم العقد', 'Lease ID')}</th>
+                <th>{_t('الوصف', 'Description')}</th>
+                <th>{_t('التصنيف', 'Class')}</th>
+                <th>{_t('المؤجر', 'Lessor')}</th>
+                <th style={{ textAlign: 'center' }}>{_t('الحالة', 'Status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leases.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>{_t('لا توجد عقود إيجار', 'No active leases')}</td></tr>
+              ) : leases.map((l: any) => (
+                <tr key={l.id}>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>{l.contractNumber}</td>
+                  <td>{l.assetDescription}</td>
+                  <td>{l.leaseClass}</td>
+                  <td>{l.lessor}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (STATUS_COLORS[l.status] || '#9CA3AF') + '20', color: STATUS_COLORS[l.status] || '#9CA3AF' }}>{l.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
 }

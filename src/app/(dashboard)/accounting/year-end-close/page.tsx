@@ -1,10 +1,13 @@
+'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, FileOutput, ShieldAlert, CheckSquare } from 'lucide-react';
-import { prisma } from '@/lib/prisma';
 
-export default async function YearEndCloseDashboard() {
+export default function YearEndCloseDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     // Fetch live data from Prisma
     const unpostedJEsCount = await prisma.journalEntry.count({
         where: { status: 'draft' }

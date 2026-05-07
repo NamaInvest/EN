@@ -1,10 +1,13 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Network, Play, FileText, ArrowRight } from 'lucide-react';
 
-export default async function AllocationsPage() {
+export default function AllocationsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     // Fetch Allocation Rules
     const rules = await prisma.allocationRule.findMany({
         orderBy: { id: 'asc' },

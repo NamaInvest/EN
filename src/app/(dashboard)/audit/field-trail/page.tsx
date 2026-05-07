@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Shield, Search } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const actionColors: any = { CREATE: '#22C55E', UPDATE: '#3B82F6', DELETE: '#EF4444' };
 
 export default function FieldAuditTrail() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError } = useToast();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

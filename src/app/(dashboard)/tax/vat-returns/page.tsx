@@ -1,9 +1,13 @@
+'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, FileBarChart, Search, Calculator } from 'lucide-react';
 
 export default function VATReturnsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

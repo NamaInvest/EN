@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { useSettings } from '@/lib/SettingsContext';
 
 const L: Record<string, Record<string, string>> = {
@@ -65,6 +66,8 @@ const DIM_OPTIONS = [
 ];
 
 export default function CopaPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { getSetting } = useSettings();
     const lang = (getSetting('language', 'ar')) as 'ar' | 'en';
     const t = L[lang] || L.ar;

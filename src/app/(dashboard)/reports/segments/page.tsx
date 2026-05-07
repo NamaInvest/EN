@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function SegmentReportingPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [segments] = useState([
         { id: 'SEG-01', name: 'Retail Electronics', revenue: 4500000, cost: 2800000, margin: 1700000, marginPct: 37.7 },
         { id: 'SEG-02', name: 'B2B Software Services', revenue: 3200000, cost: 1200000, margin: 2000000, marginPct: 62.5 },

@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function RoutingOptimizationPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [recipes, setRecipes] = useState<any[]>([]);
     const [workCenters, setWorkCenters] = useState<any[]>([]);
     const [selectedRecipeId, setSelectedRecipeId] = useState<string>('');

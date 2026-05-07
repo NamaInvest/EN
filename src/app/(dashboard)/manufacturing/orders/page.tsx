@@ -1,12 +1,15 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Hammer, Plus, Calendar, Settings, PlayCircle, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
-export default async function ManufacturingOrdersPage() {
+export default function ManufacturingOrdersPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const orders = await prisma.manufacturingOrder.findMany({
         take: 50,
         orderBy: { startDate: 'desc' }

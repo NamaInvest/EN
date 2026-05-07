@@ -490,6 +490,7 @@ model ProductStock {
   stock   Stock           @relation(fields: [stockId], references: [id], onDelete: Cascade)
   bin     WarehouseBin?   @relation(fields: [binId], references: [id])
 
+  @@unique([productId, stockId])
   @@index([productId, stockId, binId])
   @@map("product_stocks")
 }

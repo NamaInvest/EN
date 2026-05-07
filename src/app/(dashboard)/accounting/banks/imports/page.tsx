@@ -1,6 +1,8 @@
+'use client';
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText, CheckCircle, AlertTriangle, ScanLine } from 'lucide-react';
@@ -8,6 +10,8 @@ import Link from 'next/link';
 import { useToast } from '@/components/Toast';
 
 export default function BankStatementImportsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { error: toastError, success: toastSuccess } = useToast();
     const [uploading, setUploading] = useState(false);
 

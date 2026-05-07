@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,8 @@ import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
 export default function SecurityProfilePage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [totpEnabled, setTotpEnabled] = useState(false);
     const [qrUri, setQrUri] = useState('');
     const [secret, setSecret] = useState('');

@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { TrendingUp, Plus, Edit3, Trash2, BarChart3, ArrowUpDown, Layers } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const statusColors: any = { ACTIVE: '#22C55E', DRAFT: '#94A3B8', ARCHIVED: '#6B7280' };
 
 export default function BudgetScenarios() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

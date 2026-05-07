@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Package, TrendingUp, DollarSign, Truck, Clock, Eye, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
@@ -7,6 +8,8 @@ const statusColors: any = { PENDING: '#EAB308', CONFIRMED: '#3B82F6', PROCESSING
 const payColors: any = { UNPAID: '#EF4444', PAID: '#22C55E', REFUNDED: '#94A3B8' };
 
 export default function EcommerceDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

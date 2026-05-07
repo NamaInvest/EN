@@ -1,11 +1,15 @@
+'use client';
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, CreditCard, Banknote, X, Plus, Minus, User, Printer, QrCode } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function POSTerminal() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const [cart, setCart] = useState([
  { id: 1, name: 'قهوة مختصة (V60)', price: 18.00, qty: 2 },
  { id: 2, name: 'كيكة العسل الروسية', price: 25.00, qty: 1 }

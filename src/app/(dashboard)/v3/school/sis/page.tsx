@@ -1,10 +1,13 @@
 'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Users, GraduationCap, Bus, Bell, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function SchoolSIS() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     <div className="p-6 bg-slate-50 min-h-screen text-slate-800 space-y-6 max-w-7xl mx-auto">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-purple-600 text-white font-bold hover:opacity-90 shadow-lg"><Brain className="w-4 h-4 mr-2"/> Predictive Dropout AI</Button>\n        <Button className="bg-slate-600 text-white font-bold hover:opacity-90 shadow-lg"><ScanSearch className="w-4 h-4 mr-2"/> Plagiarism Scanner</Button>\n        <Button className="bg-red-500 text-white font-bold hover:opacity-90 shadow-lg"><MapPin className="w-4 h-4 mr-2"/> RFID Live Tracking</Button>\n        </div>\n      </div>
       <div className="flex justify-between items-center bg-indigo-900 text-white p-6 rounded-2xl shadow-lg">

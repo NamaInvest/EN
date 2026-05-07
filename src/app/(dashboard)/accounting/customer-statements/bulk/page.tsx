@@ -1,9 +1,13 @@
+'use client';
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { FileText, Play, Eye, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function BulkRunPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [loading, setLoading] = useState(false);
     const [previewLoading, setPreviewLoading] = useState(false);
     const [segment, setSegment] = useState('all');

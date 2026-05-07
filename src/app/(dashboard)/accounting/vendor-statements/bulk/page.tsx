@@ -1,10 +1,14 @@
+'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Send, ArrowLeft, Mail, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BulkVendorStatementsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="max-w-5xl mx-auto space-y-6 p-6">
             <div className="flex items-center gap-4">

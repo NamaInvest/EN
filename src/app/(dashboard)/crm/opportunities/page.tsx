@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CRMOpportunitiesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [stages, setStages] = useState<any[]>([]);
     const [opportunities, setOpportunities] = useState<any[]>([]);
     const [accounts, setAccounts] = useState<any[]>([]);

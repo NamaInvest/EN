@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ArrowRight, Plus, Building2, Search } from 'lucide-react';
 import Link from 'next/link';
 
@@ -15,6 +16,8 @@ interface ProfitCenter {
 }
 
 export default function ProfitCentersPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [items, setItems] = useState<ProfitCenter[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

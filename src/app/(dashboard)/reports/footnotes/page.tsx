@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function FootnotesBuilderPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [footnotes] = useState([
         { id: 'FN-1', category: 'Significant Accounting Policies', title: 'Basis of Preparation', content: 'These financial statements have been prepared in accordance with IFRS.', status: 'PUBLISHED' },
         { id: 'FN-2', category: 'Related Parties', title: 'Transactions with Affiliates', content: 'Auto-populated: 4 transactions with Alpha Corp totaling SAR 45,000.', status: 'DRAFT' },

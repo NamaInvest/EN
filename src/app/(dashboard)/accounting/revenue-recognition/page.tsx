@@ -1,157 +1,95 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+'use client';
+import { useState, useEffect } from 'react';
 import { Target, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
-import { prisma } from '@/lib/prisma';
-import { format } from 'date-fns';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function RevenueRecognitionDashboard() {
-    // 1. Total Deferred Revenue (Total Unearned)
-    const deferredAgg = await prisma.deferredRevenueSchedule.aggregate({
-        _sum: { totalAmount: true },
-        where: { isCurrent: true }
-    });
-    
-    const schedules = await prisma.deferredRevenueSchedule.findMany({
-        where: { isCurrent: true },
-        include: { performanceObligation: { include: { contract: true } } }
-    });
-    
-    let totalUnearned = 0;
-    schedules.forEach(s => {
-        if (s.recognizedLines < s.totalLines) {
-             totalUnearned += Number(s.totalAmount) * ((s.totalLines - s.recognizedLines) / s.totalLines);
+export default function RevenueRecognitionDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [stats, setStats] = useState({ unearned: 0, recognized: 0, contracts: 0, exceptions: 0 });
+  const [lines, setLines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/accounting/revenue-recognition', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.stats) setStats(d.stats);
+          setLines(d.lines || d.data || d || []);
         }
-    });
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-    // 2. Recognized This Month
-    const currentMonthStart = new Date(new Date().setDate(1));
-    currentMonthStart.setHours(0, 0, 0, 0);
-    
-    const recognizedAgg = await prisma.revenueRecognitionLine.aggregate({
-        _sum: { scheduledAmount: true },
-        where: { 
-            status: 'RECOGNIZED',
-            recognizedAt: { gte: currentMonthStart }
-        }
-    });
-    const recognizedThisMonth = Number(recognizedAgg._sum?.scheduledAmount || 0);
+  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  const cards = [
+    { l: _t('إيرادات غير مكتسبة', 'Unearned Revenue'), v: `${fmt(stats.unearned)} ${_t('ر.س', 'SAR')}`, s: _t('إجمالي الالتزام المؤجل', 'Total deferred liability'), c: '#6366F1', ic: AlertCircle },
+    { l: _t('معترف بها (هذا الشهر)', 'Recognized (This Month)'), v: `${fmt(stats.recognized)} ${_t('ر.س', 'SAR')}`, s: _t('تم ترحيلها لدفتر الأستاذ', 'Posted to GL'), c: '#22C55E', ic: TrendingUp },
+    { l: _t('عقود نشطة', 'Active Contracts'), v: stats.contracts, s: _t('تحت الإطفاء', 'Under amortization'), c: '#3B82F6', ic: Target },
+    { l: _t('استثناءات', 'Exceptions'), v: stats.exceptions, s: _t('تتطلب مراجعة', 'Requires review'), c: '#EF4444', ic: Calendar },
+  ];
 
-    // 3. Active Contracts
-    const activeContractsCount = await prisma.salesContract.count({
-        where: { status: 'ACTIVE' }
-    });
-
-    // 4. Exceptions
-    const exceptionsCount = await prisma.revenueRecognitionLine.count({
-        where: { status: 'EXCEPTION' }
-    }).catch(() => 0); // Fallback if EXCEPTION doesn't exist
-
-    // Upcoming Schedules
-    const upcomingLines = await prisma.revenueRecognitionLine.findMany({
-        where: { status: 'PENDING' },
-        take: 10,
-        orderBy: { recognitionDate: 'asc' },
-        include: { schedule: { include: { performanceObligation: { include: { contract: { include: { customer: true } } } } } } }
-    });
-
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Revenue Recognition (IFRS 15)</h1>
-                    <p className="text-muted-foreground">Automated performance obligation tracking and deferred revenue amortization</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline">
-                        <TrendingUp className="h-4 w-4 mr-2" /> Forecast
-                    </Button>
-                    <Button variant="default">
-                        <Target className="h-4 w-4 mr-2" /> Run Amortization
-                    </Button>
-                </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Unearned Revenue</CardTitle>
-                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {totalUnearned.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Total deferred liability</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Recognized (This Month)</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {recognizedThisMonth.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Posted to general ledger</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
-                        <Target className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{activeContractsCount}</div>
-                        <p className="text-xs text-muted-foreground">Under active amortization</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Exceptions</CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-destructive">{exceptionsCount}</div>
-                        <p className="text-xs text-muted-foreground">Requires manual review</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Upcoming Amortization Schedules</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <table className="min-w-full divide-y divide-border">
-                            <thead className="bg-muted/50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Contract #</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Schedule Type</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Next Recognition</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {upcomingLines.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No upcoming schedules.</td></tr>
-                                ) : upcomingLines.map((line) => (
-                                    <tr key={line.id}>
-                                        <td className="px-4 py-3 text-sm text-blue-600">
-                                            {line.schedule?.performanceObligation?.contract?.contractNumber || 'Unknown'}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">
-                                            {line.schedule?.performanceObligation?.contract?.customer?.name || 'Unknown'}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">{line.schedule?.frequency || '-'}</td>
-                                        <td className="px-4 py-3 text-sm">{format(new Date(line.recognitionDate), 'yyyy-MM-dd')}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {Number(line.scheduledAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+  return (
+    <div style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Target size={28} color="var(--primary)" /> {_t('الاعتراف بالإيراد (IFRS 15)', 'Revenue Recognition (IFRS 15)')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>{_t('تتبع التزامات الأداء وإطفاء الإيرادات المؤجلة', 'Automated performance obligation tracking and deferred revenue amortization')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><TrendingUp size={16} /> {_t('توقعات', 'Forecast')}</button>
+          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Target size={16} /> {_t('تشغيل الإطفاء', 'Run Amortization')}</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {cards.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '22px', fontWeight: '800', color: c.c === '#EF4444' && stats.exceptions > 0 ? '#EF4444' : undefined }}>{c.v}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ overflow: 'auto' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('جداول الإطفاء القادمة', 'Upcoming Amortization Schedules')}</h3>
+        </div>
+        {loading ? <div style={{ textAlign: 'center', padding: '40px' }}>{_t('جاري التحميل...', 'Loading...')}</div> : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{_t('رقم العقد', 'Contract #')}</th>
+                <th>{_t('العميل', 'Customer')}</th>
+                <th>{_t('نوع الجدول', 'Schedule Type')}</th>
+                <th>{_t('تاريخ الاعتراف القادم', 'Next Recognition')}</th>
+                <th>{_t('المبلغ', 'Amount')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>{_t('لا توجد جداول قادمة', 'No upcoming schedules')}</td></tr>
+              ) : lines.map((l: any) => (
+                <tr key={l.id}>
+                  <td style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: '600' }}>{l.contractNumber || l.schedule?.performanceObligation?.contract?.contractNumber || '—'}</td>
+                  <td>{l.customerName || l.schedule?.performanceObligation?.contract?.customer?.name || '—'}</td>
+                  <td>{l.frequency || l.schedule?.frequency || '—'}</td>
+                  <td>{l.recognitionDate?.slice?.(0, 10) || '—'}</td>
+                  <td style={{ fontWeight: '600' }}>{Number(l.scheduledAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} {_t('ر.س', 'SAR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { FileText, Plus, Edit3, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const catColors: any = { GENERAL: '#3B82F6', SALES: '#22C55E', PURCHASE: '#F97316', EMPLOYMENT: '#8B5CF6', LEASE: '#EAB308' };
 
 export default function ContractTemplates() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

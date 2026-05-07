@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Plus, Edit2, Trash2, Copy, CheckCircle, FileText } from 'lucide-react';
 
 interface Template {
@@ -16,6 +17,8 @@ interface Template {
 }
 
 export default function CustomerStatementTemplates() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [templates, setTemplates] = useState<Template[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,8 +1,9 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Plus, Layers, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 interface Segment {
   id: number;
@@ -13,31 +14,30 @@ interface Segment {
   isActive: boolean;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  GEO: 'جغرافي',
-  PRODUCT_LINE: 'خط إنتاج',
-  CHANNEL: 'قناة توزيع',
-};
-
 export default function SegmentsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const { success: ts, error: te } = useToast();
   const [items, setItems] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ code: '', name: '', nameEn: '', type: 'GEO' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+
+  const TYPE_LABELS: Record<string, string> = {
+    GEO: _t('جغرافي', 'Geographic'),
+    PRODUCT_LINE: _t('خط إنتاج', 'Product Line'),
+    CHANNEL: _t('قناة توزيع', 'Distribution Channel'),
+  };
 
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/accounting/segments');
+      const res = await fetch('/api/accounting/segments', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       if (res.ok) setItems(await res.json());
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchItems(); }, []);
@@ -46,26 +46,23 @@ export default function SegmentsPage() {
     e.preventDefault();
     if (!form.code || !form.name) return;
     setSaving(true);
-    setError('');
     try {
       const res = await fetch('/api/accounting/segments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify(form),
       });
       if (res.ok) {
         setForm({ code: '', name: '', nameEn: '', type: 'GEO' });
         setShowForm(false);
         fetchItems();
+        ts(_t('تم الحفظ بنجاح', 'Saved successfully'));
       } else {
         const data = await res.json();
-        setError(data.error || 'فشل الحفظ');
+        te(data.error || _t('فشل الحفظ', 'Save failed'));
       }
-    } catch {
-      setError('خطأ في الاتصال');
-    } finally {
-      setSaving(false);
-    }
+    } catch { te(_t('خطأ في الاتصال', 'Connection error')); }
+    finally { setSaving(false); }
   };
 
   const filtered = items.filter(i =>
@@ -76,106 +73,90 @@ export default function SegmentsPage() {
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <Link href="/accounting" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
-          <ArrowRight size={20} /> العودة للمحاسبة
-        </Link>
-        <h1 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Layers size={24} color="var(--primary)" /> القطاعات
-        </h1>
-        <div style={{ flex: 1 }} />
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <Plus size={18} /> إضافة قطاع
+    <div style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Layers size={28} color="var(--primary)" /> {_t('القطاعات', 'Segments')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>{_t('إدارة القطاعات المحاسبية', 'Manage accounting segments')}</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={16} /> {_t('إضافة قطاع', 'Add Segment')}
         </button>
       </div>
 
-      {/* Add Form */}
       {showForm && (
-        <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-          <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>إضافة قطاع جديد</h3>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+        <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
+          <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '700' }}>{_t('إضافة قطاع جديد', 'Add New Segment')}</h3>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الرمز *</label>
-              <input className="input" placeholder="مثال: SEG01" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الرمز', 'Code')} *</label>
+              <input className="input" placeholder={_t('مثال: SEG01', 'e.g. SEG01')} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الاسم (عربي) *</label>
-              <input className="input" placeholder="مثال: المنطقة الوسطى" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الاسم (عربي)', 'Name (Arabic)')} *</label>
+              <input className="input" placeholder={_t('المنطقة الوسطى', 'Central Region')} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الاسم (إنجليزي)</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الاسم (إنجليزي)', 'Name (English)')}</label>
               <input className="input" placeholder="e.g. Central Region" value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>النوع</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('النوع', 'Type')}</label>
               <select className="input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-                <option value="GEO">جغرافي</option>
-                <option value="PRODUCT_LINE">خط إنتاج</option>
-                <option value="CHANNEL">قناة توزيع</option>
+                <option value="GEO">{_t('جغرافي', 'Geographic')}</option>
+                <option value="PRODUCT_LINE">{_t('خط إنتاج', 'Product Line')}</option>
+                <option value="CHANNEL">{_t('قناة توزيع', 'Distribution Channel')}</option>
               </select>
             </div>
             <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? 'جاري الحفظ...' : 'حفظ'}
+              {saving ? _t('جاري الحفظ...', 'Saving...') : _t('حفظ', 'Save')}
             </button>
           </form>
-          {error && <div style={{ color: '#ef4444', marginTop: '0.75rem', fontSize: '0.9rem' }}>{error}</div>}
         </div>
       )}
 
-      {/* Search */}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Search size={20} color="var(--text-muted)" />
-          <input className="input" style={{ flex: 1 }} placeholder="ابحث بالرمز أو الاسم..." value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="card" style={{ marginBottom: '16px', padding: '12px 16px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Search size={18} color="var(--text-muted)" />
+          <input className="input" style={{ flex: 1, border: 'none' }} placeholder={_t('ابحث بالرمز أو الاسم...', 'Search by code or name...')} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>جاري التحميل...</div>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{_t('جاري التحميل...', 'Loading...')}</div>
       ) : filtered.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-          <Layers size={48} opacity={0.2} style={{ marginBottom: '1rem' }} />
-          <p>لا توجد قطاعات بعد. أضف أول قطاع من الزر أعلاه.</p>
+        <div className="card" style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+          <Layers size={48} opacity={0.2} style={{ marginBottom: '12px' }} />
+          <p>{_t('لا توجد قطاعات بعد', 'No segments yet')}</p>
         </div>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="card" style={{ overflow: 'auto' }}>
+          <table className="table">
             <thead>
-              <tr style={{ borderBottom: '2px solid var(--border)', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '1rem', textAlign: 'right', width: '15%' }}>الرمز</th>
-                <th style={{ padding: '1rem', textAlign: 'right', width: '25%' }}>الاسم (عربي)</th>
-                <th style={{ padding: '1rem', textAlign: 'right', width: '25%' }}>الاسم (إنجليزي)</th>
-                <th style={{ padding: '1rem', textAlign: 'center', width: '20%' }}>النوع</th>
-                <th style={{ padding: '1rem', textAlign: 'center', width: '15%' }}>الحالة</th>
+              <tr>
+                <th>{_t('الرمز', 'Code')}</th>
+                <th>{_t('الاسم (عربي)', 'Name (Arabic)')}</th>
+                <th>{_t('الاسم (إنجليزي)', 'Name (English)')}</th>
+                <th style={{ textAlign: 'center' }}>{_t('النوع', 'Type')}</th>
+                <th style={{ textAlign: 'center' }}>{_t('الحالة', 'Status')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(item => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>{item.code}</td>
-                  <td style={{ padding: '1rem', fontWeight: 'bold' }}>{item.name}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.nameEn || '—'}</td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{
-                      padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold',
-                      background: '#3b82f620', color: '#3b82f6',
-                    }}>
+                <tr key={item.id}>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>{item.code}</td>
+                  <td style={{ fontWeight: '600' }}>{item.name}</td>
+                  <td style={{ color: 'var(--text-muted)' }}>{item.nameEn || '—'}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: '#3b82f620', color: '#3b82f6' }}>
                       {TYPE_LABELS[item.type] || item.type}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{
-                      padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold',
-                      background: item.isActive ? '#22c55e20' : '#ef444420',
-                      color: item.isActive ? '#22c55e' : '#ef4444',
-                    }}>
-                      {item.isActive ? 'نشط' : 'غير نشط'}
+                  <td style={{ textAlign: 'center' }}>
+                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: item.isActive ? '#22c55e20' : '#ef444420', color: item.isActive ? '#22c55e' : '#ef4444' }}>
+                      {item.isActive ? _t('نشط', 'Active') : _t('غير نشط', 'Inactive')}
                     </span>
                   </td>
                 </tr>

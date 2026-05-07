@@ -1,10 +1,13 @@
 'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { HardHat, FileBarChart2, Truck, CheckSquare, Hammer, Building2, Plane, CloudRain } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function ConstructionBOQ() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const handleGenerateInvoice = async () => {
     try {
       const res = await fetch('/api/v3/construction/boq', {

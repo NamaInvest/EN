@@ -1,162 +1,108 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ShieldCheck, FileText, Globe, AlertTriangle, Play, FileSpreadsheet, Plus, Settings } from 'lucide-react';
+'use client';
+import { ShieldCheck, FileText, Globe, AlertTriangle, FileSpreadsheet, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function TaxDashboard() {
-    // Mock data to prevent Prisma schema errors before backend sync
-    const vatReturns = [
-        { id: 1, period: 'Q1 2026', status: 'DRAFT', amount: 45000, deadline: '2026-04-30' },
-        { id: 2, period: 'Q4 2025', status: 'SUBMITTED', amount: 42100, deadline: '2026-01-31' },
-    ];
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
-    const zatcaStatus = {
-        cleared: 1432,
-        failed: 3,
-        pending: 12
-    };
+  const kpis = [
+    { l: _t('تمت التصفية ZATCA', 'ZATCA Cleared'), v: '1,432', s: _t('فواتير B2B/B2C المرحلة 2', 'Phase 2 cleared B2B/B2C'), c: '#22C55E', ic: ShieldCheck },
+    { l: _t('فشل ZATCA', 'ZATCA Failed'), v: 3, s: _t('تحتاج اهتمام فوري', 'Require immediate attention'), c: '#EF4444', ic: AlertTriangle },
+    { l: _t('ضريبة استقطاع معلقة', 'WHT Pending'), v: `12,450 ${_t('ر.س', 'SAR')}`, s: _t('ضريبة مستحقة', 'Withholding tax payable'), c: '#3B82F6', ic: Globe },
+    { l: _t('مخصص الزكاة', 'Zakat Provision'), v: `85,200 ${_t('ر.س', 'SAR')}`, s: _t('تقدير السنة الحالية', 'Estimated current fiscal year'), c: '#8B5CF6', ic: FileText },
+  ];
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <ShieldCheck className="w-8 h-8 text-emerald-600" />
-                        Tax & ZATCA Compliance
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage VAT, Zakat, WHT, and ZATCA Phase 2 E-Invoicing integrations.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="bg-white">
-                        <Settings className="w-4 h-4 mr-2" />
-                        ZATCA Settings
-                    </Button>
-                    <Link href="/tax/vat-returns">
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            New VAT Return
-                        </Button>
-                    </Link>
-                </div>
-            </div>
+  const vatReturns = [
+    { id: 1, period: _t('الربع الأول 2026', 'Q1 2026'), status: 'DRAFT', amount: 45000, deadline: '2026-04-30' },
+    { id: 2, period: _t('الربع الرابع 2025', 'Q4 2025'), status: 'SUBMITTED', amount: 42100, deadline: '2026-01-31' },
+  ];
 
-            {/* Metrics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-emerald-600">ZATCA Cleared</p>
-                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{zatcaStatus.cleared}</h3>
-                        <p className="text-xs text-emerald-500 mt-1">Total phase 2 cleared B2B/B2C</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-red-50 to-white border-red-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-red-600">ZATCA Failed</p>
-                            <AlertTriangle className="w-4 h-4 text-red-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{zatcaStatus.failed}</h3>
-                        <p className="text-xs text-red-500 mt-1">Require immediate attention</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-blue-600">WHT Pending</p>
-                            <Globe className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">SAR 12,450</h3>
-                        <p className="text-xs text-blue-500 mt-1">Withholding tax payable</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-purple-600">Zakat Provision</p>
-                            <FileText className="w-4 h-4 text-purple-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">SAR 85,200</h3>
-                        <p className="text-xs text-purple-500 mt-1">Estimated current fiscal year</p>
-                    </CardContent>
-                </Card>
-            </div>
+  const shortcuts = [
+    { href: '/tax/zatca-onboard', icon: ShieldCheck, c: '#22C55E', title: _t('تسجيل ZATCA', 'ZATCA Onboarding'), desc: _t('إنشاء CSR والحصول على CSID و PCSID للفوترة الإلكترونية', 'Generate CSR, obtain CSID & PCSID for E-Invoicing Phase 2') },
+    { href: '/tax/wht', icon: Globe, c: '#3B82F6', title: _t('إدارة ضريبة الاستقطاع', 'WHT Management'), desc: _t('حساب ضريبة الاستقطاع وإصدار شهادات للموردين الأجانب', 'Calculate WHT and issue certificates to foreign vendors') },
+    { href: '/tax/zakat', icon: FileSpreadsheet, c: '#8B5CF6', title: _t('إقرار الزكاة', 'Zakat Declaration'), desc: _t('تقدير وعاء الزكاة (2.577%) بناء على البيانات المالية', 'Estimate Zakatable base (2.577%) based on financials') },
+    { href: '#', icon: AlertTriangle, c: '#EF4444', title: _t('الإرسالات الفاشلة', 'Failed Submissions'), desc: _t('مراجعة وإعادة إرسال 3 فواتير ZATCA فاشلة', 'Review and retry 3 failed ZATCA invoice submissions') },
+  ];
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* VAT Returns Table */}
-                <Card className="overflow-hidden border-gray-200 shadow-sm bg-white">
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800">Recent VAT Returns</h3>
-                        <Button variant="ghost" size="sm" className="text-emerald-600">View All</Button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-600 border-b">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium">Period</th>
-                                    <th className="px-4 py-3 font-medium text-right">Net VAT</th>
-                                    <th className="px-4 py-3 font-medium">Deadline</th>
-                                    <th className="px-4 py-3 font-medium">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {vatReturns.map((r) => (
-                                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-gray-900">{r.period}</td>
-                                        <td className="px-4 py-3 text-right font-medium">SAR {r.amount.toLocaleString()}</td>
-                                        <td className="px-4 py-3 text-gray-500">{r.deadline}</td>
-                                        <td className="px-4 py-3">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
-                                                r.status === 'SUBMITTED' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'
-                                            }`}>
-                                                {r.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
+  const STATUS_COLORS: Record<string, string> = { SUBMITTED: '#22C55E', DRAFT: '#9CA3AF', FILED: '#3B82F6' };
 
-                {/* Quick Actions */}
-                <Card className="border-gray-200 shadow-sm bg-white">
-                    <div className="p-4 border-b border-gray-100">
-                        <h3 className="font-semibold text-gray-800">Compliance Shortcuts</h3>
-                    </div>
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Link href="/tax/zatca-onboard">
-                            <div className="p-4 border rounded-lg hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group">
-                                <ShieldCheck className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">ZATCA Onboarding</h4>
-                                <p className="text-xs text-gray-500 mt-1">Generate CSR, obtain CSID & PCSID for E-Invoicing Phase 2.</p>
-                            </div>
-                        </Link>
-                        <Link href="/tax/wht">
-                            <div className="p-4 border rounded-lg hover:border-blue-500 hover:shadow-md transition-all cursor-pointer group">
-                                <Globe className="w-6 h-6 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">WHT Management</h4>
-                                <p className="text-xs text-gray-500 mt-1">Calculate withholding tax and issue certificates to foreign vendors.</p>
-                            </div>
-                        </Link>
-                        <Link href="/tax/zakat">
-                            <div className="p-4 border rounded-lg hover:border-purple-500 hover:shadow-md transition-all cursor-pointer group">
-                                <FileSpreadsheet className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">Zakat Declaration</h4>
-                                <p className="text-xs text-gray-500 mt-1">Estimate Zakatable base (2.577%) based on current financials.</p>
-                            </div>
-                        </Link>
-                        <div className="p-4 border rounded-lg hover:border-red-500 hover:shadow-md transition-all cursor-pointer group bg-red-50/30">
-                            <AlertTriangle className="w-6 h-6 text-red-500 mb-2 group-hover:scale-110 transition-transform" />
-                            <h4 className="font-medium text-gray-900">Failed Submissions</h4>
-                            <p className="text-xs text-gray-500 mt-1">Review and retry {zatcaStatus.failed} failed ZATCA invoice submissions.</p>
-                        </div>
-                    </div>
-                </Card>
-            </div>
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ShieldCheck size={28} color="#22C55E" /> {_t('الضريبة وامتثال ZATCA', 'Tax & ZATCA Compliance')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14px' }}>{_t('إدارة ضريبة القيمة المضافة والزكاة وضريبة الاستقطاع والفوترة الإلكترونية', 'Manage VAT, Zakat, WHT, and ZATCA Phase 2 E-Invoicing')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Settings size={16} /> {_t('إعدادات ZATCA', 'ZATCA Settings')}</button>
+          <Link href="/tax/vat-returns"><button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> {_t('إقرار ضريبي جديد', 'New VAT Return')}</button></Link>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {kpis.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800' }}>{c.v}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="card" style={{ overflow: 'auto' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('آخر إقرارات ضريبة القيمة المضافة', 'Recent VAT Returns')}</h3>
+            <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('عرض الكل', 'View All')}</button>
+          </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{_t('الفترة', 'Period')}</th>
+                <th>{_t('صافي الضريبة', 'Net VAT')}</th>
+                <th>{_t('الموعد النهائي', 'Deadline')}</th>
+                <th style={{ textAlign: 'center' }}>{_t('الحالة', 'Status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vatReturns.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: '600' }}>{r.period}</td>
+                  <td style={{ fontWeight: '600' }}>{r.amount.toLocaleString()} {_t('ر.س', 'SAR')}</td>
+                  <td style={{ color: 'var(--text-muted)' }}>{r.deadline}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (STATUS_COLORS[r.status] || '#9CA3AF') + '20', color: STATUS_COLORS[r.status] || '#9CA3AF' }}>{r.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('اختصارات الامتثال', 'Compliance Shortcuts')}</h3>
+          </div>
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {shortcuts.map((s, i) => (
+              <Link key={i} href={s.href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+                  <s.icon size={24} color={s.c} style={{ marginBottom: '8px' }} />
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{s.title}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{s.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

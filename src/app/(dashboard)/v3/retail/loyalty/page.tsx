@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 
 export default function LoyaltyRedemptionPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [accounts] = useState([
         { id: 'CUST-1001', name: 'Ahmed Ali', phone: '+966500000001', tier: 'GOLD', pointsBalance: 4500, status: 'ACTIVE' },
         { id: 'CUST-1002', name: 'Mohammed Omar', phone: '+966500000002', tier: 'SILVER', pointsBalance: 1200, status: 'ACTIVE' },

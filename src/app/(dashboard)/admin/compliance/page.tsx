@@ -1,9 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { ShieldCheck, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 export default function ComplianceMatrixDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState({ logs: [], concerns: [] });
 
     useEffect(() => {

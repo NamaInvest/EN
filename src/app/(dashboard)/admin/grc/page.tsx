@@ -1,10 +1,14 @@
+'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert, Fingerprint, GitMerge, FileCheck, Search, Activity, Lock, AlertOctagon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GrcDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const sodViolations = [
         { id: 1, user: 'ahmed.y', rule: 'SOD-001 (إنشاء واعتماد PO)', status: 'مفتوح', risk: 'عالي', date: '2026-05-04' },
         { id: 2, user: 'sara.k', rule: 'SOD-005 (إنشاء مورد ودفع)', status: 'تحت التحقيق', risk: 'حرج', date: '2026-05-03' },

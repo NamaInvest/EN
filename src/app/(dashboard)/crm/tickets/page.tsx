@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Headphones, Plus, AlertTriangle, Clock, CheckCircle, XCircle, Edit3, MessageSquare } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
@@ -7,6 +8,8 @@ const prioColors: any = { LOW: '#94A3B8', MEDIUM: '#3B82F6', HIGH: '#EAB308', UR
 const statusColors: any = { OPEN: '#3B82F6', IN_PROGRESS: '#8B5CF6', WAITING: '#EAB308', RESOLVED: '#22C55E', CLOSED: '#94A3B8' };
 
 export default function SupportTickets() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

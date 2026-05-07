@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ArrowRight, Plus, Hash, Search, RefreshCw, Settings2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -17,6 +18,8 @@ interface NumberSequence {
 }
 
 export default function NumberSequencesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [items, setItems] = useState<NumberSequence[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

@@ -1,104 +1,58 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+'use client';
 import { ShoppingBag, ClipboardList, Users, Truck, ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function ProcurementDashboard() {
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                    <ShoppingBag className="w-8 h-8 text-blue-600" />
-                    Procurement & Purchases
-                </h1>
-                <p className="text-gray-500 mt-1">Manage suppliers, purchase orders, and internal requisitions.</p>
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
+  const modules = [
+    { href: '/purchases/requisitions', icon: ClipboardList, c: '#6366F1', title: _t('طلبات الشراء (PR)', 'Requisitions (PR)'), desc: _t('مراجعة واعتماد طلبات الشراء الداخلية قبل تحويلها لأوامر شراء', 'Review and approve internal purchase requests from departments before converting them to POs'), link: _t('عرض الطلبات', 'View Requests') },
+    { href: '/purchase-orders', icon: ShoppingBag, c: '#3B82F6', title: _t('أوامر الشراء (PO)', 'Purchase Orders (PO)'), desc: _t('إنشاء وإرسال وتتبع أوامر الشراء للموردين', 'Create, send, and track purchase orders to suppliers'), link: _t('إدارة الأوامر', 'Manage Orders') },
+    { href: '/customers', icon: Users, c: '#22C55E', title: _t('الموردون', 'Suppliers (Vendors)'), desc: _t('إدارة دليل الموردين وتتبع أرصدة الذمم الدائنة', 'Manage your vendor directory and track AP balances'), link: _t('عرض الموردين', 'View Suppliers') },
+  ];
+  const extras = [
+    { href: '/stock', icon: Truck, title: _t('استلام بضاعة (GRN)', 'Goods Receipt (GRN)'), desc: _t('تسجيل البضاعة المستلمة من الموردين مقابل أوامر الشراء', 'Record goods received from suppliers against Purchase Orders'), link: _t('الذهاب للمخزون', 'Go to Inventory') },
+    { href: '/reports/manual-purchases', icon: FileText, title: _t('فواتير الشراء', 'Purchase Invoices'), desc: _t('معالجة فواتير الموردين الواردة والمطابقة الثلاثية', 'Process incoming vendor invoices and perform 3-way matching'), link: _t('الذهاب لـ AP', 'Go to AP Module') },
+  ];
+
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <ShoppingBag size={28} color="var(--primary)" /> {_t('المشتريات والتوريد', 'Procurement & Purchases')}
+        </h1>
+        <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14px' }}>{_t('إدارة الموردين وأوامر الشراء وطلبات الشراء الداخلية', 'Manage suppliers, purchase orders, and internal requisitions')}</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {modules.map((m, i) => (
+          <Link key={i} href={m.href} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card" style={{ padding: '24px', cursor: 'pointer', borderTop: `3px solid ${m.c}`, transition: 'box-shadow 0.2s' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', color: m.c, marginBottom: '12px' }}>
+                <m.icon size={22} /> {m.title}
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>{m.desc}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600', color: m.c }}>{m.link} <ArrowRight size={14} /></div>
             </div>
+          </Link>
+        ))}
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-                
-                {/* Requisitions Card */}
-                <Link href="/purchases/requisitions">
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer border-indigo-100 hover:border-indigo-300">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl flex items-center gap-2 text-indigo-700">
-                                <ClipboardList className="w-6 h-6" />
-                                Requisitions (PR)
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Review and approve internal purchase requests from departments before converting them to POs.</p>
-                            <div className="flex items-center text-sm font-medium text-indigo-600">
-                                View Requests <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* Purchase Orders Card */}
-                <Link href="/purchase-orders">
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer border-blue-100 hover:border-blue-300">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl flex items-center gap-2 text-blue-700">
-                                <ShoppingBag className="w-6 h-6" />
-                                Purchase Orders (PO)
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Create, send, and track purchase orders to suppliers. Manage delivery statuses and costs.</p>
-                            <div className="flex items-center text-sm font-medium text-blue-600">
-                                Manage Orders <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* Suppliers Card */}
-                <Link href="/customers"> {/* Suppliers use the same model but could be filtered */}
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer border-green-100 hover:border-green-300">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl flex items-center gap-2 text-green-700">
-                                <Users className="w-6 h-6" />
-                                Suppliers (Vendors)
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Manage your vendor directory, view performance history, and track accounts payable balances.</p>
-                            <div className="flex items-center text-sm font-medium text-green-600">
-                                View Suppliers <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '16px' }}>
+        {extras.map((m, i) => (
+          <Link key={i} href={m.href} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card" style={{ padding: '24px', background: 'var(--bg-secondary, #f8fafc)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <m.icon size={20} color="var(--text-muted)" /> {m.title}
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>{m.desc}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>{m.link} <ArrowRight size={14} /></div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                <Card className="bg-gradient-to-br from-slate-50 to-white">
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <Truck className="w-5 h-5 text-slate-500" />
-                            Goods Receipt (GRN)
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">Record goods received from suppliers against Purchase Orders. Integrated with Inventory/Warehousing module.</p>
-                        <Link href="/stock" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
-                            Go to Inventory <ArrowRight className="w-4 h-4 ml-1" />
-                        </Link>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-50 to-white">
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-slate-500" />
-                            Purchase Invoices
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">Process incoming vendor invoices and perform 3-way matching. Integrated with Accounting (Accounts Payable).</p>
-                        <Link href="/reports/manual-purchases" className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-900">
-                            Go to AP Module <ArrowRight className="w-4 h-4 ml-1" />
-                        </Link>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
 }

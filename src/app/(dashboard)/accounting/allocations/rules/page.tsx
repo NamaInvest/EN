@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 export default function CostCenterAllocationRulesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState([
         { id: 1, name: 'IT Support Allocation', sourceCC: 'CC-900 (IT Dept)', targetCCs: [{ cc: 'CC-100 (Sales)', driver: 'HEADCOUNT', weight: 40 }, { cc: 'CC-200 (Marketing)', driver: 'HEADCOUNT', weight: 60 }], active: true },
         { id: 2, name: 'Rent Allocation', sourceCC: 'CC-800 (Facilities)', targetCCs: [{ cc: 'CC-100 (Sales)', driver: 'SQM', weight: 70 }, { cc: 'CC-200 (Marketing)', driver: 'SQM', weight: 30 }], active: true },

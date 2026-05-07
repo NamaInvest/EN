@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function BankReconRulesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [bankAccounts, setBankAccounts] = useState<any[]>([]);

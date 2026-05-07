@@ -1,12 +1,15 @@
+'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, RefreshCcw, FileText, Settings } from 'lucide-react';
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 
-export default async function MultiBookDashboard() {
+export default function MultiBookDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     // 1. Primary Book (IFRS) -> bookId: null or 1
     const primaryBookCount = await prisma.journalEntry.count({
         where: { OR: [{ bookId: null }, { bookId: 1 }] }

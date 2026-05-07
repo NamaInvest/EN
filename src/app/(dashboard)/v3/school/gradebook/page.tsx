@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function GradebookPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [students] = useState([
         { id: 'STU-101', name: 'Omar Ali', assignment1: 95, midTerm: 88, final: 92 },
         { id: 'STU-102', name: 'Sara Khalid', assignment1: 100, midTerm: 95, final: 98 },

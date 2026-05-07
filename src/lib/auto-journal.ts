@@ -119,67 +119,73 @@ async function createJournalEntry(params: {
             }
         }
 
-        // Create entry + lines in transaction
-        const entry = await prisma.journalEntry.create({
-            data: {
-                entryNumber,
-                entryDate,
-                description: params.description,
-                reference: params.reference,
-                totalDebit: Math.round(totalDebit * 100) / 100,
-                totalCredit: Math.round(totalCredit * 100) / 100,
-                status: params.status || 'draft',
-                createdBy: params.userId,
+        // [EG-03 FIX] Create entry + lines + update balances ALL inside a single transaction
+        // This prevents inconsistency if the process crashes between JE creation and balance update.
+        const entry = await prisma.$transaction(async (tx) => {
+            const je = await tx.journalEntry.create({
+                data: {
+                    entryNumber,
+                    entryDate,
+                    description: params.description,
+                    reference: params.reference,
+                    totalDebit: Math.round(totalDebit * 100) / 100,
+                    totalCredit: Math.round(totalCredit * 100) / 100,
+                    status: params.status || 'draft',
+                    createdBy: params.userId,
 
-                branchId: params.branchId,
-                // @ts-ignore - Local VSCode lock bypass
-                currencyId: params.currencyId || null,
-                exchangeRate: params.exchangeRate || 1.0,
-                lines: {
-                    create: resolvedLines.map(l => ({
-                        accountId: l.accountId,
-                        costCenterId: l.costCenterId || null,
-                        debit: Math.round(l.debit * 100) / 100,
-                        credit: Math.round(l.credit * 100) / 100,
-                        foreignDebit: Math.round(l.foreignDebit * 100) / 100,
-                        foreignCredit: Math.round(l.foreignCredit * 100) / 100,
-                        description: l.description,
-                        // Universal Journal Dimensions (pass-through, all nullable)
-                        profitCenterId: l.profitCenterId || null,
-                        projectId: l.projectId || null,
-                        segmentId: l.segmentId || null,
-                        productId: l.productId || null,
-                        customerId: l.customerId || null,
-                        vendorId: l.vendorId || null,
-                        employeeId: l.employeeId || null,
-                        assetId: l.assetId || null,
-                        bookId: l.bookId || null,
-                        fxRate: l.fxRate || null,
-                        quantity: l.quantity || null,
-                        uom: l.uom || null,
-                    })),
+                    branchId: params.branchId,
+                    // @ts-ignore - Local VSCode lock bypass
+                    currencyId: params.currencyId || null,
+                    exchangeRate: params.exchangeRate || 1.0,
+                    lines: {
+                        create: resolvedLines.map(l => ({
+                            accountId: l.accountId,
+                            costCenterId: l.costCenterId || null,
+                            debit: Math.round(l.debit * 100) / 100,
+                            credit: Math.round(l.credit * 100) / 100,
+                            foreignDebit: Math.round(l.foreignDebit * 100) / 100,
+                            foreignCredit: Math.round(l.foreignCredit * 100) / 100,
+                            description: l.description,
+                            // Universal Journal Dimensions (pass-through, all nullable)
+                            profitCenterId: l.profitCenterId || null,
+                            projectId: l.projectId || null,
+                            segmentId: l.segmentId || null,
+                            productId: l.productId || null,
+                            customerId: l.customerId || null,
+                            vendorId: l.vendorId || null,
+                            employeeId: l.employeeId || null,
+                            assetId: l.assetId || null,
+                            bookId: l.bookId || null,
+                            fxRate: l.fxRate || null,
+                            quantity: l.quantity || null,
+                            uom: l.uom || null,
+                        })),
+                    },
                 },
-            },
-        });
+            });
 
-        // Update account balances
-        for (const line of resolvedLines) {
-            const account = await prisma.account.findUnique({ where: { id: line.accountId } });
-            if (account) {
-                let balanceChange = 0;
-                // Assets & Expenses: debit increases, credit decreases
-                // Liabilities, Equity & Revenue: credit increases, debit decreases
-                if (['asset', 'expense'].includes(account.type)) {
-                    balanceChange = line.debit - line.credit;
-                } else {
-                    balanceChange = line.credit - line.debit;
+            // [EG-03 FIX] Update account balances INSIDE the same transaction
+            // Using Math.round to mitigate Float precision drift
+            for (const line of resolvedLines) {
+                const account = await tx.account.findUnique({ where: { id: line.accountId } });
+                if (account) {
+                    let balanceChange = 0;
+                    // Assets & Expenses: debit increases, credit decreases
+                    // Liabilities, Equity & Revenue: credit increases, debit decreases
+                    if (['asset', 'expense'].includes(account.type)) {
+                        balanceChange = line.debit - line.credit;
+                    } else {
+                        balanceChange = line.credit - line.debit;
+                    }
+                    await tx.account.update({
+                        where: { id: line.accountId },
+                        data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
+                    });
                 }
-                await prisma.account.update({
-                    where: { id: line.accountId },
-                    data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
-                });
             }
-        }
+
+            return je;
+        });
 
         return { success: true, entryId: entry.id };
     } catch (error) {
@@ -302,7 +308,12 @@ export async function postSalesInvoice(invoice: {
 
 /**
  * قيد شراء
- * مدين: تكلفة البضاعة (المبلغ قبل الضريبة)
+ * ─────────────────────────────────────────────────────
+ * [EG-02 FIX] 3-Way Match Logic:
+ *   If GRN exists (hasGRN=true):   Dr GRNI (clearing) / Cr AP
+ *   If no GRN (direct purchase):    Dr Inventory / Cr Cash|Bank|AP
+ * ─────────────────────────────────────────────────────
+ * مدين: GRNI (لو استلام سابق) أو المخزون (مشتريات مباشرة)
  * مدين: ضريبة مدخلات (مبلغ الضريبة)
  * دائن: الصندوق/الدائنون
  */
@@ -317,6 +328,7 @@ export async function postPurchaseInvoice(invoice: {
     date?: string;
     landedCosts?: Array<{ accountCode: string; amountValue: number; description: string }>;
     ppvAmount?: number; // Purchase Price Variance
+    hasGRN?: boolean; // [EG-02] true = GRN exists, clear GRNI; false = direct to Inventory
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
@@ -340,12 +352,19 @@ export async function postPurchaseInvoice(invoice: {
     const ppv = invoice.ppvAmount || 0;
     const inventoryBase = invoice.subtotal - ppv;
 
-    // Debit: INVENTORY - Base Cost (Standard) + Landed Costs
+    // [EG-02 FIX] Choose correct debit account:
+    // If GRN already posted (DR Inventory / CR GRNI), we CLEAR GRNI here.
+    // If no GRN (direct purchase), we debit INVENTORY directly.
+    const debitAccount = invoice.hasGRN ? ACCOUNTS.GRNI : ACCOUNTS.INVENTORY;
+    const debitDescription = invoice.hasGRN
+        ? `تصفية GRNI - مطابقة فاتورة شراء #${invoice.invoiceNo} مع سند الإدخال`
+        : `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''} ${ppv !== 0 ? '(بالسعر المعياري)' : ''}`;
+
     lines.push({
-        accountCode: ACCOUNTS.INVENTORY,
+        accountCode: debitAccount,
         debit: inventoryBase + totalLandedCost,
         credit: 0,
-        description: `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''} ${ppv !== 0 ? '(بالسعر المعياري)' : ''}`,
+        description: debitDescription,
     });
 
     // Debit/Credit: PPV (Purchase Price Variance)
@@ -377,7 +396,7 @@ export async function postPurchaseInvoice(invoice: {
     });
 
     return createJournalEntry({
-        description: `فاتورة شراء #${invoice.invoiceNo}`,
+        description: `فاتورة شراء #${invoice.invoiceNo}${invoice.hasGRN ? ' (3-way match)' : ''}`,
         reference: `PUR-${invoice.invoiceNo}`,
         lines,
         userId: invoice.userId,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 type NumberingSequence = {
   id: number;
@@ -15,6 +16,8 @@ type NumberingSequence = {
 };
 
 export default function NumberingSettingsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [sequences, setSequences] = useState<NumberingSequence[]>([]);
   const [loading, setLoading] = useState(true);
 

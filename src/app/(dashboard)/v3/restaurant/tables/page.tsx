@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function RestaurantTablesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [tables] = useState([
         { id: 'T-01', name: 'Table 1', capacity: 2, status: 'OCCUPIED', orderId: 'ORD-9912', duration: '45m' },
         { id: 'T-02', name: 'Table 2', capacity: 4, status: 'RESERVED', orderId: '-', duration: '-' },

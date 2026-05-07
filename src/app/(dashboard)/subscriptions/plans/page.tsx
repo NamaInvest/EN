@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { CreditCard, Plus, Users, TrendingUp, Clock, CheckCircle, XCircle, Edit3 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const cycleLabel: any = { MONTHLY: 'شهري', QUARTERLY: 'ربع سنوي', SEMI_ANNUAL: 'نصف سنوي', ANNUAL: 'سنوي' };
 
 export default function SubscriptionPlans() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

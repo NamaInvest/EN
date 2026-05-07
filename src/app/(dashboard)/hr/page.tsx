@@ -1,160 +1,102 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, UserPlus, FileText, GraduationCap, TrendingUp, CalendarDays, Search, Play } from 'lucide-react';
+'use client';
+import { Users, UserPlus, FileText, GraduationCap, TrendingUp, CalendarDays, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function HrCoreDashboard() {
-    // Static mockup data
-    const kpis = {
-        totalEmployees: 245,
-        openPositions: 8,
-        expiringDocs: 12,
-        pendingLeaves: 5
-    };
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
-    const recentHires = [
-        { id: 1, name: 'Faisal Al-Otaibi', position: 'Senior Accountant', date: '2026-05-01' },
-        { id: 2, name: 'Sara Kamel', position: 'HR Specialist', date: '2026-04-28' },
-    ];
+  const kpis = [
+    { l: _t('إجمالي الموظفين', 'Total Employees'), v: 245, s: _t('العدد النشط', 'Active headcount'), c: '#0EA5E9', ic: Users },
+    { l: _t('وظائف شاغرة', 'Open Positions'), v: 8, s: _t('إعلانات نشطة', 'Active postings'), c: '#6366F1', ic: Search },
+    { l: _t('مستندات منتهية', 'Expiring Docs'), v: 12, s: _t('إقامات/جوازات خلال 30 يوم', 'Iqamas/Passports in 30 days'), c: '#F59E0B', ic: FileText },
+    { l: _t('إجازات معلقة', 'Pending Leaves'), v: 5, s: _t('بانتظار الاعتماد', 'Awaiting approval'), c: '#22C55E', ic: CalendarDays },
+  ];
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Users className="w-8 h-8 text-sky-600" />
-                        Human Resources (HR Core)
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage employee lifecycle, recruitment, training, and performance.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="bg-white">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Export Headcount
-                    </Button>
-                    <Link href="/hr/employees/create">
-                        <Button className="bg-sky-600 hover:bg-sky-700 text-white shadow-sm">
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            New Employee
-                        </Button>
-                    </Link>
-                </div>
-            </div>
+  const recentHires = [
+    { id: 1, name: 'Faisal Al-Otaibi', position: _t('محاسب أول', 'Senior Accountant'), date: '2026-05-01' },
+    { id: 2, name: 'Sara Kamel', position: _t('أخصائية موارد بشرية', 'HR Specialist'), date: '2026-04-28' },
+  ];
 
-            {/* Metrics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-sky-50 to-white border-sky-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-sky-600">Total Employees</p>
-                            <Users className="w-4 h-4 text-sky-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{kpis.totalEmployees}</h3>
-                        <p className="text-xs text-sky-500 mt-1">Active headcount</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-indigo-600">Open Positions</p>
-                            <Search className="w-4 h-4 text-indigo-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{kpis.openPositions}</h3>
-                        <p className="text-xs text-indigo-500 mt-1">Active job postings</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-amber-50 to-white border-amber-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-amber-600">Expiring Docs</p>
-                            <FileText className="w-4 h-4 text-amber-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{kpis.expiringDocs}</h3>
-                        <p className="text-xs text-amber-500 mt-1">Iqamas/Passports in 30 days</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-emerald-600">Pending Leaves</p>
-                            <CalendarDays className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{kpis.pendingLeaves}</h3>
-                        <p className="text-xs text-emerald-500 mt-1">Awaiting approval</p>
-                    </CardContent>
-                </Card>
-            </div>
+  const ops = [
+    { href: '/hr/jobs', icon: Search, c: '#6366F1', title: _t('التوظيف (ATS)', 'Recruitment (ATS)'), desc: _t('إدارة الإعلانات الوظيفية وتتبع المتقدمين والمقابلات', 'Manage job postings, applicant tracking, and interviews') },
+    { href: '/hr/training', icon: GraduationCap, c: '#22C55E', title: _t('التعلم والتطوير', 'Learning & Dev'), desc: _t('تتبع تدريب الموظفين والدورات الإلزامية والمهارات', 'Track employee training, mandatory courses, and skills') },
+    { href: '/hr/evaluations', icon: TrendingUp, c: '#F59E0B', title: _t('الأداء', 'Performance'), desc: _t('تقييمات 360 وتحديد الأهداف وخطط تحسين الأداء', 'Run 360 evaluations, goal setting, and PIP tracking') },
+    { href: '/hr/documents', icon: FileText, c: '#EF4444', title: _t('المستندات', 'Documents'), desc: _t('مراقبة انتهاء الإقامات والجوازات والتأمين الطبي', 'Monitor Iqama, passport, and medical insurance expirations') },
+  ];
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Recent Hires Table */}
-                <Card className="overflow-hidden border-gray-200 shadow-sm bg-white">
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                            <UserPlus className="w-4 h-4 text-sky-500" />
-                            Recent Hires
-                        </h3>
-                        <Button variant="ghost" size="sm" className="text-sky-600">View All</Button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-600 border-b">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium">Name</th>
-                                    <th className="px-4 py-3 font-medium">Position</th>
-                                    <th className="px-4 py-3 font-medium">Hire Date</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {recentHires.map((h) => (
-                                    <tr key={h.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-gray-900">{h.name}</td>
-                                        <td className="px-4 py-3 text-gray-700">{h.position}</td>
-                                        <td className="px-4 py-3 text-gray-500">{h.date}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card className="border-gray-200 shadow-sm bg-white">
-                    <div className="p-4 border-b border-gray-100">
-                        <h3 className="font-semibold text-gray-800">HR Operations</h3>
-                    </div>
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Link href="/hr/jobs">
-                            <div className="p-4 border rounded-lg hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer group">
-                                <Search className="w-6 h-6 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">Recruitment (ATS)</h4>
-                                <p className="text-xs text-gray-500 mt-1">Manage job postings, applicant tracking, and interviews.</p>
-                            </div>
-                        </Link>
-                        <Link href="/hr/training">
-                            <div className="p-4 border rounded-lg hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group">
-                                <GraduationCap className="w-6 h-6 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">Learning & Dev</h4>
-                                <p className="text-xs text-gray-500 mt-1">Track employee training, mandatory courses, and skills.</p>
-                            </div>
-                        </Link>
-                        <Link href="/hr/evaluations">
-                            <div className="p-4 border rounded-lg hover:border-amber-500 hover:shadow-md transition-all cursor-pointer group">
-                                <TrendingUp className="w-6 h-6 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">Performance</h4>
-                                <p className="text-xs text-gray-500 mt-1">Run 360 evaluations, goal setting, and PIP tracking.</p>
-                            </div>
-                        </Link>
-                        <Link href="/hr/documents">
-                            <div className="p-4 border rounded-lg hover:border-red-500 hover:shadow-md transition-all cursor-pointer group">
-                                <FileText className="w-6 h-6 text-red-500 mb-2 group-hover:scale-110 transition-transform" />
-                                <h4 className="font-medium text-gray-900">Documents</h4>
-                                <p className="text-xs text-gray-500 mt-1">Monitor Iqama, passport, and medical insurance expirations.</p>
-                            </div>
-                        </Link>
-                    </div>
-                </Card>
-            </div>
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Users size={28} color="#0EA5E9" /> {_t('الموارد البشرية', 'Human Resources (HR Core)')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14px' }}>{_t('إدارة دورة حياة الموظف والتوظيف والتدريب والأداء', 'Manage employee lifecycle, recruitment, training, and performance')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={16} /> {_t('تصدير الأعداد', 'Export Headcount')}</button>
+          <Link href="/hr/employees/create"><button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><UserPlus size={16} /> {_t('موظف جديد', 'New Employee')}</button></Link>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {kpis.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800' }}>{c.v}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="card" style={{ overflow: 'auto' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}><UserPlus size={18} color="#0EA5E9" /> {_t('آخر التعيينات', 'Recent Hires')}</h3>
+            <button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('عرض الكل', 'View All')}</button>
+          </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{_t('الاسم', 'Name')}</th>
+                <th>{_t('المنصب', 'Position')}</th>
+                <th>{_t('تاريخ التعيين', 'Hire Date')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentHires.map(h => (
+                <tr key={h.id}>
+                  <td style={{ fontWeight: '600' }}>{h.name}</td>
+                  <td>{h.position}</td>
+                  <td style={{ color: 'var(--text-muted)' }}>{h.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('عمليات الموارد البشرية', 'HR Operations')}</h3>
+          </div>
+          <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {ops.map((o, i) => (
+              <Link key={i} href={o.href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+                  <o.icon size={24} color={o.c} style={{ marginBottom: '8px' }} />
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{o.title}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{o.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

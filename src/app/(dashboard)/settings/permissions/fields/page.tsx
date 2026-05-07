@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 // Example structured list of entities and fields to manage
 const CONFIG = {
@@ -25,6 +26,8 @@ interface RoleFieldPermission {
 }
 
 export default function FieldPermissionsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [permissions, setPermissions] = useState<RoleFieldPermission[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

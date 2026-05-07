@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 
 export default function ProjectTimeBillingPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [entries] = useState([
         { id: 'TS-001', employee: 'Sami K.', project: 'ERP Implementation', task: 'Requirements Gathering', hours: 8, billable: true, rate: 150, status: 'APPROVED' },
         { id: 'TS-002', employee: 'Rami A.', project: 'Cloud Migration', task: 'Server Setup', hours: 5.5, billable: true, rate: 200, status: 'DRAFT' },

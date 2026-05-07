@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function WorkOrdersPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [orders] = useState([
         { id: 'WO-1001', client: 'Alpha Corp', issue: 'Server Maintenance', assignedTo: 'Tech Team A', priority: 'HIGH', status: 'IN_PROGRESS' },
         { id: 'WO-1002', client: 'Beta LLC', issue: 'Network Setup', assignedTo: 'Unassigned', priority: 'MEDIUM', status: 'NEW' },

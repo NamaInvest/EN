@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calculator, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -19,6 +20,8 @@ type Assessment = {
 type FiscalYear = { id: number; yearNumber: number; status: string };
 
 export default function ZakatPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [assessments, setAssessments] = useState<Assessment[]>([]);
     const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
     const [selectedFy, setSelectedFy] = useState<number | null>(null);

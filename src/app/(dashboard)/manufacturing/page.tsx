@@ -1,151 +1,88 @@
-import React from 'react';
-import { prisma } from '@/lib/prisma';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+'use client';
+import { useState, useEffect } from 'react';
 import { Factory, Cog, ClipboardList, TrendingUp, AlertTriangle, Hammer, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function ManufacturingDashboardPage() {
-    const orders = await prisma.manufacturingOrder.count();
-    const activeOrders = await prisma.manufacturingOrder.count({
-        where: { status: 'in_progress' }
-    });
-    const recipes = await prisma.recipe.count({
-        where: { isActive: true }
-    });
+export default function ManufacturingDashboardPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [stats, setStats] = useState({ orders: 0, active: 0, recipes: 0 });
+  const [loading, setLoading] = useState(true);
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Factory className="w-8 h-8 text-amber-600" />
-                        Manufacturing (MRP & Production)
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage Work Orders, Bill of Materials (BOM), and Shop Floor Operations.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Link href="/manufacturing/boms">
-                        <Button variant="outline" className="bg-white">Manage BOMs</Button>
-                    </Link>
-                    <Link href="/manufacturing/orders">
-                        <Button className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm">
-                            <Hammer className="w-4 h-4 mr-2" />
-                            Work Orders
-                        </Button>
-                    </Link>
-                </div>
-            </div>
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/manufacturing/stats', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) { const d = await r.json(); setStats(d); }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-            {/* Metrics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-amber-50 to-white border-amber-100">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-amber-600">Active Work Orders</p>
-                            <Cog className="w-4 h-4 text-amber-400 animate-spin-slow" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{activeOrders}</h3>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Total Work Orders</p>
-                            <ClipboardList className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{orders}</h3>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Active BOMs / Recipes</p>
-                            <TrendingUp className="w-4 h-4 text-indigo-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{recipes}</h3>
-                    </CardContent>
-                </Card>
-            </div>
+  const cards = [
+    { l: _t('أوامر تشغيل نشطة', 'Active Work Orders'), v: stats.active, c: '#D97706', ic: Cog },
+    { l: _t('إجمالي أوامر التشغيل', 'Total Work Orders'), v: stats.orders, c: '#6B7280', ic: ClipboardList },
+    { l: _t('وصفات / BOMs نشطة', 'Active BOMs / Recipes'), v: stats.recipes, c: '#6366F1', ic: TrendingUp },
+  ];
 
-            {/* Modules Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-                
-                {/* Work Orders Card */}
-                <Link href="/manufacturing/orders">
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-amber-300">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                                <Hammer className="w-6 h-6 text-amber-600" />
-                                Work Orders (MO)
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Track production progress, record actual times, materials issued, and scrap reporting.</p>
-                            <div className="flex items-center text-sm font-medium text-amber-600">
-                                View Work Orders <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
+  const modules = [
+    { href: '/manufacturing/orders', icon: Hammer, c: '#D97706', title: _t('أوامر التشغيل (MO)', 'Work Orders (MO)'), desc: _t('تتبع تقدم الإنتاج وتسجيل الأوقات الفعلية والمواد المصروفة', 'Track production progress, record actual times and materials issued'), link: _t('عرض أوامر التشغيل', 'View Work Orders') },
+    { href: '/manufacturing/boms', icon: ClipboardList, c: '#6366F1', title: _t('قائمة المواد (BOM)', 'Bill of Materials'), desc: _t('إدارة الوصفات متعددة المستويات وعمليات التوجيه والتغييرات الهندسية', 'Manage multi-level recipes, routing operations, and engineering changes'), link: _t('إدارة BOMs', 'Manage BOMs') },
+    { href: '#', icon: TrendingUp, c: '#9CA3AF', title: _t('اقتراحات MRP', 'MRP Suggestions'), desc: _t('حساب صافي الاحتياجات وتحديد نقص المواد الخام وإنشاء طلبات شراء تلقائية', 'Calculate net requirements and auto-generate Purchase Requisitions'), link: _t('يتطلب إعداد', 'Configuration Required'), disabled: true },
+  ];
 
-                {/* BOMs / Recipes Card */}
-                <Link href="/manufacturing/boms">
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-amber-300">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                                <ClipboardList className="w-6 h-6 text-indigo-600" />
-                                Bill of Materials
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Manage multi-level recipes, routing operations, expected yield, and engineering changes.</p>
-                            <div className="flex items-center text-sm font-medium text-indigo-600">
-                                Manage BOMs <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
+  const extras = [
+    { icon: Cog, title: _t('توجيه خط الإنتاج', 'Shop Floor Routing'), desc: _t('تعريف مراكز العمل وسعات الآلات ونوبات المشغلين', 'Define Work Centers, machine capacities, and operator shifts') },
+    { icon: AlertTriangle, title: _t('فحوصات الجودة (QC)', 'Quality Checks (QC)'), desc: _t('فحوصات جودة أثناء الإنتاج وتقارير عدم المطابقة', 'In-process quality inspections and Non-Conformance Reports') },
+  ];
 
-                {/* MRP Run Card (Future/Mock) */}
-                <Card className="bg-gray-50 border-gray-200 opacity-75">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xl flex items-center gap-2 text-gray-600">
-                            <TrendingUp className="w-6 h-6 text-gray-500" />
-                            MRP Suggestions
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-gray-500 mb-4">Calculate net requirements, identify raw material shortages, and auto-generate Purchase Requisitions.</p>
-                        <div className="flex items-center text-sm font-medium text-gray-500">
-                            <AlertTriangle className="w-4 h-4 mr-1 text-yellow-500" />
-                            Configuration Required
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                <Card className="bg-gradient-to-br from-slate-50 to-white">
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <Cog className="w-5 h-5 text-slate-500" />
-                            Shop Floor Routing
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">Define Work Centers, machine capacities, and operator shifts for accurate scheduling and finite capacity planning.</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-50 to-white">
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5 text-slate-500" />
-                            Quality Checks (QC)
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">In-process quality inspections. Failures generate Non-Conformance Reports (NCR) and CAPA workflows.</p>
-                    </CardContent>
-                </Card>
-            </div>
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Factory size={28} color="#D97706" /> {_t('التصنيع (MRP والإنتاج)', 'Manufacturing (MRP & Production)')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '6px', fontSize: '14px' }}>{_t('إدارة أوامر التشغيل وقوائم المواد وعمليات خط الإنتاج', 'Manage Work Orders, BOM, and Shop Floor Operations')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Link href="/manufacturing/boms"><button className="btn btn-outline">{_t('إدارة BOMs', 'Manage BOMs')}</button></Link>
+          <Link href="/manufacturing/orders"><button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Hammer size={16} /> {_t('أوامر التشغيل', 'Work Orders')}</button></Link>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {cards.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800' }}>{loading ? '...' : c.v}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {modules.map((m, i) => (
+          <Link key={i} href={m.href} style={{ textDecoration: 'none', color: 'inherit', pointerEvents: m.disabled ? 'none' : 'auto' }}>
+            <div className="card" style={{ padding: '24px', cursor: m.disabled ? 'default' : 'pointer', borderTop: `3px solid ${m.c}`, opacity: m.disabled ? 0.6 : 1 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', color: m.c, marginBottom: '12px' }}><m.icon size={22} /> {m.title}</h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>{m.desc}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600', color: m.c }}>{m.link} {!m.disabled && <ArrowRight size={14} />}</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '16px' }}>
+        {extras.map((m, i) => (
+          <div key={i} className="card" style={{ padding: '24px', background: 'var(--bg-secondary, #f8fafc)' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}><m.icon size={20} color="var(--text-muted)" /> {m.title}</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{m.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

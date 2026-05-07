@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CycleCountPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [stocktakes, setStocktakes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedStocktake, setSelectedStocktake] = useState<any>(null);

@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Megaphone, Plus, Send, Eye, TrendingUp, Edit3, Trash2, Users, CheckCircle, Mail, MessageSquare, Share2 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 const statusColors: any = { DRAFT: '#94A3B8', SCHEDULED: '#3B82F6', ACTIVE: '#22C55E', PAUSED: '#EAB308', COMPLETED: '#8B5CF6' };
 
 export default function CrmCampaigns() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

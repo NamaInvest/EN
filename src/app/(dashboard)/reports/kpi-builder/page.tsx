@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function KPIBuilderPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [dashboards] = useState([
         { id: 'DB-01', name: 'Executive Financial Summary', widgets: 6, lastRefreshed: '10 mins ago', status: 'ACTIVE' },
         { id: 'DB-02', name: 'Sales Performance Map', widgets: 3, lastRefreshed: '1 hour ago', status: 'ACTIVE' },

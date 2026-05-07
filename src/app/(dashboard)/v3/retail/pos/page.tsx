@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2, RefreshCcw, BrainCircuit, WifiOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function RetailPOS() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [cart, setCart] = useState([{ id: 1, name: 'Wireless Headphones', price: 299, qty: 1 }]);
   return (
     <div className="flex h-[85vh] gap-4 p-4 bg-slate-50">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">GLOBAL ENTERPRISE FEATURES</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-blue-500 text-white font-bold hover:opacity-90 shadow-lg"><RefreshCcw className="w-4 h-4 mr-2"/> Omnichannel Sync</Button>\n        <Button className="bg-purple-500 text-white font-bold hover:opacity-90 shadow-lg"><BrainCircuit className="w-4 h-4 mr-2"/> Clienteling AI</Button>\n        <Button className="bg-emerald-500 text-white font-bold hover:opacity-90 shadow-lg"><WifiOff className="w-4 h-4 mr-2"/> Offline Mode (Active)</Button>\n        </div>\n      </div>

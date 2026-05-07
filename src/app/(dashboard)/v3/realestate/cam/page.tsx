@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function CAMReconciliationPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [properties] = useState([
         { id: 'PROP-01', name: 'Riyadh Business Park', totalArea: 10000, totalCAMExpenses: 500000, period: '2025', status: 'PENDING_RECONCILIATION' },
         { id: 'PROP-02', name: 'Jeddah Commercial Center', totalArea: 15000, totalCAMExpenses: 750000, period: '2025', status: 'RECONCILED' },

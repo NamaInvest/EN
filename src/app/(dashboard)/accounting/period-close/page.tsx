@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, Calculator, ArrowRightLeft, Calendar } from 'lucide-react';
 
 export default function PeriodCloseDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     

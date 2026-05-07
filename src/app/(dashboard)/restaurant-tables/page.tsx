@@ -1,11 +1,14 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Grid, Plus, Users, Utensils, CheckCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function RestaurantTablesPage() {
+export default function RestaurantTablesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const tables = await prisma.restaurantTable.findMany({
         include: {
             zone: true,

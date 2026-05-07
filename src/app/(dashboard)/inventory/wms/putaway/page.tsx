@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 export default function PutawayRulesPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState([
         { id: 1, name: 'Cold Storage', condition: 'Category == Perishable', targetZone: 'Zone-A (Cold)', active: true },
         { id: 2, name: 'Heavy Items', condition: 'Weight > 50kg', targetZone: 'Zone-C (Floor)', active: true },

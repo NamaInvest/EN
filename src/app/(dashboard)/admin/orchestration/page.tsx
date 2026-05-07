@@ -1,10 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { Network, Activity, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
 import { JourneyTimeline } from '@/components/v2/JourneyTimeline';
 
 export default function OrchestrationDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState<any>({ sagas: [], events: [], journeys: null });
 
     useEffect(() => {

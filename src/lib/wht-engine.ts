@@ -1,5 +1,5 @@
 /**
- * WHT Engine — Withholding Tax (Build #10)
+ * WHT Engine — Withholding Tax (Build #11)
  * ═════════════════════════════════════════
  * 
  * حجب ضريبة استقطاع 5-20% للموردين الأجانب + توليد نموذج 14 الشهري لـ ZATCA.
@@ -11,11 +11,26 @@
  * 
  * Tax treaties (40+ countries) may reduce these rates.
  * Form 14 due by 10th of the following month.
+ * 
+ * [EG-01 FIX] Replaced hardcoded accountId (2010, 2050) with code-based lookup.
  */
 
 import { prisma } from './prisma';
 
 const db = (p: any) => p as any;
+
+// ── Account Code Constants (NOT PKs) ──────────────────
+const WHT_ACCOUNTS = {
+    AP: '2100',         // الدائنون (Accounts Payable) — تخفيض المستحق
+    WHT_PAYABLE: '2350' // ضريبة استقطاع مستحقة لـ ZATCA
+};
+
+// Resolve account PK from code (tenant-safe)
+async function resolveAccountId(tx: any, code: string): Promise<number> {
+    const acct = await tx.account.findFirst({ where: { code } });
+    if (!acct) throw new Error(`[WHT Engine] Account code '${code}' not found. Ensure chart of accounts is configured.`);
+    return acct.id;
+}
 
 // ── Treaty Rate Reductions (select countries) ──────────────────
 const TREATY_REDUCTIONS: Record<string, Record<string, number>> = {
@@ -132,6 +147,10 @@ export class WHTEngine {
                 data: { remaining: { decrement: calculation.whtAmount } }
             });
 
+            // [EG-01 FIX] Resolve account IDs from codes, not hardcoded PKs
+            const apAccountId = await resolveAccountId(tx, WHT_ACCOUNTS.AP);
+            const whtPayableId = await resolveAccountId(tx, WHT_ACCOUNTS.WHT_PAYABLE);
+
             const je = await tx.journalEntry.create({
                 data: {
                     entryNumber: `WHT-${whtTx.id}`,
@@ -145,11 +164,11 @@ export class WHTEngine {
             });
 
             await tx.journalLine.create({
-                data: { entryId: je.id, accountId: 2010, debit: calculation.whtAmount, credit: 0, description: 'AP Reduction due to WHT' }
+                data: { entryId: je.id, accountId: apAccountId, debit: calculation.whtAmount, credit: 0, description: 'AP Reduction due to WHT / تخفيض الدائنون بسبب ضريبة الاستقطاع' }
             });
 
             await tx.journalLine.create({
-                data: { entryId: je.id, accountId: 2050, debit: 0, credit: calculation.whtAmount, description: 'WHT Payable to ZATCA' }
+                data: { entryId: je.id, accountId: whtPayableId, debit: 0, credit: calculation.whtAmount, description: 'WHT Payable to ZATCA / ضريبة استقطاع مستحقة لـ ZATCA' }
             });
 
             return whtTx;

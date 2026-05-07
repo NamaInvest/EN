@@ -1,11 +1,15 @@
+'use client';
 "use client";
 
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { GraduationCap, Users, BookOpen, Clock, AlertCircle, CheckCircle2, Search, Plus, Calendar, UserPlus, CreditCard } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function SchoolDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  return (
  <div className="min-h-screen bg-slate-50 dark:bg-[#020617] p-6 lg:p-10 transition-colors duration-300" style={{ fontFamily: "'Fira Sans', sans-serif" }}>
  <style dangerouslySetInnerHTML={{ __html: fontImport }} />

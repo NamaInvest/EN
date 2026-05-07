@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Settings, Plus, Network, Save, ServerCrash } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function BpmDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState([
         { id: 1, name: 'Purchase Order Approval > 10K', trigger: 'PO_CREATED', condition: 'amount > 10000', action: 'REQUIRE_APPROVAL:CFO' },
         { id: 2, name: 'Auto-Post Paid Invoices', trigger: 'INVOICE_PAID', condition: 'status == PAID', action: 'POST_JOURNAL_ENTRY' },

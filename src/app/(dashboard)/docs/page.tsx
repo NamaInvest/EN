@@ -1,10 +1,14 @@
+'use client';
 import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, FileText } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function DocsIndexPage() {
+export default function DocsIndexPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const docsDir = path.join(process.cwd(), 'docs', 'gaps');
     let files: string[] = [];
     

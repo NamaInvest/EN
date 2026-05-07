@@ -1,12 +1,16 @@
+'use client';
 "use client";
 
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, CheckCircle, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BankReconciliationPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">

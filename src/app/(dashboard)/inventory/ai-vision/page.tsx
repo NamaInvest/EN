@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function AIVisionInventoryPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);

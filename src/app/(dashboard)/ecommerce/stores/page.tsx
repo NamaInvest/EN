@@ -1,9 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Store, Plus, Edit3, Globe, Settings } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function EcommerceStores() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

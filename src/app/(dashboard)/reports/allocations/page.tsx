@@ -1,7 +1,11 @@
+'use client';
 "use client"
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function AllocationsDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const [isSimulating, setIsSimulating] = useState(false);
  const [simulationData, setSimulationData] = useState<any>(null);
 

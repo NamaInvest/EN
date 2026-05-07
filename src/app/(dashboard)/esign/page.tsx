@@ -1,8 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { PenTool, Plus, Clock, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 export default function ESignPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: te, success: ts } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

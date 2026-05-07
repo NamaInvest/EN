@@ -221,6 +221,7 @@ export async function POST(request: Request) {
                 branchId: branchId || undefined,
                 date: new Date().toISOString().split('T')[0],
                 ppvAmount: calculatedPpv,
+                hasGRN: receiptStatus === 'received', // [EG-02] GRN already posted → clear GRNI
             });
         } catch (journalErr) {
             console.warn('Auto-journal for purchase skipped:', journalErr);

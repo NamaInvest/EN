@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { BarChart3, Settings, Table as TableIcon, Download, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -14,6 +15,8 @@ const MODEL_FIELDS: Record<string, string[]> = {
 };
 
 export default function BIBuilderDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [selectedModel, setSelectedModel] = useState<string>('SalesInvoice');
     const [selectedFields, setSelectedFields] = useState<string[]>(['id', 'invoiceNo', 'total']);
     const [limit, setLimit] = useState<number>(50);

@@ -1,10 +1,13 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Calculator, BarChart3, ShieldAlert, FileSpreadsheet, Lock } from 'lucide-react';
 
-export default async function BudgetsPage() {
+export default function BudgetsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     // Fetch budgets
     const budgets = await prisma.budget.findMany({
         orderBy: { fiscalYear: 'desc' },

@@ -1,11 +1,14 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, ClipboardList, Plus, FileText, Settings, Layers } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function BomsPage() {
+export default function BomsPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const recipes = await prisma.recipe.findMany({
         orderBy: { name: 'asc' }
     });

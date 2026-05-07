@@ -1,102 +1,91 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Activity, Wrench, CheckCircle, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function FSMDashboardPage() {
-    const [tickets, setTickets] = useState([]);
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetch('/api/fsm/tickets')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) setTickets(data.tickets);
-            })
-            .catch(err => console.error(err));
-    }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/fsm/tickets', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) { const d = await r.json(); setTickets(d.tickets || d.data || d || []); }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-    const openCount = tickets.filter((t: any) => t.status === 'open').length;
-    const completedCount = tickets.filter((t: any) => t.status === 'completed').length;
+  const openCount = tickets.filter(t => t.status === 'open').length;
+  const completedCount = tickets.filter(t => t.status === 'completed').length;
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold flex items-center gap-2"><Wrench /> Field Service Dashboard</h1>
-                <a href="/fsm/dispatch" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Dispatch Board</a>
-            </div>
+  const kpis = [
+    { l: _t('إجمالي التذاكر', 'Total Tickets'), v: tickets.length, c: '#3B82F6', ic: Activity },
+    { l: _t('تذاكر مفتوحة', 'Open Tickets'), v: openCount, c: '#F97316', ic: Clock },
+    { l: _t('تذاكر مكتملة', 'Completed'), v: completedCount, c: '#22C55E', ic: CheckCircle },
+  ];
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                        <Activity className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Total Tickets</p>
-                        <h3 className="text-2xl font-bold">{tickets.length}</h3>
-                    </div>
-                </Card>
-                <Card className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center">
-                        <Clock className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Open Tickets</p>
-                        <h3 className="text-2xl font-bold">{openCount}</h3>
-                    </div>
-                </Card>
-                <Card className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Completed Tickets</p>
-                        <h3 className="text-2xl font-bold">{completedCount}</h3>
-                    </div>
-                </Card>
-            </div>
+  const PRIORITY_COLORS: Record<string, string> = { high: '#EF4444', urgent: '#EF4444', medium: '#F59E0B', low: '#3B82F6' };
+  const STATUS_COLORS: Record<string, string> = { completed: '#22C55E', open: '#F97316', in_progress: '#3B82F6' };
 
-            <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Recent Tickets</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                                <th className="p-3">Ticket #</th>
-                                <th className="p-3">Description</th>
-                                <th className="p-3">Priority</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3">Technician</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tickets.slice(0, 10).map((ticket: any) => (
-                                <tr key={ticket.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                    <td className="p-3 font-medium">#{ticket.ticketNo}</td>
-                                    <td className="p-3 truncate max-w-xs">{ticket.description}</td>
-                                    <td className="p-3">
-                                        <span className={`px-2 py-1 rounded text-xs uppercase ${
-                                            ticket.priority === 'high' || ticket.priority === 'urgent' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                                        }`}>
-                                            {ticket.priority}
-                                        </span>
-                                    </td>
-                                    <td className="p-3">
-                                        <span className={`px-2 py-1 rounded text-xs uppercase ${
-                                            ticket.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                        }`}>
-                                            {ticket.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-3">{ticket.technicianId ? `Tech #${ticket.technicianId}` : 'Unassigned'}</td>
-                                </tr>
-                            ))}
-                            {tickets.length === 0 && (
-                                <tr><td colSpan={5} className="p-6 text-center text-gray-500">No tickets found</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
+  return (
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Wrench size={28} color="var(--primary)" /> {_t('لوحة الخدمة الميدانية', 'Field Service Dashboard')}
+          </h1>
         </div>
-    );
+        <Link href="/fsm/dispatch"><button className="btn btn-primary">{_t('لوحة الإرسال', 'Dispatch Board')}</button></Link>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {kpis.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800' }}>{loading ? '...' : c.v}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ overflow: 'auto' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('آخر التذاكر', 'Recent Tickets')}</h3>
+        </div>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>{_t('رقم التذكرة', 'Ticket #')}</th>
+              <th>{_t('الوصف', 'Description')}</th>
+              <th style={{ textAlign: 'center' }}>{_t('الأولوية', 'Priority')}</th>
+              <th style={{ textAlign: 'center' }}>{_t('الحالة', 'Status')}</th>
+              <th>{_t('الفني', 'Technician')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.slice(0, 10).map((t: any) => (
+              <tr key={t.id}>
+                <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>#{t.ticketNo}</td>
+                <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', background: (PRIORITY_COLORS[t.priority] || '#3B82F6') + '20', color: PRIORITY_COLORS[t.priority] || '#3B82F6' }}>{t.priority}</span>
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', background: (STATUS_COLORS[t.status] || '#F97316') + '20', color: STATUS_COLORS[t.status] || '#F97316' }}>{t.status}</span>
+                </td>
+                <td>{t.technicianId ? `Tech #${t.technicianId}` : _t('غير معين', 'Unassigned')}</td>
+              </tr>
+            ))}
+            {tickets.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>{_t('لا توجد تذاكر', 'No tickets found')}</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

@@ -1,11 +1,15 @@
+'use client';
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Calendar as CalendarIcon, Clock, BookOpen, Users, ChevronRight, ChevronLeft, Plus, Filter, MoreVertical } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function SchoolSchedule() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
  const periods = [
  { id: 1, time: '07:30 - 08:15' },

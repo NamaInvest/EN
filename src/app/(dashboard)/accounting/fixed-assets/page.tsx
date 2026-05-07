@@ -1,137 +1,95 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Box, Calculator, Settings, ArrowRightLeft } from 'lucide-react';
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { format } from 'date-fns';
+'use client';
+import { useState, useEffect } from 'react';
+import { Box, Calculator, Settings, ArrowRightLeft, Plus, Search } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
-export default async function FixedAssetsDashboard() {
-    // 1. Total Assets Value (Gross Book Value)
-    const gbaAgg = await prisma.fixedAsset.aggregate({
-        _sum: { acquisitionCost: true },
-        where: { status: 'ACTIVE' }
-    });
+export default function FixedAssetsDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const [stats, setStats] = useState({ gross: 0, dep: 0, nbv: 0, hfs: 0 });
+  const [assets, setAssets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    // 2. Accumulated Depreciation
-    const accDepAgg = await prisma.fixedAsset.aggregate({
-        _sum: { accumulatedDepreciation: true },
-        where: { status: 'ACTIVE' }
-    });
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/accounting/fixed-assets', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.stats) setStats(d.stats);
+          setAssets(d.assets || d.data || d || []);
+        }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
 
-    // 3. Net Book Value
-    const nbvAgg = await prisma.fixedAsset.aggregate({
-        _sum: { currentBookValue: true },
-        where: { status: 'ACTIVE' }
-    });
+  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  const cards = [
+    { l: _t('إجمالي الأصول', 'Total Assets Value'), v: `${fmt(stats.gross)} ${_t('ر.س', 'SAR')}`, s: _t('القيمة الدفترية الإجمالية', 'Gross book value'), c: '#3B82F6', ic: Box },
+    { l: _t('الاستهلاك المتراكم', 'Accumulated Depr.'), v: `${fmt(stats.dep)} ${_t('ر.س', 'SAR')}`, s: _t('منذ البداية', 'Life to date'), c: '#F97316', ic: Calculator },
+    { l: _t('صافي القيمة الدفترية', 'Net Book Value'), v: `${fmt(stats.nbv)} ${_t('ر.س', 'SAR')}`, s: _t('القيمة الحالية', 'Current NBV'), c: '#22C55E', ic: Settings },
+    { l: _t('معروضة للبيع', 'Held for Sale'), v: stats.hfs, s: _t('أصول قيد التحويل', 'Pending transfers'), c: '#8B5CF6', ic: ArrowRightLeft },
+  ];
 
-    // 4. Pending Transfers
-    // Simplified assumption: Assets with status 'TRANSFERRED' or something similar.
-    // Or just fetch assets acquired recently if 'TRANSFERRED' isn't available. Let's count recently added.
-    const pendingTransfers = await prisma.fixedAsset.count({
-        where: { status: 'HELD_FOR_SALE' }
-    });
-
-    // Recent Assets
-    const recentAssets = await prisma.fixedAsset.findMany({
-        take: 10,
-        orderBy: { acquisitionDate: 'desc' },
-        include: { category: true }
-    });
-
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Fixed Assets Register</h1>
-                    <p className="text-muted-foreground">Manage asset lifecycle, depreciation, and impairments</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline">
-                        <Box className="h-4 w-4 mr-2" /> Add Asset
-                    </Button>
-                    <Button variant="default">
-                        <Calculator className="h-4 w-4 mr-2" /> Run Depreciation
-                    </Button>
-                </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Assets Value</CardTitle>
-                        <Box className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(gbaAgg._sum.acquisitionCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Gross book value</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Accumulated Depr.</CardTitle>
-                        <Calculator className="h-4 w-4 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(accDepAgg._sum.accumulatedDepreciation || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Life to date</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Net Book Value</CardTitle>
-                        <Settings className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">SAR {Number(nbvAgg._sum.currentBookValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-xs text-muted-foreground">Current NBV</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Held for Sale</CardTitle>
-                        <ArrowRightLeft className="h-4 w-4 text-purple-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{pendingTransfers}</div>
-                        <p className="text-xs text-muted-foreground">Location or custodian changes</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Recent Asset Acquisitions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <table className="min-w-full divide-y divide-border">
-                            <thead className="bg-muted/50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Asset ID</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Category</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Acquisition Date</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {recentAssets.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No recent assets.</td></tr>
-                                ) : recentAssets.map((asset) => (
-                                    <tr key={asset.id}>
-                                        <td className="px-4 py-3 text-sm font-medium text-blue-600">{asset.assetNumber}</td>
-                                        <td className="px-4 py-3 text-sm">{asset.name}</td>
-                                        <td className="px-4 py-3 text-sm">{asset.category?.nameEn || 'Uncategorized'}</td>
-                                        <td className="px-4 py-3 text-sm">{format(asset.acquisitionDate, 'yyyy-MM-dd')}</td>
-                                        <td className="px-4 py-3 text-sm">SAR {Number(asset.acquisitionCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+  return (
+    <div style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Box size={28} color="var(--primary)" /> {_t('سجل الأصول الثابتة', 'Fixed Assets Register')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>{_t('إدارة دورة حياة الأصول والاستهلاك', 'Manage asset lifecycle, depreciation, and impairments')}</p>
         </div>
-    );
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> {_t('إضافة أصل', 'Add Asset')}</button>
+          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calculator size={16} /> {_t('تشغيل الاستهلاك', 'Run Depreciation')}</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: '16px', marginBottom: '24px' }}>
+        {cards.map((c, i) => (
+          <div key={i} className="card" style={{ padding: '20px', borderTop: `3px solid ${c.c}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{c.l}</span>
+              <c.ic size={18} color={c.c} />
+            </div>
+            <div style={{ fontSize: '22px', fontWeight: '800' }}>{c.v}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{c.s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ overflow: 'auto' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>{_t('آخر الأصول المضافة', 'Recent Asset Acquisitions')}</h3>
+        </div>
+        {loading ? <div style={{ textAlign: 'center', padding: '40px' }}>{_t('جاري التحميل...', 'Loading...')}</div> : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{_t('رقم الأصل', 'Asset ID')}</th>
+                <th>{_t('الوصف', 'Description')}</th>
+                <th>{_t('الفئة', 'Category')}</th>
+                <th>{_t('تاريخ الاقتناء', 'Acquisition Date')}</th>
+                <th>{_t('القيمة', 'Value')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>{_t('لا توجد أصول', 'No assets found')}</td></tr>
+              ) : assets.map((a: any) => (
+                <tr key={a.id}>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>{a.assetNumber}</td>
+                  <td style={{ fontWeight: '600' }}>{a.name}</td>
+                  <td>{a.category?.nameEn || a.category?.name || '—'}</td>
+                  <td>{a.acquisitionDate?.slice?.(0, 10) || '—'}</td>
+                  <td style={{ fontWeight: '600' }}>{Number(a.acquisitionCost || 0).toLocaleString()} {_t('ر.س', 'SAR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -1,10 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { LayoutDashboard, TrendingUp, ShoppingCart, Activity, ChefHat, Factory, Building2, ServerCog, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function V3MasterDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [stats, setStats] = useState({ retail: 0, kds: 0, mrp: 0, boq: 0 });
 
   useEffect(() => {

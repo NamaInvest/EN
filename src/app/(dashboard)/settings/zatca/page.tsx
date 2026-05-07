@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { QrCode, Key, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export default function ZatcaSettingsDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [otp, setOtp] = useState('');

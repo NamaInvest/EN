@@ -1,10 +1,13 @@
 'use client';
 import React from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Building, TrendingUp, Activity, BarChart, Settings, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function RealEstatePropertyDashboard() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6" dir="rtl">
             <div className="flex justify-between items-center bg-white p-6 rounded-xl border shadow-sm">

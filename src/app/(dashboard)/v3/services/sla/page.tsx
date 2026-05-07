@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function SLATrackingPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [slas] = useState([
         { id: 'WO-1001', client: 'Alpha Corp', type: 'Resolution Time', target: '4 Hours', elapsed: '2h 15m', status: 'ON_TRACK' },
         { id: 'TKT-992', client: 'Gamma Inc', type: 'First Response', target: '1 Hour', elapsed: '1h 10m', status: 'BREACHED' },

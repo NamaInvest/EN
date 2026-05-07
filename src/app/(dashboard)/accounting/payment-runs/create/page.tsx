@@ -1,11 +1,14 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, ChevronRight, Calculator, FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreatePaymentRunPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         dueDateUntil: '',

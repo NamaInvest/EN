@@ -1,12 +1,15 @@
+'use client';
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Landmark, ArrowRight, Wallet, ReceiptText, ArrowRightLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
-export default async function PettyCashPage() {
+export default function PettyCashPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const funds = await prisma.pettyCashFund.findMany({
         include: {
             custodian: true

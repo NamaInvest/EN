@@ -1,45 +1,50 @@
-import fs from 'fs';
-import path from 'path';
-import Link from 'next/link';
+'use client';
+import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 
-interface Props {
-    params: {
-        slug: string;
-    };
-}
+export default function DocViewPage() {
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const params = useParams();
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(true);
 
-export default async function DocViewPage({ params }: Props) {
-    const filePath = path.join(process.cwd(), 'docs', 'gaps', `${params.slug}.md`);
-    let content = '';
-    
-    try {
-        if (fs.existsSync(filePath)) {
-            content = fs.readFileSync(filePath, 'utf8');
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch(`/api/docs/${params.slug}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (r.ok) {
+          const d = await r.json();
+          setContent(d.content || d.text || '');
         } else {
-            content = '# Error\nDocument not found.';
+          setContent(_t('# خطأ\nالمستند غير موجود.', '# Error\nDocument not found.'));
         }
-    } catch (e) {
-        content = '# Error\nFailed to load document.';
-    }
+      } catch {
+        setContent(_t('# خطأ\nفشل في تحميل المستند.', '# Error\nFailed to load document.'));
+      } finally { setLoading(false); }
+    })();
+  }, [params.slug]);
 
-    return (
-        <div className="max-w-5xl mx-auto p-6 space-y-6">
-            <Link href="/docs">
-                <Button variant="ghost" className="mb-4 text-blue-600 hover:bg-blue-50">
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Docs
-                </Button>
-            </Link>
+  return (
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
+      <Link href="/docs" style={{ textDecoration: 'none' }}>
+        <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
+          <ArrowLeft size={16} /> {_t('العودة للمستندات', 'Back to Docs')}
+        </button>
+      </Link>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-                <div className="prose prose-blue max-w-none prose-headings:border-b prose-headings:pb-2 prose-h1:text-3xl prose-h2:text-2xl prose-table:w-full prose-th:bg-gray-100 prose-th:p-2 prose-td:p-2 prose-td:border-t">
-                    {/* Native simple markdown rendering or raw text. For full support we'd use react-markdown, but pre format is safer for now if it's not installed */}
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 bg-transparent border-0 p-0 m-0">
-                        {content}
-                    </pre>
-                </div>
-            </div>
-        </div>
-    );
+      <div className="card" style={{ padding: '32px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>{_t('جاري التحميل...', 'Loading...')}</div>
+        ) : (
+          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '14px', lineHeight: 1.8, margin: 0, color: 'var(--text-primary)' }}>
+            {content}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
 }
