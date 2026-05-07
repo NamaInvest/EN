@@ -6,16 +6,17 @@
 const PATTERNS = {
     // Saudi National ID (10 digits starting with 1 or 2)
     nationalId: /\b[12]\d{9}\b/g,
-    // IBAN Saudi (SA + 22 chars)
-    iban: /\bSA\d{2}[A-Z0-9]{18}\b/gi,
+    // IBAN Saudi (SA + 2 check digits + 20 BBAN = 24 chars total)
+    iban: /\bSA\d{2}[A-Z0-9]{20}\b/gi,
     // Phone Saudi (+966 or 05x)
     phone: /(?:\+966|00966|05)\d{8}/g,
     // Email
     email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
     // Credit Card (basic 16 digits)
     creditCard: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
-    // Salary amounts (common Arabic patterns)
-    salary: /(?:راتب|salary|أجر|wage)[\s:]*[\d,]+(?:\.\d{2})?/gi,
+    // Salary amounts — the keyword may be followed by other words before the number.
+    // We capture "keyword ... number" and only mask the number portion (not the keyword).
+    salary: /(?:راتب|salary|أجر|wage)[^\d\n]{0,40}([\d,]+(?:\.\d{1,2})?)/gi,
 };
 
 export interface MaskResult {
@@ -68,11 +69,12 @@ export function maskPII(text: string): MaskResult {
         return `[****${match.replace(/\D/g, '').slice(-4)}]`;
     });
 
-    // Salary → [***مبلغ***]
-    masked = masked.replace(PATTERNS.salary, () => {
+    // Salary → keep keyword/intermediate text, mask only the number
+    masked = masked.replace(PATTERNS.salary, (match, amount) => {
         maskedCount++;
         if (!maskedTypes.includes('salary')) maskedTypes.push('salary');
-        return '[***مبلغ مالي***]';
+        // Replace just the captured numeric amount inside the match.
+        return match.replace(amount, '[***مبلغ مالي***]');
     });
 
     return { masked, maskedCount, maskedTypes };

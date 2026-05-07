@@ -2,7 +2,7 @@
  * AI-28 — Test Suite Foundation for AI Stack
  * Tests the core AI infrastructure: Prompt Registry, PII Masking, Env Validation
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 // === PII Masking Tests ===
 describe('PII Masking Engine', () => {

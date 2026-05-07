@@ -30,10 +30,21 @@ jobs:
         run: npx prisma generate
 
       - name: ESLint
-        run: npx eslint src/ --max-warnings 50 || true
+        run: npx eslint src/ --max-warnings 50
 
-      - name: TypeScript Check
-        run: npx tsc --noEmit --skipLibCheck || true
+      # NOTE: TypeScript currently has known errors documented in HARDENING.md.
+      # We capture the count and fail the build only if it INCREASES vs. the baseline.
+      - name: TypeScript Check (baseline-aware)
+        run: |
+          npx tsc --noEmit --skipLibCheck 2>&1 | tee tsc-output.log || true
+          ERR_COUNT=$(grep -c "error TS" tsc-output.log || echo 0)
+          BASELINE=230
+          echo "TypeScript errors: $ERR_COUNT (baseline: $BASELINE)"
+          if [ "$ERR_COUNT" -gt "$BASELINE" ]; then
+            echo "❌ TypeScript error count increased. New errors must be fixed before merge."
+            exit 1
+          fi
+          echo "✅ TypeScript error count within baseline."
 
   test:
     name: Test Suite
@@ -55,7 +66,7 @@ jobs:
         run: npx prisma generate
 
       - name: Run Tests
-        run: npx vitest run --reporter=verbose || true
+        run: npx vitest run --reporter=verbose
 
   build:
     name: Production Build
@@ -96,11 +107,33 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd /root/namasoft9-3-main
+            # Snapshot current commit for rollback
+            PREV_COMMIT=$(git rev-parse HEAD)
+            echo "Previous commit: $PREV_COMMIT"
+
             git pull origin main
             npm ci --production
             npx prisma generate
-            npx prisma db push --accept-data-loss
+
+            # SAFE migration: prisma migrate deploy applies pending migrations only.
+            # NEVER use `prisma db push --accept-data-loss` in production — it can
+            # silently drop columns and tables. Use migrations instead.
+            npx prisma migrate deploy
+
             npm run build
             pm2 restart namasoft-main
+
+            # Health check; rollback on failure
+            sleep 5
+            if ! curl -fsS http://localhost:3000/api/health >/dev/null; then
+              echo "❌ Health check failed — rolling back to $PREV_COMMIT"
+              git reset --hard "$PREV_COMMIT"
+              npm ci --production
+              npx prisma generate
+              npm run build
+              pm2 restart namasoft-main
+              exit 1
+            fi
             echo "✅ Deployed successfully at $(date)"
