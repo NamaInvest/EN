@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
 import { emailQueue } from '@/lib/queue';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const customerId = parseInt(params.id);
+        const customerId = parseInt((await params).id);
         const body = await req.json();
         const { fromDate, toDate, format, sendEmail } = body;
 

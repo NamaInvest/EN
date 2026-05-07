@@ -112,6 +112,7 @@ export class SalesForecastEngine {
         stages: Array<{ stage: string; count: number; value: number }>;
     }> {
         const leads = await prisma.lead.findMany({
+            take: 100,
             where: { status: { notIn: ['WON', 'LOST'] } },
             select: { status: true, expectedRevenue: true },
         });

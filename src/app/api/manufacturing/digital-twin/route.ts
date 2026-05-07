@@ -7,11 +7,13 @@ export async function GET(request: Request) {
     try {
         // 1. Digital Twin Nodes (Machines & Work Centers)
         const baseMachines = await prisma.machine.findMany({
+            take: 100,
             orderBy: { id: 'asc' }
         });
 
         // Fetch telemetry separately to bypass IDE TS cache issues
         const allTelemetry = await (prisma as any).machineTelemetry.findMany({
+            take: 100,
             orderBy: { id: 'desc' }
         });
 

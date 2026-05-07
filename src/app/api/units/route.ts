@@ -5,7 +5,8 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } });
+        const units = await prisma.unit.findMany({
+            take: 100, orderBy: { name: 'asc' } });
         return NextResponse.json(units);
     } catch (error) {
         console.error('Units GET error:', error);

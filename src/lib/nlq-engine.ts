@@ -39,6 +39,7 @@ export class NLQEngine {
             intent: 'top_customers',
             handler: async (prisma) => {
                 const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
                     where: { status: { not: 'CANCELLED' } },
                     include: { customer: { select: { id: true, name: true } } },
                 });
@@ -57,6 +58,7 @@ export class NLQEngine {
             intent: 'low_stock',
             handler: async (prisma) => {
                 const products = await prisma.product.findMany({
+            take: 100,
                     where: { isActive: true },
                     select: { id: true, name: true, stockQuantity: true, minStock: true },
                 });

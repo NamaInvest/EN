@@ -110,6 +110,7 @@ export class ConsolidationEngine {
 
         // Fetch all posted journal lines grouped by account
         const lines = await tx.journalLine.findMany({
+            take: 100,
             where: {
                 journalEntry: { status: 'posted' }
             },
@@ -187,6 +188,7 @@ export class ConsolidationEngine {
         const eliminationLines: any[] = [];
 
         const pendingIC = await tx.intercompanyTransaction.findMany({
+            take: 100,
             where: { status: 'PENDING' }
         });
 

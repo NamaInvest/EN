@@ -14,6 +14,7 @@ export async function GET(req: Request) {
 
         // Get past adjustments
         const adjustments = await prisma.stockMovement.findMany({
+            take: 100,
             where: {
                 type: { in: ['adjustment', 'adjustment_in', 'adjustment_out'] }
             },

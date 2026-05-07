@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         }
 
         const forecasts = await prisma.liquidityForecast.findMany({
+            take: 100,
             where: { tenantId, scenarioId: scenario.id },
             orderBy: [{ weekNumber: 'asc' }, { category: 'asc' }]
         });

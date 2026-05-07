@@ -82,6 +82,7 @@ export class WebhookEngine {
      */
     static async list(prisma: PrismaClient): Promise<any[]> {
         const subs = await db(prisma).webhookSubscription.findMany({
+            take: 100,
             orderBy: { createdAt: 'desc' },
         });
         return subs.map((s: any) => ({
@@ -100,6 +101,7 @@ export class WebhookEngine {
         payload: Record<string, any>
     ): Promise<{ sent: number; failed: number }> {
         const subs = await db(prisma).webhookSubscription.findMany({
+            take: 100,
             where: { isActive: true },
         });
 

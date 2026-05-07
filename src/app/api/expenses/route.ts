@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const expenses = await prisma.expense.findMany({ 
+        const expenses = await prisma.expense.findMany({
+            take: 100, 
             where, 
             include: { user: { select: { id: true, username: true, fullName: true, role: true } }, costCenter: true }, 
             orderBy: { date: 'desc' } 

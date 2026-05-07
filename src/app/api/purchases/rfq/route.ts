@@ -12,6 +12,7 @@ export async function GET(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const rfqs = await prisma.requestForQuotation.findMany({
+            take: 100,
             include: {
                 supplier: { select: { name: true, phone: true } },
                 user: { select: { fullName: true } },

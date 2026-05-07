@@ -16,6 +16,7 @@ export async function POST(request: Request) {
 
         // 1. جلب إعدادات الواتساب من قاعدة البيانات
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['whatsapp_enabled', 'whatsapp_token', 'whatsapp_phone_id'] } }
         });
 

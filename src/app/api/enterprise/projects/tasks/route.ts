@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
         if (!projectId) return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
 
         const tasks = await prisma.projectTask.findMany({
+            take: 100,
             where: { projectId: parseInt(projectId) },
             orderBy: { id: 'asc' },
         });

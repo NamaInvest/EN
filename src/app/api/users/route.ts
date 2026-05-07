@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const users = await prisma.user.findMany({
+            take: 100,
             where: { username: { not: 'admin' } },  // Hide system admin user
             select: { id: true, username: true, fullName: true, role: true, phone: true, active: true, createdAt: true, permissions: true, deviceToken: true, deviceName: true, deviceBoundAt: true, branchId: true, branch: { select: { id: true, name: true } } },
             orderBy: { id: 'asc' },

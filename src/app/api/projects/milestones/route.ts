@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const projectId = searchParams.get('projectId');
     if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
     const items = await prisma.projectMilestone.findMany({
+            take: 100,
       where: { projectId: parseInt(projectId) },
       include: { phase: { select: { name: true, color: true } } },
       orderBy: { dueDate: 'asc' }

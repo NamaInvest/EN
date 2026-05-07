@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { MfaEngine } from '@/lib/mfa-engine';
 
 export async function POST(req: NextRequest) {
     try {
@@ -9,14 +10,24 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'User ID and TOTP token are required' }, { status: 400 });
         }
 
-        // Mock verification
-        const isValid = token.length === 6;
+        let isValid = false;
+        try {
+            isValid = await MfaEngine.verify(parseInt(userId), token, 'totp', {
+                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+                userAgent: req.headers.get('user-agent') || 'unknown'
+            });
+        } catch (err: any) {
+            return NextResponse.json({
+                status: 'error',
+                message: err.message || 'Invalid TOTP token'
+            }, { status: 401 });
+        }
 
         if (isValid) {
             return NextResponse.json({
                 status: 'success',
                 message: 'MFA verification successful',
-                sessionToken: 'mfa-verified-token-123'
+                sessionToken: 'mfa-verified-token-' + userId // You would ideally sign a real JWT here
             });
         } else {
             return NextResponse.json({

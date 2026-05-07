@@ -12,6 +12,7 @@ export async function GET(request: Request) {
         if (!monthStr) {
             // Return list of all GOSI files if no month specified
             const files = await prisma.gOSIMonthlyFile.findMany({
+            take: 100,
                 orderBy: { month: 'desc' }
             });
             return NextResponse.json(files);

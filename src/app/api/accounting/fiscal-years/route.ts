@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const fiscalYears = await prisma.fiscalYear.findMany({
+            take: 100,
             orderBy: { yearNumber: 'desc' },
             select: { id: true, yearNumber: true, startDate: true, endDate: true, status: true },
         });

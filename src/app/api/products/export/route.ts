@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         if (!includeInactive) where.active = true;
 
         const products = await prisma.product.findMany({
+            take: 100,
             where,
             include: { category: true, unit: true },
             orderBy: { id: 'asc' }

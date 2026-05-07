@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).maintenanceWorkOrder.findMany({ include: { schedule: true }, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).maintenanceWorkOrder.findMany({
+            take: 100, include: { schedule: true }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'cmms/work-orders' }); }
 }

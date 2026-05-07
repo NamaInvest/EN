@@ -12,6 +12,7 @@ export async function POST(request: Request) {
 
         // 1. التحقق من التوافق (الأمان)
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['zid_enabled', 'zid_webhook_secret'] } }
         });
         const zidEnabled = settings.find(s => s.key === 'zid_enabled')?.value === '1';
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
         // Zid uses a pre-shared token passed in Authorization header
         if (signature && clientSecret && signature !== `Bearer ${clientSecret}` && signature !== clientSecret) {
             console.error('Zid Webhook: Invalid Signature/Token');
-            // return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 }); // نعلقها بالاختبار فقط
+            return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 }); 
         }
 
         const payload = JSON.parse(bodyText);

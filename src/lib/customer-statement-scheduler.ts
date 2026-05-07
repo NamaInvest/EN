@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import { CustomerStatementPdfEngine } from './customer-statement-pdf';
 import { CustomerStatementEmailEngine } from './customer-statement-email';
+import { uploadFile } from './cloud-storage';
 
 export class CustomerStatementScheduler {
     
@@ -12,6 +13,7 @@ export class CustomerStatementScheduler {
         
         // Find customers matching criteria
         const customers = await prisma.customer.findMany({
+            take: 100,
             where: {
                 emailStatementsEnabled: true,
                 statementFrequency: frequency,
@@ -51,8 +53,9 @@ export class CustomerStatementScheduler {
                     dateTo
                 );
 
-                // 2. Upload to S3/Storage (Mocked here)
-                const pdfUrl = `https://storage.mock.net/statements/${customer.id}_${Date.now()}.pdf`;
+                // 2. Upload to S3/Storage (Real implementation)
+                const uploadResult = await uploadFile(pdfBuffer, `statement_${customer.id}_${Date.now()}.pdf`, 'statements');
+                const pdfUrl = uploadResult.url;
 
                 // 3. Dispatch Email
                 const emailResult = await CustomerStatementEmailEngine.sendEmail(

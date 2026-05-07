@@ -7,6 +7,7 @@ export class AllocationEngine {
      */
     static async runAllPeriodAllocations(fiscalPeriodId: number, userId: string) {
         const rules = await prisma.allocationRule.findMany({
+            take: 100,
             where: { isActive: true },
             orderBy: { priority: 'asc' }, // Cascading: Lower priority number runs first
         });

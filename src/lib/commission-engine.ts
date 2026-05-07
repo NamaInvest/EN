@@ -22,6 +22,7 @@ export class CommissionEngine {
         const from = new Date(year, m - 1, 1);
         const to = new Date(year, m, 0);
         const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { status: { not: 'CANCELLED' }, date: { gte: from, lte: to } },
         });
         const map: Record<string, { total: number; commission: number; count: number }> = {};

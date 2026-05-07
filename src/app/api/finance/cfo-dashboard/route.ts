@@ -15,13 +15,16 @@ export async function GET(req: NextRequest) {
 
         // 1. Current & Quick Ratios
         // Assets
-        const customers = await prisma.customer.findMany({ select: { balance: true } });
+        const customers = await prisma.customer.findMany({
+            take: 100, select: { balance: true } });
         const totalAR = customers.reduce((sum, c) => sum + (c.balance || 0), 0);
         
-        const products = await prisma.product.findMany({ select: { currentStock: true, buyPrice: true } });
+        const products = await prisma.product.findMany({
+            take: 100, select: { currentStock: true, buyPrice: true } });
         const totalInventory = products.reduce((sum, p) => sum + ((p.currentStock || 0) * (p.buyPrice || 0)), 0);
 
-        const treasuries = await prisma.treasury.findMany({ select: { amount: true, type: true } });
+        const treasuries = await prisma.treasury.findMany({
+            take: 100, select: { amount: true, type: true } });
         let totalCash = 0;
         treasuries.forEach(t => {
             if (t.type === 'in') totalCash += t.amount;
@@ -31,7 +34,8 @@ export async function GET(req: NextRequest) {
         const currentAssets = totalCash + totalAR + totalInventory;
         
         // Liabilities
-        const suppliers = await prisma.customer.findMany({ where: { type: 1 }, select: { balance: true } }); // type 1 = supplier
+        const suppliers = await prisma.customer.findMany({
+            take: 100, where: { type: 1 }, select: { balance: true } }); // type 1 = supplier
         const totalAP = suppliers.reduce((sum, s) => sum + (s.balance || 0), 0);
         const currentLiabilities = totalAP || 1; // avoid division by zero
 
@@ -39,10 +43,12 @@ export async function GET(req: NextRequest) {
         const quickRatio = (currentAssets - totalInventory) / currentLiabilities;
 
         // 2. Net Profit Margin & DSO
-        const sales = await prisma.salesInvoice.findMany({ select: { total: true, date: true } });
+        const sales = await prisma.salesInvoice.findMany({
+            take: 100, select: { total: true, date: true } });
         const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
 
-        const expenses = await prisma.expense.findMany({ select: { amount: true } });
+        const expenses = await prisma.expense.findMany({
+            take: 100, select: { amount: true } });
         const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
         
         // Approx COGS
@@ -62,6 +68,7 @@ export async function GET(req: NextRequest) {
         };
 
         const pendingInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { remaining: { gt: 0 } },
             select: { remaining: true, date: true }
         });

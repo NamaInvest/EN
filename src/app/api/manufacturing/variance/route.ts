@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const variances = await prisma.varianceTransaction.findMany({
+            take: 100,
             include: {
                 product: true,
                 mo: true

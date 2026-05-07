@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma(request);
   try {
     const assets = await prisma.asset.findMany({
+            take: 100,
       orderBy: { id: "desc" },
     });
     return NextResponse.json(assets, { status: 200 });
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
       data: {
         barcode: seqResult.formatted,
         name: body.assetName,
-        category: body.assetType || "�����",
+        category: body.assetType || "UnauthorizedUnauthorizedUnauthorizedUnauthorizedUnauthorized",
         purchaseDate: new Date(body.purchaseDate),
         purchasePrice: purchaseCost,
         salvageValue: parseFloat(body.salvageValue) || 0,

@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { ShieldCheck, FileText, Globe, AlertTriangle, FileSpreadsheet, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';

@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
         // Retrieve all AI WhatsApp sessions stored in the generic Settings table
         const sessionRecords = await prisma.setting.findMany({
+            take: 100,
             where: { key: { startsWith: 'whatsapp_session_' } },
             orderBy: { id: 'desc' }
         });

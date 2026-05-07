@@ -206,6 +206,7 @@ export class WHTEngine {
         endDate.setMonth(endDate.getMonth() + 1);
 
         const transactions = await db(prisma).wHTTransaction.findMany({
+            take: 100,
             where: {
                 createdAt: { gte: startDate, lt: endDate },
                 form14BatchId: null,
@@ -259,6 +260,7 @@ export class WHTEngine {
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
         const transactions = await prisma.wHTTransaction.findMany({
+            take: 100,
             where: { createdAt: { gte: startDate, lte: endDate }, paidToZATCA: false },
             include: { supplier: true }
         });

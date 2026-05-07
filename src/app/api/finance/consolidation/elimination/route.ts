@@ -6,11 +6,13 @@ export async function GET(req: Request) {
     try {
         // Find Intercompany Customers (type 0 or 2) & Vendors (type 1 or 2)
         const icCustomers = await prisma.customer.findMany({
+            take: 100,
             where: { isIntercompany: true, type: { in: [0, 2] } } as any,
             select: { id: true, name: true, balance: true }
         });
 
         const icVendors = await prisma.customer.findMany({
+            take: 100,
             where: { isIntercompany: true, type: { in: [1, 2] } } as any,
             select: { id: true, name: true, balance: true }
         });

@@ -7,7 +7,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const params = await context.params;
-    const stepId = parseInt(params.id);
+    const stepId = parseInt((await params).id);
 
     try {
         const body = await request.json();

@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
 
         // Find previous license with same VAT or CRN (not the one we just created)
         const conditions: string[] = [];
-        const params: any[] = [licenseKey];
+        const params: Promise<any>[] = [licenseKey];
         let paramIdx = 2;
 
         if (vatNumber) {

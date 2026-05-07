@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
 
         // @ts-ignore
         const checks = await prisma.checkTransaction.findMany({
+            take: 100,
             where: conditions,
             include: {
                 customer: true,

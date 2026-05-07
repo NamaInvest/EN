@@ -58,11 +58,13 @@ export async function GET(req: NextRequest) {
         }
 
         const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: whereInvoices,
             select: { id: true, invoiceNo: true, date: true, total: true }
         });
 
         const payments = await prisma.treasury.findMany({
+            take: 100,
             where: wherePayments,
             select: { id: true, date: true, amount: true, description: true }
         });
@@ -104,6 +106,7 @@ export async function GET(req: NextRequest) {
         const now = new Date();
         const aging = { current: 0, '1-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
         const openInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { customerId, remaining: { gt: 0 } },
             select: { remaining: true, date: true }
         });

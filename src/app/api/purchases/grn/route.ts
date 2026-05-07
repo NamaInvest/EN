@@ -13,6 +13,7 @@ export async function GET(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const grns = await prisma.goodsReceiptNote.findMany({
+            take: 100,
             include: {
                 supplier: { select: { name: true } },
                 order: { select: { orderNo: true } },

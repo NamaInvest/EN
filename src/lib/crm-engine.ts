@@ -131,6 +131,7 @@ export class CRMEngine {
         const whereClause = ownerId ? { ownerId, stage: { isWon: false, isLost: false } } : { stage: { isWon: false, isLost: false } };
         
         const openOpps = await prisma.opportunity.findMany({
+            take: 100,
             where: whereClause,
             include: { stage: true }
         });

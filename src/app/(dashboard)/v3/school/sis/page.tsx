@@ -1,7 +1,8 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { Users, GraduationCap, Bus, Bell, BookOpen } from 'lucide-react';
+import { Users, GraduationCap, Bus, Bell, BookOpen, Brain, ScanSearch, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

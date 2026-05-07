@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 export default async function WarehouseZonesPage() {
     const zones = await prisma.warehouseZone.findMany({
+            take: 100,
         include: {
             stock: true,
             racks: true

@@ -82,7 +82,8 @@ export async function PUT(request: NextRequest) {
 
         if (action === 'auto-match') {
             // Mock auto-matching logic: match all lines that have 'auto' in description or similar heuristics
-            const lines = await prisma.bankStatementLine.findMany({ where: { matchStatus: 'UNMATCHED' } });
+            const lines = await prisma.bankStatementLine.findMany({
+            take: 100, where: { matchStatus: 'UNMATCHED' } });
             let matchedCount = 0;
             for (const line of lines) {
                 // If it's a generic outward transfer or fee, mock it as matched

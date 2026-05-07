@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Calculator, FileText, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';

@@ -10,6 +10,7 @@ export class LotEngine {
         thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
 
         return prisma.productBatch.findMany({
+            take: 100,
             // @ts-ignore
             where: {
                 status: 'AVAILABLE',

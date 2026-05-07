@@ -54,12 +54,14 @@ export class CashForecastEngine {
 
         // Get AR aging (expected collections)
         const openAR = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { status: { not: 'CANCELLED' }, remaining: { gt: 0 } },
             select: { remaining: true, dueDate: true, invoiceDate: true },
         });
 
         // Get AP aging (expected payments)
         const openAP = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: { status: { not: 'cancelled' }, remaining: { gt: 0 } },
             select: { remaining: true, dueDate: true, invoiceDate: true },
         });

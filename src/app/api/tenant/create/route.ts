@@ -5,6 +5,8 @@ import { currentUser } from "@clerk/nextjs/server";
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    if (!_getAuth(req)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
   try {
     const user = await currentUser();
     

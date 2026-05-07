@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const rules = await prisma.approvalRule.findMany({
+            take: 100,
             include: { approver: { select: { id: true, fullName: true, role: true } } },
             orderBy: { level: 'asc' }
         });

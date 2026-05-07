@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const entries = await prisma.treasury.findMany({ where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
+        const entries = await prisma.treasury.findMany({
+            take: 100, where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
         return NextResponse.json(entries);
     } catch (error) { 
         return handleApiError(error); 

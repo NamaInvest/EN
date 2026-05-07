@@ -8,6 +8,7 @@ export async function GET(req: Request) {
         const recipeId = searchParams.get('recipeId');
 
         const recipes = await prisma.recipe.findMany({
+            take: 100,
             where: recipeId ? { id: Number(recipeId) } : {},
             include: {
                 operations: {
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
         });
 
         const workCenters = await prisma.workCenter.findMany({
+            take: 100,
             where: { isActive: true }
         });
 

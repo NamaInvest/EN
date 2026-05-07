@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +11,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
-export default function ProjectDetails({ params }: { params: { id: string } }) {
+export default async function ProjectDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
  const { t } = useTranslation();
  const { error: toastError, success: toastSuccess } = useToast();
  const router = useRouter();
@@ -25,13 +27,13 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
  taskName: '', description: '', assignedTo: '', budget: '', startDate: '', endDate: '' 
  });
 
- useEffect(() => { fetchData(); }, [params.id]);
+ useEffect(() => { fetchData(); }, [(await params).id]);
 
  const fetchData = async () => {
  setLoading(true);
  try {
  const token = localStorage.getItem('token');
- const res = await fetch(`/api/enterprise/projects/tasks?projectId=${params.id}`, { headers: { Authorization: `Bearer ${token}` } });
+ const res = await fetch(`/api/enterprise/projects/tasks?projectId=${(await params).id}`, { headers: { Authorization: `Bearer ${token}` } });
  if (res.ok) {
  const data = await res.json();
  setTasks(data.tasks);
@@ -48,7 +50,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
  try {
  const res = await fetch('/api/enterprise/projects/tasks', {
  method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify({ ...formData, projectId: params.id })
+ body: JSON.stringify({ ...formData, projectId: (await params).id })
  });
 
  if (res.ok) { setShowModal(false); fetchData(); } 
@@ -100,7 +102,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
  {t('sys.str_57')}{project.customer?.name} {t('sys.str_2842')}{project.id}
  </p>
  </div>
- <button className="btn btn-primary" onClick={() => router.push(`/enterprise/projects/${params.id}/gantt`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+ <button className="btn btn-primary" onClick={() => router.push(`/enterprise/projects/${(await params).id}/gantt`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
    <LayoutDashboard size={18} />{_t('Gantt & Analytics', 'Gantt & Analytics')}</button>
  </div>
 

@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         const body = await req.json();

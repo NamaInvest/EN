@@ -12,7 +12,8 @@ export class PeriodCloseEngine {
             throw new Error("Period is already closed or locked");
         }
 
-        const templates = await prisma.periodCloseTaskTemplate.findMany({ orderBy: { sequence: 'asc' } });
+        const templates = await prisma.periodCloseTaskTemplate.findMany({
+            take: 100, orderBy: { sequence: 'asc' } });
         
         const checklists = await Promise.all(
             templates.map(tmpl => prisma.periodCloseChecklist.create({

@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
         // 2. Loan Deductions (Active loans)
         const activeLoans = await prisma.employeeLoan.findMany({
+            take: 100,
             where: { employeeId: parseInt(employeeId), status: 'active', remainingAmount: { gt: 0 } }
         });
 
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
         // Let's find explicit 'absent' status if they use it, or count days without check_in.
         // For now, let's just query records in the given month (e.g. date starts with '2026-05')
         const attendanceRecords = await prisma.attendance.findMany({
+            take: 100,
             where: {
                 employeeId: parseInt(employeeId),
                 date: { startsWith: period }

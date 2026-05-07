@@ -28,6 +28,7 @@ export async function GET(req: Request) {
         };
 
         const requests = await (prisma as any).leaveRequest.findMany({
+            take: 100,
             where,
             include: { employee: { select: { id: true, name: true, position: true } } },
             orderBy: { createdAt: 'desc' },

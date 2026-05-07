@@ -26,6 +26,7 @@ export async function GET(req: Request) {
 
     try {
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true },
             select: {
                 id: true, name: true,
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
         const year = parseInt(body.year) || new Date().getFullYear();
 
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true },
             select: { id: true, name: true, salary: true },
         });

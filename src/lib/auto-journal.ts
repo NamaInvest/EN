@@ -122,6 +122,8 @@ async function createJournalEntry(params: {
         // [EG-03 FIX] Create entry + lines + update balances ALL inside a single transaction
         // This prevents inconsistency if the process crashes between JE creation and balance update.
         const entry = await prisma.$transaction(async (tx) => {
+            const finalStatus = params.status || 'posted';
+            
             const je = await tx.journalEntry.create({
                 data: {
                     entryNumber,
@@ -130,7 +132,7 @@ async function createJournalEntry(params: {
                     reference: params.reference,
                     totalDebit: Math.round(totalDebit * 100) / 100,
                     totalCredit: Math.round(totalCredit * 100) / 100,
-                    status: params.status || 'draft',
+                    status: finalStatus,
                     createdBy: params.userId,
 
                     branchId: params.branchId,
@@ -164,23 +166,25 @@ async function createJournalEntry(params: {
                 },
             });
 
-            // [EG-03 FIX] Update account balances INSIDE the same transaction
+            // [EG-03 FIX] Update account balances INSIDE the same transaction ONLY IF POSTED
             // Using Math.round to mitigate Float precision drift
-            for (const line of resolvedLines) {
-                const account = await tx.account.findUnique({ where: { id: line.accountId } });
-                if (account) {
-                    let balanceChange = 0;
-                    // Assets & Expenses: debit increases, credit decreases
-                    // Liabilities, Equity & Revenue: credit increases, debit decreases
-                    if (['asset', 'expense'].includes(account.type)) {
-                        balanceChange = line.debit - line.credit;
-                    } else {
-                        balanceChange = line.credit - line.debit;
+            if (finalStatus === 'posted') {
+                for (const line of resolvedLines) {
+                    const account = await tx.account.findUnique({ where: { id: line.accountId } });
+                    if (account) {
+                        let balanceChange = 0;
+                        // Assets & Expenses: debit increases, credit decreases
+                        // Liabilities, Equity & Revenue: credit increases, debit decreases
+                        if (['asset', 'expense'].includes(account.type)) {
+                            balanceChange = line.debit - line.credit;
+                        } else {
+                            balanceChange = line.credit - line.debit;
+                        }
+                        await tx.account.update({
+                            where: { id: line.accountId },
+                            data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
+                        });
                     }
-                    await tx.account.update({
-                        where: { id: line.accountId },
-                        data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
-                    });
                 }
             }
 

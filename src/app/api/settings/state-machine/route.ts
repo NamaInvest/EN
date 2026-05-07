@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         }
 
         const items = await db(prisma).documentStateMachine.findMany({
+            take: 100,
             where: docType ? { docType } : undefined,
             orderBy: [{ docType: 'asc' }, { fromState: 'asc' }],
         });

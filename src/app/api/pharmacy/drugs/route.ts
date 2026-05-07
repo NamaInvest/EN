@@ -31,6 +31,7 @@ export async function GET(req: Request) {
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
         const drugs = await prisma.pharmacyDrug.findMany({
+            take: 100,
             where,
             include: {
                 product: {

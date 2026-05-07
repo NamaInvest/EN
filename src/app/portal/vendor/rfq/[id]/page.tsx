@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
-export default function VendorRFQPortalPage() {
+export default async function VendorRFQPortalPage() {
     const params = useParams();
     const searchParams = useSearchParams();
-    const id = params.id as string;
+    const id = (await params).id as string;
     const token = searchParams.get('token');
 
     const [rfq, setRfq] = useState<any>(null);

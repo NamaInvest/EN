@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 
-export default function DocViewPage() {
+export default async function DocViewPage() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const params = useParams();
@@ -15,7 +16,7 @@ export default function DocViewPage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch(`/api/docs/${params.slug}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        const r = await fetch(`/api/docs/${(await params).slug}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
         if (r.ok) {
           const d = await r.json();
           setContent(d.content || d.text || '');
@@ -26,7 +27,7 @@ export default function DocViewPage() {
         setContent(_t('# خطأ\nفشل في تحميل المستند.', '# Error\nFailed to load document.'));
       } finally { setLoading(false); }
     })();
-  }, [params.slug]);
+  }, [(await params).slug]);
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>

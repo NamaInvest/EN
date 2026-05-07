@@ -54,6 +54,7 @@ export class FixedAssetsEngine {
     static async runDepreciation(fiscalPeriodDate: Date) {
         // Find all active assets that have been placed in service
         const assets = await prisma.fixedAsset.findMany({
+            take: 100,
             where: {
                 status: 'ACTIVE',
                 depreciationStartDate: { lte: fiscalPeriodDate }

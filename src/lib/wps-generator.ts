@@ -424,7 +424,8 @@ export class WPSGenerator {
         const complianceRate = totalBatches > 0 ? ((acceptedCount / totalBatches) * 100).toFixed(1) : '100.0';
 
         // Get total employees with IBAN issues
-        const allEmployees = await prisma.employee.findMany({ where: { isActive: true } });
+        const allEmployees = await prisma.employee.findMany({
+            take: 100, where: { isActive: true } });
         const ibanErrors = allEmployees.filter(e => !e.bankIban || !e.bankIban.startsWith('SA') || e.bankIban.length !== 24).length;
 
         return {

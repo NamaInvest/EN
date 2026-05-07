@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const customerId = parseInt(params.id);
+        const customerId = parseInt((await params).id);
         const { action } = await req.json(); // "HOLD" or "RELEASE"
 
         if (!['HOLD', 'RELEASE'].includes(action)) {

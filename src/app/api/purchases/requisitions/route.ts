@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const prs = await prisma.purchaseRequisition.findMany({
+            take: 100,
             include: {
                 requester: { select: { fullName: true, username: true } },
                 approver: { select: { fullName: true } },

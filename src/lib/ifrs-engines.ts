@@ -71,6 +71,7 @@ export class RevenueRecognitionEngine {
      */
     static async recognizeMonthlyRevenue(periodDate: Date): Promise<number> {
         const lines = await prisma.revenueRecognitionLine.findMany({
+            take: 100,
             where: {
                 isRecognized: false,
                 periodDate: { lte: periodDate }

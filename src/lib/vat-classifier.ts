@@ -98,7 +98,8 @@ export async function computeVatPerCategory(
     totalVatDue: number;
 }> {
     // Fetch VAT categories
-    const categories = await db(prisma).vatCategory.findMany({ where: { isActive: true } });
+    const categories = await db(prisma).vatCategory.findMany({
+            take: 100, where: { isActive: true } });
 
     // For now, return structure with zeros — real implementation would
     // aggregate from SalesInvoiceDetail + PurchaseInvoiceDetail
@@ -147,6 +148,7 @@ export async function buildVatReturn(
 // ── Get All VAT Categories ──────────────────────────────────────
 export async function getVatCategories(prisma: PrismaClient): Promise<any[]> {
     return db(prisma).vatCategory.findMany({
+            take: 100,
         where: { isActive: true },
         orderBy: { code: 'asc' },
     });

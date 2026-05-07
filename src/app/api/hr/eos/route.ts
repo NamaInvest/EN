@@ -23,6 +23,7 @@ export async function GET(req: Request) {
         if (employeeId) where.employeeId = parseInt(employeeId);
 
         const calculations = await prisma.endOfServiceCalculation.findMany({
+            take: 100,
             where,
             include: { employee: { select: { id: true, name: true, position: true } } },
             orderBy: { createdAt: 'desc' },

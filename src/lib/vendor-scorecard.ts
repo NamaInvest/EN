@@ -40,6 +40,7 @@ export class VendorScorecardEngine {
 
         // Purchase orders analysis
         const pos = await prisma.purchaseOrder.findMany({
+            take: 100,
             where: {
                 supplierId,
                 createdAt: { gte: from, lte: to },
@@ -51,6 +52,7 @@ export class VendorScorecardEngine {
 
         // Purchase invoices for returns/quality
         const invoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 supplierId,
                 invoiceDate: { gte: from.toISOString(), lte: to.toISOString() },
@@ -108,6 +110,7 @@ export class VendorScorecardEngine {
      */
     static async rankAll(prisma: PrismaClient): Promise<VendorScore[]> {
         const suppliers = await prisma.customer.findMany({
+            take: 100,
             where: { isActive: true, isSupplier: true },
             select: { id: true },
         });

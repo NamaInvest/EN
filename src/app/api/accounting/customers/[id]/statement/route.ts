@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
         const { searchParams } = new URL(req.url);
         const fromDateStr = searchParams.get('from');
@@ -12,7 +13,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ error: 'Missing from or to dates' }, { status: 400 });
         }
 
-        const customerId = parseInt(params.id, 10);
+        const customerId = parseInt((await params).id, 10);
         
         const statement = await CustomerStatementEngine.generateStatement(
             customerId,

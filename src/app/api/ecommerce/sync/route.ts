@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     if (platform === 'salla' && action === 'sync_products_up') {
       // 1. Send all our active retail products to Salla Store
       const products = await prisma.product.findMany({
+            take: 100,
         where: { active: true, sellPrice: { gt: 0 } },
         select: { id: true, name: true, nameEn: true, barcode: true, currentStock: true, sellPrice: true, taxRate: true, description: true }
       });

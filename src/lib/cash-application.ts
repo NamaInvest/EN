@@ -27,6 +27,7 @@ export class CashApplicationEngine {
 
         // 2. Get open invoices for this customer
         let invoices = await prisma.openItem.findMany({
+            take: 100,
             where: {
                 partyId: payment.partyId,
                 partyType: 'customer',

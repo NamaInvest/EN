@@ -13,6 +13,7 @@ export class StatutoryReportsEngine {
     static async generateVATReturn(startDate: Date, endDate: Date): Promise<any> {
         // 1. Output Tax (Sales)
         const sales = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 issueDate: { gte: startDate, lte: endDate },
                 status: { notIn: ['DRAFT', 'CANCELLED'] } // assuming non-draft invoices
@@ -43,6 +44,7 @@ export class StatutoryReportsEngine {
 
         // 2. Input Tax (Purchases)
         const purchases = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 issueDate: { gte: startDate, lte: endDate },
                 status: { notIn: ['DRAFT', 'CANCELLED'] }
@@ -145,6 +147,7 @@ export class StatutoryReportsEngine {
      */
     static async generateIFRSBalanceSheet(asOfDate: Date): Promise<any> {
         const glAccounts = await prisma.gLAccount.findMany({
+            take: 100,
             include: {
                 balances: {
                     where: {

@@ -13,7 +13,8 @@ const db = (p: any) => p as any;
 export async function GET(req: NextRequest) {
     try {
         const prisma = getPrisma(req);
-        const items = await db(prisma).numberSequence.findMany({ orderBy: { code: 'asc' } });
+        const items = await db(prisma).numberSequence.findMany({
+            take: 100, orderBy: { code: 'asc' } });
         return NextResponse.json(items);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });

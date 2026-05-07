@@ -6,6 +6,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ cust
     try {
         const { customerId } = await params;
         const transactions = await prisma.loyaltyTransaction.findMany({
+            take: 100,
             where: { customerId: parseInt(customerId) },
             orderBy: { createdAt: 'desc' }
         });

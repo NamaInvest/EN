@@ -144,7 +144,8 @@ export class ZakatEngine {
     });
 
     // Recompute zakatableBase
-    const adjustments = await prisma.zakatAdjustment.findMany({ where: { assessmentId } });
+    const adjustments = await prisma.zakatAdjustment.findMany({
+            take: 100, where: { assessmentId } });
     const adjAdd = adjustments
       .filter(a => a.category === 'ADD')
       .reduce((s, a) => s + Number(a.amount), 0);

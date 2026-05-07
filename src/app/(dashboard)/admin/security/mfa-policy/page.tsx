@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 export default async function MfaPolicyPage() {
     const policies = await prisma.mfaPolicy.findMany({
+            take: 100,
         orderBy: { createdAt: 'desc' }
     });
 

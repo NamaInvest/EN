@@ -66,6 +66,7 @@ export class RevenueRecognitionEngine {
 
     static async runRecognitionForPeriod(periodEnd: Date) {
         const pendingLines = await prisma.revenueRecognitionLine.findMany({
+            take: 100,
             where: {
                 recognitionDate: { lte: periodEnd },
                 status: 'PENDING'

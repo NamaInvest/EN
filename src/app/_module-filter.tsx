@@ -1,3 +1,4 @@
+import { Wrench, MessageSquare } from 'lucide-react';
 'use client';
 import { useState, useMemo } from 'react';
 

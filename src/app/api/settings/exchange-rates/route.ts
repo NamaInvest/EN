@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const rates = await prisma.exchangeRate.findMany({
+            take: 100,
             orderBy: { date: 'desc' },
             include: { currency: true }
         });

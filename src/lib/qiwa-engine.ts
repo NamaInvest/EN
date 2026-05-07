@@ -74,6 +74,7 @@ export async function computeSaudizationPct(
     prisma: PrismaClient
 ): Promise<{ total: number; saudi: number; pct: number }> {
     const employees = await prisma.employee.findMany({
+            take: 100,
         where: { active: true },
         select: { nationality: true },
     });
@@ -170,6 +171,7 @@ export async function syncWorkforce(
 
     // Get all active employees
     const employees = await prisma.employee.findMany({
+            take: 100,
         where: { active: true },
         select: {
             id: true,
@@ -245,6 +247,7 @@ export async function getEmployeeContracts(
     employeeId: number
 ): Promise<any[]> {
     return db(prisma).qiwaContract.findMany({
+            take: 100,
         where: { employeeId },
         orderBy: { startDate: 'desc' },
     });

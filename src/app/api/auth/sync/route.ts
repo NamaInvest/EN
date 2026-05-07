@@ -6,6 +6,8 @@ import { headers } from "next/headers";
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    if (!_getAuth(req)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
   try {
     // ── منع الإنشاء التلقائي على Tenant subdomains ──────────────────────
     // هذا المسار يعمل فقط على الموقع الرئيسي (namainvist.com)

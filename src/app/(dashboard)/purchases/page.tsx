@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { ShoppingBag, ClipboardList, Users, Truck, ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';

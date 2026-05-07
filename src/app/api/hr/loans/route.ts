@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const loans = await prisma.employeeLoan.findMany({
+            take: 100,
             include: { employee: true },
             orderBy: { id: 'desc' }
         });

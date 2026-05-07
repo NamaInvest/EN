@@ -76,7 +76,8 @@ export class BankReconEngine {
     }
 
     private static async findRuleMatch(line: BankStatementLine): Promise<any | null> {
-        const rules = await prisma.bankReconRule.findMany({ where: { isActive: true }, orderBy: { priority: 'asc' } });
+        const rules = await prisma.bankReconRule.findMany({
+            take: 100, where: { isActive: true }, orderBy: { priority: 'asc' } });
         
         for (const rule of rules) {
             const conditions = rule.conditions as any;

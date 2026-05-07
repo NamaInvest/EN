@@ -61,14 +61,16 @@ function fmt(n: number): string {
 
 async function getSalesToday(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const sales = await prisma.salesInvoice.findMany({ where: { date: { gte: today } } });
+    const sales = await prisma.salesInvoice.findMany({
+            take: 100, where: { date: { gte: today } } });
     const totalAmount = sales.reduce((s, i) => s + (i.total || 0), 0);
     return `📊 <b>مبيعات اليوم</b>\n\n📄 عدد الفواتير: <b>${sales.length}</b>\n💰 إجمالي المبيعات: <b>${fmt(totalAmount)} ر.س</b>`;
 }
 
 async function getSalesMonth(): Promise<string> {
     const start = new Date(); start.setDate(1); start.setHours(0, 0, 0, 0);
-    const sales = await prisma.salesInvoice.findMany({ where: { date: { gte: start } } });
+    const sales = await prisma.salesInvoice.findMany({
+            take: 100, where: { date: { gte: start } } });
     const totalAmount = sales.reduce((s, i) => s + (i.total || 0), 0);
     return `📊 <b>مبيعات الشهر</b>\n\n📄 عدد الفواتير: <b>${sales.length}</b>\n💰 الإجمالي: <b>${fmt(totalAmount)} ر.س</b>`;
 }
@@ -104,6 +106,7 @@ async function getEmployeeCount(): Promise<string> {
 async function getUsersList(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const users = await prisma.user.findMany({
+            take: 100,
         include: { permissions: true, salesInvoices: { where: { date: { gte: today } } } },
         orderBy: { id: 'asc' },
     });
@@ -139,14 +142,16 @@ async function getUserSales(username: string): Promise<string> {
 
 async function getExpensesToday(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const expenses = await prisma.expense.findMany({ where: { date: { gte: today } } });
+    const expenses = await prisma.expense.findMany({
+            take: 100, where: { date: { gte: today } } });
     const total = expenses.reduce((s, e) => s + (e.amount || 0), 0);
     return `💸 <b>مصروفات اليوم</b>\n\n📄 عدد: <b>${expenses.length}</b>\n💰 الإجمالي: <b>${fmt(total)} ر.س</b>`;
 }
 
 async function getTopProducts(): Promise<string> {
     const d = new Date(); d.setDate(d.getDate() - 30);
-    const details = await prisma.salesInvoiceDetail.findMany({ where: { invoice: { date: { gte: d } } } });
+    const details = await prisma.salesInvoiceDetail.findMany({
+            take: 100, where: { invoice: { date: { gte: d } } } });
     const map = new Map<string, number>();
     details.forEach(d => { map.set(d.productName || 'غير معروف', (map.get(d.productName || 'غير معروف') || 0) + (d.quantity || 0)); });
     const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
@@ -178,11 +183,14 @@ async function addExpense(amount: number, description: string): Promise<string> 
 
 async function getDailyReport(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const sales = await prisma.salesInvoice.findMany({ where: { date: { gte: today } } });
+    const sales = await prisma.salesInvoice.findMany({
+            take: 100, where: { date: { gte: today } } });
     const salesTotal = sales.reduce((s, i) => s + (i.total || 0), 0);
-    const purchases = await prisma.purchaseInvoice.findMany({ where: { date: { gte: today } } });
+    const purchases = await prisma.purchaseInvoice.findMany({
+            take: 100, where: { date: { gte: today } } });
     const purchasesTotal = purchases.reduce((s, i) => s + (i.total || 0), 0);
-    const expenses = await prisma.expense.findMany({ where: { date: { gte: today } } });
+    const expenses = await prisma.expense.findMany({
+            take: 100, where: { date: { gte: today } } });
     const expensesTotal = expenses.reduce((s, e) => s + (e.amount || 0), 0);
     const lowStock = await prisma.product.count({ where: { currentStock: { lt: 5 } } });
     const entries = await prisma.treasury.findMany();

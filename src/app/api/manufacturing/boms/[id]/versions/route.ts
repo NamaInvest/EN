@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const productId = Number(params.id);
+        const productId = Number((await params).id);
 
         // Fetch Product and its associated BOM versions
         // A product has multiple recipes, each recipe might have a BOMVersion
@@ -44,10 +45,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const productId = Number(params.id);
+        const productId = Number((await params).id);
         const body = await req.json();
         const { sourceVersionId, newVersionNumber, ingredients, ecrReference } = body;
 

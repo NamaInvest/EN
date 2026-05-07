@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         if (!invoice) throw new Error('Invoice not found');
 
         const settingsRaw = await prisma.setting.findMany({
+            take: 100,
             where: { key: { startsWith: 'zatca_' } }
         });
         const taxNumberSetting = await prisma.setting.findUnique({ where: { key: 'tax_number' } });

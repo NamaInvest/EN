@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     try {
         // Fetch all pending approval steps for the current user
         const steps = await prisma.approvalStep.findMany({
+            take: 100,
             where: {
                 approverId: auth.userId,
                 status: 'PENDING'

@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
         let zatcaQr = '';
         try {
             const zatcaSettings = await prisma.setting.findMany({
+            take: 100,
                 where: { key: { in: ['company_name', 'tax_number'] } }
             });
             const s: Record<string, string> = {};

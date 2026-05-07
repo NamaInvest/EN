@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
         // Retrieve specifically 'transit_out' movements meaning items sent out but maybe not received
         const transits = await prisma.stockMovement.findMany({
+            take: 100,
             where: { type: 'transit_out' },
             include: { 
                 product: { select: { name: true } }, 

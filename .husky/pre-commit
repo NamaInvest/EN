@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Prevent committing secrets
+if git diff --cached --name-only | grep -E '\.env$|\.env\..+$|\.pem$|\.key$|_secret$' | grep -v '\.example$'; then
+  echo "❌ Error: Attempting to commit a secret file (.env, .pem, .key)."
+  echo "Please remove it from the index using 'git rm --cached <file>'."
+  exit 1
+fi
+
+npx lint-staged

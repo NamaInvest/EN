@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
         });
         
         const allProducts = await prisma.product.findMany({
+            take: 100,
             where: { currentStock: { gt: 0 } },
             select: { currentStock: true, buyPrice: true }
         });

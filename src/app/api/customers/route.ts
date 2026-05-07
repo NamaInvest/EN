@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     }
 
     const customers = await prisma.customer.findMany({
+            take: 100,
       where,
       orderBy: { id: "desc" },
     });

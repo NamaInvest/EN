@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { 
- Factory, Settings, PlayCircle, CheckCircle, Clock, 
- Wrench, Plus, ChevronRight, Activity
-} from 'lucide-react';
+import { Factory, Settings, PlayCircle, CheckCircle, Clock, Wrench, Plus, ChevronRight, Activity } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function EnterpriseMRP() {

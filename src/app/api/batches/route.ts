@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const batches = await prisma.productBatch.findMany({
+            take: 100,
             include: { product: { select: { name: true, barcode: true } } },
             orderBy: { expiryDate: 'asc' }
         });

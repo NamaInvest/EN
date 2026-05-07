@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).riskRegister.findMany({ orderBy: { riskScore: 'desc' } });
+    const items = await (prisma as any).riskRegister.findMany({
+            take: 100, orderBy: { riskScore: 'desc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/risks' }); }
 }

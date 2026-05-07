@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
         
         // Fetch all warehouses (Stocks)
         const stocks = await prisma.stock.findMany({
+            take: 100,
             where: {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },

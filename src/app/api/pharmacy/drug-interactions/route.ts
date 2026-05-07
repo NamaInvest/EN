@@ -75,6 +75,7 @@ export async function POST(req: Request) {
 async function checkInteractions(prisma: any, drugIds: number[], extraNames: string[] = []) {
     // @ts-ignore — pharmacy model
     const drugs = drugIds.length > 0 ? await prisma.pharmacyDrug.findMany({
+            take: 100,
         where: { id: { in: drugIds } },
         select: { id: true, genericName: true, genericNameEn: true, drugClass: true },
     }) : [];

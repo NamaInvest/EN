@@ -23,6 +23,7 @@ function normalizePhone(phone: string): string {
 export async function sendSMS(phone: string, message: string): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['sms_enabled', 'sms_provider', 'sms_api_key', 'sms_sender_id'] } }
         });
         

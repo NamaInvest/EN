@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const tickets = await prisma.serviceTicket.findMany({
+            take: 100,
             orderBy: { createdAt: 'desc' }
         });
 

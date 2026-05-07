@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
 
         // @ts-ignore
         const targets = await prisma.salesTarget.findMany({
+            take: 100,
             where: { year, month },
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             orderBy: { targetAmount: 'desc' }
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
         // Fetch all sales invoices for this period with a salesRepId
         // @ts-ignore
         const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 date: { gte: startDate, lte: endDate },
                 status: { not: 'cancelled' },

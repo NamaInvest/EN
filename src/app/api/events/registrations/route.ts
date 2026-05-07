@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId');
     const where = eventId ? { eventId: parseInt(eventId) } : {};
-    const items = await (prisma as any).eventRegistration.findMany({ where, include: { event: true }, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).eventRegistration.findMany({
+            take: 100, where, include: { event: true }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'events/registrations' }); }
 }

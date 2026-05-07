@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
         let zones: any[] = [];
         try {
             zones = await prisma.restaurantZone.findMany({
+            take: 100,
                 include: { tables: { include: { sessions: { where: { status: 'Active' } } } } }
             });
         } catch (e: any) {
@@ -129,7 +130,8 @@ export async function POST(req: NextRequest) {
 
         if (action === 'delete_zone') {
             // Delete all tables and sessions in this zone first
-            const tables = await prisma.restaurantTable.findMany({ where: { zoneId: payload.zoneId } });
+            const tables = await prisma.restaurantTable.findMany({
+            take: 100, where: { zoneId: payload.zoneId } });
             for (const table of tables) {
                 await prisma.$executeRawUnsafe(`DELETE FROM "RestaurantSession" WHERE "tableId" = ${table.id}`);
             }

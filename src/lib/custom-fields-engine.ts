@@ -23,6 +23,7 @@ export class CustomFieldsEngine {
      */
     static async getFieldsForEntity(entityType: string) {
         return await prisma.customFieldDefinition.findMany({
+            take: 100,
             where: { entityType, isActive: true },
             orderBy: { displayOrder: 'asc' }
         });
@@ -34,6 +35,7 @@ export class CustomFieldsEngine {
     static async saveValues(entityType: string, entityId: number, valuesMap: Record<string, any>) {
         // 1. Get field definitions
         const definitions = await prisma.customFieldDefinition.findMany({
+            take: 100,
             where: { entityType, isActive: true }
         });
 
@@ -89,6 +91,7 @@ export class CustomFieldsEngine {
      */
     static async getValues(entityType: string, entityId: number) {
         const values = await prisma.customFieldValue.findMany({
+            take: 100,
             where: {
                 entityId,
                 definition: { entityType }

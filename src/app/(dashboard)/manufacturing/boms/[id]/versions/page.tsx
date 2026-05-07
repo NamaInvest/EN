@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
-export default function BOMVersionsPage({ params }: { params: { id: string } }) {
+export default async function BOMVersionsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [product, setProduct] = useState<any>(null);
@@ -22,7 +23,7 @@ export default function BOMVersionsPage({ params }: { params: { id: string } }) 
     const fetchVersions = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/manufacturing/boms/${params.id}/versions`);
+            const res = await fetch(`/api/manufacturing/boms/${(await params).id}/versions`);
             const result = await res.json();
             if (result.success) {
                 setProduct(result.data.product);
@@ -60,7 +61,7 @@ export default function BOMVersionsPage({ params }: { params: { id: string } }) 
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch(`/api/manufacturing/boms/${params.id}/versions`, {
+            const res = await fetch(`/api/manufacturing/boms/${(await params).id}/versions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

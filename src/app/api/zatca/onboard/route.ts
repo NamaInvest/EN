@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
             // Get company settings
             const settings = await prisma.setting.findMany({
+            take: 100,
                 where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_environment'] } }
             });
             const s: Record<string, string> = {};
@@ -123,9 +124,12 @@ export async function POST(request: NextRequest) {
                     ? Buffer.from(finalEgs.production_certificate).toString('base64') 
                     : '';
 
+                const { encrypt } = await import('@/lib/encryption');
+                const encryptedPrivateKey = encrypt(finalEgs.private_key || '');
+
                 const upserts = [
                     { key: 'zatca_production_token', value: productionToken, description: 'ZATCA Production Token (BST)' },
-                    { key: 'zatca_private_key', value: finalEgs.private_key || '', description: 'ZATCA Private Key' },
+                    { key: 'zatca_private_key', value: encryptedPrivateKey, description: 'ZATCA Private Key (Encrypted)' },
                     { key: 'zatca_production_secret', value: finalEgs.production_api_secret || '', description: 'ZATCA Production Secret' },
                     { key: 'zatca_last_pih', value: 'NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==', description: 'ZATCA Last PIH' },
                     { key: 'zatca_invoice_counter', value: '0', description: 'ZATCA Invoice Counter' },

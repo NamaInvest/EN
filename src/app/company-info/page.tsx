@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
-import {
-    Building2, Phone, FileText, MapPin, ChevronRight,
-    ChevronLeft, CheckCircle, Loader2, Globe, Layers,
-} from 'lucide-react';
+import { Building2, Phone, FileText, MapPin, ChevronRight, ChevronLeft, CheckCircle, Loader2, Globe, Layers,  } from 'lucide-react';
 
 // ── Business Domain Options (English only) ──────────────────────────────────
 const BUSINESS_DOMAINS = [

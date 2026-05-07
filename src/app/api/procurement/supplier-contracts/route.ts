@@ -31,6 +31,7 @@ export async function GET(req: Request) {
 
         // @ts-ignore — new model added in this session; IDE cache refresh needed
         const contracts = await prisma.supplierContract.findMany({
+            take: 100,
             where,
             include: {
                 supplier: { select: { id: true, name: true, phone: true } },

@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const orders = await prisma.manufacturingOrder.findMany({
+            take: 100,
             include: {
                 recipe: { include: { finishedProduct: true, ingredients: { include: { rawProduct: true } } } },
                 machine: true,
@@ -16,8 +17,10 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'desc' }
         });
 
-        const recipes = await prisma.recipe.findMany({ where: { isActive: true }, include: { finishedProduct: true } });
-        const machines = await prisma.machine.findMany({ where: { status: 'active' } });
+        const recipes = await prisma.recipe.findMany({
+            take: 100, where: { isActive: true }, include: { finishedProduct: true } });
+        const machines = await prisma.machine.findMany({
+            take: 100, where: { status: 'active' } });
 
         return NextResponse.json({ orders, recipes, machines }, { status: 200 });
     } catch (error: any) {

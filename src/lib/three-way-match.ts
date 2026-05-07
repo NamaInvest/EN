@@ -24,6 +24,7 @@ export class ThreeWayMatchEngine {
 
         // 3. Get all GRNs for this PO
         const grns = await prisma.goodsReceiptNote.findMany({
+            take: 100,
             where: { orderId: po.id },
             include: { details: true }
         });

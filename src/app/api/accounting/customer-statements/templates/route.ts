@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: Request) {
     try {
         const templates = await prisma.customerStatementTemplate.findMany({
+            take: 100,
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(templates);

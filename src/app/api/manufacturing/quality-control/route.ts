@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const checks = await prisma.qualityCheck.findMany({
+            take: 100,
             include: {
                 order: true
             },

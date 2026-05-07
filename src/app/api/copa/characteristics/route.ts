@@ -9,7 +9,8 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(req: NextRequest) {
     try {
         const prisma = await getPrisma(req);
-        const items = await prisma.copaCharacteristic.findMany({ orderBy: { id: 'asc' } });
+        const items = await prisma.copaCharacteristic.findMany({
+            take: 100, orderBy: { id: 'asc' } });
         return NextResponse.json(items);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });

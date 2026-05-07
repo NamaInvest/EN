@@ -163,7 +163,7 @@ export async function GET(req: NextRequest) {
               COALESCE(company_name_ar, '') as company_name
        FROM desktop_licenses
     `;
-    let params: any[] = [];
+    let params: Promise<any>[] = [];
 
     if (tenantId) {
         query += ` WHERE tenant_account_id = $1 ORDER BY created_at DESC`;

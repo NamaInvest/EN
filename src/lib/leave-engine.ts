@@ -121,6 +121,7 @@ export class LeaveEngine {
     };
 
     const employees = await prisma.employee.findMany({
+            take: 100,
       where: { active: true },
     });
 
@@ -541,6 +542,7 @@ export class LeaveEngine {
 
     // Count sick days
     const sickRequests = await prisma.leaveRequest.findMany({
+            take: 100,
       where: {
         employeeId,
         leaveType: 'SICK',
@@ -558,6 +560,7 @@ export class LeaveEngine {
     const specialLeaves = [];
     for (const type of specialTypes) {
       const reqs = await prisma.leaveRequest.findMany({
+            take: 100,
         where: {
           employeeId,
           leaveType: type,
@@ -593,6 +596,7 @@ export class LeaveEngine {
     userId?: number
   ): Promise<{ processed: number; details: Array<{ employeeId: number; carried: number }> }> {
     const balances = await prisma.leaveBalance.findMany({
+            take: 100,
       where: { leaveType: 'ANNUAL', year },
     });
 

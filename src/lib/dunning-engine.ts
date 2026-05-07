@@ -9,6 +9,7 @@ export class DunningEngine {
         // Find AR open items overdue and not in dispute
         // For simplicity, we query SalesInvoice representing open items where remaining > 0
         const overdueInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 status: 'posted',
                 remaining: { gt: 0 },
@@ -26,6 +27,7 @@ export class DunningEngine {
 
         // Fetch Dunning Levels (Policies)
         const levels = await prisma.dunningLevel.findMany({
+            take: 100,
             where: { active: true },
             orderBy: { daysOverdue: 'desc' }
         });

@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const leases = await prisma.leaseContract.findMany({
+            take: 100,
       include: {
         tenant: true,
         unit: {

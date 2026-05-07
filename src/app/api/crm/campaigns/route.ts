@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     if (type) where.type = type;
 
     const campaigns = await (prisma as any).crmCampaign.findMany({
+            take: 100,
       where,
       include: { _count: { select: { members: true } } },
       orderBy: { createdAt: 'desc' }

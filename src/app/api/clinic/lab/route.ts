@@ -101,7 +101,8 @@ export async function PUT(req: Request) {
 
         // Auto update order status if all results are entered
         const orderId = updated.orderId;
-        const allResults = await prisma.labResult.findMany({ where: { orderId } });
+        const allResults = await prisma.labResult.findMany({
+            take: 100, where: { orderId } });
         const allEntered = allResults.every((r: any) => r.value && r.value.trim() !== '');
 
         if (allEntered) {

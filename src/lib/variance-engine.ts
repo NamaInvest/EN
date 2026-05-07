@@ -55,6 +55,7 @@ export class VarianceEngine {
      */
     async postVariancesToGL(userId: string) {
         const unposted = await (this.prisma as any).costVariance.findMany({
+            take: 100,
             where: { isPosted: false }
         });
 
@@ -73,6 +74,7 @@ export class VarianceEngine {
 
     async getVariances() {
         return (this.prisma as any).costVariance.findMany({
+            take: 100,
             orderBy: { createdAt: 'desc' }
         });
     }

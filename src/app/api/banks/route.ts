@@ -3,9 +3,12 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 export async function GET(request: Request) {
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    if (!_getAuth(request)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
     const prisma = getPrisma(request);
     try {
-        const banks = await prisma.bankAccount.findMany({ 
+        const banks = await prisma.bankAccount.findMany({
+            take: 100, 
             include: { branch: true },
             orderBy: { id: 'desc' } 
         });

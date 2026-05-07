@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).internalAudit.findMany({ include: { _count: { select: { findings: true } } }, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).internalAudit.findMany({
+            take: 100, include: { _count: { select: { findings: true } } }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/audits' }); }
 }

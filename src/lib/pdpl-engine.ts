@@ -177,6 +177,7 @@ export async function getDSRQueue(
     prisma: PrismaClient
 ): Promise<any[]> {
     return db(prisma).pdplDataSubjectRequest.findMany({
+            take: 100,
         where: { status: { in: ['RECEIVED', 'IN_PROGRESS'] } },
         orderBy: { dueDate: 'asc' },
     });
@@ -187,6 +188,7 @@ export async function getOverdueDSRs(
     prisma: PrismaClient
 ): Promise<any[]> {
     return db(prisma).pdplDataSubjectRequest.findMany({
+            take: 100,
         where: {
             status: { in: ['RECEIVED', 'IN_PROGRESS'] },
             dueDate: { lt: new Date() },
@@ -248,6 +250,7 @@ export async function getActiveBreaches(
     prisma: PrismaClient
 ): Promise<any[]> {
     return db(prisma).pdplBreachIncident.findMany({
+            take: 100,
         where: { status: { in: ['DETECTED', 'CONTAINED', 'INVESTIGATING'] } },
         orderBy: { detectedAt: 'desc' },
     });

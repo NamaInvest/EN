@@ -7,12 +7,15 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const lcs = await prisma.letterOfCredit.findMany({
+            take: 100,
             include: { bank: true, supplier: true },
             orderBy: { id: 'desc' }
         });
         
-        const banks = await prisma.bankAccount.findMany({ where: { isActive: true } });
-        const suppliers = await prisma.customer.findMany({ where: { type: { in: [1, 2] } } });
+        const banks = await prisma.bankAccount.findMany({
+            take: 100, where: { isActive: true } });
+        const suppliers = await prisma.customer.findMany({
+            take: 100, where: { type: { in: [1, 2] } } });
 
         return NextResponse.json({ lcs, banks, suppliers }, { status: 200 });
     } catch (error: any) {

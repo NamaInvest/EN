@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const loyalties = await prisma.loyaltyPoint.findMany({
+            take: 100,
             include: { customer: { select: { name: true, phone: true } } },
             orderBy: { points: 'desc' }
         });

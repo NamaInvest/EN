@@ -14,6 +14,7 @@ export async function GET(req: Request) {
         }
 
         const evaluations = await prisma.employeeEvaluation.findMany({
+            take: 100,
             where,
             include: {
                 employee: { select: { id: true, name: true, position: true, department: true } },
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
 
         // Get employees list for the select dropdowns
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true },
             select: { id: true, name: true, position: true, department: true } as any
         });

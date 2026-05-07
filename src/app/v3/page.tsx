@@ -2,21 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from 'next/link';
-import {
-  ShieldCheck, Bot, MessageCircle, ShoppingCart,
-  Building, Wallet, Users, Fingerprint, Database, Factory,
-  Cpu, TrendingUp, Truck, Wrench, Home, Layers, Phone,
-  Calculator, CreditCard, FileText, Clock, Archive,
-  Package, BellRing, Barcode, Hash, CheckSquare, Camera,
-  UserCheck, Award, Megaphone, Gift, Link as LinkIcon, Star, BookOpen,
-  Eye, GitMerge, Map, Target, Settings, Inbox, RefreshCcw,
-  CalendarDays, DollarSign, Activity, Network, BarChart3,
-  FileEdit, Receipt, Sliders, FileCheck, History, Repeat,
-  CheckCircle, LineChart, Briefcase, Globe, ClipboardList,
-  LayoutDashboard, BarChart2, Hourglass,
-  Pill, ShoppingBag, UtensilsCrossed, Cog, Brain,
-  ChevronDown, ChevronUp, ArrowLeft, Menu, X, Search, Download, Zap, ArrowRight, Play
-} from "lucide-react";
+import { ShieldCheck, Bot, MessageCircle, ShoppingCart, Building, Wallet, Users, Fingerprint, Database, Factory, Cpu, TrendingUp, Truck, Wrench, Home, Layers, Phone, Calculator, CreditCard, FileText, Clock, Archive, Package, BellRing, Barcode, Hash, CheckSquare, Camera, UserCheck, Award, Megaphone, Gift, Link as LinkIcon, Star, BookOpen, Eye, GitMerge, Map, Target, Settings, Inbox, RefreshCcw, CalendarDays, DollarSign, Activity, Network, BarChart3, FileEdit, Receipt, Sliders, FileCheck, History, Repeat, CheckCircle, LineChart, Briefcase, Globe, ClipboardList, LayoutDashboard, BarChart2, Hourglass, Pill, ShoppingBag, UtensilsCrossed, Cog, Brain, ChevronDown, ChevronUp, ArrowLeft, Menu, X, Search, Download, Zap, ArrowRight, Play } from 'lucide-react';
 
 // ─── Data ─────────────────────────────────────────────────────────────────
 export const CATEGORIES = [

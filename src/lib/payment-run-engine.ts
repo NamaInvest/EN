@@ -8,6 +8,7 @@ export class PaymentRunEngine {
     static async proposePayments(dueDateUntil: Date, currency: string, bankAccountId: number, includeDiscountWindow: boolean = true) {
         // Find open purchase invoices that are due before dueDateUntil and not blocked
         const openInvoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 status: 'posted',
                 remaining: { gt: 0 }
@@ -17,6 +18,7 @@ export class PaymentRunEngine {
 
         // Get blocked suppliers and invoices
         const blocks = await prisma.paymentBlock.findMany({
+            take: 100,
             where: { releasedAt: null }
         });
         const blockedSupplierIds = new Set(blocks.filter(b => b.type === 'SUPPLIER' && b.supplierId).map(b => b.supplierId));

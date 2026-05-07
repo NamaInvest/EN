@@ -9,6 +9,7 @@ import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 export default async function PettyCashPage() {
     const funds = await prisma.pettyCashFund.findMany({
+            take: 100,
         include: {
             custodian: true
         },

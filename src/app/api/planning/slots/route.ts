@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).planningSlot.findMany({ orderBy: { startTime: 'asc' } });
+    const items = await (prisma as any).planningSlot.findMany({
+            take: 100, orderBy: { startTime: 'asc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'planning/slots' }); }
 }

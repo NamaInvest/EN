@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VendorStatementEngine } from '@/lib/vendor-statement';
 import { emailQueue } from '@/lib/queue';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const vendorId = parseInt(params.id);
+        const vendorId = parseInt((await params).id);
         const body = await req.json();
         const { fromDate, toDate, format, sendEmail } = body;
 

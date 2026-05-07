@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const id = parseInt(params.id, 10);
+        const id = parseInt((await params).id, 10);
         const body = await req.json();
         
         if (body.isDefault) {
@@ -32,9 +33,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const id = parseInt(params.id, 10);
+        const id = parseInt((await params).id, 10);
         await prisma.customerStatementTemplate.delete({
             where: { id }
         });

@@ -8,10 +8,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const folderId = searchParams.get('folderId');
     if (folderId) {
-      const docs = await (prisma as any).dmsDocument.findMany({ where: { folderId: parseInt(folderId) }, orderBy: { createdAt: 'desc' } });
+      const docs = await (prisma as any).dmsDocument.findMany({
+            take: 100, where: { folderId: parseInt(folderId) }, orderBy: { createdAt: 'desc' } });
       return NextResponse.json(docs);
     }
-    const folders = await (prisma as any).dmsFolder.findMany({ orderBy: { name: 'asc' } });
+    const folders = await (prisma as any).dmsFolder.findMany({
+            take: 100, orderBy: { name: 'asc' } });
     return NextResponse.json(folders);
   } catch (error: any) { return apiError(error, 'Error', { context: 'dms' }); }
 }

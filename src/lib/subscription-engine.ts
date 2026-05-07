@@ -93,6 +93,7 @@ export class SubscriptionEngine {
     static async processRenewals() {
         const today = new Date();
         const dueSubscriptions = await prisma.customerSubscription.findMany({
+            take: 100,
             where: {
                 status: { in: ['ACTIVE', 'TRIAL'] },
                 nextBillingDate: { lte: today },

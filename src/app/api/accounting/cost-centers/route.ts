@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const branchId = searchParams.get('branchId');
 
     const costCenters = await prisma.costCenter.findMany({
+            take: 100,
       where: {
         ...(branchId ? { branchId: parseInt(branchId) } : {}),
       },

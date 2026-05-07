@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function getBnplKeys() {
     const settings = await prisma.setting.findMany({
+            take: 100,
         where: { key: { in: ['tabby_api_key', 'tabby_merchant_code', 'tamara_bearer_token'] } }
     });
     const map: Record<string, string> = {};

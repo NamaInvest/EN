@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
         if (action === 'active') {
             const sessions = await prisma.shopFloorSession.findMany({
+            take: 100,
                 where: { tenantId, status: { in: ['ACTIVE', 'PAUSED'] } },
                 orderBy: { startedAt: 'desc' }
             });
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
 
         if (action === 'andon') {
             const calls = await prisma.andonCall.findMany({
+            take: 100,
                 where: { tenantId, resolvedAt: null },
                 orderBy: { calledAt: 'desc' }
             });

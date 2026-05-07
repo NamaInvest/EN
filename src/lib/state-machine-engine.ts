@@ -68,6 +68,7 @@ export async function getAvailableActions(
     currentState: string
 ): Promise<{ action: string; toState: string; requiredRole: string | null }[]> {
     const rules = await db(prisma).documentStateMachine.findMany({
+            take: 100,
         where: { docType, fromState: currentState, isActive: true },
         select: { action: true, toState: true, requiredRole: true },
     });

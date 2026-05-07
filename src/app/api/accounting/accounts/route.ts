@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const accounts = await prisma.account.findMany({
+            take: 100,
             orderBy: { code: 'asc' },
         });
         return NextResponse.json(accounts);

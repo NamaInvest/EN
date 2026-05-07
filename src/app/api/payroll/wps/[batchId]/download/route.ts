@@ -9,7 +9,7 @@ export async function GET(
 
     try {
         const params = await context.params;
-        const batchId = parseInt(params.batchId);
+        const batchId = parseInt((await params).batchId);
         
         const batch = await prisma.wPSBatch.findUnique({
             where: { id: batchId },

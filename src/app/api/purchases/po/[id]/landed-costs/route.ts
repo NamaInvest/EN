@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const poId = Number(params.id);
+        const poId = Number((await params).id);
         const costs = await prisma.landedCost.findMany({
+            take: 100,
             where: { purchaseOrderId: poId },
             include: { expenseAccount: true }
         });
@@ -16,10 +18,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const poId = Number(params.id);
+        const poId = Number((await params).id);
         const body = await req.json();
         const { description, amount, expenseAccountId, allocationMethod } = body;
 

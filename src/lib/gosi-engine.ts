@@ -153,6 +153,7 @@ export class GOSIEngine {
         const targetMonth = new Date(month.getFullYear(), month.getMonth(), 1);
         
         const contributions = await prisma.gOSIContribution.findMany({
+            take: 100,
             where: { contributionMonth: targetMonth }
         });
 

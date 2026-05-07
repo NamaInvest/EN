@@ -122,6 +122,7 @@ export class ManufacturingAccountingEngine {
     static async rollupStandardCosts(): Promise<number> {
         let updatedCount = 0;
         const recipes = await prisma.recipe.findMany({
+            take: 100,
             include: {
                 ingredients: { include: { rawProduct: true } }
             }

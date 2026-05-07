@@ -13,6 +13,7 @@ export async function GET(request: Request) {
 
         // Don't return embeddings, just metadata
         const docs = await prisma.knowledgeDocument.findMany({
+            take: 100,
             where: { tenantId: tenantId },
             select: { id: true, title: true, createdAt: true, metadata: true },
             orderBy: { createdAt: 'desc' }

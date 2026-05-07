@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { LineChart, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Zap, ArrowRight, BrainCircuit, Activity, FileText } from 'lucide-react';
+import { LineChart, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Zap, ArrowRight, BrainCircuit, Activity, FileText, Brain } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 

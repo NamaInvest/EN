@@ -15,6 +15,7 @@ export class WmsEngine {
         if (rule) {
             // Find bins in the preferred zone
             const bins = await prisma.warehouseBin.findMany({
+            take: 100,
                 where: {
                     rack: { zone: { id: rule.preferredZoneId } },
                     status: 'AVAILABLE'

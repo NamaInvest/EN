@@ -145,6 +145,7 @@ export class BankReconciliationEngine {
     }> {
         // Book balance from GL
         const glEntries = await prisma.journalEntry.findMany({
+            take: 100,
             where: { status: { in: ['posted', 'POSTED'] } },
             include: { lines: { where: { accountId: bankAccountId } } },
         });

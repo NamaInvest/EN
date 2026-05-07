@@ -26,6 +26,7 @@ export class VendorStatementEngine {
 
         // 2. Fetch Transactions in the period
         const periodInvoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 supplierId: vendorId,
                 status: 'posted',

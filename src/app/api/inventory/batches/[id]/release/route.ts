@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LotEngine } from '@/lib/lot-engine';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const batch = await LotEngine.releaseFromQuarantine(parseInt(params.id, 10));
+        const batch = await LotEngine.releaseFromQuarantine(parseInt((await params).id, 10));
         return NextResponse.json(batch);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });

@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const properties = await prisma.property.findMany({
+            take: 100,
       include: {
         units: true
       },

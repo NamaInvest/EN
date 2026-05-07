@@ -84,6 +84,7 @@ export async function GET(request: Request) {
 
         // ─── Daily time-series (zero-filled) ────────────────────────────
         const rawDailyRows = await prisma.promptUsageLog.findMany({
+            take: 100,
             where,
             select: { createdAt: true, promptTokens: true, completionTokens: true, costUsd: true, success: true },
         });

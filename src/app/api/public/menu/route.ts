@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
         
         // Get company info for header
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['company_name', 'company_logo', 'tax_rate'] } }
         });
         const s: Record<string, string> = {};
@@ -15,12 +16,14 @@ export async function GET(req: NextRequest) {
 
         // Get all active products with categories
         const products = await prisma.product.findMany({
+            take: 100,
             where: { active: true },
             select: { id: true, name: true, sellPrice: true, currentStock: true, imagePath: true, categoryId: true, category: { select: { id: true, name: true } } },
             orderBy: { name: 'asc' }
         });
 
-        const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+        const categories = await prisma.category.findMany({
+            take: 100, orderBy: { name: 'asc' } });
 
         return NextResponse.json({
             success: true,

@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const recipes = await prisma.recipe.findMany({
+            take: 100,
             include: {
                 finishedProduct: { select: { id: true, name: true, sellPrice: true } },
                 ingredients: {

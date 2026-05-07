@@ -10,12 +10,14 @@ export async function GET(request: Request) {
 
         // Get all accounts
         const allAccounts = await prisma.account.findMany({
+            take: 100,
             where: { isActive: true },
             orderBy: { code: 'asc' },
         });
 
         // Get all journal lines up to date
         const lines = await prisma.journalLine.findMany({
+            take: 100,
             where: {
                 entry: { entryDate: { lte: asOf } },
             },

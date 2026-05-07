@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const stockId = searchParams.get('stockId');
 
     const productStocks = await prisma.productStock.findMany({
+            take: 100,
       where: stockId ? { stockId: parseInt(stockId) } : { stock: { active: true } },
       include: { 
         product: true,

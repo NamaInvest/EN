@@ -14,6 +14,7 @@ export class ApprovalEngine {
     ) {
         // 1. Find matching rules
         const rules = await prisma.approvalRule.findMany({
+            take: 100,
             where: {
                 documentType: docType,
                 isActive: true,

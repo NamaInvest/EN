@@ -13,6 +13,7 @@ export async function GET(req: Request) {
         const status = searchParams.get('status') || 'pending';
         
         const requests = await prisma.approvalRequest.findMany({
+            take: 100,
             where: {
                 status: status,
                 // In reality: steps: { some: { approverId: userId, status: 'pending' } }

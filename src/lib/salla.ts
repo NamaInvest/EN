@@ -5,6 +5,7 @@ import prisma from './prisma';
  */
 async function getSallaConfig() {
     const settings = await prisma.setting.findMany({
+            take: 100,
         where: { key: { in: ['salla_enabled', 'salla_access_token', 'salla_client_secret'] } }
     });
     const config: Record<string, string> = {};

@@ -60,13 +60,24 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await request.json();
-        const updatePromises = Object.entries(data).map(([key, value]) => {
-            return prisma.setting.upsert({
-                where: { key },
-                update: { value: String(value) },
-                create: { key, value: String(value) }
+        
+        const { encrypt } = require('@/lib/encryption');
+        const sensitiveKeys = ['zatca_private_key', 'zatca_certificate', 'zatca_compliance_token', 'zatca_compliance_secret', 'zatca_production_token', 'zatca_production_secret'];
+
+        const updatePromises = Object.entries(data)
+            .filter(([key, value]) => !(sensitiveKeys.includes(key) && value === '***'))
+            .map(([key, value]) => {
+                let finalValue = String(value);
+                if (key === 'zatca_private_key' && finalValue && finalValue !== '***' && !finalValue.includes(':')) {
+                    // Try to encrypt if it doesn't look like our IV:AuthTag:CipherText format
+                    try { finalValue = encrypt(finalValue); } catch (e) {}
+                }
+                return prisma.setting.upsert({
+                    where: { key },
+                    update: { value: finalValue },
+                    create: { key, value: finalValue }
+                });
             });
-        });
 
         await prisma.$transaction(updatePromises);
         return NextResponse.json({ success: true, message: 'تم حفظ الإعدادات' });

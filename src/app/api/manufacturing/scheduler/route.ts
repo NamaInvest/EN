@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const centers = await (prisma as any).workCenter.findMany({
+            take: 100,
             include: {
                 operations: {
                     include: {

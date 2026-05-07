@@ -8,7 +8,7 @@ export async function POST(
 ) {
     try {
         const params = await context.params;
-        const batchId = parseInt(params.batchId);
+        const batchId = parseInt((await params).batchId);
         
         await WPSGenerator.submitToBank(batchId);
 

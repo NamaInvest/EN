@@ -56,6 +56,7 @@ export async function GET(req: NextRequest) {
 
         // Fetch lines with dimension + account info
         const lines = await prisma.journalLine.findMany({
+            take: 100,
             where,
             select: {
                 [dimConfig.field]: true,

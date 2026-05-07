@@ -4,6 +4,7 @@ export class RecurringJournalRunner {
     static async runDueTemplates(targetDate: Date = new Date()) {
         // Find templates that are due to run
         const dueTemplates = await prisma.journalTemplate.findMany({
+            take: 100,
             where: {
                 isRecurring: true,
                 nextRunDate: { lte: targetDate },

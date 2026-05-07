@@ -4,17 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
-import {
- Building2, Calculator, Users, Shield, Globe,
- Activity, ShoppingCart, Zap, CreditCard, LayoutDashboard, Database,
- X, BarChart3, TrendingUp, Cpu, Network, Briefcase, LineChart, Wallet, FileCheck,
- History, Home, FileText, Clock, Archive, FileQuestion, ClipboardList, Truck,
- RefreshCcw, CalendarDays, Map, Target, Settings, FileEdit, Inbox, Receipt,
- Download, ShoppingBag, Undo, Package, Building, BellRing, Barcode, Hourglass,
- Hash, BarChart2, Sliders, Repeat, CheckSquare, Camera, Layers, UserCheck,
- Award, Megaphone, Gift, Link, MessageCircle, CheckCircle, DollarSign, Star,
- BookOpen, Book, Calendar, Monitor, Eye, GitMerge, Factory, Wrench, Ticket
-} from 'lucide-react';
+import { Building2, Calculator, Users, Shield, Globe, Activity, ShoppingCart, Zap, CreditCard, LayoutDashboard, Database, X, BarChart3, TrendingUp, Cpu, Network, Briefcase, LineChart, Wallet, FileCheck, History, Home, FileText, Clock, Archive, FileQuestion, ClipboardList, Truck, RefreshCcw, CalendarDays, Map, Target, Settings, FileEdit, Inbox, Receipt, Download, ShoppingBag, Undo, Package, Building, BellRing, Barcode, Hourglass, Hash, BarChart2, Sliders, Repeat, CheckSquare, Camera, Layers, UserCheck, Award, Megaphone, Gift, Link, MessageCircle, CheckCircle, DollarSign, Star, BookOpen, Book, Calendar, Monitor, Eye, GitMerge, Factory, Wrench, Ticket } from 'lucide-react';
 
 const MODULES_DATA = [
  // ── المالية والمحاسبة ──

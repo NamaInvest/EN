@@ -9,12 +9,14 @@ export async function GET(request: Request) {
     try {
         if (type === 'maintenance') {
             const logs = await prisma.machineMaintenance.findMany({
+            take: 100,
                 include: { machine: true },
                 orderBy: { id: 'desc' }
             });
             return NextResponse.json(logs);
         } else {
             const checks = await prisma.qualityCheck.findMany({
+            take: 100,
                 include: { order: { include: { recipe: true } } },
                 orderBy: { id: 'desc' }
             });

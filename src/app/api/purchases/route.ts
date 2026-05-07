@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const invoices = await prisma.purchaseInvoice.findMany({ where, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { id: true, username: true, fullName: true, role: true } } }, orderBy: { id: 'desc' } });
+        const invoices = await prisma.purchaseInvoice.findMany({
+            take: 100, where, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { id: true, username: true, fullName: true, role: true } } }, orderBy: { id: 'desc' } });
         return NextResponse.json(invoices);
     } catch (error) { return handleApiError(error); }
 }
@@ -205,6 +206,21 @@ export async function POST(request: Request) {
                         paymentBlocked: !isWithinTolerance
                     }
                 });
+            }
+
+            // [STATE MACHINE AUDIT FIX] Ensure POS creations are properly logged in the audit trail
+            try {
+                await tx.auditLog.create({
+                    data: {
+                        userId: userId ?? 0,
+                        action: `transition:draft→${createdInvoice.status}`,
+                        tableName: 'purchaseinvoices',
+                        recordId: createdInvoice.id,
+                        details: `Direct API Creation (State-Machine Bypass Handled)`,
+                    },
+                });
+            } catch (e) {
+                console.error('[document-state-machine] POS audit log failed:', e);
             }
 
             return createdInvoice;

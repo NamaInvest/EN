@@ -5,9 +5,15 @@ import { salaryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: Request) {
+    // Auth guard
+    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    const _auth = _getAuth(request);
+    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     const prisma = getPrisma(request);
     try {
-        const salaries = await prisma.salary.findMany({ 
+        const salaries = await prisma.salary.findMany({
+            take: 100, 
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, 
             orderBy: { id: 'desc' } 
         });

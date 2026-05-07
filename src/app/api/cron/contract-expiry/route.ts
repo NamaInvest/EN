@@ -34,6 +34,7 @@ export async function GET(req: Request) {
         // 2. Alert on contracts expiring within alertDaysBefore
         // @ts-ignore — new model added in this session; IDE cache refresh needed
         const soon = await prisma.supplierContract.findMany({
+            take: 100,
             where: {
                 status: 'active',
                 endDate: {

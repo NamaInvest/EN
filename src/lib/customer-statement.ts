@@ -31,6 +31,7 @@ export class CustomerStatementEngine {
 
         // 2. Fetch Transactions in the period
         const periodInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 customerId,
                 status: 'posted',
@@ -41,6 +42,7 @@ export class CustomerStatementEngine {
         });
 
         const periodReceipts = await prisma.cashApplicationBatch.findMany({
+            take: 100,
             where: { customerId, appliedAt: { gte: fromDate, lte: toDate } },
             orderBy: { appliedAt: 'asc' }
         });
@@ -87,6 +89,7 @@ export class CustomerStatementEngine {
 
         // 4. Calculate Aging (for all open invoices up to toDate)
         const allOpenInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { customerId, status: 'posted', remaining: { gt: 0 }, date: { lte: toDate } }
         });
 

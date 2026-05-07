@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     try {
         // Fetch active manufacturing orders (draft, in_progress)
         const activeOrders = await prisma.manufacturingOrder.findMany({
+            take: 100,
             where: { status: { in: ['draft', 'in_progress'] } },
             include: {
                 recipe: {
@@ -65,6 +66,7 @@ export async function GET(request: Request) {
 
         // Also fetch Machine status for OEE Dashboard
         const machines = await prisma.machine.findMany({
+            take: 100,
             include: {
                 orders: { where: { status: 'in_progress' } },
                 maintenanceLogs: { where: { status: 'pending' } }

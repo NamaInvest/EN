@@ -5,6 +5,7 @@ export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         const lists = await prisma.priceList.findMany({
+            take: 100,
             include: {
                 _count: {
                     select: { rules: true }

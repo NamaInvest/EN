@@ -21,6 +21,7 @@ export async function GET(req: Request) {
         // For NamaSoft V3, stock movements are in `StockMovement`.
         
         const products: any[] = await (prisma.product as any).findMany({
+            take: 100,
             where: { active: true },
             select: {
                 id: true,

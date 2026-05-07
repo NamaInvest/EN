@@ -8,7 +8,8 @@ import { handleApiError } from '@/lib/api-handler';
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const returns = await prisma.purchaseReturn.findMany({ orderBy: { id: 'desc' } });
+        const returns = await prisma.purchaseReturn.findMany({
+            take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
     } catch (e) { return handleApiError(e); }
 }

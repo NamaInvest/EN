@@ -100,6 +100,7 @@ export class DocumentExpiryEngine {
     try {
       // 1. Scan Employee Documents
       const employeeDocs = await prisma.documentArchive.findMany({
+            take: 100,
         where: { documentType: 'EMPLOYEE', expiryDate: { not: null } },
       });
 
@@ -153,6 +154,7 @@ export class DocumentExpiryEngine {
 
       // 2. Scan Company Documents
       const companyDocs = await prisma.documentArchive.findMany({
+            take: 100,
         where: { documentType: 'COMPANY', expiryDate: { not: null } },
       });
 
@@ -209,6 +211,7 @@ export class DocumentExpiryEngine {
    */
   static async getDashboard(): Promise<ExpiryDashboard> {
     const alerts = await prisma.documentExpiryAlert.findMany({
+            take: 100,
       where: { status: { not: 'RESOLVED' } },
       orderBy: { daysRemaining: 'asc' },
     });
@@ -305,6 +308,7 @@ export class DocumentExpiryEngine {
    */
   static async getEmployeeAlerts(employeeId: number): Promise<ExpiryAlert[]> {
     const alerts = await prisma.documentExpiryAlert.findMany({
+            take: 100,
       where: {
         holderId: employeeId,
         holderType: 'EMPLOYEE',
@@ -349,6 +353,7 @@ export class DocumentExpiryEngine {
     const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
 
     const alerts = await prisma.documentExpiryAlert.findMany({
+            take: 100,
       where: { status: { not: 'RESOLVED' } },
     });
 

@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).kBArticle.findMany({ include: { category: true }, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).kBArticle.findMany({
+            take: 100, include: { category: true }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'knowledge/articles' }); }
 }

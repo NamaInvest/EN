@@ -27,10 +27,12 @@ export class DMSEngine {
     /** List folder contents */
     static async listFolder(prisma: PrismaClient, folderId?: number) {
         const folders = await p(prisma).dmsFolder.findMany({
+            take: 100,
             where: { parentId: folderId || null },
             orderBy: { name: 'asc' },
         });
         const documents = await p(prisma).dmsDocument.findMany({
+            take: 100,
             where: { folderId: folderId || null },
             orderBy: { createdAt: 'desc' },
         });
@@ -54,6 +56,7 @@ export class DMSEngine {
     /** Get documents linked to a record */
     static async getLinked(prisma: PrismaClient, linkedModel: string, linkedId: number) {
         return p(prisma).dmsDocument.findMany({
+            take: 100,
             where: { linkedModel, linkedId },
             orderBy: { createdAt: 'desc' },
         });

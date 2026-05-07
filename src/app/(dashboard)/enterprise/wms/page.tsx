@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { 
- Box, Maximize, Target, Grid, LayoutDashboard, Plus, 
- ChevronDown, ChevronRight, Share2, Layers, MapPin
-} from 'lucide-react';
+import { Box, Maximize, Target, Grid, LayoutDashboard, Plus, ChevronDown, ChevronRight, Share2, Layers, MapPin } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function EnterpriseWMS() {

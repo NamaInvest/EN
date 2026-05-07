@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const inspections = await prisma.qualityInspection.findMany({
+            take: 100,
             orderBy: { inspectionDate: 'desc' }
         });
         

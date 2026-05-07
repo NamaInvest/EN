@@ -10,6 +10,7 @@ export async function POST(request: Request) {
         const sixteenHoursAgo = new Date(Date.now() - 16 * 60 * 60 * 1000);
 
         const abandonedShifts = await prisma.shift.findMany({
+            take: 100,
             where: {
                 status: 'open',
                 startTime: { lt: sixteenHoursAgo }
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
         for (const shift of abandonedShifts) {
             // Calculate mathematical expected cash for this user since the shift started
             const treasuryLogs = await prisma.treasury.findMany({
+            take: 100,
                 where: {
                     userId: shift.userId,
                     date: { gte: shift.startTime } // everything from shift start until now

@@ -10,6 +10,7 @@ export async function POST(req: Request) {
 
     // Filter active leases where an installment is due in the next 7 days and is unpaid
     const dueInstallments = await prisma.rentInstallment.findMany({
+            take: 100,
       where: {
         isPaid: false,
         dueDate: {
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
     const expireTarget = new Date();
     expireTarget.setDate(today.getDate() + 30);
     const expiringContracts = await prisma.leaseContract.findMany({
+            take: 100,
       where: {
         status: 'ACTIVE',
         endDate: {

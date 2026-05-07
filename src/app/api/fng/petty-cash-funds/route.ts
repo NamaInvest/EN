@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
 
     try {
         const data = await prisma.pettyCashFund.findMany({
+            take: 100,
             include: { custodian: true },
             orderBy: { createdAt: 'desc' }
         });

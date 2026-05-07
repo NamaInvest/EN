@@ -5,12 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
-export default function LandedCostsPage() {
+export default async function LandedCostsPage() {
  const { t } = useTranslation();
  const { error: toastError, success: toastSuccess } = useToast();
  const params = useParams();
  const router = useRouter();
- const orderId = params.id as string;
+ const orderId = (await params).id as string;
  
  const [order, setOrder] = useState<any>(null);
  const [costs, setCosts] = useState<any[]>([]);

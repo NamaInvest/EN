@@ -6,11 +6,12 @@ import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
-    const alertId = parseInt(params.id);
+    const alertId = parseInt((await params).id);
 
     try {
         const body = await req.json();

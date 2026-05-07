@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    Building2, FileText, MapPin, ChevronRight,
-    ChevronLeft, CheckCircle, Loader2, Globe, Layers,
-} from 'lucide-react';
+import { Building2, FileText, MapPin, ChevronRight, ChevronLeft, CheckCircle, Loader2, Globe, Layers,  } from 'lucide-react';
 
 const BUSINESS_DOMAINS = [
     'صيدلية', 'بقالة وسوبرماركت', 'مطعم ومقهى',

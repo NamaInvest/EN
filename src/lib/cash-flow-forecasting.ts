@@ -234,6 +234,7 @@ export class CashFlowForecastingEngine {
 
         try {
             const openAR = await prisma.openItem.findMany({
+            take: 100,
                 where: {
                     status: { in: ['OPEN', 'PARTIAL'] },
                     partyType: 'customer',
@@ -277,6 +278,7 @@ export class CashFlowForecastingEngine {
 
         try {
             const openAP = await prisma.openItem.findMany({
+            take: 100,
                 where: {
                     status: { in: ['OPEN', 'PARTIAL'] },
                     partyType: 'vendor',

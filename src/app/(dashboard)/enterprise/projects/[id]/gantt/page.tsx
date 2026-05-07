@@ -9,7 +9,8 @@ const phaseColors = ['#3B82F6','#8B5CF6','#22C55E','#F97316','#EC4899','#06B6D4'
 const riskColors: any = { LOW:'#22C55E', MEDIUM:'#EAB308', HIGH:'#F97316', CRITICAL:'#EF4444' };
 const msColors: any = { PENDING:'#94A3B8', ACHIEVED:'#22C55E', MISSED:'#EF4444', CANCELLED:'#6B7280' };
 
-export default function ProjectGantt({ params }: { params: { id: string } }) {
+export default async function ProjectGantt({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function ProjectGantt({ params }: { params: { id: string } }) {
   const [tab, setTab] = useState('gantt');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { load(); }, [params.id]);
+  useEffect(() => { load(); }, [(await params).id]);
 
   const load = async () => {
     setLoading(true);
@@ -30,11 +31,11 @@ export default function ProjectGantt({ params }: { params: { id: string } }) {
     const h = { Authorization: `Bearer ${t}` };
     try {
       const [pRes, phRes, msRes, rkRes, rsRes] = await Promise.all([
-        fetch(`/api/projects/advanced?projectId=${params.id}`, { headers: h }),
-        fetch(`/api/projects/phases?projectId=${params.id}`, { headers: h }),
-        fetch(`/api/projects/milestones?projectId=${params.id}`, { headers: h }),
-        fetch(`/api/projects/risks?projectId=${params.id}`, { headers: h }),
-        fetch(`/api/projects/resources?projectId=${params.id}`, { headers: h }),
+        fetch(`/api/projects/advanced?projectId=${(await params).id}`, { headers: h }),
+        fetch(`/api/projects/phases?projectId=${(await params).id}`, { headers: h }),
+        fetch(`/api/projects/milestones?projectId=${(await params).id}`, { headers: h }),
+        fetch(`/api/projects/risks?projectId=${(await params).id}`, { headers: h }),
+        fetch(`/api/projects/resources?projectId=${(await params).id}`, { headers: h }),
       ]);
       if (pRes.ok) setProject(await pRes.json());
       if (phRes.ok) setPhases(await phRes.json());

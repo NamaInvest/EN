@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
         // Phase 4: Predictive SCM Logic
         // 1. Identify low stock items (currentStock <= minQuantity * 1.5)
         const lowStockProducts = await prisma.product.findMany({
+            take: 100,
             where: {
                 active: true,
                 minQuantity: { gt: 0 }

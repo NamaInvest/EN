@@ -69,6 +69,7 @@ export async function POST(req: Request) {
         }
 
         const priceLists = await prisma.priceList.findMany({
+            take: 100,
             where: {
                 isActive: true,
                 validFrom: { lte: evaluationDate },

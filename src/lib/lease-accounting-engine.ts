@@ -165,6 +165,7 @@ export class LeaseAccountingEngine {
         const endOfMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0);
         
         const pendingSchedules = await prisma.leaseAmortizationSchedule.findMany({
+            take: 100,
             where: {
                 status: 'PENDING',
                 paymentDate: { lte: endOfMonth }

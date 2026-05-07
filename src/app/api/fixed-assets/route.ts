@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const assets = await prisma.fixedAsset.findMany({
+            take: 100,
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(assets);
@@ -16,9 +17,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        const { getUserFromRequest: _getAuth } = require('@/lib/auth');
+    if (!_getAuth(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {

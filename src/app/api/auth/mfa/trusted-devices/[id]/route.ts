@@ -2,9 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         const { searchParams } = new URL(req.url);
         const userIdStr = searchParams.get('userId');
         if (!userIdStr) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });

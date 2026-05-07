@@ -26,6 +26,7 @@ export async function GET(req: Request) {
 
         // @ts-ignore — new model added in this session; IDE cache refresh needed
         const lines = await prisma.projectBudgetLine.findMany({
+            take: 100,
             where: { projectId },
             orderBy: { category: 'asc' },
         });

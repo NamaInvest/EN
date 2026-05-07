@@ -10,10 +10,12 @@ export async function POST(request: Request) {
         const today = new Date().toISOString().split('T')[0];
         
         const activeEmployees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true }
         });
 
         const todaysAttendance = await prisma.attendance.findMany({
+            take: 100,
             where: { date: today }
         });
 

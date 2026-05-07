@@ -4,7 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const vacations = await prisma.vacation.findMany({ include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, orderBy: { id: 'desc' } });
+        const vacations = await prisma.vacation.findMany({
+            take: 100, include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, orderBy: { id: 'desc' } });
         return NextResponse.json(vacations);
     } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }

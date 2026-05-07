@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
 
         // Fetch all accounts
         const accounts = await prisma.account.findMany({
+            take: 100,
             orderBy: { code: 'asc' }
         });
 
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
         }
 
         const lines = await prisma.journalLine.findMany({
+            take: 100,
             where: dateFilter,
             select: { accountId: true, debit: true, credit: true }
         });

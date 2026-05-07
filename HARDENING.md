@@ -1,4 +1,4 @@
-# HARDENING — Outstanding Critical Items
+شف# HARDENING — Outstanding Critical Items
 
 > Tracker for critical fixes after the 35-item AI Stack delivery.
 > Updated: 2026-05-07 (wave 2).

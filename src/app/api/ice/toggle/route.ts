@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 
-const ICE_SECRET = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
+const ICE_SECRET = process.env.ICE_SECRET;
+if (!ICE_SECRET) throw new Error('CRITICAL: ICE_SECRET is not set in environment variables!');
 
 if (!process.env.MASTER_DB_URL) {
     throw new Error('MASTER_DB_URL is required for ICE panel');

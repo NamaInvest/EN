@@ -46,6 +46,7 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
     const endStr   = `${year}-${String(month).padStart(2, '0')}-31`;
 
     const attendance = await prisma.attendance.findMany({
+            take: 100,
         where: {
             employeeId,
             date: { gte: startStr, lte: endStr },
@@ -62,6 +63,7 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
 
     // Loan deductions
     const loans = await prisma.employeeLoan.findMany({
+            take: 100,
         where: { employeeId, status: 'active' },
         select: { monthlyDeduction: true },
     });
@@ -96,6 +98,7 @@ export async function GET(req: Request) {
     try {
         // Employee uses 'active' Boolean not 'status'
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true },
             select: { id: true },
         });
@@ -139,6 +142,7 @@ export async function POST(req: Request) {
         }
 
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true },
             select: { id: true },
         });
@@ -172,6 +176,7 @@ export async function POST(req: Request) {
                 
                 // Update Loan Balances automatically!
                 const activeLoans = await prisma.employeeLoan.findMany({
+            take: 100,
                     where: { employeeId: emp.id, status: 'active' }
                 });
                 

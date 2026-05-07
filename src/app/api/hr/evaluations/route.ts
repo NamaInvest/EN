@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const evaluations = await prisma.employeeEvaluation.findMany({
+            take: 100,
       include: {
         employee: true,
         evaluator: true,

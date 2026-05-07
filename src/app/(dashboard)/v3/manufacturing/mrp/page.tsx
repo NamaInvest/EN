@@ -1,7 +1,8 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { Cpu, Settings, Factory, Workflow, AlertTriangle } from 'lucide-react';
+import { Cpu, Settings, Factory, Workflow, AlertTriangle, Wrench } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

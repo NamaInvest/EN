@@ -119,6 +119,7 @@ export class RebateEngine {
 
         if (type === 'SALES') {
             const customers = await prisma.customer.findMany({
+            take: 100,
                 where: { isActive: true },
                 select: { id: true, name: true },
             });

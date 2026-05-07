@@ -11,6 +11,7 @@ export async function GET(request: Request) {
         }
 
         const prompts = await prisma.promptTemplate.findMany({
+            take: 100,
             orderBy: [{ key: 'asc' }, { version: 'desc' }]
         });
         

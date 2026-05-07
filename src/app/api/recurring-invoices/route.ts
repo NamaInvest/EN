@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const contracts = await prisma.salesOrder.findMany({
+            take: 100,
       where: {
         status: {
           startsWith: "RECURRING_",

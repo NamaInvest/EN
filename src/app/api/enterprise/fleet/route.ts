@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
     const vehicles = await prisma.vehicle.findMany({
+            take: 100,
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(vehicles);

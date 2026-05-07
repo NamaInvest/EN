@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
         // Fetch Salla config directly from database to get the secret
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['salla_enabled', 'salla_client_secret'] } }
         });
         const config: Record<string, string> = {};

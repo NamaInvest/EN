@@ -1,3 +1,4 @@
+import { Wrench, MessageSquare } from 'lucide-react';
 // Server Component — NO 'use client' — renders to HTML on server instantly
 // v2.0 — April 2026 — Full SSR, no Clerk dependency
 import ModuleFilter from './_module-filter';

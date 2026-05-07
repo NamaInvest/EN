@@ -16,6 +16,7 @@ export async function GET() {
     
     // 2. Fetch all tenants from DB
     const tenants = await prisma.tenantAccount.findMany({
+            take: 100,
       orderBy: { createdAt: "desc" },
     });
 

@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
         
         // Fetch Manufacturing Orders with full tracing
         const orders = await prisma.manufacturingOrder.findMany({
+            take: 100,
             where: {
                 OR: [
                     { orderNumber: { contains: search, mode: 'insensitive' } }

@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const renewals = await (prisma as any).contractRenewal.findMany({ orderBy: { renewalDate: 'asc' } });
+    const renewals = await (prisma as any).contractRenewal.findMany({
+            take: 100, orderBy: { renewalDate: 'asc' } });
     return NextResponse.json(renewals);
   } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }

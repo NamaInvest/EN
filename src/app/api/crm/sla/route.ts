@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
     const items = await (prisma as any).slaPolicy.findMany({
+            take: 100,
       orderBy: { priority: 'asc' }
     });
     return NextResponse.json(items);

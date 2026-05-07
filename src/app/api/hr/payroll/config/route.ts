@@ -9,6 +9,7 @@ export async function GET(req: Request) {
         });
 
         const accounts = await prisma.account.findMany({
+            take: 100,
             where: { isActive: true },
             select: { id: true, code: true, name: true, type: true }
         });

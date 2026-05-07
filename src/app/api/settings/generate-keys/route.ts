@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
     try {
         // Fetch ZATCA settings from DB
         const settingsRaw = await prisma.setting.findMany({
+            take: 100,
             where: { key: { startsWith: 'zatca_' } }
         });
         const taxNumberSetting = await prisma.setting.findUnique({ where: { key: 'tax_number' } });
@@ -54,11 +55,14 @@ businessCategory = ${s['zatca_industry'] || 'Technology'}
         // For standard demonstration purposes, we assume a generated CSR string here 
         // since Node's crypto module doesn't natively generate PKCS#10 CSRs without node-forge or openssl.
         
-        // Save to DB
+        // Save to DB (Encrypted at rest)
+        const { encrypt } = await import('@/lib/encryption');
+        const encryptedKey = encrypt(privateKey);
+        
         await prisma.setting.upsert({
             where: { key: 'zatca_private_key' },
-            update: { value: privateKey },
-            create: { key: 'zatca_private_key', value: privateKey }
+            update: { value: encryptedKey },
+            create: { key: 'zatca_private_key', value: encryptedKey, description: 'ZATCA Private Key (Encrypted)' }
         });
 
         // The OpenSSL logic is typically handled by `openssl req -new -key ...`

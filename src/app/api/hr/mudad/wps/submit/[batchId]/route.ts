@@ -3,8 +3,9 @@ import { MudadEngine } from '@/lib/saudi-gov/mudad';
 
 export async function POST(
     req: NextRequest, 
-    { params }: { params: { batchId: string } }
+    { params }: { params: Promise<{ batchId: string }> }
 ) {
+  const { batchId } = await params;
     try {
         const { batchId } = params;
         const result = await MudadEngine.submitWPSBatch(batchId);

@@ -8,7 +8,8 @@ import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const returns = await prisma.salesReturn.findMany({ orderBy: { id: 'desc' } });
+        const returns = await prisma.salesReturn.findMany({
+            take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
     } catch (e) { return handleApiError(e); }
 }
@@ -207,6 +208,21 @@ export async function POST(request: Request) {
                 });
             }
 
+            // [STATE MACHINE AUDIT FIX] Ensure POS creations are properly logged in the audit trail
+            try {
+                await tx.auditLog.create({
+                    data: {
+                        userId: userId ?? 0,
+                        action: `transition:draft→completed`, // Returns are generally completed
+                        tableName: 'salesreturns',
+                        recordId: createdReturn.id,
+                        details: `Direct API Creation (State-Machine Bypass Handled)`,
+                    },
+                });
+            } catch (e) {
+                console.error('[document-state-machine] POS audit log failed:', e);
+            }
+
             return createdReturn;
         });
 
@@ -239,8 +255,18 @@ export async function POST(request: Request) {
 
         // ── ZATCA Phase 2: Credit Note (إشعار دائن) ──────────────────────
         let zatcaQR = '';
+        let signOutputGlobal: any = null;
+        let creditNoteUuidGlobal = '';
+        let zatcaSettingsObjGlobal: any = null;
+        let hashFinalGlobal = '';
+        let isStandardGlobal = false;
+        let sGlobal: Record<string, string> = {};
+
         try {
-            const zatcaSettings = await prisma.setting.findMany({
+            await prisma.$transaction(async (tx) => {
+                await tx.$executeRaw`SELECT id FROM "settings" WHERE "key" IN ('zatca_invoice_counter', 'zatca_last_pih') FOR UPDATE`;
+                const zatcaSettings = await tx.setting.findMany({
+            take: 100,
                 where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_private_key', 'zatca_certificate', 'zatca_enabled', 'zatca_production_token', 'zatca_production_secret', 'zatca_environment', 'zatca_last_pih', 'zatca_invoice_counter', 'tax_rate'] } }
             });
             const s: Record<string, string> = {};
@@ -265,7 +291,9 @@ export async function POST(request: Request) {
 
                     try {
                         const { ZatcaSigner } = await import('@/lib/zatca-signer');
+                        const { decrypt } = await import('@/lib/encryption');
                         const signer = new ZatcaSigner();
+                        const decryptedPrivateKey = decrypt(s['zatca_private_key']);
 
                         const zatcaSettingsObj = {
                             companyName: s['company_name'],
@@ -278,7 +306,7 @@ export async function POST(request: Request) {
                             city: s['zatca_city'] || 'Riyadh',
                             cityEn: s['zatca_city_en'] || 'Riyadh',
                             postalCode: s['zatca_postal_code'] || '12345',
-                            privateKey: s['zatca_private_key'],
+                            privateKey: decryptedPrivateKey,
                             certificate: certParsed,
                             productionToken: s['zatca_production_token'],
                             productionSecret: s['zatca_production_secret'] || '',
@@ -398,7 +426,7 @@ export async function POST(request: Request) {
                             const signedData = await javaAdapter.signInvoice(
                                 rawXml, 
                                 s['zatca_certificate'], 
-                                s['zatca_private_key'], 
+                                decryptedPrivateKey, 
                                 mappedZatcaData.previousHash
                             );
                             signOutput = {
@@ -416,36 +444,19 @@ export async function POST(request: Request) {
                         const hashFinal = signOutput.hash;
 
                         // Update ZATCA counter & hash chain
-                        await prisma.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: hashFinal }, create: { key: 'zatca_last_pih', value: hashFinal, description: 'ZATCA Last PIH' } });
-                        await prisma.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
-                        await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR } });
+                        await tx.setting.upsert({ where: { key: 'zatca_last_pih' }, update: { value: hashFinal }, create: { key: 'zatca_last_pih', value: hashFinal, description: 'ZATCA Last PIH' } });
+                        await tx.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
+                        await tx.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR } });
                         // Store signed XML separately
-                        try { await prisma.$executeRawUnsafe(`UPDATE sales_returns SET zatca_xml = $1 WHERE id = $2`, signOutput.signedXml, ret.id); } catch (_) {}
+                        try { await tx.$executeRawUnsafe(`UPDATE sales_returns SET zatca_xml = $1 WHERE id = $2`, signOutput.signedXml, ret.id); } catch (_) {}
 
-                        // Report Credit Note to ZATCA
-                        if (s['zatca_production_secret']) {
-                            try {
-                                const zatcaResult = isStandard
-                                    ? await signer.clearInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj)
-                                    : await signer.reportInvoice(signOutput.signedXml, hashFinal, creditNoteUuid, zatcaSettingsObj);
-
-                                if (zatcaResult.status === 'reported' || zatcaResult.status === 'cleared') {
-                                    await prisma.salesReturn.update({ 
-                                        where: { id: ret.id }, 
-                                        data: { 
-                                            zatcaStatus: zatcaResult.status,
-                                            ...((zatcaResult as any).clearedInvoice ? { zatcaXml: Buffer.from((zatcaResult as any).clearedInvoice, 'base64').toString('utf-8') } : {})
-                                        } 
-                                    });
-                                    console.log(`✅ Credit Note CN-${returnNo} ${zatcaResult.status} to ZATCA`);
-                                } else {
-                                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(zatcaResult.validationResults) } });
-                                }
-                            } catch (reportErr: any) {
-                                await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
-                            }
-                        }
-                        console.log(`✅ Credit Note CN-${returnNo} signed (Node.js)`);
+                        signOutputGlobal = signOutput;
+                        creditNoteUuidGlobal = creditNoteUuid;
+                        zatcaSettingsObjGlobal = zatcaSettingsObj;
+                        hashFinalGlobal = hashFinal;
+                        isStandardGlobal = isStandard;
+                        sGlobal = s;
+                        
                     } catch (signErr: any) {
                         console.error('ZATCA Credit Note Signing Error:', signErr.message, signErr.stack);
                     }
@@ -460,7 +471,34 @@ export async function POST(request: Request) {
                         vatAmount: ret.taxValue,
                     });
                     zatcaQR = qrData;
-                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaQr: zatcaQR } });
+                    await tx.salesReturn.update({ where: { id: ret.id }, data: { zatcaQr: zatcaQR } });
+                }
+            }
+            }); // End of ZATCA transaction
+
+            // Report Credit Note to ZATCA (Outside Transaction)
+            if (sGlobal['zatca_production_secret'] && signOutputGlobal) {
+                try {
+                    const { ZatcaSigner } = await import('@/lib/zatca-signer');
+                    const signer = new ZatcaSigner();
+                    const zatcaResult = isStandardGlobal
+                        ? await signer.clearInvoice(signOutputGlobal.signedXml, hashFinalGlobal, creditNoteUuidGlobal, zatcaSettingsObjGlobal)
+                        : await signer.reportInvoice(signOutputGlobal.signedXml, hashFinalGlobal, creditNoteUuidGlobal, zatcaSettingsObjGlobal);
+
+                    if (zatcaResult.status === 'reported' || zatcaResult.status === 'cleared') {
+                        await prisma.salesReturn.update({ 
+                            where: { id: ret.id }, 
+                            data: { 
+                                zatcaStatus: zatcaResult.status,
+                                ...((zatcaResult as any).clearedInvoice ? { zatcaXml: Buffer.from((zatcaResult as any).clearedInvoice, 'base64').toString('utf-8') } : {})
+                            } 
+                        });
+                        console.log(`✅ Credit Note CN-${returnNo} ${zatcaResult.status} to ZATCA`);
+                    } else {
+                        await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(zatcaResult.validationResults) } });
+                    }
+                } catch (reportErr: any) {
+                    await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
                 }
             }
         } catch (zatcaErr) {

@@ -1,7 +1,8 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { Building, Key, Wallet, FileText, Wrench } from 'lucide-react';
+import { Building, Key, Wallet, FileText, Wrench, KeyRound, Glasses, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

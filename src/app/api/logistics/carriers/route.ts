@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).carrierRate.findMany({ orderBy: { carrierName: 'asc' } });
+    const items = await (prisma as any).carrierRate.findMany({
+            take: 100, orderBy: { carrierName: 'asc' } });
     return NextResponse.json(items);
   } catch (e: any) { return apiError(e, 'Error', { context: 'logistics/carriers' }); }
 }

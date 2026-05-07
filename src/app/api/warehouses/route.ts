@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const warehouses = await prisma.stock.findMany({
+            take: 100,
       where: whereClause,
       include: {
         branch: true

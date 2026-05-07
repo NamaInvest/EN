@@ -24,6 +24,7 @@ export async function GET(req: Request) {
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
         const claims = await prisma.insuranceClaim.findMany({
+            take: 100,
             where,
             include: {
                 patient: { select: { nationalId: true, name: true, phone: true } },

@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const cards = await prisma.giftCard.findMany({
+            take: 100,
             orderBy: { id: 'desc' }
         });
         return NextResponse.json(cards);

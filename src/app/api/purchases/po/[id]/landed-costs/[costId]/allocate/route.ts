@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST(req: Request, { params }: { params: { id: string, costId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string, costId: string }> }) {
+  const { id, costId } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const poId = Number(params.id);
-        const costId = Number(params.costId);
+        const poId = Number((await params).id);
+        const costId = Number((await params).costId);
 
         const cost = await prisma.landedCost.findUnique({
             where: { id: costId }

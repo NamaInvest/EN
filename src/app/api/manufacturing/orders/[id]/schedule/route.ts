@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MPSEngine } from '@/lib/mps-engine';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
         const body = await req.json();
         const operation = await MPSEngine.scheduleOperation({
-            manufacturingOrderId: parseInt(params.id, 10),
+            manufacturingOrderId: parseInt((await params).id, 10),
             operationId: body.operationId,
             workCenterId: body.workCenterId,
             plannedStart: new Date(body.plannedStart),

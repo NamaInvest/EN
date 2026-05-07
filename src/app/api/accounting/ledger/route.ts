@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         if (to) entryWhere.entryDate = { ...(entryWhere.entryDate as object || {}), lte: to };
 
         const lines = await prisma.journalLine.findMany({
+            take: 100,
             where: {
                 accountId,
                 entry: entryWhere,

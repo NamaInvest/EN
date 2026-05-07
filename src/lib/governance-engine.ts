@@ -11,6 +11,7 @@ export class GovernanceEngine {
     static async checkSegregationOfDuties(userId: string, requestedAction: string, documentId?: number) {
         // 1. Find all rules involving the requested action
         const rules = await prisma.segregationOfDutiesRule.findMany({
+            take: 100,
             where: {
                 OR: [
                     { actionA: requestedAction },
@@ -26,6 +27,7 @@ export class GovernanceEngine {
         const opposingActions = rules.map((r: any) => r.actionA === requestedAction ? r.actionB : r.actionA);
         
         const userAuditLogs = await prisma.auditLog.findMany({
+            take: 100,
             where: {
                 userId: parseInt(userId), // Assuming userId is numerical in DB
                 action: { in: opposingActions },
@@ -46,6 +48,7 @@ export class GovernanceEngine {
      */
     static async applyFieldPermissions(roleName: string, modelName: string, data: any) {
         const permissions = await prisma.roleFieldPermission.findMany({
+            take: 100,
             where: { roleName, modelName }
         });
 

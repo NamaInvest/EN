@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         }
 
         const users = await prisma.user.findMany({
+            take: 100,
             include: { permissions: true },
             orderBy: { id: 'asc' }
         });

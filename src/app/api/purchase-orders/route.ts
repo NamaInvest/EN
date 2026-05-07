@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
             where.branchId = user.branchId;
         }
 
-        const orders = await prisma.purchaseOrder.findMany({ 
+        const orders = await prisma.purchaseOrder.findMany({
+            take: 100, 
             where,
             include: { details: true, supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, 
             orderBy: { id: 'desc' } 
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
 
         // Check Maker-Checker Approval Rules
         const rules = await prisma.approvalRule.findMany({
+            take: 100,
             where: {
                 documentType: 'PURCHASE_ORDER',
                 isActive: true,

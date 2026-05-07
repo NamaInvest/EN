@@ -9,11 +9,13 @@ export async function GET(req: Request) {
 
         // Fetch AR and AP
         const customers = await prisma.customer.findMany({
+            take: 100,
             where: { balance: { gt: 0 } },
             select: { id: true, balance: true }
         });
         
         const vendors = await prisma.customer.findMany({
+            take: 100,
             where: { type: { in: [1, 2] }, balance: { gt: 0 } },
             select: { id: true, balance: true }
         });
@@ -23,6 +25,7 @@ export async function GET(req: Request) {
 
         // Fetch Current Bank Balances
         const bankAccounts = await prisma.bankAccount.findMany({
+            take: 100,
             where: { isActive: true },
             select: { currentBalance: true }
         });

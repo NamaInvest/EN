@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const assets = await prisma.fixedAsset.findMany({
+            take: 100,
             orderBy: { id: 'desc' },
         });
 

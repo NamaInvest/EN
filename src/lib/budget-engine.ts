@@ -107,6 +107,7 @@ export class BudgetEngine {
      */
     static async getVarianceReport(budgetId: number) {
         const budgetLines = await prisma.budgetLine.findMany({
+            take: 100,
             where: { budgetId },
             include: { account: true, costCenter: true, budget: true }
         });

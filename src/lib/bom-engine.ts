@@ -80,6 +80,7 @@ export class BOMEngine {
      */
     static async findUsages(componentProductId: number): Promise<any[]> {
         const usages = await prisma.recipeIngredient.findMany({
+            take: 100,
             where: { rawProductId: componentProductId },
             include: {
                 recipe: {

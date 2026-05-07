@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const branches = await prisma.branch.findMany({
+            take: 100,
             include: {
                 _count: {
                     select: {

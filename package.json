@@ -18,7 +18,8 @@
     "electron:dev": "concurrently \"node scripts/start-desktop.js\" \"wait-on http://localhost:3500 && electron .\"",
     "electron:build": "npm version patch --no-git-tag-version && node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win",
     "electron:pack": "next build && electron-builder --dir",
-    "electron:protect": "node scripts/protect-code.js"
+    "electron:protect": "node scripts/protect-code.js",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -118,9 +119,11 @@
     "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "husky": "^9.1.7",
     "javascript-obfuscator": "^5.4.1",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "lint-staged": "^17.0.2",
     "png-to-ico": "^3.0.1",
     "sharp": "^0.34.5",
     "tailwindcss": "^4",

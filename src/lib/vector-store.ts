@@ -1,17 +1,18 @@
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 // Lazy-load embeddings to prevent build failure if @langchain/google-genai not installed
 let _embeddings: any = null;
 async function getEmbeddings() {
     if (!_embeddings) {
         try {
-            const { GoogleGenerativeAIEmbeddings } = await import("@langchain/google-genai");
+            const { GoogleGenerativeAIEmbeddings } = await import('@langchain/google-genai');
             _embeddings = new GoogleGenerativeAIEmbeddings({
                 apiKey: process.env.GEMINI_API_KEY,
-                modelName: "text-embedding-004",
+                modelName: 'text-embedding-004',
             });
         } catch {
-            console.warn('⚠️ @langchain/google-genai not available, using dummy embeddings');
+            logger.warn({}, 'vector-store: @langchain/google-genai not available — using zero embeddings');
             _embeddings = { embedQuery: async () => new Array(768).fill(0) };
         }
     }
@@ -19,94 +20,101 @@ async function getEmbeddings() {
 }
 
 /**
- * Calculates cosine similarity between two numeric arrays
+ * Cosine similarity fallback — used when pgvector is unavailable.
  */
-function cosineSimilarity(A: number[], B: number[]) {
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
+function cosineSimilarity(A: number[], B: number[]): number {
+    let dot = 0, normA = 0, normB = 0;
     for (let i = 0; i < A.length; i++) {
-        dotProduct += A[i] * B[i];
+        dot   += A[i] * B[i];
         normA += A[i] * A[i];
         normB += B[i] * B[i];
     }
     if (normA === 0 || normB === 0) return 0;
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
 /**
- * VectorMine: Native Vector DB fallback implementation.
- * Stores a document, generates an embedding, and saves to KnowledgeDocument.
+ * VectorMine — store a document with its embedding.
  */
-export async function addDocumentToVectorMine(tenantId: string, title: string, content: string, metadata: any = {}) {
-    // 1. Generate embedding
-    const emb = await getEmbeddings();
+export async function addDocumentToVectorMine(
+    tenantId: string,
+    title: string,
+    content: string,
+    metadata: Record<string, any> = {}
+): Promise<number> {
+    const emb    = await getEmbeddings();
     const vector = await emb.embedQuery(content);
 
-    // 2. Save to database using Prisma JSON field
     const prisma = getPrisma();
-    const doc = await prisma.knowledgeDocument.create({
-        data: {
-            tenantId,
-            title,
-            content,
-            embedding: vector, // Array of floats saved as JSON
-            metadata
-        }
+    const doc    = await prisma.knowledgeDocument.create({
+        data: { tenantId, title, content, embedding: vector, metadata },
     });
 
+    logger.info({ tenantId }, 'vector-store: document indexed', { docId: doc.id, title });
     return doc.id;
 }
 
 /**
- * VectorMine: Native Search implementation.
- * Performs a brute-force cosine similarity search across tenant documents.
- * In a large-scale scenario, this would be swapped out for pgvector natively or Pinecone.
+ * VectorMine — semantic search.
+ * Tries native pgvector (<=> operator) first; falls back to JS cosine if the extension
+ * is unavailable or the column type is plain JSON.
  */
-export async function searchVectorMine(tenantId: string, query: string, topK: number = 3) {
-    const emb = await getEmbeddings();
+export async function searchVectorMine(
+    tenantId: string,
+    query: string,
+    topK = 5
+): Promise<Array<{ id: number; title: string; content: string; score: number; metadata: any }>> {
+    const emb         = await getEmbeddings();
     const queryVector = await emb.embedQuery(query);
+    const prisma      = getPrisma();
 
-    const prisma = getPrisma();
-    // Fetch all documents for the tenant
-    // Note: This is an in-memory brute force since pgvector is unavailable locally.
+    // ── Try pgvector first ───────────────────────────────────────
+    try {
+        // pgvector syntax: ORDER BY embedding <=> '[...]'::vector LIMIT k
+        const vectorLiteral = `[${queryVector.join(',')}]`;
+        const rows: any[] = await (prisma as any).$queryRaw`
+            SELECT id, title, content, metadata,
+                   1 - (embedding <=> ${vectorLiteral}::vector) AS score
+            FROM knowledge_documents
+            WHERE tenant_id = ${tenantId}
+            ORDER BY embedding <=> ${vectorLiteral}::vector
+            LIMIT ${topK}
+        `;
+        logger.info({ tenantId }, 'vector-store: pgvector search', { hits: rows.length });
+        return rows.map(r => ({ ...r, score: parseFloat(r.score) }));
+    } catch {
+        // Extension not enabled — fall through to JS fallback
+        logger.warn({ tenantId }, 'vector-store: pgvector unavailable, using JS fallback');
+    }
+
+    // ── JS cosine fallback ───────────────────────────────────────
     const allDocs = await prisma.knowledgeDocument.findMany({
         where: { tenantId },
-        select: { id: true, title: true, content: true, embedding: true, metadata: true }
+        take: 500,
+        select: { id: true, title: true, content: true, embedding: true, metadata: true },
     });
 
-    const results = allDocs.map((doc: any) => {
-        const docVector = doc.embedding as number[] | null;
-        const score = docVector ? cosineSimilarity(queryVector, docVector) : 0;
-        return {
-            id: doc.id,
-            title: doc.title,
-            content: doc.content,
-            score,
-            metadata: doc.metadata
-        };
+    const scored = allDocs.map((doc: any) => {
+        const vec   = doc.embedding as number[] | null;
+        const score = vec ? cosineSimilarity(queryVector, vec) : 0;
+        return { id: doc.id, title: doc.title, content: doc.content, score, metadata: doc.metadata };
     });
 
-    // Sort descending by score and pick topK
-    results.sort((a: any, b: any) => b.score - a.score);
-    return results.slice(0, topK);
+    scored.sort((a: any, b: any) => b.score - a.score);
+    return scored.slice(0, topK);
 }
 
 /**
- * High-level orchestration function to query the RAG pipeline.
+ * RAG context builder — retrieves top-K documents and formats them as a context string.
  */
 export async function queryRAG(tenantId: string, userQuery: string): Promise<string> {
-    // 1. Retrieve
-    const contextDocs = await searchVectorMine(tenantId, userQuery, 3);
-    
-    // 2. Augment context
-    let contextStr = "Here is the relevant company knowledge:\n\n";
-    contextDocs.forEach((doc: any, idx: number) => {
-        if (doc.score > 0.6) { // basic threshold
-            contextStr += `--- Document ${idx + 1}: ${doc.title} ---\n${doc.content}\n\n`;
+    const docs = await searchVectorMine(tenantId, userQuery, 3);
+    let ctx = 'Here is the relevant company knowledge:\n\n';
+    for (const [i, doc] of docs.entries()) {
+        if (doc.score > 0.5) {
+            ctx += `--- Document ${i + 1}: ${doc.title} ---\n${doc.content}\n\n`;
         }
-    });
-
-    // 3. Optional: Pass this into LangChain orchestrator (omitted here, handled upstream)
-    return contextStr;
+    }
+    return ctx;
 }
+

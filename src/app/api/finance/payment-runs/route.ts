@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
     try {
         const prisma = getPrisma(req);
         const runs = await prisma.paymentRun.findMany({
+            take: 100,
             orderBy: { runDate: 'desc' },
             include: { _count: { select: { lines: true } } }
         });

@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
         expiryLimitDate.setDate(expiryLimitDate.getDate() + days);
 
         const batches = await prisma.productBatch.findMany({
+            take: 100,
             where: {
                 currentQuantity: { gt: 0 },
                 expiryDate: {

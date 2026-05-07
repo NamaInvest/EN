@@ -13,6 +13,7 @@ export async function POST(request: Request) {
 
         // Fetch WhatsApp Settings from Prisma
         const settings = await prisma.setting.findMany({
+            take: 100,
             where: { key: { in: ['whatsapp_enabled', 'whatsapp_token', 'whatsapp_phone_id'] } }
         });
 
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
         let targetPhones = [];
         try {
             const customers = await prisma.customer.findMany({
+            take: 100,
                 where: { phone: { not: null } },
                 select: { phone: true, name: true }
             });
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
         } catch (e) {
             // Fallback to Users table if customer table is isolated
             const users = await prisma.user.findMany({
+            take: 100,
                 where: { phone: { not: null } },
                 select: { phone: true, fullName: true }
             });

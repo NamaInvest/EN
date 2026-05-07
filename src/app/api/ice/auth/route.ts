@@ -5,7 +5,8 @@ import crypto from 'crypto';
 // بيانات دخول ICE - يمكن نقلها لـ env لاحقاً
 const ICE_USERNAME = process.env.ICE_USERNAME || 'admin';
 const ICE_PASSWORD = process.env.ICE_PASSWORD || 'O_O772040030';
-const ICE_SECRET = process.env.ICE_SECRET || 'ice_admin_secret_nama_2026_x9k';
+const ICE_SECRET = process.env.ICE_SECRET;
+if (!ICE_SECRET) throw new Error('CRITICAL: ICE_SECRET is not set in environment variables!');
 
 function generateToken(): string {
     const payload = {

@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const sequences = await prisma.numberingSequence.findMany({
+            take: 100,
       orderBy: { code: 'asc' },
     });
     

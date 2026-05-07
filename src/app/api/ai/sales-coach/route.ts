@@ -21,6 +21,7 @@ export async function POST(req: Request) {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 userId: targetUserId,
                 date: { gte: thirtyDaysAgo },

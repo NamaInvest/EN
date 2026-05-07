@@ -5,7 +5,8 @@ import { apiError } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const stores = await (prisma as any).storeFront.findMany({ include: { _count: { select: { orders: true } } }, orderBy: { createdAt: 'desc' } });
+    const stores = await (prisma as any).storeFront.findMany({
+            take: 100, include: { _count: { select: { orders: true } } }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(stores);
   } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }

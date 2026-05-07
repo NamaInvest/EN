@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const batches = await prisma.wPSBatch.findMany({
+            take: 100,
             include: {
                 payrollRun: { select: { year: true, month: true } }
             },

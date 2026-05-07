@@ -26,6 +26,7 @@ export async function GET(req: Request) {
 
         const [productsList, categories] = await Promise.all([
             prisma.product.findMany({
+            take: 100,
                 where: whereClause,
                 select: {
                     id: true,
@@ -43,6 +44,7 @@ export async function GET(req: Request) {
                 orderBy: { name: 'asc' }
             }),
             prisma.category.findMany({
+            take: 100,
                 orderBy: { name: 'asc' }
             })
         ]);

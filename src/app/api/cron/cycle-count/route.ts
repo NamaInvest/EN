@@ -6,6 +6,7 @@ export async function GET(req: Request) {
     try {
         // Fetch all products with their ABC class
         const products: any[] = await (prisma.product as any).findMany({
+            take: 100,
             where: { active: true },
             select: { id: true, abcClass: true, currentStock: true }
         });

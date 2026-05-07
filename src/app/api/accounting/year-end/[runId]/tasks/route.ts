@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request, { params }: { params: { runId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ runId: string }> }) {
+  const { runId } = await params;
   try {
     const runId = parseInt(params.runId);
     if (isNaN(runId)) {
@@ -10,6 +11,7 @@ export async function GET(req: Request, { params }: { params: { runId: string } 
     }
 
     const tasks = await prisma.yearEndCloseTask.findMany({
+            take: 100,
       where: { runId },
       orderBy: { sequenceNumber: "asc" },
     });

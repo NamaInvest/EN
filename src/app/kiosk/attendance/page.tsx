@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, CheckCircle, Clock } from 'lucide-react';
+import { Camera, CheckCircle, Clock, Video } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
 
 export default function AICameraAttendanceKiosk() {

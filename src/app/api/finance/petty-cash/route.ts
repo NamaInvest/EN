@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
 
         // @ts-ignore
         const records = await prisma.pettyCashTransaction.findMany({
+            take: 100,
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             orderBy: { requestDate: 'desc' }
         });

@@ -20,6 +20,7 @@ export class IFRS9Engine {
 
         // Calculate exposure (Open AR Invoices)
         const openInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 customerId,
                 status: 'posted',
@@ -98,6 +99,7 @@ export class IFRS9Engine {
      */
     static async runPortfolioECL(fiscalPeriodId: number, asOfDate: Date, userId: string) {
         const customers = await prisma.customer.findMany({
+            take: 100,
             where: { active: true }
         });
 

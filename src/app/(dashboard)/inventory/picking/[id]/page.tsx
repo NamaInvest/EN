@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
-export default function PickingListPage({ params }: { params: { id: string } }) {
+export default async function PickingListPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState<any>(null);
@@ -16,7 +17,7 @@ export default function PickingListPage({ params }: { params: { id: string } }) 
     const fetchPickingData = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/inventory/picking/${params.id}`);
+            const res = await fetch(`/api/inventory/picking/${(await params).id}`);
             const result = await res.json();
             setData(result.data);
         } catch (error) {

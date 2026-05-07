@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Activity, Wrench, CheckCircle, Clock } from 'lucide-react';

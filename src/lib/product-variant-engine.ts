@@ -8,6 +8,7 @@ export class ProductVariantEngine {
      */
     static async getVariants(productId: number) {
         return prisma.productVariant.findMany({
+            take: 100,
             where: { parentProductId: productId } as any,
             include: { stock: true }
         });

@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const stocktakes = await prisma.stocktake.findMany({
+            take: 100,
             include: { items: true },
             orderBy: { id: 'desc' },
         });
@@ -16,7 +17,8 @@ export async function POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
-        const products = await prisma.product.findMany({ where: { active: true }, select: { id: true, name: true, currentStock: true } });
+        const products = await prisma.product.findMany({
+            take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
             const product = products.find(p => p.id === item.productId);

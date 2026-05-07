@@ -15,6 +15,7 @@ export async function GET(request: Request) {
 
         if (conversationId) {
             const messages = await prisma.aiConversationMessage.findMany({
+            take: 100,
                 where: { conversationId },
                 orderBy: { createdAt: 'asc' }
             });

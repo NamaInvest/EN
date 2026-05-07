@@ -1,7 +1,8 @@
+import { _t } from '@/lib/server-t';
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { LineChart, DollarSign, BrainCircuit, TrendingUp, AlertOctagon, TrendingDown, RefreshCcw, ShieldAlert, Target } from 'lucide-react';
+import { LineChart, DollarSign, BrainCircuit, TrendingUp, AlertOctagon, TrendingDown, RefreshCcw, ShieldAlert, Target, Brain } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 

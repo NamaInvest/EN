@@ -16,10 +16,11 @@ const rmaTransitions = {
 
 const rmaStateMachine = new StateMachine('RMA', rmaTransitions);
 
-export async function POST(req: Request, { params }: { params: { id: string, action: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string, action: string }> }) {
+  const { id, action } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
         const { action } = params;
         const targetState = action.toUpperCase();
 

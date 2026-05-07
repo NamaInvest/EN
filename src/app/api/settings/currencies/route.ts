@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         let currencies = await prisma.currency.findMany({
+            take: 100,
             orderBy: { id: 'asc' }
         });
 
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
                 ]
             });
             currencies = await prisma.currency.findMany({
+            take: 100,
                 orderBy: { id: 'asc' }
             });
         }

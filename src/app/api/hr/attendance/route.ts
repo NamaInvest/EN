@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     try {
         const todayStr = new Date().toISOString().split('T')[0];
         const records = await prisma.attendance.findMany({
+            take: 100,
             where: { date: todayStr },
             include: { employee: true },
             orderBy: { id: 'desc' }

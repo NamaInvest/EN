@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const customerId = parseInt(params.id);
+        const customerId = parseInt((await params).id);
         if (isNaN(customerId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         // Calculate credit details using the library function

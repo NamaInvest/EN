@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST(req: Request, { params }: { params: { versionId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ versionId: string }> }) {
+  const { versionId } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const versionId = Number(params.versionId);
+        const versionId = Number((await params).versionId);
         
         // Find the version we want to activate
         const newVersion = await prisma.bOMVersion.findUnique({
@@ -18,6 +19,7 @@ export async function POST(req: Request, { params }: { params: { versionId: stri
 
         // Find currently active versions for this product
         const activeVersions = await prisma.bOMVersion.findMany({
+            take: 100,
             where: {
                 recipe: { finishedProductId: productId },
                 status: 'ACTIVE'

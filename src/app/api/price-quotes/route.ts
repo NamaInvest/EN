@@ -5,7 +5,8 @@ import { apiError, validateAmount, requireFields } from '@/lib/api-error';
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const quotes = await prisma.priceQuote.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
+        const quotes = await prisma.priceQuote.findMany({
+            take: 100, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(quotes);
     } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }

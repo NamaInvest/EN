@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
         const now = new Date();
         const pendingInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: { remaining: { gt: 0 } },
             select: { id: true, invoiceNo: true, remaining: true, date: true }
         });

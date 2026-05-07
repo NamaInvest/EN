@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     try {
-        const id = parseInt(params.id);
+        const id = parseInt((await params).id);
 
         const rfq = await prisma.requestForQuotation.findUnique({
             where: { id },
@@ -15,6 +16,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         if (!rfq) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
         const bids = await prisma.vendorBid.findMany({
+            take: 100,
             where: { rfqId: id },
             include: {
                 vendor: true,

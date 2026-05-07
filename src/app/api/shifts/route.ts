@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         if (branchId) where.branchId = parseInt(branchId);
 
         const shifts = await prisma.shift.findMany({
+            take: 100,
             where,
             include: {
                 user: { select: { id: true, fullName: true } },

@@ -10,6 +10,7 @@ export async function GET(request: Request) {
         const tenantId = resolveTenant(request as any);
 
         const versions = await prisma.budgetVersion.findMany({
+            take: 100,
             where: { tenantId },
             orderBy: { createdAt: 'desc' },
             include: { _count: { select: { lines: true } } }

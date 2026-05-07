@@ -14,6 +14,7 @@ export async function GET(
         const orderId = parseInt((await params).id);
         // @ts-ignore - VSCode lock bypass
         const costs = await prisma.landedCost.findMany({
+            take: 100,
             where: { purchaseOrderId: orderId },
             include: { currency: true, expenseAccount: true }
         });

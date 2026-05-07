@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
         // @ts-ignore - Prisma Language Server sync lock
         const lcs = await prisma.letterOfCredit.findMany({
+            take: 100,
             include: { bank: true, supplier: true, currency: true },
             orderBy: { id: 'desc' }
         });

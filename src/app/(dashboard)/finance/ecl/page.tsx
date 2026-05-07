@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { DollarSign, RefreshCw, TrendingDown, AlertCircle, CheckCircle2 } from 'lucide-react';

@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
-export default function CustomerDetailPage({ params }: { params: { id: string } }) {
+export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [customer, setCustomer] = useState<any>(null);
@@ -13,17 +14,17 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
 
     useEffect(() => {
         fetchCustomerData();
-    }, [params.id]);
+    }, [(await params).id]);
 
     const fetchCustomerData = async () => {
         setLoading(true);
         try {
             // Fetch basic info
-            const resCust = await fetch(`/api/customers/${params.id}`);
+            const resCust = await fetch(`/api/customers/${(await params).id}`);
             if (resCust.ok) setCustomer(await resCust.json());
 
             // Fetch credit engine data
-            const resCredit = await fetch(`/api/customers/${params.id}/credit`);
+            const resCredit = await fetch(`/api/customers/${(await params).id}/credit`);
             if (resCredit.ok) setCreditInfo(await resCredit.json());
         } catch (e) {
             console.error(e);
@@ -37,7 +38,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
         setHolding(true);
         const action = creditInfo.customerStatus === 'ON_HOLD' ? 'RELEASE' : 'HOLD';
         try {
-            const res = await fetch(`/api/customers/${params.id}/hold`, {
+            const res = await fetch(`/api/customers/${(await params).id}/hold`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action })

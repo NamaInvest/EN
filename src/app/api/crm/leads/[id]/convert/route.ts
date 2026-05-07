@@ -3,8 +3,9 @@ import { CRMEngine } from '@/lib/crm-engine';
 
 export async function POST(
     req: NextRequest, 
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
     try {
         const { id } = params;
         const body = await req.json().catch(() => ({}));

@@ -10,6 +10,7 @@ export async function GET(request: Request) {
 
     try {
         const periods = await prisma.fiscalPeriod.findMany({
+            take: 100,
             include: {
                 periodCloseChecklists: true,
                 periodLockLogs: true

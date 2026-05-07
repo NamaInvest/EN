@@ -4,12 +4,15 @@ import crypto from 'crypto';
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'namainvest-secret';
+const _JWT_SECRET_RAW = process.env.JWT_SECRET;
+if (!_JWT_SECRET_RAW) throw new Error('CRITICAL: JWT_SECRET is not set in environment variables! Security risk!');
+const JWT_SECRET: string = _JWT_SECRET_RAW;
 
 export interface JWTPayload {
     userId: number;
     username: string;
     role: string;
+    tenantId?: string;
     sessionToken?: string;
 }
 
@@ -76,7 +79,8 @@ export async function hasPermission(userId: number, module: string, prismaClient
 
         return false;
     } catch (err) {
-        console.error('hasPermission error:', err);
+        // logger is async-imported to avoid circular dep at module load time
+        import('@/lib/logger').then(({ logger }) => logger.error({}, 'hasPermission error', { err })).catch(() => {});
         return false;
     }
 }
@@ -96,3 +100,42 @@ export async function isLegacyAdmin(userId: number, prismaClient?: any): Promise
         return false;
     }
 }
+
+export function withGuard(handler: (request: NextRequest, params: any, user: JWTPayload) => Promise<any> | any) {
+    return async (request: NextRequest, params: any) => {
+        const start  = Date.now();
+        const reqId  = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
+        const { logger } = await import('@/lib/logger');
+
+        const user = getUserFromRequest(request);
+        if (!user) {
+            logger.warn({ route: request.nextUrl.pathname, requestId: reqId }, 'withGuard: Unauthorized');
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        const log = logger.child({
+            tenantId:  user.tenantId,
+            userId:    String(user.userId),
+            route:     request.nextUrl.pathname,
+            requestId: reqId,
+        });
+
+        log.info(`→ ${request.method} ${request.nextUrl.pathname}`);
+
+        try {
+            const result = await handler(request, params, user);
+            log.info(`← ${request.method} ${request.nextUrl.pathname} ${Date.now() - start}ms`);
+            return result;
+        } catch (err: any) {
+            log.error(`✗ ${request.method} ${request.nextUrl.pathname}`, { error: err.message });
+            return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    };
+}
+

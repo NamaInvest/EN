@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         let schedules = await (prisma as any).deferredRevenueSchedule.findMany({
+            take: 100,
             include: { invoice: true, lines: true },
             orderBy: { id: 'desc' }
         });
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
 
         // Mock running monthly recognition
         const schedules = await (prisma as any).deferredRevenueSchedule.findMany({
+            take: 100,
             where: { status: 'ACTIVE' }
         });
 

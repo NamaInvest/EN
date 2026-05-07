@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
         const threshold = new Date(now.getTime() + alertDays * 24 * 60 * 60 * 1000);
 
         const expiringLeases = await prisma.leaseContract.findMany({
+            take: 100,
             where: {
                 status: 'ACTIVE',
                 endDate: { lte: threshold },
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const alerts = await prisma.systemAlert.findMany({
+            take: 100,
             where: { alertType: 'WARNING', read: false },
             orderBy: { createdAt: 'desc' },
         });

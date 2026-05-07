@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Building2, ArrowRightLeft, TrendingUp, Landmark, FileText, ArrowUpRight, ArrowDownRight, RefreshCcw } from 'lucide-react';

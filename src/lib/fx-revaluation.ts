@@ -28,6 +28,7 @@ export class FxRevaluationEngine {
 
             // 2. Fetch latest exchange rates up to periodEndDate
             const currencies = await tx.currency.findMany({
+            take: 100,
                 where: { code: { not: baseCurrencyCode } }
             });
 
@@ -46,6 +47,7 @@ export class FxRevaluationEngine {
 
             // 3. Revalue Open Items (AR/AP)
             const foreignInvoices = await tx.salesInvoice.findMany({
+            take: 100,
                 where: { 
                     status: 'posted', 
                     currencyId: { not: null }
@@ -84,6 +86,7 @@ export class FxRevaluationEngine {
 
             // 4. Revalue Bank Accounts
             const foreignBanks = await tx.bankAccount.findMany({
+            take: 100,
                 where: { currency: { not: baseCurrencyCode } }
             });
 
@@ -167,6 +170,7 @@ export class FxRevaluationEngine {
      */
     static async processAutoReversals(currentDate: Date) {
         const entriesToReverse = await prisma.journalEntry.findMany({
+            take: 100,
             where: {
                 autoReverseDate: { lte: currentDate },
                 isReversal: false

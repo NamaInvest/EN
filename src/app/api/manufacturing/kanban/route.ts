@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     try {
         // 1. Kanban Data (Work Orders grouped by status)
         const orders = await prisma.manufacturingOrder.findMany({
+            take: 100,
             include: { recipe: { include: { finishedProduct: true } }, machine: true },
             orderBy: { id: 'desc' }
         });

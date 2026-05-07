@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
         // Get PENDING inspections
         const pending = await prisma.qualityInspection.findMany({
+            take: 100,
             where: { status: 'PENDING' },
             orderBy: { createdAt: 'desc' }
         });

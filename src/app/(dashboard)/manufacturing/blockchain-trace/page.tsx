@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Link, ShieldCheck, Database, Search } from 'lucide-react';

@@ -22,6 +22,7 @@ export async function GET(req: Request) {
 
     try {
         const zones = await prisma.warehouseZone.findMany({
+            take: 100,
             where: { stockId },   // correct field
             include: {
                 racks: { include: { bins: true } },
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
 
         // Stock occupancy per product
         const stocks = await prisma.productStock.findMany({
+            take: 100,
             where: { stockId },
             include: {
                 product: {

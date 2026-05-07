@@ -4,7 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const promos = await prisma.promotion.findMany({ orderBy: { id: 'desc' } });
+        const promos = await prisma.promotion.findMany({
+            take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(promos);
     } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }

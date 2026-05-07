@@ -3,6 +3,11 @@ import { getPrisma } from "@/lib/prisma";
 import { encrypt, decrypt, maskSensitive } from "@/lib/encryption";
 
 export async function GET(request: Request) {
+  // Auth guard
+  const { getUserFromRequest: _getAuth } = require("@/lib/auth");
+  const _auth = _getAuth(request);
+  if (!_auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+
   const prisma = getPrisma(request);
   try {
     const { searchParams } = new URL(request.url);
@@ -11,6 +16,7 @@ export async function GET(request: Request) {
       ? { name: { contains: search, mode: "insensitive" as const } }
       : {};
     const employees = await prisma.employee.findMany({
+            take: 100,
       where,
       include: { branch: true },
       orderBy: { id: "desc" },

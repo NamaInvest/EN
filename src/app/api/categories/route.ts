@@ -7,7 +7,8 @@ export async function GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        const categories = await prisma.category.findMany({ orderBy: { id: 'asc' } });
+        const categories = await prisma.category.findMany({
+            take: 100, orderBy: { id: 'asc' } });
         return NextResponse.json(categories);
     } catch (error) {
         console.error('Categories GET error:', error);

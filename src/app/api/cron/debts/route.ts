@@ -11,6 +11,7 @@ export async function POST(request: Request) {
 
         // 1. Find all unpaid installment segments that have passed their due date
         const overduePayments = await prisma.installmentPayment.findMany({
+            take: 100,
             where: {
                 paid: false,
                 dueDate: { lt: today }

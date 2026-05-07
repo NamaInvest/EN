@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 export default async function BomsPage() {
     const recipes = await prisma.recipe.findMany({
+            take: 100,
         orderBy: { name: 'asc' }
     });
 

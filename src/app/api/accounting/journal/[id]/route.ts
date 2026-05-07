@@ -21,7 +21,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const prisma = getPrisma(request);
     const params = await context.params;
-    const id = parseInt(params.id);
+    const id = parseInt((await params).id);
 
     try {
         // 1. Fetch current document to check its status
@@ -60,7 +60,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         // Actually it's better to fetch the account types or codes from the DB to be safe.
         // Let's do it using Prisma.
         const accountIds = lines.map((l: any) => l.accountId);
-        const accounts = await prisma.account.findMany({ where: { id: { in: accountIds } } });
+        const accounts = await prisma.account.findMany({
+            take: 100, where: { id: { in: accountIds } } });
         const isRestrictedByCode = accounts.some((acc: any) => CONTROL_ACCOUNTS.includes(acc.code));
         if (isRestrictedByCode) {
             try {
@@ -131,7 +132,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     const prisma = getPrisma(request);
     const params = await context.params;
-    const id = parseInt(params.id);
+    const id = parseInt((await params).id);
 
     try {
         const body = await request.json();
@@ -157,7 +158,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             apply: async () => {
                 // If it's becoming POSTED, we must update the account balances!
                 if (status === DocumentStatus.POSTED && entry.status !== DocumentStatus.POSTED) {
-                    const lines = await prisma.journalLine.findMany({ where: { entryId: id } });
+                    const lines = await prisma.journalLine.findMany({
+            take: 100, where: { entryId: id } });
                     for (const line of lines) {
                         const account = await prisma.account.findUnique({ where: { id: line.accountId } });
                         if (account) {

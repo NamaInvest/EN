@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Target, TrendingUp, Calendar, AlertCircle } from 'lucide-react';

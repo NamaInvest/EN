@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
     const scenarios = await (prisma as any).budgetScenario.findMany({
+            take: 100,
       include: { lines: true, _count: { select: { lines: true } } },
       orderBy: { createdAt: 'desc' }
     });

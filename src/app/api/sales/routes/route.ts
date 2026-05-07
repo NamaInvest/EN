@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
 
         // @ts-ignore
         const routes = await prisma.route.findMany({
+            take: 100,
             include: {
                 salesRep: true,
                 _count: { select: { customers: true } }

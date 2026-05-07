@@ -19,7 +19,8 @@ const StockTransferSchema = z.object({
 export async function GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const transfers = await prisma.stockTransfer.findMany({ include: { details: true }, orderBy: { id: 'desc' } });
+        const transfers = await prisma.stockTransfer.findMany({
+            take: 100, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(transfers);
     } catch (e) {
         console.error(e);

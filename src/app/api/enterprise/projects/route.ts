@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get('search') || '';
         
         const projects = await prisma.project.findMany({
+            take: 100,
             where: {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },

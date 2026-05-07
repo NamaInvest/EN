@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const segments = await db(prisma).segment.findMany({
+            take: 100,
             orderBy: { code: 'asc' },
             select: { id: true, code: true, name: true, nameEn: true, type: true, isActive: true },
         });

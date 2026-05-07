@@ -38,6 +38,7 @@ export async function autoDecomposeIfNeeded(
 
     // جلب جميع وحدات المنتج مرتبة من الأصغر للأكبر
     const units = await tx.productUnit.findMany({
+            take: 100,
         where: { productId },
         include: { unit: true },
         orderBy: { sortOrder: 'asc' },

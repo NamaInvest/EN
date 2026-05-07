@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 import { YearEndCloseEngine } from "@/lib/year-end-engine";
 
-export async function POST(req: Request, { params }: { params: { runId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ runId: string }> }) {
+  const { runId } = await params;
   try {
     const runId = parseInt(params.runId);
     const userId = "system-user";

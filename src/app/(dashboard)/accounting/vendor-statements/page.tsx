@@ -11,6 +11,7 @@ export default async function VendorStatementsPage() {
     // Fetch unique vendors that have purchase invoices
     // For this mock, we just fetch from purchase invoices and group by supplierName
     const invoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
         select: {
             supplier: { select: { name: true } },
             total: true,

@@ -134,6 +134,7 @@ export async function runAllocation(
 
         // Get total amount to allocate from source account JE lines in period
         const sourceLines = await prisma.journalLine.findMany({
+            take: 100,
             where: {
                 account: { code: rule.srcAccount },
                 entry: {
@@ -149,6 +150,7 @@ export async function runAllocation(
 
         // Get revenue base for distribution
         const copaDocs = await prisma.copaDocument.findMany({
+            take: 100,
             where: {
                 postingDate: { gte: periodFrom, lte: periodTo },
             },
@@ -216,7 +218,8 @@ export async function slice(
     if (filters.profitCenterId) where.profitCenterId = filters.profitCenterId;
     if (filters.segmentId) where.segmentId = filters.segmentId;
 
-    const docs = await prisma.copaDocument.findMany({ where });
+    const docs = await prisma.copaDocument.findMany({
+            take: 100, where });
 
     // Group by dimensions
     const groups: Record<string, { key: Record<string, any>; revenue: number; cogs: number; discount: number; freight: number; contributionMargin: number; count: number }> = {};

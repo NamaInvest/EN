@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const rules = await prisma.commissionRule.findMany({
+            take: 100,
       include: {
         payments: true
       },

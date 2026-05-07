@@ -26,6 +26,7 @@ export class SpendAnalyticsEngine {
         const periodTo = to || new Date();
 
         const invoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 status: { not: 'cancelled' },
                 invoiceDate: { gte: periodFrom.toISOString(), lte: periodTo.toISOString() },

@@ -7,6 +7,7 @@ export async function GET(req: Request) {
         const today = new Date();
         // Look for active contracts that need renewal alerts
         const activeContracts = await prisma.supplierContract.findMany({
+            take: 100,
             where: { status: 'active' },
             include: { supplier: true }
         });

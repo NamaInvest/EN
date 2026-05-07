@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const prisma = getPrisma(req as any);
     const { searchParams } = new URL(req.url);
     const tokenStr = searchParams.get('token');
 
     try {
-        const rfqId = parseInt(params.id);
+        const rfqId = parseInt((await params).id);
         if (isNaN(rfqId)) return NextResponse.json({ error: 'Invalid RFQ ID' }, { status: 400 });
 
         if (!tokenStr) return NextResponse.json({ error: 'Missing token' }, { status: 401 });

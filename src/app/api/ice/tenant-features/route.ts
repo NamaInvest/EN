@@ -8,6 +8,7 @@ export async function GET(req: Request) {
         if (!tenantAccountId) return NextResponse.json({ error: 'Missing tenantAccountId' }, { status: 400 });
 
         const flags = await prisma.tenantFeatureFlag.findMany({
+            take: 100,
             where: { tenantAccountId: Number(tenantAccountId) }
         });
         

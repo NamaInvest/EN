@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const projectId = new URL(request.url).searchParams.get('projectId');
     if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
     const items = await prisma.projectResource.findMany({
+            take: 100,
       where: { projectId: parseInt(projectId) },
       include: { employee: { select: { name: true, position: true } } },
       orderBy: { createdAt: 'desc' }

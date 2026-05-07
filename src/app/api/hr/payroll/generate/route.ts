@@ -15,6 +15,7 @@ export async function POST(request: Request) {
 
         // 1. Fetch all active employees
         const employees = await prisma.employee.findMany({
+            take: 100,
             where: { active: true }
         });
 
@@ -27,12 +28,14 @@ export async function POST(request: Request) {
         const endDateStr = `${year}-${String(month).padStart(2, '0')}-31`; // Approx
 
         const attendances = await prisma.attendance.findMany({
+            take: 100,
             where: {
                 date: { gte: startDateStr, lte: endDateStr }
             }
         });
 
         const activeLoans = await prisma.employeeLoan.findMany({
+            take: 100,
             where: { status: 'active', remainingAmount: { gt: 0 } }
         });
 

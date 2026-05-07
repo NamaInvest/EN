@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, UploadCloud, AlertCircle, CheckCircle, ShieldCheck, RefreshCw, Search, Eye, XCircle, Building2, Users, CreditCard, AlertTriangle, ArrowUpRight } from 'lucide-react';

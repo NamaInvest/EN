@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
     const items = await (prisma as any).contractTemplate.findMany({
+            take: 100,
       include: { clauses: { orderBy: { sortOrder: 'asc' } }, _count: { select: { clauses: true } } },
       orderBy: { createdAt: 'desc' }
     });

@@ -29,6 +29,7 @@ export async function GET(req: Request) {
     try {
         // Include recipe and its ingredients with raw product info
         const openOrders = await prisma.manufacturingOrder.findMany({
+            take: 100,
             where: { status: { in: ['pending', 'in_progress'] } },
             include: {
                 recipe: {

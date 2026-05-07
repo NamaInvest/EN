@@ -77,6 +77,7 @@ export class NumberingEngine {
      */
     static async getAll(prisma: PrismaClient): Promise<any[]> {
         return db(prisma).numberSequence.findMany({
+            take: 100,
             orderBy: { code: 'asc' },
         });
     }

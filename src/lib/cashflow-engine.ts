@@ -41,6 +41,7 @@ export class CashFlowEngine {
         // 2. Predict Inflows (AR / Open Sales Invoices)
         // Note: Assuming `date` or a `dueDate` field exists. For SalesInvoice, we'll use `date` + 30 days as a mock due date if dueDate is absent.
         const openSalesInvoices = await prisma.salesInvoice.findMany({
+            take: 100,
             where: {
                 status: 'posted',
                 remaining: { gt: 0 }
@@ -71,6 +72,7 @@ export class CashFlowEngine {
 
         // Add Revenue Arrangements (if any)
         const activeArrangements = await prisma.deferredRevenueSchedule.findMany({
+            take: 100,
             where: { isCurrent: true }
         });
         
@@ -93,6 +95,7 @@ export class CashFlowEngine {
 
         // 3. Predict Outflows (AP / Open Purchase Invoices)
         const openPurchaseInvoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
             where: {
                 status: 'posted',
                 remaining: { gt: 0 }

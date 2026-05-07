@@ -47,6 +47,7 @@ export class AgingEngine {
 
         if (type === 'AR') {
             const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
                 where: { status: { notIn: ['CANCELLED', 'cancelled'] } },
                 include: { customer: { select: { id: true, name: true } } },
             });
@@ -82,6 +83,7 @@ export class AgingEngine {
             }
         } else {
             const invoices = await prisma.purchaseInvoice.findMany({
+            take: 100,
                 where: { status: { notIn: ['cancelled', 'CANCELLED'] } },
                 include: { supplier: { select: { id: true, name: true } } },
             });
@@ -158,6 +160,7 @@ export class AgingEngine {
 
         if (type === 'AR') {
             const invoices = await prisma.salesInvoice.findMany({
+            take: 100,
                 where: { customerId: partnerId, status: { notIn: ['CANCELLED'] } },
             });
             for (const inv of invoices) {

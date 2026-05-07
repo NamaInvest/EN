@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const classes = await prisma.academicClass.findMany({
+            take: 100,
       include: {
         teacher: true,
         enrollments: true

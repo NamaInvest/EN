@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const dnotes = await prisma.deliveryNote.findMany({
+            take: 100,
             include: {
                 customer: { select: { name: true } },
                 salesOrder: { select: { orderNo: true } },

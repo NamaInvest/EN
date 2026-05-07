@@ -10,6 +10,7 @@ export async function POST(request: Request) {
 
         // 1. Fetch exactly what is deficient
         const allProducts = await prisma.product.findMany({
+            take: 100,
             where: { active: true }
         });
 

@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { Users, UserPlus, FileText, GraduationCap, TrendingUp, CalendarDays, Search } from 'lucide-react';
 import Link from 'next/link';

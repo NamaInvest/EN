@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const matches = await (prisma as any).threeWayMatch.findMany({
+            take: 100,
             include: {
                 invoice: { select: { invoiceNo: true, total: true, supplier: { select: { name: true } } } },
                 purchaseOrder: { select: { orderNo: true, total: true } },

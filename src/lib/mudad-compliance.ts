@@ -32,6 +32,7 @@ export async function checkMudadCompliance(
     prisma: PrismaClient
 ): Promise<MudadComplianceStatus> {
     const employees = await db(prisma).employee.findMany({
+            take: 100,
         where: { active: true },
         select: { id: true, mudadStatus: true, name: true },
     });
@@ -93,6 +94,7 @@ export async function getUnprotectedEmployees(
     prisma: PrismaClient
 ): Promise<any[]> {
     return db(prisma).employee.findMany({
+            take: 100,
         where: {
             active: true,
             OR: [
@@ -143,6 +145,7 @@ export async function generateMudadReport(
     issues: string[];
 }> {
     const employees = await db(prisma).employee.findMany({
+            take: 100,
         where: { active: true },
         select: {
             id: true, name: true, salary: true, housingAllowance: true,

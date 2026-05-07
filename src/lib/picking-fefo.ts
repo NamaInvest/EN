@@ -21,6 +21,7 @@ export async function allocateFEFO(
     // Only fetch batches where status is AVAILABLE and currentQuantity > 0
     // Skip batches that are expiring within the grace period
     const batches = await prisma.productBatch.findMany({
+            take: 100,
         where: {
             productId: productId,
             status: 'AVAILABLE',

@@ -1,7 +1,8 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import React, { useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2, RefreshCcw, BrainCircuit, WifiOff } from 'lucide-react';
+import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2, RefreshCcw, BrainCircuit, WifiOff, Brain } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

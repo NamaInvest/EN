@@ -121,6 +121,7 @@ export class CustomReportEngine {
     static async processScheduledReports(): Promise<number> {
         const now = new Date();
         const dueSchedules = await prisma.reportSchedule.findMany({
+            take: 100,
             where: {
                 status: 'ACTIVE',
                 OR: [

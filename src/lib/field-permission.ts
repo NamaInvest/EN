@@ -23,6 +23,7 @@ export async function applyFieldPermissions(role: string, entityName: string, da
 
     try {
         const permissions = await prisma.roleFieldPermission.findMany({
+            take: 100,
             where: {
                 roleName: role,
                 modelName: entityName,

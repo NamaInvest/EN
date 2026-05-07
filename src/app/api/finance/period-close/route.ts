@@ -17,6 +17,7 @@ export async function GET(req: Request) {
         }
 
         const checklist = await prisma.periodCloseChecklist.findMany({
+            take: 100,
             where: { fiscalPeriodId: parseInt(periodId) },
             orderBy: { sequence: 'asc' },
             include: { fiscalPeriod: true }

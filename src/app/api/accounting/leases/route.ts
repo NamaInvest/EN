@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         let leases = await (prisma as any).ifrsLeaseContract.findMany({
+            take: 100,
             orderBy: { id: 'desc' }
         });
 

@@ -20,6 +20,7 @@ export async function GET(req: Request) {
 
         // Product uses 'active' (Boolean) and 'minQuantity' (Float)
         const lowStockProducts = await prisma.product.findMany({
+            take: 100,
             where: {
                 active: true,
                 minQuantity: { gt: 0 },

@@ -3,6 +3,7 @@ import { getPrisma } from './prisma';
 export async function calculateVendorScore(supplierId: number, prisma: any) {
     // Quality Score (1-5): Average quality rating from Goods Receipts
     const ratings = await prisma.vendorRating.findMany({
+            take: 100,
         where: { supplierId }
     });
 

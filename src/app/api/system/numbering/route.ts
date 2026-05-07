@@ -27,6 +27,7 @@ export async function GET(request: Request) {
         if (searchParams.get('branchId')) where.branchId = parseInt(searchParams.get('branchId')!);
 
         const sequences = await prisma.numberingSequence.findMany({
+            take: 100,
             where,
             orderBy: [{ code: 'asc' }, { fiscalYear: 'desc' }, { fiscalMonth: 'desc' }],
         });

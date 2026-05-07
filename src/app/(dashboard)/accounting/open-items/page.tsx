@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Layers, FileSearch, ArrowRightLeft } from 'lucide-react';

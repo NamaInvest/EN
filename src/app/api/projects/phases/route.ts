@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
 
     const phases = await (prisma as any).projectPhase.findMany({
+            take: 100,
       where: { projectId: parseInt(projectId) },
       include: { milestones: true },
       orderBy: { sortOrder: 'asc' }

@@ -5,6 +5,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma(request);
     try {
         const ncrs = await prisma.nonConformanceReport.findMany({
+            take: 100,
             include: {
                 inspection: {
                     include: { product: true }

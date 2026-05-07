@@ -41,22 +41,61 @@ export function getDbUrl(tenant: string): string {
     if (process.env.DESKTOP_MODE === 'true') {
         return base;
     }
-    // يبدّل اسم الـ DB فقط: /n11_db → /company_db
-    return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
+    
+    // In Phase 1 RLS, we use a single database and rely on tenantId extension.
+    // So we just return the base URL!
+    return base;
+}
+
+// ── RLS Extension ───────────────────────────────────────────────
+function withRLS(client: PrismaClient, tenantId: string) {
+    return client.$extends({
+        query: {
+            $allModels: {
+                async $allOperations({ model, operation, args, query }) {
+                    // Skip system models that don't have tenantId
+                    const sysModels = ['Tenant', 'User', 'Session', 'SystemSetting'];
+                    if (sysModels.includes(model) || tenantId === 'default') {
+                        return query(args);
+                    }
+
+                    // For operations that read/write data, automatically inject tenantId
+                    if (['findUnique', 'findFirst', 'findMany', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
+                        args.where = { ...args.where, tenantId };
+                    } else if (['create', 'createMany'].includes(operation)) {
+                        if (Array.isArray(args.data)) {
+                            args.data = args.data.map(d => ({ ...d, tenantId }));
+                        } else {
+                            args.data = { ...args.data, tenantId };
+                        }
+                    } else if (operation === 'upsert') {
+                        args.where = { ...args.where, tenantId };
+                        args.create = { ...args.create, tenantId };
+                    }
+                    
+                    return query(args);
+                }
+            }
+        }
+    });
 }
 
 // ── Get or create Prisma client for tenant ──────────────────────
-export function getClient(tenant: string): PrismaClient {
-    if (!pool.has(tenant)) {
+export function getClient(tenant: string) {
+    if (!pool.has('SHARED_DB_INSTANCE')) {
         pool.set(
-            tenant,
+            'SHARED_DB_INSTANCE',
             new PrismaClient({
                 datasources: { db: { url: getDbUrl(tenant) } },
                 log: process.env.NODE_ENV === 'development' ? ['error'] : [],
             })
         );
     }
-    return pool.get(tenant)!;
+    
+    const baseClient = pool.get('SHARED_DB_INSTANCE')!;
+    
+    // Return the extended client for this specific tenant
+    return withRLS(baseClient, tenant);
 }
 
 // ── Global request store (set by middleware wrapper) ─────────────

@@ -5,6 +5,7 @@ export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         const contracts = await prisma.supplierContract.findMany({
+            take: 100,
             include: { supplier: true },
             orderBy: { endDate: 'asc' }
         });

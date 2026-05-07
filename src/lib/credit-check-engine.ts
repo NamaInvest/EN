@@ -83,6 +83,7 @@ export class CreditCheckEngine {
         thresholdPct: number = 0.8 // 80% utilization
     ): Promise<CreditCheckResult[]> {
         const customers = await prisma.customer.findMany({
+            take: 100,
             where: { isActive: true },
             select: { id: true },
         });

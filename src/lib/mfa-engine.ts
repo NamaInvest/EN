@@ -5,7 +5,8 @@ import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef'; // Must be 32 bytes
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY || Buffer.from(ENCRYPTION_KEY).length !== 32) throw new Error('CRITICAL: ENCRYPTION_KEY must be exactly 32 bytes in environment variables!');
 const ALGORITHM = 'aes-256-gcm';
 
 function encryptSecret(text: string) {

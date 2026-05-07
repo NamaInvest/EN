@@ -9,6 +9,7 @@ export async function POST(req: Request) {
 
         // Fetch active rules sorted by priority
         const rules = await prisma.bankReconRule.findMany({
+            take: 100,
             where: { 
                 enabled: true,
                 OR: [

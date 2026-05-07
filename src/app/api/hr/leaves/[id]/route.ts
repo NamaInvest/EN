@@ -7,12 +7,13 @@ import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaveEngine } from '@/lib/leave-engine';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const url = new URL(req.url);
-    const requestId = parseInt(params.id);
+    const requestId = parseInt((await params).id);
 
     try {
         const body = await req.json();

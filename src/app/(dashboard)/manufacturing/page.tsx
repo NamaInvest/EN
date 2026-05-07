@@ -1,3 +1,4 @@
+import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Factory, Cog, ClipboardList, TrendingUp, AlertTriangle, Hammer, ArrowRight } from 'lucide-react';

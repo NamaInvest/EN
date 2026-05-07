@@ -5,6 +5,7 @@ export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         const rules = await prisma.commissionRule.findMany({
+            take: 100,
             where: { isActive: true },
             orderBy: { targetAmount: 'asc' }
         });

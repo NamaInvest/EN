@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 
     // List all projects with summary
     const projects = await prisma.project.findMany({
+            take: 100,
       include: {
         customer: { select: { name: true } },
         tasks: true,

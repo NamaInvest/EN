@@ -1,21 +1,31 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-// import { reportInvoiceToZatca } from '@/lib/zatca-fatoora'; // Assume this exists based on workflow
+import { reportInvoice } from '@/lib/zatca-fatoora';
 
 export async function GET(request: Request) {
-    // This endpoint should be triggered by a cron job every X minutes
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'ZATCA_CRON_SECRET'}`) {
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    // Read ZATCA credentials from env — must be set per-tenant in production
+    const binarySecurityToken = process.env.ZATCA_BINARY_SECURITY_TOKEN;
+    const zatcaSecret         = process.env.ZATCA_SECRET;
+    const zatcaEnv            = (process.env.ZATCA_ENV || 'simulation') as 'simulation' | 'production';
+
+    if (!binarySecurityToken || !zatcaSecret) {
+        return NextResponse.json(
+            { error: 'ZATCA credentials not configured (set ZATCA_BINARY_SECURITY_TOKEN and ZATCA_SECRET in .env)' },
+            { status: 500 }
+        );
+    }
+
     const prisma = getPrisma(request);
-    
+
     try {
-        // Find top 10 pending ZATCA records
         const pendingRecords = await prisma.zATCARecord.findMany({
             where: { status: 'pending' },
-            take: 10
+            take: 10,
         });
 
         if (pendingRecords.length === 0) {
@@ -26,38 +36,32 @@ export async function GET(request: Request) {
 
         for (const record of pendingRecords) {
             try {
-                // Here we would call the actual ZATCA reporting logic
-                // const zatcaResponse = await reportInvoiceToZatca(record.invoiceId, record.invoiceType);
-                
-                // For demonstration/simulation if the real API isn't fully configured
-                const zatcaResponse = { success: true, message: 'Reported successfully' };
+                const zatcaResponse = await reportInvoice({
+                    binarySecurityToken,
+                    secret: zatcaSecret,
+                    invoiceHash: record.zatcaHash || '',
+                    uuid: record.id.toString(),
+                    invoiceBase64: Buffer.from(record.zatcaXml || '').toString('base64'),
+                    environment: zatcaEnv,
+                });
 
-                if (zatcaResponse.success) {
-                    await prisma.zATCARecord.update({
-                        where: { id: record.id },
-                        data: {
-                            status: 'sent',
-                            zatcaResponse: JSON.stringify(zatcaResponse)
-                        }
-                    });
-                    results.push({ id: record.id, status: 'success' });
-                } else {
-                    await prisma.zATCARecord.update({
-                        where: { id: record.id },
-                        data: {
-                            status: 'failed',
-                            zatcaResponse: zatcaResponse.message
-                        }
-                    });
-                    results.push({ id: record.id, status: 'failed', error: zatcaResponse.message });
-                }
-            } catch (err: any) {
+                // ZatcaInvoiceResponse.status = 'PASS' | 'WARNING' | 'ERROR'
+                const passed = zatcaResponse.status === 'PASS' || zatcaResponse.status === 'WARNING';
+
                 await prisma.zATCARecord.update({
                     where: { id: record.id },
                     data: {
-                        status: 'failed',
-                        zatcaResponse: err.message
-                    }
+                        status: passed ? 'sent' : 'failed',
+                        zatcaResponse: JSON.stringify(zatcaResponse),
+                    },
+                });
+
+                const errorSummary = zatcaResponse.errors?.map(e => `${e.code}: ${e.message}`).join(', ');
+                results.push({ id: record.id, status: passed ? 'success' : 'failed', error: errorSummary });
+            } catch (err: any) {
+                await prisma.zATCARecord.update({
+                    where: { id: record.id },
+                    data: { status: 'failed', zatcaResponse: err.message },
                 });
                 results.push({ id: record.id, status: 'error', error: err.message });
             }
@@ -65,7 +69,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ processed: results.length, results });
     } catch (error: any) {
-        console.error("ZATCA Cron Error:", error);
+        console.error('ZATCA Cron Error:', error);
         return NextResponse.json({ error: 'Failed to process ZATCA records' }, { status: 500 });
     }
 }
+
