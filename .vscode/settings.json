@@ -1,3 +1,4 @@
 {
-    "workbench.editor.limit.enabled": true
+    "workbench.editor.limit.enabled": true,
+    "geminicodeassist.outlines.automaticOutlineGeneration": true
 }

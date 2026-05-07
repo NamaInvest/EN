@@ -18,36 +18,73 @@ const TARGETS = [
 const LOCAL_BASE = 'd:\\namasoft9-3-main';
 
 const FILES = [
-    // === CRITICAL ENGINE FIXES (EG-01, EG-02, EG-03) ===
-    "src/lib/wht-engine.ts",          // EG-01: accountId hardcoded → code lookup
-    "src/lib/auto-journal.ts",        // EG-02: GRN/PI 3-way match + EG-03: balance inside $transaction
-    "src/app/api/purchases/route.ts", // EG-02: pass hasGRN flag
-    "src/app/api/purchase-orders/[id]/route.ts", // EG-02: pass hasGRN=true
-    "prisma/schema.prisma",           // @@unique([productId, stockId]) fix
+    // === SCHEMA (CRITICAL — must deploy first) ===
+    "prisma/schema.prisma",
 
-    // === i18n UNIFIED PAGES (today's session) ===
-    "src/app/(dashboard)/accounting/banks/[id]/page.tsx",
-    "src/app/(dashboard)/accounting/fixed-assets/page.tsx",
-    "src/app/(dashboard)/accounting/leases/page.tsx",
-    "src/app/(dashboard)/accounting/open-items/page.tsx",
-    "src/app/(dashboard)/accounting/revenue-recognition/page.tsx",
-    "src/app/(dashboard)/accounting/segments/page.tsx",
-    "src/app/(dashboard)/customers/[id]/page.tsx",
-    "src/app/(dashboard)/docs/[slug]/page.tsx",
-    "src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
-    "src/app/(dashboard)/finance/ecl/page.tsx",
-    "src/app/(dashboard)/fsm/page.tsx",
-    "src/app/(dashboard)/hr/page.tsx",
-    "src/app/(dashboard)/inventory/picking/[id]/page.tsx",
-    "src/app/(dashboard)/manufacturing/boms/[id]/versions/page.tsx",
-    "src/app/(dashboard)/manufacturing/page.tsx",
-    "src/app/(dashboard)/procurement/rfq/[id]/page.tsx",
-    "src/app/(dashboard)/purchases/landed-cost/[poId]/page.tsx",
-    "src/app/(dashboard)/purchases/page.tsx",
-    "src/app/(dashboard)/quality/page.tsx",
-    "src/app/(dashboard)/sales/forecast/page.tsx",
-    "src/app/(dashboard)/tax/page.tsx",
-    "src/app/(dashboard)/treasury/page.tsx",
+    // === AI Stack Core Libraries ===
+    "src/lib/env.ts",                         // AI-25 Secrets Management
+    "src/lib/pii-mask.ts",                    // AI-06 PII Masking
+    "src/lib/prompt-cache.ts",                // AI-02 Prompt Caching
+    "src/lib/streaming.ts",                   // AI-03 SSE Streaming
+    "src/lib/few-shot-examples.ts",           // AI-04 Few-shot + CoT
+    "src/lib/token-budget.ts",                // AI-05 Token Budget
+    "src/lib/ai-job-queue.ts",                // AI-09 Background Jobs
+    "src/lib/rate-limiter.ts",                // AI-12 Rate Limiter
+    "src/lib/logger.ts",                      // AI-13 Structured Logger
+    "src/lib/observability.ts",               // AI-14 Observability
+    "src/lib/document-embeddings.ts",         // AI-16 Doc Embeddings
+    "src/lib/compliance-kb-seed.ts",          // AI-18 ZATCA/SOCPA KB
+    "src/lib/revenue-recognition-ifrs15.ts",  // P0-07 IFRS 15
+    "src/lib/llm-client.ts",                  // Unified LLM
+    "src/lib/langchain-orchestrator.ts",      // AI-07/08 LangChain
+    "src/lib/vector-store.ts",                // AI-15 VectorMine
+    "src/lib/prompts/registry.ts",            // AI-01 Prompt Registry
+    "src/lib/__tests__/ai-stack.test.ts",     // AI-28 Tests
+
+    // === AI APIs ===
+    "src/app/api/ai/copilot/chat/route.ts",   // AI-10 Copilot Chat
+    "src/app/api/ai/rag/route.ts",            // RAG Pipeline
+    "src/app/api/search/semantic/route.ts",    // AI-17 Semantic Search
+    "src/app/api/openapi/route.ts",            // AI-11 OpenAPI Spec
+
+    // === Admin APIs ===
+    "src/app/api/admin/prompts/route.ts",
+    "src/app/api/admin/knowledge/route.ts",
+    "src/app/api/admin/llm-costs/route.ts",   // AI-22 Cost Dashboard
+
+    // === Treasury (P0-01) ===
+    "src/app/api/treasury/cash-position/route.ts",
+    "src/app/api/treasury/cash-position/snapshot/route.ts",
+    "src/app/api/treasury/liquidity/forecast/route.ts",
+    "src/app/api/treasury/liquidity/forecast/generate/route.ts",
+    "src/app/(dashboard)/treasury/cash-position/page.tsx",
+    "src/app/(dashboard)/treasury/liquidity/page.tsx",
+
+    // === Sales ATP (P0-03) ===
+    "src/app/api/sales/atp/check/route.ts",
+    "src/app/(dashboard)/sales/atp-simulator/page.tsx",
+
+    // === AP Invoice Capture (P0-04) ===
+    "src/app/api/ap/capture/route.ts",
+    "src/app/(dashboard)/ap/capture/page.tsx",
+
+    // === Manufacturing MES (P0-05) ===
+    "src/app/api/manufacturing/shopfloor/route.ts",
+    "src/app/(dashboard)/shopfloor/page.tsx",
+
+    // === Budget Planning (P0-06) ===
+    "src/app/api/finance/budget/route.ts",
+    "src/app/(dashboard)/finance/budget-planning/page.tsx",
+
+    // === Frontend Utilities (AI-19/20) ===
+    "src/hooks/use-erp-queries.ts",
+    "src/components/forms/FormWrapper.tsx",
+
+    // === Existing critical files ===
+    "src/lib/wht-engine.ts",
+    "src/lib/auto-journal.ts",
+    "src/app/api/purchases/route.ts",
+    "src/app/api/purchase-orders/[id]/route.ts",
 ];
 
 function uploadFile(sftp, localPath, remotePath) {
