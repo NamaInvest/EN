@@ -24,7 +24,12 @@ export const tenantContext = new AsyncLocalStorage<string>();
 
 // ── Connection pool ─────────────────────────────────────────────
 // Client واحد لكل tenant — لا نُعيد الإنشاء في كل طلب
-const pool = new Map<string, PrismaClient>();
+// Use global object to prevent memory leaks during Next.js hot reloads
+const globalForPrisma = globalThis as unknown as {
+    prismaPool?: Map<string, PrismaClient>;
+};
+const pool = globalForPrisma.prismaPool || new Map<string, PrismaClient>();
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prismaPool = pool;
 
 // ── DB URL builder ──────────────────────────────────────────────
 export function getDbUrl(tenant: string): string {

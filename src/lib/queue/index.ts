@@ -22,6 +22,12 @@ export const pdfQueue = new Queue('pdfQueue', { connection: redisConnection, def
 export const syncQueue = new Queue('syncQueue', { connection: redisConnection, defaultJobOptions });
 export const reportQueue = new Queue('reportQueue', { connection: redisConnection, defaultJobOptions });
 
+[emailQueue, pdfQueue, syncQueue, reportQueue].forEach(queue => {
+    queue.on('error', (err) => {
+        // Suppress default printing of queue errors to avoid log bloat when Redis is offline
+    });
+});
+
 // --- Workers ---
 // In a Next.js app, workers are typically run in a custom server or external process,
 // but for this MVP, we can define them here to be initialized on startup.
