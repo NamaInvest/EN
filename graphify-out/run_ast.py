@@ -1,14 +1,11 @@
 import sys, json
 from graphify.extract import collect_files, extract
 from pathlib import Path
-import json
 
 if __name__ == '__main__':
     code_files = []
-    with open('graphify-out/.graphify_detect.json', 'rb') as f:
-        content = f.read()
-    text = content.decode('utf-16le').lstrip('\ufeff') if content.startswith(b'\xff\xfe') else content.decode('utf-8-sig')
-    detect = json.loads(text)
+    with open('graphify-out/.graphify_detect.json', 'r', encoding='utf-8') as f:
+        detect = json.load(f)
 
     for f in detect.get('files', {}).get('code', []):
         p = Path(f)
