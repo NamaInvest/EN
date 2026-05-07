@@ -43,7 +43,7 @@ export default function StockPage() {
  <div className="kpi-grid" style={{ marginBottom: '20px' }}>
  <div className="kpi-card purple"><div className="kpi-icon">📦</div><div className="kpi-value">{products.length}</div><div className="kpi-label">{t('stock.str_1443')}</div></div>
  <div className="kpi-card info"><div className="kpi-icon">💎</div><div className="kpi-value">{fmt(totalValue)} {t('sys.str_68')}</div><div className="kpi-label">{t('stock.str_1444')}</div></div>
- <div className="kpi-card danger"><div className="kpi-icon">⚠️</div><div className="kpi-value">{products.filter(p =>{_t('p.currentStock', 'p.currentStock')}<= p.minQuantity).length}</div><div className="kpi-label">{t('stock.str_1445')}</div></div>
+ <div className="kpi-card danger"><div className="kpi-icon">⚠️</div><div className="kpi-value">{products.filter(p => p.currentStock <= p.minQuantity).length}</div><div className="kpi-label">{t('stock.str_1445')}</div></div>
  </div>
  <div className="tabs">
  <button className={`tab ${tab === 'report' ? 'active' : ''}`} onClick={() => setTab('report')}>{t('stock.str_1446')}</button>

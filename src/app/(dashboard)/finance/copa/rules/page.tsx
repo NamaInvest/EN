@@ -54,7 +54,6 @@ export default function CopaRulesPage() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { getSetting } = useSettings();
-    const lang = (getSetting('language', 'ar')) as 'ar' | 'en';
     const t = L[lang] || L.ar;
     const isRtl = lang === 'ar';
 

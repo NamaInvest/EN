@@ -29,7 +29,7 @@ export default function CashFlowDashboard() {
  return <div className="p-8 min-h-screen bg-[#F9FAFB] flex items-center justify-center text-red-500">{_t('Failed to load forecast data.', 'Failed to load forecast data.')}</div>;
  }
 
- const hasWarnings = data.forecast.some((day: any) =>{_t('day.balance', 'day.balance')}< MINIMUM_THRESHOLD);
+ const hasWarnings = data.forecast.some((day: any) => day.balance < MINIMUM_THRESHOLD);
 
  return (
  <div className="p-8 space-y-6 bg-[#F9FAFB] min-h-screen">

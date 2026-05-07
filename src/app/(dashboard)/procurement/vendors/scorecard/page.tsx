@@ -68,7 +68,7 @@ export default function VendorScorecardPage() {
         }
     };
 
-    const alerts = scorecards.filter(s =>{_t('s.compositeScore', 's.compositeScore')}< 60);
+    const alerts = scorecards.filter(s => s.compositeScore < 60);
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-6">
