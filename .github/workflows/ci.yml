@@ -118,10 +118,17 @@ jobs:
             npm ci --production
             npx prisma generate
 
-            # SAFE migration: prisma migrate deploy applies pending migrations only.
-            # NEVER use `prisma db push --accept-data-loss` in production — it can
-            # silently drop columns and tables. Use migrations instead.
-            npx prisma migrate deploy
+            # Schema sync — additive only.
+            # We use `prisma db push` (NOT `--accept-data-loss`) which:
+            #   - creates new tables/columns automatically (additive: safe)
+            #   - REFUSES destructive changes (dropped column/table) and exits
+            #     with code 1, which `set -e` catches and triggers rollback.
+            # Migration files in prisma/migrations/ are out of sync with the
+            # current schema, so `migrate deploy` would no-op while leaving
+            # new tables uncreated. db-push without the destructive flag is
+            # the closest thing to a safe deploy until proper migrations
+            # are reintroduced (tracked in HARDENING.md).
+            npx prisma db push --skip-generate
 
             npm run build
             pm2 restart namasoft-main

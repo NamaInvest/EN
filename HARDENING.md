@@ -187,6 +187,35 @@ between green CI and live traffic. With H-fix-5 (rollback on health check failur
 this is survivable for now, but a real staging environment with a smoke-test job
 should be added.
 
+### H-07 · Migration files are out of sync with schema (P0)
+
+**Discovered during wave 2 deployment prep.**
+
+```sh
+$ ls prisma/migrations/
+20260501_add_manufacturing_accounts/
+20260501_add_numbering_sequences/
+```
+
+Only **2** migration files exist. The schema has **475+ models** (including the 7
+added in wave 2). The team's actual workflow has been:
+- Edit `schema.prisma` in code
+- Run `prisma db push --accept-data-loss` to apply
+- (Migration files are not generated as part of normal flow)
+
+This means our wave-1 fix that switched the deploy from `db push --accept-data-loss`
+to `prisma migrate deploy` would **silently no-op** the schema sync and leave new
+tables uncreated. We've corrected this in wave 2 by switching to
+`prisma db push --skip-generate` (note: **without** `--accept-data-loss`):
+- Additive changes (new tables, new columns) apply automatically.
+- Destructive changes (dropped column/table) are refused — exit 1 →
+  the deploy script's `set -e` triggers automatic rollback.
+
+**Long-term fix.** Reintroduce proper migrations:
+1. `npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/<timestamp>_baseline/migration.sql`
+2. `npx prisma migrate resolve --applied <timestamp>_baseline` on each existing prod DB
+3. Switch deploy back to `prisma migrate deploy`
+
 ---
 
 ## How to use this document
