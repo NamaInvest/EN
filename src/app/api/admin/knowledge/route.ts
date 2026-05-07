@@ -1,0 +1,49 @@
+import { NextResponse } from 'next/server';
+import { getPrisma, resolveTenant } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { addDocumentToVectorMine } from '@/lib/vector-store';
+
+export async function GET(request: Request) {
+    const prisma = getPrisma(request);
+    try {
+        const auth = getUserFromRequest(request as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const tenantId = resolveTenant(request as any);
+
+        // Don't return embeddings, just metadata
+        const docs = await prisma.knowledgeDocument.findMany({
+            where: { tenantId: tenantId },
+            select: { id: true, title: true, createdAt: true, metadata: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        
+        return NextResponse.json(docs);
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const auth = getUserFromRequest(request as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const data = await request.json();
+        
+        const tenantId = resolveTenant(request as any);
+        // Use the VectorMine function to embed and store
+        const docId = await addDocumentToVectorMine(
+            tenantId,
+            data.title,
+            data.content,
+            { category: data.category || 'General', author: auth.userId }
+        );
+
+        return NextResponse.json({ success: true, docId });
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+    }
+}

@@ -9265,3 +9265,192 @@ model FieldServiceOrder {
   @@map("field_service_orders")
 }
 
+// ==================== AI STACK ====================
+model PromptTemplate {
+  id           String @id @default(cuid())
+  tenantId     String?  @map("tenant_id") // null = global default
+  key          String   // "cfo.daily_summary", "copilot.system"
+  version      Int
+  systemPrompt String   @db.Text @map("system_prompt")
+  userTemplate String   @db.Text @map("user_template") // with {{placeholders}}
+  examples     Json?     // few-shot examples
+  outputSchema Json?    @map("output_schema") // JSON schema if structured
+  modelHint    String?  @map("model_hint") // "gemini-2.5-flash" | "gpt-4o-mini"
+  temperature  Float    @default(0.3)
+  maxTokens    Int      @default(2048) @map("max_tokens")
+  active       Boolean  @default(true)
+  evalScore    Float?   @map("eval_score") // last eval run score
+  createdBy    String   @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  @@unique([tenantId, key, version])
+  @@map("prompt_templates")
+}
+
+model PromptUsageLog {
+  id           String @id @default(cuid())
+  tenantId     String @map("tenant_id")
+  promptKey    String @map("prompt_key")
+  promptVersion Int   @map("prompt_version")
+  model        String
+  promptTokens Int    @map("prompt_tokens")
+  completionTokens Int @map("completion_tokens")
+  latencyMs    Int    @map("latency_ms")
+  success      Boolean
+  errorCode    String? @map("error_code")
+  costUsd      Decimal? @db.Decimal(10,6) @map("cost_usd")
+  createdAt    DateTime @default(now()) @map("created_at")
+  @@index([tenantId, promptKey, createdAt])
+  @@map("prompt_usage_logs")
+}
+
+model KnowledgeDocument {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  title       String
+  content     String   @db.Text
+  embedding   Json?    @map("embedding") // Storing vector as JSON array of floats instead of pgvector to support environments without the extension
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("knowledge_documents")
+}
+
+// ==================== Treasury & Liquidity (P0-01) ====================
+model CashPositionSnapshot {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  capturedAt   DateTime @map("captured_at")
+  totalCashSAR Decimal  @db.Decimal(18,4) @map("total_cash_sar")
+  bankCount    Int      @map("bank_count")
+  data         Json     // {bankAccountId, balance, currency, sarEquivalent}[]
+  
+  @@index([tenantId, capturedAt])
+  @@map("cash_position_snapshots")
+}
+
+model LiquidityForecast {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  scenarioId     String   @map("scenario_id")
+  forecastDate   DateTime @map("forecast_date")
+  weekNumber     Int      @map("week_number")// 1..13
+  category       String   // AR_INFLOW | AP_OUTFLOW | PAYROLL | CAPEX | LOAN | TAX
+  expectedAmount Decimal  @db.Decimal(18,4) @map("expected_amount")
+  actualAmount   Decimal? @db.Decimal(18,4) @map("actual_amount")
+  varianceAmount Decimal? @db.Decimal(18,4) @map("variance_amount")
+  notes          String?
+
+  @@index([tenantId, forecastDate])
+  @@map("liquidity_forecasts")
+}
+
+model LiquidityScenario {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  name      String   // "Base", "Stress", "Best"
+  weights   Json     // adjustments per category
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("liquidity_scenarios")
+}
+
+// ==================== Available-to-Promise (P0-03) ====================
+model AtpRule {
+  id                  String   @id @default(cuid())
+  tenantId            String   @map("tenant_id")
+  productId           String?  @map("product_id") // null = default
+  warehouseId         String?  @map("warehouse_id")
+  bufferDays          Int      @map("buffer_days") // safety buffer
+  considerInbound     Boolean  @default(true) @map("consider_inbound")
+  considerProduction  Boolean  @default(true) @map("consider_production")
+  considerAllocations Boolean  @default(true) @map("consider_allocations")
+  alternateWarehouses Json?    @map("alternate_warehouses") // [warehouseId, priority]
+  active              Boolean  @default(true)
+
+  @@map("atp_rules")
+}
+
+model AtpCheck {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  productId      String   @map("product_id")
+  requestedQty   Decimal  @db.Decimal(18,4) @map("requested_qty")
+  requestedDate  DateTime @map("requested_date")
+  warehouseId    String   @map("warehouse_id")
+  result         Json     // {available, dates: [{date, qty, source}], suggestion}
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("atp_checks")
+}
+
+// ==================== AP Invoice Capture (P0-04) ====================
+model InvoiceCapture {
+  id                String   @id @default(cuid())
+  tenantId          String   @map("tenant_id")
+  source            String   // EMAIL | UPLOAD | ZATCA_API | EDI
+  fileUrl           String   @map("file_url")
+  ocrRawText        String?  @db.Text @map("ocr_raw_text")
+  extractedData     Json     @map("extracted_data") // {vendor, vatNumber, invoiceNo, date, total, lines}
+  matchStatus       String   @default("PENDING") @map("match_status") // PENDING | MATCHED_PO | MATCHED_GRN | EXCEPTION | POSTED
+  matchedPoId       String?  @map("matched_po_id")
+  matchedGrnId      String?  @map("matched_grn_id")
+  exceptionReason   String?  @map("exception_reason")
+  confidence        Float    @default(0) // 0.0 - 1.0
+  reviewedBy        String?  @map("reviewed_by")
+  postedAsInvoiceId String?  @map("posted_as_invoice_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, matchStatus])
+  @@map("invoice_captures")
+}
+
+model OcrTrainingData {
+  id        String @id @default(cuid())
+  tenantId  String @map("tenant_id")
+  vendorId  String @map("vendor_id")
+  template  Json   // field positions/regex patterns
+  accuracy  Float
+
+  @@map("ocr_training_data")
+}
+
+// ==================== Shop Floor MES (P0-05) ====================
+model ShopFloorSession {
+  id                   String    @id @default(cuid())
+  tenantId             String    @map("tenant_id")
+  workCenterId         String    @map("work_center_id")
+  operatorId           String    @map("operator_id")
+  manufacturingOrderId String    @map("manufacturing_order_id")
+  operationId          String    @map("operation_id")
+  startedAt            DateTime  @map("started_at")
+  pausedAt             DateTime? @map("paused_at")
+  completedAt          DateTime? @map("completed_at")
+  goodQty              Decimal?  @db.Decimal(18,4) @map("good_qty")
+  scrapQty             Decimal?  @db.Decimal(18,4) @map("scrap_qty")
+  scrapReason          String?   @map("scrap_reason")
+  downtimeMinutes      Int?      @map("downtime_minutes")
+  downtimeReason       String?   @map("downtime_reason")
+  status               String    // ACTIVE | PAUSED | COMPLETED | ABANDONED
+
+  @@index([tenantId, status])
+  @@map("shop_floor_sessions")
+}
+
+model AndonCall {
+  id             String    @id @default(cuid())
+  tenantId       String    @map("tenant_id")
+  workCenterId   String    @map("work_center_id")
+  callType       String    @map("call_type") // MATERIAL | MAINTENANCE | QUALITY | SUPERVISOR
+  calledBy       String    @map("called_by")
+  calledAt       DateTime  @map("called_at")
+  respondedBy    String?   @map("responded_by")
+  respondedAt    DateTime? @map("responded_at")
+  resolvedAt     DateTime? @map("resolved_at")
+  resolutionNote String?   @map("resolution_note")
+
+  @@map("andon_calls")
+}
+
+

@@ -1,0 +1,35 @@
+import { NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
+import { resolveTenant } from '@/lib/prisma';
+import { queryRAG } from '@/lib/vector-store';
+import { invokeChain } from '@/lib/langchain-orchestrator';
+
+export async function POST(req: Request) {
+    try {
+        const auth = getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const { question } = await req.json();
+        if (!question) return NextResponse.json({ error: 'Question is required' }, { status: 400 });
+
+        const tenantId = resolveTenant(req as any);
+
+        // 1. Retrieve knowledge from VectorMine
+        const contextStr = await queryRAG(tenantId, question);
+
+        // 2. We use our LangChain wrapper to ask the question based on the RAG context
+        // If 'rag.assistant' doesn't exist, the orchestrator gracefully falls back
+        // to using the vars.systemPrompt as the main system instruction.
+        const systemPrompt = `You are a helpful company assistant. Use ONLY the following context to answer the user's question. If the answer is not in the context, say "I don't know based on company policy."\n\n${contextStr}`;
+        
+        const answer = await invokeChain('rag.assistant', {
+            prompt: question,
+            systemPrompt
+        }, tenantId);
+
+        return NextResponse.json({ answer, contextUsed: contextStr });
+    } catch (e: any) {
+        console.error('RAG Error:', e);
+        return NextResponse.json({ error: 'Failed to process RAG pipeline' }, { status: 500 });
+    }
+}

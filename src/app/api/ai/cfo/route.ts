@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
+import { callLLM } from '@/lib/llm-client';
 export async function POST(req: Request) {
     const prisma = getPrisma(req);
   try {
@@ -14,7 +11,6 @@ export async function POST(req: Request) {
     const { prompt } = await req.json();
     if (!prompt) return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // 1. Gather live contextual metrics from the ERP Database to feed the AI
     const salesCount = await prisma.salesInvoice.count();
@@ -48,11 +44,18 @@ export async function POST(req: Request) {
       Your objective is to answer the CEO's prompt based on this context. Be insightful!
     `;
 
-    const result = await model.generateContent([
-      { text: systemContext },
-      { text: `CEO Prompt: ${prompt}` }
-    ]);
-    const responseText = result.response.text();
+    const responseText = await callLLM('cfo.daily_summary', {
+      salesCount,
+      todaySales: todaySales._sum?.total || 0,
+      activeLeases,
+      expiredLeases,
+      totalVehicles,
+      activeTrips,
+      totalEmployees,
+      totalStudents,
+      prompt,
+      systemPrompt: systemContext
+    });
 
     // 2. Also return the raw metrics for the React frontend to chart them!
     return NextResponse.json({ 
