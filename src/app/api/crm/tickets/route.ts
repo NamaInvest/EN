@@ -1,0 +1,93 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@/lib/prisma';
+import { apiError } from '@/lib/api-error';
+
+export async function GET(request: NextRequest) {
+  const prisma = getPrisma(request as any);
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const priority = searchParams.get('priority');
+
+    const where: any = {};
+    if (status) where.status = status;
+    if (priority) where.priority = priority;
+
+    const tickets = await (prisma as any).supportTicket.findMany({
+      where,
+      include: { sla: true, comments: { orderBy: { createdAt: 'desc' }, take: 3 } },
+      orderBy: { createdAt: 'desc' }
+    });
+    return NextResponse.json(tickets);
+  } catch (error: any) {
+    return apiError(error, 'Error fetching tickets', { context: 'crm/tickets' });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const prisma = getPrisma(request as any);
+  try {
+    const data = await request.json();
+    const last = await (prisma as any).supportTicket.findFirst({ orderBy: { id: 'desc' } });
+    const nextNo = `TKT-${String((last?.id || 0) + 1).padStart(5, '0')}`;
+
+    let slaId = data.slaId || null;
+    if (!slaId && data.priority) {
+      const sla = await (prisma as any).slaPolicy.findFirst({ where: { priority: data.priority, active: true } });
+      if (sla) slaId = sla.id;
+    }
+
+    let dueDate = data.dueDate ? new Date(data.dueDate) : null;
+    if (!dueDate && slaId) {
+      const sla = await (prisma as any).slaPolicy.findFirst({ where: { id: slaId } });
+      if (sla) {
+        dueDate = new Date();
+        dueDate.setHours(dueDate.getHours() + sla.resolutionHours);
+      }
+    }
+
+    const ticket = await (prisma as any).supportTicket.create({
+      data: {
+        ticketNo: nextNo,
+        customerId: data.customerId ? parseInt(data.customerId) : null,
+        subject: data.subject,
+        description: data.description || null,
+        priority: data.priority || 'MEDIUM',
+        category: data.category || null,
+        assignedTo: data.assignedTo ? parseInt(data.assignedTo) : null,
+        slaId,
+        dueDate
+      }
+    });
+    return NextResponse.json(ticket);
+  } catch (error: any) {
+    return apiError(error, 'Error creating ticket', { context: 'crm/tickets' });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  const prisma = getPrisma(request as any);
+  try {
+    const data = await request.json();
+    const updateData: any = {};
+    if (data.status) updateData.status = data.status;
+    if (data.priority) updateData.priority = data.priority;
+    if (data.assignedTo !== undefined) updateData.assignedTo = data.assignedTo ? parseInt(data.assignedTo) : null;
+    if (data.satisfaction) updateData.satisfaction = parseInt(data.satisfaction);
+
+    if (data.status === 'RESOLVED') updateData.resolvedAt = new Date();
+    if (data.status === 'CLOSED') updateData.closedAt = new Date();
+    if (data.status === 'IN_PROGRESS') {
+      const existing = await (prisma as any).supportTicket.findUnique({ where: { id: parseInt(data.id) } });
+      if (existing && !existing.firstResponseAt) updateData.firstResponseAt = new Date();
+    }
+
+    const ticket = await (prisma as any).supportTicket.update({
+      where: { id: parseInt(data.id) },
+      data: updateData
+    });
+    return NextResponse.json(ticket);
+  } catch (error: any) {
+    return apiError(error, 'Error updating ticket', { context: 'crm/tickets' });
+  }
+}

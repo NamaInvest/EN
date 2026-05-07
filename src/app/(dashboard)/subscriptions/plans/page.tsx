@@ -1,100 +1,94 @@
-import React from 'react';
-import { prisma } from '@/lib/prisma';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Search, Plus, Layers, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+'use client';
+import { useState, useEffect } from 'react';
+import { CreditCard, Plus, Users, TrendingUp, Clock, CheckCircle, XCircle, Edit3 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
-export default async function SubscriptionPlansPage() {
-    const plans = await prisma.subscriptionPlan.findMany({
-        orderBy: { price: 'asc' }
-    });
+const cycleLabel: any = { MONTHLY: 'شهري', QUARTERLY: 'ربع سنوي', SEMI_ANNUAL: 'نصف سنوي', ANNUAL: 'سنوي' };
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/subscriptions">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <ArrowLeft className="w-5 h-5 text-gray-500" />
-                    </Button>
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Subscription Plans</h1>
-                    <p className="text-gray-500">Configure billing tiers, cycles, and usage limits.</p>
-                </div>
-            </div>
+export default function SubscriptionPlans() {
+  const { error: toastError, success: toastSuccess } = useToast();
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState<any>({ name: '', code: '', price: '', billingCycle: 'MONTHLY', trialDays: 0, description: '' });
 
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input 
-                        type="text" 
-                        placeholder="Search plans..." 
-                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Plan
-                </Button>
-            </div>
+  useEffect(() => { load(); }, []);
+  const load = async () => {
+    setLoading(true);
+    try { const r = await fetch('/api/subscriptions/plans', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); if (r.ok) setPlans(await r.json()); }
+    catch (e: any) { toastError(e?.message); } finally { setLoading(false); }
+  };
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try { const r = await fetch('/api/subscriptions/plans', { method: form.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` }, body: JSON.stringify(form) }); if (r.ok) { toastSuccess('تم الحفظ'); setShowModal(false); load(); } }
+    catch (e: any) { toastError(e?.message); }
+  };
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                {plans.map((plan) => (
-                    <Card key={plan.id} className={`border-t-4 ${plan.isActive ? 'border-t-indigo-500' : 'border-t-gray-300'} shadow-sm hover:shadow-md transition-shadow relative overflow-hidden`}>
-                        {!plan.isActive && (
-                            <div className="absolute top-4 right-4 bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">Archived</div>
-                        )}
-                        <CardHeader>
-                            <CardTitle className="text-xl flex items-center justify-between">
-                                {plan.name}
-                            </CardTitle>
-                            <p className="text-sm text-gray-500 font-mono">{plan.code}</p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <div className="flex items-end gap-1">
-                                    <span className="text-3xl font-bold text-gray-900">{Number(plan.price).toLocaleString()}</span>
-                                    <span className="text-sm text-gray-500 mb-1">SAR</span>
-                                    <span className="text-sm text-gray-500 mb-1">/{plan.billingCycle.toLowerCase()}</span>
-                                </div>
-                                {plan.setupFee && Number(plan.setupFee) > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">+ {Number(plan.setupFee).toLocaleString()} SAR setup fee</p>
-                                )}
-                            </div>
+  const totalSubs = plans.reduce((a, p) => a + (p._count?.subscriptions || 0), 0);
+  const totalMRR = plans.reduce((a, p) => a + (p.price * (p._count?.subscriptions || 0)), 0);
 
-                            <div className="pt-4 border-t border-gray-100 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Trial Period:</span>
-                                    <span className="font-medium text-gray-900">{plan.trialDays ? `${plan.trialDays} Days` : 'No Trial'}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Features:</span>
-                                    <span className="font-medium text-gray-900 truncate max-w-[150px]" title={plan.features || ''}>{plan.features || 'None'}</span>
-                                </div>
-                            </div>
-
-                            <div className="pt-6">
-                                <Button variant="outline" className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50">
-                                    Edit Plan
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-                
-                {plans.length === 0 && (
-                    <div className="col-span-full p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-                        <Layers className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900">No Plans Yet</h3>
-                        <p className="mt-1">Create your first subscription tier to start billing customers.</p>
-                        <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Basic Plan
-                        </Button>
-                    </div>
-                )}
-            </div>
+  return (
+    <div style={{ padding: '24px', animation: 'fadeIn 0.5s ease' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}><CreditCard size={28} color="var(--primary)" /> إدارة الاشتراكات</h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>خطط الاشتراك والفوترة المتكررة</p>
         </div>
-    );
+        <button className="btn btn-primary" onClick={() => { setForm({ name: '', code: '', price: '', billingCycle: 'MONTHLY', trialDays: 0, description: '' }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> خطة جديدة</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        {[
+          { icon: CreditCard, label: 'الخطط', value: plans.length, color: '#3B82F6' },
+          { icon: Users, label: 'المشتركين', value: totalSubs, color: '#8B5CF6' },
+          { icon: TrendingUp, label: 'MRR', value: `${totalMRR.toLocaleString()} SAR`, color: '#22C55E' },
+        ].map((k, i) => (
+          <div key={i} className="card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}><div style={{ padding: '10px', background: k.color + '15', color: k.color, borderRadius: '12px' }}><k.icon size={22} /></div><span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{k.label}</span></div>
+            <span style={{ fontSize: '26px', fontWeight: '900' }}>{k.value}</span>
+          </div>
+        ))}
+      </div>
+
+      {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري التحميل...</div> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          {plans.map(p => (
+            <div key={p.id} className="card" style={{ padding: '24px', textAlign: 'center', borderTop: `4px solid ${p.active ? '#3B82F6' : '#94A3B8'}`, position: 'relative' }}>
+              <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '12px', left: '12px' }} onClick={() => { setForm(p); setShowModal(true); }}><Edit3 size={14} /></button>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: p.active ? '#22C55E' : '#EF4444', marginBottom: '8px' }}>{p.active ? '● نشطة' : '● معطلة'}</div>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>{p.name}</h3>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px', fontFamily: 'monospace' }}>{p.code}</div>
+              <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px' }}>{p.price} <span style={{ fontSize: '14px', fontWeight: '500' }}>SAR</span></div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{cycleLabel[p.billingCycle] || p.billingCycle}</div>
+              {p.description && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>{p.description}</p>}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', background: 'var(--bg-body)', padding: '12px', borderRadius: '10px' }}>
+                <div><div style={{ fontSize: '18px', fontWeight: '800' }}>{p._count?.subscriptions || 0}</div><div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>مشترك</div></div>
+                <div><div style={{ fontSize: '18px', fontWeight: '800' }}>{p.trialDays}</div><div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>أيام تجريبية</div></div>
+                <div><div style={{ fontSize: '18px', fontWeight: '800' }}>{p.maxUsers || '∞'}</div><div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>مستخدمين</div></div>
+              </div>
+            </div>
+          ))}
+          {plans.length === 0 && <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', gridColumn: '1/-1' }}>لا توجد خطط اشتراك</div>}
+        </div>
+      )}
+
+      {showModal && (
+        <div className="modal-overlay"><div className="modal-content" style={{ maxWidth: '500px' }}>
+          <div className="modal-header"><h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>{form.id ? 'تعديل الخطة' : 'خطة جديدة'}</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
+          <div className="modal-body"><form onSubmit={save}>
+            <div className="grid-2">
+              <div className="input-group"><label className="input-label">اسم الخطة *</label><input className="input" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="input-group"><label className="input-label">الكود *</label><input className="input" required dir="ltr" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} /></div>
+              <div className="input-group"><label className="input-label">السعر (SAR) *</label><input className="input" type="number" dir="ltr" required value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} /></div>
+              <div className="input-group"><label className="input-label">دورة الفوترة</label><select className="input" value={form.billingCycle} onChange={e => setForm({ ...form, billingCycle: e.target.value })}>{Object.entries(cycleLabel).map(([k, v]) => <option key={k} value={k}>{v as string}</option>)}</select></div>
+              <div className="input-group"><label className="input-label">أيام تجريبية</label><input className="input" type="number" dir="ltr" value={form.trialDays || 0} onChange={e => setForm({ ...form, trialDays: e.target.value })} /></div>
+              <div className="input-group"><label className="input-label">الحد الأقصى للمستخدمين</label><input className="input" type="number" dir="ltr" value={form.maxUsers || ''} onChange={e => setForm({ ...form, maxUsers: e.target.value })} placeholder="∞" /></div>
+              <div className="input-group" style={{ gridColumn: '1/-1' }}><label className="input-label">الوصف</label><textarea className="input" rows={2} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}><button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button><button type="submit" className="btn btn-primary">حفظ</button></div>
+          </form></div>
+        </div></div>
+      )}
+    </div>
+  );
 }

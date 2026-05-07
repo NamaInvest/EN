@@ -1,9 +1,73 @@
+/**
+ * WHT Engine — Withholding Tax (Build #10)
+ * ═════════════════════════════════════════
+ * 
+ * حجب ضريبة استقطاع 5-20% للموردين الأجانب + توليد نموذج 14 الشهري لـ ZATCA.
+ * 
+ * Saudi WHT Rates:
+ *   5% — rent, royalty, management fees
+ *  15% — technical/consulting services
+ *  20% — dividends (non-resident)
+ * 
+ * Tax treaties (40+ countries) may reduce these rates.
+ * Form 14 due by 10th of the following month.
+ */
+
 import { prisma } from './prisma';
+
+const db = (p: any) => p as any;
+
+// ── Treaty Rate Reductions (select countries) ──────────────────
+const TREATY_REDUCTIONS: Record<string, Record<string, number>> = {
+    GB: { DIVIDENDS: 0.05, ROYALTY: 0.08, TECHNICAL: 0.05 },
+    US: { DIVIDENDS: 0.05, ROYALTY: 0.10, TECHNICAL: 0.05 },
+    DE: { DIVIDENDS: 0.05, ROYALTY: 0.10, TECHNICAL: 0.05 },
+    FR: { DIVIDENDS: 0.00, ROYALTY: 0.10, TECHNICAL: 0.05 },
+    JP: { DIVIDENDS: 0.05, ROYALTY: 0.10, TECHNICAL: 0.05 },
+    MY: { DIVIDENDS: 0.05, ROYALTY: 0.08, TECHNICAL: 0.08 },
+    IN: { DIVIDENDS: 0.05, ROYALTY: 0.10, TECHNICAL: 0.10 },
+    EG: { DIVIDENDS: 0.05, ROYALTY: 0.15, TECHNICAL: 0.10 },
+    PK: { DIVIDENDS: 0.05, ROYALTY: 0.10, TECHNICAL: 0.10 },
+};
 
 export class WHTEngine {
     
     /**
-     * Calculate Withholding Tax for an Invoice before payment
+     * Lookup WHT rate considering treaties
+     */
+    static lookupRate(
+        serviceType: string,
+        isForeignVendor: boolean,
+        countryCode?: string,
+        hasTaxResidencyCert: boolean = false
+    ): { rate: number; treatyApplied: boolean; explanation: string } {
+        const defaultRates: Record<string, number> = {
+            RENT: 0.05, ROYALTY: 0.15, TECHNICAL: 0.05,
+            CONSULTING: 0.15, DIVIDENDS: 0.05, MGMT_FEES: 0.20,
+            INSURANCE: 0.05, TRANSPORT: 0.05, TELECOM: 0.05, OTHER: 0.15,
+        };
+
+        let rate = isForeignVendor ? (defaultRates[serviceType] || 0.15) : 0;
+        let treatyApplied = false;
+        let explanation = `معدل ${serviceType} ${isForeignVendor ? 'غير مقيم' : 'مقيم'}: ${(rate * 100).toFixed(0)}%`;
+
+        if (isForeignVendor && countryCode && hasTaxResidencyCert) {
+            const countryTreaty = TREATY_REDUCTIONS[countryCode.toUpperCase()];
+            if (countryTreaty && countryTreaty[serviceType] !== undefined) {
+                const treatyRate = countryTreaty[serviceType];
+                if (treatyRate < rate) {
+                    explanation += ` → تخفيض اتفاقية مع ${countryCode}: ${(treatyRate * 100).toFixed(0)}%`;
+                    rate = treatyRate;
+                    treatyApplied = true;
+                }
+            }
+        }
+
+        return { rate, treatyApplied, explanation };
+    }
+
+    /**
+     * Calculate Withholding Tax for an Invoice
      */
     static async calculateWHT(invoiceId: number, serviceType: string) {
         const invoice = await prisma.purchaseInvoice.findUnique({
@@ -14,28 +78,30 @@ export class WHTEngine {
         if (!invoice) throw new Error("Invoice not found");
         if (!invoice.supplierId) throw new Error("Invoice has no supplier");
 
-        const isResident = true; // Typically derived from Supplier Profile/Country
-        const baseAmount = invoice.subtotal; // WHT is usually applied on the net amount before VAT
+        const supplier = invoice.supplier as any;
+        const isForeign = supplier?.isForeignVendor || false;
+        const hasCert = !!supplier?.whtTaxResidencyCert &&
+                        supplier?.whtTaxResidencyExpiry &&
+                        new Date(supplier.whtTaxResidencyExpiry) > new Date();
 
-        // Find Rule
-        const rule = await prisma.wHTRule.findFirst({
-            where: {
-                countryCode: isResident ? 'SA' : 'OTHER',
-                serviceType: serviceType
-            }
-        });
+        const { rate, treatyApplied } = this.lookupRate(
+            serviceType, isForeign, supplier?.whtCountryCode, hasCert
+        );
 
-        if (!rule) return null;
+        if (rate === 0) return null;
 
-        const rate = isResident ? rule.residentRate : rule.nonResidentRate;
-        const whtAmount = baseAmount * rate;
+        const baseAmount = invoice.subtotal;
+        const whtAmount = Math.round(baseAmount * rate * 100) / 100;
 
         return {
             supplierId: invoice.supplierId,
             invoiceId,
             baseAmount,
             rate,
-            whtAmount
+            whtAmount,
+            serviceCategory: serviceType,
+            treatyApplied,
+            treatyCountry: treatyApplied ? supplier?.whtCountryCode : null,
         };
     }
 
@@ -47,28 +113,25 @@ export class WHTEngine {
         if (!calculation) return { ok: true, message: 'No WHT rule applies to this invoice.' };
 
         return prisma.$transaction(async (tx) => {
-            // 1. Create WHT Transaction
-            const whtTx = await tx.wHTTransaction.create({
+            const whtTx = await db(tx).wHTTransaction.create({
                 data: {
                     supplierId: calculation.supplierId,
                     invoiceId: calculation.invoiceId,
                     baseAmount: calculation.baseAmount,
                     whtRate: calculation.rate,
                     whtAmount: calculation.whtAmount,
-                    certificateNumber: `WHT-${Date.now()}`
+                    certificateNumber: `WHT-${Date.now()}`,
+                    serviceCategory: calculation.serviceCategory,
+                    treatyApplied: calculation.treatyApplied,
+                    treatyCountry: calculation.treatyCountry,
                 }
             });
 
-            // 2. Reduce the Invoice Remaining Amount by the WHT amount
-            // Because the WHT is paid to ZATCA on behalf of the supplier.
             await tx.purchaseInvoice.update({
                 where: { id: invoiceId },
-                data: {
-                    remaining: { decrement: calculation.whtAmount }
-                }
+                data: { remaining: { decrement: calculation.whtAmount } }
             });
 
-            // 3. Generate JE (Debit AP, Credit WHT Payable)
             const je = await tx.journalEntry.create({
                 data: {
                     entryNumber: `WHT-${whtTx.id}`,
@@ -82,23 +145,11 @@ export class WHTEngine {
             });
 
             await tx.journalLine.create({
-                data: {
-                    entryId: je.id,
-                    accountId: 2010, // Mock AP Account
-                    debit: calculation.whtAmount,
-                    credit: 0,
-                    description: 'AP Reduction due to WHT'
-                }
+                data: { entryId: je.id, accountId: 2010, debit: calculation.whtAmount, credit: 0, description: 'AP Reduction due to WHT' }
             });
 
             await tx.journalLine.create({
-                data: {
-                    entryId: je.id,
-                    accountId: 2050, // Mock WHT Payable Account
-                    debit: 0,
-                    credit: calculation.whtAmount,
-                    description: 'WHT Payable to ZATCA'
-                }
+                data: { entryId: je.id, accountId: 2050, debit: 0, credit: calculation.whtAmount, description: 'WHT Payable to ZATCA' }
             });
 
             return whtTx;
@@ -109,7 +160,7 @@ export class WHTEngine {
      * List WHT transactions not yet paid to ZATCA
      */
     static async getPendingWHTTransactions() {
-        return prisma.wHTTransaction.findMany({
+        return db(prisma).wHTTransaction.findMany({
             where: { paidToZATCA: false },
             include: { supplier: true },
             orderBy: { createdAt: 'desc' },
@@ -118,42 +169,84 @@ export class WHTEngine {
     }
 
     /**
-     * Mark a batch of WHT transactions as paid to ZATCA (after submitting Form 14)
+     * Mark a batch of WHT transactions as paid to ZATCA
      */
     static async markAsPaid(transactionIds: number[], certificateNumber: string) {
         return prisma.wHTTransaction.updateMany({
             where: { id: { in: transactionIds } },
-            data: {
-                paidToZATCA: true,
-                certificateNumber,
-            },
+            data: { paidToZATCA: true, certificateNumber },
         });
     }
 
     /**
-     * Generate Monthly XML Return for ZATCA
+     * Generate Form 14 Batch for a period
+     */
+    static async generateForm14(period: string) {
+        const startDate = new Date(`${period}-01`);
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1);
+
+        const transactions = await db(prisma).wHTTransaction.findMany({
+            where: {
+                createdAt: { gte: startDate, lt: endDate },
+                form14BatchId: null,
+                paidToZATCA: false,
+            },
+            include: { supplier: true },
+        });
+
+        if (transactions.length === 0) {
+            return { error: 'لا توجد معاملات ضريبة استقطاع في هذه الفترة' };
+        }
+
+        const totalGross = transactions.reduce((sum: number, t: any) => sum + t.baseAmount, 0);
+        const totalWht = transactions.reduce((sum: number, t: any) => sum + t.whtAmount, 0);
+
+        const batch = await db(prisma).whtForm14Batch.upsert({
+            where: { period },
+            update: { totalGross, totalWht },
+            create: { period, totalGross, totalWht, status: 'DRAFT' },
+        });
+
+        await db(prisma).wHTTransaction.updateMany({
+            where: { id: { in: transactions.map((t: any) => t.id) } },
+            data: { form14BatchId: batch.id },
+        });
+
+        const byCategory: Record<string, { count: number; gross: number; wht: number }> = {};
+        for (const tx of transactions) {
+            const cat = tx.serviceCategory || 'OTHER';
+            if (!byCategory[cat]) byCategory[cat] = { count: 0, gross: 0, wht: 0 };
+            byCategory[cat].count++;
+            byCategory[cat].gross += tx.baseAmount;
+            byCategory[cat].wht += tx.whtAmount;
+        }
+
+        return {
+            batchId: batch.id, period,
+            totalGross: Math.round(totalGross * 100) / 100,
+            totalWht: Math.round(totalWht * 100) / 100,
+            transactionCount: transactions.length,
+            byCategory,
+            deadline: `يجب التقديم قبل ${period}-10`,
+        };
+    }
+
+    /**
+     * Generate Monthly XML Return for ZATCA (legacy)
      */
     static async generateZatcaReturn(year: number, month: number) {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
         const transactions = await prisma.wHTTransaction.findMany({
-            where: {
-                createdAt: { gte: startDate, lte: endDate },
-                paidToZATCA: false
-            },
+            where: { createdAt: { gte: startDate, lte: endDate }, paidToZATCA: false },
             include: { supplier: true }
         });
 
-        // In reality, this generates the exact ZATCA XML format for WHT submission
         let totalWHT = 0;
         transactions.forEach((t: any) => totalWHT += t.whtAmount);
 
-        return {
-            period: `${year}-${month}`,
-            transactionCount: transactions.length,
-            totalWHT,
-            transactions
-        };
+        return { period: `${year}-${month}`, transactionCount: transactions.length, totalWHT, transactions };
     }
 }

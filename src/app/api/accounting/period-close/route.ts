@@ -1,26 +1,47 @@
+/**
+ * Period Close API — v2 (Foundation Build #5)
+ * GET  — get period close status
+ * POST — init tasks / complete task
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { PeriodCloseEngine } from '@/lib/period-close-engine';
+import { getPrisma } from '@/lib/prisma';
+import { initPeriodCloseTasks, completeTask, getPeriodCloseStatus } from '@/lib/period-close-engine';
+
+export async function GET(req: NextRequest) {
+    try {
+        const prisma = getPrisma(req);
+        const periodId = req.nextUrl.searchParams.get('periodId');
+        if (!periodId) return NextResponse.json({ error: 'مطلوب: periodId' }, { status: 400 });
+
+        const status = await getPeriodCloseStatus(prisma, parseInt(periodId));
+        return NextResponse.json(status);
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
+        const prisma = getPrisma(req);
         const body = await req.json();
-        const { action, year, month, exchangeRate, currencyId, userId } = body;
 
-        let result;
-        if (action === 'fx_reval') {
-            result = await PeriodCloseEngine.runFXRevaluation(year, month, exchangeRate, currencyId);
-        } else if (action === 'depreciation') {
-            result = await PeriodCloseEngine.runDepreciation(year, month);
-        } else if (action === 'close_period') {
-            result = await PeriodCloseEngine.closePeriod(year, month, userId || 1);
-        } else if (action === 'close_year') {
-            result = await PeriodCloseEngine.closeYear(year, 1, userId || 1); // 1 = Retained earnings dummy
-        } else {
-            throw new Error('Invalid action');
+        if (body.action === 'init') {
+            if (!body.periodId) return NextResponse.json({ error: 'مطلوب: periodId' }, { status: 400 });
+            const count = await initPeriodCloseTasks(prisma, body.periodId);
+            return NextResponse.json({ initialized: count });
         }
 
-        return NextResponse.json({ success: true, data: result });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        if (body.action === 'complete') {
+            if (!body.periodId || !body.taskCode || !body.userId) {
+                return NextResponse.json({ error: 'مطلوب: periodId, taskCode, userId' }, { status: 400 });
+            }
+            const result = await completeTask(prisma, body.periodId, body.taskCode, body.userId, body.notes);
+            if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });
+            return NextResponse.json({ success: true });
+        }
+
+        return NextResponse.json({ error: 'مطلوب: action (init | complete)' }, { status: 400 });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

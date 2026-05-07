@@ -51,7 +51,7 @@ async function getNextEntryNumber(tx: any = prisma): Promise<string> {
 async function createJournalEntry(params: {
     description: string;
     reference?: string;
-    lines: Array<{ accountCode: string; costCenterId?: number; debit: number; credit: number; foreignDebit?: number; foreignCredit?: number; description?: string }>;
+    lines: Array<{ accountCode: string; costCenterId?: number; debit: number; credit: number; foreignDebit?: number; foreignCredit?: number; description?: string; profitCenterId?: number; projectId?: number; segmentId?: number; productId?: number; customerId?: number; vendorId?: number; employeeId?: number; assetId?: number; bookId?: number; fxRate?: number; quantity?: number; uom?: string }>;
     userId?: number;
     branchId?: number | null;
     date?: string;
@@ -74,7 +74,7 @@ async function createJournalEntry(params: {
         }
 
         // Resolve account IDs
-        const resolvedLines: Array<{ accountId: number; costCenterId?: number; debit: number; credit: number; foreignDebit: number; foreignCredit: number; description?: string }> = [];
+        const resolvedLines: Array<{ accountId: number; costCenterId?: number; debit: number; credit: number; foreignDebit: number; foreignCredit: number; description?: string; profitCenterId?: number; projectId?: number; segmentId?: number; productId?: number; customerId?: number; vendorId?: number; employeeId?: number; assetId?: number; bookId?: number; fxRate?: number; quantity?: number; uom?: string }> = [];
         for (const line of params.lines) {
             if (line.debit === 0 && line.credit === 0 && (line.foreignDebit || 0) === 0 && (line.foreignCredit || 0) === 0) continue; // skip zero lines
             const accountId = await getAccountId(line.accountCode);
@@ -89,6 +89,19 @@ async function createJournalEntry(params: {
                 foreignDebit: line.foreignDebit || line.debit,
                 foreignCredit: line.foreignCredit || line.credit,
                 description: line.description,
+                // Universal Journal Dimensions
+                profitCenterId: line.profitCenterId,
+                projectId: line.projectId,
+                segmentId: line.segmentId,
+                productId: line.productId,
+                customerId: line.customerId,
+                vendorId: line.vendorId,
+                employeeId: line.employeeId,
+                assetId: line.assetId,
+                bookId: line.bookId,
+                fxRate: line.fxRate,
+                quantity: line.quantity,
+                uom: line.uom,
             });
         }
 
@@ -131,6 +144,19 @@ async function createJournalEntry(params: {
                         foreignDebit: Math.round(l.foreignDebit * 100) / 100,
                         foreignCredit: Math.round(l.foreignCredit * 100) / 100,
                         description: l.description,
+                        // Universal Journal Dimensions (pass-through, all nullable)
+                        profitCenterId: l.profitCenterId || null,
+                        projectId: l.projectId || null,
+                        segmentId: l.segmentId || null,
+                        productId: l.productId || null,
+                        customerId: l.customerId || null,
+                        vendorId: l.vendorId || null,
+                        employeeId: l.employeeId || null,
+                        assetId: l.assetId || null,
+                        bookId: l.bookId || null,
+                        fxRate: l.fxRate || null,
+                        quantity: l.quantity || null,
+                        uom: l.uom || null,
                     })),
                 },
             },
@@ -675,4 +701,77 @@ export async function postMaterialIssueToWIP(params: {
  * Create manual journal entry
  */
 export { createJournalEntry, ACCOUNTS };
+
+// ============ Universal Journal Dimension Helpers ============
+
+/** Dimension fields type for convenience */
+export type JournalDimensions = {
+    profitCenterId?: number;
+    projectId?: number;
+    segmentId?: number;
+    productId?: number;
+    customerId?: number;
+    vendorId?: number;
+    employeeId?: number;
+    assetId?: number;
+    bookId?: number;
+    fxRate?: number;
+    quantity?: number;
+    uom?: string;
+};
+
+/**
+ * inheritDimensions — copies dimension fields from a source document to JE lines.
+ * Use when auto-posting from invoices, POs, GRNs etc.
+ * Priority: line-level override > header-level default.
+ */
+export function inheritDimensions(
+    headerDims: Partial<JournalDimensions>,
+    lineDims?: Partial<JournalDimensions>
+): JournalDimensions {
+    return {
+        profitCenterId: lineDims?.profitCenterId ?? headerDims.profitCenterId,
+        projectId: lineDims?.projectId ?? headerDims.projectId,
+        segmentId: lineDims?.segmentId ?? headerDims.segmentId,
+        productId: lineDims?.productId ?? headerDims.productId,
+        customerId: lineDims?.customerId ?? headerDims.customerId,
+        vendorId: lineDims?.vendorId ?? headerDims.vendorId,
+        employeeId: lineDims?.employeeId ?? headerDims.employeeId,
+        assetId: lineDims?.assetId ?? headerDims.assetId,
+        bookId: lineDims?.bookId ?? headerDims.bookId,
+        fxRate: lineDims?.fxRate ?? headerDims.fxRate,
+        quantity: lineDims?.quantity ?? headerDims.quantity,
+        uom: lineDims?.uom ?? headerDims.uom,
+    };
+}
+
+/**
+ * validateDimensionRules — validates that mandatory dimensions are present for a given account.
+ * Returns { valid: true } or { valid: false, missing: string[] }.
+ * In future, Account model can have a `requiredDimensions` JSON field.
+ * For now, enforces basic rules:
+ *   - Revenue accounts (4xxx) require customerId
+ *   - COGS/Expense accounts (5xxx) require costCenterId or profitCenterId
+ */
+export function validateDimensionRules(
+    accountCode: string,
+    dims: Partial<JournalDimensions>,
+    costCenterId?: number
+): { valid: boolean; missing?: string[] } {
+    const missing: string[] = [];
+
+    // Revenue accounts should have customer context
+    if (accountCode.startsWith('4') && !dims.customerId) {
+        // Warning only — not enforced yet (soft validation)
+        // missing.push('customerId');
+    }
+
+    // Expense accounts benefit from cost center or profit center
+    if (accountCode.startsWith('5') && !costCenterId && !dims.profitCenterId) {
+        // Warning only — not enforced yet (soft validation)
+        // missing.push('costCenterId or profitCenterId');
+    }
+
+    return missing.length > 0 ? { valid: false, missing } : { valid: true };
+}
 

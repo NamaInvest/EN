@@ -1,64 +1,33 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
+import { RecruitmentEngine } from '@/lib/recruitment-engine';
 
-export async function GET(req: Request) {
-    const prisma = getPrisma(req as any);
+export async function GET(req: NextRequest) {
+    const user = getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const prisma = getPrisma(req);
+    const jobId = req.nextUrl.searchParams.get('jobId');
     try {
-        const jobs = await prisma.jobPosting.findMany({
-            orderBy: { createdAt: 'desc' },
-            include: {
-                applicants: true
-            }
-        });
-        return NextResponse.json({ success: true, data: jobs });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+        if (jobId) {
+            const pipeline = await RecruitmentEngine.getPipeline(prisma, parseInt(jobId));
+            return NextResponse.json({ pipeline });
+        }
+        const jobs = await RecruitmentEngine.listJobs(prisma);
+        return NextResponse.json({ jobs });
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 
-export async function POST(req: Request) {
-    const prisma = getPrisma(req as any);
+export async function POST(req: NextRequest) {
+    const user = getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const prisma = getPrisma(req);
     try {
         const body = await req.json();
-        const { action, payload } = body;
-
-        if (action === 'CREATE_JOB') {
-            const newJob = await prisma.jobPosting.create({
-                data: {
-                    title: payload.title,
-                    department: payload.department,
-                    description: payload.description,
-                    requirements: payload.requirements,
-                    status: 'OPEN'
-                }
-            });
-            return NextResponse.json({ success: true, data: newJob });
-        }
-
-        if (action === 'ADD_APPLICANT') {
-            const app = await prisma.jobApplicant.create({
-                data: {
-                    jobPostingId: Number(payload.jobPostingId),
-                    name: payload.name,
-                    email: payload.email,
-                    phone: payload.phone,
-                    resumeUrl: payload.resumeUrl,
-                    status: 'APPLIED'
-                }
-            });
-            return NextResponse.json({ success: true, data: app });
-        }
-
-        if (action === 'UPDATE_APPLICANT_STATUS') {
-            const updated = await prisma.jobApplicant.update({
-                where: { id: Number(payload.applicantId) },
-                data: { status: payload.status }
-            });
-            return NextResponse.json({ success: true, data: updated });
-        }
-
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+        if (body.action === 'create_job') return NextResponse.json(await RecruitmentEngine.createJob(prisma, { ...body, tenantId: (user as any).tenantId || '' }));
+        if (body.action === 'apply') return NextResponse.json(await RecruitmentEngine.applyToJob(prisma, { ...body, tenantId: (user as any).tenantId || '' }));
+        if (body.action === 'move') return NextResponse.json(await RecruitmentEngine.moveStage(prisma, body.applicationId, body.stage, body.notes));
+        if (body.action === 'hire') return NextResponse.json(await RecruitmentEngine.convertToEmployee(prisma, body.applicationId));
+        return NextResponse.json({ error: 'action: create_job | apply | move | hire' }, { status: 400 });
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }

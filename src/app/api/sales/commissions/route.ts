@@ -1,27 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
+import { CommissionEngine } from '@/lib/commission-engine';
 
-export async function GET(req: Request) {
-    const prisma = getPrisma(req as any);
-    const { searchParams } = new URL(req.url);
-    const periodMonth = searchParams.get('month');
-    const periodYear = searchParams.get('year');
-
+export async function GET(req: NextRequest) {
+    const user = getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const prisma = getPrisma(req);
     try {
-        const whereClause: any = {};
-        if (periodMonth) whereClause.periodMonth = parseInt(periodMonth);
-        if (periodYear) whereClause.periodYear = parseInt(periodYear);
-
-        const commissions = await prisma.salesmanCommission.findMany({
-            where: whereClause,
-            include: {
-                employee: { select: { id: true, name: true } },
-                rule: { select: { name: true, targetAmount: true, rewardType: true, rewardValue: true } }
-            },
-            orderBy: { id: 'desc' }
-        });
-        return NextResponse.json(commissions);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+        const month = req.nextUrl.searchParams.get('month') || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+        const summary = await CommissionEngine.monthlySummary(prisma, month);
+        return NextResponse.json({ month, summary });
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }

@@ -1,22 +1,30 @@
-import { NextResponse } from 'next/server';
+/**
+ * Sales Forecast API
+ * GET /api/sales/forecast — Monthly forecast + pipeline
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
+import { getPrisma } from '@/lib/prisma';
+import { SalesForecastEngine } from '@/lib/sales-forecast';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+    const user = getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+    const prisma = getPrisma(req);
+    const view = req.nextUrl.searchParams.get('view');
+
     try {
-        const { searchParams } = new URL(req.url);
-        const period = searchParams.get('period') || '2026';
-        
-        // Mock data since we might not have Opportunity models yet
-        const forecast = [
-            { month: 'Jan', won: 120000, lost: 30000, inProgress: 80000, pipeline: 200000 },
-            { month: 'Feb', won: 140000, lost: 25000, inProgress: 90000, pipeline: 230000 },
-            { month: 'Mar', won: 110000, lost: 40000, inProgress: 110000, pipeline: 220000 },
-            { month: 'Apr', won: 150000, lost: 20000, inProgress: 150000, pipeline: 300000 },
-            { month: 'May', won: 180000, lost: 15000, inProgress: 180000, pipeline: 360000 },
-            { month: 'Jun', won: 200000, lost: 10000, inProgress: 210000, pipeline: 410000 },
-        ];
+        if (view === 'pipeline') {
+            const pipeline = await SalesForecastEngine.pipelineSummary(prisma);
+            return NextResponse.json(pipeline);
+        }
 
-        return NextResponse.json({ period, data: forecast });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const months = parseInt(req.nextUrl.searchParams.get('months') || '6');
+        const lookback = parseInt(req.nextUrl.searchParams.get('lookback') || '12');
+        const forecast = await SalesForecastEngine.forecast(prisma, months, lookback);
+        return NextResponse.json(forecast);
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

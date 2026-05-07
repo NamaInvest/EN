@@ -1,7 +1,18 @@
 [
-    "src/app/(dashboard)/purchases/letters-of-credit/page.tsx",
-    "src/app/(dashboard)/treasury/checks/page.tsx",
-    "src/app/(dashboard)/purchase-orders/page.tsx",
-    "src/app/(dashboard)/purchases/grn/page.tsx",
-    "src/app/(dashboard)/purchases/page.tsx"
+  "prisma/schema.prisma",
+  "src/lib/number-sequence-engine.ts",
+  "src/lib/state-machine-engine.ts",
+  "src/lib/field-audit-engine.ts",
+  "src/lib/period-close-engine.ts",
+  "src/app/api/settings/number-sequences/route.ts",
+  "src/app/api/settings/state-machine/route.ts",
+  "src/app/api/audit/field-trail/route.ts",
+  "src/app/api/accounting/period-close/route.ts",
+  "src/app/api/copa/route.ts",
+  "src/app/api/copa/allocations/route.ts",
+  "src/app/api/copa/characteristics/route.ts",
+  "src/app/api/copa/value-fields/route.ts",
+  "src/app/(dashboard)/finance/copa/page.tsx",
+  "src/app/(dashboard)/finance/copa/rules/page.tsx",
+  "src/components/Sidebar.tsx"
 ]
