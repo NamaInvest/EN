@@ -3746,5 +3746,16 @@
   "sales.str_2915": "فشل حفظ العقد",
   "sales.str_2916": "حدث خطأ في النظام",
   "sales.str_2917": "شروط العقد أو تفاصيل الدورة...",
-  "sales.str_2918": "💾 إنشاء واعتماد العقد"
+  "sales.str_2918": "💾 إنشاء واعتماد العقد",
+  "ai.knowledge_title": "إدارة قاعدة المعرفة (VectorMine RAG)",
+  "ai.llm_costs_title": "مراقبة استهلاك الذكاء الاصطناعي (AI Observability)",
+  "ai.prompts_title": "إدارة الـ Prompts (Prompt Engineering)",
+  "ap.capture_title": "صندوق وارد الفواتير (AP Invoice Capture)",
+  "finance.budget_title": "التخطيط والميزانية (xP&A)",
+  "sales.atp_title": "محاكي وعود التسليم (ATP Simulator)",
+  "mfg.shopfloor_title": "محطة التصنيع (Shop Floor Terminal)",
+  "treasury.cash_title": "مركز النقد (Cash Position)",
+  "treasury.liquidity_title": "التنبؤ بالسيولة 13-Week Forecast",
+  "common.try_refreshing": "حاول التحديث",
+  "common.close": "إغلاق"
 }

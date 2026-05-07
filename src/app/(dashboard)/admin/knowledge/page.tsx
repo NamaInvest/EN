@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function KnowledgeAdminPage() {
+  const { t } = useTranslation();
+
     const [docs, setDocs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ title: '', category: '', content: '' });
@@ -38,7 +41,7 @@ export default function KnowledgeAdminPage() {
     return (
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">إدارة قاعدة المعرفة (VectorMine RAG)</h1>
+                <h1 className="text-2xl font-bold">{t('ai.knowledge_title')}</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -80,7 +80,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     'i.fin_reports': 'التقارير المالية',
     'i.budget_variance': 'انحراف الموازنة',
     'i.customer_statement': 'كشف حساب عميل',
-    'i.cfo_dashboard': 'CFO Dashboard',
+    'i.cfo_dashboard': 'لوحة المدير المالي',
     'i.returns_report': 'تقرير المرتجعات',
     'i.expiry_report': 'تقرير الصلاحيات',
     'i.customers': 'قاعدة العملاء', 'i.leads': 'الفرص البيعية', 'i.loyalty': 'نقاط الولاء',

@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function LLMCostsPage() {
+  const { t } = useTranslation();
+
     const [data, setData] = useState<any>({ logs: [], stats: null });
     const [loading, setLoading] = useState(true);
 
@@ -22,7 +25,7 @@ export default function LLMCostsPage() {
     return (
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">مراقبة استهلاك الذكاء الاصطناعي (AI Observability)</h1>
+                <h1 className="text-2xl font-bold">{t('ai.llm_costs_title')}</h1>
             </div>
 
             {loading ? <p>جاري التحميل...</p> : (

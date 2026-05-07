@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function ShopFloorTerminalPage() {
+  const { t } = useTranslation();
+
     const [sessions, setSessions] = useState<any[]>([]);
     const [andons, setAndons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -53,7 +56,7 @@ export default function ShopFloorTerminalPage() {
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">محطة التصنيع (Shop Floor Terminal)</h1>
+                    <h1 className="text-2xl font-bold">{t('mfg.shopfloor_title')}</h1>
                     <p className="text-sm text-gray-500">واجهة المشغل لإدارة العمليات الإنتاجية في الوقت الحقيقي</p>
                 </div>
                 <Button onClick={() => setShowStartForm(!showStartForm)} className="text-lg px-6 py-3">

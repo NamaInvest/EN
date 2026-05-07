@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,8 @@ import { Input } from '@/components/ui/input';
 const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
 export default function BudgetPlanningPage() {
+  const { t } = useTranslation();
+
     const [versions, setVersions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -60,7 +63,7 @@ export default function BudgetPlanningPage() {
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">التخطيط والميزانية (xP&A)</h1>
+                    <h1 className="text-2xl font-bold">{t('finance.budget_title')}</h1>
                     <p className="text-sm text-gray-500">إنشاء وإدارة إصدارات الميزانية والتوقعات المالية</p>
                 </div>
                 <Button onClick={() => setShowCreate(!showCreate)}>+ إصدار جديد</Button>

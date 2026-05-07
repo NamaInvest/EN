@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function InvoiceCaptureInboxPage() {
+  const { t } = useTranslation();
+
     const [data, setData] = useState<any>({ captures: [], counts: {} });
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
@@ -57,7 +60,7 @@ export default function InvoiceCaptureInboxPage() {
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">صندوق وارد الفواتير (AP Invoice Capture)</h1>
+                    <h1 className="text-2xl font-bold">{t('ap.capture_title')}</h1>
                     <p className="text-sm text-gray-500">أتمتة استلام ومعالجة فواتير الموردين بالذكاء الاصطناعي</p>
                 </div>
                 <Button onClick={() => setShowUpload(!showUpload)}>

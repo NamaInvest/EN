@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function LiquidityForecastPage() {
+  const { t } = useTranslation();
+
     const [data, setData] = useState<any>({ forecasts: [], scenario: null });
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
@@ -58,7 +61,7 @@ export default function LiquidityForecastPage() {
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">التنبؤ بالسيولة 13-Week Forecast</h1>
+                    <h1 className="text-2xl font-bold">{t('treasury.liquidity_title')}</h1>
                     <p className="text-sm text-gray-500">
                         السيناريو الحالي: {data.scenario ? data.scenario.name : 'لا يوجد'}
                     </p>

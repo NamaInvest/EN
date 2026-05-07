@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function CashPositionPage() {
+  const { t } = useTranslation();
+
     const [snapshot, setSnapshot] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
@@ -36,7 +39,7 @@ export default function CashPositionPage() {
         <div className="p-6 space-y-6" dir="rtl">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">مركز النقد (Cash Position)</h1>
+                    <h1 className="text-2xl font-bold">{t('treasury.cash_title')}</h1>
                     <p className="text-sm text-gray-500">
                         آخر تحديث: {snapshot ? new Date(snapshot.capturedAt).toLocaleString() : 'لا يوجد'}
                     </p>

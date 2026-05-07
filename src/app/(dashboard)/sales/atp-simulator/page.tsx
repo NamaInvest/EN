@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function ATPSimulatorPage() {
+  const { t } = useTranslation();
+
     const [form, setForm] = useState({
         productId: 'PROD-1001',
         warehouseId: 'WH-MAIN',
@@ -37,7 +40,7 @@ export default function ATPSimulatorPage() {
 
     return (
         <div className="p-6 space-y-6" dir="rtl">
-            <h1 className="text-2xl font-bold">محاكي وعود التسليم (ATP Simulator)</h1>
+            <h1 className="text-2xl font-bold">{t('sales.atp_title')}</h1>
             <p className="text-gray-500 text-sm">أداة المبيعات للتحقق الفوري من إمكانية تلبية طلبات العملاء بناءً على المخزون والمشتريات والإنتاج.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
