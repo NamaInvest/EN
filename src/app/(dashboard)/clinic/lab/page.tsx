@@ -307,7 +307,7 @@ export default function LabIntegrationPage() {
                                         <th className="p-4 font-semibold w-1/3">التحليل (Test)</th>
                                         <th className="p-4 font-semibold">النتيجة (Result)</th>
                                         <th className="p-4 font-semibold">المعدل الطبيعي (Reference)</th>
-                                        <th className="p-4 font-semibold text-center w-24">Abnormal</th>
+                                        <th className="p-4 font-semibold text-center w-24">{_t('Abnormal', 'Abnormal')}</th>
                                         <th className="p-4 font-semibold"></th>
                                     </tr>
                                 </thead>

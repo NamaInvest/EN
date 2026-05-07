@@ -119,11 +119,11 @@ export default function FixedAssetsPage() {
  </div>
  <div className="card-glass p-6 rounded-xl border border-white/10 flex flex-col items-center justify-center text-center shadow-sm">
  <p className="text-sm font-bold text-slate-500 mb-1">{t('sys.str_336')}</p>
- <p className="text-3xl font-extrabold text-slate-700" dir="ltr">{totalPortfolioValue.toLocaleString()} <span className="text-sm text-slate-400">SAR</span></p>
+ <p className="text-3xl font-extrabold text-slate-700" dir="ltr">{totalPortfolioValue.toLocaleString()} <span className="text-sm text-slate-400">{_t('ر.س', 'SAR')}</span></p>
  </div>
  <div className="bg-amber-50 p-6 rounded-xl border border-amber-200 flex flex-col items-center justify-center text-center shadow-sm">
  <p className="text-sm font-bold text-amber-700 mb-1">{t('sys.str_337')}</p>
- <p className="text-3xl font-extrabold text-amber-600" dir="ltr">{currentBookValue.toLocaleString()} <span className="text-sm text-amber-400/80">SAR</span></p>
+ <p className="text-3xl font-extrabold text-amber-600" dir="ltr">{currentBookValue.toLocaleString()} <span className="text-sm text-amber-400/80">{_t('ر.س', 'SAR')}</span></p>
  </div>
  </div>
 

@@ -4,6 +4,7 @@ import { useTranslation } from '@/lib/i18n';
 
 export default function ReorderRulesPage() {
   const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const isAr = lang === 'ar';
   const [rules, setRules] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -55,8 +56,8 @@ export default function ReorderRulesPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead><tr style={{ background: '#E3F2FD' }}>
               <th style={{ padding: 10 }}>{isAr ? 'المنتج' : 'Product'}</th>
-              <th style={{ padding: 10 }}>Min</th>
-              <th style={{ padding: 10 }}>Max</th>
+              <th style={{ padding: 10 }}>{_t('Min', 'Min')}</th>
+              <th style={{ padding: 10 }}>{_t('Max', 'Max')}</th>
               <th style={{ padding: 10 }}>{isAr ? 'كمية الطلب' : 'Reorder Qty'}</th>
               <th style={{ padding: 10 }}>{isAr ? 'المورد' : 'Supplier'}</th>
             </tr></thead>

@@ -22,7 +22,7 @@ export default function DispatchBoardPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <h1 className="text-3xl font-bold flex items-center gap-2"><Map /> Dispatch Board</h1>
+            <h1 className="text-3xl font-bold flex items-center gap-2"><Map />{_t('Dispatch Board', 'Dispatch Board')}</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Unassigned Tickets */}

@@ -1,6 +1,4 @@
 'use client';
-import fs from 'fs';
-import path from 'path';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, FileText } from 'lucide-react';
@@ -9,22 +7,15 @@ import { useTranslation } from '@/lib/i18n';
 export default function DocsIndexPage() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-    const docsDir = path.join(process.cwd(), 'docs', 'gaps');
     let files: string[] = [];
-    
-    try {
-        files = fs.readdirSync(docsDir).filter(f => f.endsWith('.md'));
-    } catch (e) {
-        console.error('Error reading docs directory', e);
-    }
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-6">
             <div className="flex items-center gap-3">
                 <BookOpen className="w-8 h-8 text-blue-600" />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">System Documentation</h1>
-                    <p className="text-gray-500">Official technical specifications and gap analysis modules.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{_t('System Documentation', 'System Documentation')}</h1>
+                    <p className="text-gray-500">{_t('Official technical specifications and gap analysis modules.', 'Official technical specifications and gap analysis modules.')}</p>
                 </div>
             </div>
 
@@ -39,17 +30,13 @@ export default function DocsIndexPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-gray-500">
-                                    Click to view the full specification and module requirements for this section.
-                                </p>
+                                <p className="text-sm text-gray-500">{_t('Click to view the full specification and module requirements for this section.', 'Click to view the full specification and module requirements for this section.')}</p>
                             </CardContent>
                         </Card>
                     </Link>
                 ))}
                 {files.length === 0 && (
-                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
-                        No documentation files found in the docs folder.
-                    </div>
+                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">{_t('No documentation files found in the docs folder.', 'No documentation files found in the docs folder.')}</div>
                 )}
             </div>
         </div>

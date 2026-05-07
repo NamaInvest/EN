@@ -31,8 +31,8 @@ export default function RestaurantTablesPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">{_t('Table إدارةment & Reservations', 'Table Management & Reservations')}</h1>
                 <div className="space-x-2">
-                    <Button variant="outline">Reservations List</Button>
-                    <Button>New Reservation</Button>
+                    <Button variant="outline">{_t('Reservations List', 'Reservations List')}</Button>
+                    <Button>{_t('New Reservation', 'New Reservation')}</Button>
                 </div>
             </div>
             
@@ -54,10 +54,10 @@ export default function RestaurantTablesPage() {
                             )}
 
                             <div className="pt-2">
-                                {t.status === 'AVAILABLE' && <Button size="sm" className="w-full">Walk-in</Button>}
-                                {t.status === 'RESERVED' && <Button size="sm" className="w-full">Seat Guest</Button>}
-                                {t.status === 'DIRTY' && <Button size="sm" variant="outline" className="w-full">Mark Clean</Button>}
-                                {t.status === 'OCCUPIED' && <Button size="sm" variant="outline" className="w-full">View Order</Button>}
+                                {t.status === 'AVAILABLE' && <Button size="sm" className="w-full">{_t('Walk-in', 'Walk-in')}</Button>}
+                                {t.status === 'RESERVED' && <Button size="sm" className="w-full">{_t('Seat Guest', 'Seat Guest')}</Button>}
+                                {t.status === 'DIRTY' && <Button size="sm" variant="outline" className="w-full">{_t('Mark Clean', 'Mark Clean')}</Button>}
+                                {t.status === 'OCCUPIED' && <Button size="sm" variant="outline" className="w-full">{_t('View Order', 'View Order')}</Button>}
                             </div>
                         </CardContent>
                     </Card>

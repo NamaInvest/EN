@@ -308,7 +308,7 @@ export default function DebitNotesPage() {
                                         <th style={{ padding: '8px', textAlign: 'right' }}>{t('sys.str_946')}</th>
                                         <th style={{ padding: '8px', textAlign: 'right' }}>إجمالي الإشعار</th>
                                         <th style={{ padding: '8px', textAlign: 'right' }}>السبب</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>ZATCA</th>
+                                        <th style={{ padding: '8px', textAlign: 'right' }}>{_t('ZATCA', 'ZATCA')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>{debitNotes.map(r => (
@@ -328,7 +328,7 @@ export default function DebitNotesPage() {
                                         <td style={{ padding: '8px', fontSize: '12px' }}>
                                             {r.zatcaStatus === 'reported' || r.zatcaStatus === 'cleared' ? 
                                                 <span className="badge" style={{background: 'var(--success)', color: '#fff'}}>✔ ZATCA</span> : 
-                                                <span className="badge badge-ghost">Pending</span>}
+                                                <span className="badge badge-ghost">{_t('Pending', 'Pending')}</span>}
                                         </td>
                                     </tr>
                                 ))}</tbody>

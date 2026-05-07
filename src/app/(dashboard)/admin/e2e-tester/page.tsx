@@ -42,12 +42,8 @@ export default function E2ETesterDashboard() {
         <div className="max-w-5xl mx-auto space-y-6 p-6">
             <div>
                 <h1 className="text-3xl font-bold flex items-center gap-2">
-                    <Play className="text-blue-600 w-8 h-8" />
-                    V2 End-to-End Integrations Tester
-                </h1>
-                <p className="text-gray-500 mt-2">
-                    Automatically simulate complex business flows to verify Saga Transactions, Event Bus, and Cross-Module Journal Entries.
-                </p>
+                    <Play className="text-blue-600 w-8 h-8" />{_t('V2 End-to-End Integrations Tester', 'V2 End-to-End Integrations Tester')}</h1>
+                <p className="text-gray-500 mt-2">{_t('Automatically simulate complex business flows to verify Saga Transactions, Event Bus, and Cross-Module Journal Entries.', 'Automatically simulate complex business flows to verify Saga Transactions, Event Bus, and Cross-Module Journal Entries.')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

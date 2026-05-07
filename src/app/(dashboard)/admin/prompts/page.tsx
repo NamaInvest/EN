@@ -60,11 +60,11 @@ export default function PromptsAdminPage() {
                                 <Input placeholder="gemini-2.5-flash" value={form.modelHint} onChange={(e: any) => setForm({...form, modelHint: e.target.value})} required />
                             </div>
                             <div>
-                                <label className="block text-sm mb-1">System Prompt</label>
+                                <label className="block text-sm mb-1">{_t('System Prompt', 'System Prompt')}</label>
                                 <textarea className="flex w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 h-32" placeholder="أنت مستشار مالي..." value={form.systemPrompt} onChange={(e: any) => setForm({...form, systemPrompt: e.target.value})} required />
                             </div>
                             <div>
-                                <label className="block text-sm mb-1">User Template</label>
+                                <label className="block text-sm mb-1">{_t('User Template', 'User Template')}</label>
                                 <textarea className="flex w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 h-24" placeholder="حلل هذه البيانات: {{salesCount}}" value={form.userTemplate} onChange={(e: any) => setForm({...form, userTemplate: e.target.value})} required />
                             </div>
                             <Button type="submit" className="w-full">حفظ الإصدار الجديد</Button>

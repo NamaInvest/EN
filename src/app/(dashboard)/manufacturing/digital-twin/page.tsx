@@ -43,7 +43,7 @@ export default function DigitalTwinPage() {
  <h1 className="text-3xl font-bold text-white tracking-tight flex items-center">
  التوأمة الرقمية والأتمتة الفائقة
  </h1>
- <p className="text-slate-400 mt-1">Digital Twin, AI Agents, Blockchain Ledger, Zero-Touch Accounting</p>
+ <p className="text-slate-400 mt-1">{_t('Digital Twin, AI Agents, Blockchain Ledger, Zero-Touch Accounting', 'Digital Twin, AI Agents, Blockchain Ledger, Zero-Touch Accounting')}</p>
  </div>
  </div>
  <button onClick={runSimulation} disabled={simulating} className="flex items-center justify-center px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-cyan-600/20 disabled:opacity-50">

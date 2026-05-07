@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function MultiBookDashboard() {
     // 1. Primary Book (IFRS) -> bookId: null or 1
     const primaryBookCount = await prisma.journalEntry.count({
@@ -32,71 +33,69 @@ export default async function MultiBookDashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Multi-Book Accounting</h1>
-                    <p className="text-muted-foreground">Manage IFRS, ZATCA, and Management accounting ledgers simultaneously</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{_t('Multi-Book Accounting', 'Multi-Book Accounting')}</h1>
+                    <p className="text-muted-foreground">{_t('Manage IFRS, ZATCA, and Management accounting ledgers simultaneously', 'Manage IFRS, ZATCA, and Management accounting ledgers simultaneously')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline">
-                        <Settings className="h-4 w-4 mr-2" /> Book Mappings
-                    </Button>
+                        <Settings className="h-4 w-4 mr-2" />{_t('Book Mappings', 'Book Mappings')}</Button>
                     <Button variant="default">
-                        <FileText className="h-4 w-4 mr-2" /> Generate Consolidated Report
-                    </Button>
+                        <FileText className="h-4 w-4 mr-2" />{_t('Generate Consolidated Report', 'Generate Consolidated Report')}</Button>
                 </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Primary Book (IFRS)</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Primary Book (IFRS)', 'Primary Book (IFRS)')}</CardTitle>
                         <BookOpen className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{primaryBookCount.toLocaleString()} Entries</div>
-                        <p className="text-xs text-muted-foreground">Base ledger</p>
+                        <p className="text-xs text-muted-foreground">{_t('Base ledger', 'Base ledger')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Tax Book (ZATCA)</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Tax Book (ZATCA)', 'Tax Book (ZATCA)')}</CardTitle>
                         <BookOpen className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{taxBookCount.toLocaleString()} Entries</div>
-                        <p className="text-xs text-muted-foreground">Excludes non-deductible items</p>
+                        <p className="text-xs text-muted-foreground">{_t('Excludes non-deductible items', 'Excludes non-deductible items')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Management Book</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Management Book', 'Management Book')}</CardTitle>
                         <BookOpen className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{managementBookCount.toLocaleString()} Entries</div>
-                        <p className="text-xs text-muted-foreground">Includes internal allocations</p>
+                        <p className="text-xs text-muted-foreground">{_t('Includes internal allocations', 'Includes internal allocations')}</p>
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Cross-Book Adjustments</CardTitle>
+                    <CardTitle>{_t('Recent Cross-Book Adjustments', 'Recent Cross-Book Adjustments')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
                         <table className="min-w-full divide-y divide-border">
                             <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Target Book</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
-                                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('التاريخ', 'Date')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('الوصف', 'Description')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('Target Book', 'Target Book')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('المبلغ', 'Amount')}</th>
+                                    <th className="px-4 py-3 text-right text-sm font-medium">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
                                 {recentAdjustments.length === 0 ? (
-                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">No recent adjustments.</td></tr>
+                                    <tr><td colSpan={5} className="text-center py-4 text-muted-foreground">{_t('No recent adjustments.', 'No recent adjustments.')}</td></tr>
                                 ) : recentAdjustments.map((entry) => (
                                     <tr key={entry.id}>
                                         <td className="px-4 py-3 text-sm">{entry.entryDate}</td>
@@ -108,7 +107,7 @@ export default async function MultiBookDashboard() {
                                         </td>
                                         <td className="px-4 py-3 text-sm">SAR {(entry.totalDebit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                         <td className="px-4 py-3 text-sm text-right space-x-2">
-                                            <Button variant="ghost" size="sm">View JE</Button>
+                                            <Button variant="ghost" size="sm">{_t('View JE', 'View JE')}</Button>
                                         </td>
                                     </tr>
                                 ))}

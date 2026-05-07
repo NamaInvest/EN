@@ -83,9 +83,7 @@ export default function SchoolDashboard() {
  <GraduationCap className="w-10 h-10 text-[#6366F1]" />
  </div>
  <div>
- <h1 className="text-4xl font-extrabold text-[#1E1B4B] tracking-tight" style={{ fontFamily: "'EB Garamond', serif" }}>
- NAMA ACADEMY
- </h1>
+ <h1 className="text-4xl font-extrabold text-[#1E1B4B] tracking-tight" style={{ fontFamily: "'EB Garamond', serif" }}>{_t('NAMA ACADEMY', 'NAMA ACADEMY')}</h1>
  <p className="text-[#6366F1] mt-2 font-bold text-lg bg-[#E0E7FF] px-4 py-1 rounded-full inline-block">
  نظام إدارة الرسوم المدرسية
  </p>

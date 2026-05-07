@@ -5,6 +5,7 @@ import { Search, Boxes, MapPin, Truck, ArrowRight, ScanLine, Activity, Layers } 
 import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function WmsDashboardPage() {
     // Basic stats
     const stocks = await prisma.stock.findMany();
@@ -22,18 +23,14 @@ export default async function WmsDashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Boxes className="w-8 h-8 text-cyan-600" />
-                        Warehouse Management (WMS)
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage locations, stock transfers, picking, and receiving operations.</p>
+                        <Boxes className="w-8 h-8 text-cyan-600" />{_t('Warehouse Management (WMS)', 'Warehouse Management (WMS)')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage locations, stock transfers, picking, and receiving operations.', 'Manage locations, stock transfers, picking, and receiving operations.')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="bg-white">Cycle Count</Button>
+                    <Button variant="outline" className="bg-white">{_t('Cycle Count', 'Cycle Count')}</Button>
                     <Link href="/inventory/movements">
                         <Button className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm">
-                            <Activity className="w-4 h-4 mr-2" />
-                            Stock Movements
-                        </Button>
+                            <Activity className="w-4 h-4 mr-2" />{_t('Stock Movements', 'Stock Movements')}</Button>
                     </Link>
                 </div>
             </div>
@@ -43,7 +40,7 @@ export default async function WmsDashboardPage() {
                 <Card className="bg-gradient-to-br from-cyan-50 to-white border-cyan-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-cyan-600">Active Warehouses</p>
+                            <p className="text-sm font-medium text-cyan-600">{_t('Active Warehouses', 'Active Warehouses')}</p>
                             <MapPin className="w-4 h-4 text-cyan-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{stocks.length}</h3>
@@ -52,7 +49,7 @@ export default async function WmsDashboardPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Storage Zones</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('Storage Zones', 'Storage Zones')}</p>
                             <Layers className="w-4 h-4 text-gray-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{zones}</h3>
@@ -61,7 +58,7 @@ export default async function WmsDashboardPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Movements (Last 7 Days)</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('Movements (Last 7 Days)', 'Movements (Last 7 Days)')}</p>
                             <Activity className="w-4 h-4 text-blue-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{movementsCount}</h3>
@@ -76,14 +73,11 @@ export default async function WmsDashboardPage() {
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-cyan-300">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                                <Layers className="w-6 h-6 text-cyan-600" />
-                                Zones & Locations
-                            </CardTitle>
+                                <Layers className="w-6 h-6 text-cyan-600" />{_t('Zones & Locations', 'Zones & Locations')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Hierarchical storage management. Define Receiving, Bulk Storage, Picking, and Quarantine zones.</p>
-                            <div className="flex items-center text-sm font-medium text-cyan-600">
-                                Manage Zones <ArrowRight className="w-4 h-4 ml-1" />
+                            <p className="text-sm text-gray-500 mb-4">{_t('Hierarchical storage management. Define Receiving, Bulk Storage, Picking, and Quarantine zones.', 'Hierarchical storage management. Define Receiving, Bulk Storage, Picking, and Quarantine zones.')}</p>
+                            <div className="flex items-center text-sm font-medium text-cyan-600">{_t('Manage Zones', 'Manage Zones')}<ArrowRight className="w-4 h-4 ml-1" />
                             </div>
                         </CardContent>
                     </Card>
@@ -94,14 +88,11 @@ export default async function WmsDashboardPage() {
                     <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-cyan-300">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                                <Activity className="w-6 h-6 text-indigo-600" />
-                                Stock Movements
-                            </CardTitle>
+                                <Activity className="w-6 h-6 text-indigo-600" />{_t('Stock Movements', 'Stock Movements')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-gray-500 mb-4">Track all inventory changes (in, out, transfer, adjustment) with full audit trails.</p>
-                            <div className="flex items-center text-sm font-medium text-indigo-600">
-                                View Movements <ArrowRight className="w-4 h-4 ml-1" />
+                            <p className="text-sm text-gray-500 mb-4">{_t('Track all inventory changes (in, out, transfer, adjustment) with full audit trails.', 'Track all inventory changes (in, out, transfer, adjustment) with full audit trails.')}</p>
+                            <div className="flex items-center text-sm font-medium text-indigo-600">{_t('View Movements', 'View Movements')}<ArrowRight className="w-4 h-4 ml-1" />
                             </div>
                         </CardContent>
                     </Card>
@@ -111,14 +102,11 @@ export default async function WmsDashboardPage() {
                 <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-cyan-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                            <Truck className="w-6 h-6 text-green-600" />
-                            Goods Receipt (GRN)
-                        </CardTitle>
+                            <Truck className="w-6 h-6 text-green-600" />{_t('Goods Receipt (GRN)', 'Goods Receipt (GRN)')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-gray-500 mb-4">Receive stock from vendors, link to Purchase Orders, and trigger putaway tasks.</p>
-                        <div className="flex items-center text-sm font-medium text-green-600">
-                            Receive Goods <ArrowRight className="w-4 h-4 ml-1" />
+                        <p className="text-sm text-gray-500 mb-4">{_t('Receive stock from vendors, link to Purchase Orders, and trigger putaway tasks.', 'Receive stock from vendors, link to Purchase Orders, and trigger putaway tasks.')}</p>
+                        <div className="flex items-center text-sm font-medium text-green-600">{_t('Receive Goods', 'Receive Goods')}<ArrowRight className="w-4 h-4 ml-1" />
                         </div>
                     </CardContent>
                 </Card>
@@ -127,21 +115,18 @@ export default async function WmsDashboardPage() {
                 <Card className="hover:shadow-md transition-shadow cursor-pointer border-gray-200 hover:border-cyan-300">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xl flex items-center gap-2 text-gray-800">
-                            <ScanLine className="w-6 h-6 text-orange-600" />
-                            Picking & Dispatch
-                        </CardTitle>
+                            <ScanLine className="w-6 h-6 text-orange-600" />{_t('Picking & Dispatch', 'Picking & Dispatch')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-gray-500 mb-4">Generate pick lists, wave picking, and prepare stock for Sales Order fulfillment.</p>
-                        <div className="flex items-center text-sm font-medium text-orange-600">
-                            Manage Picking <ArrowRight className="w-4 h-4 ml-1" />
+                        <p className="text-sm text-gray-500 mb-4">{_t('Generate pick lists, wave picking, and prepare stock for Sales Order fulfillment.', 'Generate pick lists, wave picking, and prepare stock for Sales Order fulfillment.')}</p>
+                        <div className="flex items-center text-sm font-medium text-orange-600">{_t('Manage Picking', 'Manage Picking')}<ArrowRight className="w-4 h-4 ml-1" />
                         </div>
                     </CardContent>
                 </Card>
             </div>
             
             {/* Warehouses List */}
-            <h2 className="text-xl font-bold tracking-tight text-gray-900 mt-8 mb-4">Registered Warehouses</h2>
+            <h2 className="text-xl font-bold tracking-tight text-gray-900 mt-8 mb-4">{_t('Registered Warehouses', 'Registered Warehouses')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {stocks.map((stock) => (
                     <Card key={stock.id} className="border-l-4 border-l-cyan-500">

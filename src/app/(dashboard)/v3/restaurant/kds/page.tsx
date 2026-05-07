@@ -30,9 +30,9 @@ export default function KitchenDisplaySystemPage() {
     return (
         <div className="min-h-screen bg-gray-900 text-white p-4">
             <header className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-yellow-500">Kitchen Display System (KDS)</h1>
+                <h1 className="text-2xl font-bold text-yellow-500">{_t('Kitchen Display System (KDS)', 'Kitchen Display System (KDS)')}</h1>
                 <div className="flex space-x-4">
-                    <div className="text-center"><div className="text-2xl font-bold text-red-500">2</div><div className="text-xs uppercase">Pending</div></div>
+                    <div className="text-center"><div className="text-2xl font-bold text-red-500">2</div><div className="text-xs uppercase">{_t('Pending', 'Pending')}</div></div>
                     <div className="text-center"><div className="text-2xl font-bold text-green-500">14</div><div className="text-xs uppercase">{_t('مكتملة (Completed)', 'Completed')}</div></div>
                 </div>
             </header>
@@ -64,8 +64,8 @@ export default function KitchenDisplaySystemPage() {
                             ))}
                             
                             <div className="pt-4 space-y-2">
-                                {t.status === 'NEW' && <Button className="w-full bg-blue-600 hover:bg-blue-700">Start Preparing</Button>}
-                                {t.status === 'PREPARING' && <Button className="w-full bg-green-600 hover:bg-green-700">Mark Ready</Button>}
+                                {t.status === 'NEW' && <Button className="w-full bg-blue-600 hover:bg-blue-700">{_t('Start Preparing', 'Start Preparing')}</Button>}
+                                {t.status === 'PREPARING' && <Button className="w-full bg-green-600 hover:bg-green-700">{_t('Mark Ready', 'Mark Ready')}</Button>}
                             </div>
                         </CardContent>
                     </Card>

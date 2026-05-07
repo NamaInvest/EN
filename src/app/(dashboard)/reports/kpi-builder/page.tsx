@@ -40,7 +40,7 @@ export default function KPIBuilderPage() {
                             </div>
                             <div className="text-xs text-gray-400 flex justify-between items-center">
                                 <span>Refreshed: {db.lastRefreshed}</span>
-                                <Button size="sm" variant="ghost" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">Edit Layout</Button>
+                                <Button size="sm" variant="ghost" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">{_t('Edit Layout', 'Edit Layout')}</Button>
                             </div>
                         </CardContent>
                     </Card>

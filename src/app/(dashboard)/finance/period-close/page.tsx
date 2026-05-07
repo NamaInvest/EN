@@ -60,15 +60,15 @@ export default function PeriodCloseChecklistPage() {
     };
 
     const renderBadge = (status: string) => {
-        if (status === 'DONE') return <Badge className="bg-green-100 text-green-800">DONE</Badge>;
-        if (status === 'IN_PROGRESS') return <Badge className="bg-blue-100 text-blue-800">IN PROGRESS</Badge>;
-        return <Badge className="bg-gray-100 text-gray-800">PENDING</Badge>;
+        if (status === 'DONE') return <Badge className="bg-green-100 text-green-800">{_t('DONE', 'DONE')}</Badge>;
+        if (status === 'IN_PROGRESS') return <Badge className="bg-blue-100 text-blue-800">{_t('IN PROGRESS', 'IN PROGRESS')}</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{_t('PENDING', 'PENDING')}</Badge>;
     };
 
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Period Close Checklist</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Period Close Checklist', 'Period Close Checklist')}</h1>
                 <div className="space-x-2 flex">
                     <Input 
                         placeholder="Fiscal Period ID" 
@@ -76,8 +76,8 @@ export default function PeriodCloseChecklistPage() {
                         onChange={e => setPeriodId(e.target.value)}
                         className="w-32"
                     />
-                    <Button onClick={startClose}>Start Close</Button>
-                    <Button variant="destructive">Lock Period</Button>
+                    <Button onClick={startClose}>{_t('Start Close', 'Start Close')}</Button>
+                    <Button variant="destructive">{_t('Lock Period', 'Lock Period')}</Button>
                 </div>
             </div>
             
@@ -86,14 +86,14 @@ export default function PeriodCloseChecklistPage() {
                     <CardTitle>Close Steps for Period #{periodId}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">Step #</th>
                                         <th className="px-4 py-3">{_t('المهمة (Task)', 'Task')}</th>
-                                        <th className="px-4 py-3">Owner</th>
+                                        <th className="px-4 py-3">{_t('Owner', 'Owner')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3">{_t('ملاحظات', 'Notes')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
@@ -109,10 +109,10 @@ export default function PeriodCloseChecklistPage() {
                                             <td className="px-4 py-3 max-w-xs truncate">{item.notes || '-'}</td>
                                             <td className="px-4 py-3 text-right space-x-2">
                                                 {item.status !== 'DONE' && (
-                                                    <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => updateStatus(item.id, 'DONE')}>Mark Done</Button>
+                                                    <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => updateStatus(item.id, 'DONE')}>{_t('Mark Done', 'Mark Done')}</Button>
                                                 )}
                                                 {item.status === 'DONE' && (
-                                                    <Button size="sm" variant="outline" className="text-gray-600" onClick={() => updateStatus(item.id, 'PENDING')}>Reopen</Button>
+                                                    <Button size="sm" variant="outline" className="text-gray-600" onClick={() => updateStatus(item.id, 'PENDING')}>{_t('Reopen', 'Reopen')}</Button>
                                                 )}
                                             </td>
                                         </tr>

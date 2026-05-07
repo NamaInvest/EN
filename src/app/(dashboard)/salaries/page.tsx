@@ -126,7 +126,7 @@ export default function SalariesPage() {
  </div>
  <div>
  <p className="text-sm font-bold text-slate-500">{t('sys.str_1112')}</p>
- <p className="text-3xl font-extrabold text-indigo-600" dir="ltr">{fmt(companyTotalNet)} <span className="text-sm text-indigo-400">SAR</span></p>
+ <p className="text-3xl font-extrabold text-indigo-600" dir="ltr">{fmt(companyTotalNet)} <span className="text-sm text-indigo-400">{_t('ر.س', 'SAR')}</span></p>
  </div>
  </div>
  </div>

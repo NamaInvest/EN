@@ -133,7 +133,7 @@ export default function SchoolAttendance() {
  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-[Fira_Code]">
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
  <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-200">عبدالله خالد المطيري</td>
- <td className="px-6 py-4 text-slate-500">STU-10042</td>
+ <td className="px-6 py-4 text-slate-500">{_t('STU-10042', 'STU-10042')}</td>
  <td className="px-6 py-4 text-center">
  <button className="p-2 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 mx-auto transition-colors">
  <Check className="w-4 h-4" />
@@ -153,7 +153,7 @@ export default function SchoolAttendance() {
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
  <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-200">سعود محمد العتيبي</td>
- <td className="px-6 py-4 text-slate-500">STU-10045</td>
+ <td className="px-6 py-4 text-slate-500">{_t('STU-10045', 'STU-10045')}</td>
  <td className="px-6 py-4 text-center">
  <button className="p-2 rounded-full bg-slate-100 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600 mx-auto transition-colors">
  <Check className="w-4 h-4" />
@@ -173,7 +173,7 @@ export default function SchoolAttendance() {
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
  <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-200">فيصل سعد السالم</td>
- <td className="px-6 py-4 text-slate-500">STU-10051</td>
+ <td className="px-6 py-4 text-slate-500">{_t('STU-10051', 'STU-10051')}</td>
  <td className="px-6 py-4 text-center">
  <button className="p-2 rounded-full bg-slate-100 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600 mx-auto transition-colors">
  <Check className="w-4 h-4" />

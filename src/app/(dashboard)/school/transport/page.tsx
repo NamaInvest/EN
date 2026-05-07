@@ -131,7 +131,7 @@ export default function SchoolTransport() {
  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-[Fira_Code]">
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
  <td className="px-6 py-4">
- <div className="font-bold text-slate-900 dark:text-slate-200">R-101</div>
+ <div className="font-bold text-slate-900 dark:text-slate-200">{_t('R-101', 'R-101')}</div>
  <div className="text-xs text-slate-500">مسار الصباح</div>
  </td>
  <td className="px-6 py-4 text-slate-700 dark:text-slate-300">الياسمين، الملقا</td>
@@ -148,7 +148,7 @@ export default function SchoolTransport() {
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
  <td className="px-6 py-4">
- <div className="font-bold text-slate-900 dark:text-slate-200">R-102</div>
+ <div className="font-bold text-slate-900 dark:text-slate-200">{_t('R-102', 'R-102')}</div>
  <div className="text-xs text-slate-500">مسار الصباح</div>
  </td>
  <td className="px-6 py-4 text-slate-700 dark:text-slate-300">الصحافة، النرجس</td>
@@ -165,7 +165,7 @@ export default function SchoolTransport() {
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
  <td className="px-6 py-4">
- <div className="font-bold text-slate-900 dark:text-slate-200">R-105</div>
+ <div className="font-bold text-slate-900 dark:text-slate-200">{_t('R-105', 'R-105')}</div>
  <div className="text-xs text-slate-500">مسار المساء</div>
  </td>
  <td className="px-6 py-4 text-slate-700 dark:text-slate-300">حطين، العقيق</td>

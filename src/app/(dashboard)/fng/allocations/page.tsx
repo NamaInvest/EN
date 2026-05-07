@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Plus, Network, Play, FileText, ArrowRight } from 'lucide-react';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function AllocationsPage() {
     // Fetch Allocation Rules
     const rules = await prisma.allocationRule.findMany({
@@ -16,20 +17,14 @@ export default async function AllocationsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Network className="w-8 h-8 text-teal-600" />
-                        Allocation Engine
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage overhead cost allocation rules and revenue distribution.</p>
+                        <Network className="w-8 h-8 text-teal-600" />{_t('Allocation Engine', 'Allocation Engine')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage overhead cost allocation rules and revenue distribution.', 'Manage overhead cost allocation rules and revenue distribution.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
-                        <Play className="w-4 h-4 mr-2" />
-                        Run All Rules
-                    </Button>
+                        <Play className="w-4 h-4 mr-2" />{_t('Run All Rules', 'Run All Rules')}</Button>
                     <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Rule
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('New Rule', 'New Rule')}</Button>
                 </div>
             </div>
 
@@ -49,12 +44,12 @@ export default async function AllocationsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Rule Number</th>
-                                <th className="px-4 py-3 font-medium">Name</th>
-                                <th className="px-4 py-3 font-medium">Type</th>
-                                <th className="px-4 py-3 font-medium">Driver</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Rule Number', 'Rule Number')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الاسم', 'Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('النوع', 'Type')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Driver', 'Driver')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -82,8 +77,7 @@ export default async function AllocationsPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-teal-600 hover:text-teal-700 hover:bg-teal-50">
-                                            Execute <ArrowRight className="w-4 h-4 ml-1" />
+                                        <Button variant="ghost" size="sm" className="text-teal-600 hover:text-teal-700 hover:bg-teal-50">{_t('Execute', 'Execute')}<ArrowRight className="w-4 h-4 ml-1" />
                                         </Button>
                                     </td>
                                 </tr>
@@ -93,7 +87,7 @@ export default async function AllocationsPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Network className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No Allocation Rules</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('No Allocation Rules', 'No Allocation Rules')}</p>
                                         </div>
                                     </td>
                                 </tr>

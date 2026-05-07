@@ -18,24 +18,24 @@ export default function CostCenterAllocationRulesPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Cost Center Allocations</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Cost Center Allocations', 'Cost Center Allocations')}</h1>
                 <div className="space-x-2">
                     <Button>{_t('إنشاء Allocation Rule', 'Create Allocation Rule')}</Button>
-                    <Button variant="outline">Run Allocations Now</Button>
+                    <Button variant="outline">{_t('Run Allocations Now', 'Run Allocations Now')}</Button>
                 </div>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Active Allocation Rules</CardTitle>
+                    <CardTitle>{_t('Active Allocation Rules', 'Active Allocation Rules')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">Rule Name</th>
-                                    <th className="px-4 py-3">Source Cost Center</th>
+                                    <th className="px-4 py-3">{_t('Rule Name', 'Rule Name')}</th>
+                                    <th className="px-4 py-3">{_t('Source Cost Center', 'Source Cost Center')}</th>
                                     <th className="px-4 py-3">Distribution Method / Targets</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>

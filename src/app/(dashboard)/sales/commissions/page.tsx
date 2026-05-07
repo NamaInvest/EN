@@ -73,7 +73,7 @@ export default function CommissionsPage() {
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">حساب واعتماد العمولات</h1>
-                    <p className="text-gray-500 mt-1">Sales Commission Approval & Payout</p>
+                    <p className="text-gray-500 mt-1">{_t('Sales Commission Approval & Payout', 'Sales Commission Approval & Payout')}</p>
                 </div>
             </div>
 

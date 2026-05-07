@@ -195,7 +195,7 @@ export default function PayrollProcessPage() {
  className="w-full bg-slate-900/50 border border-slate-700 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 px-3 py-2 text-left font-mono text-indigo-300"
  required
  />
- <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">SAR</span>
+ <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">{_t('ر.س', 'SAR')}</span>
  </div>
  </div>
  <div className="w-28 flex justify-center">
@@ -271,7 +271,7 @@ export default function PayrollProcessPage() {
  </div>
  <div className="pt-3 border-t border-indigo-500/20 flex justify-between items-center">
  <span className="text-slate-300 font-medium">صافي الراتب المستحق</span>
- <span className="text-2xl font-mono text-white font-bold">{totals.net.toFixed(2)} <span className="text-sm text-indigo-400">SAR</span></span>
+ <span className="text-2xl font-mono text-white font-bold">{totals.net.toFixed(2)} <span className="text-sm text-indigo-400">{_t('ر.س', 'SAR')}</span></span>
  </div>
  </div>
 

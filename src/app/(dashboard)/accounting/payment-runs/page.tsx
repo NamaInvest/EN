@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function PaymentRunsPage() {
     // Fetch recent payment runs
     const runs = await prisma.paymentRun.findMany({
@@ -23,19 +24,15 @@ export default async function PaymentRunsPage() {
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Payment Runs (F110)</h1>
-                    <p className="text-gray-500 mt-2">Manage automated batch payments via SARIE, SEPA, and SWIFT.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('Payment Runs (F110)', 'Payment Runs (F110)')}</h1>
+                    <p className="text-gray-500 mt-2">{_t('Manage automated batch payments via SARIE, SEPA, and SWIFT.', 'Manage automated batch payments via SARIE, SEPA, and SWIFT.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
-                        <Zap className="w-4 h-4 mr-2 text-yellow-500" />
-                        Discount Opportunities
-                    </Button>
+                        <Zap className="w-4 h-4 mr-2 text-yellow-500" />{_t('Discount Opportunities', 'Discount Opportunities')}</Button>
                     <Link href="/accounting/payment-runs/create">
                         <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            New Payment Run
-                        </Button>
+                            <Plus className="w-4 h-4 mr-2" />{_t('New Payment Run', 'New Payment Run')}</Button>
                     </Link>
                 </div>
             </div>
@@ -45,7 +42,7 @@ export default async function PaymentRunsPage() {
                     <CardContent className="p-6">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">Pending Approval</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('Pending Approval', 'Pending Approval')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalPending}</h3>
                             </div>
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
@@ -58,7 +55,7 @@ export default async function PaymentRunsPage() {
                     <CardContent className="p-6">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">Completed Runs</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('Completed Runs', 'Completed Runs')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalPaid}</h3>
                             </div>
                             <div className="p-3 bg-green-50 text-green-600 rounded-full">
@@ -71,7 +68,7 @@ export default async function PaymentRunsPage() {
                     <CardContent className="p-6">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">Total Disbursed (SAR)</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('Total Disbursed (SAR)', 'Total Disbursed (SAR)')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalAmount.toLocaleString()}</h3>
                             </div>
                             <div className="p-3 bg-purple-50 text-purple-600 rounded-full">
@@ -92,19 +89,19 @@ export default async function PaymentRunsPage() {
                             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    <Button variant="ghost" size="sm" className="text-gray-600">Filter</Button>
+                    <Button variant="ghost" size="sm" className="text-gray-600">{_t('Filter', 'Filter')}</Button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Run ID</th>
-                                <th className="px-4 py-3 font-medium">Date</th>
-                                <th className="px-4 py-3 font-medium">Created By</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium">Invoices</th>
-                                <th className="px-4 py-3 font-medium">Total Amount</th>
-                                <th className="px-4 py-3 font-medium text-right">Action</th>
+                                <th className="px-4 py-3 font-medium">{_t('Run ID', 'Run ID')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('التاريخ', 'Date')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Created By', 'Created By')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Invoices', 'Invoices')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('المبلغ المجمل', 'Total Amount')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('✅ جميع المنتجات لديها باركود', 'Action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -136,8 +133,7 @@ export default async function PaymentRunsPage() {
                                         {Number(run.totalAmount || 0).toLocaleString()} <span className="text-gray-400 font-normal">{run.currency || 'SAR'}</span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                            View <ArrowRight className="w-4 h-4 ml-1" />
+                                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">{_t('عرض', 'View')}<ArrowRight className="w-4 h-4 ml-1" />
                                         </Button>
                                     </td>
                                 </tr>
@@ -147,10 +143,8 @@ export default async function PaymentRunsPage() {
                                     <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <FileText className="w-8 h-8 text-gray-300 mb-2" />
-                                            <p>No payment runs found.</p>
-                                            <Link href="/accounting/payment-runs/create" className="mt-2 text-sm text-blue-600 hover:underline">
-                                                Create your first payment run
-                                            </Link>
+                                            <p>{_t('No payment runs found.', 'No payment runs found.')}</p>
+                                            <Link href="/accounting/payment-runs/create" className="mt-2 text-sm text-blue-600 hover:underline">{_t('Create your first payment run', 'Create your first payment run')}</Link>
                                         </div>
                                     </td>
                                 </tr>

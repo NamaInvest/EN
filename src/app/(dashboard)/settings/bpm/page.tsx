@@ -20,13 +20,10 @@ export default function BpmDashboard() {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <Network className="text-indigo-600 w-8 h-8" />{_t('BPM Engine (Business Process إدارةment)', 'BPM Engine (Business Process Management)')}</h1>
-                    <p className="text-gray-500 mt-2">
-                        Configure automated workflows, approval chains, and EventBus triggers.
-                    </p>
+                    <p className="text-gray-500 mt-2">{_t('Configure automated workflows, approval chains, and EventBus triggers.', 'Configure automated workflows, approval chains, and EventBus triggers.')}</p>
                 </div>
                 <Button className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> New Rule
-                </Button>
+                    <Plus className="w-4 h-4" />{_t('New Rule', 'New Rule')}</Button>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
@@ -42,20 +39,20 @@ export default function BpmDashboard() {
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm">{_t('تعديل', 'Edit')}</Button>
-                            <Button variant="destructive" size="sm">Disable</Button>
+                            <Button variant="destructive" size="sm">{_t('Disable', 'Disable')}</Button>
                         </div>
                     </Card>
                 ))}
             </div>
             
             <div className="mt-8 p-6 bg-slate-900 rounded-lg text-white">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><ServerCrash className="w-5 h-5"/> EventBus Live Monitor</h3>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><ServerCrash className="w-5 h-5"/>{_t('EventBus Live Monitor', 'EventBus Live Monitor')}</h3>
                 <div className="h-48 overflow-y-auto font-mono text-sm space-y-2">
                     <p className="text-green-400">[10:45:02] EVENT: PO_CREATED (ID: 4092) - Evaluated 3 rules</p>
                     <p className="text-gray-400">[10:45:03] ACTION: REQUIRE_APPROVAL:CFO triggered successfully</p>
                     <p className="text-green-400">[10:46:11] EVENT: INVOICE_PAID (ID: 991) - Evaluated 3 rules</p>
                     <p className="text-gray-400">[10:46:12] ACTION: POST_JOURNAL_ENTRY completed</p>
-                    <p className="animate-pulse text-indigo-400">Listening for new events...</p>
+                    <p className="animate-pulse text-indigo-400">{_t('Listening for new events...', 'Listening for new events...')}</p>
                 </div>
             </div>
         </div>

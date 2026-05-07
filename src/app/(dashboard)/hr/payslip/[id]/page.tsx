@@ -74,7 +74,7 @@ export default function PayslipViewer() {
  <p className="text-slate-500 text-sm mt-1">المملكة العربية السعودية، الرياض</p>
  </div>
  <div className="text-left">
- <h2 className="text-4xl font-black text-slate-200 uppercase tracking-widest mb-2">Payslip</h2>
+ <h2 className="text-4xl font-black text-slate-200 uppercase tracking-widest mb-2">{_t('Payslip', 'Payslip')}</h2>
  <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold">
  <CheckCircle2 className="w-4 h-4 ml-1.5" /> معتمد
  </div>
@@ -144,10 +144,10 @@ export default function PayslipViewer() {
  <div className="w-full md:w-1/2 bg-slate-800 text-white p-6 rounded-2xl shadow-xl flex justify-between items-center transform hover:scale-105 transition-transform duration-300">
  <div>
  <p className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">الصافي المستحق للموظف</p>
- <p className="text-slate-300 text-xs">Net Pay (SAR)</p>
+ <p className="text-slate-300 text-xs">{_t('Net Pay (SAR)', 'Net Pay (SAR)')}</p>
  </div>
  <h2 className="text-4xl font-black font-mono tracking-tight text-emerald-400">
- {invoice.total.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-lg text-slate-400">SAR</span>
+ {invoice.total.toLocaleString('en-US', {minimumFractionDigits: 2})} <span className="text-lg text-slate-400">{_t('ر.س', 'SAR')}</span>
  </h2>
  </div>
  </div>
@@ -155,7 +155,7 @@ export default function PayslipViewer() {
  {/* Footer / Disclaimer */}
  <div className="pt-8 border-t border-slate-200 text-center text-slate-400 text-xs font-medium">
  <p>هذا الإشعار تم إصداره آلياً من نظام إدارة الموارد البشرية لشركة نما انفست ولا يحتاج إلى توقيع.</p>
- <p className="mt-1 font-mono">This is a system generated payslip and does not require a signature.</p>
+ <p className="mt-1 font-mono">{_t('This is a system generated payslip and does not require a signature.', 'This is a system generated payslip and does not require a signature.')}</p>
  </div>
 
  </div>

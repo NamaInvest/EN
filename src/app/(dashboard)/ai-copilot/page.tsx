@@ -56,7 +56,7 @@ export default function AICopilot() {
  <Bot className="w-8 h-8 text-indigo-600 dark:text-indigo-400 relative z-10" />
  </div>
  <div>
- <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Nama AI Copilot</h1>
+ <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">{_t('Nama AI Copilot', 'Nama AI Copilot')}</h1>
  <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">مساعدك التنفيذي المدمج مع بيانات (ERP)</p>
  </div>
  </div>
@@ -94,7 +94,7 @@ export default function AICopilot() {
  <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-5 rounded-2xl text-white relative overflow-hidden shadow-lg">
  <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-br-full pointer-events-none"></div>
  <Sparkles className="w-6 h-6 mb-3 text-indigo-200" />
- <h3 className="font-bold mb-1">Nama AI Vision</h3>
+ <h3 className="font-bold mb-1">{_t('Nama AI Vision', 'Nama AI Vision')}</h3>
  <p className="text-xs text-indigo-100 opacity-90">يمكنك رفع صورة فاتورة وسأقوم باستخراج بياناتها وإنشاء قيد مالي تلقائياً.</p>
  </div>
  </div>
@@ -205,9 +205,7 @@ export default function AICopilot() {
  <Send className="w-5 h-5 -ml-1" style={{ transform: 'rotate(180deg)' }} />
  </button>
  </div>
- <p className="text-center text-xs text-slate-400 mt-3 font-[Fira_Code]">
- Copilot can make mistakes. Consider verifying important financial data.
- </p>
+ <p className="text-center text-xs text-slate-400 mt-3 font-[Fira_Code]">{_t('Copilot can make mistakes. Consider verifying important financial data.', 'Copilot can make mistakes. Consider verifying important financial data.')}</p>
  </form>
  </div>
  </div>

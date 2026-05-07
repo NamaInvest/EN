@@ -101,8 +101,7 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
  </p>
  </div>
  <button className="btn btn-primary" onClick={() => router.push(`/enterprise/projects/${params.id}/gantt`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
-   <LayoutDashboard size={18} /> Gantt & Analytics
- </button>
+   <LayoutDashboard size={18} />{_t('Gantt & Analytics', 'Gantt & Analytics')}</button>
  </div>
 
  {/* Dashboard Analytics for this single project */}

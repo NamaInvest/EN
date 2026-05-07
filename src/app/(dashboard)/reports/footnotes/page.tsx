@@ -16,16 +16,16 @@ export default function FootnotesBuilderPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Financial Statement Footnotes</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Financial Statement Footnotes', 'Financial Statement Footnotes')}</h1>
                 <div className="space-x-2">
-                    <Button variant="outline">Auto-Populate</Button>
-                    <Button>New Footnote</Button>
+                    <Button variant="outline">{_t('Auto-Populate', 'Auto-Populate')}</Button>
+                    <Button>{_t('New Footnote', 'New Footnote')}</Button>
                 </div>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Disclosures & Footnotes (FY 2026)</CardTitle>
+                    <CardTitle>{_t('Disclosures & Footnotes (FY 2026)', 'Disclosures & Footnotes (FY 2026)')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
@@ -42,7 +42,7 @@ export default function FootnotesBuilderPage() {
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300">{fn.content}</p>
                                 <div className="mt-4 flex space-x-2">
-                                    <Button size="sm" variant="outline">Edit Content</Button>
+                                    <Button size="sm" variant="outline">{_t('Edit Content', 'Edit Content')}</Button>
                                     <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">{_t('حذف', 'Delete')}</Button>
                                 </div>
                             </div>

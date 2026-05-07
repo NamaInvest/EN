@@ -30,26 +30,26 @@ export default function ConstructionProgressBillingPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Progress Billing & Retention</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Progress Billing & Retention', 'Progress Billing & Retention')}</h1>
                 <Button>+ New Payment Certificate</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Interim Payment Certificates (IPC)</CardTitle>
+                    <CardTitle>{_t('Interim Payment Certificates (IPC)', 'Interim Payment Certificates (IPC)')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Certificate No</th>
+                                        <th className="px-4 py-3">{_t('Certificate No', 'Certificate No')}</th>
                                         <th className="px-4 py-3">{_t('الفترة (Period)', 'Period')}</th>
                                         <th className="px-4 py-3">{_t('منتج', 'Project')}</th>
-                                        <th className="px-4 py-3 text-right">Work Done</th>
-                                        <th className="px-4 py-3 text-right">Retention</th>
-                                        <th className="px-4 py-3 text-right font-bold text-blue-600">Net Payable</th>
+                                        <th className="px-4 py-3 text-right">{_t('Work Done', 'Work Done')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('Retention', 'Retention')}</th>
+                                        <th className="px-4 py-3 text-right font-bold text-blue-600">{_t('Net Payable', 'Net Payable')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
@@ -65,7 +65,7 @@ export default function ConstructionProgressBillingPage() {
                                             <td className="px-4 py-3 text-right font-bold text-blue-600">${pb.netPayable.toLocaleString()}</td>
                                             <td className="px-4 py-3">
                                                 {pb.status === 'CERTIFIED' ? (
-                                                    <Badge className="bg-green-100 text-green-800">Certified</Badge>
+                                                    <Badge className="bg-green-100 text-green-800">{_t('Certified', 'Certified')}</Badge>
                                                 ) : (
                                                     <Badge variant="outline">{_t('مسودة', 'Draft')}</Badge>
                                                 )}
@@ -73,7 +73,7 @@ export default function ConstructionProgressBillingPage() {
                                             <td className="px-4 py-3 text-right space-x-2">
                                                 <Button size="sm" variant="outline">{_t('طباعة / Print', 'Print')}</Button>
                                                 {pb.status === 'DRAFT' && (
-                                                    <Button size="sm" variant="outline" className="text-green-600 border-green-500">Certify</Button>
+                                                    <Button size="sm" variant="outline" className="text-green-600 border-green-500">{_t('Certify', 'Certify')}</Button>
                                                 )}
                                             </td>
                                         </tr>

@@ -7,6 +7,7 @@ const CARRIERS = ['ARAMEX','SMSA','SPL','FETCHR'];
 
 export default function ShippingPage() {
     const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const isAr = lang === 'ar';
     const [tab, setTab] = useState<'shipments'|'carriers'|'estimate'>('shipments');
     const [shipments, setShipments] = useState<any[]>([]);
@@ -36,7 +37,7 @@ export default function ShippingPage() {
                 {tab==='shipments' && (
                     <table style={{ width:'100%', borderCollapse:'collapse' }}>
                         <thead><tr style={{background:'#E3F2FD'}}>
-                            <th style={{padding:10}}>AWB</th><th style={{padding:10}}>{isAr?'الطلب':'Order'}</th>
+                            <th style={{padding:10}}>{_t('AWB', 'AWB')}</th><th style={{padding:10}}>{isAr?'الطلب':'Order'}</th>
                             <th style={{padding:10}}>{isAr?'الحالة':'Status'}</th><th style={{padding:10}}>{isAr?'التكلفة':'Cost'}</th>
                         </tr></thead>
                         <tbody>{shipments.length>0?shipments.map(s=>(

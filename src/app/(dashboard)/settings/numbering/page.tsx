@@ -35,12 +35,12 @@ export default function NumberingSettingsPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-6">Loading sequences...</div>;
+    return <div className="p-6">{_t('Loading sequences...', 'Loading sequences...')}</div>;
   }
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Numbering Sequences Settings</h1>
+      <h1 className="text-2xl font-bold">{_t('Numbering Sequences Settings', 'Numbering Sequences Settings')}</h1>
       
       <div className="bg-white shadow rounded-lg overflow-hidden dark:bg-gray-800">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -48,9 +48,9 @@ export default function NumberingSettingsPage() {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('الكود', 'Code')}</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('الاسم', 'Name')}</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Format Preview</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Current</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Reset Rule</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('Format Preview', 'Format Preview')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('Current', 'Current')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('Reset Rule', 'Reset Rule')}</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">{_t('الحالة', 'Status')}</th>
             </tr>
           </thead>
@@ -73,9 +73,7 @@ export default function NumberingSettingsPage() {
             ))}
             {sequences.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                  No sequences found
-                </td>
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{_t('No sequences found', 'No sequences found')}</td>
               </tr>
             )}
           </tbody>

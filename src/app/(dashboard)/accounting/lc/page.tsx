@@ -110,7 +110,7 @@ export default function LcManagementPage() {
  {lc.amount.toLocaleString()} <span className="text-xs text-slate-500">{lc.currency}</span>
  </td>
  <td className="px-6 py-4 text-emerald-600 font-bold" dir="ltr">
- {lc.marginPaid.toLocaleString()} <span className="text-xs text-slate-500">SAR</span>
+ {lc.marginPaid.toLocaleString()} <span className="text-xs text-slate-500">{_t('ر.س', 'SAR')}</span>
  <div className="text-[10px] text-slate-400">({lc.marginPercent}%)</div>
  </td>
  <td className="px-6 py-4">{new Date(lc.expiryDate).toLocaleDateString('en-GB')}</td>

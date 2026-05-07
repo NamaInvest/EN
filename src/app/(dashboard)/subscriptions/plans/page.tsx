@@ -61,7 +61,7 @@ export default function SubscriptionPlans() {
               <div style={{ fontSize: '12px', fontWeight: '700', color: p.active ? '#22C55E' : '#EF4444', marginBottom: '8px' }}>{p.active ? '● نشطة' : '● معطلة'}</div>
               <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>{p.name}</h3>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px', fontFamily: 'monospace' }}>{p.code}</div>
-              <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px' }}>{p.price} <span style={{ fontSize: '14px', fontWeight: '500' }}>SAR</span></div>
+              <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--primary)', marginBottom: '4px' }}>{p.price} <span style={{ fontSize: '14px', fontWeight: '500' }}>{_t('ر.س', 'SAR')}</span></div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{cycleLabel[p.billingCycle] || p.billingCycle}</div>
               {p.description && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>{p.description}</p>}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', background: 'var(--bg-body)', padding: '12px', borderRadius: '10px' }}>

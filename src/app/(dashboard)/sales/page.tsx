@@ -577,14 +577,14 @@ export default function SalesPage() {
  const maxAllowedDiscount = (() => {
  if (!discountEnabled) return 0;
  if (discountRules.length === 0) return Infinity;
- const applicableRules = discountRules.filter(r => r.minAmount <= subtotal);
+ const applicableRules = discountRules.filter(r =>{_t('r.minAmount', 'r.minAmount')}<= subtotal);
  if (applicableRules.length === 0) return 0;
  return Math.max(...applicableRules.map(r => r.maxDiscount));
  })();
  const maxAllowedDiscountPercent = (() => {
  if (!discountEnabled) return 0;
  if (discountRules.length === 0) return 100;
- const applicableRules = discountRules.filter(r => r.minAmount <= subtotal);
+ const applicableRules = discountRules.filter(r =>{_t('r.minAmount', 'r.minAmount')}<= subtotal);
  if (applicableRules.length === 0) return 0;
  return Math.max(...applicableRules.map(r => r.maxDiscountPercent || 0));
  })();
@@ -1046,7 +1046,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  </div>
  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
  <button className="btn btn-ghost btn-sm" onClick={handleNewInvoice} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
- <span>✖</span> {t('sys.str_742')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Esc</kbd>
+ <span>✖</span> {t('sys.str_742')} <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>{_t('Esc', 'Esc')}</kbd>
  </button>
  <button id="hold-btn" className="btn btn-ghost btn-sm" onClick={holdInvoice} disabled={cart.length === 0}
  style={{ color: 'var(--warning)', display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -1401,8 +1401,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  value={paidAmount} onChange={e => setPaidAmount(e.target.value)}
  placeholder={fmt(total)} style={{ width: '120px', textAlign: 'center', padding: '4px 8px' }} dir="ltr" />
  </div>
- {paymentType === 'cash' && paidAmount && parseFloat(paidAmount) > total && (
- <div className="pos-total-row" style={{ background: 'rgba(34,197,94,0.1)', borderRadius: '6px', padding: '8px' }}>
+ {paymentType === 'cash' && paidAmount && parseFloat(paidAmount) >{_t('total && (', 'total && (')}<div className="pos-total-row" style={{ background: 'rgba(34,197,94,0.1)', borderRadius: '6px', padding: '8px' }}>
  <span style={{ fontWeight: '700', color: '#22c55e' }}>{t('sys.str_775')}</span>
  <span style={{ fontWeight: '700', fontSize: '18px', color: '#22c55e', fontFamily: 'monospace' }}>{fmt(parseFloat(paidAmount) - total)} {t('sys.str_68')}</span>
  </div>
@@ -1435,8 +1434,7 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  <div className="pos-total-row" style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 'bold' }}>
  {t('sys.str_778')}</div>
  )}
- {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) > total && (
- <div className="pos-total-row" style={{ color: '#22c55e', fontSize: '13px', fontWeight: 'bold' }}>
+ {((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) >{_t('total && (', 'total && (')}<div className="pos-total-row" style={{ color: '#22c55e', fontSize: '13px', fontWeight: 'bold' }}>
  {t('sys.str_779')}{fmt(((parseFloat(splitCash) || 0) + (parseFloat(splitCard) || 0)) - total)} {t('sys.str_68')}</div>
  )}
  </>

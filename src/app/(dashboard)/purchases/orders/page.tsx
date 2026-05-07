@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function PurchaseOrdersPage() {
     const orders = await prisma.purchaseOrder.findMany({
         include: {
@@ -24,19 +25,15 @@ export default async function PurchaseOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <ShoppingBag className="w-8 h-8 text-blue-600" />
-                        Purchase Orders
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage vendor POs, tracking, and approvals.</p>
+                        <ShoppingBag className="w-8 h-8 text-blue-600" />{_t('Purchase Orders', 'Purchase Orders')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage vendor POs, tracking, and approvals.', 'Manage vendor POs, tracking, and approvals.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/purchases/requisitions">
-                        <Button variant="outline" className="bg-white">View PRs</Button>
+                        <Button variant="outline" className="bg-white">{_t('View PRs', 'View PRs')}</Button>
                     </Link>
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        New PO
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('New PO', 'New PO')}</Button>
                 </div>
             </div>
 
@@ -54,7 +51,7 @@ export default async function PurchaseOrdersPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Completed (Received)</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('Completed (Received)', 'Completed (Received)')}</p>
                             <CheckCircle className="w-4 h-4 text-green-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{completedCount}</h3>
@@ -63,11 +60,11 @@ export default async function PurchaseOrdersPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Total Purchase Value (Recent)</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('Total Purchase Value (Recent)', 'Total Purchase Value (Recent)')}</p>
                             <DollarSign className="w-4 h-4 text-gray-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">
-                            {totalValue.toLocaleString()} <span className="text-sm font-normal text-gray-500">SAR</span>
+                            {totalValue.toLocaleString()} <span className="text-sm font-normal text-gray-500">{_t('ر.س', 'SAR')}</span>
                         </h3>
                     </CardContent>
                 </Card>
@@ -90,11 +87,11 @@ export default async function PurchaseOrdersPage() {
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Order #</th>
-                                <th className="px-4 py-3 font-medium">Vendor</th>
-                                <th className="px-4 py-3 font-medium">Date</th>
-                                <th className="px-4 py-3 font-medium">Total</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Vendor', 'Vendor')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('التاريخ', 'Date')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الإجمالي', 'Total')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -105,7 +102,7 @@ export default async function PurchaseOrdersPage() {
                                     </td>
                                     <td className="px-4 py-3 text-gray-700 font-medium">
                                         {po.supplier?.name || 'Walk-in Vendor'}
-                                        {po.isForeign && <span className="ml-2 text-xs text-orange-500 bg-orange-50 px-1 py-0.5 rounded border border-orange-100">Import</span>}
+                                        {po.isForeign && <span className="ml-2 text-xs text-orange-500 bg-orange-50 px-1 py-0.5 rounded border border-orange-100">{_t('Import', 'Import')}</span>}
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">
                                         {format(new Date(po.date), 'MMM dd, yyyy')}
@@ -124,9 +121,7 @@ export default async function PurchaseOrdersPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                            View
-                                        </Button>
+                                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">{_t('عرض', 'View')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -135,11 +130,9 @@ export default async function PurchaseOrdersPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <FileText className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No Purchase Orders</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('No Purchase Orders', 'No Purchase Orders')}</p>
                                             <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
-                                                <Plus className="w-4 h-4 mr-2" />
-                                                Create First PO
-                                            </Button>
+                                                <Plus className="w-4 h-4 mr-2" />{_t('Create First PO', 'Create First PO')}</Button>
                                         </div>
                                     </td>
                                 </tr>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function SubscriptionsDashboard() {
     // Basic metrics aggregation
     const subscriptions = await prisma.customerSubscription.findMany({
@@ -31,19 +32,15 @@ export default async function SubscriptionsDashboard() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Repeat className="w-8 h-8 text-indigo-600" />
-                        Subscriptions
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage recurring billing, plans, and customer life-cycles.</p>
+                        <Repeat className="w-8 h-8 text-indigo-600" />{_t('Subscriptions', 'Subscriptions')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage recurring billing, plans, and customer life-cycles.', 'Manage recurring billing, plans, and customer life-cycles.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/subscriptions/plans">
-                        <Button variant="outline" className="bg-white">Manage Plans</Button>
+                        <Button variant="outline" className="bg-white">{_t('Manage Plans', 'Manage Plans')}</Button>
                     </Link>
                     <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Subscription
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('New Subscription', 'New Subscription')}</Button>
                 </div>
             </div>
 
@@ -52,16 +49,16 @@ export default async function SubscriptionsDashboard() {
                 <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-indigo-600">MRR (Monthly)</p>
+                            <p className="text-sm font-medium text-indigo-600">{_t('MRR (Monthly)', 'MRR (Monthly)')}</p>
                             <TrendingUp className="w-4 h-4 text-indigo-400" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{mrr.toLocaleString()} <span className="text-sm font-normal text-gray-500">SAR</span></h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mt-2">{mrr.toLocaleString()} <span className="text-sm font-normal text-gray-500">{_t('ر.س', 'SAR')}</span></h3>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">Active Subscribers</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('Active Subscribers', 'Active Subscribers')}</p>
                             <UserCheck className="w-4 h-4 text-green-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{activeCount}</h3>
@@ -70,7 +67,7 @@ export default async function SubscriptionsDashboard() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">On Free Trial</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('On Free Trial', 'On Free Trial')}</p>
                             <ShieldCheck className="w-4 h-4 text-blue-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{trialCount}</h3>
@@ -100,11 +97,11 @@ export default async function SubscriptionsDashboard() {
                     </div>
                     <div className="flex gap-2 ml-auto">
                         <select className="border border-gray-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="ALL">All Statuses</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="TRIAL">Trial</option>
-                            <option value="PAST_DUE">Past Due</option>
-                            <option value="CANCELLED">Cancelled</option>
+                            <option value="ALL">{_t('All Statuses', 'All Statuses')}</option>
+                            <option value="ACTIVE">{_t('نشط', 'Active')}</option>
+                            <option value="TRIAL">{_t('Trial', 'Trial')}</option>
+                            <option value="PAST_DUE">{_t('Past Due', 'Past Due')}</option>
+                            <option value="CANCELLED">{_t('ملغية (Cancelled)', 'Cancelled')}</option>
                         </select>
                     </div>
                 </div>
@@ -112,12 +109,12 @@ export default async function SubscriptionsDashboard() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Customer</th>
-                                <th className="px-4 py-3 font-medium">Plan</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium">Cycle Ends</th>
-                                <th className="px-4 py-3 font-medium">Price</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Customer', 'Customer')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Plan', 'Plan')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Cycle Ends', 'Cycle Ends')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('السعر', 'Price')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -148,9 +145,7 @@ export default async function SubscriptionsDashboard() {
                                         {Number(sub.plan.price).toLocaleString()} SAR
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                            Manage
-                                        </Button>
+                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">{_t('Manage', 'Manage')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -159,12 +154,10 @@ export default async function SubscriptionsDashboard() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Repeat className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No subscriptions found</p>
-                                            <p className="text-sm mt-1">Start by creating your first subscription plan and enrolling a customer.</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('No subscriptions found', 'No subscriptions found')}</p>
+                                            <p className="text-sm mt-1">{_t('Start by creating your first subscription plan and enrolling a customer.', 'Start by creating your first subscription plan and enrolling a customer.')}</p>
                                             <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white">
-                                                <Plus className="w-4 h-4 mr-2" />
-                                                Create Subscription
-                                            </Button>
+                                                <Plus className="w-4 h-4 mr-2" />{_t('Create Subscription', 'Create Subscription')}</Button>
                                         </div>
                                     </td>
                                 </tr>

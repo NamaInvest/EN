@@ -30,26 +30,26 @@ export default function DistributionWavePickingPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Wave Picking Console</h1>
-                <Button>Generate Pick Wave</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Wave Picking Console', 'Wave Picking Console')}</h1>
+                <Button>{_t('Generate Pick Wave', 'Generate Pick Wave')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Active Picking Waves</CardTitle>
+                    <CardTitle>{_t('Active Picking Waves', 'Active Picking Waves')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Wave ID</th>
+                                        <th className="px-4 py-3">{_t('Wave ID', 'Wave ID')}</th>
                                         <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
                                         <th className="px-4 py-3">{_t('النوع', 'Type')}</th>
-                                        <th className="px-4 py-3">Total Orders</th>
-                                        <th className="px-4 py-3">Assigned Picker</th>
-                                        <th className="px-4 py-3">Progress</th>
+                                        <th className="px-4 py-3">{_t('Total Orders', 'Total Orders')}</th>
+                                        <th className="px-4 py-3">{_t('Assigned Picker', 'Assigned Picker')}</th>
+                                        <th className="px-4 py-3">{_t('Progress', 'Progress')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
@@ -69,15 +69,15 @@ export default function DistributionWavePickingPage() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 {wave.status === 'IN_PROGRESS' ? (
-                                                    <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>
+                                                    <Badge className="bg-blue-100 text-blue-800">{_t('In Progress', 'In Progress')}</Badge>
                                                 ) : (
-                                                    <Badge variant="outline">Pending</Badge>
+                                                    <Badge variant="outline">{_t('Pending', 'Pending')}</Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline">Print Slips</Button>
+                                                <Button size="sm" variant="outline">{_t('Print Slips', 'Print Slips')}</Button>
                                                 {wave.status === 'PENDING' && (
-                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">Release</Button>
+                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('Release', 'Release')}</Button>
                                                 )}
                                             </td>
                                         </tr>

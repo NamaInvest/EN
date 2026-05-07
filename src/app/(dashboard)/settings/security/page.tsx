@@ -2,6 +2,7 @@ import React from 'react';
 import SecuritySettingsClient from './SecuritySettingsClient';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function SecuritySettingsPage() {
     // We assume tenant/user is 1 for now (mock user until auth is fully integrated in layout)
     // Normally we would get user ID from session/JWT
@@ -24,7 +25,7 @@ export default async function SecuritySettingsPage() {
     });
 
     if (!user) {
-        return <div>User not found</div>;
+        return <div>{_t('User not found', 'User not found')}</div>;
     }
 
     // Format data for the client

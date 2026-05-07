@@ -17,24 +17,24 @@ export default function SLATrackingPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">SLA Tracking & Compliance</h1>
-                <Button variant="outline">Export Report</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('SLA Tracking & Compliance', 'SLA Tracking & Compliance')}</h1>
+                <Button variant="outline">{_t('Export Report', 'Export Report')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Active SLAs</CardTitle>
+                    <CardTitle>{_t('Active SLAs', 'Active SLAs')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">Reference ID</th>
+                                    <th className="px-4 py-3">{_t('Reference ID', 'Reference ID')}</th>
                                     <th className="px-4 py-3">{_t('العميل', 'Client')}</th>
-                                    <th className="px-4 py-3">SLA Type</th>
-                                    <th className="px-4 py-3">Target Time</th>
-                                    <th className="px-4 py-3">Elapsed Time</th>
+                                    <th className="px-4 py-3">{_t('SLA Type', 'SLA Type')}</th>
+                                    <th className="px-4 py-3">{_t('Target Time', 'Target Time')}</th>
+                                    <th className="px-4 py-3">{_t('Elapsed Time', 'Elapsed Time')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                 </tr>
                             </thead>
@@ -48,9 +48,9 @@ export default function SLATrackingPage() {
                                         <td className="px-4 py-3 font-mono">{sla.elapsed}</td>
                                         <td className="px-4 py-3">
                                             {sla.status === 'ON_TRACK' ? (
-                                                <Badge className="bg-green-100 text-green-800">On Track</Badge>
+                                                <Badge className="bg-green-100 text-green-800">{_t('On Track', 'On Track')}</Badge>
                                             ) : (
-                                                <Badge className="bg-red-100 text-red-800 animate-pulse">Breached</Badge>
+                                                <Badge className="bg-red-100 text-red-800 animate-pulse">{_t('Breached', 'Breached')}</Badge>
                                             )}
                                         </td>
                                     </tr>

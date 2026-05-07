@@ -129,7 +129,7 @@ export default function SCMDashboard() {
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
  <td className="px-6 py-4">
  <div className="font-bold text-slate-900 dark:text-slate-200 font-sans">محركات ديزل 200HP</div>
- <div className="text-xs text-slate-500">ITM-4092</div>
+ <div className="text-xs text-slate-500">{_t('ITM-4092', 'ITM-4092')}</div>
  </td>
  <td className="px-6 py-4 font-sans text-slate-700 dark:text-slate-300">مصنع رواد الميكانيكا</td>
  <td className="px-6 py-4 text-center text-red-500 font-bold">12</td>
@@ -139,7 +139,7 @@ export default function SCMDashboard() {
  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
  <td className="px-6 py-4">
  <div className="font-bold text-slate-900 dark:text-slate-200 font-sans">أسلاك نحاسية معزولة (لفة)</div>
- <div className="text-xs text-slate-500">ITM-1021</div>
+ <div className="text-xs text-slate-500">{_t('ITM-1021', 'ITM-1021')}</div>
  </td>
  <td className="px-6 py-4 font-sans text-slate-700 dark:text-slate-300">شركة الكابلات المتقدمة</td>
  <td className="px-6 py-4 text-center text-red-500 font-bold">45</td>

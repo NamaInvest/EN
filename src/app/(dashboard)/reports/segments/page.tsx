@@ -16,34 +16,34 @@ export default function SegmentReportingPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Segment Reporting (IFRS 8)</h1>
-                <Button>Export Segment Report</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Segment Reporting (IFRS 8)', 'Segment Reporting (IFRS 8)')}</h1>
+                <Button>{_t('Export Segment Report', 'Export Segment Report')}</Button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card className="bg-blue-50 border-blue-200">
-                    <CardHeader className="pb-2"><CardTitle className="text-blue-800 text-sm">Total Segment Revenue</CardTitle></CardHeader>
-                    <CardContent><div className="text-3xl font-bold text-blue-900">SAR 7,700,000</div></CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-blue-800 text-sm">{_t('Total Segment Revenue', 'Total Segment Revenue')}</CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-blue-900">{_t('SAR 7,700,000', 'SAR 7,700,000')}</div></CardContent>
                 </Card>
                 <Card className="bg-green-50 border-green-200">
-                    <CardHeader className="pb-2"><CardTitle className="text-green-800 text-sm">Total Segment Margin</CardTitle></CardHeader>
-                    <CardContent><div className="text-3xl font-bold text-green-900">SAR 3,700,000</div></CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-green-800 text-sm">{_t('Total Segment Margin', 'Total Segment Margin')}</CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-green-900">{_t('SAR 3,700,000', 'SAR 3,700,000')}</div></CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Performance by Operating Segment</CardTitle>
+                    <CardTitle>{_t('Performance by Operating Segment', 'Performance by Operating Segment')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">Segment Name</th>
-                                    <th className="px-4 py-3 text-right">Revenue (SAR)</th>
-                                    <th className="px-4 py-3 text-right">Cost (SAR)</th>
-                                    <th className="px-4 py-3 text-right">Gross Margin (SAR)</th>
+                                    <th className="px-4 py-3">{_t('Segment Name', 'Segment Name')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('Revenue (SAR)', 'Revenue (SAR)')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('Cost (SAR)', 'Cost (SAR)')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('Gross Margin (SAR)', 'Gross Margin (SAR)')}</th>
                                     <th className="px-4 py-3 text-center">Margin %</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
@@ -57,7 +57,7 @@ export default function SegmentReportingPage() {
                                         <td className="px-4 py-3 text-right font-bold text-green-600">{seg.margin.toLocaleString()}</td>
                                         <td className="px-4 py-3 text-center font-bold bg-gray-50">{seg.marginPct}%</td>
                                         <td className="px-4 py-3 text-right">
-                                            <Button size="sm" variant="outline">Drilldown</Button>
+                                            <Button size="sm" variant="outline">{_t('Drilldown', 'Drilldown')}</Button>
                                         </td>
                                     </tr>
                                 ))}

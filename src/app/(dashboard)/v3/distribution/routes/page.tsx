@@ -30,26 +30,26 @@ export default function DistributionRoutesPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Route Optimization & Dispatch</h1>
-                <Button>Optimize New Route</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Route Optimization & Dispatch', 'Route Optimization & Dispatch')}</h1>
+                <Button>{_t('Optimize New Route', 'Optimize New Route')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Delivery Routes</CardTitle>
+                    <CardTitle>{_t('Delivery Routes', 'Delivery Routes')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Route ID</th>
-                                        <th className="px-4 py-3">Region</th>
-                                        <th className="px-4 py-3">Driver</th>
-                                        <th className="px-4 py-3">Vehicle</th>
-                                        <th className="px-4 py-3 text-center">Stops</th>
-                                        <th className="px-4 py-3">Est. Completion</th>
+                                        <th className="px-4 py-3">{_t('Route ID', 'Route ID')}</th>
+                                        <th className="px-4 py-3">{_t('Region', 'Region')}</th>
+                                        <th className="px-4 py-3">{_t('Driver', 'Driver')}</th>
+                                        <th className="px-4 py-3">{_t('Vehicle', 'Vehicle')}</th>
+                                        <th className="px-4 py-3 text-center">{_t('Stops', 'Stops')}</th>
+                                        <th className="px-4 py-3">{_t('Est. Completion', 'Est. Completion')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
@@ -65,15 +65,15 @@ export default function DistributionRoutesPage() {
                                             <td className="px-4 py-3 text-gray-500">{rt.estCompletion}</td>
                                             <td className="px-4 py-3">
                                                 {rt.status === 'DISPATCHED' ? (
-                                                    <Badge className="bg-green-100 text-green-800">Dispatched</Badge>
+                                                    <Badge className="bg-green-100 text-green-800">{_t('Dispatched', 'Dispatched')}</Badge>
                                                 ) : (
-                                                    <Badge variant="outline">Planning</Badge>
+                                                    <Badge variant="outline">{_t('Planning', 'Planning')}</Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline">Map View</Button>
+                                                <Button size="sm" variant="outline">{_t('Map View', 'Map View')}</Button>
                                                 {rt.status === 'PLANNING' && (
-                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">Dispatch</Button>
+                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('Dispatch', 'Dispatch')}</Button>
                                                 )}
                                             </td>
                                         </tr>

@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function PettyCashPage() {
     const funds = await prisma.pettyCashFund.findMany({
         include: {
@@ -19,19 +20,15 @@ export default async function PettyCashPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Wallet className="w-8 h-8 text-emerald-600" />
-                        Petty Cash Management
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage imprest funds, expenses, and reimbursements.</p>
+                        <Wallet className="w-8 h-8 text-emerald-600" />{_t('Petty Cash Management', 'Petty Cash Management')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage imprest funds, expenses, and reimbursements.', 'Manage imprest funds, expenses, and reimbursements.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/treasury">
-                        <Button variant="outline" className="bg-white">Back to Treasury</Button>
+                        <Button variant="outline" className="bg-white">{_t('Back to Treasury', 'Back to Treasury')}</Button>
                     </Link>
                     <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Fund
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('Create Fund', 'Create Fund')}</Button>
                 </div>
             </div>
 
@@ -61,13 +58,13 @@ export default async function PettyCashPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end">
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1">Current Balance</p>
+                                            <p className="text-xs text-gray-500 mb-1">{_t('الرصيد الحالي', 'Current Balance')}</p>
                                             <p className={`text-2xl font-bold ${isLow ? 'text-red-600' : 'text-gray-900'}`}>
                                                 SAR {fund.currentBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-gray-500 mb-1">Max Limit</p>
+                                            <p className="text-xs text-gray-500 mb-1">{_t('Max Limit', 'Max Limit')}</p>
                                             <p className="text-sm font-medium text-gray-700">SAR {fund.maxLimit?.toLocaleString()}</p>
                                         </div>
                                     </div>
@@ -79,18 +76,14 @@ export default async function PettyCashPage() {
                                             style={{ width: `${Math.min(progress, 100)}%` }}
                                         ></div>
                                     </div>
-                                    {isLow && <p className="text-xs text-red-500 font-medium">Balance running low. Top-up required.</p>}
+                                    {isLow && <p className="text-xs text-red-500 font-medium">{_t('Balance running low. Top-up required.', 'Balance running low. Top-up required.')}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 mt-6">
                                     <Button variant="outline" size="sm" className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                                        <ReceiptText className="w-4 h-4 mr-2" />
-                                        Add Expense
-                                    </Button>
+                                        <ReceiptText className="w-4 h-4 mr-2" />{_t('Add Expense', 'Add Expense')}</Button>
                                     <Button variant="outline" size="sm" className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50">
-                                        <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                        Replenish
-                                    </Button>
+                                        <ArrowRightLeft className="w-4 h-4 mr-2" />{_t('Replenish', 'Replenish')}</Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -101,11 +94,10 @@ export default async function PettyCashPage() {
                     <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-lg border border-gray-200">
                         <div className="flex flex-col items-center">
                             <Wallet className="w-10 h-10 text-gray-300 mb-3" />
-                            <p className="text-lg font-medium text-gray-900">No Petty Cash Funds</p>
-                            <p className="text-sm">Create a new fund to start managing petty cash.</p>
+                            <p className="text-lg font-medium text-gray-900">{_t('No Petty Cash Funds', 'No Petty Cash Funds')}</p>
+                            <p className="text-sm">{_t('Create a new fund to start managing petty cash.', 'Create a new fund to start managing petty cash.')}</p>
                             <Button className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white">
-                                <Plus className="w-4 h-4 mr-2" /> Create First Fund
-                            </Button>
+                                <Plus className="w-4 h-4 mr-2" />{_t('Create First Fund', 'Create First Fund')}</Button>
                         </div>
                     </div>
                 )}

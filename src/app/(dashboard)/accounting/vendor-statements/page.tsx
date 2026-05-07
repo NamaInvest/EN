@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function VendorStatementsPage() {
     // Fetch unique vendors that have purchase invoices
     // For this mock, we just fetch from purchase invoices and group by supplierName
@@ -45,19 +46,15 @@ export default async function VendorStatementsPage() {
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Vendor Statements</h1>
-                    <p className="text-gray-500 mt-2">Generate and send account statements to your suppliers to reconcile AP balances.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('Vendor Statements', 'Vendor Statements')}</h1>
+                    <p className="text-gray-500 mt-2">{_t('Generate and send account statements to your suppliers to reconcile AP balances.', 'Generate and send account statements to your suppliers to reconcile AP balances.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Aging Analysis
-                    </Button>
+                        <Filter className="w-4 h-4 mr-2" />{_t('Aging Analysis', 'Aging Analysis')}</Button>
                     <Link href="/accounting/vendor-statements/bulk">
                         <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                            <Send className="w-4 h-4 mr-2" />
-                            Bulk Send Statements
-                        </Button>
+                            <Send className="w-4 h-4 mr-2" />{_t('Bulk Send Statements', 'Bulk Send Statements')}</Button>
                     </Link>
                 </div>
             </div>
@@ -74,13 +71,13 @@ export default async function VendorStatementsPage() {
                     </div>
                     <div className="flex gap-2 ml-auto">
                         <select className="border border-gray-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>All Balances</option>
+                            <option>{_t('All Balances', 'All Balances')}</option>
                             <option>&gt; 10,000 SAR</option>
                             <option>&gt; 50,000 SAR</option>
                         </select>
                         <select className="border border-gray-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>As of Today</option>
-                            <option>End of Last Month</option>
+                            <option>{_t('As of Today', 'As of Today')}</option>
+                            <option>{_t('End of Last Month', 'End of Last Month')}</option>
                         </select>
                     </div>
                 </div>
@@ -88,11 +85,11 @@ export default async function VendorStatementsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Vendor Name</th>
-                                <th className="px-4 py-3 font-medium">Outstanding Balance</th>
-                                <th className="px-4 py-3 font-medium">Total Invoices</th>
-                                <th className="px-4 py-3 font-medium">Last Activity</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Vendor Name', 'Vendor Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Outstanding Balance', 'Outstanding Balance')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Total Invoices', 'Total Invoices')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Last Activity', 'Last Activity')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -113,14 +110,11 @@ export default async function VendorStatementsPage() {
                                     <td className="px-4 py-3 text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                                <FileText className="w-4 h-4 mr-1" /> View
-                                            </Button>
+                                                <FileText className="w-4 h-4 mr-1" />{_t('عرض', 'View')}</Button>
                                             <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                                                <Download className="w-4 h-4 mr-1" /> PDF
-                                            </Button>
+                                                <Download className="w-4 h-4 mr-1" />{_t('PDF', 'PDF')}</Button>
                                             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                                <Mail className="w-4 h-4 mr-1" /> Send
-                                            </Button>
+                                                <Mail className="w-4 h-4 mr-1" />{_t('Send', 'Send')}</Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -130,7 +124,7 @@ export default async function VendorStatementsPage() {
                                     <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <FileText className="w-8 h-8 text-gray-300 mb-2" />
-                                            <p>No vendors with outstanding balances found.</p>
+                                            <p>{_t('No vendors with outstanding balances found.', 'No vendors with outstanding balances found.')}</p>
                                         </div>
                                     </td>
                                 </tr>

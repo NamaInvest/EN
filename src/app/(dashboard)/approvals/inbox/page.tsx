@@ -59,21 +59,21 @@ export default function ApprovalInboxPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Approval Inbox</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{_t('Approval Inbox', 'Approval Inbox')}</h1>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Pending Approvals</CardTitle>
+                    <CardTitle>{_t('بانتظار الموافقة', 'Pending Approvals')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">{_t('نوع المستند', 'Document Type')}</th>
-                                        <th className="px-4 py-3">Document ID</th>
-                                        <th className="px-4 py-3">Submitted By</th>
+                                        <th className="px-4 py-3">{_t('Document ID', 'Document ID')}</th>
+                                        <th className="px-4 py-3">{_t('Submitted By', 'Submitted By')}</th>
                                         <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
@@ -90,8 +90,8 @@ export default function ApprovalInboxPage() {
                                                 <Badge variant="outline" className="bg-yellow-100 text-yellow-800">{req.status}</Badge>
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => { setSelectedRequest(req); setActionType('approve'); }}>Approve</Button>
-                                                <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-50" onClick={() => { setSelectedRequest(req); setActionType('reject'); }}>Reject</Button>
+                                                <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => { setSelectedRequest(req); setActionType('approve'); }}>{_t('Approve', 'Approve')}</Button>
+                                                <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-50" onClick={() => { setSelectedRequest(req); setActionType('reject'); }}>{_t('Reject', 'Reject')}</Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -115,21 +115,21 @@ export default function ApprovalInboxPage() {
                         <CardContent className="space-y-4">
                             {actionType === 'reject' && (
                                 <div>
-                                    <label className="text-sm font-medium">Reason</label>
+                                    <label className="text-sm font-medium">{_t('Reason', 'Reason')}</label>
                                     <select 
                                         className="w-full mt-1 border rounded p-2 text-sm"
                                         value={rejectReason}
                                         onChange={e => setRejectReason(e.target.value)}
                                     >
-                                        <option value="insufficient docs">Insufficient Docs</option>
-                                        <option value="over budget">Over Budget</option>
-                                        <option value="unauthorized">Unauthorized</option>
+                                        <option value="insufficient docs">{_t('Insufficient Docs', 'Insufficient Docs')}</option>
+                                        <option value="over budget">{_t('Over Budget', 'Over Budget')}</option>
+                                        <option value="unauthorized">{_t('Unauthorized', 'Unauthorized')}</option>
                                         <option value="other">{_t('أخرى', 'Other')}</option>
                                     </select>
                                 </div>
                             )}
                             <div>
-                                <label className="text-sm font-medium">Comments (Optional)</label>
+                                <label className="text-sm font-medium">{_t('Comments (Optional)', 'Comments (Optional)')}</label>
                                 <textarea 
                                     className="w-full mt-1 border rounded p-2 text-sm" 
                                     rows={3} 

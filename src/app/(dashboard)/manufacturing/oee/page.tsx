@@ -76,7 +76,7 @@ export default function OEEDashboardPage() {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Overall Equipment Effectiveness (OEE)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('Overall Equipment Effectiveness (OEE)', 'Overall Equipment Effectiveness (OEE)')}</h1>
                     <p className="text-gray-500 mt-1">مؤشرات الكفاءة الشاملة للآلات والمعدات (آخر 30 يوم)</p>
                 </div>
                 <div>
@@ -176,10 +176,10 @@ export default function OEEDashboardPage() {
                     <thead>
                         <tr>
                             <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-right text-xs font-medium text-gray-500 uppercase">اسم الآلة</th>
-                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">Availability</th>
-                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">Performance</th>
-                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">Quality</th>
-                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">OEE</th>
+                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">{_t('Availability', 'Availability')}</th>
+                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">{_t('Performance', 'Performance')}</th>
+                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">{_t('Quality', 'Quality')}</th>
+                            <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">{_t('OEE', 'OEE')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">

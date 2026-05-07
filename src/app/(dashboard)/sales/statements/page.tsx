@@ -53,7 +53,7 @@ export default function CustomerStatementGeneratorPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Customer Statement Generator</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{_t('Customer Statement Generator', 'Customer Statement Generator')}</h1>
             
             <div className="flex space-x-4 mb-4 items-center">
                 <select 
@@ -61,8 +61,8 @@ export default function CustomerStatementGeneratorPage() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 >
-                    <option value="all">All Customers</option>
-                    <option value="overdue">Overdue Only</option>
+                    <option value="all">{_t('All Customers', 'All Customers')}</option>
+                    <option value="overdue">{_t('Overdue Only', 'Overdue Only')}</option>
                 </select>
 
                 <select 
@@ -70,30 +70,30 @@ export default function CustomerStatementGeneratorPage() {
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
                 >
-                    <option value="standard">Standard Template</option>
+                    <option value="standard">{_t('Standard Template', 'Standard Template')}</option>
                     <option value="dunning">Dunning / Warning Template</option>
                 </select>
 
-                <Button onClick={handleGenerateBulk}>Generate Bulk</Button>
-                <Button variant="outline">Preview</Button>
-                <Button variant="outline">Send Email</Button>
-                <Button variant="outline">Schedule</Button>
+                <Button onClick={handleGenerateBulk}>{_t('Generate Bulk', 'Generate Bulk')}</Button>
+                <Button variant="outline">{_t('Preview', 'Preview')}</Button>
+                <Button variant="outline">{_t('Send Email', 'Send Email')}</Button>
+                <Button variant="outline">{_t('Schedule', 'Schedule')}</Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Target Audience</CardTitle>
+                    <CardTitle>{_t('Target Audience', 'Target Audience')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
                                         <th className="px-4 py-3">{_t('اسم العميل', 'Customer Name')}</th>
                                         <th className="px-4 py-3">{_t('الرصيد', 'Balance')}</th>
-                                        <th className="px-4 py-3">Days Overdue</th>
-                                        <th className="px-4 py-3">Dunning Level</th>
+                                        <th className="px-4 py-3">{_t('Days Overdue', 'Days Overdue')}</th>
+                                        <th className="px-4 py-3">{_t('Dunning Level', 'Dunning Level')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
@@ -106,14 +106,14 @@ export default function CustomerStatementGeneratorPage() {
                                                 {c.daysOverdue > 0 ? (
                                                     <span className="text-red-600 font-bold">{c.daysOverdue} days</span>
                                                 ) : (
-                                                    <span>Current</span>
+                                                    <span>{_t('Current', 'Current')}</span>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <Badge variant="outline">Level {c.dunningLevel}</Badge>
                                             </td>
                                             <td className="px-4 py-3 text-right">
-                                                <Button size="sm" variant="outline">Preview</Button>
+                                                <Button size="sm" variant="outline">{_t('Preview', 'Preview')}</Button>
                                             </td>
                                         </tr>
                                     ))}

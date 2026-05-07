@@ -95,7 +95,7 @@ export default function LoansDashboard() {
  <div>
  <p className="text-sm text-slate-400">إجمالي السلف النشطة</p>
  <h3 className="text-2xl font-bold text-white">
- {loans.reduce((acc, curr) => curr.status === 'active' ? acc + curr.remainingAmount : acc, 0).toLocaleString()} <span className="text-xs text-indigo-400">SAR</span>
+ {loans.reduce((acc, curr) => curr.status === 'active' ? acc + curr.remainingAmount : acc, 0).toLocaleString()} <span className="text-xs text-indigo-400">{_t('ر.س', 'SAR')}</span>
  </h3>
  </div>
  </div>
@@ -113,7 +113,7 @@ export default function LoansDashboard() {
  <div>
  <p className="text-sm text-slate-400">خصومات هذا الشهر (المتوقعة)</p>
  <h3 className="text-2xl font-bold text-white">
- {loans.reduce((acc, curr) => curr.status === 'active' ? acc + curr.monthlyDeduction : acc, 0).toLocaleString()} <span className="text-xs text-rose-400">SAR</span>
+ {loans.reduce((acc, curr) => curr.status === 'active' ? acc + curr.monthlyDeduction : acc, 0).toLocaleString()} <span className="text-xs text-rose-400">{_t('ر.س', 'SAR')}</span>
  </h3>
  </div>
  </div>

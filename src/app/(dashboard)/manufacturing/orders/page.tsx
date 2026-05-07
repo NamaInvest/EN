@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function ManufacturingOrdersPage() {
     const orders = await prisma.manufacturingOrder.findMany({
         take: 50,
@@ -26,19 +27,15 @@ export default async function ManufacturingOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Hammer className="w-8 h-8 text-amber-600" />
-                        Work Orders (MO)
-                    </h1>
-                    <p className="text-gray-500 mt-1">Track production progress and shop floor operations.</p>
+                        <Hammer className="w-8 h-8 text-amber-600" />{_t('Work Orders (MO)', 'Work Orders (MO)')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Track production progress and shop floor operations.', 'Track production progress and shop floor operations.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/manufacturing">
-                        <Button variant="outline" className="bg-white">Back to Dashboard</Button>
+                        <Button variant="outline" className="bg-white">{_t('Back to Dashboard', 'Back to Dashboard')}</Button>
                     </Link>
                     <Button className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Work Order
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('Create Work Order', 'Create Work Order')}</Button>
                 </div>
             </div>
 
@@ -60,11 +57,11 @@ export default async function ManufacturingOrdersPage() {
                             <tr>
                                 <th className="px-4 py-3 font-medium">Order #</th>
                                 <th className="px-4 py-3 font-medium">Recipe / Product ID</th>
-                                <th className="px-4 py-3 font-medium">Qty to Produce</th>
-                                <th className="px-4 py-3 font-medium">Start Date</th>
-                                <th className="px-4 py-3 font-medium">Total Cost</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Qty to Produce', 'Qty to Produce')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('تاريخ البداية', 'Start Date')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('التكلفة الإجمالية', 'Total Cost')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -94,13 +91,11 @@ export default async function ManufacturingOrdersPage() {
                                     <td className="px-4 py-3 text-right">
                                         {order.status === 'draft' && (
                                             <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-                                                <PlayCircle className="w-4 h-4 mr-1" /> Start
-                                            </Button>
+                                                <PlayCircle className="w-4 h-4 mr-1" />{_t('Start', 'Start')}</Button>
                                         )}
                                         {order.status === 'in_progress' && (
                                             <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50">
-                                                <CheckCircle className="w-4 h-4 mr-1" /> Complete
-                                            </Button>
+                                                <CheckCircle className="w-4 h-4 mr-1" />{_t('مكتمل', 'Complete')}</Button>
                                         )}
                                     </td>
                                 </tr>
@@ -110,8 +105,8 @@ export default async function ManufacturingOrdersPage() {
                                     <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Hammer className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No Work Orders</p>
-                                            <p className="text-sm mt-1">Create your first manufacturing order.</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('No Work Orders', 'No Work Orders')}</p>
+                                            <p className="text-sm mt-1">{_t('Create your first manufacturing order.', 'Create your first manufacturing order.')}</p>
                                         </div>
                                     </td>
                                 </tr>

@@ -227,7 +227,7 @@ export default function ZakatPage() {
                     <p className="mb-1">📌 <strong>ملاحظات:</strong></p>
                     <ul className="list-disc list-inside space-y-1">
                         <li>وعاء الزكاة = (حقوق الملكية + الالتزامات طويلة الأجل + صافي الربح) − (الأصول الثابتة بصافي قيمتها + الاستثمارات طويلة الأجل) ± التسويات</li>
-                        <li>التصنيف يتم عبر حقل <code>zakatCategory</code> في الحسابات</li>
+                        <li>التصنيف يتم عبر حقل <code>{_t('zakatCategory', 'zakatCategory')}</code> في الحسابات</li>
                         <li>الزكاة 2.5% للملكية السعودية فقط — ضع نسبة الملكية بدقة للشركات المختلطة</li>
                         <li>عند الاعتماد: يُرحّل قيد <strong>مدين: مصروف الزكاة / دائن: الزكاة المستحقة</strong></li>
                     </ul>

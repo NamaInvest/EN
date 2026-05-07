@@ -40,8 +40,8 @@ export default function AuditLogsPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Audit Trail</h1>
-                <Button variant="outline">Export CSV</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Audit Trail', 'Audit Trail')}</h1>
+                <Button variant="outline">{_t('Export CSV', 'Export CSV')}</Button>
             </div>
             
             <div className="flex space-x-4 mb-4">
@@ -62,19 +62,19 @@ export default function AuditLogsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>System Activity Logs</CardTitle>
+                    <CardTitle>{_t('System Activity Logs', 'System Activity Logs')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Timestamp</th>
+                                        <th className="px-4 py-3">{_t('Timestamp', 'Timestamp')}</th>
                                         <th className="px-4 py-3">{_t('المستخدم', 'User')}</th>
                                         <th className="px-4 py-3">{_t('✅ جميع المنتجات لديها باركود', 'Action')}</th>
-                                        <th className="px-4 py-3">Entity</th>
-                                        <th className="px-4 py-3">Entity ID</th>
+                                        <th className="px-4 py-3">{_t('Entity', 'Entity')}</th>
+                                        <th className="px-4 py-3">{_t('Entity ID', 'Entity ID')}</th>
                                         <th className="px-4 py-3">{_t('التفاصيل', 'Details')}</th>
                                     </tr>
                                 </thead>
@@ -96,7 +96,7 @@ export default function AuditLogsPage() {
                                         </tr>
                                     ))}
                                     {logs.length === 0 && (
-                                        <tr><td colSpan={6} className="text-center py-6 text-gray-500">No logs found matching criteria.</td></tr>
+                                        <tr><td colSpan={6} className="text-center py-6 text-gray-500">{_t('No logs found matching criteria.', 'No logs found matching criteria.')}</td></tr>
                                     )}
                                 </tbody>
                             </table>

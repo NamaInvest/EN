@@ -71,7 +71,7 @@ export default function PrintTemplatesPage() {
           <h3 style={{ fontSize: 14, marginBottom: 12 }}>{isAr ? 'الإعدادات' : 'Settings'}</h3>
           <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>{isAr ? 'الخط' : 'Font'}</label>
           <select style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ddd', marginBottom: 12 }}>
-            <option>Cairo</option><option>Tajawal</option><option>Noto Sans Arabic</option><option>Arial</option>
+            <option>{_t('Cairo', 'Cairo')}</option><option>{_t('Tajawal', 'Tajawal')}</option><option>{_t('Noto Sans Arabic', 'Noto Sans Arabic')}</option><option>{_t('Arial', 'Arial')}</option>
           </select>
           <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>{isAr ? 'حجم الخط' : 'Font Size'}</label>
           <input type="number" defaultValue={14} style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ddd', marginBottom: 12 }} />

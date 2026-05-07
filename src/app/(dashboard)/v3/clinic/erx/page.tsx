@@ -31,25 +31,25 @@ export default function ClinicERxPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Electronic Prescriptions (e-Rx)</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('Electronic Prescriptions (e-Rx)', 'Electronic Prescriptions (e-Rx)')}</h1>
                 <Button>{_t('إنشاء New Prescription', 'Create New Prescription')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Prescriptions</CardTitle>
+                    <CardTitle>{_t('Recent Prescriptions', 'Recent Prescriptions')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>Loading...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">e-Rx ID</th>
+                                        <th className="px-4 py-3">{_t('e-Rx ID', 'e-Rx ID')}</th>
                                         <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
-                                        <th className="px-4 py-3">Patient</th>
-                                        <th className="px-4 py-3">Prescribing Doctor</th>
-                                        <th className="px-4 py-3">Medications</th>
+                                        <th className="px-4 py-3">{_t('Patient', 'Patient')}</th>
+                                        <th className="px-4 py-3">{_t('Prescribing Doctor', 'Prescribing Doctor')}</th>
+                                        <th className="px-4 py-3">{_t('Medications', 'Medications')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
@@ -66,13 +66,13 @@ export default function ClinicERxPage() {
                                                 {rx.status === 'ACTIVE' ? (
                                                     <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                                 ) : (
-                                                    <Badge variant="outline">Dispensed</Badge>
+                                                    <Badge variant="outline">{_t('Dispensed', 'Dispensed')}</Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
                                                 <Button size="sm" variant="outline">Print / PDF</Button>
                                                 {rx.status === 'ACTIVE' && (
-                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">Send to Pharmacy</Button>
+                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('Send to Pharmacy', 'Send to Pharmacy')}</Button>
                                                 )}
                                             </td>
                                         </tr>

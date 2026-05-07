@@ -5,6 +5,7 @@ import { Search, Plus, Tag, Calendar, Percent, ShieldCheck } from 'lucide-react'
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
+import { _t } from '@/lib/server-t';
 export default async function PromotionsPage() {
     const promotions = await prisma.promotion.findMany({
         orderBy: { createdAt: 'desc' },
@@ -18,17 +19,13 @@ export default async function PromotionsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Tag className="w-8 h-8 text-rose-600" />
-                        Promotions Engine
-                    </h1>
-                    <p className="text-gray-500 mt-1">Manage discounts, BOGO offers, coupons, and promotional stacking.</p>
+                        <Tag className="w-8 h-8 text-rose-600" />{_t('Promotions Engine', 'Promotions Engine')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('Manage discounts, BOGO offers, coupons, and promotional stacking.', 'Manage discounts, BOGO offers, coupons, and promotional stacking.')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="bg-white">View Coupons</Button>
+                    <Button variant="outline" className="bg-white">{_t('View Coupons', 'View Coupons')}</Button>
                     <Button className="bg-rose-600 hover:bg-rose-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Promotion
-                    </Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('Create Promotion', 'Create Promotion')}</Button>
                 </div>
             </div>
 
@@ -37,7 +34,7 @@ export default async function PromotionsPage() {
                 <Card className="bg-gradient-to-br from-rose-50 to-white border-rose-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-rose-600">Active Campaigns</p>
+                            <p className="text-sm font-medium text-rose-600">{_t('Active Campaigns', 'Active Campaigns')}</p>
                             <ShieldCheck className="w-4 h-4 text-rose-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{activeCount}</h3>
@@ -61,12 +58,12 @@ export default async function PromotionsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Promotion Name</th>
-                                <th className="px-4 py-3 font-medium">Type</th>
-                                <th className="px-4 py-3 font-medium">Dates</th>
-                                <th className="px-4 py-3 font-medium">Discount Value</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                <th className="px-4 py-3 font-medium">{_t('Promotion Name', 'Promotion Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('النوع', 'Type')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('Dates', 'Dates')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('قيمة الخصم', 'Discount Value')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
+                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
@@ -96,9 +93,7 @@ export default async function PromotionsPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
-                                            Manage
-                                        </Button>
+                                        <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">{_t('Manage', 'Manage')}</Button>
                                     </td>
                                 </tr>
                             )})}
@@ -107,12 +102,10 @@ export default async function PromotionsPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Tag className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">No Promotions Active</p>
-                                            <p className="text-sm mt-1">Boost your sales by creating custom discount logic.</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('No Promotions Active', 'No Promotions Active')}</p>
+                                            <p className="text-sm mt-1">{_t('Boost your sales by creating custom discount logic.', 'Boost your sales by creating custom discount logic.')}</p>
                                             <Button className="mt-4 bg-rose-600 hover:bg-rose-700 text-white">
-                                                <Plus className="w-4 h-4 mr-2" />
-                                                Create Promotion
-                                            </Button>
+                                                <Plus className="w-4 h-4 mr-2" />{_t('Create Promotion', 'Create Promotion')}</Button>
                                         </div>
                                     </td>
                                 </tr>

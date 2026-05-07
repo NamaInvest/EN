@@ -15,65 +15,63 @@ export default function BankReconciliationPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Bank Reconciliation</h1>
-                    <p className="text-muted-foreground">AI-assisted transaction matching and exception handling</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{_t('Bank Reconciliation', 'Bank Reconciliation')}</h1>
+                    <p className="text-muted-foreground">{_t('AI-assisted transaction matching and exception handling', 'AI-assisted transaction matching and exception handling')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline">
-                        <ShieldCheck className="h-4 w-4 mr-2" /> Period End Sign-off
-                    </Button>
+                        <ShieldCheck className="h-4 w-4 mr-2" />{_t('Period End Sign-off', 'Period End Sign-off')}</Button>
                     <Button variant="default">
-                        <RefreshCcw className="h-4 w-4 mr-2" /> Run Auto-Match
-                    </Button>
+                        <RefreshCcw className="h-4 w-4 mr-2" />{_t('Run Auto-Match', 'Run Auto-Match')}</Button>
                 </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Exception Queue</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Exception Queue', 'Exception Queue')}</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-orange-600">35</div>
-                        <p className="text-xs text-muted-foreground">Transactions need manual review</p>
+                        <p className="text-xs text-muted-foreground">{_t('Transactions need manual review', 'Transactions need manual review')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Auto-Matched</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Auto-Matched', 'Auto-Matched')}</CardTitle>
                         <CheckCircle className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-green-600">165</div>
-                        <p className="text-xs text-muted-foreground">From recent statement</p>
+                        <p className="text-xs text-muted-foreground">{_t('From recent statement', 'From recent statement')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">AI Match Rate</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('AI Match Rate', 'AI Match Rate')}</CardTitle>
                         <Search className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">82.5%</div>
-                        <p className="text-xs text-muted-foreground">System automation performance</p>
+                        <p className="text-xs text-muted-foreground">{_t('System automation performance', 'System automation performance')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Outstanding Checks</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Outstanding Checks', 'Outstanding Checks')}</CardTitle>
                         <RefreshCcw className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">4</div>
-                        <p className="text-xs text-muted-foreground">Older than 30 days</p>
+                        <p className="text-xs text-muted-foreground">{_t('Older than 30 days', 'Older than 30 days')}</p>
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Exception Queue</CardTitle>
+                    <CardTitle>{_t('Exception Queue', 'Exception Queue')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -84,7 +82,7 @@ export default function BankReconciliationPage() {
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('الوصف', 'Description')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('النوع', 'Type')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('المبلغ', 'Amount')}</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">AI Suggestion</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('AI Suggestion', 'AI Suggestion')}</th>
                                     <th className="px-4 py-3 text-right text-sm font-medium">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
                             </thead>
@@ -93,7 +91,7 @@ export default function BankReconciliationPage() {
                                     <tr key={i}>
                                         <td className="px-4 py-3 text-sm">2026-05-{10+i}</td>
                                         <td className="px-4 py-3 text-sm truncate max-w-xs">Payment received from client #{i*15} for services</td>
-                                        <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">CREDIT</span></td>
+                                        <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{_t('رصيد دائن', 'CREDIT')}</span></td>
                                         <td className="px-4 py-3 text-sm">SAR {(5000 * i).toLocaleString()}</td>
                                         <td className="px-4 py-3 text-sm">
                                             <div className="flex flex-col gap-1">
@@ -105,7 +103,7 @@ export default function BankReconciliationPage() {
                                         </td>
                                         <td className="px-4 py-3 text-sm text-right space-x-2">
                                             <Button variant="outline" size="sm">{_t('إنشاء JE', 'Create JE')}</Button>
-                                            <Button variant="default" size="sm">Match</Button>
+                                            <Button variant="default" size="sm">{_t('Match', 'Match')}</Button>
                                         </td>
                                     </tr>
                                 ))}

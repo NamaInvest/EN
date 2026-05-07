@@ -57,12 +57,12 @@ export default function CFOAIPage() {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 mb-6">
  <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-inner">
  <p className="text-sm text-slate-400 mb-1">الرصيد المتاح حالياً</p>
- <h3 className="text-3xl font-mono font-bold text-white">{data?.predictiveCashFlow?.currentBalance.toLocaleString()} <span className="text-sm text-slate-500">SAR</span></h3>
+ <h3 className="text-3xl font-mono font-bold text-white">{data?.predictiveCashFlow?.currentBalance.toLocaleString()} <span className="text-sm text-slate-500">{_t('ر.س', 'SAR')}</span></h3>
  </div>
  <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-inner relative overflow-hidden">
  <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
  <p className="text-sm text-slate-400 mb-1 flex items-center">التنبؤ للشهر القادم <SparklesIcon /></p>
- <h3 className="text-3xl font-mono font-bold text-emerald-400">{data?.predictiveCashFlow?.nextMonthForecast.toLocaleString()} <span className="text-sm text-slate-500">SAR</span></h3>
+ <h3 className="text-3xl font-mono font-bold text-emerald-400">{data?.predictiveCashFlow?.nextMonthForecast.toLocaleString()} <span className="text-sm text-slate-500">{_t('ر.س', 'SAR')}</span></h3>
  </div>
  </div>
 
