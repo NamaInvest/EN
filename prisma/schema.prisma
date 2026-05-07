@@ -9453,4 +9453,51 @@ model AndonCall {
   @@map("andon_calls")
 }
 
+// ==================== AI Conversation Memory (AI-10) ====================
+model AiConversation {
+  id        String    @id @default(cuid())
+  tenantId  String    @map("tenant_id")
+  userId    String    @map("user_id")
+  title     String?
+  startedAt DateTime  @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+  
+  messages  AiConversationMessage[]
+
+  @@index([tenantId, userId])
+  @@map("ai_conversations")
+}
+
+model AiConversationMessage {
+  id               String   @id @default(cuid())
+  conversationId   String   @map("conversation_id")
+  role             String   // "user" | "assistant" | "tool"
+  content          String   @db.Text
+  toolCalls        Json?    @map("tool_calls")
+  toolResults      Json?    @map("tool_results")
+  promptTokens     Int?     @map("prompt_tokens")
+  completionTokens Int?     @map("completion_tokens")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  conversation     AiConversation @relation(fields: [conversationId], references: [id])
+
+  @@map("ai_conversation_messages")
+}
+
+// ==================== Tenant Quotas (AI-27) ====================
+model TenantQuota {
+  id             String   @id @default(cuid())
+  tenantId       String   @unique @map("tenant_id")
+  tier           String   @default("free") // free | pro | enterprise
+  maxAiTokens    Int      @default(500000) @map("max_ai_tokens") // monthly
+  maxApiCalls    Int      @default(10000) @map("max_api_calls") // monthly
+  maxStorageGb   Float    @default(5) @map("max_storage_gb")
+  usedAiTokens   Int      @default(0) @map("used_ai_tokens")
+  usedApiCalls   Int      @default(0) @map("used_api_calls")
+  usedStorageGb  Float    @default(0) @map("used_storage_gb")
+  resetAt        DateTime @map("reset_at")
+  
+  @@map("tenant_quotas")
+}
+
 

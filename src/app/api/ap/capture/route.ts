@@ -97,18 +97,19 @@ ${ocrText}`;
 
         if (extractedData.vatNumber && confidence > 0.5) {
             // Try to find vendor by VAT
-            const vendor = await prisma.party.findFirst({
+            const vendor = await prisma.customer.findFirst({
                 where: { taxId: extractedData.vatNumber }
             });
 
             if (vendor && extractedData.poReference) {
-                // Try to match PO
-                const po = await prisma.purchaseOrder.findFirst({
+                // Try to match PO by orderNo
+                const poRef = parseInt(extractedData.poReference.replace(/\D/g, ''), 10);
+                const po = poRef ? await prisma.purchaseOrder.findFirst({
                     where: {
                         supplierId: vendor.id,
-                        orderNumber: extractedData.poReference
+                        orderNo: poRef
                     }
-                });
+                }) : null;
 
                 if (po) {
                     matchedPoId = po.id.toString();
