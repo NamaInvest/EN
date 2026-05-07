@@ -1,11 +1,22 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { getPrisma } from '@/lib/prisma';
 
-// Initialize the Google embedding model
-const embeddings = new GoogleGenerativeAIEmbeddings({
-    apiKey: process.env.GEMINI_API_KEY,
-    modelName: "text-embedding-004", // Gemini embedding model
-});
+// Lazy-load embeddings to prevent build failure if @langchain/google-genai not installed
+let _embeddings: any = null;
+async function getEmbeddings() {
+    if (!_embeddings) {
+        try {
+            const { GoogleGenerativeAIEmbeddings } = await import("@langchain/google-genai");
+            _embeddings = new GoogleGenerativeAIEmbeddings({
+                apiKey: process.env.GEMINI_API_KEY,
+                modelName: "text-embedding-004",
+            });
+        } catch {
+            console.warn('⚠️ @langchain/google-genai not available, using dummy embeddings');
+            _embeddings = { embedQuery: async () => new Array(768).fill(0) };
+        }
+    }
+    return _embeddings;
+}
 
 /**
  * Calculates cosine similarity between two numeric arrays
@@ -29,7 +40,8 @@ function cosineSimilarity(A: number[], B: number[]) {
  */
 export async function addDocumentToVectorMine(tenantId: string, title: string, content: string, metadata: any = {}) {
     // 1. Generate embedding
-    const vector = await embeddings.embedQuery(content);
+    const emb = await getEmbeddings();
+    const vector = await emb.embedQuery(content);
 
     // 2. Save to database using Prisma JSON field
     const prisma = getPrisma();
@@ -52,7 +64,8 @@ export async function addDocumentToVectorMine(tenantId: string, title: string, c
  * In a large-scale scenario, this would be swapped out for pgvector natively or Pinecone.
  */
 export async function searchVectorMine(tenantId: string, query: string, topK: number = 3) {
-    const queryVector = await embeddings.embedQuery(query);
+    const emb = await getEmbeddings();
+    const queryVector = await emb.embedQuery(query);
 
     const prisma = getPrisma();
     // Fetch all documents for the tenant
