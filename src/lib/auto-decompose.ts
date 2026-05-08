@@ -83,7 +83,7 @@ export async function autoDecomposeIfNeeded(
             where: { id: productId },
             select: { currentStock: true },
         });
-        if ((refreshed?.currentStock ?? 0) >= 0) break;
+        if (n(refreshed?.currentStock ?? 0) >= 0) break;
     }
 
     return { decomposed, log };

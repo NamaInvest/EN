@@ -5,6 +5,7 @@ import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { getMainBranchId } from '@/lib/getDefaults';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(request: NextRequest) {
 
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
             await postExpense({
                 id: expense.id,
                 category: expense.category || 'عام',
-                amount: expense.amount,
+                amount: n(expense.amount),
                 description: expense.description,
                 userId: userId ? Number(userId) : undefined,
                 branchId: branchId ? Number(branchId) : undefined,

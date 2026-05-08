@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
+import { n } from '@/lib/decimal-utils';
 
 function safeEvalFormula(formula: string, context: Record<string, number>): number {
     // Only allow specific tokens (cost, list, qty, weight) and basic math operators
@@ -142,8 +143,8 @@ export async function POST(req: Request) {
 
         if (bestRule.formula && bestRule.formula.trim().length > 0) {
             finalPrice = safeEvalFormula(bestRule.formula, {
-                cost: product.buyPrice || 0,
-                list: product.sellPrice || 0,
+                cost: n(product.buyPrice || 0),
+                list: n(product.sellPrice || 0),
                 qty: quantity,
                 weight: 0 // Not mapped on product directly
             });

@@ -4,6 +4,7 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 import { generateZatcaQRContent } from '@/lib/zatca';
 import { round2, validateMoney } from '@/lib/money';
 import { getNextNumber } from '@/lib/numbering';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
                 });
                 
                 // Track cost of goods sold
-                totalCost += (updatedProduct.buyPrice || 0) * deductionQty;
+                totalCost += n(updatedProduct.buyPrice || 0) * deductionQty;
             }
 
         // 3. Handle Coupon Usage if applicable

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
             where: { currentStock: { gt: 0 } },
             select: { currentStock: true, buyPrice: true }
         });
-        const totalCapital = allProducts.reduce((sum: any, p: any) => sum + (p.currentStock * p.buyPrice), 0);
+        const totalCapital = allProducts.reduce((sum: any, p: any) => sum + (n(p.currentStock) * n(p.buyPrice)), 0);
 
         const financialData = {
             period: "Past 30 Days",
@@ -80,7 +81,7 @@ export async function GET(req: NextRequest) {
             deadStockCandidates: deadStockRaw.map(p => ({
                 name: p.name,
                 stockLevel: p.currentStock,
-                lockedCapital: p.currentStock * p.sellPrice
+                lockedCapital: n(p.currentStock) * n(p.sellPrice)
             }))
         };
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
                     barcode: dbProduct.barcode,
                     systemStock: dbProduct.currentStock,
                     visionCount: item.count,
-                    difference: item.count - dbProduct.currentStock,
+                    difference: item.count - n(dbProduct.currentStock),
                     matched: true,
                     originalAiName: item.name
                 });

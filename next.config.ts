@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   distDir: process.env.ELECTRON_BUILD ? '.next-electron' : '.next',
   allowedDevOrigins: ['https://namainvist.com', 'http://localhost:3000'],
+  compress: true, // P3.3: Enable gzip/brotli compression
+  poweredByHeader: false, // Security: hide X-Powered-By
   env: {
     NEXT_PUBLIC_IS_DESKTOP: process.env.ELECTRON_BUILD ? '1' : '0',
   },
@@ -46,11 +48,13 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.sentry-cdn.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.sentry-cdn.com https://*.clerk.accounts.dev https://clerk.namainvist.com https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://*.sentry.io https://vitals.vercel-insights.com wss:",
+              "connect-src 'self' https://*.sentry.io https://vitals.vercel-insights.com https://*.clerk.accounts.dev https://clerk.namainvist.com https://api.clerk.com wss:",
+              "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+              "worker-src 'self' blob:",
               "frame-ancestors 'self'",
             ].join('; '),
           },
@@ -71,6 +75,25 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Cache-Control', value: 'no-store' },
           { key: 'X-Robots-Tag',  value: 'noindex' },
+        ],
+      },
+      // ── P3.3: Static asset caching (fonts, JS, CSS) ──────────
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/fonts/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
         ],
       },
     ];

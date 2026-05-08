@@ -30,7 +30,7 @@ async function seedWarehouses() {
 
     for (const product of products) {
       // Check if it already has stock records
-      if (product.productStocks.length === 0 && product.currentStock !== 0) {
+      if (product.productStocks.length === 0 && Number(product.currentStock) !== 0) {
         await prisma.productStock.create({
           data: {
             productId: product.id,

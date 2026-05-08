@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // Get pending orders from digital menu
 import { getUserFromRequest } from '@/lib/auth';
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
                 data: {
                     status: 'completed',
                     paymentType: 'cash',
-                    paid: invoice.total,
+                    paid: n(invoice.total),
                     remaining: 0
                 }
             });

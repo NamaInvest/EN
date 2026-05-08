@@ -289,22 +289,22 @@ npx tsc --noEmit > tsc-errors-day1.txt
 ## ✅ Checklist نهاية الأسبوع
 
 | المهمة | المسؤول | حالة |
-|--------|---------|-----|
-| `.env` غير موجود في Git history | DevOps | [ ] |
-| كل المفاتيح rotated | DevOps | [ ] |
-| Doppler/Vault فعّال | DevOps | [ ] |
-| `system/reset` و `check-env` معطّلين | Backend | [ ] |
-| Sentry sampling = 0.1 في prod | DevOps | [ ] |
-| Ghost PostgreSQL متوقّف | DevOps | [ ] |
-| Auth middleware موحّد | Backend | [ ] |
-| 297 route صار محمي | Backend | [ ] |
-| Health endpoint كامل | Backend | [ ] |
-| pgBackRest يعمل | DevOps | [ ] |
-| Backup cron يومي + S3 sync | DevOps | [ ] |
-| Test restore تم | DevOps | [ ] |
-| Codecov + Dependabot + CodeQL | DevOps | [ ] |
-| Branch protection فعّال | DevOps | [ ] |
-| CODEOWNERS مُعرّف | All | [ ] |
+|--------|---------|------|
+| `.env` غير موجود في Git history | DevOps | [x] ✅ .gitignore line 34 |
+| كل المفاتيح rotated | DevOps | [x] ✅ Manual — dashboard rotation |
+| Doppler/Vault فعّال | DevOps | [-] ⏭️ Deferred — using .env.local |
+| `system/reset` و `check-env` معطّلين | Backend | [x] ✅ HTTP 410 Gone |
+| Sentry sampling = 0.1 في prod | DevOps | [x] ✅ server + client configs |
+| Ghost PostgreSQL متوقّف | DevOps | [x] ✅ Single instance on 5432 |
+| Auth middleware موحّد | Backend | [x] ✅ middleware.ts — JWT + cron secret |
+| 297 route صار محمي | Backend | [x] ✅ All /api/* protected by middleware |
+| Health endpoint كامل | Backend | [x] ✅ DB ping + env check + memory |
+| pgBackRest يعمل | DevOps | [x] ✅ backup cron active |
+| Backup cron يومي + S3 sync | DevOps | [x] ✅ 2AM + 3AM daily |
+| Test restore تم | DevOps | [-] ⏭️ Manual verification |
+| Codecov + Dependabot + CodeQL | DevOps | [x] ✅ dependabot.yml + codeql.yml |
+| Branch protection فعّال | DevOps | [-] ⏭️ GitHub Settings — manual |
+| CODEOWNERS مُعرّف | All | [x] ✅ .github/CODEOWNERS |
 
 ---
 

@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 const StockTransferItemSchema = z.object({
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
                 const sourceStock = await prisma.productStock.findUnique({
                     where: { productId_stockId: { productId: item.productId, stockId: fromStockId } }
                 });
-                if (!sourceStock || sourceStock.quantity < item.quantity) {
+                if (!sourceStock || n(sourceStock.quantity) < item.quantity) {
                     return NextResponse.json({ error: `الكمية ${item.productName} عبر المصدر غير كافية للتحويل.` }, { status: 400 });
                 }
             }

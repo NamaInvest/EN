@@ -96,7 +96,7 @@ export default async function StockMovementsPage() {
                                             'text-gray-900'
                                         }>
                                             {mov.type.toLowerCase() === 'in' ? '+' : mov.type.toLowerCase() === 'out' ? '-' : ''}
-                                            {mov.quantity}
+                                            {Number(mov.quantity)}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">

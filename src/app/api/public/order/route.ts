@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // Public API - customer can place order from QR menu
 export async function POST(req: NextRequest) {
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
         for (const item of items) {
             const product = await prisma.product.findUnique({ where: { id: parseInt(item.id) } });
             if (!product) continue;
-            const itemTotal = product.sellPrice * item.qty;
+            const itemTotal = n(product.sellPrice) * item.qty;
             subtotal += itemTotal;
             orderItems.push({
                 productId: product.id,

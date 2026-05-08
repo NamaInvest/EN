@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
 
@@ -77,7 +78,7 @@ export async function GET(req: Request) {
                         barcode: u.barcode,
                         price: u.sellPrice,
                         taxRate: p.taxRate,
-                        stock: Math.floor(p.currentStock / (u.factor || 1)), // Virtual Stock
+                        stock: Math.floor(n(p.currentStock) / (u.factor || 1)), // Virtual Stock
                         categoryId: p.categoryId?.toString() || '0',
                         categoryName: p.category?.name || 'عام',
                         img: p.imagePath ? p.imagePath : '📦',

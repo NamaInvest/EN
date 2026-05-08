@@ -6,6 +6,7 @@ import { handleApiError } from '@/lib/api-handler';
 import { resolveStockAndBranch } from '@/lib/getDefaults';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(request: NextRequest) {
 
@@ -264,11 +265,11 @@ export async function PUT(request: Request) {
         const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: Number(invoiceId) } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        const payAmount = Math.min(Number(amount), invoice.remaining);
+        const payAmount = Math.min(Number(amount), n(invoice.remaining));
         if (payAmount <= 0) return NextResponse.json({ error: 'لا يوجد رصيد مستحق' }, { status: 400 });
 
-        const newPaid = invoice.paid + payAmount;
-        const newRemaining = invoice.total - newPaid;
+        const newPaid = n(invoice.paid) + payAmount;
+        const newRemaining = n(invoice.total) - newPaid;
 
         const updated = await prisma.$transaction(async (tx) => {
             const updatedInvoice = await tx.purchaseInvoice.update({
@@ -281,7 +282,7 @@ export async function PUT(request: Request) {
             });
 
             const parsedUserId = userId ? Number(userId) : null;
-            let branchId = invoice.branchId; // use invoice's original branch
+            const branchId = invoice.branchId; // use invoice's original branch
 
             await tx.treasury.create({
                 data: {

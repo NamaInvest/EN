@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
 
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
             if (matchingVendor) {
                 const arBalance = customer.balance;
                 const apBalance = matchingVendor.balance;
-                const variance = Math.abs(arBalance - apBalance);
+                const variance = Math.abs(n(arBalance) - n(apBalance));
                 
                 pairs.push({
                     id: `pair-${customer.id}-${matchingVendor.id}`,

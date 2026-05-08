@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+// @ts-ignore — dynamic exports from landing page
 import { modulesList, INDUSTRIES, POWER_CLUSTERS } from '../page';
 
 export default function Design1() {
@@ -249,7 +250,7 @@ export default function Design1() {
               <p className="text-[#64748b] max-w-4xl mx-auto text-lg leading-relaxed">بنينا نظام نماء ليكون مرناً بما يكفي ليناسب أدق تفاصيل العمل في مختلف الصناعات</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10">
-              {INDUSTRIES.map((ind, i) => (
+              {INDUSTRIES.map((ind: any, i: number) => (
                 <div key={i} className="group p-12 rounded-[3rem] bg-slate-50/50 border border-slate-100 text-center card-hover">
                   <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-sm group-hover:scale-110 transition-transform [&>svg]:w-12 [&>svg]:h-12 [&>svg]:text-[#10b981]">
                     {ind.icon}
@@ -274,7 +275,7 @@ export default function Design1() {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-              {POWER_CLUSTERS.map((cluster, i) => (
+              {POWER_CLUSTERS.map((cluster: any, i: number) => (
                 <div key={i} className="group bg-white p-12 rounded-[3rem] border border-slate-100 card-hover relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-50/50 rounded-bl-[6rem] -mr-12 -mt-12 transition-all group-hover:scale-125"></div>
                   <div className="relative z-10">

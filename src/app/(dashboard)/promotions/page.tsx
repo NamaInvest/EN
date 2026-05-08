@@ -83,7 +83,7 @@ export default async function PromotionsPage() {
                                         {promo.startDate ? format(new Date(promo.startDate), 'MMM dd') : 'N/A'} - {promo.endDate ? format(new Date(promo.endDate), 'MMM dd, yyyy') : 'N/A'}
                                     </td>
                                     <td className="px-4 py-3 font-medium text-gray-900">
-                                        {promo.discountValue} {promo.discountType === 'percentage' ? '%' : 'SAR'}
+                                        {Number(promo.discountValue)} {promo.discountType === 'percentage' ? '%' : 'SAR'}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${

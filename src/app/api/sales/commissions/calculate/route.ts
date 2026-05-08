@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function POST(req: Request) {
 
@@ -43,9 +44,9 @@ export async function POST(req: Request) {
             const totalSales = sale._sum.total || 0;
             let commissionAmount = 0;
 
-            if (totalSales >= rule.targetAmount) {
+            if (n(totalSales) >= n(rule.targetAmount)) {
                 if (rule.rewardType === 'PERCENTAGE') {
-                    commissionAmount = totalSales * (rule.rewardValue / 100);
+                    commissionAmount = n(totalSales) * (n(rule.rewardValue) / 100);
                 } else {
                     commissionAmount = rule.rewardValue; // FIXED
                 }

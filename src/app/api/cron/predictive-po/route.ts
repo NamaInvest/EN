@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function POST(req: Request) {
 
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
               productId: p.id,
               quantity: 50, // Auto-restock amount
               price: p.buyPrice || 0,
-              total: (p.buyPrice || 0) * 50
+              total: n(p.buyPrice || 0) * 50
             }))
           },
           subtotal: productsInfo.reduce((sum: any, p: any) => sum + ((p.buyPrice || 0) * 50), 0),

@@ -275,8 +275,8 @@ export async function POST(request: Request) {
                     data: { currentStock: { decrement: qtyInBase } },
                 });
 
-                let refreshed = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
-                let deficit = Math.abs(Math.min(0, refreshed?.currentStock || 0));
+                const refreshed = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
+                let deficit = Math.abs(Math.min(0, n(refreshed?.currentStock || 0)));
 
                 for (const pu of pUnits) {
                     if (deficit <= 0) break;
@@ -393,7 +393,7 @@ export async function POST(request: Request) {
             let isStandardInvoice = false;
             let invoiceUuidStr = '';
             let zatcaQRStr = '';
-            let finalSettings: Record<string, string> = {};
+            const finalSettings: Record<string, string> = {};
 
             try {
                 const zatcaSettings = await tx.setting.findMany({

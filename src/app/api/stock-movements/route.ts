@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncStockToSalla } from '@/lib/salla';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
         const updatedProduct = await prisma.product.update({ where: { id: parseInt(body.productId) }, data: { currentStock: { increment } } });
         
         if (updatedProduct.barcode) {
-            await syncStockToSalla(updatedProduct.barcode, updatedProduct.currentStock);
+            await syncStockToSalla(updatedProduct.barcode, n(updatedProduct.currentStock));
         }
 
         return NextResponse.json(movement, { status: 201 });

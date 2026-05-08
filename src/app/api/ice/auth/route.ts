@@ -14,7 +14,6 @@ function generateToken(): string {
         rand: crypto.randomBytes(8).toString('hex'),
     };
     const data = Buffer.from(JSON.stringify(payload)).toString('base64');
-    // @ts-expect-error [TS2345] Type mismatch Request/NextRequest - fix at Service Layer
     const sig = crypto.createHmac('sha256', ICE_SECRET).update(data).digest('hex');
     return `${data}.${sig}`;
 }
@@ -22,7 +21,6 @@ function generateToken(): string {
 function verifyIceToken(token: string): boolean {
     try {
         const [data, sig] = token.split('.');
-        // @ts-expect-error [TS2345] Type mismatch Request/NextRequest - fix at Service Layer
         const expectedSig = crypto.createHmac('sha256', ICE_SECRET).update(data).digest('hex');
         if (sig !== expectedSig) return false;
         const payload = JSON.parse(Buffer.from(data, 'base64').toString());

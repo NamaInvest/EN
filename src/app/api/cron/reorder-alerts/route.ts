@@ -5,6 +5,7 @@ import { getUserFromRequest } from '@/lib/auth';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -38,8 +39,8 @@ export async function GET(req: Request) {
                 alerts.push({
                     productId: p.id,
                     name: p.name,
-                    current: p.currentStock,
-                    min: p.minQuantity,
+                    current: n(p.currentStock),
+                    min: n(p.minQuantity),
                 });
 
                 // Avoid duplicate unread alerts — 'read' is the correct field name

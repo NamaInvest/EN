@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
             const product = products.find(p => p.id === item.productId);
-            const systemQty = product?.currentStock || 0;
+            const systemQty = n(product?.currentStock || 0);
             const diff = item.actualQty - systemQty;
             return {
                 productId: item.productId,

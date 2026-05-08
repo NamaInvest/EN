@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         const extraUnitCost = allocatedAmount / n(d.quantity);
         
         // Accumulate this distributed cost per item (For this iteration context, we just add it to a transient map)
-        d.price += extraUnitCost; // We artificially inflate the item's computed cost here
+        d.price = (n(d.price) + extraUnitCost) as any; // We artificially inflate the item's computed cost here
       }
     }
 

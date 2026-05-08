@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function PUT(
@@ -80,7 +81,7 @@ export async function PUT(
                     taxValue: order.taxValue,
                     total: order.total,
                     status: 'completed',
-                    remaining: order.total, // Unpaid
+                    remaining: n(order.total), // Unpaid
                     details: {
                         create: order.details.map((d: any) => ({
                             productId: d.productId,

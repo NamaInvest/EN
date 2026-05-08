@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { allocateFEFO } from '@/lib/picking-fefo';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -28,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             try {
                 // Fetch graceDays setting (hardcoded to 7 for simulation)
                 const graceDays = 7;
-                allocations = await allocateFEFO(prisma as any, detail.productId, detail.quantity, graceDays);
+                allocations = await allocateFEFO(prisma as any, detail.productId, n(detail.quantity), graceDays);
             } catch (e: any) {
                 error = e.message;
             }

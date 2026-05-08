@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
 
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'MO or Product not found' }, { status: 404 });
         }
 
-        const wastedCost = product.buyPrice * Number(lostQuantity);
+        const wastedCost = n(product.buyPrice) * Number(lostQuantity);
 
         // Transaction for Wastage creation + Inventory Adjustment + Journal Entry
         const [wastage] = await prisma.$transaction([

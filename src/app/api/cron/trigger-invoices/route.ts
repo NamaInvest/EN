@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 import QRCode from 'qrcode'; // if missing we will just use dummy or skip phase 1 qr generation text
 
 // This endpoint is meant to be called daily (e.g. at 00:01 AM) by a Cron Job
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
                         taxValue: contract.taxValue,
                         total: contract.total,
                         paid: 0, // Unpaid
-                        remaining: contract.total,
+                        remaining: n(contract.total),
                         paymentType: 'credit', // Subscription is usually credit
                         status: 'completed',
                         zatcaStatus: 'pending', // Pending ZATCA clearance/reporting
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
 
                 // 3. Update the Contract's Next Billing Date
                 const frequency = meta.frequency || 'MONTHLY';
-                let newBillingDate = new Date(nextDate);
+                const newBillingDate = new Date(nextDate);
                 if (frequency === 'MONTHLY') {
                     newBillingDate.setMonth(newBillingDate.getMonth() + 1);
                 } else if (frequency === 'YEARLY') {

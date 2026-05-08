@@ -88,7 +88,7 @@ async function getLowStock(): Promise<string> {
     });
     if (products.length === 0) return '✅ <b>المخزون ممتاز!</b>\nلا توجد أصناف ناقصة';
     let msg = `⚠️ <b>أصناف ناقصة (مخزون أقل من 5)</b>\n\n`;
-    products.forEach(p => { msg += `• ${p.name}: <b>${p.currentStock || 0}</b> ${(p.currentStock || 0) === 0 ? '🔴' : '🟡'}\n`; });
+    products.forEach(p => { msg += `• ${p.name}: <b>${n(p.currentStock) || 0}</b> ${n(p.currentStock || 0) === 0 ? '🔴' : '🟡'}\n`; });
     return msg;
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
         for (const order of activeOrders) {
             for (const item of order.recipe.ingredients) {
                 // Calculation: (quantity per unit * units to produce) + (scrap percentage)
-                const requiredQty = item.quantity * order.quantityToProduce * (1 + (item.scrapPercentage / 100));
+                const requiredQty = n(item.quantity) * n(order.quantityToProduce) * (1 + (n(item.scrapPercentage) / 100));
                 
                 if (requirementsMap.has(item.rawProductId)) {
                     requirementsMap.get(item.rawProductId).requiredQty += requiredQty;
