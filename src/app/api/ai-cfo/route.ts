@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
-
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -31,36 +31,25 @@ export async function POST(req: NextRequest) {
         // Apply Privacy Filter to prevent PII leakage
         const safeProducts = metrics.topProducts ? maskEntityNames(metrics.topProducts, 'name') : [];
 
-        let promptText = `
-أنت المالي الذكي (AI CFO) لشركة تجارية تعمل بنظام نما إنفست.
-مهمتك هي تحليل البيانات المالية الحالية للمبيعات والمشتريات وإصدار 3 تنبيهات أو نصائح مختصرة ومفيدة للمدير.
+        const topProductsList = safeProducts.map((p: any) => `- ${p.name}: ${p.quantity} وحدة`).join('\n') || 'لا يوجد بيانات';
+        
+        const promptTemplate = await getPrompt('cfo.daily_summary', user.tenantId);
+        
+        if (!promptTemplate?.template) {
+            return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
+        }
 
-البيانات الحالية:
-إجمالي مبيعات اليوم: ${metrics.todaySales}
-إجمالي مشتريات اليوم: ${metrics.todayPurchases}
-إجمالي مصروفات اليوم: ${metrics.todayExpenses}
-الأرباح المتوقعة اليوم: ${metrics.todayProfit}
-رصيد الخزينة: ${metrics.treasuryBalance}
-المنتجات منخفضة المخزون: ${metrics.lowStockCount}
-
-المنتجات الأكثر مبيعاً:
-${safeProducts.map((p: any) => `- ${p.name}: ${p.quantity} وحدة`).join('\n') || 'لا يوجد بيانات'}
-`;
+        let promptText = renderPrompt(promptTemplate.template, {
+            todaySales: metrics.todaySales,
+            todayPurchases: metrics.todayPurchases,
+            todayExpenses: metrics.todayExpenses,
+            todayProfit: metrics.todayProfit,
+            treasuryBalance: metrics.treasuryBalance,
+            lowStockCount: metrics.lowStockCount,
+            topProductsList: topProductsList
+        });
 
         promptText = redactPII(promptText);
-
-        promptText += `
-المطلوب:
-1. قم بتحليل هذه البيانات واستخرج 3 نقاط فقط.
-2. يمكن أن تكون نصيحة لزيادة المبيعات، تحذير من نقص المخزون، أو تنبيه مالي بخصوص المصروفات أو الخزينة.
-3. التزم بالرد بصيغة JSON حصراً بهذا التنسيق:
-{
-  "alerts": [
-    { "type": "success|warning|danger|info", "title": "عنوان قصير", "message": "نصيحة أو تنبيه مختصر" }
-  ]
-}
-لا تقم بإضافة أي نصوص أخرى خارج الـ JSON.
-`;
 
         const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
             method: 'POST',

@@ -23,6 +23,28 @@ export async function getPrompt(key: string, tenantId: string | null = null, ver
         });
     }
 
+    if (!prompt) {
+        // Fallback to local file-based library if not in DB
+        try {
+            // key format: 'cfo.daily_summary' -> library/cfo/daily-summary.prompt.ts
+            const parts = key.split('.');
+            if (parts.length === 2) {
+                const moduleName = parts[0];
+                const actionName = parts[1].replace(/_/g, '-');
+                // Dynamic import of the prompt template
+                const template = require(`./library/${moduleName}/${actionName}.prompt`);
+                return {
+                    template: template.default || template.template,
+                    model: template.model || 'gemini-2.5-flash',
+                    temperature: template.temperature || 0.2,
+                    maxTokens: template.maxTokens || 2048,
+                };
+            }
+        } catch (e) {
+            console.error(`[PromptRegistry] Failed to load local prompt for key ${key}`);
+        }
+    }
+
     return prompt;
 }
 
