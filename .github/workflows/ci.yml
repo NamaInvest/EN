@@ -165,7 +165,7 @@ jobs:
             echo "Previous commit: $PREV_COMMIT"
 
             git pull origin main
-            npm ci --production
+            npm ci --production --legacy-peer-deps
             npx prisma generate
 
             # Schema sync — Multi-Tenant Databases
@@ -180,17 +180,17 @@ jobs:
             sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n1_db;" n1_db
 
             npm run build
-            pm2 restart ecosystem.config.js --update-env && pm2 save
+            pm2 restart all --update-env && pm2 save
 
             # Health check; rollback on failure
             sleep 5
             if ! curl -fsS http://localhost:3000/api/health >/dev/null; then
               echo "❌ Health check failed — rolling back to $PREV_COMMIT"
               git reset --hard "$PREV_COMMIT"
-              npm ci --production
+              npm ci --production --legacy-peer-deps
               npx prisma generate
               npm run build
-              pm2 restart ecosystem.config.js --update-env
+              pm2 restart all --update-env && pm2 save
               exit 1
             fi
             echo "✅ Deployed successfully at $(date)"
