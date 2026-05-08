@@ -32,21 +32,15 @@ const FILES = [
     'src/app/api/crm/whatsapp/webhook/route.ts',
     'src/lib/telegram-bot.ts',
     'src/workers/whatsapp.ts',
-    'src/lib/telemetry.ts',
-    'src/lib/rate-limiter.ts',
-    'src/lib/notifications.ts',
-    'src/lib/rag-pipeline.ts',
-    'src/lib/erp-tools.ts',
-    'src/lib/ai-cost.ts',
 ];
 c.on('ready', async () => {
-    console.log('🚀 Gemini 2.5-flash Fix + New Engines\n');
+    console.log('🚀 Gemini → gemini-2.5-flash (stable)\n');
     for (const f of FILES) {
         const local = path.join(__dirname, f);
         if (fs.existsSync(local)) { await upload(c, local, `${SITE}/${f}`); console.log(`  ✅ ${f}`); }
     }
     console.log('\n🔨 Building...');
-    await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -5`);
+    await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -3`);
     console.log('\n🔄 Restarting...');
     await exec(c, 'pm2 restart all --silent && sleep 5 && pm2 list');
     console.log('\n✅ DONE!');
