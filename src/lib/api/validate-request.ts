@@ -1,13 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * Validates an incoming request body against a Zod schema.
- * 
- * @param req The NextRequest object
- * @param schema The Zod schema to validate against
- * @returns An object containing either the parsed data or a NextResponse with the error
- */
 export async function validateRequest<T extends z.ZodSchema>(
   req: NextRequest,
   schema: T

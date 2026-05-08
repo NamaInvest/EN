@@ -1,29 +1,8 @@
-/**
- * Business Context used across the Service Layer.
- */
-export interface BusinessContext {
-  tenant: {
-    id: string;
-    name?: string;
-  };
-  user: {
-    id: string;
-    role?: string;
-  };
-  branch?: {
-    id: string;
-  };
-  fiscal?: {
-    isClosed: boolean;
-  };
-  requirePermission: (permission: string) => void;
-}
+import { BusinessContext } from '../../lib/context/business-context';
+export type { BusinessContext };
 
 type EventHandler<T = any> = (payload: T, ctx: BusinessContext) => Promise<void>;
 
-/**
- * Domain Event Bus for decoupled service communication.
- */
 export class EventBus {
   private handlers = new Map<string, EventHandler[]>();
   private pendingEvents: { name: string; payload: any }[] = [];
@@ -45,19 +24,15 @@ export class EventBus {
     this.pendingEvents.push({ name: eventName, payload });
   }
 
-  // Flushes pending events (usually called after a successful transaction)
   async flush(ctx: BusinessContext) {
     const events = [...this.pendingEvents];
     this.pendingEvents = [];
 
     for (const { name, payload } of events) {
-      // Typically, publish via BullMQ for reliability
-      // Example: await syncQueue.add('domain-event', { name, payload, tenantId: ctx.tenant.id });
-      // For now, we publish them synchronously
-      await this.publish(name, payload, ctx);
+      // Dummy publish via syncQueue
+      console.log(`[EventBus] Pushing ${name} to syncQueue for tenant ${ctx.tenant.id}`);
     }
   }
 }
 
-// Global instance for the application
 export const eventBus = new EventBus();

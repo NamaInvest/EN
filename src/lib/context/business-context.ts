@@ -9,6 +9,7 @@ export interface BusinessContext {
   fiscal: any;
   settings: any;
   meta: any;
+  requirePermission?: (permission: string) => void;
 }
 
 export async function buildBusinessContext(req: NextRequest): Promise<BusinessContext> {

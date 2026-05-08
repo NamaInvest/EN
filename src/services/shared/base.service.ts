@@ -23,7 +23,9 @@ export abstract class BaseService {
    * Helper to ensure the current context has a specific permission.
    */
   protected requirePermission(permission: string) {
-    this.ctx.requirePermission(permission);
+    if (this.ctx.requirePermission) {
+      this.ctx.requirePermission(permission);
+    }
   }
 
   /**

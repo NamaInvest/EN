@@ -32,6 +32,8 @@ async function buildBusinessContext(req: NextRequest, prisma: any): Promise<Busi
     user: { id: userId },
     branch: branchId ? { id: branchId } : undefined,
     fiscal: { isClosed: false }, // Should query FiscalPeriod model
+    settings: {},
+    meta: {},
     requirePermission: (permission: string) => {
       // In real implementation, check roles/permissions
       // throw new Error(`Missing permission: ${permission}`);

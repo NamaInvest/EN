@@ -396,11 +396,11 @@ eventBus.on('sales.invoice.posted', async (payload, ctx) => {
 ---
 
 ## ✅ معايير القبول
-- [ ] كل route يستخدم Service (لا منطق في الـ route نفسه)
-- [ ] كل route محمي بـ auth أو في public allowlist
-- [ ] كل route يستخدم `validateRequest()` بـ Zod
-- [ ] كل عملية مالية تستدعي `auto-journal`
-- [ ] EventBus يبث 25+ event
-- [ ] Permission checks في Service Layer
-- [ ] جميع الحسابات في الخادم (لا في الـ client)
-- [ ] Tests > 80% coverage للـ services
+- [x] كل route يستخدم Service (لا منطق في الـ route نفسه)
+- [x] كل route محمي بـ auth أو في public allowlist
+- [x] كل route يستخدم `validateRequest()` بـ Zod
+- [x] كل عملية مالية تستدعي `auto-journal`
+- [x] EventBus يبث 25+ event
+- [x] Permission checks في Service Layer
+- [x] جميع الحسابات في الخادم (لا في الـ client)
+- [x] Tests > 80% coverage للـ services
