@@ -70,7 +70,7 @@ src/lib/prompts/
   3. تسجيله في الـ Registry
   4. استبدال الكود بـ `await getPrompt('module.action', { vars })`
 
-### المرحلة 1.3 — A/B Testing (3 أيام)
+### المرحلة 1.3 — A/B Testing (3 أيام) ✅ مُنجزة
 ```typescript
 // مثال الاستخدام
 const result = await getPrompt('cfo.daily_summary', {
@@ -86,7 +86,7 @@ const result = await getPrompt('cfo.daily_summary', {
 - Alerts عند تجاوز الميزانية
 - Champion/Challenger comparison charts
 
-### المرحلة 1.5 — Eval Suite (5 أيام)
+### المرحلة 1.5 — Eval Suite (5 أيام) ✅ مُنجزة
 - 50 golden test case لكل persona
 - LLM-as-judge (Gemini-flash يحكم على Gemini-pro)
 - RAGAS metrics: faithfulness, relevance, precision
@@ -117,9 +117,9 @@ const result = await getPrompt('cfo.daily_summary', {
 - [x] لا يوجد prompt hardcoded في codebase
 - [x] كل prompt له version + metadata في DB
 - [x] Cost dashboard يعرض real-time data
-- [ ] 5 A/B tests فعّالة على الأقل
-- [ ] Eval suite يعمل في CI
-- [ ] Documentation للمطورين
+- [x] 5 A/B tests فعّالة على الأقل
+- [x] Eval suite يعمل في CI
+- [x] Documentation للمطورين
 
 ---
 

@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(geminiApiKey);
  * Universal LLM Client wrapper that uses PromptRegistry.
  * Features: Centralized prompting, usage logging, fallback mechanisms.
  */
-export async function callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null): Promise<string> {
+export async function callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null, enableABTest: boolean = false): Promise<string> {
     const startTime = Date.now();
     let promptDef;
     let modelName = 'gemini-2.5-flash';
@@ -18,7 +18,7 @@ export async function callLLM(promptKey: string, vars: Record<string, any>, tena
     let promptVersion = 1;
 
     try {
-        promptDef = await getPrompt(promptKey, tenantId);
+        promptDef = await getPrompt(promptKey, tenantId, enableABTest);
         
         if (promptDef) {
             systemPrompt = promptDef.systemPrompt;

@@ -1,26 +1,20 @@
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
+import { resolvePromptVersion } from './ab-testing/traffic-splitter';
 
-export async function getPrompt(key: string, tenantId: string | null = null, version?: number) {
+export async function getPrompt(key: string, tenantId: string | null = null, enableABTest: boolean = false) {
+    const prisma = getPrisma();
     let prompt;
-    if (version) {
-        prompt = await prisma.promptTemplate.findUnique({
-            // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
-            where: { tenantId_key_version: { tenantId, key, version } }
-        });
-    } else {
-        // Get the latest active version
-        prompt = await prisma.promptTemplate.findFirst({
-            where: { key, tenantId, active: true },
-            orderBy: { version: 'desc' }
-        });
-    }
 
-    if (!prompt && tenantId) {
-        // Fallback to global default
-        prompt = await prisma.promptTemplate.findFirst({
-            where: { key, tenantId: null, active: true },
-            orderBy: { version: 'desc' }
-        });
+    try {
+        // Use Traffic Splitter for A/B Testing
+        prompt = await resolvePromptVersion(tenantId, key, enableABTest);
+
+        if (!prompt && tenantId) {
+            // Fallback to global (null tenant) if tenant-specific not found
+            prompt = await resolvePromptVersion(null, key, enableABTest);
+        }
+    } catch (e) {
+        console.error(`[PromptRegistry] Error resolving prompt via traffic splitter for ${key}`, e);
     }
 
     if (!prompt) {
@@ -72,6 +66,7 @@ export async function logPromptUsage(data: {
     costUsd?: number;
 }) {
     try {
+        const prisma = getPrisma();
         await prisma.promptUsageLog.create({
             data
         });
