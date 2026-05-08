@@ -241,7 +241,7 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
 }
 إذا تعذر إيجاد أي حقل أو كان فارغاً اجعله null للمحتوى النصي و 0 للأرقام. استخدم السعر قبل الضريبة للـ price إذا أمكن.
 `;
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: 'image/jpeg', data: base64Image } }] }],
@@ -398,7 +398,7 @@ export async function processVoice(fileId: string, chatId: number): Promise<void
 - إذا كان المقطع عبارة عن سؤال (مثلاً: عطني مبيعات اليوم، كم رصيد الخزنة، كم عدد العملاء)، اجعل النية inquiry.
 - لا تضع أي نصوص إضافية خارج الـ JSON. تأكد من أن الـ JSON صالح تماماً.
 `;
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: 'audio/ogg', data: base64Audio } }] }],

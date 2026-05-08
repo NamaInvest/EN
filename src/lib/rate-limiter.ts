@@ -1,91 +1,91 @@
 /**
- * AI-12 — Redis-compatible Rate Limiter
- * In-memory sliding window implementation. Replace Map with Redis for multi-instance.
+ * Rate Limiter
+ * ──────────────────────────────────────────────────────────
+ * Token bucket rate limiter for API routes.
+ * Prevents abuse and protects financial endpoints.
+ *
+ * Usage:
+ *   import { rateLimiter } from '@/lib/rate-limiter';
+ *   const result = rateLimiter.check(clientIp, 'api', 60, 60); // 60 req/min
+ *   if (!result.allowed) return Response.json({ error: 'Rate limited' }, { status: 429 });
  */
 
-interface RateLimitEntry {
-    tokens: number;
-    windowStart: number;
+interface BucketEntry {
+  tokens: number;
+  lastRefill: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
+const buckets = new Map<string, BucketEntry>();
 
-interface RateLimitConfig {
-    maxRequests: number;
-    windowMs: number;
-}
+// Cleanup every 5 minutes
+const cleanup = setInterval(() => {
+  const cutoff = Date.now() - 10 * 60 * 1000;
+  for (const [key, entry] of buckets.entries()) {
+    if (entry.lastRefill < cutoff) buckets.delete(key);
+  }
+}, 5 * 60 * 1000);
+if (cleanup.unref) cleanup.unref();
 
-const TIER_LIMITS: Record<string, RateLimitConfig> = {
-    // AI endpoints (stricter)
-    'ai:free':       { maxRequests: 10, windowMs: 60_000 },      // 10/min
-    'ai:pro':        { maxRequests: 50, windowMs: 60_000 },      // 50/min
-    'ai:enterprise': { maxRequests: 200, windowMs: 60_000 },     // 200/min
-
-    // General API
-    'api:free':       { maxRequests: 100, windowMs: 60_000 },    // 100/min
-    'api:pro':        { maxRequests: 500, windowMs: 60_000 },    // 500/min
-    'api:enterprise': { maxRequests: 2000, windowMs: 60_000 },   // 2000/min
-
-    // Per-IP (unauthenticated)
-    'ip:default':     { maxRequests: 30, windowMs: 60_000 },     // 30/min
-};
-
-/**
- * Check and consume a rate limit token.
- * Returns { allowed, remaining, retryAfterMs }.
- */
-export function checkRateLimit(
-    key: string, // e.g. "ai:free:tenant123" or "ip:default:192.168.1.1"
-    tier: string = 'api:free'
-): { allowed: boolean; remaining: number; retryAfterMs: number } {
-    const config = TIER_LIMITS[tier] || TIER_LIMITS['api:free'];
+export const rateLimiter = {
+  /**
+   * Check if request is allowed.
+   * @param identifier - Client IP or user ID
+   * @param scope - Rate limit scope (e.g., 'api', 'auth', 'financial')
+   * @param maxTokens - Max requests per window
+   * @param windowSeconds - Time window in seconds
+   */
+  check(identifier: string, scope: string = 'api', maxTokens: number = 60, windowSeconds: number = 60): {
+    allowed: boolean;
+    remaining: number;
+    resetMs: number;
+  } {
+    const key = `${scope}:${identifier}`;
     const now = Date.now();
+    const windowMs = windowSeconds * 1000;
 
-    let entry = store.get(key);
+    let entry = buckets.get(key);
 
-    if (!entry || now - entry.windowStart > config.windowMs) {
-        // New window
-        entry = { tokens: config.maxRequests - 1, windowStart: now };
-        store.set(key, entry);
-        return { allowed: true, remaining: entry.tokens, retryAfterMs: 0 };
+    if (!entry) {
+      entry = { tokens: maxTokens - 1, lastRefill: now };
+      buckets.set(key, entry);
+      return { allowed: true, remaining: entry.tokens, resetMs: windowMs };
+    }
+
+    // Refill tokens based on elapsed time
+    const elapsed = now - entry.lastRefill;
+    const refillRate = maxTokens / windowMs;
+    const refill = Math.floor(elapsed * refillRate);
+
+    if (refill > 0) {
+      entry.tokens = Math.min(maxTokens, entry.tokens + refill);
+      entry.lastRefill = now;
     }
 
     if (entry.tokens > 0) {
-        entry.tokens--;
-        return { allowed: true, remaining: entry.tokens, retryAfterMs: 0 };
+      entry.tokens--;
+      return { allowed: true, remaining: entry.tokens, resetMs: Math.ceil((1 / refillRate)) };
     }
 
-    // Rate limited
-    const retryAfterMs = config.windowMs - (now - entry.windowStart);
-    return { allowed: false, remaining: 0, retryAfterMs };
-}
+    const resetMs = Math.ceil((1 - entry.tokens) / refillRate);
+    return { allowed: false, remaining: 0, resetMs };
+  },
 
-/**
- * Get rate limit headers for HTTP response.
- */
-export function getRateLimitHeaders(key: string, tier: string = 'api:free'): Record<string, string> {
-    const config = TIER_LIMITS[tier] || TIER_LIMITS['api:free'];
-    const entry = store.get(key);
-    const remaining = entry?.tokens ?? config.maxRequests;
+  /** Reset limiter for an identifier */
+  reset(identifier: string, scope: string = 'api'): void {
+    buckets.delete(`${scope}:${identifier}`);
+  },
 
-    return {
-        'X-RateLimit-Limit': String(config.maxRequests),
-        'X-RateLimit-Remaining': String(remaining),
-        'X-RateLimit-Reset': String(Math.ceil((entry?.windowStart || Date.now()) / 1000 + config.windowMs / 1000)),
-    };
-}
+  /** Stats */
+  stats(): { activeBuckets: number } {
+    return { activeBuckets: buckets.size };
+  },
+};
 
-/**
- * Cleanup expired entries (call periodically).
- */
-export function cleanupRateLimits(): number {
-    const now = Date.now();
-    let cleaned = 0;
-    store.forEach((entry, key) => {
-        if (now - entry.windowStart > 300_000) { // 5 min stale
-            store.delete(key);
-            cleaned++;
-        }
-    });
-    return cleaned;
-}
+// ── Pre-configured limiters ──
+export const RATE_LIMITS = {
+  auth: { maxTokens: 5, windowSeconds: 300 },      // 5 login attempts per 5 min
+  api: { maxTokens: 120, windowSeconds: 60 },       // 120 req/min
+  financial: { maxTokens: 30, windowSeconds: 60 },  // 30 financial ops/min
+  export: { maxTokens: 5, windowSeconds: 300 },     // 5 exports per 5 min
+  ai: { maxTokens: 10, windowSeconds: 60 },         // 10 AI calls/min
+} as const;

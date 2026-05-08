@@ -27,36 +27,29 @@ function exec(conn, cmd) {
 }
 const SITE = '/www/wwwroot/namainvist.com';
 const FILES = [
-    // Gemini model fix (CRITICAL)
     'src/app/api/ai/copilot/route.ts',
     'src/app/api/ai/fraud-monitoring/route.ts',
     'src/app/api/crm/whatsapp/webhook/route.ts',
     'src/lib/telegram-bot.ts',
     'src/workers/whatsapp.ts',
-    // New engines
+    'src/lib/telemetry.ts',
+    'src/lib/rate-limiter.ts',
+    'src/lib/notifications.ts',
     'src/lib/rag-pipeline.ts',
     'src/lib/erp-tools.ts',
     'src/lib/ai-cost.ts',
-    'src/lib/prompt-registry.ts',
-    'src/lib/theme.tsx',
-    'src/lib/openapi.ts',
-    'src/app/api/docs/openapi.json/route.ts',
-    'src/components/ui/states.tsx',
-    'middleware.ts',
 ];
 c.on('ready', async () => {
-    console.log('🚀 Gemini Fix + Full Phase Deploy\n');
-    await exec(c, `mkdir -p ${SITE}/src/app/api/ai/copilot ${SITE}/src/app/api/ai/fraud-monitoring ${SITE}/src/app/api/crm/whatsapp/webhook ${SITE}/src/app/api/docs/openapi.json ${SITE}/src/workers ${SITE}/src/components/ui`);
+    console.log('🚀 Gemini 2.5-flash Fix + New Engines\n');
     for (const f of FILES) {
         const local = path.join(__dirname, f);
         if (fs.existsSync(local)) { await upload(c, local, `${SITE}/${f}`); console.log(`  ✅ ${f}`); }
-        else console.log(`  ⏭️ ${f} (not found locally)`);
     }
     console.log('\n🔨 Building...');
     await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -5`);
     console.log('\n🔄 Restarting...');
     await exec(c, 'pm2 restart all --silent && sleep 5 && pm2 list');
-    console.log('\n✅ ALL DEPLOYED!');
+    console.log('\n✅ DONE!');
     c.end();
 });
 c.on('error', e => console.error('❌', e.message));
