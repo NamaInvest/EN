@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-table';
 import { TableSkeleton } from '../states/Skeleton';
 import { EmptyState } from '../states/Empty';
-import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronRight, ChevronLeft, Download, Search } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Download, Search } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -81,14 +81,14 @@ export function DataTable<TData, TValue>({
     URL.revokeObjectURL(url);
   };
 
-  if (loading) return <TableSkeleton rows={pageSize} cols={columns.length} />;
+  if (loading) return <TableSkeleton rows={pageSize} />;
 
   return (
     <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
           <input
             placeholder={searchPlaceholder}
             value={searchColumn
@@ -100,18 +100,18 @@ export function DataTable<TData, TValue>({
                 ? table.getColumn(searchColumn)?.setFilterValue(e.target.value)
                 : setGlobalFilter(e.target.value)
             }
-            className="w-full pr-9 pl-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder:text-gray-400"
+            className="input w-full pr-9"
             aria-label={searchPlaceholder}
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {table.getFilteredRowModel().rows.length} سجل
           </span>
           {enableExport && (
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 dark:border-gray-700 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="btn btn-ghost btn-sm flex items-center gap-1.5"
               aria-label="تصدير CSV"
             >
               <Download className="h-3.5 w-3.5" />
@@ -122,10 +122,10 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+      <div className="table-container">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right" role="grid">
-            <thead className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800">
+          <table className="table" role="grid">
+            <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -134,17 +134,14 @@ export function DataTable<TData, TValue>({
                     return (
                       <th
                         key={header.id}
-                        className={[
-                          'px-4 py-3 font-semibold text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wide whitespace-nowrap',
-                          isSortable ? 'cursor-pointer select-none hover:text-gray-900 dark:hover:text-gray-100 transition-colors' : '',
-                        ].join(' ')}
+                        className={isSortable ? 'cursor-pointer select-none' : ''}
                         onClick={header.column.getToggleSortingHandler()}
                         aria-sort={sortDir === 'asc' ? 'ascending' : sortDir === 'desc' ? 'descending' : 'none'}
                       >
                         <div className="flex items-center gap-1">
                           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                           {isSortable && (
-                            <span className="opacity-50" aria-hidden="true">
+                            <span style={{ opacity: 0.5 }} aria-hidden="true">
                               {sortDir === 'asc' ? (
                                 <ChevronUp className="h-3 w-3" />
                               ) : sortDir === 'desc' ? (
@@ -161,22 +158,19 @@ export function DataTable<TData, TValue>({
                 </tr>
               ))}
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
                     onClick={() => onRowClick?.(row.original)}
-                    className={[
-                      'transition-colors',
-                      onRowClick ? 'cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/30',
-                    ].join(' ')}
+                    className={onRowClick ? 'cursor-pointer' : ''}
                     role={onRowClick ? 'button' : undefined}
                     tabIndex={onRowClick ? 0 : undefined}
                     onKeyDown={onRowClick ? (e) => e.key === 'Enter' && onRowClick(row.original) : undefined}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 text-gray-800 dark:text-gray-200">
+                      <td key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -196,33 +190,33 @@ export function DataTable<TData, TValue>({
 
       {/* Pagination */}
       {table.getPageCount() > 1 && (
-        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
           <span>
             صفحة{' '}
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
+            <strong style={{ color: 'var(--text)' }}>
               {table.getState().pagination.pageIndex + 1}
-            </span>
+            </strong>
             {' '}من{' '}
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
+            <strong style={{ color: 'var(--text)' }}>
               {table.getPageCount()}
-            </span>
+            </strong>
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-ghost btn-sm"
               aria-label="الصفحة السابقة"
             >
-              <ChevronRight className="h-4 w-4" />
+              السابق
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-ghost btn-sm"
               aria-label="الصفحة التالية"
             >
-              <ChevronLeft className="h-4 w-4" />
+              التالي
             </button>
           </div>
         </div>

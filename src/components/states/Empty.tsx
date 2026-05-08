@@ -12,21 +12,21 @@ export interface EmptyStateProps {
 }
 
 export const EmptyState = ({
-  icon = <Inbox className="w-12 h-12 text-gray-400 dark:text-gray-600" />,
+  icon = <Inbox className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />,
   title = 'لا توجد بيانات',
   description = 'لم يتم العثور على نتائج تطابق المعايير المحددة.',
   action,
 }: EmptyStateProps) => (
   <div className="flex flex-col items-center justify-center py-16 text-center" role="status">
-    <div className="mb-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+    <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--bg-card-hover)' }}>
       {icon}
     </div>
-    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{title}</h3>
-    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">{description}</p>
+    <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>{title}</h3>
+    <p className="text-sm max-w-xs" style={{ color: 'var(--text-muted)' }}>{description}</p>
     {action && (
       <button
         onClick={action.onClick}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="mt-4 btn btn-primary text-sm"
       >
         {action.label}
       </button>
@@ -44,16 +44,13 @@ export const ErrorState = ({ error, onRetry }: ErrorStateProps) => {
   const message = typeof error === 'string' ? error : error?.message ?? 'حدث خطأ غير متوقع';
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center" role="alert">
-      <div className="mb-4 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20">
-        <AlertCircle className="w-12 h-12 text-red-500" />
+      <div className="mb-4 p-4 rounded-2xl" style={{ background: 'rgba(225,29,72,0.08)' }}>
+        <AlertCircle className="w-12 h-12" style={{ color: 'var(--danger)' }} />
       </div>
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">حدث خطأ</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">{message}</p>
+      <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>حدث خطأ</h3>
+      <p className="text-sm max-w-xs" style={{ color: 'var(--text-muted)' }}>{message}</p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="mt-4 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
-        >
+        <button onClick={onRetry} className="mt-4 btn btn-ghost text-sm">
           إعادة المحاولة
         </button>
       )}
@@ -64,7 +61,7 @@ export const ErrorState = ({ error, onRetry }: ErrorStateProps) => {
 // ─── LoadingState ──────────────────────────────────────────────────────────────
 export const LoadingState = ({ message = 'جاري التحميل...' }: { message?: string }) => (
   <div className="flex flex-col items-center justify-center py-16 text-center" role="status" aria-live="polite">
-    <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-    <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+    <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--primary)' }} />
+    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{message}</p>
   </div>
 );
