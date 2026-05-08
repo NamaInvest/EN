@@ -10,9 +10,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_IS_DESKTOP: process.env.ELECTRON_BUILD ? '1' : '0',
   },
   typescript: {
-    // ⚠️ Webpack strict mode reveals pre-existing Decimal<>number type issues
-    // These are runtime-safe (Prisma Decimal is number-compatible). Fix planned.
-    ignoreBuildErrors: true,
+    // TypeScript errors have been resolved.
+    ignoreBuildErrors: false,
   },
 
   serverExternalPackages: ['ssh2', 'nodemailer'],

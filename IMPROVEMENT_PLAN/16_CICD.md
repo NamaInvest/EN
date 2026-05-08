@@ -418,12 +418,12 @@ echo "Deployment successful"
 ---
 
 ## ✅ معايير القبول
-- [ ] `ignoreBuildErrors: false` في next.config
-- [ ] Dependabot يفتح PRs أسبوعياً
-- [ ] CodeQL + Snyk يمران على كل PR
-- [ ] Coverage > 80% required
-- [ ] CODEOWNERS فعّال
-- [ ] Branch protection على main + staging
-- [ ] Lighthouse Performance > 85
-- [ ] Smoke tests بعد كل deploy
-- [ ] Auto-rollback عند anomaly
+- [x] `ignoreBuildErrors: false` في next.config
+- [x] Dependabot يفتح PRs أسبوعياً
+- [x] CodeQL + Snyk يمران على كل PR
+- [x] Coverage > 80% required
+- [x] CODEOWNERS فعّال
+- [x] Branch protection على main + staging
+- [x] Lighthouse Performance > 85
+- [x] Smoke tests بعد كل deploy
+- [x] Auto-rollback عند anomaly

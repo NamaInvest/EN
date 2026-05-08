@@ -1,31 +1,11 @@
-# CODEOWNERS — Defines ownership for critical paths
-# Reference: IMPROVEMENT_PLAN/KICKOFF.md — اليوم الخامس
-#
-# Format: <path-pattern> @owner1 @owner2
-# Owners are required reviewers for PRs touching these files.
+# .github/CODEOWNERS
+# Default: full team
+*                       @Namasoft/core-team
 
-# ─── Database & Schema ───────────────────────────────────────────
-/prisma/                          @NamaInvest/backend-leads
-
-# ─── Accounting Engine (Critical Financial Logic) ────────────────
-/src/lib/auto-journal*            @NamaInvest/backend-leads
-/src/app/api/accounting/          @NamaInvest/backend-leads
-/src/app/api/finance/             @NamaInvest/backend-leads
-
-# ─── ZATCA & Saudi Compliance ───────────────────────────────────
-/src/app/api/zatca/               @NamaInvest/backend-leads
-/src/app/api/saudi/               @NamaInvest/backend-leads
-/src/app/api/zakat/               @NamaInvest/backend-leads
-
-# ─── Authentication & Security ──────────────────────────────────
-/middleware.ts                    @NamaInvest/backend-leads
-/src/app/api/auth/                @NamaInvest/backend-leads
-
-# ─── CI/CD & Infrastructure ────────────────────────────────────
-/.github/workflows/               @NamaInvest/devops
-/.github/dependabot.yml           @NamaInvest/devops
-/Dockerfile*                      @NamaInvest/devops
-/docker-compose*                  @NamaInvest/devops
-
-# ─── Sentry Configuration ──────────────────────────────────────
-/sentry.*.config.ts               @NamaInvest/devops
+# Critical paths require senior review
+/prisma/                @Namasoft/senior-backend
+/src/lib/auto-journal.ts @Namasoft/senior-backend @Namasoft/cpa-reviewer
+/src/services/accounting/ @Namasoft/senior-backend @Namasoft/cpa-reviewer
+/src/app/api/zatca/     @Namasoft/zatca-specialist
+/src/middleware.ts      @Namasoft/senior-backend
+/.github/workflows/     @Namasoft/devops-lead
