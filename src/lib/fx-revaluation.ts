@@ -97,7 +97,7 @@ export class FxRevaluationEngine {
                 if (!curr) continue;
 
                 const newRate = closingRates[curr.id] || 1;
-                const balance = bank.currentBalance;
+                const balance = n(bank.currentBalance);
                 
                 // Placeholder logic: assume it was previously translated at 1
                 const currentVal = balance * 1; 

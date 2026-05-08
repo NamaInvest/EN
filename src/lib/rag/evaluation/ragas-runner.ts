@@ -126,18 +126,18 @@ ${context}
   ): Promise<number> {
     if (chunks.length === 0) return 0;
 
-    const results = await Promise.all(
+    const relevanceScores = await Promise.all(
       chunks.map(async (chunk) => {
         const prompt = `هل هذا المحتوى ذو صلة مباشرة بالسؤال؟ أجب بـ "نعم" أو "لا" فقط.
 السؤال: ${query}
 المحتوى: ${chunk.content.slice(0, 300)}`;
         const result = await this.judge.invoke(prompt);
         const text = typeof result.content === 'string' ? result.content : 'لا';
-        return text.includes('نعم') ? 1 : 0;
+        return text.includes('نعم') ? 1 as number : 0 as number;
       })
     );
 
-    return results.reduce((a, b) => a + b, 0) / results.length;
+    return (relevanceScores as number[]).reduce((a, b) => a + b, 0) / relevanceScores.length;
   }
 
   /** Context Recall: does retrieved context cover expected information? */

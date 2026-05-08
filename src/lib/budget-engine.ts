@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class BudgetEngine {
     
@@ -78,16 +79,16 @@ export class BudgetEngine {
         });
 
         // Expenses are typically debit balance
-        const actualSpent = (actualLines._sum?.debit || 0) - (actualLines._sum?.credit || 0);
+        const actualSpent = (n(actualLines._sum?.debit)) - (n(actualLines._sum?.credit));
         const projectedTotal = actualSpent + newAmount;
 
         // 4. Check against Budget
-        if (projectedTotal > budgetLine.allocatedAmount) {
+        if (projectedTotal > n(budgetLine.allocatedAmount)) {
             // Check strict budgeting setting
             const strictSetting = await prisma.setting.findUnique({ where: { key: 'strictBudgeting' } });
             const isStrict = strictSetting?.value === 'true';
 
-            const variance = projectedTotal - budgetLine.allocatedAmount;
+            const variance = projectedTotal - n(budgetLine.allocatedAmount);
 
             if (isStrict) {
                 throw new Error(`Budget Exceeded: Cannot process amount. Budget for Account ${accountId} is ${budgetLine.allocatedAmount}, but total would be ${projectedTotal}. Exceeds by ${variance}.`);
@@ -130,9 +131,9 @@ export class BudgetEngine {
                 _sum: { debit: true, credit: true }
             });
 
-            const actualSpent = (actualLines._sum?.debit || 0) - (actualLines._sum?.credit || 0);
-            const variance = line.allocatedAmount - actualSpent;
-            const variancePercentage = line.allocatedAmount > 0 ? (variance / line.allocatedAmount) * 100 : 0;
+            const actualSpent = n(actualLines._sum?.debit) - n(actualLines._sum?.credit);
+            const variance = n(line.allocatedAmount) - actualSpent;
+            const variancePercentage = n(line.allocatedAmount) > 0 ? (variance / n(line.allocatedAmount)) * 100 : 0;
 
             report.push({
                 accountId: line.accountId,

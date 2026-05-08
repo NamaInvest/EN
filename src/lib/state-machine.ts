@@ -201,3 +201,37 @@ export const JournalMachine = StateMachine.create('journal_entry', {
     cancelled: [],
   },
 });
+
+// ── Helpers ──────────────────────────────────────────────
+
+/** Common state type shared across all ERP documents */
+export type BaseState = string;
+
+/** Registry mapping entity types to their state machines */
+const MACHINE_REGISTRY: Record<string, StateMachine> = {
+  invoice:        InvoiceMachine,
+  INVOICE:        InvoiceMachine,
+  purchase_order: PurchaseOrderMachine,
+  PO:             PurchaseOrderMachine,
+  PURCHASE_ORDER: PurchaseOrderMachine,
+  leave_request:  LeaveRequestMachine,
+  LEAVE_REQUEST:  LeaveRequestMachine,
+  journal_entry:  JournalMachine,
+  JOURNAL_ENTRY:  JournalMachine,
+};
+
+/**
+ * Lookup the state machine for a given entity type.
+ * @throws Error if no machine is registered for that type.
+ */
+export function getStateMachineFor(entityType: string): StateMachine {
+  const machine = MACHINE_REGISTRY[entityType];
+  if (!machine) {
+    throw new Error(
+      `No state machine registered for entity type: '${entityType}'. ` +
+      `Registered types: [${Object.keys(MACHINE_REGISTRY).join(', ')}]`
+    );
+  }
+  return machine;
+}
+

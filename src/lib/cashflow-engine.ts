@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class CashFlowEngine {
     
@@ -14,7 +15,7 @@ export class CashFlowEngine {
         const banks = await prisma.bankAccount.aggregate({
             _sum: { currentBalance: true }
         });
-        let openingBalance = banks._sum.currentBalance || 0;
+        let openingBalance = n(banks._sum.currentBalance);
 
         // Optionally, add Treasury/Safe balances if available in a dedicated model.
         // For now, we assume bank currentBalance represents available liquidity.
@@ -58,7 +59,7 @@ export class CashFlowEngine {
                 const dateStr = dueDate.toISOString().split('T')[0];
                 if (forecast[dateStr]) {
                     // Apply historical collection rate (e.g. 85%)
-                    const expectedAmount = invoice.remaining * 0.85; 
+                    const expectedAmount = n(invoice.remaining) * 0.85;
                     
                     forecast[dateStr].inflow += expectedAmount;
                     forecast[dateStr].details.push({
@@ -110,7 +111,7 @@ export class CashFlowEngine {
             if (dueDate >= today && dueDate <= forecastDate) {
                 const dateStr = dueDate.toISOString().split('T')[0];
                 if (forecast[dateStr]) {
-                    const expectedAmount = invoice.remaining; 
+                    const expectedAmount = n(invoice.remaining);
                     forecast[dateStr].outflow += expectedAmount;
                     forecast[dateStr].details.push({
                         type: 'AP_PAYMENT',

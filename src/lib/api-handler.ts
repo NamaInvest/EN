@@ -177,3 +177,24 @@ export function withApiHandler(handler: RouteHandler, options: HandlerOptions = 
     }
   };
 }
+
+/**
+ * handleApiError — standalone helper for routes that don't use withApiHandler.
+ * Returns a structured NextResponse for any caught error.
+ */
+export function handleApiError(error: unknown): NextResponse {
+  if (error instanceof ZodError) {
+    const messages = error.issues.map((e) => `${(e.path as any[]).join('.')}: ${e.message}`).join('، ');
+    return NextResponse.json({ error: `خطأ في البيانات: ${messages}` }, { status: 400 });
+  }
+  if (error instanceof AppError) {
+    return NextResponse.json({ error: (error as AppError).message }, { status: (error as AppError).status });
+  }
+  if ((error as any)?.code && PRISMA_ERRORS[(error as any).code]) {
+    const pe = PRISMA_ERRORS[(error as any).code];
+    return NextResponse.json({ error: pe.message }, { status: pe.status });
+  }
+  const msg = error instanceof Error ? error.message : 'حدث خطأ داخلي في الخادم.';
+  return NextResponse.json({ error: msg }, { status: 500 });
+}
+

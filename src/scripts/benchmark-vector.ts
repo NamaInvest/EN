@@ -21,8 +21,10 @@ function percentile(sorted: number[], p: number): number {
 }
 
 async function main() {
-  const prisma = await getPrisma('default');
+  // Pass a mock headers object matching getPrisma(req?: { headers?: unknown }) signature
+  const prisma = getPrisma({ headers: {} });
   const store = new PgvectorStore(prisma);
+
 
   // Find a tenant with chunks
   type TenantRow = [{ tenant_id: string }];

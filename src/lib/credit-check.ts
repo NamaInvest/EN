@@ -31,7 +31,7 @@ export async function checkCredit(
         return {
             passed: false,
             customerStatus: customer.status,
-            creditLimit: customer.creditLimit || 0,
+            creditLimit: n(customer.creditLimit),
             usedCredit: 0,
             pendingOrders: 0,
             totalExposure: 0,
@@ -40,7 +40,7 @@ export async function checkCredit(
         };
     }
 
-    const creditLimit = customer.creditLimit || 0;
+    const creditLimit = n(customer.creditLimit);
 
     // 1. Calculate Unpaid Invoices
     const unpaidInvoicesAgg = await tx.salesInvoice.aggregate({

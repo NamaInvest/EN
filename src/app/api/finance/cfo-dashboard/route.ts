@@ -76,10 +76,11 @@ export async function GET(req: NextRequest) {
 
         pendingInvoices.forEach(inv => {
             const days = Math.floor((now.getTime() - inv.date.getTime()) / (1000 * 3600 * 24));
-            if (days <= 30) aging['0-30'] += inv.remaining;
-            else if (days <= 60) aging['31-60'] += inv.remaining;
-            else if (days <= 90) aging['61-90'] += inv.remaining;
-            else aging['90+'] += inv.remaining;
+            const rem = n(inv.remaining);
+            if (days <= 30) aging['0-30'] += rem;
+            else if (days <= 60) aging['31-60'] += rem;
+            else if (days <= 90) aging['61-90'] += rem;
+            else aging['90+'] += rem;
         });
 
         const agingData = [
