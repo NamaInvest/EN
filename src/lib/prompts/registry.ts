@@ -34,7 +34,8 @@ export async function getPrompt(key: string, tenantId: string | null = null, ver
                 // Dynamic import of the prompt template
                 const template = require(`./library/${moduleName}/${actionName}.prompt`);
                 return {
-                    template: template.default || template.template,
+                    userTemplate: template.default || template.template,
+                    systemPrompt: template.systemPrompt || '',
                     model: template.model || 'gemini-2.5-flash',
                     temperature: template.temperature || 0.2,
                     maxTokens: template.maxTokens || 2048,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
-
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -85,30 +85,14 @@ export async function GET(req: NextRequest) {
             }))
         };
 
-        const promptText = `
-أنت الآن "المدير المالي الذكي (AI CFO)" لشركة تجارية تعمل في السعودية.
-إليك بيانات المبيعات والمشتريات والمخزون لآخر 30 يوماً بصيغة JSON:
-${JSON.stringify(financialData, null, 2)}
+        const promptTemplate = await getPrompt('cfo.monthly_analysis', auth.tenantId);
+        if (!promptTemplate?.userTemplate) {
+            return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
+        }
 
-يرجى تحليل هذه البيانات بعمق واستخراج خطة استراتيجية. يجب إرجاع النتيجة **حصراً بصيغة JSON** بالهيكلة التالية (لا تضع أي نصوص قبل أو بعد الـ JSON):
-{
-  "executiveSummary": "فقرة احترافية تلخص الأداء العام (ربحية، سيولة، وحالة المخزون).",
-  "kpi": {
-    "healthScore": 85, // من 100
-    "profitability": "جيدة|ممتازة|حرجة"
-  },
-  "fastMovers": [
-    { "name": "اسم المنتج", "insight": "نصيحة بخصوص شراء المزيد أو رفع السعر قليلا" }
-  ],
-  "deadStock": [
-    { "name": "اسم المنتج", "capital": 0.00, "action": "توصية للتخلص منه (مثلاً: خصم 20%، تصفية... إلخ)" }
-  ],
-  "strategicAdvice": [
-    "توصية استراتيجية أولى لزيادة الأرباح بناء على الأرقام",
-    "توصية لتقليل الهدر المالي"
-  ]
-}
-`;
+        const promptText = renderPrompt(promptTemplate.userTemplate, {
+            financialData: JSON.stringify(financialData, null, 2)
+        });
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });

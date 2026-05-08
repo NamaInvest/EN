@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
 
-export async function POST(req: NextRequest) {
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
+import { getUserFromRequest } from '@/lib/auth';
 
+export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
+        const auth = getUserFromRequest(req as any);
+        const tenantId = auth ? auth.tenantId : null;
+
         const formData = await req.formData();
         const file = formData.get('file') as File;
 
@@ -26,24 +31,13 @@ export async function POST(req: NextRequest) {
         const base64Image = Buffer.from(buffer).toString('base64');
         const mimeType = file.type || 'image/jpeg';
 
-        // Prompt Gemini to extract structured invoice data
-        const promptText = `
-أنت خبير في قراءة الفواتير الضريبية السعودية باللغتين العربية والإنجليزية.
-استخرج البيانات التالية من الفاتورة بدقة عالية جداً وأرجع النتيجة بصيغة JSON فقط (بدون أي نصوص إضافية أو علامات Markdown مثل \`\`\`json):
-{
-  "supplierName": "اسم المورد او الشركة",
-  "taxNumber": "الرقم الضريبي المكون من 15 رقم عادة",
-  "invoiceNo": "رقم الفاتورة",
-  "date": "تاريخ الفاتورة بصيغة YYYY-MM-DD",
-  "subtotal": 0.00,
-  "taxAmount": 0.00,
-  "grandTotal": 0.00,
-  "items": [
-    { "name": "اسم المنتج المنظف بدون ارقام او رموز غريبة", "quantity": 1, "price": 0.00, "total": 0.00 }
-  ]
-}
-إذا تعذر إيجاد أي حقل أو كان فارغاً اجعله null للمحتوى النصي و 0 للأرقام. استخدم السعر قبل الضريبة للـ price إذا أمكن.
-`;
+        // Get Prompt Template
+        const promptTemplate = await getPrompt('ocr.invoice_extract', tenantId);
+        if (!promptTemplate?.userTemplate) {
+            return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
+        }
+        
+        const promptText = renderPrompt(promptTemplate.userTemplate, {});
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });

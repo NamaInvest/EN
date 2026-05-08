@@ -35,11 +35,11 @@ export async function POST(req: NextRequest) {
         
         const promptTemplate = await getPrompt('cfo.daily_summary', user.tenantId);
         
-        if (!promptTemplate?.template) {
+        if (!promptTemplate?.userTemplate) {
             return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
         }
 
-        let promptText = renderPrompt(promptTemplate.template, {
+        let promptText = renderPrompt(promptTemplate.userTemplate, {
             todaySales: metrics.todaySales,
             todayPurchases: metrics.todayPurchases,
             todayExpenses: metrics.todayExpenses,
