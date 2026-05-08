@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 7: MRP Interface API
  *
@@ -9,7 +10,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 interface MRPItem {
     productId: number;
@@ -95,7 +95,7 @@ export async function GET(req: Request) {
             requirements,
             criticalOnly: criticalItems,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('MRP GET error:', e);
         return NextResponse.json({ error: 'خطأ في تشغيل MRP' }, { status: 500 });
     }
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
             reqNo: nextReqNo,
             itemsCreated: validItems.length,
         }, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error('MRP POST error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء طلبات الشراء' }, { status: 500 });
     }

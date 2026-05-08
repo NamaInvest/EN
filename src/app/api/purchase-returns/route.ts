@@ -5,16 +5,23 @@ import { postPurchaseReturn } from '@/lib/auto-journal';
 import { purchaseReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const returns = await prisma.purchaseReturn.findMany({
             take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
-    } catch (e) { return handleApiError(e); }
+    } catch (e: any) { return handleApiError(e); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -75,10 +82,10 @@ export async function POST(request: Request) {
                 userId: ret.userId || undefined,
                 branchId: branchId || undefined,
             });
-        } catch (je) {
+        } catch (je: unknown) {
             console.warn('Auto Journal skipped (Purchase Return):', je);
         }
 
         return NextResponse.json(ret, { status: 201 });
-    } catch (e) { return handleApiError(e); }
+    } catch (e: any) { return handleApiError(e); }
 }

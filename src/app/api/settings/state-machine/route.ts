@@ -10,6 +10,7 @@ import { transition, getAvailableActions, seedDefaultTransitions } from '@/lib/s
 const db = (p: any) => p as any;
 
 export async function GET(req: NextRequest) {
+
     try {
         const prisma = getPrisma(req);
         const docType = req.nextUrl.searchParams.get('docType');
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
     try {
         const prisma = getPrisma(req);
         const body = await req.json();

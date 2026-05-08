@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Truck, Plus } from 'lucide-react';

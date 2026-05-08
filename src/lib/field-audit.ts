@@ -143,7 +143,7 @@ export async function logFieldChanges(
                 data: rows as any,
             });
         }
-    } catch (e) {
+    } catch (e: any) {
         // Audit failure must never block the business action
         console.error('[field-audit] failed to log changes:', e);
     }

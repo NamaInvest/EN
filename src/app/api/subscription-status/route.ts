@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
-        const user = await getUserFromRequest(request);
+        const user = await getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ active: false });
         
         // Platform owner is immune to SaaS subscription locks
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({ active: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Subscription Status Error:', error);
         return NextResponse.json({ active: true }); // Fail-open to avoid locking legitimately paying users during database DB drops
     }

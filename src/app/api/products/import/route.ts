@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import * as xlsx from 'xlsx';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const allowed = await hasPermission(auth.userId, 'dashboard', prisma); // Admin or products editor
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
             message: rMsg
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Products IMPORT error:', error);
         return NextResponse.json({ error: 'فشل في استيراد المنتجات' }, { status: 500 });
     }

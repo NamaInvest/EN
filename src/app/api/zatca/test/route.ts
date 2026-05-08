@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 
 export async function GET(req: NextRequest) {
+
     try {
         const tmpDir = '/tmp/debug_zatca_perfect';
         try { fs.mkdirSync(tmpDir, { recursive: true }); } catch(e){}

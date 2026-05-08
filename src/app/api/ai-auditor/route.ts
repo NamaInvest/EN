@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { sendMessage, getBotToken, getGeminiKey } from '@/lib/telegram-bot';
 
 export async function GET(req: NextRequest) {
+
     const prisma = getPrisma(req);
     try {
         // Simple security check (in production, use standard CRON_SECRET)

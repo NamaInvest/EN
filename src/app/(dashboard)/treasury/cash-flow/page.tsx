@@ -1,10 +1,11 @@
-import { _t } from '@/lib/server-t';
 'use client';
 
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Filter } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function CashFlowDashboard() {
  const { success, info } = useToast();

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * AI Cost Dashboard data.
  *
@@ -16,6 +16,9 @@ import { getUserFromRequest } from '@/lib/auth';
  *   - logs          : 100 most-recent rows for the table view
  */
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -54,7 +57,7 @@ export async function GET(request: Request) {
             take: 10,
         });
 
-        const byPromptKey = promptGroups.map((g) => ({
+        const byPromptKey = promptGroups.map((g: any) => ({
             promptKey: g.promptKey,
             calls: g._count.id,
             promptTokens: g._sum.promptTokens ?? 0,
@@ -73,7 +76,7 @@ export async function GET(request: Request) {
             orderBy: { _sum: { promptTokens: 'desc' } },
         });
 
-        const byModel = modelGroups.map((g) => ({
+        const byModel = modelGroups.map((g: any) => ({
             model: g.model,
             calls: g._count.id,
             promptTokens: g._sum.promptTokens ?? 0,
@@ -135,7 +138,7 @@ export async function GET(request: Request) {
             byDay,
             logs,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('[llm-costs] route error:', e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

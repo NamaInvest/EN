@@ -1,8 +1,7 @@
-import { _t } from '@/lib/server-t';
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 import { 
  LayoutDashboard, Plus, ArrowRight, UserCircle, 
@@ -11,14 +10,15 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
-export default async function ProjectDetails({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
- const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
- const router = useRouter();
- const [project, setProject] = useState<any>(null);
- const [tasks, setTasks] = useState<any[]>([]);
- const [loading, setLoading] = useState(true);
+export default function ProjectDetails() {
+  const params = useParams();
+  const id = params?.id as string;
+  const { t } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
+  const router = useRouter();
+  const [project, setProject] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
  // Modal
  const [showModal, setShowModal] = useState(false);
@@ -27,13 +27,13 @@ export default async function ProjectDetails({ params }: { params: Promise<{ id:
  taskName: '', description: '', assignedTo: '', budget: '', startDate: '', endDate: '' 
  });
 
- useEffect(() => { fetchData(); }, [(await params).id]);
+ useEffect(() => { fetchData(); }, [id]);
 
  const fetchData = async () => {
  setLoading(true);
  try {
  const token = localStorage.getItem('token');
- const res = await fetch(`/api/enterprise/projects/tasks?projectId=${(await params).id}`, { headers: { Authorization: `Bearer ${token}` } });
+ const res = await fetch(`/api/enterprise/projects/tasks?projectId=${id}`, { headers: { Authorization: `Bearer ${token}` } });
  if (res.ok) {
  const data = await res.json();
  setTasks(data.tasks);
@@ -50,7 +50,7 @@ export default async function ProjectDetails({ params }: { params: Promise<{ id:
  try {
  const res = await fetch('/api/enterprise/projects/tasks', {
  method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify({ ...formData, projectId: (await params).id })
+ body: JSON.stringify({ ...formData, projectId: id })
  });
 
  if (res.ok) { setShowModal(false); fetchData(); } 
@@ -102,8 +102,8 @@ export default async function ProjectDetails({ params }: { params: Promise<{ id:
  {t('sys.str_57')}{project.customer?.name} {t('sys.str_2842')}{project.id}
  </p>
  </div>
- <button className="btn btn-primary" onClick={() => router.push(`/enterprise/projects/${(await params).id}/gantt`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
-   <LayoutDashboard size={18} />{_t('Gantt & Analytics', 'Gantt & Analytics')}</button>
+ <button className="btn btn-primary" onClick={() => router.push(`/enterprise/projects/${id}/gantt`)} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+   <LayoutDashboard size={18} />Gantt & Analytics</button>
  </div>
 
  {/* Dashboard Analytics for this single project */}

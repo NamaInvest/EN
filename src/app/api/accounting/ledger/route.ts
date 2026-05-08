@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - دفتر الأستاذ لحساب معين
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -63,11 +68,11 @@ export async function GET(request: Request) {
         return NextResponse.json({
             account: { id: account.id, code: account.code, name: account.name, type: account.type },
             lines: ledgerLines,
-            totalDebit: Math.round(lines.reduce((s, l) => s + l.debit, 0) * 100) / 100,
-            totalCredit: Math.round(lines.reduce((s, l) => s + l.credit, 0) * 100) / 100,
+            totalDebit: Math.round(lines.reduce((s: any, l: any) => s + l.debit, 0) * 100) / 100,
+            totalCredit: Math.round(lines.reduce((s: any, l: any) => s + l.credit, 0) * 100) / 100,
             closingBalance: Math.round(runningBalance * 100) / 100,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ledger GET error:', error);
         return NextResponse.json({ error: 'فشل في جلب دفتر الأستاذ' }, { status: 500 });
     }

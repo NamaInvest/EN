@@ -1,16 +1,16 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * FX Operations API
  * GET  /api/fx/rates — Get exchange rates
  * POST /api/fx/revalue — Run FX revaluation
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 
 const db = (p: any) => p as any;
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

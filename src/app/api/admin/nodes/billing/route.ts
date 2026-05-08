@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const { subdomain, paymentStatus, subscriptionDuration } = body;
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ success: true, data: updated });
-    } catch (e) {
+    } catch (e: any) {
         console.error("[ADMIN_BILLING_API]", e);
         return NextResponse.json({ error: "Failed to update tenant billing." }, { status: 500 });
     }

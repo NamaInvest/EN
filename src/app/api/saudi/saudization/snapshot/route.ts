@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Saudization Snapshot API
  * GET  /api/saudi/saudization/snapshot — Get latest + history
@@ -5,11 +6,10 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { getLatestSnapshot, getSnapshotHistory, takeSaudizationSnapshot } from '@/lib/qiwa-engine';
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

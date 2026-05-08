@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -9,7 +10,7 @@ export async function GET(req: Request) {
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded: any = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         // Get past adjustments
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded: any = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
                         reason: reason || 'تسوية جردية يدوية',
                         userId: decoded.userId
                     });
-                } catch (je) {
+                } catch (je: unknown) {
                     console.error("Auto Journal Error (Inventory Adj):", je);
                 }
             }

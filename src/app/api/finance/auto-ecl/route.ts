@@ -1,11 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const user = await prisma.user.findUnique({ where: { id: auth.userId } });
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             journalEntry: je.reference
         }, { status: 201 });
 
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

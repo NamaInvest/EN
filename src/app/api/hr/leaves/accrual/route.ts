@@ -1,10 +1,10 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Leave Accrual API
  * POST /api/hr/leaves/accrual — تشغيل التجميع الشهري
  * GET  /api/hr/leaves/accrual — حالة التجميع
  */
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { LeaveEngine } from '@/lib/leave-engine';
 
 export async function POST(req: Request) {

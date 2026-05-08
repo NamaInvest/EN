@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { IFRS9Engine } from '@/lib/ifrs9-ecl';
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const { fiscalPeriodId, asOfDate, userId } = body;

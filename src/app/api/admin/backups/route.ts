@@ -4,7 +4,7 @@ import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { BackupEngine } from '@/lib/backup-engine';
 
 export async function GET(req: NextRequest) {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     const prisma = getPrisma(req);
     if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     const prisma = getPrisma(req);
     if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });

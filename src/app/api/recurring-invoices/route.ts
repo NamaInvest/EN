@@ -5,7 +5,7 @@ import { getUserFromRequest } from "@/lib/auth";
 // Add a new Recurring Contract
 export async function POST(req: NextRequest) {
   try {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 // Get all active Recurring Contracts
 export async function GET(req: NextRequest) {
   try {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
       orderBy: { id: "desc" },
     });
 
-    const formatted = contracts.map((c) => {
+    const formatted = contracts.map((c: any) => {
       let meta = {
         nextBillingDate: c.date,
         frequency: c.status.replace("RECURRING_", ""),
@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
       };
       try {
         if (c.notes) meta = JSON.parse(c.notes);
-      } catch (e) {}
+      } catch (e: any) {}
 
       return {
         id: c.id,

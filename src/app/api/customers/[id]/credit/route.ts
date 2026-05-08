@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     const prisma = getPrisma(req as any);
     try {

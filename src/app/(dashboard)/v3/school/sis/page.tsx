@@ -1,5 +1,4 @@
-import { _t } from '@/lib/server-t';
-'use client';
+﻿'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Users, GraduationCap, Bus, Bell, BookOpen, Brain, ScanSearch, MapPin } from 'lucide-react';
@@ -22,7 +21,8 @@ export default function SchoolSIS() {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" className="bg-white text-indigo-900 hover:bg-slate-100 font-bold"><BookOpen className="w-4 h-4 mr-2"/>{_t('LMS Portal', 'LMS Portal')}</Button>
+
+          <Button className="bg-white text-indigo-900 hover:bg-slate-100 font-bold"><BookOpen className="w-4 h-4 mr-2"/>{_t('LMS Portal', 'LMS Portal')}</Button>
         </div>
       </div>
 

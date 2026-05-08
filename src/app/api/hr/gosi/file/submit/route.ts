@@ -2,9 +2,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { GOSIEngine } from '@/lib/gosi-engine';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
         const body = await request.json();
         const { fileId } = body;

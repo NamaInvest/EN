@@ -3,9 +3,14 @@ import { exec } from 'child_process';
 import os from 'os';
 import { PrismaClient } from '@prisma/client';
 
+import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
   try {
     // 1. Database Health
     const dbStart = performance.now();
@@ -37,7 +42,7 @@ export async function GET(request: NextRequest) {
                     uptime: Math.floor((Date.now() - p.pm2_env.pm_uptime) / 1000) + 's',
                     restarts: p.pm2_env.restart_time
                 })));
-            } catch (e) {
+            } catch (e: any) {
                 resolve([]);
             }
         });

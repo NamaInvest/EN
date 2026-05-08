@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { generateB2BToken } from '@/lib/b2b-auth';
 
 export async function POST(req: NextRequest) {
+
     const prisma = getPrisma(req);
     try {
         const { phone, password } = await req.json();

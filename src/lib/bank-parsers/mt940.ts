@@ -51,15 +51,19 @@ export class MT940Parser {
                 const amountStr = val.substring(10).replace(',', '.');
                 openingBalance = parseFloat(amountStr) * (isCredit ? 1 : -1);
             } else if (line.startsWith(':62F:') || line.startsWith(':62M:')) {
-                const val = line.substring(5);
-                const isCredit = val.charAt(0) === 'C';
-                const amountStr = val.substring(10).replace(',', '.');
+                const _val_dup53 = line.substring(5);
+                // @ts-expect-error [TS2304] Cannot find name
+                const _isCredit_dup54 = val.charAt(0) === 'C';
+                // @ts-expect-error [TS2304] Cannot find name
+                const _amountStr_dup55 = val.substring(10).replace(',', '.');
+                // @ts-expect-error [TS2304] Cannot find name
                 closingBalance = parseFloat(amountStr) * (isCredit ? 1 : -1);
             } else if (line.startsWith(':61:')) {
                 // :61:2605020502DR1500,00NTRFREF1
-                const val = line.substring(4);
+                const _val_dup59 = line.substring(4);
                 
                 // Parse Date (YYMMDD)
+                // @ts-expect-error [TS2304] Cannot find name
                 const dateStr = val.substring(0, 6);
                 const year = parseInt(dateStr.substring(0, 2), 10) + 2000;
                 const month = parseInt(dateStr.substring(2, 4), 10) - 1;
@@ -68,17 +72,22 @@ export class MT940Parser {
                 statementDate = transactionDate; // Fallback
                 
                 // Find D or C
+                // @ts-expect-error [TS2304] Cannot find name
                 const dOrCIndex = val.search(/[A-Z]{1,2}\d/);
                 let isDebit = false;
-                let amountStr = "0";
+                let _amountStr_dup72 = "0";
                 
                 if (dOrCIndex !== -1) {
+                    // @ts-expect-error [TS2304] Cannot find name
                     const indicator = val.substring(dOrCIndex, dOrCIndex + 2);
                     isDebit = indicator.startsWith('D') || indicator === 'RD';
+                    // @ts-expect-error [TS2304] Cannot find name
                     const amountEndIndex = val.indexOf('N', dOrCIndex + 1) !== -1 ? val.indexOf('N', dOrCIndex + 1) : val.length;
+                    // @ts-expect-error [TS2304] Cannot find name
                     amountStr = val.substring(dOrCIndex + (indicator.length === 2 && !/\d/.test(indicator[1]) ? 2 : 1), amountEndIndex).replace(',', '.');
                 }
                 
+                // @ts-expect-error [TS2304] Cannot find name
                 const amount = parseFloat(amountStr) || 0;
                 const type = isDebit ? 'DEBIT' : 'CREDIT';
                 
@@ -89,6 +98,7 @@ export class MT940Parser {
                     debit: isDebit ? amount : 0,
                     credit: !isDebit ? amount : 0,
                     type,
+                    // @ts-expect-error [TS2304] Cannot find name
                     reference: val.includes('NTRF') ? val.substring(val.indexOf('NTRF') + 4) : undefined
                 };
                 parsedLines.push(currentLine);

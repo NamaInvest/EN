@@ -1,9 +1,13 @@
+import { getUserFromRequest } from '@/lib/auth';
 ﻿import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 
 // GET - ط§ظ„ظ‚ظٹظˆط¯ ط§ظ„ظٹظˆظ…ظٹط©
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -31,7 +35,7 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(entries);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Journal GET error:', error);
         return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¬ظ„ط¨ ط§ظ„ظ‚ظٹظˆط¯' }, { status: 500 });
     }
@@ -39,9 +43,13 @@ export async function GET(request: Request) {
 
 // POST - ط¥ط¶ط§ظپط© ظ‚ظٹط¯ ظٹط¯ظˆظٹ
 export async function POST(request: Request) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const auth = getUserFromRequest(request);
+    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 401 });
 
     const prisma = getPrisma(request);
@@ -74,7 +82,7 @@ export async function POST(request: Request) {
                         details: JSON.stringify({ reason: 'Attempted to manually post to control account', attemptedLines: lines })
                     }
                 });
-            } catch (e) { console.error(e); }
+            } catch (e: any) { console.error(e); }
             return NextResponse.json({ error: 'ظ…ظ†ط¹ ط±ظ‚ط§ط¨ظٹ: ظٹظ…ظ†ط¹ ط¥ط¯ط®ط§ظ„ ظ‚ظٹط¯ ظٹط¯ظˆظٹ ظ…ط¨ط§ط´ط± ط¹ظ„ظ‰ ط­ط³ط§ط¨ط§طھ ط§ظ„ظ…ط±ط§ظ‚ط¨ط© (ط¹ظ…ظ„ط§ط،طŒ ظ…ظˆط±ط¯ظٹظ†طŒ ظ…ط®ط²ظˆظ†). ظٹط¬ط¨ ط£ظ† طھظ†ط´ط£ ط¢ظ„ظٹط§ظ‹ ظ…ظ† ط§ظ„ظپظˆط§طھظٹط±.' }, { status: 403 });
         }
 
@@ -117,7 +125,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ success: true, entryId: result.entryId }, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Journal create error:', error);
         return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¥ظ†ط´ط§ط، ط§ظ„ظ‚ظٹط¯' }, { status: 500 });
     }

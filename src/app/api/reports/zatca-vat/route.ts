@@ -1,11 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
                 exempt: { amount: 0, adjustment: 0, vat: 0 }
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('ZATCA VAT Report error:', error);
         return NextResponse.json({ error: 'فشل جلب التقرير الضريبي' }, { status: 500 });
     }

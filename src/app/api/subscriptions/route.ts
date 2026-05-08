@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
-    const user = await getUserFromRequest(request);
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+    const user = await getUserFromRequest(request as any);
     if (!user || user.role !== 'owner') {
         return NextResponse.json({ error: 'عفواً، هذه الصلاحية مخصصة لمالك المنصة فقط' }, { status: 403 });
     }

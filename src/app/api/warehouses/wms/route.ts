@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 6: WMS (Warehouse Management System) API
  *
@@ -9,7 +10,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
                 totalProducts: stocks.length,
             },
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('WMS GET error:', e);
         return NextResponse.json({ error: 'خطأ في تحميل بيانات المستودع' }, { status: 500 });
     }
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({ error: 'action غير معروف. استخدم: create_zone | create_rack | create_bin' }, { status: 400 });
-    } catch (e) {
+    } catch (e: any) {
         console.error('WMS POST error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء عنصر المستودع' }, { status: 500 });
     }

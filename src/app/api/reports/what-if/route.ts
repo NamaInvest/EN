@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
  * يُستدعى عبر cron job خارجي (كل يوم الساعة 8 صباحاً مثلاً)
  */
 export async function GET(req: Request) {
+
   try {
     const now = new Date();
     const today = now.toISOString().split('T')[0];

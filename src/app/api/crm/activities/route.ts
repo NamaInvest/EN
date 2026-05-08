@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { ActivityEngine } from '@/lib/activity-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req) as any;
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     const type = req.nextUrl.searchParams.get('type') || undefined;
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req) as any;
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     try {

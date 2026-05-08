@@ -29,8 +29,8 @@ export class PivotEngine {
         const agg = (nums: number[]) => {
             if (!nums?.length) return 0;
             if (aggregation === 'count') return nums.length;
-            if (aggregation === 'avg') return nums.reduce((a, b) => a + b, 0) / nums.length;
-            return nums.reduce((a, b) => a + b, 0);
+            if (aggregation === 'avg') return nums.reduce((a: any, b: any) => a + b, 0) / nums.length;
+            return nums.reduce((a: any, b: any) => a + b, 0);
         };
 
         const rows = Object.entries(pivotMap).map(([key, cols]) => {
@@ -48,7 +48,7 @@ export class PivotEngine {
         const totals: Record<string, any> = { _label: 'Total' };
         let grandTotal = 0;
         for (const col of columns) {
-            const v = rows.reduce((s, r) => s + (r[col] || 0), 0);
+            const v = rows.reduce((s: any, r: any) => s + (r[col] || 0), 0);
             totals[col] = Math.round(v * 100) / 100;
             grandTotal += v;
         }

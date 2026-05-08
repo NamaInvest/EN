@@ -4,7 +4,12 @@ import { getNextNumber } from '@/lib/numbering';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 import { canTransition, DocumentType } from '@/lib/document-state-machine';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const orders: any = await prisma.manufacturingOrder.findMany({
@@ -20,13 +25,17 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(orders);
-    } catch (error) {
+    } catch (error: any) {
         console.error("WO GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -48,13 +57,17 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({ message: 'تم إنشاء أمر التشغيل بنجاح', data: order });
-    } catch (error) {
+    } catch (error: any) {
         console.error("WO POST error:", error);
         return NextResponse.json({ error: 'Failed to create work order' }, { status: 500 });
     }
 }
 
 export async function PUT(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -202,7 +215,7 @@ export async function PUT(request: Request) {
         }
 
         return NextResponse.json({ message: 'تم تحديث حالة الأمر بنجاح' });
-    } catch (error) {
+    } catch (error: any) {
         console.error("WO PUT error:", error);
         return NextResponse.json({ error: 'Failed to update work order status' }, { status: 500 });
     }

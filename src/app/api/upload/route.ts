@@ -4,6 +4,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 
 export async function POST(req: NextRequest) {
+
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;

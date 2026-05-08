@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded: any = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const rfqs = await prisma.requestForQuotation.findMany({
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(rfqs);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     try {
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded: any = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(rfq);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

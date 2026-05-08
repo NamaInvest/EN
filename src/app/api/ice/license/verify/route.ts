@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
 

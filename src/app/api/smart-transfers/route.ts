@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { postStockTransfer } from '@/lib/auto-journal';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Retrieve specifically 'transit_out' movements meaning items sent out but maybe not received
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         // Parsing notes safely
         for (const tr of transits) {
             let meta = { status: 'unknown', receiverStockId: 0, transferRef: '' };
-            try { if (tr.notes) meta = JSON.parse(tr.notes); } catch (e) {}
+            try { if (tr.notes) meta = JSON.parse(tr.notes); } catch (e: any) {}
             
             // To get receiver name without N+1 problem, ideally fetch all stocks once, but let's query gracefully
             const receiverStock = await prisma.stock.findUnique({ where: { id: meta.receiverStockId || 0 }, select: { name: true, branch: { select: { name: true } } } });
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
                 productName: product.name,
                 userId: (user as any).id || 1,
             });
-        } catch (je) {
+        } catch (je: unknown) {
             console.error('Auto Journal Transit Out Error', je);
         }
 
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
@@ -206,7 +206,7 @@ export async function PUT(req: NextRequest) {
                 productName: tr.product?.name || 'Unknown',
                 userId: (user as any).id || 1,
             });
-        } catch (je) {
+        } catch (je: unknown) {
             console.error('Auto Journal Transit In Error', je);
         }
 

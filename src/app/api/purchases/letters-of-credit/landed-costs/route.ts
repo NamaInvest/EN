@@ -6,6 +6,7 @@ import { getPrisma } from '@/lib/prisma';
 // to calculate the TRUE `buyPrice` (Cost of Goods Sold - COGS)
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req);
   try {
     const { orderId } = await req.json();
@@ -28,9 +29,9 @@ export async function POST(req: Request) {
 
     // 2. Calculate distribution bases
     // Base 1: Total Value (price * quantity)
-    const totalOrderValue = order.details.reduce((sum, d) => sum + (d.price * d.quantity), 0);
+    const totalOrderValue = order.details.reduce((sum: any, d: any) => sum + (d.price * d.quantity), 0);
     // Base 2: Total Quantity
-    const totalQuantity = order.details.reduce((sum, d) => sum + d.quantity, 0);
+    const totalQuantity = order.details.reduce((sum: any, d: any) => sum + d.quantity, 0);
 
     let totalAdditionalCost = 0;
 

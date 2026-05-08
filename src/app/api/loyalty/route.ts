@@ -1,7 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const loyalties = await prisma.loyaltyPoint.findMany({
@@ -10,7 +15,7 @@ export async function GET(request: NextRequest) {
             orderBy: { points: 'desc' }
         });
         return NextResponse.json(loyalties);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching loyalty points:', error);
         return NextResponse.json({ error: 'Failed to fetch loyalty points' }, { status: 500 });
     }

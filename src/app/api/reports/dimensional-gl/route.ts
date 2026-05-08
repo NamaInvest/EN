@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Dimensional GL Report — aggregates JournalLine by any combination of dimensions.
  * Query params:
@@ -12,7 +12,7 @@ import { apiError } from '@/lib/api-error';
  *   accountId: (optional) filter by specific account
  */
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -111,11 +111,11 @@ export async function GET(req: NextRequest) {
             to: to || 'all',
             rows: result,
             total: {
-                debit: Math.round(result.reduce((s, r) => s + r.totalDebit, 0) * 100) / 100,
-                credit: Math.round(result.reduce((s, r) => s + r.totalCredit, 0) * 100) / 100,
+                debit: Math.round(result.reduce((s: any, r: any) => s + r.totalDebit, 0) * 100) / 100,
+                credit: Math.round(result.reduce((s: any, r: any) => s + r.totalCredit, 0) * 100) / 100,
             },
         });
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل تقرير الأستاذ البُعدي', { context: 'reports/dimensional-gl' });
     }
 }

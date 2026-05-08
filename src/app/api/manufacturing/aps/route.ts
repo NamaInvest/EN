@@ -1,14 +1,14 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * APS Scheduling API
  * GET /api/manufacturing/aps — Run finite capacity scheduling
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { APSScheduler } from '@/lib/aps-scheduler';
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

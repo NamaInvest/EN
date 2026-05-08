@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DunningEngine } from '@/lib/dunning-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json();
         const date = body.date ? new Date(body.date) : new Date();

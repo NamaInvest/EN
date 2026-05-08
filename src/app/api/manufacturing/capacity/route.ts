@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         // Fetch all work centers / machines as resources
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

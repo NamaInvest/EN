@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const recipes = await prisma.recipe.findMany({
@@ -17,13 +22,17 @@ export async function GET(request: Request) {
             orderBy: { id: 'desc' }
         });
         return NextResponse.json(recipes);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Failed to fetch recipes' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

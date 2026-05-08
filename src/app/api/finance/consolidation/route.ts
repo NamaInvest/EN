@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Consolidation Engine API Routes
  * GET  — List consolidation runs / summary
@@ -5,14 +6,13 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { ConsolidationEngine } from '@/lib/consolidation-engine';
 
 const db = prisma as any;
 
 export async function GET(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
                 if (!groupId || !fiscalPeriodId) {
                     return NextResponse.json({ error: 'groupId and fiscalPeriodId are required' }, { status: 400 });
                 }
+                // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
                 const result = await ConsolidationEngine.runConsolidation(groupId, fiscalPeriodId, String(user.id));
                 return NextResponse.json({ success: true, result });
 

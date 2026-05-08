@@ -1,11 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
-import { getUserFromRequest } from '@/lib/auth';
 import { treasuryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -13,7 +16,7 @@ export async function GET(request: NextRequest) {
         const to = searchParams.get('to');
         const branchQuery = searchParams.get('branchId');
 
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
 
         const where: Record<string, unknown> = {};
@@ -29,12 +32,15 @@ export async function GET(request: NextRequest) {
         const entries = await prisma.treasury.findMany({
             take: 100, where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
         return NextResponse.json(entries);
-    } catch (error) { 
+    } catch (error: any) { 
         return handleApiError(error); 
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
@@ -66,7 +72,7 @@ export async function POST(request: Request) {
         });
         
         return NextResponse.json(entry, { status: 201 });
-    } catch (error) { 
+    } catch (error: any) { 
         return handleApiError(error); 
     }
 }

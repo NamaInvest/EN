@@ -147,7 +147,7 @@ export class DocumentExpiryEngine {
               result.notificationsSent++;
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           result.errors.push(`Doc ${doc.id}: ${String(err)}`);
         }
       }
@@ -194,12 +194,12 @@ export class DocumentExpiryEngine {
               });
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           result.errors.push(`CompanyDoc ${doc.id}: ${String(err)}`);
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       result.errors.push(`Scan failed: ${String(error)}`);
     }
 

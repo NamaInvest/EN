@@ -1,23 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const customer = await prisma.customer.findUnique({ where: { id: parseInt(id) } });
         if (!customer) return NextResponse.json({ error: 'غير موجود' }, { status: 404 });
         return NextResponse.json(customer);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'خطأ' }, { status: 500 });
     }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -46,16 +52,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // 3. Audit trail — log all field changes
         try {
             await logFieldChanges(prisma, 'Customer', customerId, before, customer, auditContextFromRequest(request, auth ?? undefined));
-        } catch (e) { console.error('[audit] Customer update audit failed:', e); }
+        } catch (e: any) { console.error('[audit] Customer update audit failed:', e); }
 
         return NextResponse.json(customer);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -68,11 +77,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         try {
             const before = await prisma.customer.findUnique({ where: { id: customerId } });
             if (before) await logDelete(prisma, 'Customer', customerId, before as any, auditContextFromRequest(request, auth));
-        } catch (e) { console.error('[audit] Customer delete audit failed:', e); }
+        } catch (e: any) { console.error('[audit] Customer delete audit failed:', e); }
 
         await prisma.customer.delete({ where: { id: customerId } });
         return NextResponse.json({ message: 'تم الحذف' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }

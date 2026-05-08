@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -15,13 +15,13 @@ export async function GET(req: NextRequest) {
             select: { id: true, yearNumber: true, startDate: true, endDate: true, status: true },
         });
         return NextResponse.json(fiscalYears);
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل جلب السنوات المالية', { context: 'accounting/fiscal-years' });
     }
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
             },
         });
         return NextResponse.json(fy, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل إنشاء سنة مالية', { context: 'accounting/fiscal-years' });
     }
 }

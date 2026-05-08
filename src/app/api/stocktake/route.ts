@@ -1,7 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const stocktakes = await prisma.stocktake.findMany({
@@ -10,10 +15,14 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(stocktakes);
-    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -62,5 +71,5 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(stocktake, { status: 201 });
-    } catch (e) { console.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
+    } catch (e: any) { console.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
 }

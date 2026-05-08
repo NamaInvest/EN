@@ -1,14 +1,14 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Nitaqat Projection API
  * POST /api/saudi/nitaqat/projection — Project impact of hiring changes
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { computeSaudizationPct, projectImpact } from '@/lib/qiwa-engine';
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

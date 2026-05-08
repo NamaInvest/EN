@@ -120,7 +120,7 @@ export class CPQEngine {
             });
         }
 
-        const subtotal = quoteLines.reduce((s, l) => s + l.lineTotal, 0);
+        const subtotal = quoteLines.reduce((s: any, l: any) => s + l.lineTotal, 0);
         const vatRate = 0.15; // Saudi VAT 15%
         const vatAmount = Math.round(subtotal * vatRate * 100) / 100;
 

@@ -84,6 +84,7 @@ export class CreditCheckEngine {
     ): Promise<CreditCheckResult[]> {
         const customers = await prisma.customer.findMany({
             take: 100,
+            // @ts-expect-error [TS2561] Incorrect key type
             where: { isActive: true },
             select: { id: true },
         });

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { CashFlowEngine } from '@/lib/cashflow-engine';
 
 export async function GET(req: Request) {
+
     try {
         const { searchParams } = new URL(req.url);
         const daysParam = searchParams.get('days');

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
                 select: { phone: true, name: true }
             });
             targetPhones = customers.map(c => ({ phone: c.phone, name: c.name }));
-        } catch (e) {
+        } catch (e: any) {
             // Fallback to Users table if customer table is isolated
             const users = await prisma.user.findMany({
             take: 100,
@@ -75,7 +79,7 @@ export async function POST(request: Request) {
                 });
                 if (res.ok) successCount++;
                 else failCount++;
-            } catch (err) {
+            } catch (err: any) {
                 failCount++;
             }
         }
@@ -90,7 +94,7 @@ export async function POST(request: Request) {
             } 
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('WhatsApp Broadcast Error:', error);
         return NextResponse.json({ error: 'فشل في تهيئة حملة البث التسويقي' }, { status: 500 });
     }

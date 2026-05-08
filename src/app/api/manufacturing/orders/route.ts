@@ -1,10 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 import { runMRP } from '@/lib/mrp-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const orders = await prisma.manufacturingOrder.findMany({
@@ -29,9 +32,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         const body = await request.json();
         
         const lastOrder = await prisma.manufacturingOrder.findFirst({ orderBy: { id: 'desc' } });
@@ -56,7 +62,7 @@ export async function POST(request: NextRequest) {
         let mrpResult = null;
         try {
             mrpResult = await runMRP(newOrder.id);
-        } catch (mrpErr) {
+        } catch (mrpErr: unknown) {
             console.warn('MRP check failed (non-blocking):', mrpErr);
         }
 
@@ -67,6 +73,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

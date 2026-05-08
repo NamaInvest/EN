@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { resolveTenant } from '@/lib/prisma';
 import { queryRAG } from '@/lib/vector-store';
 import { invokeChain } from '@/lib/langchain-orchestrator';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: Request) {
     try {
         const auth = getUserFromRequest(req as any);

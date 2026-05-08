@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: ' ' }, { status: 401 });
 
         const allowed = await hasPermission(auth.userId, 'view_fraud_ai', prisma);

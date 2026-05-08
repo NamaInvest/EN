@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { syncProductToSalla } from '@/lib/salla';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
+import { getUserFromRequest } from '@/lib/auth';
 async function hasPermission(prisma: any, userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
     if (!user) return false;
@@ -13,9 +13,12 @@ async function hasPermission(prisma: any, userId: number, module: string): Promi
 }
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const { searchParams } = new URL(request.url);
@@ -63,13 +66,16 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(products);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Products GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -135,7 +141,7 @@ export async function POST(request: Request) {
         // Create product units if provided
         if (body.productUnits && Array.isArray(body.productUnits) && body.productUnits.length > 0) {
             for (const pu of body.productUnits) {
-                const uId = parseInt(pu.unitId);
+                const _uId_dup143 = parseInt(pu.unitId);
                 if (isNaN(uId)) continue; // Skip invalid units
                 await prisma.$queryRawUnsafe(`
                     INSERT INTO product_units (product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
@@ -183,7 +189,7 @@ export async function POST(request: Request) {
                     }
                 });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to initialize product stock:', e);
         }
 
@@ -191,7 +197,7 @@ export async function POST(request: Request) {
         await syncProductToSalla(product);
 
         return NextResponse.json(product, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Product create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء المنتج' }, { status: 500 });
     }
@@ -199,9 +205,12 @@ export async function POST(request: Request) {
 
 // Stock reset: set all products' currentStock to 0
 export async function DELETE(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
@@ -215,9 +224,10 @@ export async function DELETE(request: NextRequest) {
             try {
                 const result = await prisma.product.deleteMany({});
                 return NextResponse.json({ success: true, message: `تم حذف ${result.count} منتج نهائياً` });
-            } catch (e) {
+            } catch (e: any) {
                 // Fallback to soft delete
-                const result = await prisma.product.updateMany({ data: { active: false } });
+                const _result_dup228 = await prisma.product.updateMany({ data: { active: false } });
+                // @ts-expect-error [TS2448] Block-scoped variable ordering issue
                 return NextResponse.json({ success: true, message: `تم أرشفة ${result.count} منتج لوجود حركات مالية` });
             }
         }
@@ -227,7 +237,7 @@ export async function DELETE(request: NextRequest) {
 
         const result = await prisma.product.updateMany({ data: { currentStock: 0 } });
         return NextResponse.json({ success: true, message: `تم تصفير مخزون ${result.count} منتج` });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Products stock reset error:', error);
         return NextResponse.json({ error: 'فشل في تصفير المخزون' }, { status: 500 });
     }

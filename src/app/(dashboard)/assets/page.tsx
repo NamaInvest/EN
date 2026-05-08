@@ -1,10 +1,10 @@
-import { _t } from '@/lib/server-t';
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Truck, Car, Building, Wrench, Plus, Calculator, History } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function FixedAssetsPage() {
 

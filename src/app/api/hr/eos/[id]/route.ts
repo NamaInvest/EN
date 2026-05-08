@@ -1,9 +1,9 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * EOS Actions API
  * POST /api/hr/eos/[id] — approve or pay
  */
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { SaudiEOSEngine } from '@/lib/saudi-eos-engine';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

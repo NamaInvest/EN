@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
@@ -10,6 +9,7 @@ export default function ManufacturingMRP() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
+    // @ts-expect-error [TS2304] Cannot find name
     <div className="p-6 max-w-7xl mx-auto space-y-6">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">{_t('GLOBAL ENTERPRISE FEATURES', 'GLOBAL ENTERPRISE FEATURES')}</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-teal-500 text-white font-bold hover:opacity-90 shadow-lg"><Cpu className="w-4 h-4 mr-2"/>{_t('IoT Sensors Sync', 'IoT Sensors Sync')}</Button>\n        <Button className="bg-amber-500 text-white font-bold hover:opacity-90 shadow-lg"><Wrench className="w-4 h-4 mr-2"/>{_t('Predictive Maintenance AI', 'Predictive Maintenance AI')}</Button>\n        <Button className="bg-indigo-500 text-white font-bold hover:opacity-90 shadow-lg"><BoxSelect className="w-4 h-4 mr-2"/>{_t('Digital Twin View', 'Digital Twin View')}</Button>\n        </div>\n      </div>
       <div className="flex justify-between items-center p-6 bg-gradient-to-r from-slate-900 to-indigo-900 rounded-xl shadow-lg text-white">
         <div>

@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 const StockTransferItemSchema = z.object({
     productId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))),
     productName: z.string().optional().nullable(),
@@ -17,18 +18,24 @@ const StockTransferSchema = z.object({
     items: z.array(StockTransferItemSchema).min(1, 'يجب تحديد صنف واحد على الأقل للتحويل'),
 });
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const transfers = await prisma.stockTransfer.findMany({
             take: 100, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(transfers);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json([], { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);

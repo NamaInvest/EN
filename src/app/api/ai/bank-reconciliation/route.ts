@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
-        const user = await getUserFromRequest(request);
+        const user = await getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'عفوا، صلاحيات الدخول غير صالحة.' }, { status: 401 });
 
         // In a strictly 'Agentic' system, this endpoint receives a raw bank statement (CSV/JSON/Text).

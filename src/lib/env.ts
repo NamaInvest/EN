@@ -60,7 +60,7 @@ export function getEnv(): EnvConfig {
         ...process.env,
         // Provide safe defaults for dev only
         DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/namasoft',
-        JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-minimum-16chars',
+        JWT_SECRET: (process.env.JWT_SECRET as string),
         NODE_ENV: process.env.NODE_ENV || 'development',
     })) as EnvConfig;
 

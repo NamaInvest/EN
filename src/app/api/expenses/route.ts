@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { getMainBranchId } from '@/lib/getDefaults';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
         const to = searchParams.get('to');
         const branchQuery = searchParams.get('branchId');
 
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
 
         const where: Record<string, unknown> = {};
@@ -34,12 +35,13 @@ export async function GET(request: NextRequest) {
             orderBy: { date: 'desc' } 
         });
         return NextResponse.json(expenses);
-    } catch (error) { 
+    } catch (error: any) { 
         return handleApiError(error); 
     }
 }
 
 export async function POST(request: Request) {
+
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
@@ -99,20 +101,21 @@ export async function POST(request: Request) {
                 costCenterId: expense.costCenterId || undefined,
                 date: new Date().toISOString().split('T')[0],
             });
-        } catch (journalErr) {
+        } catch (journalErr: unknown) {
             console.warn('Auto-journal for expense skipped:', journalErr);
         }
 
         return NextResponse.json(expense, { status: 201 });
-    } catch (error) { 
+    } catch (error: any) { 
         return handleApiError(error); 
     }
 }
 
 export async function PUT(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'edit_expense', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تعديل المصروفات' }, { status: 403 });
@@ -148,15 +151,16 @@ export async function PUT(request: NextRequest) {
         });
 
         return NextResponse.json(expense);
-    } catch (error) {
+    } catch (error: any) {
         return handleApiError(error);
     }
 }
 
 export async function DELETE(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
@@ -193,7 +197,7 @@ export async function DELETE(request: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: 'تم حذف المصروف بنجاح' });
-    } catch (error) {
+    } catch (error: any) {
         return handleApiError(error);
     }
 }

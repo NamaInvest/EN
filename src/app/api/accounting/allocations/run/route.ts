@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { AllocationEngine } from '@/lib/allocation-engine';
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const { ruleId, fiscalPeriodId, userId } = body;

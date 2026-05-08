@@ -35,11 +35,11 @@ export class VendorScorecardEngine {
         const from = periodFrom || new Date(Date.now() - 365 * 86400000);
         const to = periodTo || new Date();
 
-        const supplier = await prisma.customer.findUnique({ where: { id: supplierId } });
+        const supplier = await (prisma as any).customer.findUnique({ where: { id: supplierId } });
         if (!supplier) throw new Error('مورد غير موجود');
 
         // Purchase orders analysis
-        const pos = await prisma.purchaseOrder.findMany({
+        const pos = await (prisma as any).purchaseOrder.findMany({
             take: 100,
             where: {
                 supplierId,
@@ -51,7 +51,7 @@ export class VendorScorecardEngine {
         const totalOrders = pos.length;
 
         // Purchase invoices for returns/quality
-        const invoices = await prisma.purchaseInvoice.findMany({
+        const invoices = await (prisma as any).purchaseInvoice.findMany({
             take: 100,
             where: {
                 supplierId,
@@ -61,15 +61,15 @@ export class VendorScorecardEngine {
         });
 
         // Delivery score: on-time percentage
-        const onTimeDeliveries = pos.filter(po => {
+        const onTimeDeliveries = pos.filter((po: any) => {
             if (!po.expectedDate) return true;
             return po.status === 'received' || po.status === 'completed';
         }).length;
         const deliveryScore = totalOrders > 0 ? Math.round((onTimeDeliveries / totalOrders) * 100) : 50;
 
         // Quality score: inverse of return rate
-        const totalInvoiceValue = invoices.reduce((s, i) => s + Number(i.total), 0);
-        const cancelledInvoices = invoices.filter(i => i.status === 'cancelled').length;
+        const totalInvoiceValue = invoices.reduce((s: number, i: any) => s + Number(i.total), 0);
+        const cancelledInvoices = invoices.filter((i: any) => i.status === 'cancelled').length;
         const returnRate = invoices.length > 0 ? (cancelledInvoices / invoices.length) * 100 : 0;
         const qualityScore = Math.max(0, Math.round(100 - returnRate * 10));
 
@@ -109,7 +109,7 @@ export class VendorScorecardEngine {
      * Rank all vendors
      */
     static async rankAll(prisma: PrismaClient): Promise<VendorScore[]> {
-        const suppliers = await prisma.customer.findMany({
+        const suppliers = await (prisma as any).customer.findMany({
             take: 100,
             where: { isActive: true, isSupplier: true },
             select: { id: true },

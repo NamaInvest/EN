@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { ReorderEngine } from '@/lib/reorder-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req) as any;
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req) as any;
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     try {

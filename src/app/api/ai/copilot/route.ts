@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { message } = await req.json();

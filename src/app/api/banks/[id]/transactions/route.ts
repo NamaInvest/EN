@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const resolvedParams = await params;
@@ -16,13 +20,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         });
         
         return NextResponse.json(transactions);
-    } catch (error) { 
+    } catch (error: any) { 
         console.error(error); 
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 }); 
     }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);

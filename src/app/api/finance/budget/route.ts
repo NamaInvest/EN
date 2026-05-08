@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const tenantId = resolveTenant(request as any);
 
-        const versions = await prisma.budgetVersion.findMany({
+        const versions = await (prisma as any).budgetVersion.findMany({
             take: 100,
             where: { tenantId },
             orderBy: { createdAt: 'desc' },
@@ -23,6 +26,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -32,7 +38,7 @@ export async function POST(request: Request) {
         const { action, ...data } = await request.json();
 
         if (action === 'create-version') {
-            const version = await prisma.budgetVersion.create({
+            const version = await (prisma as any).budgetVersion.create({
                 data: {
                     tenantId,
                     name: data.name,
@@ -46,7 +52,7 @@ export async function POST(request: Request) {
         }
 
         if (action === 'add-line') {
-            const line = await prisma.budgetLine.create({
+            const line = await (prisma as any).budgetLine.create({
                 data: {
                     tenantId,
                     versionId: data.versionId,
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
         }
 
         if (action === 'lock') {
-            await prisma.budgetVersion.update({
+            await (prisma as any).budgetVersion.update({
                 where: { id: data.versionId },
                 data: { status: 'LOCKED' }
             });

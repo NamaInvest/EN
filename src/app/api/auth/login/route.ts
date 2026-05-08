@@ -2,14 +2,18 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { comparePassword, generateToken } from '@/lib/auth';
+import { rateLimitOrReject } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
+    // Rate limit: max 10 login attempts per minute per IP
+    const rateLimitResponse = await rateLimitOrReject(request, { max: 10, windowMs: 60_000 });
+    if (rateLimitResponse) return rateLimitResponse;
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const username = String(body.username || '').trim();
         const password = String(body.password || '').trim();
-
 
         if (!username || !password) {
             return NextResponse.json(
@@ -76,20 +80,20 @@ export async function POST(request: Request) {
             },
         });
 
-        // Set generic auth cookie for Next.js middleware routing
-        response.cookies.set('auth-token', token, {
-            httpOnly: false, // Must be readable by client script if needed, but primarily used for middleware checks
+        // Set HttpOnly cookie for middleware auth
+        response.cookies.set('token', token, {
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7 // 7 days
+            maxAge: 60 * 60 * 8, // 8 hours (matches JWT expiry)
+            path: '/',
         });
 
         return response;
-    } catch (error) {
-        const errDump = JSON.stringify(error, Object.getOwnPropertyNames(error));
-        console.error('Login Error Dump:', errDump);
+    } catch (error: any) {
+        console.error('[Login] Error:', error?.message);
         return NextResponse.json(
-            { error: 'حدث خطأ في الخادم: ' + errDump },
+            { error: 'حدث خطأ في الخادم' },
             { status: 500 }
         );
     }

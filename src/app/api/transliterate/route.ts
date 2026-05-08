@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Arabic to English transliteration map
+import { getUserFromRequest } from '@/lib/auth';
 const arabicToEn: Record<string, string> = {
     'ا': 'a', 'أ': 'a', 'إ': 'e', 'آ': 'aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
     'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
@@ -53,6 +54,10 @@ function transliterate(arabic: string): string {
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     try {
         const { text } = await request.json();
         if (!text) return NextResponse.json({ result: '' });

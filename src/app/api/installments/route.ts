@@ -1,16 +1,23 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const installments = await prisma.installment.findMany({
             take: 100, include: { customer: { select: { id: true, name: true, phone: true,  } }, payments: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(installments);
-    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -39,5 +46,5 @@ export async function POST(request: Request) {
             include: { payments: true, customer: { select: { id: true, name: true, phone: true,  } } },
         });
         return NextResponse.json(installment, { status: 201 });
-    } catch (e) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (e: any) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }

@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncProductToSalla } from '@/lib/salla';
-import { getUserFromRequest } from '@/lib/auth';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -17,13 +20,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: 'المنتج غير موجود' }, { status: 404 });
         }
         return NextResponse.json(product);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Product GET error:', error);
         return NextResponse.json({ error: 'خطأ' }, { status: 500 });
     }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -87,7 +93,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                     create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock },
                 });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to sync product stock:', e);
         }
 
@@ -97,16 +103,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // Audit trail — log field changes
         try {
             await logFieldChanges(prisma, 'Product', productId, before, product, auditContextFromRequest(request, auth ?? undefined));
-        } catch (e) { console.error('[audit] Product update audit failed:', e); }
+        } catch (e: any) { console.error('[audit] Product update audit failed:', e); }
 
         return NextResponse.json(product);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Product update error:', error);
         return NextResponse.json({ error: 'فشل في التحديث' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -130,7 +139,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             });
             try {
                 await logFieldChanges(prisma, 'Product', productId, beforeProduct, { ...beforeProduct, active: false } as any, auditContextFromRequest(request, auth));
-            } catch (e) { console.error('[audit] Product archive audit failed:', e); }
+            } catch (e: any) { console.error('[audit] Product archive audit failed:', e); }
             return NextResponse.json({ message: 'تم أرشفة المنتج وإيقاف تفعيله (لوجود حركات مالية مرتبطة)' });
         }
 
@@ -138,7 +147,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         const beforeDel = await prisma.product.findUnique({ where: { id: productId } });
         try {
             if (beforeDel) await logDelete(prisma, 'Product', productId, beforeDel as any, auditContextFromRequest(request, auth));
-        } catch (e) { console.error('[audit] Product delete audit failed:', e); }
+        } catch (e: any) { console.error('[audit] Product delete audit failed:', e); }
 
         await prisma.$transaction(async (tx) => {
             await tx.productStock.deleteMany({ where: { productId } });

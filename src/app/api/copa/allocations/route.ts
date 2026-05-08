@@ -8,6 +8,7 @@ import { getPrisma } from '@/lib/prisma';
 import { runAllocation } from '@/lib/copa-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const rules = await prisma.copaAllocationRule.findMany({

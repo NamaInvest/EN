@@ -1,12 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { BudgetControlEngine } from '@/lib/budget-control';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const url = new URL(req.url);

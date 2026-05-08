@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const { searchParams } = new URL(req.url);
@@ -20,8 +21,8 @@ export async function GET(req: Request) {
             select: { id: true, balance: true }
         });
 
-        const totalAR = customers.reduce((sum, c) => sum + c.balance, 0);
-        const totalAP = vendors.reduce((sum, v) => sum + v.balance, 0);
+        const totalAR = customers.reduce((sum: any, c: any) => sum + c.balance, 0);
+        const totalAP = vendors.reduce((sum: any, v: any) => sum + v.balance, 0);
 
         // Fetch Current Bank Balances
         const bankAccounts = await prisma.bankAccount.findMany({
@@ -101,6 +102,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

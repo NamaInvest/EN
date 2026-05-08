@@ -342,7 +342,7 @@ export function generateECDSASignature(data: string, privateKeyBase64: string): 
       dsaEncoding: 'ieee-p1363',
     });
     return signature.toString('base64');
-  } catch (error) {
+  } catch (error: any) {
     console.error('ECDSA signing error:', error);
     // Fallback: return empty signature if no valid key
     return '';
@@ -379,7 +379,7 @@ export function extractPublicKeyFromCertificate(certBase64: string): { publicKey
       publicKey: publicKeyB64,
       signature: sigBytes.toString('base64'),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Certificate parsing error:', error);
     return { publicKey: '', signature: '' };
   }

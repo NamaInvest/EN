@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Retrieve all AI WhatsApp sessions stored in the generic Settings table
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
             let history = [];
             try {
                 if (r.value) history = JSON.parse(r.value);
-            } catch (e) {}
+            } catch (e: any) {}
             return { phone, history, updatedAt: r.id }; // Using ID loosely as chron metric
         });
 

@@ -1,14 +1,14 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Rebate Management API
  * POST /api/rebates — Calculate or batch-calculate rebates
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { RebateEngine } from '@/lib/rebate-engine';
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

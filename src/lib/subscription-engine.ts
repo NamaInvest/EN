@@ -124,7 +124,7 @@ export class SubscriptionEngine {
                             data: { remaining: 0, status: 'paid' }
                         });
                     }
-                } catch (e) {
+                } catch (e: any) {
                     // Charge failed, mark subscription as PAST_DUE
                     await prisma.customerSubscription.update({
                         where: { id: sub.id },

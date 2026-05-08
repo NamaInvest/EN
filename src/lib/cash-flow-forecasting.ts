@@ -104,8 +104,8 @@ export class CashFlowForecastingEngine {
         const alerts = this._generateAlerts(buckets, openingBalance);
 
         // 8. Calculate totals
-        const totalInflows = buckets.reduce((sum, b) => sum + b.inflows, 0);
-        const totalOutflows = buckets.reduce((sum, b) => sum + b.outflows, 0);
+        const totalInflows = buckets.reduce((sum: any, b: any) => sum + b.inflows, 0);
+        const totalOutflows = buckets.reduce((sum: any, b: any) => sum + b.outflows, 0);
         const netPosition = totalInflows - totalOutflows;
         const closingBalance = openingBalance + netPosition;
 
@@ -147,7 +147,7 @@ export class CashFlowForecastingEngine {
     private static async _getCurrentCashPosition(): Promise<number> {
         try {
             const bankAccounts = await prisma.bankAccount.findMany();
-            return bankAccounts.reduce((sum, b) => sum + Number(b.currentBalance || 0), 0);
+            return bankAccounts.reduce((sum: any, b: any) => sum + Number(b.currentBalance || 0), 0);
         } catch {
             return 0;
         }

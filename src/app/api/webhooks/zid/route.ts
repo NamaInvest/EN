@@ -4,7 +4,11 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 
 // زد ويب هوك - استقبال الطلبات الجديدة
 // الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const bodyText = await request.text();
@@ -40,7 +44,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ success: true, message: 'تم الاستلام بنجاح' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Zid Webhook Error:', error);
         return NextResponse.json({ error: 'فشل في معالجة الطلب' }, { status: 500 });
     }
@@ -171,7 +175,7 @@ async function processOrder(order: Record<string, any>, prisma: any) {
             paymentType: invoice.paymentType,
             date: new Date().toISOString().split('T')[0],
         });
-    } catch (journalErr) {
+    } catch (journalErr: unknown) {
         console.warn('Auto-journal for Zid order skipped:', journalErr);
     }
 

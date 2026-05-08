@@ -1,10 +1,10 @@
-import { _t } from '@/lib/server-t';
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Box, Network, Bot, Link, Cpu, Sparkles, AlertTriangle, PlayCircle, Settings2, ShieldCheck, Factory } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function DigitalTwinPage() {
  const { success, info } = useToast();

@@ -6,9 +6,10 @@ export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const orderId = parseInt((await params).id);
@@ -20,7 +21,7 @@ export async function GET(
         });
         
         return NextResponse.json(costs);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل جلب تكاليف الشحن' }, { status: 500 });
     }
@@ -30,9 +31,10 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const allowed = await hasPermission(auth.userId, 'purchases', prisma);
@@ -72,7 +74,7 @@ export async function POST(
         });
         
         return NextResponse.json(cost, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل في إضافة التكلفة الموزعة' }, { status: 500 });
     }

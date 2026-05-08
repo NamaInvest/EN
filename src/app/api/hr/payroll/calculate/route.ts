@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 4: Payroll Engine API
  * يحتسب الراتب من سجلات الحضور والانصراف
@@ -9,7 +10,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { postSalary } from '@/lib/auto-journal';
 
 interface PayrollResult {
@@ -112,10 +112,10 @@ export async function GET(req: Request) {
         return NextResponse.json({
             month, year,
             employeeCount: results.length,
-            totalNetSalary: Math.round(results.reduce((s, r) => s + r.netSalary, 0) * 100) / 100,
+            totalNetSalary: Math.round(results.reduce((s: any, r: any) => s + r.netSalary, 0) * 100) / 100,
             breakdown: results,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Payroll GET error:', e);
         return NextResponse.json({ error: 'خطأ في احتساب الرواتب' }, { status: 500 });
     }
@@ -190,7 +190,7 @@ export async function POST(req: Request) {
                         }
                     });
                 }
-            } catch (je) {
+            } catch (je: unknown) {
                 console.error('Salary journal error:', je);
             }
 
@@ -201,10 +201,10 @@ export async function POST(req: Request) {
             success: true,
             month, year,
             committed: committed.length,
-            totalPaid: Math.round(committed.reduce((s, r) => s + r.netSalary, 0) * 100) / 100,
+            totalPaid: Math.round(committed.reduce((s: any, r: any) => s + r.netSalary, 0) * 100) / 100,
             salaries: committed,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Payroll POST error:', e);
         return NextResponse.json({ error: 'خطأ في تثبيت الرواتب' }, { status: 500 });
     }

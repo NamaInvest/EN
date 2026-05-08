@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const checks = await prisma.qualityCheck.findMany({
@@ -12,12 +17,16 @@ export async function GET(request: Request) {
             orderBy: { id: 'desc' }
         });
         return NextResponse.json(checks);
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ error: 'Failed to fetch quality checks' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -73,7 +82,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ message: 'تم إدخال فحص الجودة بنجاح', data: check });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ error: 'Failed to log quality check' }, { status: 500 });
     }
 }

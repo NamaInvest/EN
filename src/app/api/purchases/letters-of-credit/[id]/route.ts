@@ -3,9 +3,10 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const allowed = await hasPermission(auth.userId, 'purchases', prisma);
@@ -36,16 +37,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         });
 
         return NextResponse.json(lc);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل في تحديث الاعتماد المستندي' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const allowed = await hasPermission(auth.userId, 'purchases', prisma);
@@ -55,7 +57,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         await prisma.letterOfCredit.delete({ where: { id } });
 
         return NextResponse.json({ success: true });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل في حذف الاعتماد. قد يكون مرتبطاً بمشتريات.' }, { status: 500 });
     }

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
-    const user = await getUserFromRequest(request);
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+    const user = await getUserFromRequest(request as any);
     if (!user || user.role !== 'owner') {
         return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
     }
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'desc' }
         });
         return NextResponse.json({ companies });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Master Panel fetch error:', error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         // Retrieve API Key
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
             where: { currentStock: { gt: 0 } },
             select: { currentStock: true, buyPrice: true }
         });
-        const totalCapital = allProducts.reduce((sum, p) => sum + (p.currentStock * p.buyPrice), 0);
+        const totalCapital = allProducts.reduce((sum: any, p: any) => sum + (p.currentStock * p.buyPrice), 0);
 
         const financialData = {
             period: "Past 30 Days",
@@ -121,7 +121,7 @@ ${JSON.stringify(financialData, null, 2)}
         try {
             const parsedData = JSON.parse(text);
             return NextResponse.json({ success: true, report: parsedData, raw: financialData });
-        } catch (e) {
+        } catch (e: any) {
             console.error("AI JSON Parse Error:", text);
             return NextResponse.json({ error: 'تعذر فهم صيغة الجواب من الذكاء الاصطناعي.' }, { status: 500 });
         }

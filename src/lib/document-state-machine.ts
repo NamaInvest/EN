@@ -228,7 +228,7 @@ export async function transition<T>(
                 details: params.reason ?? null,
             },
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('[document-state-machine] audit log failed:', e);
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PaymentRunEngine } from '@/lib/payment-run-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json();
         const { dueDateUntil, currency, bankAccountId, includeDiscountWindow } = body;

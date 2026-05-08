@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         const waves = [
             { id: 'WAVE-1001', date: '2026-05-06', type: 'Zone Picking', totalOrders: 15, status: 'IN_PROGRESS', progress: 40, picker: 'Ali H.' },

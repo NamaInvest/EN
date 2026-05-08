@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { searchDocuments } from '@/lib/document-embeddings';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * AI-17 — Semantic Search API
  * Searches across all indexed documents using vector similarity.
  */
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

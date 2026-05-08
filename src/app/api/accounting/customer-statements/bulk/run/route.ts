@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json();
         const { segment, dateFrom, dateTo, templateId, userId } = body;
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
                         }
                     });
                     successCount++;
-                } catch (e) {
+                } catch (e: any) {
                     failedCount++;
                 }
             }

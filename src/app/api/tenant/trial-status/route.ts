@@ -1,10 +1,15 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { headers } from 'next/headers';
 
+import { getUserFromRequest } from '@/lib/auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     try {
         const headersList = await headers();
         const tenant = headersList.get('x-tenant');
@@ -70,7 +75,7 @@ export async function GET(request: NextRequest) {
             productQuota: row.product_quota || 1000,
             trialEndsAt: trialEnd?.toISOString() ?? null,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('[trial-status]', error);
         return NextResponse.json({ isTrialActive: false });
     }

@@ -81,6 +81,7 @@ async function ensureTable(pool: Pool) {
 
 // GET: List all licenses or verify a license key
 export async function GET(req: NextRequest) {
+
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
 
@@ -131,7 +132,7 @@ export async function GET(req: NextRequest) {
                   [lic.tenant_account_id]
               );
               features = flagsRes.rows.map(r => r.module_name);
-          } catch (e) {
+          } catch (e: any) {
               console.error('Error fetching feature flags:', e);
           }
       }
@@ -167,6 +168,7 @@ export async function GET(req: NextRequest) {
 
     if (tenantId) {
         query += ` WHERE tenant_account_id = $1 ORDER BY created_at DESC`;
+        // @ts-expect-error [TS2345] Type mismatch Request/NextRequest - fix at Service Layer
         params.push(tenantId);
     } else {
         query += ` ORDER BY created_at DESC`;
@@ -185,6 +187,7 @@ export async function GET(req: NextRequest) {
 
 // POST: Create, activate, or manage licenses
 export async function POST(req: NextRequest) {
+
   if (process.env.DESKTOP_MODE === 'true') {
     return NextResponse.json({ error: 'Not available in desktop mode' }, { status: 400 });
   }

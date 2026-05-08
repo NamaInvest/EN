@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         let detectedItems: { name: string, count: number }[] = [];
         try {
             detectedItems = JSON.parse(text);
-        } catch (e) {
+        } catch (e: any) {
             console.error('JSON Parse error from Vision AI:', text);
             return NextResponse.json({ error: 'Vision AI returned invalid data formatting' }, { status: 500 });
         }

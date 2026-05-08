@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId');
@@ -50,7 +55,7 @@ export async function GET(request: Request) {
             blocks: ledger.reverse()
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Blockchain error:", error);
         return NextResponse.json({ error: 'Failed to fetch ledger' }, { status: 500 });
     }

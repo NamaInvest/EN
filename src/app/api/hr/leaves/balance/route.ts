@@ -1,9 +1,9 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Leave Balance API
  * GET /api/hr/leaves/balance?employeeId=X — رصيد إجازات الموظف
  */
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { LeaveEngine } from '@/lib/leave-engine';
 
 export async function GET(req: Request) {

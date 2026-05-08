@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     
     try {
@@ -43,7 +48,7 @@ export async function GET(request: Request) {
         const shortages: any[] = [];
         let totalShortageCost = 0;
 
-        requirementsMap.forEach((data) => {
+        requirementsMap.forEach((data: any) => {
             // Need to have at least 'requiredQty', plus keep 'minQuantity' buffer
             const targetStock = data.requiredQty + data.minQuantity;
             const shortageQty = targetStock - data.currentStock;
@@ -89,7 +94,7 @@ export async function GET(request: Request) {
             activeOrdersCount: activeOrders.length
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("MRP Engine error:", error);
         return NextResponse.json({ error: 'Failed to run MRP calculations' }, { status: 500 });
     }

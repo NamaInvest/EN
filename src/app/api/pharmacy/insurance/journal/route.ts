@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Insurance → Auto-Journal API
  * POST /api/pharmacy/insurance/journal
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(req: Request) {
     const prisma = getPrisma(req as any);
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ success: true, message: 'تم تسجيل القيد المحاسبي بنجاح' });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في تسجيل القيد' }, { status: 500 });
     }

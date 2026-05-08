@@ -63,7 +63,7 @@ async function getSalesToday(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const sales = await prisma.salesInvoice.findMany({
             take: 100, where: { date: { gte: today } } });
-    const totalAmount = sales.reduce((s, i) => s + (i.total || 0), 0);
+    const totalAmount = sales.reduce((s: any, i: any) => s + (i.total || 0), 0);
     return `📊 <b>مبيعات اليوم</b>\n\n📄 عدد الفواتير: <b>${sales.length}</b>\n💰 إجمالي المبيعات: <b>${fmt(totalAmount)} ر.س</b>`;
 }
 
@@ -71,13 +71,13 @@ async function getSalesMonth(): Promise<string> {
     const start = new Date(); start.setDate(1); start.setHours(0, 0, 0, 0);
     const sales = await prisma.salesInvoice.findMany({
             take: 100, where: { date: { gte: start } } });
-    const totalAmount = sales.reduce((s, i) => s + (i.total || 0), 0);
+    const totalAmount = sales.reduce((s: any, i: any) => s + (i.total || 0), 0);
     return `📊 <b>مبيعات الشهر</b>\n\n📄 عدد الفواتير: <b>${sales.length}</b>\n💰 الإجمالي: <b>${fmt(totalAmount)} ر.س</b>`;
 }
 
 async function getTreasuryBalance(): Promise<string> {
     const entries = await prisma.treasury.findMany();
-    const balance = entries.reduce((s, e) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
+    const balance = entries.reduce((s: any, e: any) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
     return `🏦 <b>رصيد الخزينة</b>\n\n💰 الرصيد الحالي: <b>${fmt(balance)} ر.س</b>`;
 }
 
@@ -115,7 +115,7 @@ async function getUsersList(): Promise<string> {
     let msg = `👥 <b>المستخدمين (${users.length})</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
     users.forEach(u => {
         const role = roleMap[u.role] || u.role;
-        const salesToday = u.salesInvoices.reduce((s, i) => s + (i.total || 0), 0);
+        const salesToday = u.salesInvoices.reduce((s: any, i: any) => s + (i.total || 0), 0);
         msg += `${u.active ? '🟢' : '🔴'} <b>${u.fullName}</b> (@${u.username})\n`;
         msg += `   ${role} | صلاحيات: ${u.permissions.length > 0 ? u.permissions.length + ' قسم' : 'كاملة'}\n`;
         if (u.salesInvoices.length > 0) msg += `   📊 مبيعات اليوم: <b>${u.salesInvoices.length}</b> فاتورة | <b>${fmt(salesToday)} ر.س</b>\n`;
@@ -133,8 +133,8 @@ async function getUserSales(username: string): Promise<string> {
     });
     if (!user) return `❌ لم يتم العثور على مستخدم بهذا الاسم: ${username}`;
     const salesToday = user.salesInvoices.filter(s => s.date >= today);
-    const todayTotal = salesToday.reduce((s, i) => s + (i.total || 0), 0);
-    const monthTotal = user.salesInvoices.reduce((s, i) => s + (i.total || 0), 0);
+    const todayTotal = salesToday.reduce((s: any, i: any) => s + (i.total || 0), 0);
+    const monthTotal = user.salesInvoices.reduce((s: any, i: any) => s + (i.total || 0), 0);
     return `👤 <b>تقرير المستخدم: ${user.fullName}</b>\n━━━━━━━━━━━━━━━━━━\n\n` +
         `📊 مبيعات اليوم: <b>${salesToday.length}</b> فاتورة | <b>${fmt(todayTotal)} ر.س</b>\n` +
         `📈 مبيعات الشهر: <b>${user.salesInvoices.length}</b> فاتورة | <b>${fmt(monthTotal)} ر.س</b>\n`;
@@ -144,7 +144,7 @@ async function getExpensesToday(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const expenses = await prisma.expense.findMany({
             take: 100, where: { date: { gte: today } } });
-    const total = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const total = expenses.reduce((s: any, e: any) => s + (e.amount || 0), 0);
     return `💸 <b>مصروفات اليوم</b>\n\n📄 عدد: <b>${expenses.length}</b>\n💰 الإجمالي: <b>${fmt(total)} ر.س</b>`;
 }
 
@@ -185,16 +185,16 @@ async function getDailyReport(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const sales = await prisma.salesInvoice.findMany({
             take: 100, where: { date: { gte: today } } });
-    const salesTotal = sales.reduce((s, i) => s + (i.total || 0), 0);
+    const salesTotal = sales.reduce((s: any, i: any) => s + (i.total || 0), 0);
     const purchases = await prisma.purchaseInvoice.findMany({
             take: 100, where: { date: { gte: today } } });
-    const purchasesTotal = purchases.reduce((s, i) => s + (i.total || 0), 0);
+    const purchasesTotal = purchases.reduce((s: any, i: any) => s + (i.total || 0), 0);
     const expenses = await prisma.expense.findMany({
             take: 100, where: { date: { gte: today } } });
-    const expensesTotal = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const expensesTotal = expenses.reduce((s: any, e: any) => s + (e.amount || 0), 0);
     const lowStock = await prisma.product.count({ where: { currentStock: { lt: 5 } } });
     const entries = await prisma.treasury.findMany();
-    const balance = entries.reduce((s, e) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
+    const balance = entries.reduce((s: any, e: any) => s + (e.type === 'in' ? e.amount : -e.amount), 0);
     return `📋 <b>التقرير اليومي</b> - ${new Date().toLocaleDateString('en-GB')}\n━━━━━━━━━━━━━━━━━━\n` +
         `🧾 المبيعات: <b>${sales.length}</b> فاتورة | <b>${fmt(salesTotal)} ر.س</b>\n` +
         `📦 المشتريات: <b>${purchases.length}</b> فاتورة | <b>${fmt(purchasesTotal)} ر.س</b>\n` +
@@ -285,7 +285,7 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
 
             if (dbItems.length === 0) throw new Error('لا توجد أصناف');
 
-            const subtotal = dbItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+            const subtotal = dbItems.reduce((s: any, i: any) => s + (i.price * i.quantity), 0);
             const taxValue = subtotal * 0.15;
             const verifiedTotal = subtotal + taxValue; // use calculated total to be safe
 

@@ -10,7 +10,7 @@ console.log('🚀 Starting NamaSoft background task workers in standalone mode..
 try {
     startWorkers();
     console.log('✅ Background task workers started successfully.');
-} catch (err) {
+} catch (err: any) {
     console.error('❌ Failed to start background task workers:', err);
     process.exit(1);
 }

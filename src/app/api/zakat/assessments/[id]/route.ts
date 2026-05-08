@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const { id } = await params;
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const form = await ZakatEngine.generateForm(assessment.id);
         return NextResponse.json({ assessment, form });
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل جلب التقدير', { context: 'zakat/assessments/[id]' });
     }
 }

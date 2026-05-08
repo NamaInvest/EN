@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { existsSync } from 'fs';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const formData = await request.formData();
@@ -52,16 +55,19 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(record, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error('File upload error:', e);
         return NextResponse.json({ error: 'فشل في رفع الملف' }, { status: 500 });
     }
 }
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const { searchParams } = new URL(request.url);
@@ -84,7 +90,7 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(docs);
-    } catch (e) {
+    } catch (e: any) {
         console.error('Fetch docs error:', e);
         return NextResponse.json({ error: 'فشل جلب المستندات' }, { status: 500 });
     }

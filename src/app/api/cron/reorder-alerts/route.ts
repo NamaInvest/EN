@@ -1,10 +1,10 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 2: Reorder Point Cron Job
  * يفحص كل المنتجات التي وصلت لحد إعادة الطلب (minQuantity)
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -71,7 +71,7 @@ export async function GET(req: Request) {
             lowStockCount: alerts.length,
             alerts,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Reorder cron error:', e);
         return NextResponse.json({ error: 'Cron error' }, { status: 500 });
     }

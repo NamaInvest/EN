@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     try {
         const tenant = request.headers.get('x-tenant');
         

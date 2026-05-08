@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * AI Sales Coach API
  * POST /api/ai/sales-coach
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(req: Request) {
     const prisma = getPrisma(req as any);
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
             recommendations,
             score: Math.min(100, Math.round((invoices.length * 3) + (totalSales / 1000))),
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في تحليل الأداء' }, { status: 500 });
     }

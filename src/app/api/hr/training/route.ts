@@ -1,11 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const courses = await prisma.trainingCourse.findMany({
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(courses);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to fetch training courses' }, { status: 500 });
   }
 }
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await req.json();
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(course, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to create training course' }, { status: 500 });
   }
 }

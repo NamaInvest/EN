@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { Customer360Engine } from '@/lib/customer360-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     const id = parseInt(req.nextUrl.searchParams.get('id') || '0');

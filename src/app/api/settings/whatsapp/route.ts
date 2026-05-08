@@ -5,7 +5,7 @@ import { getUserFromRequest } from "@/lib/auth";
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }

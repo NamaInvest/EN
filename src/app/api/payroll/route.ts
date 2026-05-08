@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
+
     try {
         // 1. Tenant Authentication & Isolation
         const tenantString = resolveTenant(req as any);

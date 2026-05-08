@@ -1,11 +1,11 @@
-import { _t } from '@/lib/server-t';
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function PromptsAdminPage() {
   const { t } = useTranslation();

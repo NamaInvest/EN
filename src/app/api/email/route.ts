@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/email';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const prisma = getPrisma(request);
@@ -39,9 +40,10 @@ export async function POST(request: NextRequest) {
 
 // Test endpoint (GET)
 export async function GET(request: NextRequest) {
+
     try {
         const { searchParams } = new URL(request.url);
-        // const auth = getUserFromRequest(request);
+        // const auth = getUserFromRequest(request as any);
         // if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const targetEmail = searchParams.get('email') || process.env.ICE_OWNER_EMAIL || 'ialqrashi62@gmail.com';

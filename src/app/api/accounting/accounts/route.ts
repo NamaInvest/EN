@@ -2,7 +2,11 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - شجرة الحسابات
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const accounts = await prisma.account.findMany({
@@ -10,7 +14,7 @@ export async function GET(request: NextRequest) {
             orderBy: { code: 'asc' },
         });
         return NextResponse.json(accounts);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Accounts GET error:', error);
         return NextResponse.json({ error: 'فشل في جلب الحسابات' }, { status: 500 });
     }
@@ -18,6 +22,9 @@ export async function GET(request: NextRequest) {
 
 // POST - إضافة حساب جديد
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -47,7 +54,7 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(account, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Account create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الحساب' }, { status: 500 });
     }
@@ -55,6 +62,9 @@ export async function POST(request: Request) {
 
 // PUT - تعديل حساب
 export async function PUT(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -72,7 +82,7 @@ export async function PUT(request: Request) {
         });
 
         return NextResponse.json(account);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Account update error:', error);
         return NextResponse.json({ error: 'فشل في تحديث الحساب' }, { status: 500 });
     }
@@ -80,9 +90,13 @@ export async function PUT(request: Request) {
 
 // DELETE - حذف حساب (فقط إذا لم يكن له حركات)
 export async function DELETE(request: Request) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request);
+    const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
@@ -100,7 +114,7 @@ export async function DELETE(request: Request) {
 
         await prisma.account.delete({ where: { id } });
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Account delete error:', error);
         return NextResponse.json({ error: 'فشل في حذف الحساب' }, { status: 500 });
     }

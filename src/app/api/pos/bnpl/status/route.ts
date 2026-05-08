@@ -1,11 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getBnplKeys, getTabbyPaymentStatus, getTamaraOrderStatus } from '@/lib/bnpl';
-import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const { searchParams } = new URL(request.url);

@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { Shield, Plus, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';

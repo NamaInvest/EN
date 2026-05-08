@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 10: Contract Expiry Alert Cron
  * يفحص العقود المنتهية أو القريبة من الانتهاء ويرسل تنبيهات
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -75,7 +75,7 @@ export async function GET(req: Request) {
             checkedAt: now.toISOString(),
             ...results,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Contract expiry cron error:', e);
         return NextResponse.json({ error: 'Cron error' }, { status: 500 });
     }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = await getUserFromRequest(request);
+        const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
@@ -58,9 +59,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = await getUserFromRequest(request);
+        const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 

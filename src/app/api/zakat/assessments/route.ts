@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -16,13 +16,13 @@ export async function GET(req: NextRequest) {
             take: 50,
         });
         return NextResponse.json(assessments);
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل جلب تقديرات الزكاة', { context: 'zakat/assessments' });
     }
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
             saudiOwnershipPct: saudiOwnershipPct ? parseFloat(saudiOwnershipPct) : undefined,
         });
         return NextResponse.json(assessment, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل إنشاء تقدير الزكاة', { context: 'zakat/assessments' });
     }
 }

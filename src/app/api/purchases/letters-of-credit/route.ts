@@ -3,9 +3,10 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const allowed = await hasPermission(auth.userId, 'purchases', prisma);
@@ -19,13 +20,14 @@ export async function GET(request: NextRequest) {
         });
         
         return NextResponse.json(lcs);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل في جلب الاعتمادات المستندية' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -58,7 +60,7 @@ export async function POST(request: Request) {
         });
         
         return NextResponse.json(lc, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل في إنشاء الاعتماد المستندي' }, { status: 500 });
     }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     try {
         const { searchParams } = new URL(req.url);

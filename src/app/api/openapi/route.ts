@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
  * Auto-generated API documentation.
  */
 export async function GET() {
+
     const spec = {
         openapi: '3.1.0',
         info: {

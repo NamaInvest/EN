@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { hashPassword, getUserFromRequest, hasPermission } from '@/lib/auth';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
+import { getUserFromRequest, hasPermission, hashPassword } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
@@ -18,16 +19,17 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'asc' },
         });
         return NextResponse.json(users);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Users GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
 
 export async function POST(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية إدارة المستخدمين' }, { status: 403 });
@@ -126,16 +128,17 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(user, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Users POST error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء المستخدم' }, { status: 500 });
     }
 }
 
 export async function PUT(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();
@@ -192,16 +195,17 @@ export async function PUT(request: NextRequest) {
         }
 
         return NextResponse.json(user);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Users PUT error:', error);
         return NextResponse.json({ error: 'فشل في تحديث المستخدم' }, { status: 500 });
     }
 }
 
 export async function PATCH(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
@@ -219,16 +223,17 @@ export async function PATCH(request: NextRequest) {
         }
 
         return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Users PATCH error:', error);
         return NextResponse.json({ error: 'فشل في العملية' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'manage_users', prisma);
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
@@ -241,7 +246,7 @@ export async function DELETE(request: NextRequest) {
         await prisma.userPermission.deleteMany({ where: { userId: id } });
         await prisma.user.delete({ where: { id } });
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Users DELETE error:', error);
         return NextResponse.json({ error: 'فشل في حذف المستخدم' }, { status: 500 });
     }

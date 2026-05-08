@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { BudgetEngine } from '@/lib/budget-engine';
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const { accountId, costCenterId, newAmount, date } = body;

@@ -1,14 +1,14 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Sales Forecast API
  * GET /api/sales/forecast — Monthly forecast + pipeline
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { SalesForecastEngine } from '@/lib/sales-forecast';
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

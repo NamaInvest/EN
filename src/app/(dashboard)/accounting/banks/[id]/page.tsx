@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
-export default async function BankStatementPage() {
+export default function BankStatementPage() {
  const { t } = useTranslation();
  const { error: toastError, success: toastSuccess } = useToast();
  const params = useParams();
@@ -30,12 +30,12 @@ export default async function BankStatementPage() {
  const token = localStorage.getItem('token');
  const [bankRes, txRes] = await Promise.all([
  fetch('/api/banks', { headers: { Authorization: `Bearer ${token}` } }),
- fetch(`/api/banks/${(await params).id}/transactions`, { headers: { Authorization: `Bearer ${token}` } })
+ fetch(`/api/banks/${params.id}/transactions`, { headers: { Authorization: `Bearer ${token}` } })
  ]);
 
  if (bankRes.ok && txRes.ok) {
  const banks = await bankRes.json();
- const currentBank = banks.find((b: any) => b.id === parseInt((await params).id as string));
+ const currentBank = banks.find((b: any) => b.id === parseInt(params.id as string));
  if (currentBank) {
  setBank(currentBank);
  } else {
@@ -50,7 +50,7 @@ export default async function BankStatementPage() {
 
  useEffect(() => {
  fetchData();
- }, [(await params).id]);
+ }, [params.id]);
 
  const handleSaveTransaction = async () => {
  if (!form.amount || isNaN(parseFloat(form.amount)) || parseFloat(form.amount) <= 0) {
@@ -61,7 +61,7 @@ export default async function BankStatementPage() {
  setSaving(true);
  try {
  const token = localStorage.getItem('token');
- const res = await fetch(`/api/banks/${(await params).id}/transactions`, {
+ const res = await fetch(`/api/banks/${params.id}/transactions`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
  body: JSON.stringify({

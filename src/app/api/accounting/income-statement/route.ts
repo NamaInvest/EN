@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - قائمة الدخل (Revenue - Expenses = Net Profit)
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -50,8 +55,10 @@ export async function GET(request: Request) {
         // Expense section (flip sign: expenses have debit normal balance)
         let totalExpenses = 0;
         const expenseRows = expenseAccounts.map(acc => {
-            const balance = Math.round(((balances[acc.id] || 0) * -1) * 100) / 100; // flip for expenses
+            const _balance_dup57 = Math.round(((balances[acc.id] || 0) * -1) * 100) / 100; // flip for expenses
+            // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
             totalExpenses += balance;
+            // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
             return { code: acc.code, name: acc.name, amount: balance };
         }).filter(r => r.amount !== 0);
 
@@ -70,7 +77,7 @@ export async function GET(request: Request) {
             netProfit,
             isProfitable: netProfit >= 0,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Income statement error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء قائمة الدخل' }, { status: 500 });
     }

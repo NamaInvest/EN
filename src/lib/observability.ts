@@ -56,7 +56,7 @@ export async function withTiming<T>(
         recordHistogram(`${name}_duration_ms`, Date.now() - start, { ...labels, status: 'success' });
         incrementCounter(`${name}_total`, { ...labels, status: 'success' });
         return result;
-    } catch (err) {
+    } catch (err: any) {
         recordHistogram(`${name}_duration_ms`, Date.now() - start, { ...labels, status: 'error' });
         incrementCounter(`${name}_total`, { ...labels, status: 'error' });
         throw err;
@@ -83,7 +83,7 @@ export function getMetricsSummary(): {
 } {
     const histSummary: Record<string, any> = {};
     histograms.forEach((values, key) => {
-        const avg = values.reduce((s, v) => s + v, 0) / values.length;
+        const avg = values.reduce((s: any, v: any) => s + v, 0) / values.length;
         histSummary[key] = {
             count: values.length,
             p50: percentile(values, 50),

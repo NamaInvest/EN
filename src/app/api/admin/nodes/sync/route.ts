@@ -9,6 +9,7 @@ const prismaMaster = new PrismaClient();
 const BASE_DOMAIN = "namainvist.com";
 
 export async function POST(req: Request) {
+
     try {
         console.log("[SYNC_ENGINE] Starting Reverse Database ETL...");
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
                         isPostgres = dbUrl.startsWith('postgres');
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.warn("[SYNC_ENGINE] Failed to read .env for " + subdomain);
             }
 
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
                 if (userOut.trim() && userOut.includes("@")) {
                     adminEmail = userOut.trim();
                 }
-            } catch (dbErr) {
+            } catch (dbErr: unknown) {
                 console.warn("[SYNC_ENGINE] Database Parsing Error on " + subdomain + ":", dbErr);
             }
 
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
         console.log("[SYNC_ENGINE] Reverse ETL Successful. Resynced " + syncedCount + " nodes.");
         return NextResponse.json({ success: true, count: syncedCount });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("[SYNC_ENGINE_ERROR]", error);
         return NextResponse.json({ error: "Failed to run Reverse Database Sync." }, { status: 500 });
     }

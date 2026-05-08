@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - الميزانية العمومية (Assets = Liabilities + Equity)
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -100,7 +105,7 @@ export async function GET(request: Request) {
             totalLiabilitiesAndEquity: Math.round((totalLiabilities + totalEquity) * 100) / 100,
             isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Balance sheet error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الميزانية العمومية' }, { status: 500 });
     }

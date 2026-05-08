@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LotEngine } from '@/lib/lot-engine';
 
 export async function GET(req: NextRequest) {
+
     try {
         const url = new URL(req.url);
         const days = parseInt(url.searchParams.get('days') || '90', 10);

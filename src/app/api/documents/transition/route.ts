@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getStateMachineFor, BaseState } from '@/lib/state-machine';
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         const { getUserFromRequest } = require('@/lib/auth');
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

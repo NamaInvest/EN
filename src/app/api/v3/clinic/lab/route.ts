@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         const tests = [
             { id: 'LAB-2026-001', patient: 'Ahmed Ali', doctor: 'Dr. Sarah', testName: 'Complete Blood Count (CBC)', date: '2026-05-06', status: 'PENDING_SAMPLE' },

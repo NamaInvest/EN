@@ -85,7 +85,7 @@ export async function GET(req: Request) {
         console.log(`[sso-redirect] email=${email} → ${tenant.subdomain}`);
         return NextResponse.redirect(targetUrl);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('[sso-redirect] DB Error:', error);
         return NextResponse.redirect(new URL('/login?error=db-error', req.url));
     } finally {

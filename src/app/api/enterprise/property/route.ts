@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request as any);
 
   try {
@@ -12,12 +17,16 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(properties);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request as any);
 
   try {
@@ -58,7 +67,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(createdProperty);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Property Creation Error:", error);
     return NextResponse.json({ error: 'Failed to create property' }, { status: 500 });
   }

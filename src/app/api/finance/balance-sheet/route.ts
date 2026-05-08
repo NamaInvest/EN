@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const { searchParams } = new URL(req.url);
@@ -73,7 +74,7 @@ export async function GET(req: Request) {
         });
 
         // Add a pseudo-item for Net Income in Equity for display
-        const netIncome = balanceSheet.equity.total - balanceSheet.equity.items.reduce((s, i) => s + i.balance, 0);
+        const netIncome = balanceSheet.equity.total - balanceSheet.equity.items.reduce((s: any, i: any) => s + i.balance, 0);
         if (netIncome !== 0) {
             balanceSheet.equity.items.push({ id: 'net_income', code: '3999', name: 'Net Income (Year to Date)', balance: netIncome });
         }

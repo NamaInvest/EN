@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
+
     try {
         const orders = await prisma.labOrder.findMany({
             include: {
@@ -53,6 +54,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         
@@ -86,6 +88,7 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+
     try {
         // Used to update result values (enter results)
         const body = await req.json();

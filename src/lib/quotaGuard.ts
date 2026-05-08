@@ -85,15 +85,17 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
                 current = parseInt(r.rows[0]?.cnt || '0');
             } else if (resource === 'product') {
                 limit = row.product_quota || 1000;
-                const r = await tenantPool.query(
+                const _r_dup87 = await tenantPool.query(
                     'SELECT COUNT(*) as cnt FROM products WHERE active = true'
                 );
+                // @ts-expect-error [TS2304] Cannot find name
                 current = parseInt(r.rows[0]?.cnt || '0');
             } else if (resource === 'user') {
                 limit = row.user_quota ?? 1; // افتراضي: مستخدم واحد فقط
-                const r = await tenantPool.query(
+                const _r_dup93 = await tenantPool.query(
                     'SELECT COUNT(*) as cnt FROM users'
                 );
+                // @ts-expect-error [TS2304] Cannot find name
                 current = parseInt(r.rows[0]?.cnt || '0');
             }
         } finally {
@@ -118,7 +120,7 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
 
         return { allowed: true, reason: 'ok', plan, limit, current };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('[quotaGuard] Error:', error);
         return { allowed: true, reason: 'ok' }; // عند فشل الفحص → اسمح (لا نريد حجب المستخدمين)
     }

@@ -1,11 +1,11 @@
-import { _t } from '@/lib/server-t';
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { Home, Building2, Receipt, Plus, Minus, Save, User, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 // Using Google Fonts for elegant typography
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Cinzel:wght@600&display=swap');`;

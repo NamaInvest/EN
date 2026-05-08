@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * AI Demand Forecaster API
  * GET /api/ai/demand-forecast?productId=X&days=30
@@ -5,21 +6,20 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 // Simple moving average + trend forecasting
 function movingAverage(data: number[], window: number): number {
     if (data.length === 0) return 0;
     const slice = data.slice(-window);
-    return slice.reduce((s, v) => s + v, 0) / slice.length;
+    return slice.reduce((s: any, v: any) => s + v, 0) / slice.length;
 }
 
 function detectTrend(data: number[]): 'up' | 'down' | 'stable' {
     if (data.length < 3) return 'stable';
     const recent = data.slice(-3);
     const older = data.slice(-6, -3);
-    const recentAvg = recent.reduce((s, v) => s + v, 0) / recent.length;
-    const olderAvg = older.length > 0 ? older.reduce((s, v) => s + v, 0) / older.length : recentAvg;
+    const recentAvg = recent.reduce((s: any, v: any) => s + v, 0) / recent.length;
+    const olderAvg = older.length > 0 ? older.reduce((s: any, v: any) => s + v, 0) / older.length : recentAvg;
     if (recentAvg > olderAvg * 1.1) return 'up';
     if (recentAvg < olderAvg * 0.9) return 'down';
     return 'stable';
@@ -87,7 +87,7 @@ export async function GET(req: Request) {
             },
             weeklyHistory: weeklyDemand.slice(-8),
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في التنبؤ' }, { status: 500 });
     }
@@ -137,7 +137,7 @@ export async function POST(req: Request) {
             critical: critical.length,
             forecasts: forecasts.sort((a: any, b: any) => a.stockWillLastDays - b.stockWillLastDays),
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في التنبؤ الجماعي' }, { status: 500 });
     }

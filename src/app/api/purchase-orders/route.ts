@@ -1,12 +1,15 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { getNextNumber } from '@/lib/numbering';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
 
         const where: Record<string, unknown> = {};
@@ -21,10 +24,13 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'desc' } 
         });
         return NextResponse.json(orders);
-    } catch (e) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -112,7 +118,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(order, { status: 201 });
-    } catch (e) { 
+    } catch (e: any) { 
         console.error(e); 
         return NextResponse.json({ error: 'فشل في الحفظ' }, { status: 500 }); 
     }

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const centers = await (prisma as any).workCenter.findMany({
@@ -52,7 +57,7 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json(schedulerData);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Scheduler fetch error:", error);
         return NextResponse.json({ error: 'Failed to fetch scheduler data' }, { status: 500 });
     }

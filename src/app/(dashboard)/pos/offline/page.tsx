@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Wifi, WifiOff, RefreshCw, Database, CloudOff, Check, AlertTriangle, Trash2, Download } from 'lucide-react';

@@ -2,7 +2,11 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { id } = await params;
     const prisma = getPrisma(request);
     try {
@@ -11,13 +15,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         });
         if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
         return NextResponse.json(asset);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return apiError(error, 'فشل جلب الأصل', { context: 'fixed-assets/[id]' });
     }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -40,13 +47,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             data,
         });
         return NextResponse.json(asset);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
     }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -61,7 +71,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
         await prisma.fixedAsset.delete({ where: { id: parseInt(id, 10) } });
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
     }

@@ -8,6 +8,7 @@ import { getPrisma } from '@/lib/prisma';
 import { postCopaDocument, slice } from '@/lib/copa-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const sp = req.nextUrl.searchParams;

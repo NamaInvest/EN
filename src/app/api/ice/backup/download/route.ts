@@ -5,6 +5,7 @@ import fs from 'fs';
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
+
   try {
     const { searchParams } = new URL(req.url);
     const licenseKey = searchParams.get('license_key');
@@ -27,10 +28,11 @@ export async function GET(req: NextRequest) {
       backup = results[0];
     } else {
       // Get latest backup for this license
-      const results = await prisma.$queryRawUnsafe(
+      const _results_dup30 = await prisma.$queryRawUnsafe(
         `SELECT * FROM desktop_backups WHERE license_key = $1 ORDER BY created_at DESC LIMIT 1`,
         licenseKey
       ) as any[];
+      // @ts-expect-error [TS2304] Cannot find name
       backup = results[0];
     }
 

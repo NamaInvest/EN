@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Prescriptions API — إدارة الوصفات الطبية
  * GET  /api/pharmacy/prescriptions?patientId=1
@@ -6,7 +7,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json({ total: prescriptions.length, prescriptions });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تحميل الوصفات' }, { status: 500 });
     }
 }
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(prescription, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في تسجيل الوصفة' }, { status: 500 });
     }
@@ -159,7 +159,7 @@ export async function PUT(req: Request) {
         });
 
         return NextResponse.json({ success: true, prescription: result });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في صرف الوصفة' }, { status: 500 });
     }

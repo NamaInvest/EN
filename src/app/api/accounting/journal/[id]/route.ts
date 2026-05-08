@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { transition, assertEditable, DocumentType, DocumentStatus } from '@/lib/document-state-machine';
 
+import { getUserFromRequest } from '@/lib/auth';
 async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     const [year, month] = dateString.split('-').map(Number);
     if (year && month) {
@@ -15,8 +16,12 @@ async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
 }
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { getUserFromRequest } = require('@/lib/auth');
-    const auth = getUserFromRequest(request);
+    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
@@ -74,7 +79,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
                         details: JSON.stringify({ reason: 'Attempted to manually update control account', attemptedLines: lines })
                     }
                 });
-            } catch (e) { console.error(e); }
+            } catch (e: any) { console.error(e); }
              return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون).' }, { status: 403 });
         }
 
@@ -113,7 +118,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
             const { logFieldChanges, auditContextFromRequest } = require('@/lib/field-audit');
             const afterEntry = await prisma.journalEntry.findUnique({ where: { id } });
             await logFieldChanges(prisma, 'JournalEntry', id, beforeEntry, afterEntry, auditContextFromRequest(request, auth));
-        } catch (auditErr) {
+        } catch (auditErr: unknown) {
             console.error('Audit Log failed:', auditErr);
         }
 
@@ -126,8 +131,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { getUserFromRequest } = require('@/lib/auth');
-    const auth = getUserFromRequest(request);
+    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);

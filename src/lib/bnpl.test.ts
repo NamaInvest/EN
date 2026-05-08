@@ -56,8 +56,9 @@ describe('BNPL Logic Tests', () => {
         json: async () => ({ error: 'Invalid amount' })
       });
 
-      const keys = { tabbyKey: 'test_key', tabbyMerchant: 'test_merchant' };
+      const _keys_dup58 = { tabbyKey: 'test_key', tabbyMerchant: 'test_merchant' };
       await expect(
+        // @ts-expect-error [TS2304] Cannot find name
         createTabbySession({ amount: 100, items: [] }, keys)
       ).rejects.toThrow('Invalid amount');
     });

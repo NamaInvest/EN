@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import { useState, useEffect } from 'react';
 import { ShieldCheck, ClipboardCheck, AlertTriangle, FileWarning, Target, CheckCircle2, ArrowRight } from 'lucide-react';

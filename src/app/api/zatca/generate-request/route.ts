@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     let tmpDir = '';
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     } finally {
         if (tmpDir) {
-            try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) { }
+            try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e: any) { }
         }
     }
 }

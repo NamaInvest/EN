@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { generateZatcaQRContent } from '@/lib/zatca';
 import { round2, validateMoney } from '@/lib/money';
 import { getNextNumber } from '@/lib/numbering';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
 
         const body = await req.json();
@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
                 totalCost: invoice.totalCost,
                 date: new Date().toISOString().split('T')[0],
             });
-        } catch (journalErr) {
+        } catch (journalErr: unknown) {
             console.warn('Auto-journal for POS sale skipped/failed:', journalErr);
         }
 
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
                     data: { zatcaQr }
                 });
             }
-        } catch (qrErr) {
+        } catch (qrErr: unknown) {
             console.warn('Zatca QR generation failed in POS:', qrErr);
         }
 

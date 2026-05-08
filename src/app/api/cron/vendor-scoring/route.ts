@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { calculateVendorScore } from '@/lib/vendor-scoring';
 
 export async function GET(req: Request) {
+
     // This endpoint should be protected and only called by a cron job scheduler.
     // We can add simple token validation here in production.
     const prisma = getPrisma(req as any);

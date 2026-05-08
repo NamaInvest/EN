@@ -3,9 +3,13 @@ import { createHmac } from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');

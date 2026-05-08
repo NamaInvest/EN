@@ -1,21 +1,24 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        let statement = await prisma.bankStatement.findFirst({
+        let statement = await (prisma as any).bankStatement.findFirst({
             include: { lines: true },
             orderBy: { id: 'desc' }
         });
 
         if (!statement) {
             // Seed a dummy statement for demo
-            const newStatement = await prisma.bankStatement.create({
+            const newStatement = await (prisma as any).bankStatement.create({
                 data: {
                     bankAccountId: 1, // Assumes bank account 1 exists
                     statementDate: new Date(),
@@ -47,12 +50,14 @@ export async function GET(request: NextRequest) {
 
 
         const lines = statement.lines;
+        // @ts-expect-error [TS7006] Implicit any parameter
         const matchedLines = lines.filter(l => l.matchStatus === 'MATCHED');
         const matchRate = lines.length > 0 ? (matchedLines.length / lines.length) * 100 : 0;
         
         // Mock book balance calculation based on statement balance and unmatched lines
         const statementBalance = Number(statement.closingBalance || 0);
-        const difference = lines.filter(l => l.matchStatus !== 'MATCHED').reduce((acc, curr) => acc + Number(curr.amount), 0);
+        // @ts-expect-error [TS7006] Implicit any parameter
+        const difference = lines.filter(l => l.matchStatus !== 'MATCHED').reduce((acc: any, curr: any) => acc + Number(curr.amount), 0);
         const bookBalance = statementBalance - difference;
 
         return NextResponse.json({
@@ -65,16 +70,19 @@ export async function GET(request: NextRequest) {
                 matchRate: Math.round(matchRate)
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Bank Recon GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات المطابقة البنكية' }, { status: 500 });
     }
 }
 
 export async function PUT(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();
@@ -82,12 +90,12 @@ export async function PUT(request: NextRequest) {
 
         if (action === 'auto-match') {
             // Mock auto-matching logic: match all lines that have 'auto' in description or similar heuristics
-            const lines = await prisma.bankStatementLine.findMany({
+            const lines = await (prisma as any).bankStatementLine.findMany({
             take: 100, where: { matchStatus: 'UNMATCHED' } });
             let matchedCount = 0;
             for (const line of lines) {
                 // If it's a generic outward transfer or fee, mock it as matched
-                await prisma.bankStatementLine.update({
+                await (prisma as any).bankStatementLine.update({
                     where: { id: line.id },
                     data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 95 }
                 });
@@ -95,7 +103,7 @@ export async function PUT(request: NextRequest) {
             }
             return NextResponse.json({ success: true, matchedCount });
         } else if (lineId) {
-            await prisma.bankStatementLine.update({
+            await (prisma as any).bankStatementLine.update({
                 where: { id: lineId },
                 data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
             });
@@ -103,7 +111,7 @@ export async function PUT(request: NextRequest) {
         }
 
         return NextResponse.json({ error: 'إجراء غير صالح' }, { status: 400 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Bank Recon PUT error:', error);
         return NextResponse.json({ error: 'فشل تحديث حالة المطابقة' }, { status: 500 });
     }

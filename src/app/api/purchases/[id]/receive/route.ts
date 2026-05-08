@@ -1,15 +1,18 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const id = parseInt((await params).id);
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         
         const invoice = await prisma.purchaseInvoice.findUnique({
             where: { id },
@@ -38,7 +41,7 @@ export async function PUT(
                     update: { quantity: { increment: qty } },
                     create: { productId: detail.productId, stockId: invoice.stockId, quantity: qty },
                 });
-            } catch (e) {
+            } catch (e: any) {
                  console.error('Failed to update productStock for purchase receipt:', e);
             }
         }
@@ -51,7 +54,7 @@ export async function PUT(
 
         return NextResponse.json(updated);
 
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل بتحديث حالة الاستلام' }, { status: 500 });
     }

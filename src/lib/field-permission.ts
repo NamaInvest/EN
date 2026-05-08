@@ -51,7 +51,7 @@ export async function applyFieldPermissions(role: string, entityName: string, da
         } else {
             return filterObject(data);
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Field permission error:', error);
         // Fail-safe: if permission engine fails, return data as is, or maybe strip everything.
         return data;

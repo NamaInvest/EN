@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '@/lib/i18n';

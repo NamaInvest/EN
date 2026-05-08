@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req);
+        const user = getUserFromRequest(req as any);
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -85,7 +85,7 @@ ${safeProducts.map((p: any) => `- ${p.name}: ${p.quantity} وحدة`).join('\n')
         try {
             const parsed = JSON.parse(text);
             return NextResponse.json(parsed);
-        } catch (parseError) {
+        } catch (parseError: unknown) {
             console.error('Failed to parse Gemini JSON:', text);
             return NextResponse.json({ 
                 alerts: [{ type: 'info', title: 'ملاحظة', message: 'لم يتمكن الذكاء الاصطناعي من توليد نصائح بالصيغة المطلوبة.' }] 

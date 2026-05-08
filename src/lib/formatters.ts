@@ -8,7 +8,7 @@ export function formatDateAR(dateInput: string | Date): string {
         const date = new Date(dateInput);
         if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('en-GB');
-    } catch (e) {
+    } catch (e: any) {
         return '-';
     }
 }
@@ -30,7 +30,7 @@ export function formatDateTimeAR(dateInput: string | Date): string {
             minute: '2-digit',
             hour12: true
         });
-    } catch (e) {
+    } catch (e: any) {
         return '-';
     }
 }
@@ -48,7 +48,7 @@ export function formatCurrencyAR(amount: number): string {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(amount);
-    } catch (e) {
+    } catch (e: any) {
         return amount.toString();
     }
 }
@@ -61,7 +61,7 @@ export function formatNumberAR(num: number): string {
     if (num === undefined || num === null || isNaN(num)) return '-';
     try {
         return new Intl.NumberFormat('en-GB').format(num);
-    } catch (e) {
+    } catch (e: any) {
         return num.toString();
     }
 }

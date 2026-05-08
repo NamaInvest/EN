@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * EOS (End of Service) API Routes
  * GET  /api/hr/eos — قائمة تسويات نهاية الخدمة
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { SaudiEOSEngine, EOSReason } from '@/lib/saudi-eos-engine';
 
 export async function GET(req: Request) {
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json({ calculations });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في جلب تسويات نهاية الخدمة' }, { status: 500 });
     }

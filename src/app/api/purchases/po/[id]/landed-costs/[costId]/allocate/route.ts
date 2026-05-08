@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string, costId: string }> }) {
+
   const { id, costId } = await params;
     const prisma = getPrisma(req as any);
     try {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { callLLM } from '@/lib/llm-client';
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: Request) {
     const prisma = getPrisma(req);
   try {

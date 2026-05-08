@@ -18,6 +18,7 @@ const getMasterPool = () => {
  * GET /api/tenant/check-status?userId=clerk_xxx
  */
 export async function GET(req: Request) {
+
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     const email = searchParams.get('email');
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({ provisioned: false });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('[check-status] DB error:', error);
         return NextResponse.json({ provisioned: false, error: 'db_error' });
     } finally {
@@ -71,6 +72,7 @@ export async function GET(req: Request) {
  * POST /api/tenant/check-status — تحديث clerk_user_id للـ tenant
  */
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const clerkUserId = body.clerkUserId || body.userId;

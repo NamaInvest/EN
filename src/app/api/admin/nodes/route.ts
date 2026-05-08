@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 // Security: In a real app, require NextAuth Token with Role='master'. 
 // For demo, we leave it open, but we check if request comes from within.
 export async function GET() {
+
   try {
     // 1. Fetch PM2 list
     const { stdout } = await execAsync("pm2 jlist");
@@ -20,7 +21,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    const enrichedNodes = tenants.map((tenant) => {
+    const enrichedNodes = tenants.map((tenant: any) => {
         // Find matching PM2 process (e.g., 'nama_n12')
         // Backwards compatibility with Hetzner legacy processes
         const proc = pm2Data.find((p: any) => p.name === `nama_${tenant.subdomain}` || p.name === tenant.subdomain);
@@ -43,13 +44,14 @@ export async function GET() {
 
     return NextResponse.json({ nodes: enrichedNodes });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[ADMIN_NODES_API]", error);
     return NextResponse.json({ error: "Failed to read Hetzner PM2 Grid" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+
     try {
         const { action, subdomain } = await req.json(); // action: 'start', 'stop', 'restart'
         
@@ -76,7 +78,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, message: `Node ${subdomain} ${action}ed successfully.` });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("[ADMIN_RPC_ERROR]", error);
         return NextResponse.json({ error: "PM2 execution failed." }, { status: 500 });
     }

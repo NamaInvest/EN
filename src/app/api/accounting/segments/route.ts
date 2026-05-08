@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 const db = (p: any) => p as any;
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -17,13 +17,13 @@ export async function GET(req: NextRequest) {
             select: { id: true, code: true, name: true, nameEn: true, type: true, isActive: true },
         });
         return NextResponse.json(segments);
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل جلب القطاعات', { context: 'accounting/segments' });
     }
 }
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
             },
         });
         return NextResponse.json(seg, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل إنشاء قطاع', { context: 'accounting/segments' });
     }
 }

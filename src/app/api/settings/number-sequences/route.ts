@@ -11,6 +11,7 @@ import { getNextNumber, seedDefaultSequences } from '@/lib/number-sequence-engin
 const db = (p: any) => p as any;
 
 export async function GET(req: NextRequest) {
+
     try {
         const prisma = getPrisma(req);
         const items = await db(prisma).numberSequence.findMany({
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
     try {
         const prisma = getPrisma(req);
         const body = await req.json();
@@ -47,6 +49,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+
     try {
         const prisma = getPrisma(req);
         const body = await req.json();

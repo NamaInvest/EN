@@ -81,7 +81,7 @@ export class YearEndCloseEngine {
       ];
 
       await tx.yearEndCloseTask.createMany({
-        data: tasksToCreate.map((t) => ({
+        data: tasksToCreate.map((t: any) => ({
           runId: run.id,
           taskCode: t.code,
           taskName: t.name,
@@ -170,7 +170,7 @@ export class YearEndCloseEngine {
     });
 
     if (!run) throw new Error("Run not found");
-    const incompleteTasks = run.tasks.filter((t) => t.status !== "DONE" && t.status !== "SKIPPED");
+    const incompleteTasks = run.tasks.filter((t: any) => t.status !== "DONE" && t.status !== "SKIPPED");
     if (incompleteTasks.length > 0) {
       throw new Error(`Cannot finalize: ${incompleteTasks.length} tasks are incomplete.`);
     }

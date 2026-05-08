@@ -1,10 +1,10 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Leave Request Actions API
  * POST /api/hr/leaves/[id]/approve — الموافقة على طلب إجازة
  * POST /api/hr/leaves/[id]/reject — رفض طلب إجازة
  */
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { LeaveEngine } from '@/lib/leave-engine';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     
     try {
@@ -32,12 +37,16 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json({ kanban, traceability, telemetry });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ error: 'Failed to fetch Kanban data' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     const body = await request.json();
     const { actionType, orderId, newStatus, rawBatchId, finishedBatchId } = body;
@@ -63,7 +72,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ error: 'Operation failed' }, { status: 500 });
     }
 }

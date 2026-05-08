@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         const billings = [
             { id: 'PB-2026-001', project: 'Riyadh Tower Phase 1', certificateNo: 'IPC-01', period: 'Apr 2026', totalWorkDone: 1500000, retentionPercentage: 10, retentionAmount: 150000, netPayable: 1350000, status: 'CERTIFIED' },

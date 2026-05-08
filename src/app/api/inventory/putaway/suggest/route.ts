@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { WmsEngine } from '@/lib/wms-engine';
 
 export async function GET(req: NextRequest) {
+
     try {
         const url = new URL(req.url);
         const productId = parseInt(url.searchParams.get('productId') || '0', 10);

@@ -2,7 +2,12 @@ import { NextResponse, NextRequest } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { apiError, validateAmount, requireFields } from "@/lib/api-error";
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
   const prisma = getPrisma(request);
   try {
     const assets = await prisma.asset.findMany({
@@ -16,6 +21,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
   const prisma = getPrisma(request);
   try {
     const body = await request.json();

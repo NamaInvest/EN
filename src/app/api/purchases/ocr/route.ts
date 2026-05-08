@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
+
     const prisma = getPrisma(req);
     try {
         const formData = await req.formData();
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
         let parsedData;
         try {
             parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim());
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to parse Gemini JSON:', extractedText);
             return NextResponse.json({ error: 'عذراً، فشل في فهم نتيجة الذكاء الاصطناعي' }, { status: 500 });
         }

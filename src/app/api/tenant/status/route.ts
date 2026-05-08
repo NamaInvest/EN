@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
+
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("email");
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
       status: tenant.status,
       subdomain: tenant.subdomain,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("[TENANT_STATUS_API]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

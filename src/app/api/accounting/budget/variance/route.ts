@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { BudgetEngine } from '@/lib/budget-engine';
 
 export async function GET(req: Request) {
+
     try {
         const { searchParams } = new URL(req.url);
         const budgetId = searchParams.get('budgetId');

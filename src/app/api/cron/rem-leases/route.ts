@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req);
   try {
     // 1. Fetch Leases that expire in Exactly 7 Days or are overdue Payment!
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
           // Mocking the call:
           console.log(`[Auto-Lease] Sending WhatsApp to: ${inst.contract.tenant.phone} - Msg: ${message}`);
           sentCount++;
-        } catch (e) {
+        } catch (e: any) {
           console.error(`Failed to send WA to ${inst.contract.tenant.phone}`, e);
         }
       }

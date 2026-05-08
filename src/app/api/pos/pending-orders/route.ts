@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 // Get pending orders from digital menu
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(req);
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 // Approve or reject an order
 export async function POST(req: NextRequest) {
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(req);
         const { action, invoiceId } = await req.json();

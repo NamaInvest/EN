@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast';
 
 interface SettingItem { id: number; key: string; value: string; description: string; }
 
-export function getSettingGroups(t: (key: string) => string) {
+function getSettingGroups(t: (key: string) => string) {
  return [
  {
  title: t('sys.str_4418'), id: 'whatsapp', keys: [

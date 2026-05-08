@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
             group.invoices.push(inv.id);
         });
 
-        const totalAmount = Array.from(groupedByVendor.values()).reduce((sum, g) => sum + g.totalAmount, 0);
+        const totalAmount = Array.from(groupedByVendor.values()).reduce((sum: any, g: any) => sum + g.totalAmount, 0);
 
         // Create PaymentRun
         const run = await prisma.paymentRun.create({

@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, DollarSign } from 'lucide-react';

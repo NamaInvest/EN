@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     try {
         const { searchParams } = new URL(req.url);
         const tenantAccountId = searchParams.get('tenantAccountId');
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
+
     try {
         const { tenantAccountId, moduleName, isEnabled } = await req.json();
         

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PosSessionEngine } from '@/lib/pos-session-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json().catch(() => ({}));
         const { sessionId, type, amount, reason } = body;

@@ -163,7 +163,7 @@ export class WorkflowBuilderEngine {
                         executedActions.push(`Webhook called: ${action.config.url}`);
                         break;
                 }
-            } catch (e) {
+            } catch (e: any) {
                 executedActions.push(`Action failed: ${action.type}`);
             }
         }

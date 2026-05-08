@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
+
     try {
         // Fetch ZATCA settings from DB
         const settingsRaw = await prisma.setting.findMany({

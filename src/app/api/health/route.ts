@@ -1,38 +1,50 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
+/**
+ * Health Check Endpoint
+ * GET /api/health
+ *
+ * Returns system health status for load balancers, PM2, and monitoring.
+ * This route is explicitly PUBLIC (whitelisted in middleware.ts).
+ */
 export async function GET() {
-    try {
-        // Test Database Connection
-        const start = Date.now();
-        await prisma.$queryRaw`SELECT 1`;
-        const dbLatency = Date.now() - start;
+    const startTime = Date.now();
 
-        // In a real app, also test Redis cache, Queue (RabbitMQ/Bull), External APIs (ZATCA)
-        
-        return NextResponse.json({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            services: {
-                database: {
-                    status: 'up',
-                    latency: `${dbLatency}ms`
-                },
-                redis: {
-                    status: 'skipped', // placeholder
-                    latency: 'N/A'
-                },
-                zatca_integration: {
-                    status: 'skipped', // placeholder
-                    latency: 'N/A'
-                }
-            }
-        });
-    } catch (error: any) {
-        return NextResponse.json({
-            status: 'unhealthy',
-            timestamp: new Date().toISOString(),
-            error: error.message
-        }, { status: 503 });
+    const checks: Record<string, 'ok' | 'error' | 'warn'> = {
+        api: 'ok',
+    };
+
+    // Check DB connectivity
+    try {
+        const { getPrisma } = await import('@/lib/prisma');
+        const prisma = getPrisma();
+        // Simple ping — fast, no data read
+        await (prisma as any).$queryRaw`SELECT 1`;
+        checks.database = 'ok';
+    } catch {
+        checks.database = 'error';
     }
+
+    // Check environment secrets
+    const requiredEnvs = ['JWT_SECRET', 'ENCRYPTION_KEY', 'DATABASE_URL'];
+    const missingEnvs = requiredEnvs.filter(k => !process.env[k]);
+    checks.environment = missingEnvs.length === 0 ? 'ok' : 'error';
+
+    const allOk = Object.values(checks).every(v => v === 'ok');
+    const latency = Date.now() - startTime;
+
+    return NextResponse.json(
+        {
+            status: allOk ? 'healthy' : 'degraded',
+            timestamp: new Date().toISOString(),
+            version: process.env.npm_package_version || '2.4.6',
+            latencyMs: latency,
+            checks,
+            ...(missingEnvs.length > 0 ? { missingEnvs } : {}),
+        },
+        {
+            status: allOk ? 200 : 503,
+            headers: { 'Cache-Control': 'no-store' },
+        }
+    );
 }

@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncStockToSalla } from '@/lib/salla';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -11,10 +16,14 @@ export async function GET(request: Request) {
         if (stockId) where.stockId = parseInt(stockId);
         const movements = await prisma.stockMovement.findMany({ where, include: { product: true, stock: true }, orderBy: { date: 'desc' }, take: 100 });
         return NextResponse.json(movements);
-    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error: any) { console.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -29,5 +38,5 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(movement, { status: 201 });
-    } catch (error) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }

@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 9: Supplier Contracts API
  * GET  /api/procurement/supplier-contracts
@@ -6,7 +7,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
             total: enriched.length,
             contracts: enriched,
         });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تحميل العقود' }, { status: 500 });
     }
 }
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(contract, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Supplier contract create error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء العقد' }, { status: 500 });
     }

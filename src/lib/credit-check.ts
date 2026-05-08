@@ -69,7 +69,7 @@ export async function checkCredit(
             _sum: { total: true }
         });
         pendingOrders = pendingOrderAgg?._sum?.total || 0;
-    } catch (e) {
+    } catch (e: any) {
         // Model might not be mapped yet, ignore.
     }
 

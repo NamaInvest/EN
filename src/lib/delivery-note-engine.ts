@@ -68,7 +68,7 @@ export class DeliveryNoteEngine {
         }) ?? [];
 
         for (const line of lines) {
-            await prisma.product.update({
+            await (prisma as any).product.update({
                 where: { id: line.productId },
                 data: { stockQuantity: { decrement: Number(line.deliveredQty) } },
             }).catch(() => {});
@@ -101,7 +101,7 @@ export class DeliveryNoteEngine {
         });
 
         const vat = Math.round(total * 0.15 * 100) / 100;
-        const invoice = await prisma.salesInvoice.create({
+        const invoice = await (prisma as any).salesInvoice.create({
             data: {
                 invoiceNumber: `INV-${Date.now().toString(36).toUpperCase()}`,
                 customerId: dn.customerId,

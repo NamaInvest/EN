@@ -16,6 +16,7 @@ const PD_RATES = {
 const DEFAULT_LGD = 0.6;
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const customers = await prisma.customer.findMany({
@@ -67,7 +68,7 @@ export async function GET(req: Request) {
             });
 
             // If balance > invoices remaining (e.g. manual JEs), put the difference in 0-30
-            const allocated = Object.values(aging).reduce((a, b) => a + b, 0);
+            const allocated = Object.values(aging).reduce((a: any, b: any) => a + b, 0);
             if (c.balance > allocated) {
                 aging['0-30'] += (c.balance - allocated);
             }
@@ -119,6 +120,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

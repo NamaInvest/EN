@@ -3,12 +3,16 @@ import crypto from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
+import { getUserFromRequest } from '@/lib/auth';
 function verifySallaSignature(bodyStr: string, secret: string, signature: string) {
     const hash = crypto.createHmac('sha256', secret).update(bodyStr).digest('hex');
     return hash === signature;
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const signature = request.headers.get('x-salla-signature');
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, message: 'Webhook Processed' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Salla Webhook Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -153,7 +157,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
                             update: { quantity: { decrement: qty } },
                             create: { productId: localProd.id, stockId, quantity: -qty },
                         });
-                    } catch (e) {
+                    } catch (e: any) {
                         console.error('Failed to update productStock for Salla webhook inside tx:', e);
                     }
                 }
@@ -183,7 +187,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
             discountValue: 0,
             date: new Date().toISOString().split('T')[0],
         });
-    } catch (jErr) {
+    } catch (jErr: unknown) {
         console.error('Auto-journal for Salla webhook failed:', jErr);
     }
 }

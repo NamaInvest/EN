@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { OpenItemsEngine } from "@/lib/open-items";
 
 export async function POST(req: Request) {
+
   try {
     const { paymentOpenItemId, allocations } = await req.json();
     const userId = "system-user";

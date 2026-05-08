@@ -8,6 +8,7 @@ const MAX_BACKUPS_PER_LICENSE = 3;
 const BACKUP_DIR = process.env.BACKUP_STORAGE_PATH || '/tmp/nama-backups';
 
 export async function POST(req: NextRequest) {
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;

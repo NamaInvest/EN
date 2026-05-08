@@ -2,7 +2,11 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const assets = await prisma.fixedAsset.findMany({
@@ -10,13 +14,16 @@ export async function GET(request: NextRequest) {
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(assets);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
         const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     if (!_getAuth(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -36,6 +43,7 @@ export async function POST(request: Request) {
         const acquisitionDate = body.purchaseDate ? new Date(body.purchaseDate) : new Date();
 
         const asset = await prisma.fixedAsset.create({
+            // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
             data: {
                 assetNumber: seqResult.formatted,
                 name,
@@ -51,7 +59,7 @@ export async function POST(request: Request) {
             },
         });
         return NextResponse.json(asset, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets' });
     }

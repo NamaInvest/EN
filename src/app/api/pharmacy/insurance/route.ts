@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Insurance Claims API — مطالبات التأمين CCHI/NPHIES
  * GET  /api/pharmacy/insurance
@@ -6,7 +7,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -65,7 +65,7 @@ export async function GET(req: Request) {
             byCompany,
             claims,
         });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تحميل المطالبات' }, { status: 500 });
     }
 }
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(claim, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تقديم المطالبة' }, { status: 500 });
     }
 }
@@ -122,7 +122,7 @@ export async function PUT(req: Request) {
         });
 
         return NextResponse.json(claim);
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تحديث المطالبة' }, { status: 500 });
     }
 }

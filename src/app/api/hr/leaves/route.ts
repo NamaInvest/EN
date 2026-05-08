@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Leave API Routes
  * GET  /api/hr/leaves — قائمة طلبات الإجازات
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { LeaveEngine } from '@/lib/leave-engine';
 
 export async function GET(req: Request) {
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json({ requests, year });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في جلب طلبات الإجازات' }, { status: 500 });
     }

@@ -66,7 +66,7 @@ export function useMadaTerminal() {
                     if (done) break;
                     // Just consuming incoming idle data 
                 }
-            } catch (err) {
+            } catch (err: any) {
                 // Ignore read errors
             } finally {
                 if (readerRef.current) {
@@ -85,7 +85,7 @@ export function useMadaTerminal() {
         if (portRef.current) {
             try {
                 await portRef.current.close();
-            } catch (e) {}
+            } catch (e: any) {}
             portRef.current = null;
         }
         setStatus('DISCONNECTED');
@@ -140,7 +140,7 @@ export function useMadaTerminal() {
                     }
                     if (done) break;
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error(e);
                 setStatus('ERROR');
                 resolve(false); // Hardware failed gracefully, maybe proceed with manual?

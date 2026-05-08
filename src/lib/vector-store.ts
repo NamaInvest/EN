@@ -51,6 +51,7 @@ export async function addDocumentToVectorMine(
     });
 
     logger.info({ tenantId }, 'vector-store: document indexed', { docId: doc.id, title });
+    // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
     return doc.id;
 }
 

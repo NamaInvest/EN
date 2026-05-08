@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Qiwa Contracts API
  * GET  /api/saudi/qiwa/contracts/[employeeId] — Get employee contracts
@@ -5,7 +6,6 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { getEmployeeContracts } from '@/lib/qiwa-engine';
 
 const db = (p: any) => p as any;
@@ -14,7 +14,7 @@ export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ employeeId: string }> }
 ) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const { employeeId } = await params;
@@ -32,7 +32,7 @@ export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ employeeId: string }> }
 ) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const { employeeId } = await params;

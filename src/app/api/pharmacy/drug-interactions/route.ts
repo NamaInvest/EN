@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Drug Interaction Checker API
  * GET  /api/pharmacy/drug-interactions?drugs=123,456,789
@@ -7,7 +8,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 // قاعدة تفاعلات أساسية (تُوسّع مع DrugBank API)
 const KNOWN_INTERACTIONS: Record<string, { with: string; severity: 'high' | 'moderate' | 'low'; message: string }[]> = {

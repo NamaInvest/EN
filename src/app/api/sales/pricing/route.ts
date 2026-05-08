@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const lists = await prisma.priceList.findMany({
@@ -14,13 +15,14 @@ export async function GET(req: Request) {
             orderBy: { priority: 'desc' }
         });
         return NextResponse.json(lists);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
             }
         });
         return NextResponse.json(newList);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

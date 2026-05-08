@@ -233,7 +233,7 @@ export class LeaveEngine {
           newBalance: newAccrued + Number(balance.carryOver) - Number(balance.used),
         });
 
-      } catch (error) {
+      } catch (error: any) {
         result.errors.push(`Employee ${emp.id}: ${String(error)}`);
       }
     }
@@ -553,7 +553,7 @@ export class LeaveEngine {
         },
       },
     });
-    const sickDaysTaken = sickRequests.reduce((sum, r) => sum + Number(r.days), 0);
+    const sickDaysTaken = sickRequests.reduce((sum: any, r: any) => sum + Number(r.days), 0);
 
     // Special leaves
     const specialTypes: LeaveType[] = ['MARRIAGE', 'BEREAVEMENT', 'HAJJ', 'MATERNITY', 'PATERNITY'];
@@ -568,7 +568,7 @@ export class LeaveEngine {
           startDate: { gte: new Date(year, 0, 1) },
         },
       });
-      const taken = reqs.reduce((sum, r) => sum + Number(r.days), 0);
+      const taken = reqs.reduce((sum: any, r: any) => sum + Number(r.days), 0);
       if (taken > 0) {
         specialLeaves.push({ type, taken });
       }

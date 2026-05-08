@@ -3,11 +3,15 @@ import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { MfaEngine } from '@/lib/mfa-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * POST /api/auth/2fa/login â€” Complete login after 2FA verification
  * Called after user passes password check and receives requires2FA=true
  */
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

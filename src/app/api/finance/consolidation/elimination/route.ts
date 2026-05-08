@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         // Find Intercompany Customers (type 0 or 2) & Vendors (type 1 or 2)
@@ -53,6 +54,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

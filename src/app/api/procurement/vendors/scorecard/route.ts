@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { calculateVendorScore } from '@/lib/vendor-scoring';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         // We will fetch all vendors, but since VendorPortalUser handles portals, 
@@ -37,6 +38,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

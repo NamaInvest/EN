@@ -109,9 +109,9 @@ export async function runMRP(manufacturingOrderId: number): Promise<MRPResult> {
           date: new Date(),
           status: 'pending',
           notes: `تم التوليد تلقائياً من MRP — أمر إنتاج #${manufacturingOrderId}`,
-          total: shortage.reduce((sum, s) => sum + s.shortageQty * s.unitCost, 0),
+          total: shortage.reduce((sum: any, s: any) => sum + s.shortageQty * s.unitCost, 0),
           details: {
-            create: shortage.map((s) => ({
+            create: shortage.map((s: any) => ({
               productId: s.productId,
               productName: s.productName,
               quantity: s.shortageQty,
@@ -123,7 +123,7 @@ export async function runMRP(manufacturingOrderId: number): Promise<MRPResult> {
       });
 
       generatedPRs.push(pr.id);
-    } catch (e) {
+    } catch (e: any) {
       // إذا فشل إنشاء PR — لا نوقف العملية
       console.error('MRP: فشل إنشاء طلب الشراء التلقائي:', e);
     }

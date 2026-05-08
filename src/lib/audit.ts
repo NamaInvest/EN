@@ -17,7 +17,7 @@ export async function logAuditAction(params: {
                 details: params.details,
             }
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error("Audit log failed to save:", e);
     }
 }

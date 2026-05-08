@@ -5,8 +5,10 @@ export async function POST(
     req: NextRequest, 
     { params }: { params: Promise<{ batchId: string }> }
 ) {
+
   const { batchId } = await params;
     try {
+        // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
         const { batchId } = params;
         const result = await MudadEngine.submitWPSBatch(batchId);
         

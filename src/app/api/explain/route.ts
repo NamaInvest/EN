@@ -1,6 +1,7 @@
 import ollama from 'ollama'
 
 export async function POST(req: Request) {
+
     const { sectionName } = await req.json()
 
     // هنا نطلب من النموذج المحلي شرح القسم بناءً على فهمه للملفات

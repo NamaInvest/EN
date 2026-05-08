@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Cash Flow Forecasting API Routes
  * GET  — Fetch latest forecast / historical
@@ -5,12 +6,11 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { CashFlowForecastingEngine } from '@/lib/cash-flow-forecasting';
 
 export async function GET(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();

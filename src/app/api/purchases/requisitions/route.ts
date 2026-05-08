@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const token = authHeader.split(' ')[1];
-        const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(token, (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const prs = await prisma.purchaseRequisition.findMany({
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(prs);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const token = authHeader.split(' ')[1];
-        const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+        const decoded: any = jwt.verify(token, (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
         // Optional: Could trigger a notification to the manager here
         return NextResponse.json(pr);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

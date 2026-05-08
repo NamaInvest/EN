@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { peekNextNumber, resetSequence, NUMBERING_DEFAULTS } from '@/lib/numbering';
 
 // GET /api/system/numbering — قائمة كل التكوينات
 // GET /api/system/numbering?code=WO&branchId=1 — تكوين محدد
 // GET /api/system/numbering?peek=WO — معاينة الرقم التالي بدون استهلاك
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -48,6 +51,9 @@ export async function GET(request: Request) {
 // POST /api/system/numbering — إنشاء/تحديث تكوين سلسلة
 // body: { code, prefix?, suffix?, padLength?, resetFrequency?, branchId?, isActive?, name? }
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -93,6 +99,9 @@ export async function POST(request: Request) {
 
 // DELETE /api/system/numbering?id=123 — تعطيل سلسلة (soft delete)
 export async function DELETE(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -117,6 +126,9 @@ export async function DELETE(request: Request) {
 
 // PATCH /api/system/numbering?action=reset&code=WO&branchId=1
 export async function PATCH(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

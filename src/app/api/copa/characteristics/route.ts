@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const items = await prisma.copaCharacteristic.findMany({
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();

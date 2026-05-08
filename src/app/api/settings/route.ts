@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { apiError } from '@/lib/api-error';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(request);
         const settings = await prisma.setting.findMany();
@@ -13,13 +14,14 @@ export async function GET(request: NextRequest) {
         const sensitiveKeys = ['zatca_private_key', 'zatca_certificate', 'zatca_compliance_token', 'zatca_compliance_secret', 'zatca_production_token', 'zatca_production_secret'];
         const filtered = settings.map(s => sensitiveKeys.includes(s.key) ? { ...s, value: '***' } : s);
         return NextResponse.json(filtered);
-    } catch (error) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error: any) { console.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
 // Clear ZATCA integration data
 export async function DELETE(request: NextRequest) {
+
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const prisma = getPrisma(request);
         const allowed = await hasPermission(auth.userId, 'clear_zatca', prisma);
@@ -40,9 +42,9 @@ export async function DELETE(request: NextRequest) {
                  zatca_compliance_token=NULL, zatca_compliance_secret=NULL, zatca_compliance_request_id=NULL,
                  zatca_production_token=NULL, zatca_production_secret=NULL`
             );
-        } catch (e) { console.error('Reset zatca_settings table:', e); }
+        } catch (e: any) { console.error('Reset zatca_settings table:', e); }
         return NextResponse.json({ success: true, message: `تم حذف ${result.count} من بيانات ربط الزكاة والدخل` });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Settings DELETE (ZATCA clear) error:', error);
         return NextResponse.json({ error: 'فشل في حذف بيانات الزكاة' }, { status: 500 });
     }
@@ -50,8 +52,9 @@ export async function DELETE(request: NextRequest) {
 
 // Save or Update Configuration Settings
 export async function POST(request: NextRequest) {
+
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const prisma = getPrisma(request);
         const allowed = await hasPermission(auth.userId, 'settings', prisma);
@@ -70,7 +73,7 @@ export async function POST(request: NextRequest) {
                 let finalValue = String(value);
                 if (key === 'zatca_private_key' && finalValue && finalValue !== '***' && !finalValue.includes(':')) {
                     // Try to encrypt if it doesn't look like our IV:AuthTag:CipherText format
-                    try { finalValue = encrypt(finalValue); } catch (e) {}
+                    try { finalValue = encrypt(finalValue); } catch (e: any) {}
                 }
                 return prisma.setting.upsert({
                     where: { key },

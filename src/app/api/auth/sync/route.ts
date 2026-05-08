@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { getUserFromRequest } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, user: dbUser });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Sync user error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         console.log(">> CRON EXECUTION: Running EOD Shift Closures...");
@@ -33,8 +38,8 @@ export async function POST(request: Request) {
                 }
             });
 
-            const totalIn = treasuryLogs.filter(t => t.type === 'in').reduce((acc, curr) => acc + curr.amount, 0);
-            const totalOut = treasuryLogs.filter(t => t.type === 'out').reduce((acc, curr) => acc + curr.amount, 0);
+            const totalIn = treasuryLogs.filter(t => t.type === 'in').reduce((acc: any, curr: any) => acc + curr.amount, 0);
+            const totalOut = treasuryLogs.filter(t => t.type === 'out').reduce((acc: any, curr: any) => acc + curr.amount, 0);
             
             const expectedCash = shift.startingCash + totalIn - totalOut;
 

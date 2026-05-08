@@ -6,7 +6,7 @@ export class AllocationEngine {
      * Executes all active allocation rules for a given period in priority order (Cascading)
      */
     static async runAllPeriodAllocations(fiscalPeriodId: number, userId: string) {
-        const rules = await prisma.allocationRule.findMany({
+        const rules = await (prisma as any).allocationRule.findMany({
             take: 100,
             where: { isActive: true },
             orderBy: { priority: 'asc' }, // Cascading: Lower priority number runs first
@@ -42,7 +42,7 @@ export class AllocationEngine {
      * Core processing logic
      */
     private static async _processAllocation(ruleId: number, fiscalPeriodId: number, simulate = false, userId?: string) {
-        const rule = await prisma.allocationRule.findUnique({
+        const rule = await (prisma as any).allocationRule.findUnique({
             where: { id: ruleId },
             include: { targets: true }
         });
@@ -57,7 +57,7 @@ export class AllocationEngine {
         
         if (rule.sourceCostCenterId) {
             // Mock: Fetching balance
-            // const lines = await prisma.journalLine.aggregate({
+            // const lines = await (prisma as any).journalLine.aggregate({
             //     where: { costCenterId: rule.sourceCostCenterId, journalEntry: { fiscalPeriodId } },
             //     _sum: { debit: true, credit: true }
             // });
@@ -133,7 +133,7 @@ export class AllocationEngine {
             });
 
             // Credit Source
-            await tx.journalLine.create({
+            await (tx as any).journalLine.create({
                 data: {
                     journalEntryId: je.id,
                     costCenterId: rule.sourceCostCenterId,
@@ -146,7 +146,7 @@ export class AllocationEngine {
 
             // Debit Targets
             for (const dist of distributions) {
-                await tx.journalLine.create({
+                await (tx as any).journalLine.create({
                     data: {
                         journalEntryId: je.id,
                         costCenterId: dist.targetCcId,

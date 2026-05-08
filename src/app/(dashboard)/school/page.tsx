@@ -1,11 +1,11 @@
-import { _t } from '@/lib/server-t';
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { GraduationCap, BookOpen, Library, Plus, Minus, Check, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 // Academic English + Chunky Arabic font pairing for Claymorphism
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=EB+Garamond:wght@600;700;800&display=swap');`;

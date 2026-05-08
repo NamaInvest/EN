@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Pharmacy Patients API — إدارة المرضى
  * GET  /api/pharmacy/patients?nationalId=1XXXXXXXXX
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -65,7 +65,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json({ total: patients.length, patients });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في البحث' }, { status: 500 });
     }
 }
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(patient, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في حفظ المريض' }, { status: 500 });
     }
 }

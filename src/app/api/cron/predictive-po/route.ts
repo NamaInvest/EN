@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req);
   try {
     // Analytics logic: If product quantity is below 10 across all branches, create a Draft PO
@@ -60,8 +61,8 @@ export async function POST(req: Request) {
               total: (p.buyPrice || 0) * 50
             }))
           },
-          subtotal: productsInfo.reduce((sum, p) => sum + ((p.buyPrice || 0) * 50), 0),
-          total: productsInfo.reduce((sum, p) => sum + ((p.buyPrice || 0) * 50), 0)
+          subtotal: productsInfo.reduce((sum: any, p: any) => sum + ((p.buyPrice || 0) * 50), 0),
+          total: productsInfo.reduce((sum: any, p: any) => sum + ((p.buyPrice || 0) * 50), 0)
         }
       });
 

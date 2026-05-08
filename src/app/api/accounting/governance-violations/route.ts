@@ -1,9 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
-    const auth = getUserFromRequest(request);
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+    const auth = getUserFromRequest(request as any);
     if (!auth || auth.role !== 'admin') {
         return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     }
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(violations);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Violations fetch error:', error);
         return NextResponse.json({ error: 'فشل في جلب المخالفات الرقابية' }, { status: 500 });
     }

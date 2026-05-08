@@ -148,10 +148,10 @@ export class ZakatEngine {
             take: 100, where: { assessmentId } });
     const adjAdd = adjustments
       .filter(a => a.category === 'ADD')
-      .reduce((s, a) => s + Number(a.amount), 0);
+      .reduce((s: any, a: any) => s + Number(a.amount), 0);
     const adjDeduct = adjustments
       .filter(a => a.category === 'DEDUCT')
-      .reduce((s, a) => s + Number(a.amount), 0);
+      .reduce((s: any, a: any) => s + Number(a.amount), 0);
 
     const baseBeforeAdj =
       Number(assessment.equity) +

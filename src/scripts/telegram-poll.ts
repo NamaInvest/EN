@@ -28,7 +28,7 @@ async function processViaApi(text: string): Promise<string> {
             return data.response;
         }
         return '❌ خطأ في الاتصال بالنظام';
-    } catch (e) {
+    } catch (e: any) {
         console.error('API error:', e);
         return '❌ النظام غير متاح حالياً';
     }
@@ -64,7 +64,7 @@ async function poll() {
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Poll error:', e);
             await new Promise(r => setTimeout(r, 5000));
         }

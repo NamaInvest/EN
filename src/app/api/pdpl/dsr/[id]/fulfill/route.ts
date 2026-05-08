@@ -1,17 +1,17 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * PDPL DSR Fulfill API
  * POST /api/pdpl/dsr/[id]/fulfill — Process a data subject request
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { fulfillAccess, eraseSubject } from '@/lib/pdpl-engine';
 
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const { id } = await params;

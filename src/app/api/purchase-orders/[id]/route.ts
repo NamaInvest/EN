@@ -1,11 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const id = parseInt((await params).id);
@@ -16,7 +19,7 @@ export async function GET(
         });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         return NextResponse.json(order);
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'Failed to fetch order' }, { status: 500 });
     }
 }
@@ -26,11 +29,14 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const id = parseInt((await params).id);
         const { status } = await request.json();
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         const userId = auth?.userId || null;
 
         if (!['approved', 'rejected', 'completed'].includes(status)) {
@@ -118,7 +124,7 @@ export async function PUT(
                             update: { quantity: { increment: detail.quantity } },
                             create: { productId: detail.productId, stockId: currentOrder.stockId, quantity: detail.quantity }
                         });
-                    } catch (e) {
+                    } catch (e: any) {
                          console.error('Failed stock upsert:', e);
                     }
                 }
@@ -146,13 +152,13 @@ export async function PUT(
                     landedCosts: mappedLandedCosts,
                     hasGRN: true, // [EG-02] PO completion always has stock received → clear GRNI
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to post PO auto-journal', err);
             }
         }
 
         return NextResponse.json(updatedOrder);
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'فشل بتحديث الحالة' }, { status: 500 });
     }

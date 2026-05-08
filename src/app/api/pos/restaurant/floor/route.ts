@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(req);
 
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(req);
         const { action, payload } = await req.json();
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
                     "endedAt" TIMESTAMP(3)
                 );
             `);
-        } catch (e) { /* tables already exist */ }
+        } catch (e: any) { /* tables already exist */ }
 
         if (action === 'create_zone') {
             const zone = await prisma.restaurantZone.create({ data: { name: payload.name } });

@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const { searchParams } = new URL(req.url);
@@ -59,6 +60,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -30,13 +34,16 @@ export async function GET(request: NextRequest) {
             }
         }));
         return NextResponse.json(mapped);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching branches:', error);
         return NextResponse.json({ error: 'Failed to fetch branches' }, { status: 500 });
     }
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
                 if (!['professional', 'enterprise'].includes(plan)) {
                     return NextResponse.json({ error: 'إضافة فرع جديد تتطلب الباقة الاحترافية (Professional) أو أعلى.' }, { status: 403 });
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('[Branches] Plan check error:', e);
             }
         }
@@ -110,6 +117,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -136,11 +146,15 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request);
+    const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -176,7 +190,7 @@ export async function DELETE(request: NextRequest) {
         });
 
         return NextResponse.json({ message: 'Branch deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting branch:', error);
         return NextResponse.json({ error: 'Failed to delete branch' }, { status: 500 });
     }

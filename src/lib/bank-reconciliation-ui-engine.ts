@@ -55,7 +55,7 @@ export class BankReconciliationEngine {
         const results: MatchResult[] = [];
         
         // Get unreconciled journal entries for this bank account
-        const journalEntries = await prisma.journalEntry.findMany({
+        const journalEntries = await (prisma as any).journalEntry.findMany({
             where: {
                 status: { in: ['posted', 'POSTED'] },
             },
@@ -144,7 +144,7 @@ export class BankReconciliationEngine {
         totalLines: number;
     }> {
         // Book balance from GL
-        const glEntries = await prisma.journalEntry.findMany({
+        const glEntries = await (prisma as any).journalEntry.findMany({
             take: 100,
             where: { status: { in: ['posted', 'POSTED'] } },
             include: { lines: { where: { accountId: bankAccountId } } },

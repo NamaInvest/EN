@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ProductVariantEngine } from '@/lib/product-variant-engine';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     try {
         const variants = await ProductVariantEngine.getVariants(parseInt((await params).id, 10));
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     try {
         const body = await req.json();

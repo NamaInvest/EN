@@ -32,7 +32,7 @@ export class RecurringJournalRunner {
                 });
 
                 results.push({ templateId: template.id, status: 'SUCCESS', journalEntryId: je.id });
-            } catch (error) {
+            } catch (error: any) {
                 results.push({ templateId: template.id, status: 'FAILED', error: (error as Error).message });
             }
         }

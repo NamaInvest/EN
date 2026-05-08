@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         const prescriptions = [
             { id: 'ERX-2026-001', patient: 'Ahmed Ali', doctor: 'Dr. Sarah', date: '2026-05-06', status: 'ACTIVE', medications: ['Amoxicillin 500mg', 'Paracetamol 500mg'] },

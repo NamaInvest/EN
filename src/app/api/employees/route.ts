@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { encrypt, decrypt, maskSensitive } from "@/lib/encryption";
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
   // Auth guard
   const { getUserFromRequest: _getAuth } = require("@/lib/auth");
   const _auth = _getAuth(request);
@@ -28,13 +32,16 @@ export async function GET(request: Request) {
       ibanFull: emp.iban ? decrypt(emp.iban) : null,
     }));
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return NextResponse.json([], { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
   // Auth guard
   const { getUserFromRequest: _getAuth } = require("@/lib/auth");
   const _auth = _getAuth(request);
@@ -70,7 +77,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(employee, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return NextResponse.json({ error: "فشل" }, { status: 500 });
   }
@@ -78,6 +85,9 @@ export async function POST(request: Request) {
 
 // Update Employee Biometrics (Face Descriptor)
 export async function PUT(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
   // Auth guard
   const { getUserFromRequest: _getAuth } = require("@/lib/auth");
   const _auth = _getAuth(request);
@@ -101,7 +111,7 @@ export async function PUT(request: Request) {
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Face registration error:", error);
     return NextResponse.json(
       { error: "Failed to save biometric data" },

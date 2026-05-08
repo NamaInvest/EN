@@ -150,7 +150,7 @@ export class IFRS9Engine {
         }
 
         return {
-            totalExposure: assessments.reduce((sum, a) => sum + a.exposure, 0),
+            totalExposure: assessments.reduce((sum: any, a: any) => sum + a.exposure, 0),
             totalECL,
             customerCount: assessments.length,
             assessments

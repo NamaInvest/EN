@@ -261,6 +261,7 @@ async function seedCompanyData(params: {
 }
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const {
@@ -405,7 +406,7 @@ export async function POST(req: Request) {
                     ...(clerkUserId ? { clerkUserId } : {}),
                 },
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('[provision] TenantAccount upsert failed:', e);
         } finally {
             if (masterPrisma) await masterPrisma.$disconnect();

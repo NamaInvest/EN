@@ -33,7 +33,7 @@ export async function sendEmail(opts: EmailOptions): Promise<boolean> {
         // Default: SMTP via nodemailer
         await transporter.sendMail({ from: FROM, ...opts });
         return true;
-    } catch (err) {
+    } catch (err: any) {
         console.error('[Email] Failed to send:', err);
         return false;
     }

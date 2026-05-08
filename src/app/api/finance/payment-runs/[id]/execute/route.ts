@@ -5,6 +5,7 @@ export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+
     try {
         const { id } = await params;
         const body = await req.json().catch(() => ({}));
@@ -12,7 +13,7 @@ export async function POST(
 
         const result = await PaymentRunEngine.executePayments(parseInt(id, 10), userId);
         return NextResponse.json(result);
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
 }

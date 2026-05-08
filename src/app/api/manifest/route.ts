@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+
   return NextResponse.json({
     name: 'NamaVest ERP & POS',
     short_name: 'NamaVest',

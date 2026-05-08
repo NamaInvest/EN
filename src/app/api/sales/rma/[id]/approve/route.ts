@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RmaEngine } from '@/lib/rma-engine';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     try {
         const body = await req.json();

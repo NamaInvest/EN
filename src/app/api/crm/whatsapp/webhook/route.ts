@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
             }
         }
         return new NextResponse('Invalid request', { status: 400 });
-    } catch (e) {
+    } catch (e: any) {
         return new NextResponse('Error', { status: 500 });
     }
 }

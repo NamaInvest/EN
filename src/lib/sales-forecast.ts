@@ -35,7 +35,7 @@ export class SalesForecastEngine {
             const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
 
-            const agg = await prisma.salesInvoice.aggregate({
+            const agg = await (prisma as any).salesInvoice.aggregate({
                 where: {
                     status: { not: 'CANCELLED' },
                     invoiceDate: {
@@ -63,7 +63,7 @@ export class SalesForecastEngine {
         // Apply forecast to historical (for accuracy tracking)
         for (let i = windowSize; i < values.length; i++) {
             const window = values.slice(i - windowSize, i);
-            const avg = window.reduce((a, b) => a + b, 0) / windowSize;
+            const avg = window.reduce((a: any, b: any) => a + b, 0) / windowSize;
             historical[i].forecastSales = Math.round(avg * 100) / 100;
             historical[i].variance = historical[i].actualSales - avg;
             historical[i].variancePct = avg > 0 ? Math.round((historical[i].variance / avg) * 10000) / 100 : 0;
@@ -111,7 +111,7 @@ export class SalesForecastEngine {
         weightedPipeline: number;
         stages: Array<{ stage: string; count: number; value: number }>;
     }> {
-        const leads = await prisma.lead.findMany({
+        const leads = await (prisma as any).lead.findMany({
             take: 100,
             where: { status: { notIn: ['WON', 'LOST'] } },
             select: { status: true, expectedRevenue: true },

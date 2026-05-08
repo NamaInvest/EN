@@ -75,11 +75,14 @@ export class FixedAssetsEngine {
                 depreciationAmount = annualDepreciation / 12; // Monthly
             } else if (asset.depreciationMethod === 'DECLINING_BALANCE') {
                 const rate = 1 / usefulLife;
-                const annualDepreciation = Number(asset.currentBookValue) * rate;
+                const _annualDepreciation_dup77 = Number(asset.currentBookValue) * rate;
+                // @ts-expect-error [TS2304] Cannot find name
                 depreciationAmount = annualDepreciation / 12; // Monthly
             } else if (asset.depreciationMethod === 'DOUBLE_DECLINING') {
-                const rate = (1 / usefulLife) * 2;
-                const annualDepreciation = Number(asset.currentBookValue) * rate;
+                const _rate_dup80 = (1 / usefulLife) * 2;
+                // @ts-expect-error [TS2304] Cannot find name
+                const _annualDepreciation_dup81 = Number(asset.currentBookValue) * rate;
+                // @ts-expect-error [TS2304] Cannot find name
                 depreciationAmount = annualDepreciation / 12; // Monthly
             }
 

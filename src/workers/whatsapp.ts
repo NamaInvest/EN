@@ -115,7 +115,7 @@ ${customerContext}
         await msg.reply(responseText);
         console.log(`Replied to ${phoneNumber} successfully.`);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error processing WhatsApp message:', error);
     }
 });

@@ -1,7 +1,7 @@
-import { _t } from '@/lib/server-t';
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function PrintTemplatesPage() {
   const { lang: language } = useTranslation();

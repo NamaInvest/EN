@@ -8,6 +8,7 @@ const SALLA_API_TOKEN = process.env.SALLA_ACCESS_TOKEN || "DEMO_TOKEN_12345";
 const SALLA_BASE_URL = 'https://api.salla.dev/admin/v2';
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req);
   try {
     const { action, platform, payload } = await req.json();

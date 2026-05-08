@@ -2,7 +2,11 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -94,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         });
 
         return NextResponse.json({ success: true, message: 'تم إهلاك الأصل وتسجيل القيد بنجاح' });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets-depreciate' });
     }

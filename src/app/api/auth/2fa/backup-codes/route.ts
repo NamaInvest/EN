@@ -1,13 +1,16 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { MfaEngine } from '@/lib/mfa-engine';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * POST /api/auth/2fa/backup-codes — Regenerate backup codes (invalidates old set)
  */
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json().catch(() => ({}));
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
 
         const codes = await MfaEngine.regenerateBackupCodes(user.userId);
         return NextResponse.json({ codes });
-    } catch (e) {
+    } catch (e: any) {
         console.error('[2FA Backup Codes]', e);
         return NextResponse.json({ error: 'فشل إنشاء رموز الاحتياط' }, { status: 500 });
     }

@@ -36,7 +36,7 @@ export class BICubeEngine {
         const from = opts.from || new Date(Date.now() - 365 * 86400000);
         const to = opts.to || new Date();
 
-        const invoices = await prisma.salesInvoice.findMany({
+        const invoices = await (prisma as any).salesInvoice.findMany({
             where: {
                 status: { not: 'CANCELLED' },
                 invoiceDate: { gte: from.toISOString(), lte: to.toISOString() },
@@ -104,10 +104,10 @@ export class BICubeEngine {
             .slice(0, opts.limit || 100);
 
         const totals: Record<string, number> = {
-            revenue: Math.round(cells.reduce((s, c) => s + c.measures.revenue, 0) * 100) / 100,
-            quantity: cells.reduce((s, c) => s + c.measures.quantity, 0),
-            margin: Math.round(cells.reduce((s, c) => s + c.measures.margin, 0) * 100) / 100,
-            count: cells.reduce((s, c) => s + c.measures.count, 0),
+            revenue: Math.round(cells.reduce((s: any, c: any) => s + c.measures.revenue, 0) * 100) / 100,
+            quantity: cells.reduce((s: any, c: any) => s + c.measures.quantity, 0),
+            margin: Math.round(cells.reduce((s: any, c: any) => s + c.measures.margin, 0) * 100) / 100,
+            count: cells.reduce((s: any, c: any) => s + c.measures.count, 0),
         };
 
         return { cells, totals, queryTime: Date.now() - start };
@@ -123,20 +123,20 @@ export class BICubeEngine {
         const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
         const [currentSales, prevSales, currentPurchases, customerCount, productCount] = await Promise.all([
-            prisma.salesInvoice.aggregate({
+            (prisma as any).salesInvoice.aggregate({
                 where: { status: { not: 'CANCELLED' }, invoiceDate: { gte: thisMonth.toISOString() } },
                 _sum: { total: true }, _count: true,
             }),
-            prisma.salesInvoice.aggregate({
+            (prisma as any).salesInvoice.aggregate({
                 where: { status: { not: 'CANCELLED' }, invoiceDate: { gte: lastMonth.toISOString(), lte: lastMonthEnd.toISOString() } },
                 _sum: { total: true }, _count: true,
             }),
-            prisma.purchaseInvoice.aggregate({
+            (prisma as any).purchaseInvoice.aggregate({
                 where: { status: { not: 'cancelled' }, invoiceDate: { gte: thisMonth.toISOString() } },
                 _sum: { total: true },
             }),
-            prisma.customer.count({ where: { isActive: true } }),
-            prisma.product.count({ where: { isActive: true } }),
+            (prisma as any).customer.count({ where: { isActive: true } }),
+            (prisma as any).product.count({ where: { isActive: true } }),
         ]);
 
         const curRev = Number(currentSales._sum?.total || 0);

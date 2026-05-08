@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const resolvedParams = await params;
@@ -30,12 +33,12 @@ export async function DELETE(
                 const filepath = join(process.cwd(), 'public', 'uploads', filename);
                 await unlink(filepath);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.warn('Could not delete physical file for doc archive:', doc.id, err);
         }
 
         return NextResponse.json({ success: true });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Delete document err:', e);
         return NextResponse.json({ error: 'فشل الحذف' }, { status: 500 });
     }

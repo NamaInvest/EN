@@ -1,11 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const jobs = await prisma.jobPosting.findMany({
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(jobs);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
   }
 }
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
-    const auth = getUserFromRequest(req);
+    const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await req.json();
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(job, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to create job' }, { status: 500 });
   }
 }

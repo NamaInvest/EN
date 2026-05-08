@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
             };
         });
 
-        const overallTotal = recommendedItems.reduce((acc, curr) => acc + curr.total, 0);
+        const overallTotal = recommendedItems.reduce((acc: any, curr: any) => acc + curr.total, 0);
 
         const draftOrder = await prisma.purchaseOrder.create({
             data: {

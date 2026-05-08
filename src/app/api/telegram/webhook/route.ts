@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 
 // Telegram sends updates via POST
 export async function POST(req: NextRequest) {
+
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
@@ -54,11 +55,11 @@ export async function POST(req: NextRequest) {
             const largestPhoto = message.photo[message.photo.length - 1];
             const fileId = largestPhoto.file_id;
             // Process OCR in the background so we don't return an error to Telegram
-            processPhoto(fileId, chatId).catch(e => console.error('Background OCR Failed:', e));
+            processPhoto(fileId, chatId).catch((e: any) => console.error('Background OCR Failed:', e));
         }
 
         return NextResponse.json({ ok: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Telegram webhook error:', error);
         return NextResponse.json({ ok: true });
     }
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
 
 // GET endpoint to set webhook + health check
 export async function GET(req: NextRequest) {
+
     const prisma = getPrisma(req);
     const { searchParams } = new URL(req.url);
     const action = searchParams.get('action');

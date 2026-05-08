@@ -1,11 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
-        const auth = getUserFromRequest(req);
+        const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const user = await prisma.user.findUnique({ where: { id: auth.userId } });
@@ -17,11 +17,11 @@ export async function GET(req: NextRequest) {
         // Assets
         const customers = await prisma.customer.findMany({
             take: 100, select: { balance: true } });
-        const totalAR = customers.reduce((sum, c) => sum + (c.balance || 0), 0);
+        const totalAR = customers.reduce((sum: any, c: any) => sum + (c.balance || 0), 0);
         
         const products = await prisma.product.findMany({
             take: 100, select: { currentStock: true, buyPrice: true } });
-        const totalInventory = products.reduce((sum, p) => sum + ((p.currentStock || 0) * (p.buyPrice || 0)), 0);
+        const totalInventory = products.reduce((sum: any, p: any) => sum + ((p.currentStock || 0) * (p.buyPrice || 0)), 0);
 
         const treasuries = await prisma.treasury.findMany({
             take: 100, select: { amount: true, type: true } });
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
         // Liabilities
         const suppliers = await prisma.customer.findMany({
             take: 100, where: { type: 1 }, select: { balance: true } }); // type 1 = supplier
-        const totalAP = suppliers.reduce((sum, s) => sum + (s.balance || 0), 0);
+        const totalAP = suppliers.reduce((sum: any, s: any) => sum + (s.balance || 0), 0);
         const currentLiabilities = totalAP || 1; // avoid division by zero
 
         const currentRatio = currentAssets / currentLiabilities;
@@ -45,14 +45,14 @@ export async function GET(req: NextRequest) {
         // 2. Net Profit Margin & DSO
         const sales = await prisma.salesInvoice.findMany({
             take: 100, select: { total: true, date: true } });
-        const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
+        const totalSales = sales.reduce((sum: any, s: any) => sum + s.total, 0);
 
         const expenses = await prisma.expense.findMany({
             take: 100, select: { amount: true } });
-        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const totalExpenses = expenses.reduce((sum: any, e: any) => sum + e.amount, 0);
         
         // Approx COGS
-        const cogs = sales.reduce((sum, s) => sum + (s.total * 0.6), 0); // Placeholder 60% COGS if not tracked exactly per invoice
+        const cogs = sales.reduce((sum: any, s: any) => sum + (s.total * 0.6), 0); // Placeholder 60% COGS if not tracked exactly per invoice
         const netProfit = totalSales - cogs - totalExpenses;
         const netProfitMargin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
 
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
             cashFlowTrend,
             budgetVsActual
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

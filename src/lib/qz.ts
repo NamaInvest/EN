@@ -18,7 +18,7 @@ export async function connectQZ() {
             isQzConnected = true;
         }
         return true;
-    } catch (e) {
+    } catch (e: any) {
         console.error("QZ Tray connection failed:", e);
         return false;
     }

@@ -66,8 +66,8 @@ async function createJournalEntry(params: {
     return withTenant(activeTenant, async () => {
         try {
         // Validate: total debit must equal total credit
-        const totalDebit = params.lines.reduce((sum, l) => sum + l.debit, 0);
-        const totalCredit = params.lines.reduce((sum, l) => sum + l.credit, 0);
+        const totalDebit = params.lines.reduce((sum: any, l: any) => sum + l.debit, 0);
+        const totalCredit = params.lines.reduce((sum: any, l: any) => sum + l.credit, 0);
 
         if (Math.abs(totalDebit - totalCredit) > 0.01) {
             return { success: false, error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` };
@@ -192,7 +192,7 @@ async function createJournalEntry(params: {
         });
 
         return { success: true, entryId: entry.id };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Auto-journal error:', error);
         return { success: false, error: String(error) };
     }

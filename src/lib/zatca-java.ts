@@ -34,7 +34,7 @@ export class ZatcaJavaAdapter {
     private async initWorkspace() {
         try {
             await fs.mkdir(this.workspace, { recursive: true });
-        } catch (e) {}
+        } catch (e: any) {}
     }
 
     /** Build environment variables for the SDK child process */

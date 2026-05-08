@@ -1,4 +1,3 @@
-import { _t } from '@/lib/server-t';
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Building2, Play, Eye, CheckCircle, RotateCcw } from 'lucide-react';

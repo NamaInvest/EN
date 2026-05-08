@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * FX Revaluation API Routes
  * GET  — List revaluation runs
@@ -5,12 +6,11 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
 
 export async function GET(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // List recent FX revaluation journal entries
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await getUserFromRequest(req);
+        const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();

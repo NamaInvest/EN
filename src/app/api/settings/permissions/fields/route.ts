@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const permissions = await prisma.roleFieldPermission.findMany({
@@ -9,13 +10,14 @@ export async function GET(req: Request) {
             orderBy: [{ roleName: 'asc' }, { modelName: 'asc' }, { fieldName: 'asc' }]
         });
         return NextResponse.json(permissions);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(upserted);
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

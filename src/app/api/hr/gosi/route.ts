@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * GOSI (التأمينات الاجتماعية) Payroll Deductions API
  * GET  /api/hr/gosi — ملخص اشتراكات GOSI للشهر
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 // معدلات GOSI السعودية 2024
 const GOSI_RATES = {
@@ -66,7 +66,7 @@ export async function GET(req: Request) {
         };
 
         return NextResponse.json({ month, year, employees: summary, totals });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في احتساب GOSI' }, { status: 500 });
     }
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
             totalEmployerContrib: Math.round(totalEmployerContrib * 100) / 100,
             month, year,
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في تسجيل GOSI' }, { status: 500 });
     }

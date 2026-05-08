@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const ncrs = await prisma.nonConformanceReport.findMany({
@@ -15,13 +20,17 @@ export async function GET(request: Request) {
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(ncrs);
-    } catch (error) {
+    } catch (error: any) {
         console.error("CAPA GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch NCRs' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -58,13 +67,17 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ error: 'Invalid actionType' }, { status: 400 });
-    } catch (error) {
+    } catch (error: any) {
         console.error("CAPA POST error:", error);
         return NextResponse.json({ error: 'Failed to create record' }, { status: 500 });
     }
 }
 
 export async function PUT(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -80,7 +93,7 @@ export async function PUT(request: Request) {
         });
 
         return NextResponse.json({ message: 'تم تحديث حالة الـ CAPA', data: capa });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ error: 'Failed to update CAPA' }, { status: 500 });
     }
 }

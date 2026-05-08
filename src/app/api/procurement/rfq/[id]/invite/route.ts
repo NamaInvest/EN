@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+
   const { id } = await params;
     const prisma = getPrisma(req as any);
     try {

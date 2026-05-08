@@ -163,7 +163,7 @@ export class CustomReportEngine {
                 });
 
                 processed++;
-            } catch (err) {
+            } catch (err: any) {
                 console.error(`Failed to process schedule ${schedule.id}:`, err);
             }
         }

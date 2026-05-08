@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Priority 8: Project Budget Lines API
  * GET  /api/enterprise/projects/budget?projectId=1
@@ -6,7 +7,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
                 utilizationPct: totalPlanned > 0 ? Math.round((totalActual / totalPlanned) * 100) : 0,
             },
         });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في تحميل الميزانية' }, { status: 500 });
     }
 }
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
             },
         });
         return NextResponse.json(line, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في إضافة البند' }, { status: 500 });
     }
 }
@@ -91,7 +91,7 @@ export async function PUT(req: Request) {
             },
         });
         return NextResponse.json(line);
-    } catch (e) {
+    } catch (e: any) {
         return NextResponse.json({ error: 'خطأ في التحديث' }, { status: 500 });
     }
 }

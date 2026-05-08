@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import packageJson from '../../../../package.json';
 
 export async function GET() {
+
     // This API provides the latest version for the desktop application.
     // In production, this can be managed via DB, but hardcoding for now as requested.
     return NextResponse.json({

@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+
     const prisma = getPrisma(request);
     try {
         const { bookingId } = await request.json();
@@ -94,7 +99,7 @@ export async function POST(request: Request) {
                 userId: newInvoice.userId || undefined,
                 branchId: 1
             });
-        } catch (je) {
+        } catch (je: unknown) {
             console.error("Auto Journal Error (Bookings - Invoice Conversion):", je);
         }
 

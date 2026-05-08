@@ -134,13 +134,13 @@ export class AgingEngine {
 
         const totals: AgingRow = {
             partnerId: 0, partnerName: 'الإجمالي',
-            current: rows.reduce((s, r) => s + r.current, 0),
-            d1_30: rows.reduce((s, r) => s + r.d1_30, 0),
-            d31_60: rows.reduce((s, r) => s + r.d31_60, 0),
-            d61_90: rows.reduce((s, r) => s + r.d61_90, 0),
-            d91_120: rows.reduce((s, r) => s + r.d91_120, 0),
-            d120_plus: rows.reduce((s, r) => s + r.d120_plus, 0),
-            total: rows.reduce((s, r) => s + r.total, 0),
+            current: rows.reduce((s: any, r: any) => s + r.current, 0),
+            d1_30: rows.reduce((s: any, r: any) => s + r.d1_30, 0),
+            d31_60: rows.reduce((s: any, r: any) => s + r.d31_60, 0),
+            d61_90: rows.reduce((s: any, r: any) => s + r.d61_90, 0),
+            d91_120: rows.reduce((s: any, r: any) => s + r.d91_120, 0),
+            d120_plus: rows.reduce((s: any, r: any) => s + r.d120_plus, 0),
+            total: rows.reduce((s: any, r: any) => s + r.total, 0),
         };
 
         return { rows, totals };

@@ -1,15 +1,15 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Vendor Scorecard API
  * GET  /api/vendors/scorecard?supplierId=X — Score one vendor
  * GET  /api/vendors/scorecard?action=rank — Rank all vendors
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { VendorScorecardEngine } from '@/lib/vendor-scorecard';
 
 export async function GET(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req);

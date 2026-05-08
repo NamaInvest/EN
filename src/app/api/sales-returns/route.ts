@@ -3,18 +3,24 @@ import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
 import { salesReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const returns = await prisma.salesReturn.findMany({
             take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
-    } catch (e) { return handleApiError(e); }
+    } catch (e: any) { return handleApiError(e); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         // Securely extract user from authenticated token
@@ -149,7 +155,7 @@ export async function POST(request: Request) {
                             notes: `مرتجع مبيعات #${returnNo}`
                         }
                     });
-                } catch (e) {
+                } catch (e: any) {
                     console.error('Failed to restock returned item to productStock inside tx:', e);
                 }
             }
@@ -219,7 +225,7 @@ export async function POST(request: Request) {
                         details: `Direct API Creation (State-Machine Bypass Handled)`,
                     },
                 });
-            } catch (e) {
+            } catch (e: any) {
                 console.error('[document-state-machine] POS audit log failed:', e);
             }
 
@@ -249,7 +255,7 @@ export async function POST(request: Request) {
                     date: new Date().toISOString().split('T')[0],
                 });
             }
-        } catch (journalErr) {
+        } catch (journalErr: unknown) {
             console.warn('Auto-journal for sales return skipped:', journalErr);
         }
 
@@ -448,7 +454,7 @@ export async function POST(request: Request) {
                         await tx.setting.upsert({ where: { key: counterKey }, update: { value: currentCounter.toString() }, create: { key: counterKey, value: currentCounter.toString(), description: 'ZATCA Counter' } });
                         await tx.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'signed', zatcaHash: hashFinal, zatcaQr: zatcaQR } });
                         // Store signed XML separately
-                        try { await tx.$executeRawUnsafe(`UPDATE sales_returns SET zatca_xml = $1 WHERE id = $2`, signOutput.signedXml, ret.id); } catch (_) {}
+                        try { await tx.$executeRawUnsafe(`UPDATE sales_returns SET zatca_xml = $1 WHERE id = $2`, signOutput.signedXml, ret.id); } catch (_: unknown) {}
 
                         signOutputGlobal = signOutput;
                         creditNoteUuidGlobal = creditNoteUuid;
@@ -501,12 +507,12 @@ export async function POST(request: Request) {
                     await prisma.salesReturn.update({ where: { id: ret.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
                 }
             }
-        } catch (zatcaErr) {
+        } catch (zatcaErr: unknown) {
             console.warn('ZATCA Credit Note process skipped/failed:', zatcaErr);
         }
 
         return NextResponse.json({ ...ret, zatcaQR }, { status: 201 });
-    } catch (e) { 
+    } catch (e: any) { 
         return handleApiError(e); 
     }
 }

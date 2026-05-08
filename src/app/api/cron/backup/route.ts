@@ -67,7 +67,7 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json({ success: true, backup: manifest });
-    } catch (e) {
+    } catch (e: any) {
         console.error('Backup error:', e);
         return NextResponse.json({ error: 'فشل في عملية الاحتياطي' }, { status: 500 });
     }

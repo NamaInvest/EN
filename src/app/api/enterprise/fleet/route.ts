@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
   const prisma = getPrisma(request as any);
   try {
-    const auth = getUserFromRequest(request);
+    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
     const vehicles = await prisma.vehicle.findMany({
@@ -13,15 +16,18 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(vehicles);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: 'Failed to fetch vehicles' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
   const prisma = getPrisma(request as any);
   try {
-    const auth = getUserFromRequest(request);
+    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
     const data = await request.json();
     const vehicle = await prisma.vehicle.create({
@@ -38,7 +44,7 @@ export async function POST(request: NextRequest) {
       }
     });
     return NextResponse.json(vehicle);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Vehicle Creation Error:", error);
     return NextResponse.json({ error: 'Failed to create vehicle' }, { status: 500 });
   }

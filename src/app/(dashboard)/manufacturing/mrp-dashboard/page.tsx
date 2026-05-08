@@ -1,10 +1,10 @@
-import { _t } from '@/lib/server-t';
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Factory, Search, TrendingUp, AlertTriangle, PackageOpen, Boxes, Plus, Hammer, CheckCircle2, Cog, Flame } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function MRPDashboard() {
  const { success, info } = useToast();

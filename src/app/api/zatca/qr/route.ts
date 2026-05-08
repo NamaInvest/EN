@@ -13,6 +13,7 @@ function getTLV(tag: number, value: string): Buffer {
 }
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json();
         const { invoiceId } = body;

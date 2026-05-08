@@ -6,6 +6,7 @@ import fs from "fs";
 const execAsync = promisify(exec);
 
 export async function POST(req: Request) {
+
     try {
         const { subdomain } = await req.json();
         

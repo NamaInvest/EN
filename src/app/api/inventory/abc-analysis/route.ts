@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const { searchParams } = new URL(req.url);
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
         // Sort descending by usageValue
         items.sort((a, b) => b.usageValue - a.usageValue);
 
-        const totalUsageValue = items.reduce((sum, item) => sum + item.usageValue, 0);
+        const totalUsageValue = items.reduce((sum: any, item: any) => sum + item.usageValue, 0);
 
         // Calculate cumulative percentages and assign classes
         let cumulativeValue = 0;
@@ -89,6 +90,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

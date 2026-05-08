@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

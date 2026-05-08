@@ -65,7 +65,7 @@ export class CRMEngine {
                     where: { id: leadId },
                     data: { status: 'CONVERTED' }
                 });
-            } catch (e) {
+            } catch (e: any) {
                 // Ignore if Lead doesn't exist
             }
 

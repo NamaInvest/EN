@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
 const parseAmount = (val: any) => {
     if (val === undefined || val === null || val === '') return 0;
     const str = String(val)
@@ -11,6 +12,9 @@ const parseAmount = (val: any) => {
 };
 
 export async function GET(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -34,13 +38,16 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(shifts);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching shifts:', error);
         return NextResponse.json({ error: 'Failed to fetch shifts' }, { status: 500 });
     }
 }
 
 export async function POST(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -78,13 +85,16 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(shift, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating shift:', error);
         return NextResponse.json({ error: 'Failed to create shift' }, { status: 500 });
     }
 }
 
 export async function PUT(request: NextRequest) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     try {
@@ -116,18 +126,22 @@ export async function PUT(request: NextRequest) {
         });
 
         return NextResponse.json(shift);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating shift:', error);
         return NextResponse.json({ error: 'Failed to update shift' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: NextRequest) {
+  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request as any);
 
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request);
+    const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -141,7 +155,7 @@ export async function DELETE(request: NextRequest) {
         });
 
         return NextResponse.json({ message: 'Shift deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting shift:', error);
         return NextResponse.json({ error: 'Failed to delete shift' }, { status: 500 });
     }

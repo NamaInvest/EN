@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
+import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
 export async function PUT(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> } | { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = await getUserFromRequest(request);
+        const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // Await params correctly for Next.js 15
-        const params = 'then' in context.params ? await context.params : context.params;
+        const params = await context.params;
         const id = parseInt((await params).id);
 
         const body = await request.json();

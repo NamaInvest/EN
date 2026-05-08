@@ -1,9 +1,9 @@
-import { _t } from '@/lib/server-t';
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { Calculator, FileText, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+const _t = (ar: string, en: string) => ar; // i18n helper
 
 interface Employee { id: number; name: string; salary: number; housingAllowance: number; transportAllowance: number }
 interface Salary { id: number; month: number; year: number; basicSalary: number; additions: number; deductions: number; netSalary: number; notes: string; paidDate: string; employee: Employee }

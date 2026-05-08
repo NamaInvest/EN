@@ -1,6 +1,4 @@
-import { _t } from '@/lib/server-t';
-'use client';
-"use client";
+'use client'
 
 import React, { useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
@@ -57,12 +55,10 @@ export default function BankStatementImportsPage() {
                     <Button variant="outline">
                         <ScanLine className="h-4 w-4 mr-2" />{_t('OCR PDF Import', 'OCR PDF Import')}</Button>
                     <label className="cursor-pointer">
-                        <Button asChild variant="default">
-                            <span>
-                                <Upload className="h-4 w-4 mr-2" /> 
-                                {uploading ? 'Uploading...' : 'Import Statement'}
-                            </span>
-                        </Button>
+                        <span className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                            <Upload className="h-4 w-4 mr-2" /> 
+                            {uploading ? 'Uploading...' : 'Import Statement'}
+                        </span>
                         <input type="file" className="hidden" accept=".csv,.txt,.xml,.mt940" onChange={handleUpload} disabled={uploading} />
                     </label>
                 </div>

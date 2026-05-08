@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         const { fiscalPeriodId, baseCurrencyCode, periodEndDate, userId } = body;

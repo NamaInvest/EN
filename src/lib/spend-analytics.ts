@@ -25,7 +25,7 @@ export class SpendAnalyticsEngine {
         const periodFrom = from || new Date(Date.now() - 365 * 86400000);
         const periodTo = to || new Date();
 
-        const invoices = await prisma.purchaseInvoice.findMany({
+        const invoices = await (prisma as any).purchaseInvoice.findMany({
             take: 100,
             where: {
                 status: { not: 'cancelled' },
@@ -34,7 +34,7 @@ export class SpendAnalyticsEngine {
             include: { supplier: { select: { id: true, name: true } } },
         });
 
-        const totalSpend = invoices.reduce((s, i) => s + Number(i.total), 0);
+        const totalSpend = invoices.reduce((s: number, i: any) => s + Number(i.total), 0);
 
         // By supplier
         const supplierMap: Record<number, { name: string; spend: number }> = {};
@@ -60,8 +60,8 @@ export class SpendAnalyticsEngine {
             .sort((a, b) => a.month.localeCompare(b.month));
 
         // Maverick spend: invoices without PO reference
-        const maverickInvoices = invoices.filter(i => !(i as any).purchaseOrderId);
-        const maverickSpend = maverickInvoices.reduce((s, i) => s + Number(i.total), 0);
+        const maverickInvoices = invoices.filter((i: any) => !(i as any).purchaseOrderId);
+        const maverickSpend = maverickInvoices.reduce((s: number, i: any) => s + Number(i.total), 0);
 
         return {
             totalSpend: Math.round(totalSpend),

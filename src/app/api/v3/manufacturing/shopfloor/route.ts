@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         const machines = [
             { id: 'M-01', name: 'CNC Machine 1', status: 'RUNNING', currentOrder: 'MO-9921', operator: 'Kamal T.', performance: 95 },

@@ -16,9 +16,9 @@ export type CostingMethod = 'average' | 'fifo' | 'lifo';
  * حساب تكلفة الوحدة بالمتوسط المرجح
  */
 export function averageCost(batches: CostBatch[]): number {
-  const totalQty = batches.reduce((sum, b) => sum + b.quantity, 0);
+  const totalQty = batches.reduce((sum: any, b: any) => sum + b.quantity, 0);
   if (totalQty === 0) return 0;
-  const totalCost = batches.reduce((sum, b) => sum + b.quantity * b.unitCost, 0);
+  const totalCost = batches.reduce((sum: any, b: any) => sum + b.quantity * b.unitCost, 0);
   return totalCost / totalQty;
 }
 

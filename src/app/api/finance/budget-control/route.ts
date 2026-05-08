@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
+
     try {
         const { searchParams } = new URL(req.url);
         const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json();
         const { action } = body;

@@ -1,14 +1,14 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * WHT Form 14 Generation API
  * POST /api/wht/form14/generate — Generate Form 14 batch for a period
  * GET  /api/wht/form14/generate — Get existing batch status
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { WHTEngine } from '@/lib/wht-engine';
 
 export async function POST(req: NextRequest) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {

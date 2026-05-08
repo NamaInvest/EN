@@ -1,11 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const id = parseInt((await params).id);
@@ -25,23 +28,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         });
         
         return NextResponse.json(updated);
-    } catch (error) {
+    } catch (error: any) {
         console.error("PUT approval error:", error);
         return NextResponse.json({ error: 'حدث خطأ أثناء التحديث' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
-        const user = getUserFromRequest(request);
+        const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const id = parseInt((await params).id);
         await prisma.approvalRule.delete({ where: { id } });
         
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error("DELETE approval error:", error);
         return NextResponse.json({ error: 'حدث خطأ. لا يمكن حذف القاعدة المرتبطة بعمليات.' }, { status: 500 });
     }

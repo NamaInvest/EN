@@ -22,13 +22,14 @@ function safeEvalFormula(formula: string, context: Record<string, number>): numb
         // Evaluate the sanitized formula
         const result = new Function('return ' + safeFormula)();
         return isNaN(result) ? 0 : Number(result);
-    } catch (e) {
+    } catch (e: any) {
         console.error('Formula evaluation error:', e);
         return 0;
     }
 }
 
 export async function POST(req: Request) {
+
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();

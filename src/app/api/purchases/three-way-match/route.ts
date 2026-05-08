@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const matches = await (prisma as any).threeWayMatch.findMany({
@@ -18,16 +19,17 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(matches);
-    } catch (error) {
+    } catch (error: any) {
         console.error('ThreeWayMatch GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات المطابقة' }, { status: 500 });
     }
 }
 
 export async function PUT(request: NextRequest) {
+
     const prisma = getPrisma(request);
     try {
-        const auth = getUserFromRequest(request);
+        const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();
@@ -43,7 +45,7 @@ export async function PUT(request: NextRequest) {
         });
 
         return NextResponse.json({ success: true, match });
-    } catch (error) {
+    } catch (error: any) {
         console.error('ThreeWayMatch PUT error:', error);
         return NextResponse.json({ error: 'فشل تحديث حالة المطابقة' }, { status: 500 });
     }

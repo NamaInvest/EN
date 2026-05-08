@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     if (!_getAuth(request)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
     const prisma = getPrisma(request);
@@ -13,13 +17,16 @@ export async function GET(request: Request) {
             orderBy: { id: 'desc' } 
         });
         return NextResponse.json(banks);
-    } catch (error) { 
+    } catch (error: any) { 
         console.error(error); 
         return NextResponse.json({ error: 'Failed to fetch banks' }, { status: 500 }); 
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);

@@ -78,7 +78,7 @@ export async function hasPermission(userId: number, module: string, prismaClient
         }
 
         return false;
-    } catch (err) {
+    } catch (err: any) {
         // logger is async-imported to avoid circular dep at module load time
         import('@/lib/logger').then(({ logger }) => logger.error({}, 'hasPermission error', { err })).catch(() => {});
         return false;

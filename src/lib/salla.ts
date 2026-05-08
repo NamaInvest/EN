@@ -73,7 +73,7 @@ export async function syncProductToSalla(product: any) {
             console.error('❌ Salla Sync Error:', await createRes.text());
         }
 
-    } catch (e) {
+    } catch (e: any) {
         console.error('Salla Sync Exception:', e);
     }
 }
@@ -109,7 +109,7 @@ export async function syncStockToSalla(sku: string, newQuantity: number) {
                 console.log(`✅ Salla Sync: Updated stock for SKU ${sku} to ${newQuantity}`);
             }
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error('Salla Stock Sync Exception:', e);
     }
 }

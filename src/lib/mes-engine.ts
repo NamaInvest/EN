@@ -108,7 +108,7 @@ export class MESEngine {
         }
 
         const plantAvgOEE = results.length > 0
-            ? Math.round(results.reduce((s, r) => s + r.oee, 0) / results.length * 10) / 10
+            ? Math.round(results.reduce((s: any, r: any) => s + r.oee, 0) / results.length * 10) / 10
             : 0;
 
         return { workCenters: results, plantAvgOEE };

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
-import { getUserFromRequest } from '@/lib/auth';
 
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * GET /api/audit/field-trail
  * 
@@ -19,7 +19,10 @@ import { getUserFromRequest } from '@/lib/auth';
  *   &export=csv  (returns CSV download)
  */
 export async function GET(request: NextRequest) {
-  const auth = getUserFromRequest(request);
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
+  const auth = getUserFromRequest(request as any);
   if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   const prisma = getPrisma(request as any);

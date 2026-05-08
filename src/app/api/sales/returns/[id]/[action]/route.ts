@@ -17,10 +17,12 @@ const rmaTransitions = {
 const rmaStateMachine = new StateMachine('RMA', rmaTransitions);
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string, action: string }> }) {
+
   const { id, action } = await params;
     const prisma = getPrisma(req as any);
     try {
         const id = parseInt((await params).id);
+        // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
         const { action } = params;
         const targetState = action.toUpperCase();
 

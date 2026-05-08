@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+import { getUserFromRequest } from '@/lib/auth';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -18,28 +21,31 @@ export async function GET(request: Request) {
         const where: any = { tenantId };
         if (status && status !== 'ALL') where.matchStatus = status;
 
-        const captures = await prisma.invoiceCapture.findMany({
+        const captures = await (prisma as any).invoiceCapture.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             take: 100
         });
 
         const counts = {
-            total: await prisma.invoiceCapture.count({ where: { tenantId } }),
-            pending: await prisma.invoiceCapture.count({ where: { tenantId, matchStatus: 'PENDING' } }),
-            matched: await prisma.invoiceCapture.count({ where: { tenantId, matchStatus: 'MATCHED_PO' } }),
-            exception: await prisma.invoiceCapture.count({ where: { tenantId, matchStatus: 'EXCEPTION' } }),
-            posted: await prisma.invoiceCapture.count({ where: { tenantId, matchStatus: 'POSTED' } }),
+            total: await (prisma as any).invoiceCapture.count({ where: { tenantId } }),
+            pending: await (prisma as any).invoiceCapture.count({ where: { tenantId, matchStatus: 'PENDING' } }),
+            matched: await (prisma as any).invoiceCapture.count({ where: { tenantId, matchStatus: 'MATCHED_PO' } }),
+            exception: await (prisma as any).invoiceCapture.count({ where: { tenantId, matchStatus: 'EXCEPTION' } }),
+            posted: await (prisma as any).invoiceCapture.count({ where: { tenantId, matchStatus: 'POSTED' } }),
         };
 
         return NextResponse.json({ captures, counts });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -85,7 +91,7 @@ ${ocrText}`;
                     const filled = fields.filter(f => extractedData[f] && extractedData[f] !== '').length;
                     confidence = filled / fields.length;
                 }
-            } catch (aiErr) {
+            } catch (aiErr: unknown) {
                 console.error('AI extraction error:', aiErr);
                 confidence = 0;
             }
@@ -97,14 +103,14 @@ ${ocrText}`;
 
         if (extractedData.vatNumber && confidence > 0.5) {
             // Try to find vendor by VAT
-            const vendor = await prisma.customer.findFirst({
+            const vendor = await (prisma as any).customer.findFirst({
                 where: { taxId: extractedData.vatNumber }
             });
 
             if (vendor && extractedData.poReference) {
                 // Try to match PO by orderNo
                 const poRef = parseInt(extractedData.poReference.replace(/\D/g, ''), 10);
-                const po = poRef ? await prisma.purchaseOrder.findFirst({
+                const po = poRef ? await (prisma as any).purchaseOrder.findFirst({
                     where: {
                         supplierId: vendor.id,
                         orderNo: poRef
@@ -123,7 +129,7 @@ ${ocrText}`;
         }
 
         // Step 3: Save capture
-        const capture = await prisma.invoiceCapture.create({
+        const capture = await (prisma as any).invoiceCapture.create({
             data: {
                 tenantId,
                 source: source || 'UPLOAD',
@@ -143,7 +149,7 @@ ${ocrText}`;
             message: matchStatus === 'MATCHED_PO' ? 'تم المطابقة تلقائياً مع أمر الشراء!' :
                      matchStatus === 'EXCEPTION' ? 'يحتاج مراجعة يدوية' : 'تم الاستلام - بانتظار المطابقة'
         });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

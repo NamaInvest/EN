@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const user = getUserFromRequest(req);
+    const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const { id } = await params;
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             glAccountId: glAccountId ? parseInt(glAccountId) : undefined,
         });
         return NextResponse.json(updated);
-    } catch (e) {
+    } catch (e: any) {
         return apiError(e, 'فشل إضافة التسوية', { context: 'zakat/adjustments' });
     }
 }

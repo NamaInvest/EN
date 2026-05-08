@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+
     try {
         // Mock data for Clinic Appointments
         const appointments = [
@@ -16,6 +17,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+
     try {
         const body = await req.json();
         return NextResponse.json({ success: true, appointment: { id: 4, ...body, status: 'SCHEDULED' } });

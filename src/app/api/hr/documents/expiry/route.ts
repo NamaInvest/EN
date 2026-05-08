@@ -1,10 +1,10 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Document Expiry API Routes
  * GET  /api/hr/documents/expiry — لوحة انتهاء الوثائق
  * POST /api/hr/documents/expiry — تشغيل الفحص الدوري
  */
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
 
 export async function GET(req: Request) {

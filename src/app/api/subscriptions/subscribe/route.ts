@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SubscriptionEngine } from '@/lib/subscription-engine';
 
 export async function POST(req: NextRequest) {
+
     try {
         const body = await req.json().catch(() => ({}));
         const { customerId, planId, paymentMethodId } = body;

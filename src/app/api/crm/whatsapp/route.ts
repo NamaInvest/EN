@@ -4,7 +4,11 @@ import fs from 'fs';
 import path from 'path';
 
 // إرسال رسالة واتساب مع خيار إرفاق الفاتورة أو التذكير
+import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -96,7 +100,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, messageId: result.messages?.[0]?.id });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('WhatsApp Send Error:', error);
         return NextResponse.json({ error: 'فشل الاتصال بخادم الواتساب المدمج' }, { status: 500 });
     }

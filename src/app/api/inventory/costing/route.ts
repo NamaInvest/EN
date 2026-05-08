@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { fifoCost, lifoCost, averageCost, calculateCost, CostBatch } from '@/lib/costing';
 
+import { getUserFromRequest } from '@/lib/auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     }
 
     // 2. حساب التكلفة حسب الطريقة المطلوبة
-    const qty = sellQty || layers.reduce((s, l) => s + l.quantity, 0);
+    const qty = sellQty || layers.reduce((s: any, l: any) => s + l.quantity, 0);
     const result = calculateCost(method as any, layers, qty);
 
     // 3. مقارنة الطرق الثلاث

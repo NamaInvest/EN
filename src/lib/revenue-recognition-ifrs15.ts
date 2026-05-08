@@ -28,7 +28,7 @@ export interface PerformanceObligation {
  * based on relative standalone selling prices.
  */
 export function allocateTransactionPrice(contract: RevenueContract): RevenueContract {
-    const totalStandalone = contract.obligations.reduce((sum, o) => sum + o.standalonePrice, 0);
+    const totalStandalone = contract.obligations.reduce((sum: any, o: any) => sum + o.standalonePrice, 0);
 
     contract.obligations = contract.obligations.map(ob => ({
         ...ob,

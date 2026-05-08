@@ -4,7 +4,11 @@ import { round2 } from '@/lib/money';
 import { salaryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
+import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -18,10 +22,13 @@ export async function GET(request: Request) {
             orderBy: { id: 'desc' } 
         });
         return NextResponse.json(salaries);
-    } catch (e) { return handleApiError(e); }
+    } catch (e: any) { return handleApiError(e); }
 }
 
 export async function POST(request: Request) {
+  const _guardUser = getUserFromRequest(request as any);
+  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+
     // Auth guard
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -76,5 +83,5 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json(salary, { status: 201 });
-    } catch (e) { return handleApiError(e); }
+    } catch (e: any) { return handleApiError(e); }
 }

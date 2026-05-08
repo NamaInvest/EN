@@ -1,3 +1,4 @@
+import { getUserFromRequest } from '@/lib/auth';
 /**
  * Pharmacy Drugs API — إدارة الأدوية
  * GET  /api/pharmacy/drugs — قائمة الأدوية
@@ -5,7 +6,6 @@
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -65,7 +65,7 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json({ total: result.length, drugs: result });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في تحميل الأدوية' }, { status: 500 });
     }
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(drug, { status: 201 });
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return NextResponse.json({ error: 'خطأ في إضافة الدواء' }, { status: 500 });
     }
