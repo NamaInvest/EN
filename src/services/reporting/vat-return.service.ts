@@ -1,14 +1,14 @@
-/**
- * VATReturnService — الإقرار الضريبي الدوري
+﻿/**
+ * VATReturnService â€” ط§ظ„ط¥ظ‚ط±ط§ط± ط§ظ„ط¶ط±ظٹط¨ظٹ ط§ظ„ط¯ظˆط±ظٹ
  *
- * النماذج: SalesInvoice, PurchaseInvoice, VatCategory, JournalLine
+ * ط§ظ„ظ†ظ…ط§ط°ط¬: SalesInvoice, PurchaseInvoice, VatCategory, JournalLine
  *
- * الصيغة:
- *   ضريبة المخرجات (Output VAT) = مجموع ضريبة الفواتير الصادرة
- *   ضريبة المدخلات (Input VAT)  = مجموع ضريبة الفواتير الواردة
- *   صافي الضريبة = ضريبة المخرجات - ضريبة المدخلات
+ * ط§ظ„طµظٹط؛ط©:
+ *   ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط®ط±ط¬ط§طھ (Output VAT) = ظ…ط¬ظ…ظˆط¹ ط¶ط±ظٹط¨ط© ط§ظ„ظپظˆط§طھظٹط± ط§ظ„طµط§ط¯ط±ط©
+ *   ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط¯ط®ظ„ط§طھ (Input VAT)  = ظ…ط¬ظ…ظˆط¹ ط¶ط±ظٹط¨ط© ط§ظ„ظپظˆط§طھظٹط± ط§ظ„ظˆط§ط±ط¯ط©
+ *   طµط§ظپظٹ ط§ظ„ط¶ط±ظٹط¨ط© = ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط®ط±ط¬ط§طھ - ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط¯ط®ظ„ط§طھ
  *
- * ZATCA: يُقدَّم كل 3 أشهر لأغلب المنشآت
+ * ZATCA: ظٹظڈظ‚ط¯ظژظ‘ظ… ظƒظ„ 3 ط£ط´ظ‡ط± ظ„ط£ط؛ظ„ط¨ ط§ظ„ظ…ظ†ط´ط¢طھ
  */
 
 import { Decimal } from '@prisma/client/runtime/library';
@@ -27,11 +27,11 @@ export interface VATReturn {
   period: string;           // YYYY-QN  e.g. 2025-Q1
   from: Date;
   to: Date;
-  outputLines: VATReturnLine[];   // مبيعات
-  inputLines: VATReturnLine[];    // مشتريات
+  outputLines: VATReturnLine[];   // ظ…ط¨ظٹط¹ط§طھ
+  inputLines: VATReturnLine[];    // ظ…ط´طھط±ظٹط§طھ
   totalOutputVAT: Decimal;
   totalInputVAT: Decimal;
-  netVAT: Decimal;           // موجب = مستحق | سالب = مسترد
+  netVAT: Decimal;           // ظ…ظˆط¬ط¨ = ظ…ط³طھط­ظ‚ | ط³ط§ظ„ط¨ = ظ…ط³طھط±ط¯
   status: 'DRAFT' | 'SUBMITTED';
 }
 
@@ -39,17 +39,17 @@ export class VATReturnService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly ctx: BusinessContext,
-  ) {}
+  ) { }
 
   /**
-   * توليد إقرار ضريبة القيمة المضافة لفترة معينة
+   * طھظˆظ„ظٹط¯ ط¥ظ‚ط±ط§ط± ط¶ط±ظٹط¨ط© ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ…ط¶ط§ظپط© ظ„ظپطھط±ط© ظ…ط¹ظٹظ†ط©
    */
   async generate(from: Date, to: Date): Promise<VATReturn> {
     const tenantId = this.ctx.tenant.id;
     const period = this._periodLabel(from);
     const prisma = this.prisma as any;
 
-    // ── ضريبة المخرجات (المبيعات) ────────────────────────────────────────
+    // â”€â”€ ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط®ط±ط¬ط§طھ (ط§ظ„ظ…ط¨ظٹط¹ط§طھ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const salesAgg = await prisma.salesInvoice.groupBy({
       by: ['vatCategoryCode'],
       where: { tenantId, date: { gte: from, lte: to }, status: { in: ['POSTED', 'PAID'] } },
@@ -64,7 +64,7 @@ export class VATReturnService {
       vatRate: r.vatCategoryCode === 'S' ? new Decimal(15) : new Decimal(0),
     }));
 
-    // ── ضريبة المدخلات (المشتريات) ───────────────────────────────────────
+    // â”€â”€ ط¶ط±ظٹط¨ط© ط§ظ„ظ…ط¯ط®ظ„ط§طھ (ط§ظ„ظ…ط´طھط±ظٹط§طھ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const purchAgg = await prisma.purchaseInvoice.groupBy({
       by: ['vatCategoryCode'],
       where: { tenantId, date: { gte: from, lte: to }, status: { in: ['POSTED', 'PAID'] } },
@@ -80,13 +80,13 @@ export class VATReturnService {
     }));
 
     const totalOutputVAT = outputLines.reduce((s, l) => s.add(l.vatAmount), new Decimal(0));
-    const totalInputVAT  = inputLines.reduce((s, l) => s.add(l.vatAmount), new Decimal(0));
+    const totalInputVAT = inputLines.reduce((s, l) => s.add(l.vatAmount), new Decimal(0));
     const netVAT = totalOutputVAT.sub(totalInputVAT);
 
     return { period, from, to, outputLines, inputLines, totalOutputVAT, totalInputVAT, netVAT, status: 'DRAFT' };
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private _periodLabel(date: Date): string {
     const q = Math.ceil((date.getMonth() + 1) / 3);
@@ -95,11 +95,12 @@ export class VATReturnService {
 
   private _categoryLabel(code: string): string {
     const map: Record<string, string> = {
-      S: 'خاضعة للضريبة (15%)',
-      Z: 'معفاة — صفر',
-      E: 'معفاة',
-      O: 'خارج النطاق',
+      S: 'ط®ط§ط¶ط¹ط© ظ„ظ„ط¶ط±ظٹط¨ط© (15%)',
+      Z: 'ظ…ط¹ظپط§ط© â€” طµظپط±',
+      E: 'ظ…ط¹ظپط§ط©',
+      O: 'ط®ط§ط±ط¬ ط§ظ„ظ†ط·ط§ظ‚',
     };
     return map[code] ?? code;
   }
 }
+
