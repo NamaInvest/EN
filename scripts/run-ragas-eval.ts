@@ -9,7 +9,7 @@ import { CitationTracker } from '../src/lib/rag/citations/tracker';
 import { EmbeddingCache } from '../src/lib/vector/embedding/cache';
 
 async function runEvaluation() {
-  const judgeLLM = new ChatGoogleGenerativeAI({ modelName: 'gemini-1.5-flash' });
+  const judgeLLM = new ChatGoogleGenerativeAI({ model: 'gemini-1.5-flash' });
   const evaluator = new RAGASEvaluator(judgeLLM);
   const cache = new EmbeddingCache();
   const embedder = new GeminiEmbedder(cache);
