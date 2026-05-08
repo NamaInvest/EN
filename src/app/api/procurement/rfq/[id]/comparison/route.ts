@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -64,7 +65,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 totalAmount: b.amount,
                 score: totalScore
             };
-        }).sort((a, b) => a.totalAmount - b.totalAmount);
+        }).sort((a, b) => n(a.totalAmount) - n(b.totalAmount));
 
         return NextResponse.json({
             rfqNo: rfq.rfqNo,

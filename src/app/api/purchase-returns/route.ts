@@ -76,9 +76,9 @@ export async function POST(request: Request) {
         try {
             await postPurchaseReturn({
                 returnNo: ret.returnNo,
-                subtotal: ret.subtotal,
-                taxValue: ret.taxValue,
-                total: ret.total,
+                subtotal: n(ret.subtotal),
+                taxValue: n(ret.taxValue),
+                total: n(ret.total),
                 paymentType: 'cash',
                 userId: ret.userId || undefined,
                 branchId: branchId || undefined,

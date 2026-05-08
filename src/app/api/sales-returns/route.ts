@@ -64,7 +64,7 @@ export async function POST(request: Request) {
                     return NextResponse.json({ error: `المنتج ${item.productName} غير موجود في الفاتورة الأصلية` }, { status: 400 });
                 }
 
-                if (Number(item.quantity) > soldItem.quantity) {
+                if (Number(item.quantity) > n(soldItem.quantity)) {
                     return NextResponse.json({ error: `الكمية المرتجعة للمنتج ${item.productName} تتجاوز الكمية المباعة (${soldItem.quantity})` }, { status: 400 });
                 }
             }
@@ -237,8 +237,8 @@ export async function POST(request: Request) {
             const { postSalesReturn, postSalesInvoice } = await import('@/lib/auto-journal');
             await postSalesReturn({
                 returnNo,
-                total: ret.total,
-                taxValue: ret.taxValue,
+                total: n(ret.total),
+                taxValue: n(ret.taxValue),
                 userId: userId || undefined,
                 branchId: branchId || undefined,
                 date: new Date().toISOString().split('T')[0],

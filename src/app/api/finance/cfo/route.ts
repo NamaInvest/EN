@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
 
         // 2. Predictive Cash Flow (AI Forecast)
         const predictiveCashFlow = {
-            currentBalance: (totalSales._sum.total || 150000) - (totalPurchases._sum.total || 50000),
+            currentBalance: n(totalSales._sum.total || 150000) - n(totalPurchases._sum.total || 50000),
             nextMonthForecast: 120000,
             thirtyDayRunway: true,
             alerts: [

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { n } from './decimal-utils';
 
 export interface CreditCheckResult {
     passed: boolean;
@@ -53,7 +54,7 @@ export async function checkCredit(
         }
     });
 
-    const usedCredit = (unpaidInvoicesAgg._sum.total || 0) - (unpaidInvoicesAgg._sum.paid || 0);
+    const usedCredit = n(unpaidInvoicesAgg._sum.total) - n(unpaidInvoicesAgg._sum.paid);
 
     // 2. Calculate Pending Sales Orders
     // We assume model is SalesOrder and it has status APPROVED.

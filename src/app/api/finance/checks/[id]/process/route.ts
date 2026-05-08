@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function PUT(
     request: NextRequest,
@@ -94,8 +95,8 @@ export async function PUT(
                     date: new Date().toISOString().split('T')[0],
                     userId: auth.userId,
                     lines: [
-                        { accountCode: debitAccount, debit: currentCheck.amount, credit: 0, description },
-                        { accountCode: creditAccount, debit: 0, credit: currentCheck.amount, description },
+                        { accountCode: debitAccount, debit: n(currentCheck.amount), credit: 0, description },
+                        { accountCode: creditAccount, debit: 0, credit: n(currentCheck.amount), description },
                     ]
                 });
             } else {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -47,9 +48,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             data: {
                 orderNo: Math.floor(Math.random() * 1000000), // Use numbering
                 supplierId: rfq?.supplierId || null, // Might need to link VendorPortalUser to Customer/Supplier table
-                subtotal: winningBid.amount,
-                taxValue: winningBid.amount * 0.15, // standard ZATCA VAT 15%
-                total: winningBid.amount * 1.15,
+                subtotal: n(winningBid.amount),
+                taxValue: n(winningBid.amount) * 0.15, // standard ZATCA VAT 15%
+                total: n(winningBid.amount) * 1.15,
                 status: 'pending',
                 notes: `Auto-generated from RFQ #${rfq?.rfqNo} Awarded to ${winningBid.vendor.vendorName}`,
                 details: {

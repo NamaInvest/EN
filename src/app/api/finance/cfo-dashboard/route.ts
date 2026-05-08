@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
@@ -27,8 +28,8 @@ export async function GET(req: NextRequest) {
             take: 100, select: { amount: true, type: true } });
         let totalCash = 0;
         treasuries.forEach(t => {
-            if (t.type === 'in') totalCash += t.amount;
-            else if (t.type === 'out') totalCash -= t.amount;
+            if (t.type === 'in') totalCash += n(t.amount);
+            else if (t.type === 'out') totalCash -= n(t.amount);
         });
 
         const currentAssets = totalCash + totalAR + totalInventory;

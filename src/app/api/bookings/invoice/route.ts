@@ -93,9 +93,9 @@ export async function POST(request: Request) {
         try {
             await postSalesInvoice({
                 invoiceNo: newInvoice.invoiceNo,
-                subtotal: newInvoice.subtotal,
-                taxValue: newInvoice.taxValue,
-                total: newInvoice.total,
+                subtotal: n(newInvoice.subtotal),
+                taxValue: n(newInvoice.taxValue),
+                total: n(newInvoice.total),
                 paymentType: 'cash',
                 userId: newInvoice.userId || undefined,
                 branchId: 1

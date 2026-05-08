@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-handler';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
             prisma.treasury.aggregate({ where: { type: 'in' }, _sum: { amount: true } }),
             prisma.treasury.aggregate({ where: { type: 'out' }, _sum: { amount: true } }),
         ]);
-        const balance = (inAgg._sum.amount || 0) - (outAgg._sum.amount || 0);
+        const balance = n(inAgg._sum.amount) - n(outAgg._sum.amount);
         return NextResponse.json({ balance });
     } catch (error: any) { return handleApiError(error); }
 }

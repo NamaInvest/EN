@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
                 id: tr.id,
                 reference: meta.transferRef || `TRX-${tr.id}`,
                 productName: tr.product?.name || 'Unknown',
-                quantity: Math.abs(tr.quantity),
+                quantity: Math.abs(n(tr.quantity)),
                 senderStock: tr.stock?.branch?.name ? `${tr.stock.branch.name} - ${tr.stock.name}` : (tr.stock?.name || 'Unknown'),
                 receiverStock: receiverStock?.branch?.name ? `${receiverStock.branch.name} - ${receiverStock.name}` : (receiverStock?.name || 'Unknown'),
                 receiverStockId: meta.receiverStockId,
@@ -157,7 +157,7 @@ export async function PUT(req: NextRequest) {
 
         meta.status = 'completed';
         const receivingStockId = Number(meta.receiverStockId);
-        const qty = Math.abs(tr.quantity);
+        const qty = Math.abs(n(tr.quantity));
 
         // Receive the goods natively via Prisma Transaction
         await prisma.$transaction(async (tx) => {

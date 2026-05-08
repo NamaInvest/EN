@@ -98,10 +98,10 @@ export async function PUT(
                         supplierId: currentOrder.supplierId,
                         stockId: currentOrder.stockId,
                         date: new Date(),
-                        subtotal: currentOrder.subtotal,
-                        taxValue: currentOrder.taxValue,
-                        total: currentOrder.total, // Original vendor total
-                        remaining: currentOrder.total,
+                        subtotal: n(currentOrder.subtotal),
+                        taxValue: n(currentOrder.taxValue),
+                        total: n(currentOrder.total), // Original vendor total
+                        remaining: n(currentOrder.total),
                         paid: 0,
                         paymentType: 'postpaid',
                         status: 'completed',
@@ -143,9 +143,9 @@ export async function PUT(
                 const { postPurchaseInvoice } = await import('@/lib/auto-journal');
                 await postPurchaseInvoice({
                     invoiceNo,
-                    subtotal: currentOrder.subtotal,
-                    taxValue: currentOrder.taxValue,
-                    total: currentOrder.total,
+                    subtotal: n(currentOrder.subtotal),
+                    taxValue: n(currentOrder.taxValue),
+                    total: n(currentOrder.total),
                     paymentType: 'postpaid',
                     userId: userId || undefined,
                     branchId: currentOrder.branchId || undefined,

@@ -16,6 +16,7 @@
  */
 
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 const db = (p: any) => p as any;
 
@@ -105,7 +106,7 @@ export class WHTEngine {
 
         if (rate === 0) return null;
 
-        const baseAmount = invoice.subtotal;
+        const baseAmount = n(invoice.subtotal);
         const whtAmount = Math.round(baseAmount * rate * 100) / 100;
 
         return {

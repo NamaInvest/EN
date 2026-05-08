@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class FxRevaluationEngine {
     /**
@@ -72,8 +73,8 @@ export class FxRevaluationEngine {
                 
                 const outstandingForeignAmount = inv.total; // Assumes open. Ideally check amount_due
                 
-                const currentFunctionalAmount = outstandingForeignAmount * oldRate;
-                const revaluatedFunctionalAmount = outstandingForeignAmount * newRate;
+                const currentFunctionalAmount = n(outstandingForeignAmount) * oldRate;
+                const revaluatedFunctionalAmount = n(outstandingForeignAmount) * newRate;
                 
                 const difference = revaluatedFunctionalAmount - currentFunctionalAmount;
 

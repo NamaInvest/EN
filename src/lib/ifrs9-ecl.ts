@@ -60,21 +60,14 @@ export class IFRS9Engine {
             where: { customerSegment: segment }
         });
 
-        // Fallback model if not found
-        if (!eclModel) {
-            eclModel = {
-                id: 0,
-                customerSegment: 'Fallback',
-                stage1Pct: 0.01, // 1%
-                stage2Pct: 0.05, // 5%
-                stage3Pct: 0.20, // 20%
-                lookbackMonths: 12
-            };
-        }
+        // Fallback defaults if model not found
+        const s1 = eclModel ? n(eclModel.stage1Pct) : 0.01;
+        const s2 = eclModel ? n(eclModel.stage2Pct) : 0.05;
+        const s3 = eclModel ? n(eclModel.stage3Pct) : 0.20;
 
-        let probabilityOfDefault = n(eclModel.stage1Pct);
-        if (stage === 2) probabilityOfDefault = n(eclModel.stage2Pct);
-        if (stage === 3) probabilityOfDefault = n(eclModel.stage3Pct);
+        let probabilityOfDefault = s1;
+        if (stage === 2) probabilityOfDefault = s2;
+        if (stage === 3) probabilityOfDefault = s3;
 
         const lossGivenDefault = 0.50; // Assume 50% recovery rate
         const eclAmount = exposure * probabilityOfDefault * lossGivenDefault;

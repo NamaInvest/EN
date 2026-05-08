@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
         let counter = 1;
 
         // 1. Basic Additions
-        if (employee.salary > 0) additions.push({ id: counter++, description: 'الراتب الأساسي', amount: employee.salary, type: 'addition' });
+        if (n(employee.salary) > 0) additions.push({ id: counter++, description: 'الراتب الأساسي', amount: n(employee.salary), type: 'addition' });
         if (employee.housingAllowance > 0) additions.push({ id: counter++, description: 'بدل السكن', amount: employee.housingAllowance, type: 'addition' });
         if (employee.transportAllowance > 0) additions.push({ id: counter++, description: 'بدل النقل', amount: employee.transportAllowance, type: 'addition' });
         if (employee.otherAllowance > 0) additions.push({ id: counter++, description: 'بدلات أخرى', amount: employee.otherAllowance, type: 'addition' });
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
         });
 
         // Let's assume standard working days is 30 for daily rate
-        const dailyRate = (employee.salary + employee.housingAllowance + employee.transportAllowance) / 30;
+        const dailyRate = (n(employee.salary) + n(employee.housingAllowance) + n(employee.transportAllowance)) / 30;
         
         // Count absences: if checkIn is null or missing.
         const absentDays = attendanceRecords.filter(a => !a.checkIn).length;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
 
@@ -24,10 +25,10 @@ export async function GET(req: Request) {
             
             // Typical Saudi GOSI for Saudis is 9.75% of basic + housing, but let's approximate 10% of basic for this example if needed, or 0.
             // In a real app we'd check if nationality == SAUDI. We'll use 9% of basic + housing as an example.
-            const subjectToGosi = basic + (emp.housingAllowance || 0);
+            const subjectToGosi = n(basic) + n(emp.housingAllowance);
             const gosiDeduction = subjectToGosi * 0.09; 
             
-            const netSalary = basic + additions - gosiDeduction;
+            const netSalary = n(basic) + additions - gosiDeduction;
 
             return {
                 employeeId: emp.id,
