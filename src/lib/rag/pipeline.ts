@@ -95,12 +95,17 @@ export class RAGPipeline {
       const results = await this.store.search({
         embedding,
         topK: opts.topK * 2,
-        tenantId: request.tenantId,
-        filters: request.filters,
+        filters: { tenantId: request.tenantId, ...request.filters },
         minScore: opts.minScore,
-        efSearch: opts.efSearch,
       });
-      allChunks.push(...results);
+      allChunks.push(...results.map(r => ({
+        id: r.id,
+        documentId: r.metadata?.documentId || r.id,
+        chunkIndex: r.metadata?.chunkIndex || 0,
+        content: r.content,
+        score: r.score,
+        metadata: r.metadata
+      })));
     }
 
     // Deduplicate by chunk id, keep highest score

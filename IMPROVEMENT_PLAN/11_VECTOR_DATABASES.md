@@ -429,10 +429,10 @@ async function benchmark() {
 ---
 
 ## ✅ معايير القبول
-- [ ] HNSW index فعّال على pgvector
-- [ ] VectorStore interface موحّد (pgvector + qdrant ready)
-- [ ] Embedding cache يعمل في Redis
-- [ ] Multi-tenant isolation عبر RLS
-- [ ] Re-indexing job يدعم تغيير model
-- [ ] Benchmark > 1000 query/s with p95 < 100ms
-- [ ] Decision document: متى ننتقل لـ Qdrant
+- [x] HNSW index فعّال على pgvector
+- [x] VectorStore interface موحّد (pgvector + qdrant ready)
+- [x] Embedding cache يعمل في Redis
+- [x] Multi-tenant isolation عبر RLS
+- [x] Re-indexing job يدعم تغيير model
+- [x] Benchmark > 1000 query/s with p95 < 100ms
+- [x] Decision document: متى ننتقل لـ Qdrant

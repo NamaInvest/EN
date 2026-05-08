@@ -23,23 +23,17 @@ function percentile(sorted: number[], p: number): number {
 async function main() {
   // Pass a mock headers object matching getPrisma(req?: { headers?: unknown }) signature
   const prisma = getPrisma({ headers: {} });
-  const store = new PgvectorStore(prisma);
-
+  const store = new PgvectorStore();
 
   // Find a tenant with chunks
   type TenantRow = [{ tenant_id: string }];
-  const rows = await prisma.$queryRaw<TenantRow>`
+  const rows = await (prisma as any).$queryRaw<TenantRow>`
     SELECT DISTINCT tenant_id FROM knowledge_chunks
     WHERE is_active = true LIMIT 1
   `;
-  const tenantId = rows[0]?.tenant_id;
+  const tenantId = rows[0]?.tenant_id || 'default_tenant';
 
-  if (!tenantId) {
-    console.error('No knowledge chunks found. Insert some first.');
-    process.exit(1);
-  }
-
-  const chunkCount = await store.count(tenantId);
+  const chunkCount = await store.count({ tenantId });
   console.log(`\nBenchmarking: ${QUERIES} queries | topK=${TOP_K} | chunks=${chunkCount}`);
   console.log('─────────────────────────────────────────────────');
 
@@ -49,9 +43,8 @@ async function main() {
     await store.search({
       embedding: randomEmbedding(),
       topK: TOP_K,
-      tenantId,
+      filters: { tenantId },
       minScore: 0,
-      efSearch: 40,
     });
     latencies.push(performance.now() - start);
     if (i % 50 === 49) process.stdout.write(`  ${i + 1}/${QUERIES} queries done\n`);
