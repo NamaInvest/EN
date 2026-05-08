@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -51,9 +52,9 @@ export async function GET(request: NextRequest) {
       _count: true
     });
 
-    const totalRevenue = salesTotal._sum.total || 0;
-    const totalCost = purchaseTotal._sum.total || 0;
-    const totalExpenses = expenseTotal?._sum?.amount || 0;
+    const totalRevenue = n(salesTotal._sum.total);
+    const totalCost = n(purchaseTotal._sum.total);
+    const totalExpenses = n(expenseTotal?._sum?.amount);
     const grossProfit = totalRevenue - totalCost;
     const netProfit = grossProfit - totalExpenses;
 
@@ -77,13 +78,13 @@ export async function GET(request: NextRequest) {
       charts: {
         monthlySales: monthlySales.map(m => ({
           date: m.date,
-          total: m._sum.total || 0,
+          total: n(m._sum.total),
           count: m._count
         })),
         topProducts,
         salesByPayment: salesByPayment.map(s => ({
           type: s.paymentType,
-          total: s._sum.total || 0,
+          total: n(s._sum.total),
           count: s._count
         }))
       }

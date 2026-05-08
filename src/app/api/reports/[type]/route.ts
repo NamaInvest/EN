@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ type: string }> }) {
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     include: { customer: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
                 });
-                const totalSales = invoices.reduce((s: any, i: any) => s + i.total, 0);
-                const totalTax = invoices.reduce((s: any, i: any) => s + i.taxValue, 0);
+                const totalSales = invoices.reduce((s: number, i: any) => s + n(i.total), 0);
+                const totalTax = invoices.reduce((s: number, i: any) => s + n(i.taxValue), 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المبيعات': totalSales, 'الضريبة': totalTax, 'عدد الفواتير': invoices.length },
                     data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'العميل': (i as any).customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     include: { supplier: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
                 });
-                const total = invoices.reduce((s: any, i: any) => s + i.total, 0);
+                const total = invoices.reduce((s: number, i: any) => s + n(i.total), 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المشتريات': total, 'عدد الفواتير': invoices.length },
                     data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'المورد': (i as any).supplier?.name || '-', 'الإجمالي': i.total })),
@@ -60,16 +61,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             case 'stock': {
                 const products = await prisma.product.findMany({
             take: 100, where: { active: true }, include: { category: true, unit: true }, orderBy: { name: 'asc' } });
-                const totalValue = products.reduce((s: any, p: any) => s + p.currentStock * p.buyPrice, 0);
+                const totalValue = products.reduce((s: number, p: any) => s + n(p.currentStock) * n(p.buyPrice), 0);
                 return NextResponse.json({
                     summary: { 'عدد المنتجات': products.length, 'قيمة المخزون': totalValue },
-                    data: products.map(p => ({ 'المنتج': p.name, 'التصنيف': p.category?.name || '-', 'المخزون': p.currentStock, 'الوحدة': p.unit?.name || '', 'سعر الشراء': p.buyPrice, 'القيمة': p.currentStock * p.buyPrice })),
+                    data: products.map(p => ({ 'المنتج': p.name, 'التصنيف': p.category?.name || '-', 'المخزون': n(p.currentStock), 'الوحدة': p.unit?.name || '', 'سعر الشراء': n(p.buyPrice), 'القيمة': n(p.currentStock) * n(p.buyPrice) })),
                 });
             }
             case 'expenses': {
                 const expenses = await prisma.expense.findMany({
             take: 100, where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, orderBy: { date: 'desc' } });
-                const total = expenses.reduce((s: any, e: any) => s + e.amount, 0);
+                const total = expenses.reduce((s: number, e: any) => s + n(e.amount), 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المصروفات': total, 'عدد العمليات': expenses.length },
                     data: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('en-GB'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المبلغ': e.amount })),
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             case 'customers': {
                 const customers = await prisma.customer.findMany({
             take: 100, where: { active: true }, orderBy: { name: 'asc' } });
-                const totalBalance = customers.reduce((s: any, c: any) => s + c.balance, 0);
+                const totalBalance = customers.reduce((s: number, c: any) => s + n(c.balance), 0);
                 return NextResponse.json({
                     summary: { 'عدد العملاء': customers.filter(c => c.type === 0).length, 'عدد الموردين': customers.filter(c => c.type === 1).length, 'إجمالي الأرصدة': totalBalance },
                     data: customers.map(c => ({ 'الاسم': c.name, 'الهاتف': c.phone || '-', 'النوع': c.type === 0 ? 'عميل' : c.type === 1 ? 'مورد' : 'كلاهما', 'الرصيد': c.balance })),
@@ -88,9 +89,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const sales = await prisma.salesInvoice.aggregate({ where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter, status: 'completed' }, _sum: { total: true, taxValue: true } });
                 const purchases = await prisma.purchaseInvoice.aggregate({ where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, _sum: { total: true } });
                 const expenses = await prisma.expense.aggregate({ where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, _sum: { amount: true } });
-                const revenue = (sales._sum.total || 0) - (sales._sum.taxValue || 0);
-                const cost = (purchases._sum.total || 0);
-                const exp = expenses._sum.amount || 0;
+                const revenue = n(sales._sum.total) - n(sales._sum.taxValue);
+                const cost = n(purchases._sum.total);
+                const exp = n(expenses._sum.amount);
                 return NextResponse.json({
                     summary: { 'الإيرادات': revenue, 'تكلفة البضاعة': cost, 'المصروفات': exp, 'صافي الربح': revenue - cost - exp },
                     data: [],
@@ -99,8 +100,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             case 'tax': {
                 const salesTax = await prisma.salesInvoice.aggregate({ where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter, status: 'completed' }, _sum: { taxValue: true } });
                 const purchasesTax = await prisma.purchaseInvoice.aggregate({ where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, _sum: { taxValue: true } });
-                const collected = salesTax._sum.taxValue || 0;
-                const paid = purchasesTax._sum.taxValue || 0;
+                const collected = n(salesTax._sum.taxValue);
+                const paid = n(purchasesTax._sum.taxValue);
                 return NextResponse.json({
                     summary: { 'ضريبة محصّلة': collected, 'ضريبة مدفوعة': paid, 'المستحق': collected - paid },
                     data: [],
@@ -144,13 +145,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const purchaseReturns = await prisma.purchaseReturn.findMany({
             take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
 
-                const totalSales = sales.reduce((s: any, i: any) => s + i.total, 0);
-                const totalPurchases = purchases.reduce((s: any, i: any) => s + i.total, 0);
-                const totalExpenses = expenses.reduce((s: any, e: any) => s + e.amount, 0);
-                const treasuryIn = treasury.filter(t => t.type === 'in').reduce((s: any, t: any) => s + t.amount, 0);
-                const treasuryOut = treasury.filter(t => t.type === 'out').reduce((s: any, t: any) => s + t.amount, 0);
-                const totalSalesReturns = salesReturns.reduce((s: any, r: any) => s + r.total, 0);
-                const totalPurchaseReturns = purchaseReturns.reduce((s: any, r: any) => s + r.total, 0);
+                const totalSales = sales.reduce((s: number, i: any) => s + n(i.total), 0);
+                const totalPurchases = purchases.reduce((s: number, i: any) => s + n(i.total), 0);
+                const totalExpenses = expenses.reduce((s: number, e: any) => s + n(e.amount), 0);
+                const treasuryIn = treasury.filter(t => t.type === 'in').reduce((s: number, t: any) => s + n(t.amount), 0);
+                const treasuryOut = treasury.filter(t => t.type === 'out').reduce((s: number, t: any) => s + n(t.amount), 0);
+                const totalSalesReturns = salesReturns.reduce((s: number, r: any) => s + n(r.total), 0);
+                const totalPurchaseReturns = purchaseReturns.reduce((s: number, r: any) => s + n(r.total), 0);
 
                 return NextResponse.json({
                     summary: {
@@ -217,7 +218,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 const salesMap = new Map<number, { qty: number; count: number }>();
                 for (const d of salesDetails) {
                     const entry = salesMap.get(d.productId) || { qty: 0, count: 0 };
-                    entry.qty += d.quantity;
+                    entry.qty += n(d.quantity);
                     entry.count += 1;
                     salesMap.set(d.productId, entry);
                 }
@@ -247,7 +248,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     orderBy: { date: 'desc' },
                     take: 500,
                 });
-                const totalDiscount = invoices.reduce((s: any, i: any) => s + i.discountValue, 0);
+                const totalDiscount = invoices.reduce((s: number, i: any) => s + n(i.discountValue), 0);
                 return NextResponse.json({
                     summary: { 'عدد الفواتير بتخفيض': invoices.length, 'إجمالي التخفيضات': totalDiscount },
                     data: invoices.map(i => ({

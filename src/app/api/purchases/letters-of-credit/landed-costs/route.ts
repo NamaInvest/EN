@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // Smart Landed Costs (LC) Distribution Engine
 // Automatically allocates Shipping, Customs, and Insurance costs to imported products
@@ -29,15 +30,15 @@ export async function POST(req: Request) {
 
     // 2. Calculate distribution bases
     // Base 1: Total Value (price * quantity)
-    const totalOrderValue = order.details.reduce((sum: any, d: any) => sum + (d.price * d.quantity), 0);
+    const totalOrderValue = order.details.reduce((sum: number, d: any) => sum + (n(d.price) * n(d.quantity)), 0);
     // Base 2: Total Quantity
-    const totalQuantity = order.details.reduce((sum: any, d: any) => sum + d.quantity, 0);
+    const totalQuantity = order.details.reduce((sum: number, d: any) => sum + n(d.quantity), 0);
 
     let totalAdditionalCost = 0;
 
     // 3. Loop through Landed Costs (Shipping, Customs, etc.) and calculate distribution factor
     for (const cost of order.landedCosts) {
-      const actualAmountInLocalCurrency = cost.amount * (cost.exchangeRate || 1.0);
+      const actualAmountInLocalCurrency = n(cost.amount) * (n(cost.exchangeRate) || 1.0);
       totalAdditionalCost += actualAmountInLocalCurrency;
 
       for (const d of order.details) {
@@ -46,21 +47,21 @@ export async function POST(req: Request) {
         switch (cost.allocationMethod) {
           case 'value':
             // Distribute by value
-            const valueRatio = (d.price * d.quantity) / totalOrderValue;
+            const valueRatio = (n(d.price) * n(d.quantity)) / totalOrderValue;
             allocatedAmount = actualAmountInLocalCurrency * valueRatio;
             break;
           case 'quantity':
             // Distribute by quantity evenly
-            const qtyRatio = d.quantity / totalQuantity;
+            const qtyRatio = n(d.quantity) / totalQuantity;
             allocatedAmount = actualAmountInLocalCurrency * qtyRatio;
             break;
           default:
             // Fallback to value ratio
-            allocatedAmount = actualAmountInLocalCurrency * ((d.price * d.quantity) / totalOrderValue);
+            allocatedAmount = actualAmountInLocalCurrency * ((n(d.price) * n(d.quantity)) / totalOrderValue);
         }
 
         // The additional unit cost for this specific item
-        const extraUnitCost = allocatedAmount / d.quantity;
+        const extraUnitCost = allocatedAmount / n(d.quantity);
         
         // Accumulate this distributed cost per item (For this iteration context, we just add it to a transient map)
         d.price += extraUnitCost; // We artificially inflate the item's computed cost here
@@ -91,11 +92,11 @@ export async function POST(req: Request) {
         }
       });
 
-      const soldQuantity = Math.abs(outboundMovements._sum.quantity || 0);
+      const soldQuantity = Math.abs(n(outboundMovements._sum.quantity));
       
       // Calculate total variance for sold items
       // (New Cost - Old Cost) * Sold Quantity
-      const unitVariance = d.price - d.product.buyPrice;
+      const unitVariance = n(d.price) - n(d.product.buyPrice);
       if (unitVariance > 0 && soldQuantity > 0) {
         const adjustmentValue = unitVariance * soldQuantity;
         totalAdjustment += adjustmentValue;

@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string, costId: string }> }) {
 
-  const { id, costId } = await params;
+  const { id, costId: costIdStr } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const poId = Number((await params).id);
-        const costId = Number((await params).costId);
+        const poId = Number(id);
+        const costId = Number(costIdStr);
 
         const cost = await prisma.landedCost.findUnique({
             where: { id: costId }
@@ -30,12 +31,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         let totalFactor = 0;
         po.details.forEach(d => {
             if (cost.allocationMethod === 'value') {
-                totalFactor += d.price * d.quantity;
+                totalFactor += n(d.price) * n(d.quantity);
             } else if (cost.allocationMethod === 'quantity') {
-                totalFactor += d.quantity;
+                totalFactor += n(d.quantity);
             } else {
                 // Default to value if unknown method
-                totalFactor += d.price * d.quantity;
+                totalFactor += n(d.price) * n(d.quantity);
             }
         });
 
@@ -45,15 +46,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         const updatePromises = po.details.map(d => {
             let factor = 0;
             if (cost.allocationMethod === 'value') {
-                factor = d.price * d.quantity;
+                factor = n(d.price) * n(d.quantity);
             } else if (cost.allocationMethod === 'quantity') {
-                factor = d.quantity;
+                factor = n(d.quantity);
             } else {
-                factor = d.price * d.quantity;
+                factor = n(d.price) * n(d.quantity);
             }
 
-            const allocatedAmount = (factor / totalFactor) * cost.amount;
-            const unitUplift = d.quantity > 0 ? allocatedAmount / d.quantity : 0;
+            const allocatedAmount = (factor / totalFactor) * n(cost.amount);
+            const qty = n(d.quantity);
+            const unitUplift = qty > 0 ? allocatedAmount / qty : 0;
 
             // In a real system, this should add a record to a cost layer.
             // Here we update the product's average buyPrice as a simplification.

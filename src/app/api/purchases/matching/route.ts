@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
 
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
             const grnQtyMap: Record<number, number> = {};
             grns.forEach(grn => {
                 grn.details.forEach(d => {
-                    grnQtyMap[d.productId] = (grnQtyMap[d.productId] || 0) + d.acceptedQty;
+                    grnQtyMap[d.productId] = (grnQtyMap[d.productId] || 0) + n(d.acceptedQty);
                 });
             });
 
@@ -77,8 +78,8 @@ export async function POST(req: Request) {
             const poQtyMap: Record<number, number> = {};
             const poPriceMap: Record<number, number> = {};
             po.details.forEach(d => {
-                poQtyMap[d.productId] = (poQtyMap[d.productId] || 0) + d.quantity;
-                poPriceMap[d.productId] = d.price; // assuming simple flat price for product in PO
+                poQtyMap[d.productId] = (poQtyMap[d.productId] || 0) + n(d.quantity);
+                poPriceMap[d.productId] = n(d.price); // assuming simple flat price for product in PO
             });
 
             let poTotalAmt = 0;
@@ -98,8 +99,8 @@ export async function POST(req: Request) {
                 const poPrice = poPriceMap[d.productId] || 0;
                 const grnQty = grnQtyMap[d.productId] || 0;
                 
-                const invQty = d.quantity;
-                const invPrice = d.price;
+                const invQty = n(d.quantity);
+                const invPrice = n(d.price);
 
                 poTotalAmt += poQty * poPrice;
                 poTotalQty += poQty;
