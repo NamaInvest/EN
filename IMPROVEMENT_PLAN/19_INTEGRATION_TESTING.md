@@ -587,10 +587,10 @@ export default function () {
 ---
 
 ## ✅ معايير القبول
-- [ ] Test Containers يعمل في CI
-- [ ] 25 golden paths كلها تمر
-- [ ] ZATCA full flow مختبر
-- [ ] Payroll full run مختبر
-- [ ] Multi-tenant isolation مختبر
-- [ ] Load test weekly مع report
-- [ ] E2E يعمل على mobile + desktop + RTL
+- [x] Test Containers يعمل في CI
+- [x] 25 golden paths كلها تمر
+- [x] ZATCA full flow مختبر
+- [x] Payroll full run مختبر
+- [x] Multi-tenant isolation مختبر
+- [x] Load test weekly مع report
+- [x] E2E يعمل على mobile + desktop + RTL
