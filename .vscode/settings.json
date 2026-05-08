@@ -1,4 +1,5 @@
 {
     "workbench.editor.limit.enabled": true,
-    "geminicodeassist.outlines.automaticOutlineGeneration": true
+    "geminicodeassist.outlines.automaticOutlineGeneration": true,
+    "opencodegraph.enable": true
 }
