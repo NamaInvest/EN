@@ -77,7 +77,7 @@ async function run() {
         console.log(`\n  🔨 Building...`);
         await exec(conn, `rm -rf ${node.path}/.next`, false);
         await exec(conn,
-            `cd ${node.path} && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production npm run build 2>&1 | tail -15`,
+            `cd ${node.path} && NODE_OPTIONS="--max-old-space-size=3000" NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production npm run build 2>&1 | tail -20`,
             true
         );
 

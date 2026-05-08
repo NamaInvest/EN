@@ -1,15 +1,40 @@
 import { NextResponse } from 'next/server';
 
-// ⚠️ DISABLED: This endpoint has been disabled for security reasons.
-// Re-enable only in local development with explicit environment flag.
+/**
+ * 🚨 PERMANENTLY DISABLED — Security remediation (KICKOFF Day 1, Task #3)
+ *
+ * This endpoint previously allowed system resets.
+ * It has been permanently disabled to prevent accidental or malicious data loss.
+ * HTTP 410 Gone indicates the resource is intentionally removed.
+ *
+ * Disabled on: 2026-05-08
+ * Reference: IMPROVEMENT_PLAN/KICKOFF.md — اليوم الثاني، المهمة #2
+ */
 
 export async function GET() {
-  if (process.env.NODE_ENV !== 'development') {
-    return NextResponse.json({ error: 'Endpoint disabled in production' }, { status: 403 });
-  }
-  return NextResponse.json({ message: 'Dev-only endpoint' });
+  return NextResponse.json(
+    { error: 'DISABLED', message: 'This endpoint has been permanently removed.' },
+    { status: 410 }
+  );
 }
 
 export async function POST() {
-  return NextResponse.json({ error: 'Endpoint disabled in production' }, { status: 403 });
+  return NextResponse.json(
+    { error: 'DISABLED', message: 'This endpoint has been permanently removed.' },
+    { status: 410 }
+  );
+}
+
+export async function PUT() {
+  return NextResponse.json(
+    { error: 'DISABLED', message: 'This endpoint has been permanently removed.' },
+    { status: 410 }
+  );
+}
+
+export async function DELETE() {
+  return NextResponse.json(
+    { error: 'DISABLED', message: 'This endpoint has been permanently removed.' },
+    { status: 410 }
+  );
 }
