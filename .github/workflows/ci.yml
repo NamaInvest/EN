@@ -164,7 +164,8 @@ jobs:
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
 
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm ci --production --legacy-peer-deps
             npx prisma generate
 
