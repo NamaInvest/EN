@@ -45,16 +45,28 @@ export async function callLLM(promptKey: string, vars: Record<string, any>, tena
         const usage = response.usageMetadata;
         const latencyMs = Date.now() - startTime;
         
+        // Cost Calculation (Estimated for gemini-2.5-flash)
+        const promptTokens = usage?.promptTokenCount || 0;
+        const completionTokens = usage?.candidatesTokenCount || 0;
+        let costUsd = 0;
+        
+        if (modelName.includes('gemini-2.5-flash')) {
+            costUsd = (promptTokens * 0.000000075) + (completionTokens * 0.00000030);
+        } else if (modelName.includes('gemini-2.5-pro')) {
+            costUsd = (promptTokens * 0.00125) + (completionTokens * 0.005); // e.g. pro pricing ($1.25/1M, $5.00/1M)
+        }
+
         // Log successful usage
         await logPromptUsage({
             tenantId: tenantId || 'global',
             promptKey,
             promptVersion,
             model: modelName,
-            promptTokens: usage?.promptTokenCount || 0,
-            completionTokens: usage?.candidatesTokenCount || 0,
+            promptTokens,
+            completionTokens,
             latencyMs,
-            success: true
+            success: true,
+            costUsd
         });
 
         return text;

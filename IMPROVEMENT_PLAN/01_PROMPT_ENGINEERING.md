@@ -80,7 +80,7 @@ const result = await getPrompt('cfo.daily_summary', {
 });
 ```
 
-### المرحلة 1.4 — Cost Dashboard (4 أيام)
+### المرحلة 1.4 — Cost Dashboard (4 أيام) ✅ مُنجزة
 - صفحة `/admin/prompts/cost`
 - مقاييس: tokens/يوم, cost/يوم per tenant per prompt
 - Alerts عند تجاوز الميزانية
@@ -114,9 +114,9 @@ const result = await getPrompt('cfo.daily_summary', {
 ---
 
 ## ✅ معايير القبول
-- [ ] لا يوجد prompt hardcoded في codebase
-- [ ] كل prompt له version + metadata في DB
-- [ ] Cost dashboard يعرض real-time data
+- [x] لا يوجد prompt hardcoded في codebase
+- [x] كل prompt له version + metadata في DB
+- [x] Cost dashboard يعرض real-time data
 - [ ] 5 A/B tests فعّالة على الأقل
 - [ ] Eval suite يعمل في CI
 - [ ] Documentation للمطورين
