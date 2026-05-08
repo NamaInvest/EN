@@ -8,7 +8,7 @@ describe('Decimal arithmetic properties', () => {
       fc.property(
         fc.float({ min: 0, max: 1e9, noNaN: true }),
         fc.float({ min: 0, max: 1e9, noNaN: true }),
-        (a, b) => {
+        (a: number, b: number) => {
           const x = new Decimal(a).add(b);
           const y = new Decimal(b).add(a);
           return x.equals(y);
@@ -23,7 +23,7 @@ describe('Decimal arithmetic properties', () => {
         fc.float({ min: 0, max: 1000, noNaN: true }),
         fc.float({ min: 0, max: 1000, noNaN: true }),
         fc.float({ min: 0, max: 1000, noNaN: true }),
-        (a, b, c) => {
+        (a: number, b: number, c: number) => {
           const x = new Decimal(a).mul(new Decimal(b).add(c));
           const y = new Decimal(a).mul(b).add(new Decimal(a).mul(c));
           return x.minus(y).abs().lte('0.0001');
