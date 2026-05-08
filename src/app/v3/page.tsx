@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ShieldCheck, Bot, MessageCircle, ShoppingCart, Building, Wallet, Users, Fingerprint, Database, Factory, Cpu, TrendingUp, Truck, Wrench, Home, Layers, Phone, Calculator, CreditCard, FileText, Clock, Archive, Package, BellRing, Barcode, Hash, CheckSquare, Camera, UserCheck, Award, Megaphone, Gift, Link as LinkIcon, Star, BookOpen, Eye, GitMerge, Map, Target, Settings, Inbox, RefreshCcw, CalendarDays, DollarSign, Activity, Network, BarChart3, FileEdit, Receipt, Sliders, FileCheck, History, Repeat, CheckCircle, LineChart, Briefcase, Globe, ClipboardList, LayoutDashboard, BarChart2, Hourglass, Pill, ShoppingBag, UtensilsCrossed, Cog, Brain, ChevronDown, ChevronUp, ArrowLeft, Menu, X, Search, Download, Zap, ArrowRight, Play } from 'lucide-react';
 
 // ─── Data ─────────────────────────────────────────────────────────────────
-export const CATEGORIES = [
+const CATEGORIES = [
   { id: 'all', label: 'الكل', emoji: '🌐' },
   { id: 'finance', label: 'المالية', emoji: '💰' },
   { id: 'sales', label: 'المبيعات', emoji: '🛒' },
@@ -45,7 +45,7 @@ export const modulesList = [
   { cat: 'admin', icon: <Settings size={20}/>, title: "مركز القيادة والإعدادات", desc: "سياسات الشركة والمظهر والمستخدمين" },
 ];
 
-export const INDUSTRIES = [
+const INDUSTRIES = [
   {
     id: 'pharmacy', emoji: '💊', icon: <Pill size={32} strokeWidth={1.5} />,
     title: 'الصيدليات', titleEn: 'Pharmacies',
@@ -78,7 +78,7 @@ export const INDUSTRIES = [
   },
 ];
 
-export const POWER_CLUSTERS = [
+const POWER_CLUSTERS = [
   { icon: <Calculator size={28}/>, title: 'السيطرة المالية', color: 'from-teal-400 to-emerald-500', count: 13, desc: 'وداعاً للأخطاء الحسابية. نظام دقيق مع تقارير ضريبية فورية.' },
   { icon: <Package size={28}/>, title: 'قوة المخزون', color: 'from-blue-400 to-indigo-500', count: 14, desc: 'تحكم كامل بالكميات وتواريخ الانتهاء ومواقع الأرفف.' },
   { icon: <ShoppingCart size={28}/>, title: 'تجربة البيع', color: 'from-orange-400 to-rose-500', count: 19, desc: 'POS سريع مع نظام ولاء يبني علاقة طويلة مع عملائك.' },
