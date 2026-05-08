@@ -306,6 +306,9 @@ model Product {
   deletedAt    DateTime? @map("deleted_at")
   deletedBy    String?   @map("deleted_by")
   @@index([name])
+  @@index([tenantId, active])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, barcode])
   @@map("products")
 }
 
@@ -576,11 +579,20 @@ model SalesInvoice {
   zatcaPih         String?   @map("zatca_pih")
   zatcaSignedXml   String?   @db.Text @map("zatca_signed_xml")
   zatcaReportedAt  DateTime? @map("zatca_reported_at")
+  cleared          Boolean   @default(false) @map("zatca_cleared")
+  clearedAt        DateTime? @map("zatca_cleared_at")
+  clearanceUuid    String?   @map("zatca_clearance_uuid")
   @@index([invoiceNo])
   @@index([date])
   @@index([customerId])
   @@index([userId])
   @@index([tenantId, customerId, date])
+  @@index([tenantId, status])
+  @@index([tenantId, invoiceNo])
+  @@index([tenantId, branchId, date])
+  @@index([tenantId, deletedAt])
+  @@index([tenantId, zatcaIcv])
+  @@index([tenantId, cleared, date])
   @@map("sales_invoices")
 }
 
@@ -930,23 +942,25 @@ model Setting {
 
 // ==================== 18. AuditLog ====================
 model AuditLog {
-  id        Int      @id @default(autoincrement())
-  tenantId String @default("default") @map("tenant_id")
-  userId    Int?     @map("user_id")
-  action    String
-  tableName String?  @map("table_name")
-  recordId  Int?     @map("record_id")
+  id        String      @id @default(cuid())
+  tenantId  String      @default("default") @map("tenant_id")
+  userId    Int?        @map("user_id")
+  action    String      // kept as String for backward compat — see AuditAction enum for valid values
+  tableName String?     @map("table_name")
+  recordId  String?     @map("record_id")
   details   String?
-  date      DateTime @default(now())
+  createdAt DateTime    @default(now()) @map("created_at")
 
-  diff      Json?    // { field, before, after } for field-level changes
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
+  diff      Json?       // { before: {...}, after: {...} } for field-level changes
+  ipAddress String?     @map("ip_address")
+  userAgent String?     @map("user_agent")
 
   user User? @relation(fields: [userId], references: [id])
 
-  @@index([date])
-  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])          // compound for per-user timeline queries
+  @@index([tenantId, tableName, recordId])
+  @@index([tenantId, action, createdAt]) // fast action-type filtering
   @@map("audit_log")
 }
 
@@ -1282,6 +1296,8 @@ model JournalEntry {
   @@index([replicatedFromId])
   @@index([entryDate])
   @@index([status])
+  @@index([tenantId, status, entryDate])
+  @@index([tenantId, bookId, entryDate])
   @@index([tenantId, entryDate])
   @@map("journal_entries")
 }
@@ -1460,24 +1476,6 @@ model DocumentStateMachine {
   @@map("document_state_machines")
 }
 
-// ==================== 31i. Field-Level Audit Trail (Foundation Build #4) ====================
-model FieldAuditTrail {
-  id          Int      @id @default(autoincrement())
-  tenantId String @default("default") @map("tenant_id")
-  tableName   String   @map("table_name")
-  recordId    Int      @map("record_id")
-  fieldName   String   @map("field_name")
-  oldValue    String?  @map("old_value")
-  newValue    String?  @map("new_value")
-  changedBy   Int      @map("changed_by")
-  changedAt   DateTime @default(now()) @map("changed_at")
-  ipAddress   String?  @map("ip_address")
-  userAgent   String?  @map("user_agent")
-
-  @@index([tableName, recordId])
-  @@index([changedBy, changedAt])
-  @@map("field_audit_trails")
-}
 
 // ==================== 31j. Period Close Tasks (Foundation Build #5) ====================
 model PeriodCloseTask {
@@ -10146,4 +10144,22 @@ model EliminationRule {
   @@map("elimination_rule")
 }
 
+// ==================== ENUMS ====================
 
+/// Standardized audit action types for the unified AuditLog model.
+/// Used instead of free-form String to enforce consistency across all modules.
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}

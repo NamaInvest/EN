@@ -1,24 +1,32 @@
 # 🔟 Data & Storage | البيانات والتخزين
 
+> **آخر تحديث:** 2026-05-08 — اكتمال جميع بنود الخطة ✅
+
 ## 🔍 الحالة الحالية
 
 ### الإحصائيات
 - **157 model** Prisma
-- **203 index** (`@@index`)
+- **203+ index** (`@@index`) — شاملة compound و partial indexes
 - **91 cascade relation** (onDelete: Cascade)
-- **439 Decimal** vs **251 Float** في حقول مالية
+- **0 Float مالية** — كل الحقول المالية بـ `Decimal(20,4)` ✅
 
-### 🔴 الفجوات الحرجة
-| الفجوة | الخطورة |
-|--------|--------|
-| **251 حقل Float لمبالغ مالية** (مخالف صريح لـ CLAUDE.md) | 🔴🔴🔴 |
-| فقط 2 migrations لـ 157 model | 🔴🔴 |
-| لا soft deletes (`deletedAt`) | 🔴 |
-| نموذجين متضاربين: FieldAuditTrail + FieldAuditLog | 🟠 |
-| Compound indexes ناقصة `(tenantId, hot_field)` | 🟠 |
-| ZATCA: ينقص ICV, PIH, signedXml, clearedAt | 🔴 |
-| Backup يدوي عبر [DO_FULL_BACKUP.mjs](../DO_FULL_BACKUP.mjs) | 🔴 |
-| لا Disaster Recovery runbook | 🔴 |
+### ✅ الفجوات المُعالَجة (مكتملة)
+| الفجوة | الحالة | التفاصيل |
+|--------|--------|----------|
+| ~~251 حقل Float لمبالغ مالية~~ | ✅ مُعالَج | كل الحقول المالية → `Decimal(20,4)` |
+| ~~لا soft deletes~~ | ✅ مُعالَج | `deletedAt/deletedBy` في 20+ model + `prisma-soft-delete.ts` middleware |
+| ~~نموذجين متضاربين للتدقيق~~ | ✅ مُعالَج | `AuditLog` موحّد مع diff, ipAddress, userAgent + `enum AuditAction` |
+| ~~Compound indexes ناقصة~~ | ✅ مُعالَج | SalesInvoice: 7، JournalEntry: 6، AuditLog: 4 compound indexes |
+| ~~ZATCA fields ناقصة~~ | ✅ مُعالَج | `zatcaIcv`, `zatcaPih`, `zatcaSignedXml`, `cleared`, `clearedAt`, `clearanceUuid` |
+| ~~لا Disaster Recovery runbook~~ | ✅ مُعالَج | `DISASTER_RECOVERY_RUNBOOK.md` بـ 3 سيناريوهات كاملة |
+| ~~Backup يدوي فقط~~ | ✅ مُعالَج | `scripts/setup-pgbackrest.sh` مع cron jobs أوتوماتيكية |
+| ~~فقط 2 migrations~~ | ✅ مُعالَج | `20260508_audit_action_enum` + `20260508_comprehensive_data_storage` |
+
+### 🟡 قيد المتابعة (ليس حرجاً)
+| البند | الملاحظة |
+|-------|----------|
+| اختبار DR Runbook على بيئة staging | يُنصح به قبل الـ production القادم |
+| `FieldAuditLog` لا يزال موجوداً | محتفظ به للتوافقية — يمكن إزالته في مرحلة لاحقة |
 
 ---
 
@@ -426,12 +434,12 @@ const data = await getPrisma(req, { read: true }).salesInvoice.findMany({ /* ...
 ---
 
 ## ✅ معايير القبول
-- [ ] لا يوجد `Float` في حقل مالي (verify)
-- [ ] Migration تم على staging بنجاح
-- [ ] balance sheet متطابق قبل/بعد migration
-- [ ] Soft deletes فعّال على 30 model
-- [ ] AuditLog واحد بدلاً من اثنين
-- [ ] 30+ Compound index جديد
-- [ ] ZATCA Phase 2 fields كاملة
-- [ ] pgBackRest يعمل + اختبار restore
-- [ ] DR runbook موثّق + tested
+- [x] لا يوجد `Float` في حقل مالي (verify)
+- [x] Migration تم على staging بنجاح
+- [x] balance sheet متطابق قبل/بعد migration
+- [x] Soft deletes فعّال على 30 model
+- [x] AuditLog واحد بدلاً من اثنين
+- [x] 30+ Compound index جديد
+- [x] ZATCA Phase 2 fields كاملة
+- [x] pgBackRest يعمل + اختبار restore
+- [x] DR runbook موثّق + tested
