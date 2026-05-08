@@ -379,9 +379,9 @@ const watermarked = await watermarkService.addWatermark(invoicePdfBuffer, {
 ---
 
 ## ✅ معايير القبول
-- [ ] R2 bucket فعّال + CDN domain
-- [ ] كل الصور WebP/AVIF
-- [ ] Lighthouse Performance > 90
-- [ ] Asset Library UI متاح
-- [ ] Unsplash integration فعّالة
-- [ ] Watermark على invoice PDFs
+- [x] R2 bucket فعّال + CDN domain
+- [x] كل الصور WebP/AVIF
+- [x] Lighthouse Performance > 90
+- [x] Asset Library UI متاح
+- [x] Unsplash integration فعّالة
+- [x] Watermark على invoice PDFs
