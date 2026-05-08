@@ -9813,14 +9813,25 @@ model PromptUsageLog {
 }
 
 model KnowledgeDocument {
-  id          String   @id @default(cuid())
-  tenantId    String   @map("tenant_id")
-  title       String
-  content     String   @db.Text
-  embedding   Json?    @map("embedding") // Storing vector as JSON array of floats instead of pgvector to support environments without the extension
-  metadata    Json?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
+  title            String
+  content          String    @db.Text
+  sourceType       String    @default("manual") @map("source_type") // zatca | policy | invoice | contract | manual | ifrs | labor-law
+  sourceUrl        String?   @map("source_url")
+  sourceRef        String?   @map("source_ref")  // e.g. page number, section
+  metadata         Json?     // { tags, language, authorId, ... }
+  embeddingVersion String    @default("text-embedding-004") @map("embedding_version")
+  chunkCount       Int       @default(0) @map("chunk_count")
+  isActive         Boolean   @default(true) @map("is_active")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
+  chunks    KnowledgeChunk[]
+
+  @@index([tenantId, sourceType, isActive])
+  @@index([tenantId, createdAt])
   @@map("knowledge_documents")
 }
 
@@ -10069,21 +10080,28 @@ model AiToolCallLog {
   @@map("ai_tool_call_log")
 }
 
-// AI-15 — chunked text + embedding for RAG. One KnowledgeDocument has many chunks.
-// We store the embedding as Float[] until pgvector migration lands; once live, swap
-// to `embedding vector(768)` via raw SQL ALTER TABLE.
+// AI-15 — chunked text + pgvector embedding for RAG.
+// embedding column is migrated to vector(768) via 20260508_pgvector_hnsw migration.
+// Float[] kept as fallback during migration window.
 model KnowledgeChunk {
-  id          String   @id @default(cuid())
-  tenantId    String   @map("tenant_id")
-  documentId  String   @map("document_id")
-  chunkIndex  Int      @map("chunk_index")
-  content     String   @db.Text
-  embedding   Float[]  // 768-dim for gemini text-embedding-004
-  tokenCount  Int      @map("token_count")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
+  documentId       String    @map("document_id")
+  chunkIndex       Int       @map("chunk_index")
+  content          String    @db.Text
+  embedding        Float[]   // migrated to vector(768) via raw SQL — see migration
+  tokenCount       Int       @map("token_count")
+  embeddingVersion String    @default("text-embedding-004") @map("embedding_version")
+  metadata         Json?     // { page, section, title, ... }
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  document    KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, documentId])
-  @@map("knowledge_chunk")
+  @@index([tenantId, embeddingVersion])  // for re-indexing jobs
+  @@index([tenantId, isActive])
+  @@map("knowledge_chunks")
 }
 
 // xP&A — driver master. A driver is a measurable input (Sales Volume, Headcount,

@@ -122,25 +122,32 @@ export async function logFieldChanges(
     if (rows.length === 0) return 0;
 
     try {
-        // Try FieldAuditTrail model (the correct one from schema)
         const db = prisma as any;
-        if (db.fieldAuditTrail) {
-            await db.fieldAuditTrail.createMany({
-                data: rows.map(r => ({
-                    tableName: r.entityType as string,
-                    recordId: r.entityId as number,
-                    fieldName: r.fieldName as string,
-                    oldValue: r.oldValue as string | null,
-                    newValue: r.newValue as string | null,
-                    changedBy: (r.userId as number) || 0,
-                    ipAddress: r.ipAddress as string | null,
-                    userAgent: r.userAgent as string | null,
-                })),
-            });
-        } else if (db.fieldAuditLog) {
-            // Fallback to fieldAuditLog if it exists
-            await db.fieldAuditLog.createMany({
-                data: rows as any,
+        if (db.auditLog) {
+            // Group diffs by transaction
+            const diffObject: Record<string, any> = {};
+            for (const r of rows) {
+                if (r.fieldName && r.fieldName !== '__entity__') {
+                    diffObject[r.fieldName as string] = { before: r.oldValue, after: r.newValue };
+                }
+            }
+            
+            // For full entity snapshots (create/delete)
+            const fullSnapshot = rows.find(r => r.fieldName === '__entity__');
+            const diffData = fullSnapshot 
+                ? (fullSnapshot.changeType === 'create' ? { after: JSON.parse((fullSnapshot.newValue as string) || '{}') } : { before: JSON.parse((fullSnapshot.oldValue as string) || '{}') })
+                : diffObject;
+
+            await db.auditLog.create({
+                data: {
+                    userId: ctx.userId ?? null,
+                    action: String(rows[0].changeType).toUpperCase(),
+                    tableName: entityType,
+                    recordId: entityId,
+                    diff: diffData,
+                    ipAddress: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                }
             });
         }
     } catch (e: any) {

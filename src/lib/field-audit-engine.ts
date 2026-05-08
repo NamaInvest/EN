@@ -27,19 +27,24 @@ export async function logFieldChanges(
 ): Promise<number> {
     if (changes.length === 0) return 0;
 
-    const data = changes.map(c => ({
-        tableName,
-        recordId,
-        fieldName: c.fieldName,
-        oldValue: c.oldValue != null ? String(c.oldValue) : null,
-        newValue: c.newValue != null ? String(c.newValue) : null,
-        changedBy,
-        ipAddress: ipAddress || null,
-        userAgent: userAgent || null,
-    }));
+    const diffObject: Record<string, any> = {};
+    for (const c of changes) {
+        diffObject[c.fieldName] = { before: c.oldValue, after: c.newValue };
+    }
 
-    const result = await db(prisma).fieldAuditTrail.createMany({ data });
-    return result.count;
+    const result = await db(prisma).auditLog.create({
+        data: {
+            tableName,
+            recordId,
+            userId: changedBy,
+            action: 'UPDATE',
+            diff: diffObject,
+            ipAddress: ipAddress || null,
+            userAgent: userAgent || null,
+        }
+    });
+
+    return Object.keys(diffObject).length;
 }
 
 /**
@@ -69,9 +74,9 @@ export async function getAuditHistory(
     tableName: string,
     recordId: number
 ): Promise<any[]> {
-    return db(prisma).fieldAuditTrail.findMany({
+    return db(prisma).auditLog.findMany({
         where: { tableName, recordId },
-        orderBy: { changedAt: 'desc' },
+        orderBy: { date: 'desc' },
         take: 100,
     });
 }
