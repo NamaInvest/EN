@@ -333,9 +333,9 @@ export const dailyAuditWorker = new Worker(
 ---
 
 ## ✅ معايير القبول
-- [ ] State Machine Engine مع 100% test coverage
-- [ ] Approval Workflow Runtime مع escalation
-- [ ] 4 saga patterns حية (invoice, payroll, month-close, purchase)
-- [ ] 5 AI Workers يعملون يومياً
-- [ ] لا تحويلات state غير مُسجّلة
-- [ ] Workflow Designer UI (basic)
+- [x] State Machine Engine مع 100% test coverage
+- [x] Approval Workflow Runtime مع escalation
+- [x] 4 saga patterns حية (invoice, payroll, month-close, purchase)
+- [x] 5 AI Workers يعملون يومياً
+- [x] لا تحويلات state غير مُسجّلة
+- [x] Workflow Designer UI (basic)

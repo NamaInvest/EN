@@ -186,9 +186,9 @@ export const startWorkers = async () => {
     const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker];
 
     allWorkers.forEach(worker => {
-        worker.on('error',     err  => logger.error({}, `[Queue] ${worker.name} error`, { message: err.message }));
-        worker.on('failed',    (job, err) => logger.error({}, `[Queue] ${worker.name} job ${job?.id} failed`, { error: err.message }));
-        worker.on('completed', job  => logger.info({},  `[Queue] ${worker.name} job ${job?.id} completed`));
+        worker.on('error', (err: Error) => logger.error({}, `[Queue] ${worker.name} error`, { message: err.message }));
+        worker.on('failed', (job: any, err: Error) => logger.error({}, `[Queue] ${worker.name} job ${job?.id} failed`, { error: err.message }));
+        worker.on('completed', (job: any) => logger.info({},  `[Queue] ${worker.name} job ${job?.id} completed`));
     });
 
     logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit'] });

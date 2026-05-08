@@ -7,8 +7,7 @@ export interface SagaStep<T = any> {
 export class Saga<T> {
   private steps: SagaStep<T>[] = [];
   private executed: SagaStep<T>[] = [];
-
-  constructor(public readonly name: string) {}
+  public name: string = 'UntitledSaga';
 
   addStep(step: SagaStep<T>): this {
     this.steps.push(step);
@@ -20,25 +19,21 @@ export class Saga<T> {
 
     try {
       for (const step of this.steps) {
-        console.log(`[Saga: ${this.name}] Executing step: ${step.name}`);
+        console.log(`Saga step: ${step.name}`);
         ctx = await step.execute(ctx);
         this.executed.push(step);
       }
       return ctx;
-    } catch (error: any) {
-      console.error(`[Saga: ${this.name}] Failed at step. Starting compensation...`, error);
-      
-      // Execute compensation steps in reverse order
+    } catch (error) {
+      console.error(`Saga failed at step. Compensating...`, { error });
       for (const step of this.executed.reverse()) {
         try {
-          console.log(`[Saga: ${this.name}] Compensating step: ${step.name}`);
           await step.compensate(ctx);
         } catch (compErr) {
-          console.error(`[Saga: ${this.name}] Compensation failed for step: ${step.name}`, compErr);
-          // In a real system, you'd alert an operator or write to a Dead Letter Queue
+          console.error(`Compensation failed: ${step.name}`, { compErr });
         }
       }
-      throw error; // Re-throw original error after compensation
+      throw error;
     }
   }
 }
