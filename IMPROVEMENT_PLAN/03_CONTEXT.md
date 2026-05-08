@@ -244,9 +244,9 @@ export const POST = withContext(async (ctx, req) => {
 ---
 
 ## ✅ معايير القبول
-- [ ] `withContext()` middleware يعمل ومُختبر
-- [ ] BusinessContext يحتوي 6 طبقات (tenant, user, branch, fiscal, settings, meta)
-- [ ] ConversationMemory يدير المحادثات > 4K tokens
-- [ ] MCP Bridge يربط 3 tools للـ Orchestrator
-- [ ] Compactor يلخّص المحادثات تلقائياً
-- [ ] Tests للسيناريوهات الحرجة (closed period, missing tenant)
+- [x] `withContext()` middleware يعمل ومُختبر
+- [x] BusinessContext يحتوي 6 طبقات (tenant, user, branch, fiscal, settings, meta)
+- [x] ConversationMemory يدير المحادثات > 4K tokens
+- [x] MCP Bridge يربط 3 tools للـ Orchestrator
+- [x] Compactor يلخّص المحادثات تلقائياً
+- [x] Tests للسيناريوهات الحرجة (closed period, missing tenant)
