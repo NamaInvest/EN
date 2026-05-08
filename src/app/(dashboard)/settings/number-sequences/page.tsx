@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { ArrowRight, Plus, Hash, Search, RefreshCw, Settings2 } from 'lucide-react';
 import Link from 'next/link';
+import { z } from 'zod';
+import { Form, FormField, FormSelect } from '@/components/forms';
+import { useToast } from '@/components/Toast';
 
 interface NumberSequence {
   id: number;
@@ -17,16 +20,26 @@ interface NumberSequence {
   isActive: boolean;
 }
 
+const sequenceSchema = z.object({
+  code: z.string().min(2, 'الرمز مطلوب').toUpperCase(),
+  name: z.string().min(2, 'الاسم مطلوب'),
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+  padLength: z.number().min(3, 'طول الرقم يجب أن يكون 3 على الأقل').max(12, 'طول الرقم لا يجب أن يتجاوز 12').default(6),
+  resetPeriod: z.string().default('NEVER')
+});
+
+type SequenceFormValues = z.infer<typeof sequenceSchema>;
+
 export default function NumberSequencesPage() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const { success: toastSuccess, error: toastError } = useToast();
   const [items, setItems] = useState<NumberSequence[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({ code: '', name: '', prefix: '', suffix: '', padLength: 6, resetPeriod: 'NEVER' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [seeding, setSeeding] = useState(false);
 
   const fetchItems = async () => {
@@ -43,27 +56,24 @@ export default function NumberSequencesPage() {
 
   useEffect(() => { fetchItems(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.code || !form.name) return;
+  const handleSubmit = async (data: SequenceFormValues) => {
     setSaving(true);
-    setError('');
     try {
       const res = await fetch('/api/settings/number-sequences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(data),
       });
       if (res.ok) {
-        setForm({ code: '', name: '', prefix: '', suffix: '', padLength: 6, resetPeriod: 'NEVER' });
         setShowForm(false);
+        toastSuccess('تم حفظ التسلسل بنجاح');
         fetchItems();
       } else {
-        const data = await res.json();
-        setError(data.error || 'فشل الحفظ');
+        const d = await res.json();
+        toastError(d.error || 'فشل الحفظ');
       }
     } catch {
-      setError('خطأ في الاتصال');
+      toastError('خطأ في الاتصال');
     } finally {
       setSaving(false);
     }
@@ -77,8 +87,11 @@ export default function NumberSequencesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'seed' }),
       });
-      if (res.ok) fetchItems();
-    } catch { /* ignore */ } finally {
+      if (res.ok) {
+        toastSuccess('تم تهيئة التسلسلات الافتراضية');
+        fetchItems();
+      }
+    } catch { toastError('حدث خطأ'); } finally {
       setSeeding(false);
     }
   };
@@ -86,7 +99,7 @@ export default function NumberSequencesPage() {
   const previewNumber = (seq: NumberSequence) => {
     const next = seq.lastNumber + 1;
     const padded = String(next).padStart(seq.padLength, '0');
-    return `${seq.prefix}${padded}${seq.suffix}`;
+    return `${seq.prefix || ''}${padded}${seq.suffix || ''}`;
   };
 
   const filtered = items.filter(i =>
@@ -126,43 +139,36 @@ export default function NumberSequencesPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
           <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>إضافة تسلسل ترقيم جديد</h3>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الرمز *</label>
-              <input className="input" placeholder="مثال: INV" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} required />
+          <Form 
+            schema={sequenceSchema} 
+            defaultValues={{ code: '', name: '', prefix: '', suffix: '', padLength: 6, resetPeriod: 'NEVER' }} 
+            onSubmit={handleSubmit}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField name="code" label="الرمز *" placeholder="مثال: INV" dir="ltr" />
+              <FormField name="name" label="الاسم *" placeholder="فواتير المبيعات" />
+              <FormField name="prefix" label="البادئة (Prefix)" placeholder="INV-" dir="ltr" />
+              
+              <FormField name="suffix" label="اللاحقة (Suffix)" placeholder="" dir="ltr" />
+              <FormField name="padLength" type="number" label="طول الرقم" min="3" max="12" dir="ltr" />
+              
+              <FormSelect 
+                name="resetPeriod" 
+                label="إعادة التعيين" 
+                options={[
+                  { label: 'بدون إعادة تعيين', value: 'NEVER' },
+                  { label: 'سنوياً', value: 'YEARLY' },
+                  { label: 'شهرياً', value: 'MONTHLY' },
+                ]} 
+              />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الاسم *</label>
-              <input className="input" placeholder="فواتير المبيعات" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>البادئة (Prefix)</label>
-              <input className="input" placeholder="INV-" value={form.prefix} onChange={e => setForm({ ...form, prefix: e.target.value })} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>اللاحقة (Suffix)</label>
-              <input className="input" placeholder="" value={form.suffix} onChange={e => setForm({ ...form, suffix: e.target.value })} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>طول الرقم</label>
-              <input className="input" type="number" min={3} max={12} value={form.padLength} onChange={e => setForm({ ...form, padLength: parseInt(e.target.value) || 6 })} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>إعادة التعيين</label>
-              <select className="input" value={form.resetPeriod} onChange={e => setForm({ ...form, resetPeriod: e.target.value })}>
-                <option value="NEVER">بدون إعادة تعيين</option>
-                <option value="YEARLY">سنوياً</option>
-                <option value="MONTHLY">شهرياً</option>
-              </select>
-            </div>
-            <div style={{ gridColumn: 'span 3', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
               <button className="btn" type="button" onClick={() => setShowForm(false)}>إلغاء</button>
               <button className="btn btn-primary" type="submit" disabled={saving}>
                 {saving ? 'جاري الحفظ...' : 'حفظ'}
               </button>
             </div>
-          </form>
-          {error && <div style={{ color: '#ef4444', marginTop: '0.75rem', fontSize: '0.9rem' }}>{error}</div>}
+          </Form>
         </div>
       )}
 
@@ -199,14 +205,14 @@ export default function NumberSequencesPage() {
             <tbody>
               {filtered.map(item => (
                 <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }}>{item.code}</td>
+                  <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--primary)' }} dir="ltr" className="text-right">{item.code}</td>
                   <td style={{ padding: '1rem', fontWeight: 'bold' }}>{item.name}</td>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{item.prefix || '—'}</td>
+                  <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }} dir="ltr" className="text-right">{item.prefix || '—'}</td>
                   <td style={{ padding: '1rem', textAlign: 'center' }}>{item.padLength}</td>
                   <td style={{ padding: '1rem', textAlign: 'center', fontFamily: 'monospace' }}>{item.lastNumber}</td>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#22c55e' }}>
-                    <RefreshCw size={14} style={{ display: 'inline', marginLeft: '0.5rem' }} />
+                  <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#22c55e' }} dir="ltr" className="text-right">
                     {previewNumber(item)}
+                    <RefreshCw size={14} style={{ display: 'inline', marginRight: '0.5rem' }} />
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'center' }}>
                     <span style={{

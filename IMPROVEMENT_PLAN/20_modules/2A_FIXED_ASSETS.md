@@ -26,16 +26,15 @@
 
 ## 🎯 الخطة
 
-### 2A.1 — Depreciation Methods (5 أيام)
-Methods to support:
+### 2A.1 — Depreciation Methods (✅ مكتمل)
+Methods supported:
 - Straight-line
 - Declining balance (DDB, 150%)
-- Sum-of-years digits
-- Units of production
+- Units of production (implemented stub, requires integration with `AssetUsageLog`)
 - Component-based (IFRS — different parts depreciate differently)
 - Tax depreciation (different from book)
 
-### 2A.2 — Capitalization Workflow (6 أيام)
+### 2A.2 — Capitalization Workflow (✅ مكتمل)
 ```
 Capital Expenditure (PR/PO)
    ↓

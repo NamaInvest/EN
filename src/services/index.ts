@@ -31,3 +31,11 @@ export type { PayslipData, SalaryComponent, LoanScheduleLine }      from './hr/p
 export { BaseService }    from './shared/base.service';
 export { eventBus }       from './shared/event-bus.service';
 export type { BusinessContext } from './shared/event-bus.service';
+
+// FA
+export { FixedAssetService } from './fa/fixed-asset.service';
+export type { DepreciationPreview } from './fa/fixed-asset.service';
+
+// GL
+export { AccountDeterminationService } from './gl/account-determination.service';
+export type { AccountPurpose } from './gl/account-determination.service';

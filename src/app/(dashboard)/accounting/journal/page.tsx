@@ -56,6 +56,9 @@ export default function JournalSearchPage() {
  <button className="btn btn-secondary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
  <Printer size={18} /> طباعة
  </button>
+ <Link href="/accounting/journal/new" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+ <FileText size={18} /> إضافة قيد جديد
+ </Link>
  </div>
 
  <div className="card no-print" style={{ marginBottom: '2rem' }}>

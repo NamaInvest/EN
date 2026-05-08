@@ -152,7 +152,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /root/namasoft9-3-main
+            cd /www/wwwroot/namainvist.com
             # Snapshot current commit for rollback
             PREV_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREV_COMMIT"
@@ -161,20 +161,13 @@ jobs:
             npm ci --production
             npx prisma generate
 
-            # Schema sync — additive only.
-            # We use `prisma db push` (NOT `--accept-data-loss`) which:
-            #   - creates new tables/columns automatically (additive: safe)
-            #   - REFUSES destructive changes (dropped column/table) and exits
-            #     with code 1, which `set -e` catches and triggers rollback.
-            # Migration files in prisma/migrations/ are out of sync with the
-            # current schema, so `migrate deploy` would no-op while leaving
-            # new tables uncreated. db-push without the destructive flag is
-            # the closest thing to a safe deploy until proper migrations
-            # are reintroduced (tracked in HARDENING.md).
-            npx prisma db push --skip-generate
+            # Schema sync — Multi-Tenant Databases
+            # We use `prisma db push` (additive: safe) for each tenant DB
+            DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" npx prisma db push --skip-generate
+            DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" npx prisma db push --skip-generate
 
             npm run build
-            pm2 restart namasoft-main
+            pm2 restart ecosystem.config.js --update-env
 
             # Health check; rollback on failure
             sleep 5
@@ -184,7 +177,7 @@ jobs:
               npm ci --production
               npx prisma generate
               npm run build
-              pm2 restart namasoft-main
+              pm2 restart ecosystem.config.js --update-env
               exit 1
             fi
             echo "✅ Deployed successfully at $(date)"
