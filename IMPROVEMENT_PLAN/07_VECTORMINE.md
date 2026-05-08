@@ -354,10 +354,10 @@ export class HybridSearcher {
 ---
 
 ## ✅ معايير القبول
-- [ ] HNSW index على pgvector فعّال
-- [ ] Hybrid search (BM25 + Vector) يعمل
-- [ ] Cross-encoder re-ranker مدمج
-- [ ] Ingestion pipeline يدعم 4 sources
-- [ ] Embedding cache في Redis
-- [ ] Recall@10 > 90% على golden set
-- [ ] Latency p95 < 100ms
+- [x] HNSW index على pgvector فعّال
+- [x] Hybrid search (BM25 + Vector) يعمل
+- [x] Cross-encoder re-ranker مدمج
+- [x] Ingestion pipeline يدعم 4 sources
+- [x] Embedding cache في Redis
+- [x] Recall@10 > 90% على golden set
+- [x] Latency p95 < 100ms
