@@ -1,67 +1,37 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { n } from '@/lib/decimal-utils';
-
 import { getUserFromRequest } from '@/lib/auth';
+import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
+
+/**
+ * GET /api/accounting/trial-balance
+ * Query: ?from=2025-01-01&to=2025-12-31
+ */
 export async function GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+  const user = getUserFromRequest(request);
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const tenantId = user.tenantId ?? 'default';
+  const prisma   = getPrisma(request);
+  const params   = request.nextUrl.searchParams;
+  const from     = params.get('from');
+  const to       = params.get('to');
 
-    const prisma = getPrisma(request);
-    try {
-        const { searchParams } = new URL(request.url);
-        const fromDate = searchParams.get('from');
-        const toDate = searchParams.get('to');
+  if (!from || !to) {
+    return NextResponse.json({ error: 'يجب تحديد from و to' }, { status: 400 });
+  }
 
-        // Fetch all accounts
-        const accounts = await prisma.account.findMany({
-            take: 100,
-            orderBy: { code: 'asc' }
-        });
+  const engine = new FinancialStatementsEngine(prisma);
+  const rows   = await engine.generateTrialBalance(tenantId, new Date(from), new Date(to));
 
-        // Fetch all journal lines within the period
-        const dateFilter: any = {};
-        if (fromDate || toDate) {
-            dateFilter.journalEntry = {};
-            if (fromDate) dateFilter.journalEntry.entryDate = { gte: fromDate };
-            if (toDate) dateFilter.journalEntry.entryDate = { ...dateFilter.journalEntry.entryDate, lte: toDate };
-        }
+  const totalDebits  = rows.reduce((s, r) => s + r.debits.toNumber(), 0);
+  const totalCredits = rows.reduce((s, r) => s + r.credits.toNumber(), 0);
+  const isBalanced   = Math.abs(totalDebits - totalCredits) < 1;
 
-        const lines = await prisma.journalLine.findMany({
-            take: 100,
-            where: dateFilter,
-            select: { accountId: true, debit: true, credit: true }
-        });
-
-        // Compute running totals
-        const accountTotals: Record<number, { debit: number, credit: number }> = {};
-        
-        lines.forEach(line => {
-            if (!accountTotals[line.accountId]) {
-                accountTotals[line.accountId] = { debit: 0, credit: 0 };
-            }
-            accountTotals[line.accountId].debit += n(line.debit);
-            accountTotals[line.accountId].credit += n(line.credit);
-        });
-
-        // Merge back into accounts
-        const processedAccounts = accounts.map(acc => {
-            const totals = accountTotals[acc.id] || { debit: 0, credit: 0 };
-            return {
-                ...acc,
-                periodDebit: totals.debit,
-                periodCredit: totals.credit,
-                netBalance: (acc.type === 'asset' || acc.type === 'expense') 
-                    ? totals.debit - totals.credit 
-                    : totals.credit - totals.debit
-            };
-        });
-
-        return NextResponse.json({ accounts: processedAccounts }, { status: 200 });
-
-    } catch (e: any) {
-        console.error("Trial Balance API Error:", e);
-        return NextResponse.json({ error: 'Failed to generate Trial Balance' }, { status: 500 });
-    }
+  return NextResponse.json({
+    success: true,
+    from, to,
+    totalDebits, totalCredits, isBalanced,
+    rows,
+  });
 }
