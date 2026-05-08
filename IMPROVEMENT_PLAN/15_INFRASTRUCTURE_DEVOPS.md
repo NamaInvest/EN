@@ -439,13 +439,13 @@ ANALYZE=true npm run build
 ---
 
 ## ✅ معايير القبول
-- [ ] `.env` غير موجود في git history
-- [ ] Doppler/Vault يدير كل secrets
-- [ ] Ghost PostgreSQL متوقّف
-- [ ] Sentry sampling = 0.1 في prod
-- [ ] Health endpoints تغطي 6 services
-- [ ] OpenTelemetry traces ظاهرة
-- [ ] Prometheus + Grafana dashboards
-- [ ] لا `console.log` في src/
-- [ ] Bundle size analyzed
-- [ ] Backup يعمل + اختبار restore شهري
+- [x] `.env` غير موجود في git history
+- [x] Doppler/Vault يدير كل secrets
+- [x] Ghost PostgreSQL متوقّف
+- [x] Sentry sampling = 0.1 في prod
+- [x] Health endpoints تغطي 6 services
+- [x] OpenTelemetry traces ظاهرة
+- [x] Prometheus + Grafana dashboards
+- [x] لا `console.log` في src/
+- [x] Bundle size analyzed
+- [x] Backup يعمل + اختبار restore شهري

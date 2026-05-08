@@ -102,7 +102,7 @@ jobs:
       - name: Run Prompt Eval Suite
         run: npx tsx scripts/run-prompt-evals.ts
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: AIzaSyDZqiANOXJNNYw6_gH69-t_rUfdbPYYlKY
 
   a11y:
     name: Accessibility Tests

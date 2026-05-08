@@ -10,6 +10,8 @@ import { logger } from './src/lib/logger';
 
 export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
+        // ── 0. OpenTelemetry ─────────────────────────────────────────────
+        await import('./src/lib/instrumentation/otel');
 
         // ── 1. Tenant Context ────────────────────────────────────────────
         await import('./src/lib/prisma');
