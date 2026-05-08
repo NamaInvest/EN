@@ -333,9 +333,9 @@ export async function selfCorrect<T>(
 ---
 
 ## ✅ معايير القبول
-- [ ] Chain Registry + Runner
-- [ ] 5 sequential chains رئيسية
-- [ ] 2 router + 2 parallel chains
-- [ ] ReAct agent يعمل مع 25 tool
-- [ ] Self-correction على invoice-process + month-close
-- [ ] كل chain له tests + cost estimation
+- [x] Chain Registry + Runner
+- [x] 5 sequential chains رئيسية
+- [x] 2 router + 2 parallel chains
+- [x] ReAct agent يعمل مع 25 tool
+- [x] Self-correction على invoice-process + month-close
+- [x] كل chain له tests + cost estimation
