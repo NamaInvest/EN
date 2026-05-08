@@ -1,156 +1,203 @@
-import { PrismaClient } from '@prisma/client';
+/**
+ * State Machine Engine
+ * ──────────────────────────────────────────────────────────
+ * Generic finite state machine for ERP document workflows.
+ * Supports: Invoices, Purchase Orders, Leave Requests, Journal Entries.
+ *
+ * Usage:
+ *   const machine = StateMachine.create('invoice', {
+ *     initial: 'draft',
+ *     transitions: {
+ *       draft:     ['submitted', 'cancelled'],
+ *       submitted: ['approved', 'rejected', 'cancelled'],
+ *       approved:  ['posted', 'cancelled'],
+ *       posted:    ['reversed'],
+ *       rejected:  ['draft'],
+ *       reversed:  [],
+ *       cancelled: [],
+ *     },
+ *     hooks: {
+ *       onEnter: { approved: async (ctx) => sendNotification(ctx) },
+ *       onExit:  { draft: async (ctx) => validateFields(ctx) },
+ *     }
+ *   });
+ *
+ *   await machine.transition(doc, 'submitted', { userId: 1 });
+ */
 
-const prisma = new PrismaClient();
+import { logger } from '@/lib/logger';
 
-export type BaseState = 'DRAFT' | 'SUBMITTED' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'POSTED' | 'PAID' | 'PARTIAL_PAID' | 'CANCELLED' | 'REVERSED' | 'ACTIVE' | 'INACTIVE';
+const log = logger.child({ route: 'StateMachine' });
 
 export interface TransitionContext {
-    userId?: number;
-    reason?: string;
-    [key: string]: any;
+  documentId: number;
+  documentType: string;
+  fromState: string;
+  toState: string;
+  userId?: number;
+  metadata?: Record<string, unknown>;
+  timestamp: Date;
 }
 
-export class StateMachine<T extends string> {
-    private transitions: Record<T, T[]>;
-    public entityType: string;
-
-    constructor(entityType: string, transitions: Record<T, T[]>) {
-        this.entityType = entityType;
-        this.transitions = transitions;
-    }
-
-    public getValidTransitions(currentState: T): T[] {
-        return this.transitions[currentState] || [];
-    }
-
-    public canTransition(currentState: T, targetState: T): boolean {
-        const allowed = this.getValidTransitions(currentState);
-        return allowed.includes(targetState);
-    }
-
-    public async transition(
-        entityId: number,
-        currentState: T,
-        targetState: T,
-        context: TransitionContext = {}
-    ): Promise<boolean> {
-        if (!this.canTransition(currentState, targetState)) {
-            throw new Error(`Invalid state transition for ${this.entityType}: ${currentState} -> ${targetState}`);
-        }
-
-        // Post-validation: Cannot delete a POSTED document, etc.
-        // This is handled upstream (where the actual delete happens), but we can add hooks here if needed.
-
-        await prisma.documentStateLog.create({
-            data: {
-                entityType: this.entityType,
-                entityId,
-                fromState: currentState,
-                toState: targetState,
-                userId: context.userId || null,
-                reason: context.reason || null,
-            }
-        });
-
-        return true;
-    }
+interface StateHooks {
+  onEnter?: Record<string, (ctx: TransitionContext) => Promise<void>>;
+  onExit?: Record<string, (ctx: TransitionContext) => Promise<void>>;
+  onTransition?: (ctx: TransitionContext) => Promise<void>;
+  guard?: Record<string, (ctx: TransitionContext) => Promise<boolean>>;
 }
 
-// ----------------------------------------------------
-// Entity Specific State Machines
-// ----------------------------------------------------
-
-export const InvoiceStateMachine = new StateMachine<BaseState>('INVOICE', {
-    DRAFT: ['SUBMITTED', 'CANCELLED'],
-    SUBMITTED: ['APPROVED', 'REJECTED', 'DRAFT'],
-    PENDING_APPROVAL: ['APPROVED', 'REJECTED'],
-    APPROVED: ['POSTED', 'CANCELLED'],
-    POSTED: ['PAID', 'PARTIAL_PAID', 'REVERSED'], // Cannot delete
-    PAID: ['REVERSED'],
-    PARTIAL_PAID: ['PAID', 'REVERSED'],
-    REJECTED: ['DRAFT', 'CANCELLED'],
-    CANCELLED: [],
-    REVERSED: [],
-    ACTIVE: [],
-    INACTIVE: []
-});
-
-export const JournalEntryStateMachine = new StateMachine<BaseState>('JOURNAL_ENTRY', {
-    DRAFT: ['SUBMITTED', 'CANCELLED'],
-    SUBMITTED: ['APPROVED', 'REJECTED'],
-    PENDING_APPROVAL: ['APPROVED', 'REJECTED'],
-    APPROVED: ['POSTED', 'CANCELLED'],
-    POSTED: ['REVERSED'], // Cannot delete
-    REJECTED: ['DRAFT', 'CANCELLED'],
-    CANCELLED: [],
-    REVERSED: [],
-    PAID: [],
-    PARTIAL_PAID: [],
-    ACTIVE: [],
-    INACTIVE: []
-});
-
-export const PurchaseOrderStateMachine = new StateMachine<BaseState>('PURCHASE_ORDER', {
-    DRAFT: ['SUBMITTED', 'CANCELLED'],
-    SUBMITTED: ['APPROVED', 'REJECTED'],
-    PENDING_APPROVAL: ['APPROVED', 'REJECTED'],
-    APPROVED: ['POSTED', 'CANCELLED'],
-    POSTED: ['CANCELLED', 'REVERSED'],
-    REJECTED: ['DRAFT', 'CANCELLED'],
-    CANCELLED: [],
-    REVERSED: [],
-    PAID: [],
-    PARTIAL_PAID: [],
-    ACTIVE: [],
-    INACTIVE: []
-});
-
-export const GRNStateMachine = new StateMachine<BaseState>('GRN', {
-    DRAFT: ['SUBMITTED', 'CANCELLED'],
-    SUBMITTED: ['APPROVED', 'REJECTED'],
-    PENDING_APPROVAL: ['APPROVED', 'REJECTED'],
-    APPROVED: ['POSTED', 'CANCELLED'],
-    POSTED: ['REVERSED'],
-    REJECTED: ['DRAFT', 'CANCELLED'],
-    CANCELLED: [],
-    REVERSED: [],
-    PAID: [],
-    PARTIAL_PAID: [],
-    ACTIVE: [],
-    INACTIVE: []
-});
-
-// Used for simpler entities like Customer/Vendor/Employee
-export const MasterDataStateMachine = new StateMachine<BaseState>('MASTER_DATA', {
-    DRAFT: ['ACTIVE'],
-    ACTIVE: ['INACTIVE'],
-    INACTIVE: ['ACTIVE'],
-    SUBMITTED: [],
-    PENDING_APPROVAL: [],
-    APPROVED: [],
-    REJECTED: [],
-    POSTED: [],
-    PAID: [],
-    PARTIAL_PAID: [],
-    CANCELLED: [],
-    REVERSED: []
-});
-
-export function getStateMachineFor(entityType: string): StateMachine<BaseState> {
-    switch (entityType) {
-        case 'INVOICE': return InvoiceStateMachine;
-        case 'JOURNAL_ENTRY': return JournalEntryStateMachine;
-        case 'PO':
-        case 'PURCHASE_ORDER': return PurchaseOrderStateMachine;
-        case 'GRN': return GRNStateMachine;
-        case 'CUSTOMER':
-        case 'VENDOR':
-        case 'EMPLOYEE':
-        case 'ASSET':
-            return MasterDataStateMachine;
-        default:
-            throw new Error(`No state machine defined for entity: ${entityType}`);
-    }
+interface MachineConfig {
+  initial: string;
+  transitions: Record<string, string[]>;
+  hooks?: StateHooks;
 }
 
-// Force TS re-evaluation
+export class StateMachine {
+  private name: string;
+  private config: MachineConfig;
+
+  private constructor(name: string, config: MachineConfig) {
+    this.name = name;
+    this.config = config;
+  }
+
+  static create(name: string, config: MachineConfig): StateMachine {
+    return new StateMachine(name, config);
+  }
+
+  /** Get allowed next states from current state */
+  getAllowedTransitions(currentState: string): string[] {
+    return this.config.transitions[currentState] || [];
+  }
+
+  /** Check if transition is valid */
+  canTransition(currentState: string, targetState: string): boolean {
+    const allowed = this.getAllowedTransitions(currentState);
+    return allowed.includes(targetState);
+  }
+
+  /** Execute a state transition with hooks */
+  async transition(
+    document: { id: number; status: string },
+    targetState: string,
+    options: { userId?: number; metadata?: Record<string, unknown> } = {}
+  ): Promise<TransitionContext> {
+    const currentState = document.status;
+
+    // Validate transition
+    if (!this.canTransition(currentState, targetState)) {
+      const allowed = this.getAllowedTransitions(currentState);
+      throw new Error(
+        `انتقال غير صالح: ${currentState} → ${targetState}. المسموح: [${allowed.join(', ')}]`
+      );
+    }
+
+    const ctx: TransitionContext = {
+      documentId: document.id,
+      documentType: this.name,
+      fromState: currentState,
+      toState: targetState,
+      userId: options.userId,
+      metadata: options.metadata,
+      timestamp: new Date(),
+    };
+
+    // Guard check
+    if (this.config.hooks?.guard?.[targetState]) {
+      const allowed = await this.config.hooks.guard[targetState](ctx);
+      if (!allowed) {
+        throw new Error(`شرط الحراسة رفض الانتقال إلى ${targetState}`);
+      }
+    }
+
+    // onExit hook
+    if (this.config.hooks?.onExit?.[currentState]) {
+      await this.config.hooks.onExit[currentState](ctx);
+    }
+
+    // onEnter hook
+    if (this.config.hooks?.onEnter?.[targetState]) {
+      await this.config.hooks.onEnter[targetState](ctx);
+    }
+
+    // Global transition hook
+    if (this.config.hooks?.onTransition) {
+      await this.config.hooks.onTransition(ctx);
+    }
+
+    log.info(`${this.name} #${document.id}: ${currentState} → ${targetState}`, {
+      userId: options.userId,
+    });
+
+    return ctx;
+  }
+
+  /** Get initial state */
+  get initialState(): string {
+    return this.config.initial;
+  }
+
+  /** Get all states */
+  get states(): string[] {
+    return Object.keys(this.config.transitions);
+  }
+
+  /** Get machine diagram (for debugging/visualization) */
+  describe(): Record<string, string[]> {
+    return { ...this.config.transitions };
+  }
+}
+
+// ── Pre-built Machines ──────────────────────────────────
+
+export const InvoiceMachine = StateMachine.create('invoice', {
+  initial: 'draft',
+  transitions: {
+    draft: ['submitted', 'cancelled'],
+    submitted: ['approved', 'rejected', 'cancelled'],
+    approved: ['posted', 'cancelled'],
+    posted: ['reversed'],
+    rejected: ['draft'],
+    reversed: [],
+    cancelled: [],
+  },
+});
+
+export const PurchaseOrderMachine = StateMachine.create('purchase_order', {
+  initial: 'draft',
+  transitions: {
+    draft: ['submitted', 'cancelled'],
+    submitted: ['approved', 'rejected'],
+    approved: ['ordered', 'cancelled'],
+    ordered: ['partially_received', 'received', 'cancelled'],
+    partially_received: ['received', 'cancelled'],
+    received: ['invoiced'],
+    invoiced: ['paid', 'disputed'],
+    paid: [],
+    rejected: ['draft'],
+    disputed: ['invoiced', 'cancelled'],
+    cancelled: [],
+  },
+});
+
+export const LeaveRequestMachine = StateMachine.create('leave_request', {
+  initial: 'pending',
+  transitions: {
+    pending: ['approved', 'rejected'],
+    approved: ['cancelled'],
+    rejected: [],
+    cancelled: [],
+  },
+});
+
+export const JournalMachine = StateMachine.create('journal_entry', {
+  initial: 'draft',
+  transitions: {
+    draft: ['pending_approval', 'posted', 'cancelled'],
+    pending_approval: ['posted', 'rejected'],
+    posted: ['reversed'],
+    rejected: ['draft'],
+    reversed: [],
+    cancelled: [],
+  },
+});

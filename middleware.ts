@@ -34,6 +34,7 @@ const PUBLIC_ROUTES = [
   '/api/webhooks',
   '/api/public',
   '/api/pos/session/open',    // POS initial login
+  '/api/docs',                // OpenAPI documentation
 ];
 
 // ─── Permanently Disabled Routes (HTTP 410 Gone) ───────────────

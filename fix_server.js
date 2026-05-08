@@ -31,21 +31,22 @@ function exec(conn, cmd) {
 const SITE = '/www/wwwroot/namainvist.com';
 
 const FILES = [
-    'src/lib/services/index.ts',
+    'src/lib/idempotency.ts',
+    'src/lib/state-machine.ts',
+    'src/lib/webhooks.ts',
+    'src/lib/approval-engine.ts',
+    'src/lib/api-keys.ts',
     'src/lib/services/accounting.service.ts',
     'src/lib/services/sales.service.ts',
     'src/lib/services/hr.service.ts',
-    'src/lib/cache.ts',
-    'src/lib/api-handler.ts',
-    'src/lib/validations.ts',
-    'next.config.ts',
+    'src/lib/services/index.ts',
+    '.github/workflows/codeql.yml',
 ];
 
 c.on('ready', async () => {
-    console.log('🔌 Final KICKOFF Deploy\n');
+    console.log('🔌 Phase 2 (Workflow & API) Deploy\n');
     
-    // Create services dir
-    await exec(c, `mkdir -p ${SITE}/src/lib/services`);
+    await exec(c, `mkdir -p ${SITE}/src/lib/services ${SITE}/.github/workflows`);
     
     for (const f of FILES) {
         const local = path.join(__dirname, f);
@@ -56,31 +57,12 @@ c.on('ready', async () => {
     }
     
     console.log('\n🔨 Building...');
-    await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -5`);
+    await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -3`);
     
     console.log('\n🔄 Restarting...');
-    await exec(c, 'pm2 restart all --silent');
+    await exec(c, 'pm2 restart all --silent && sleep 5 && pm2 list');
     
-    console.log('\n📊 Status:');
-    await exec(c, 'sleep 5 && pm2 list');
-    
-    // KICKOFF verification
-    console.log('\n\n═══ KICKOFF CHECKLIST VERIFICATION ═══');
-    console.log('\n🔒 Dangerous routes:');
-    await exec(c, 'curl -s http://localhost:3000/api/system/reset | head -1');
-    await exec(c, 'curl -s http://localhost:3000/api/check-env | head -1');
-    
-    console.log('\n🏥 Health:');
-    await exec(c, 'curl -sI http://localhost:3000/api/health | head -1');
-    await exec(c, 'curl -sI http://localhost:3000 | head -1');
-    
-    console.log('\n📦 Backup cron:');
-    await exec(c, 'crontab -l 2>/dev/null | grep -i backup || echo "No backup cron found"');
-    
-    console.log('\n🐘 PostgreSQL instances:');
-    await exec(c, 'ss -tlnp | grep postgres | head -3');
-    
-    console.log('\n✅ KICKOFF COMPLETE!');
+    console.log('\n✅ PHASE 2 DEPLOYED!');
     c.end();
 });
 
