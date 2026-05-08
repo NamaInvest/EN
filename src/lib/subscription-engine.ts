@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class SubscriptionEngine {
     
@@ -36,7 +37,7 @@ export class SubscriptionEngine {
 
         // Create initial invoice if no trial and there is a setup fee or immediate billing
         if (plan.trialDays === 0) {
-            await this.generateInvoice(subscription.id, plan.price + (plan.setupFee || 0));
+            await this.generateInvoice(subscription.id, n(plan.price) + (n(plan.setupFee) || 0));
         } else if (plan.setupFee && plan.setupFee > 0) {
             await this.generateInvoice(subscription.id, plan.setupFee);
         }
@@ -106,7 +107,7 @@ export class SubscriptionEngine {
 
         for (const sub of dueSubscriptions) {
             // Generate Invoice
-            const invoice = await this.generateInvoice(sub.id, sub.plan.price);
+            const invoice = await this.generateInvoice(sub.id, n(sub.plan.price));
             
             // Try to auto-charge if paymentMethodId is set
             if (sub.paymentMethodId) {

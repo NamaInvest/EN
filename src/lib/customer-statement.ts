@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class CustomerStatementEngine {
     
@@ -25,7 +26,7 @@ export class CustomerStatementEngine {
             _sum: { totalReceived: true }
         });
 
-        const priorInvTotal = (priorInvoices._sum.subtotal || 0) + (priorInvoices._sum.taxValue || 0);
+        const priorInvTotal = n(priorInvoices._sum.subtotal) + n(priorInvoices._sum.taxValue);
         const priorRecTotal = Number(priorReceipts._sum?.totalReceived || 0);
         const openingBalance = priorInvTotal - priorRecTotal;
 
@@ -50,7 +51,7 @@ export class CustomerStatementEngine {
         // Merge and sort transactions by date
         const transactions: any[] = [];
         periodInvoices.forEach(inv => {
-            const total = inv.subtotal + inv.taxValue;
+            const total = n(inv.subtotal) + n(inv.taxValue);
             transactions.push({
                 type: 'INVOICE',
                 id: inv.id,
@@ -106,13 +107,13 @@ export class CustomerStatementEngine {
             dueDate.setDate(dueDate.getDate() + 30); // Mock 30-day term
             
             if (toDate <= dueDate) {
-                aging.current += inv.remaining;
+                aging.current += n(inv.remaining);
             } else {
                 const diffDays = Math.ceil((toDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 30) aging.thirtyDays += inv.remaining;
-                else if (diffDays <= 60) aging.sixtyDays += inv.remaining;
-                else if (diffDays <= 90) aging.ninetyDays += inv.remaining;
-                else aging.overOneTwenty += inv.remaining;
+                if (diffDays <= 30) aging.thirtyDays += n(inv.remaining);
+                else if (diffDays <= 60) aging.sixtyDays += n(inv.remaining);
+                else if (diffDays <= 90) aging.ninetyDays += n(inv.remaining);
+                else aging.overOneTwenty += n(inv.remaining);
             }
         });
 

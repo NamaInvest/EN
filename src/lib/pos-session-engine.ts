@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class PosSessionEngine {
     
@@ -99,14 +100,14 @@ export class PosSessionEngine {
         // Let's use movements to calculate base shifts
         let movementNet = 0;
         for (const mov of session.movements) {
-            if (mov.type === 'CASH_IN' && mov.reason !== 'Opening Float') movementNet += mov.amount;
-            if (mov.type === 'CASH_OUT' || mov.type === 'DROP' || mov.type === 'LIFT') movementNet -= mov.amount;
+            if (mov.type === 'CASH_IN' && mov.reason !== 'Opening Float') movementNet += n(mov.amount);
+            if (mov.type === 'CASH_OUT' || mov.type === 'DROP' || mov.type === 'LIFT') movementNet -= n(mov.amount);
         }
 
         // Dummy cash sales querying (for real we need PaymentTransaction linked to SalesInvoice)
         const mockCashSales = 0; 
         
-        const expectedClosing = session.openingFloat + movementNet + mockCashSales;
+        const expectedClosing = n(session.openingFloat) + movementNet + mockCashSales;
         const variance = actualClosingCash - expectedClosing;
 
         // Update Session

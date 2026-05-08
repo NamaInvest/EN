@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import { createJournalEntry, ACCOUNTS } from './auto-journal';
+import { n } from './decimal-utils';
 
 export type EOSReason = 'RESIGNATION' | 'TERMINATION' | 'TERMINATION_FOR_CAUSE' | 'RETIREMENT' | 'DEATH' | 'FORCE_MAJEURE';
 
@@ -38,8 +39,8 @@ export class SaudiEOSEngine {
         const diffTime = Math.abs(calcEndDate.getTime() - joinDate.getTime());
         const yearsOfService = diffTime / (1000 * 60 * 60 * 24 * 365.25);
         
-        const lastBasicSalary = employee.salary || 0;
-        const allowances = (employee.housingAllowance || 0) + (employee.transportAllowance || 0) + (employee.otherAllowance || 0);
+        const lastBasicSalary = n(employee.salary);
+        const allowances = n(employee.housingAllowance) + n(employee.transportAllowance) + n(employee.otherAllowance);
         const lastFullSalary = lastBasicSalary + allowances;
 
         // Article 84: First 5 years = half month salary per year, remaining = full month salary per year
@@ -90,7 +91,7 @@ export class SaudiEOSEngine {
             endDate: calcEndDate,
             reasonForLeaving: reason,
             yearsOfService,
-            lastBasicSalary,
+            lastBasicSalary: lastBasicSalary as number,
             lastFullSalary,
             firstFiveYearsAmount,
             remainingYearsAmount,
