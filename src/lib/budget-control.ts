@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { n } from './decimal-utils';
 
 export class BudgetControlEngine {
     private prisma: PrismaClient;
@@ -45,10 +46,10 @@ export class BudgetControlEngine {
             }
         });
 
-        const encumbered = activeEncumbrances._sum.amount || 0;
-        const available = allocated - spent - encumbered;
-        const proposedTotal = spent + encumbered + amount;
-        const breachPct = allocated > 0 ? (proposedTotal / allocated) * 100 : 100;
+        const encumbered = n(activeEncumbrances._sum.amount);
+        const available = n(allocated) - n(spent) - encumbered;
+        const proposedTotal = n(spent) + encumbered + amount;
+        const breachPct = n(allocated) > 0 ? (proposedTotal / n(allocated)) * 100 : 100;
 
         return {
             allowed: available >= amount,
@@ -129,8 +130,8 @@ export class BudgetControlEngine {
                 }
             });
 
-            const encumbered = activeEncumbrances._sum.amount || 0;
-            const variance = line.allocatedAmount - line.spentAmount - encumbered;
+            const encumbered = n(activeEncumbrances._sum.amount);
+            const variance = n(line.allocatedAmount) - n(line.spentAmount) - encumbered;
 
             variances.push({
                 accountId: line.accountId,

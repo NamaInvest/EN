@@ -48,19 +48,19 @@ export async function autoDecomposeIfNeeded(
     if (units.length === 0) return { decomposed: false, log };
 
     // بناء تسلسل هرمي: من الأصغر (factor صغير) للأكبر
-    const sorted = [...units].sort((a, b) => a.factor - b.factor);
+    const sorted = [...units].sort((a, b) => n(a.factor) - n(b.factor));
 
     let deficit = Math.abs(n(product.currentStock)); // العجز بالحبات
     let decomposed = false;
 
     for (const unit of sorted) {
         if (deficit <= 0) break;
-        if (unit.unitStock <= 0) continue; // لا يوجد من هذه الوحدة
+        if (n(unit.unitStock) <= 0) continue; // لا يوجد من هذه الوحدة
 
         // كم وحدة نحتاج نفتح
-        const unitsToBreak = Math.ceil(deficit / unit.factor);
-        const actualBreak = Math.min(unitsToBreak, unit.unitStock);
-        const addedPieces = actualBreak * unit.factor;
+        const unitsToBreak = Math.ceil(deficit / n(unit.factor));
+        const actualBreak = Math.min(unitsToBreak, n(unit.unitStock));
+        const addedPieces = actualBreak * n(unit.factor);
 
         // خصم من مخزون الوحدة
         await tx.productUnit.update({

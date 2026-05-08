@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class StandardCostEngine {
     
@@ -49,7 +50,7 @@ export class StandardCostEngine {
         if (!stdCost) return null;
 
         const expectedPrice = stdCost.materialCost;
-        const varianceAmount = (actualPrice - expectedPrice) * quantity;
+        const varianceAmount = (actualPrice - n(expectedPrice)) * quantity;
 
         if (varianceAmount === 0) return null;
 
@@ -118,7 +119,7 @@ export class StandardCostEngine {
         if (!stdCost) return null;
 
         const stdPrice = stdCost.materialCost;
-        const varianceAmount = (actualQty - expectedQty) * stdPrice;
+        const varianceAmount = (actualQty - expectedQty) * n(stdPrice);
 
         if (varianceAmount === 0) return null;
 

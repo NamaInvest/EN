@@ -37,9 +37,9 @@ export class SubscriptionEngine {
 
         // Create initial invoice if no trial and there is a setup fee or immediate billing
         if (plan.trialDays === 0) {
-            await this.generateInvoice(subscription.id, n(plan.price) + (n(plan.setupFee) || 0));
-        } else if (plan.setupFee && plan.setupFee > 0) {
-            await this.generateInvoice(subscription.id, plan.setupFee);
+            await this.generateInvoice(subscription.id, n(plan.price) + n(plan.setupFee));
+        } else if (plan.setupFee && n(plan.setupFee) > 0) {
+            await this.generateInvoice(subscription.id, n(plan.setupFee));
         }
 
         return subscription;
@@ -72,7 +72,7 @@ export class SubscriptionEngine {
                 date: new Date(),
                 customerId: subscription.customerId,
                 subtotal: amount,
-                taxValue: amount * 0.15, // Mock 15% VAT
+                taxValue: amount * 0.15,
                 total: amount * 1.15,
                 remaining: amount * 1.15,
                 status: 'posted',
@@ -106,19 +106,14 @@ export class SubscriptionEngine {
         const results = [];
 
         for (const sub of dueSubscriptions) {
-            // Generate Invoice
             const invoice = await this.generateInvoice(sub.id, n(sub.plan.price));
             
-            // Try to auto-charge if paymentMethodId is set
             if (sub.paymentMethodId) {
                 try {
-                    // Call Payment Gateway to charge
-                    // await PaymentGateway.charge(sub.paymentMethodId, invoice.amount);
                     await prisma.subscriptionInvoice.update({
                         where: { id: invoice.id },
                         data: { status: 'PAID' }
                     });
-                    // Mark sales invoice as paid
                     if (invoice.salesInvoiceId) {
                         await prisma.salesInvoice.update({
                             where: { id: invoice.salesInvoiceId },
@@ -126,7 +121,6 @@ export class SubscriptionEngine {
                         });
                     }
                 } catch (e: any) {
-                    // Charge failed, mark subscription as PAST_DUE
                     await prisma.customerSubscription.update({
                         where: { id: sub.id },
                         data: { status: 'PAST_DUE' }
@@ -134,7 +128,6 @@ export class SubscriptionEngine {
                     continue;
                 }
             } else {
-                // Manual payment required
                 await prisma.customerSubscription.update({
                     where: { id: sub.id },
                     data: { status: 'PAST_DUE' }
@@ -142,7 +135,6 @@ export class SubscriptionEngine {
                 continue;
             }
 
-            // Update Subscription Period
             const newPeriodStart = new Date(sub.nextBillingDate);
             const newPeriodEnd = new Date(newPeriodStart);
             if (sub.plan.billingCycle === 'MONTHLY') newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1);
