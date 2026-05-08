@@ -494,10 +494,10 @@ const KNOWLEDGE_SOURCES = [
 ---
 
 ## ✅ معايير القبول
-- [ ] Pipeline يدعم HyDE + Multi-query + Reranking
-- [ ] Citations في كل إجابة مع scores
-- [ ] RAGAS scores > 0.85 على golden set
-- [ ] 8 knowledge sources مفهرسة
-- [ ] CI يفشل لو RAGAS < threshold
-- [ ] Latency p95 < 1.5s
-- [ ] Cost per query < $0.001
+- [x] Pipeline يدعم HyDE + Multi-query + Reranking
+- [x] Citations في كل إجابة مع scores
+- [x] RAGAS scores > 0.85 على golden set
+- [x] 8 knowledge sources مفهرسة
+- [x] CI يفشل لو RAGAS < threshold
+- [x] Latency p95 < 1.5s
+- [x] Cost per query < $0.001
