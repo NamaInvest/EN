@@ -173,8 +173,14 @@ jobs:
             DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" npx prisma db push --skip-generate
             DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" npx prisma db push --skip-generate
 
+            # Grant Permissions to Application Users
+            sudo -u postgres psql -h localhost -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n11_db;" n11_db
+            sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n11_db;" n11_db
+            sudo -u postgres psql -h localhost -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n1_db;" n1_db
+            sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n1_db;" n1_db
+
             npm run build
-            pm2 restart ecosystem.config.js --update-env
+            pm2 restart ecosystem.config.js --update-env && pm2 save
 
             # Health check; rollback on failure
             sleep 5
