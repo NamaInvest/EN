@@ -281,16 +281,16 @@ export async function POST(request: Request) {
                 for (const pu of pUnits) {
                     if (deficit <= 0) break;
                     if ((pu as any).unitStock <= 0) continue;
-                    const toBreak = Math.min(Math.ceil(deficit / pu.factor), Number((pu as any).unitStock || 0));
+                    const toBreak = Math.min(Math.ceil(deficit / n(pu.factor)), Number((pu as any).unitStock || 0));
                     await tx.productUnit.update({
                         where: { id: pu.id },
                         data: { unitStock: { decrement: toBreak } } as any,
                     });
                     await tx.product.update({
                         where: { id: productId },
-                        data: { currentStock: { increment: toBreak * pu.factor } },
+                        data: { currentStock: { increment: toBreak * n(pu.factor) } },
                     });
-                    deficit = Math.max(0, deficit - toBreak * pu.factor);
+                    deficit = Math.max(0, deficit - toBreak * n(pu.factor));
                 }
 
                 try {
@@ -349,7 +349,7 @@ export async function POST(request: Request) {
                         userId: userId ?? 0,
                         action: `transition:draft→${createdInvoice.status}`,
                         tableName: 'salesinvoices',
-                        recordId: createdInvoice.id,
+                        recordId: String(createdInvoice.id),
                         details: `Direct POS API Creation (State-Machine Bypass Handled)`,
                     },
                 });
@@ -749,7 +749,7 @@ export async function DELETE(request: NextRequest) {
                     userId: auth.userId,
                     action: 'DELETE_SALES_INVOICE',
                     tableName: 'SalesInvoice',
-                    recordId: id,
+                    recordId: String(id),
                     details: JSON.stringify({ invoiceNo: invoice.invoiceNo, total: invoice.total, subtotal: invoice.subtotal, items: invoice.details.length })
                 }
             });

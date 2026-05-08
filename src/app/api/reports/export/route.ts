@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 /**
@@ -47,8 +48,8 @@ export async function GET(request: NextRequest) {
             const totals: Record<number, { d: number; c: number }> = {};
             lines.forEach(l => {
                 if (!totals[l.accountId]) totals[l.accountId] = { d: 0, c: 0 };
-                totals[l.accountId].d += l.debit || 0;
-                totals[l.accountId].c += l.credit || 0;
+                totals[l.accountId].d += n(l.debit);
+                totals[l.accountId].c += n(l.credit);
             });
 
             csvContent = `${companyName}\r\n`;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { transition, assertEditable, DocumentType, DocumentStatus } from '@/lib/document-state-machine';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
@@ -75,7 +76,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
                         userId: auth?.userId || 1,
                         action: 'GOVERNANCE_VIOLATION_ATTEMPT',
                         tableName: 'JournalEntry',
-                        recordId: Number(id),
+                        recordId: String(id),
                         details: JSON.stringify({ reason: 'Attempted to manually update control account', attemptedLines: lines })
                     }
                 });
@@ -174,9 +175,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
                         if (account) {
                             let balanceChange = 0;
                             if (['asset', 'expense'].includes(account.type)) {
-                                balanceChange = line.debit - line.credit;
+                                balanceChange = n(line.debit) - n(line.credit);
                             } else {
-                                balanceChange = line.credit - line.debit;
+                                balanceChange = n(line.credit) - n(line.debit);
                             }
                             await prisma.account.update({
                                 where: { id: line.accountId },

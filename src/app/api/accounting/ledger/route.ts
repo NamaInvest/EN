@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // GET - دفتر الأستاذ لحساب معين
 import { getUserFromRequest } from '@/lib/auth';
@@ -49,9 +50,9 @@ export async function GET(request: Request) {
 
         const ledgerLines = lines.map(line => {
             if (isDebitNormal) {
-                runningBalance += line.debit - line.credit;
+                runningBalance += n(line.debit) - n(line.credit);
             } else {
-                runningBalance += line.credit - line.debit;
+                runningBalance += n(line.credit) - n(line.debit);
             }
             return {
                 id: line.id,
@@ -68,8 +69,8 @@ export async function GET(request: Request) {
         return NextResponse.json({
             account: { id: account.id, code: account.code, name: account.name, type: account.type },
             lines: ledgerLines,
-            totalDebit: Math.round(lines.reduce((s: any, l: any) => s + l.debit, 0) * 100) / 100,
-            totalCredit: Math.round(lines.reduce((s: any, l: any) => s + l.credit, 0) * 100) / 100,
+            totalDebit: Math.round(lines.reduce((s: number, l: any) => s + n(l.debit), 0) * 100) / 100,
+            totalCredit: Math.round(lines.reduce((s: number, l: any) => s + n(l.credit), 0) * 100) / 100,
             closingBalance: Math.round(runningBalance * 100) / 100,
         });
     } catch (error: any) {

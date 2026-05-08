@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
         // Add Cost of scrap if any
         if (parseFloat(failedQuantity) > 0) {
-            const unitCost = order.totalCost / order.quantityToProduce;
+            const unitCost = n(order.totalCost) / n(order.quantityToProduce);
             const scrapCost = unitCost * parseFloat(failedQuantity);
             await prisma.manufacturingCost.create({
                 data: {
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
             // Update order total cost
             await prisma.manufacturingOrder.update({
                 where: { id: order.id },
-                data: { totalCost: order.totalCost + scrapCost }
+                data: { totalCost: n(order.totalCost) + scrapCost }
             });
 
             // Post Scrap Journal Entry

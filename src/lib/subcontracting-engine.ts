@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class SubcontractingEngine {
     
@@ -46,7 +47,7 @@ export class SubcontractingEngine {
             });
 
             if (stdCost) {
-                const totalCost = stdCost.totalStdCost * qty;
+                const totalCost = n(stdCost.totalStdCost) * qty;
 
                 const je = await tx.journalEntry.create({
                     data: {

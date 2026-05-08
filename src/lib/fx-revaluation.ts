@@ -43,7 +43,7 @@ export class FxRevaluationEngine {
                     orderBy: { date: 'desc' }
                 });
                 // Default to 1 if no rate found, though ideally this should throw
-                closingRates[currency.id] = latestRate?.rate || 1;
+                closingRates[currency.id] = n(latestRate?.rate) || 1;
             }
 
             // 3. Revalue Open Items (AR/AP)
@@ -68,7 +68,7 @@ export class FxRevaluationEngine {
                     orderBy: { date: 'desc' }
                 });
                 
-                const oldRate = oldRateObj?.rate || 1;
+                const oldRate = n(oldRateObj?.rate) || 1;
                 const newRate = closingRates[inv.currencyId] || 1;
                 
                 const outstandingForeignAmount = inv.total; // Assumes open. Ideally check amount_due

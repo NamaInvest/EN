@@ -78,7 +78,7 @@ export class ApprovalEngine {
           userId: options.userId,
           action: 'APPROVAL_SUBMITTED',
           tableName: documentType,
-          recordId: documentId,
+          recordId: String(documentId),
           details: JSON.stringify({
             amount: options.amount,
             requiredApprovers: rule.requiredApprovers,
@@ -108,7 +108,7 @@ export class ApprovalEngine {
           userId: options.approverId,
           action: 'APPROVAL_GRANTED',
           tableName: documentType,
-          recordId: documentId,
+          recordId: String(documentId),
           details: JSON.stringify({
             notes: options.notes,
             approvedAt: new Date().toISOString(),
@@ -121,7 +121,7 @@ export class ApprovalEngine {
     const approvalCount = await this.prisma.auditLog.count({
       where: {
         tableName: documentType,
-        recordId: documentId,
+        recordId: String(documentId),
         action: 'APPROVAL_GRANTED',
       },
     });
@@ -147,7 +147,7 @@ export class ApprovalEngine {
           userId: options.rejectorId,
           action: 'APPROVAL_REJECTED',
           tableName: documentType,
-          recordId: documentId,
+          recordId: String(documentId),
           details: JSON.stringify({
             reason: options.reason,
             rejectedAt: new Date().toISOString(),
@@ -164,10 +164,10 @@ export class ApprovalEngine {
     return this.prisma.auditLog.findMany({
       where: {
         tableName: documentType,
-        recordId: documentId,
+        recordId: String(documentId),
         action: { in: ['APPROVAL_SUBMITTED', 'APPROVAL_GRANTED', 'APPROVAL_REJECTED'] },
       },
-      orderBy: { date: 'asc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
@@ -176,9 +176,8 @@ export class ApprovalEngine {
     return this.prisma.auditLog.findMany({
       where: {
         action: 'APPROVAL_SUBMITTED',
-        // In production: join with user role to filter by approverRoles
       },
-      orderBy: { date: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: 50,
     });
   }

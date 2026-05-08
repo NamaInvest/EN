@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
         const deletedAudits = await prisma.auditLog.findMany({
             where: { action: 'DELETE_SALES_INVOICE' },
             include: { user: { select: { fullName: true, username: true } } },
-            orderBy: { date: 'desc' },
+            orderBy: { createdAt: 'desc' },
             take: 50
         });
 

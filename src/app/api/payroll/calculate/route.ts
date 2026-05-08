@@ -31,9 +31,9 @@ export async function POST(request: Request) {
 
         // 1. Basic Additions
         if (n(employee.salary) > 0) additions.push({ id: counter++, description: 'الراتب الأساسي', amount: n(employee.salary), type: 'addition' });
-        if (employee.housingAllowance > 0) additions.push({ id: counter++, description: 'بدل السكن', amount: employee.housingAllowance, type: 'addition' });
-        if (employee.transportAllowance > 0) additions.push({ id: counter++, description: 'بدل النقل', amount: employee.transportAllowance, type: 'addition' });
-        if (employee.otherAllowance > 0) additions.push({ id: counter++, description: 'بدلات أخرى', amount: employee.otherAllowance, type: 'addition' });
+        if (n(employee.housingAllowance) > 0) additions.push({ id: counter++, description: 'بدل السكن', amount: n(employee.housingAllowance), type: 'addition' });
+        if (n(employee.transportAllowance) > 0) additions.push({ id: counter++, description: 'بدل النقل', amount: n(employee.transportAllowance), type: 'addition' });
+        if (n(employee.otherAllowance) > 0) additions.push({ id: counter++, description: 'بدلات أخرى', amount: n(employee.otherAllowance), type: 'addition' });
 
         // 2. Loan Deductions (Active loans)
         const activeLoans = await prisma.employeeLoan.findMany({
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
         for (const loan of activeLoans) {
             // Deduct either the monthly deduction or the remaining amount, whichever is smaller
-            const deductionAmount = Math.min(loan.monthlyDeduction, loan.remainingAmount);
+            const deductionAmount = Math.min(n(loan.monthlyDeduction), n(loan.remainingAmount));
             if (deductionAmount > 0) {
                 deductions.push({ 
                     id: counter++, 

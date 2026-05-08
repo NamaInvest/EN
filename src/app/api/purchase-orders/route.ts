@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
             orderBy: { level: 'asc' }
         });
 
-        const applicableRules = rules.filter(r => r.maxAmount === null || r.maxAmount >= total);
+        const applicableRules = rules.filter(r => r.maxAmount === null || n(r.maxAmount) >= total);
         
         let initialStatus = 'pending';
         if (applicableRules.length > 0) {

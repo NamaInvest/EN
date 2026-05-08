@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -45,8 +46,8 @@ export async function GET(request: NextRequest) {
         ...project,
         analytics: {
           consumedBudget,
-          remainingBudget: project.budget - consumedBudget,
-          budgetUtilization: project.budget > 0 ? ((consumedBudget / project.budget) * 100).toFixed(1) : 0,
+          remainingBudget: n(project.budget) - consumedBudget,
+          budgetUtilization: n(project.budget) > 0 ? ((consumedBudget / n(project.budget)) * 100).toFixed(1) : 0,
           totalHours,
           billableHours,
           taskProgress: taskProgress.toFixed(1),
@@ -76,8 +77,8 @@ export async function GET(request: NextRequest) {
       return {
         ...p,
         consumedBudget: consumed,
-        remainingBudget: p.budget - consumed,
-        budgetHealth: consumed > p.budget ? 'danger' : consumed > p.budget * 0.8 ? 'warning' : 'healthy',
+        remainingBudget: n(p.budget) - consumed,
+        budgetHealth: consumed > n(p.budget) ? 'danger' : consumed > n(p.budget) * 0.8 ? 'warning' : 'healthy',
         taskProgress: p.tasks.length > 0 ? ((completed / p.tasks.length) * 100).toFixed(1) : '0'
       };
     });
