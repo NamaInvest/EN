@@ -1,122 +1,103 @@
+/**
+ * Payroll API Route (HR Module 27)
+ * GET  /api/payroll?action=payslip&employeeId=x&period=YYYY-MM
+ * POST /api/payroll?action=run           → Run payroll for period
+ * POST /api/payroll?action=create-loan   → Create employee loan
+ * POST /api/payroll?action=wps           → Generate WPS file
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { resolveTenant } from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
+import { PayrollService } from '@/services/hr/payroll.service';
+import { BusinessContext } from '@/services/shared/event-bus.service';
+
+function buildCtx(req: NextRequest): BusinessContext {
+  return {
+    tenant: { id: req.headers.get('x-tenant-id') ?? 'default' },
+    user:   { id: req.headers.get('x-user-id')   ?? 'system' },
+    requirePermission: () => {},
+    fiscal: { isClosed: false },
+  } as unknown as BusinessContext;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const prisma  = getPrisma(req);
+    const ctx     = buildCtx(req);
+    const service = new PayrollService(prisma as any, ctx);
+    const { searchParams } = req.nextUrl;
+    const action  = searchParams.get('action') ?? 'payslip';
+
+    if (action === 'payslip') {
+      const employeeId = searchParams.get('employeeId');
+      const period     = searchParams.get('period') ?? new Date().toISOString().slice(0, 7);
+      if (!employeeId) {
+        return NextResponse.json({ error: 'مطلوب: employeeId' }, { status: 400 });
+      }
+      const payslip = await service.calculatePayslip(employeeId, period);
+      return NextResponse.json(payslip);
+    }
+
+    return NextResponse.json({ error: 'action غير معروف' }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
+  try {
+    const prisma  = getPrisma(req);
+    const ctx     = buildCtx(req);
+    const service = new PayrollService(prisma as any, ctx);
+    const { searchParams } = req.nextUrl;
+    const action  = searchParams.get('action') ?? '';
+    const body    = await req.json();
 
-    try {
-        // 1. Tenant Authentication & Isolation
-        const tenantString = resolveTenant(req as any);
-        if (!tenantString) {
-            return NextResponse.json({ error: "Missing or invalid Tenant ID" }, { status: 401 });
-        }
-
-        // 2. Parse Payload
-        const body = await req.json();
-        const {
-            employeeId,
-            period, // e.g. "2026-05"
-            details, // Array of { description, amount, type: 'addition' | 'deduction', loanId?: number }
-        } = body;
-
-        if (!employeeId || !details || details.length === 0) {
-            return NextResponse.json({ error: "Employee ID and payroll details are required." }, { status: 400 });
-        }
-
-        // Calculate Net Salary & Summarize Deductions
-        let totalAddition = 0;
-        let totalDeduction = 0;
-        let loanDeductionsAmount = 0;
-        let absenceDeductionsAmount = 0;
-
-        for (const item of details) {
-            if (item.type === 'addition') {
-                totalAddition += Number(item.amount);
-            } else if (item.type === 'deduction') {
-                totalDeduction += Number(item.amount);
-                if (item.loanId) {
-                    loanDeductionsAmount += Number(item.amount);
-                } else if (item.description.includes('غياب')) {
-                    absenceDeductionsAmount += Number(item.amount);
-                }
-            }
-        }
-        const netTotal = totalAddition - totalDeduction;
-
-        // 3. Database Transaction (Atomic Payroll Processing)
-        const result = await prisma.$transaction(async (tx: any) => {
-            // A. Create the Payroll Invoice Header
-            const invoice = await tx.payrollInvoice.create({
-                data: {
-                    invoiceNo: `PR-${Math.floor(Math.random() * 1000000)}`,
-                    period: period,
-                    total: netTotal,
-                    employeeId: employeeId,
-                    status: "approved",
-                }
-            });
-
-            // B. Persist Line Items (Additions / Deductions) & Update Loans
-            const lineItems = await Promise.all(details.map(async (item: any) => {
-                
-                // If it's a loan deduction, update the EmployeeLoan remaining balance
-                if (item.type === 'deduction' && item.loanId) {
-                    const loan = await tx.employeeLoan.findUnique({ where: { id: item.loanId } });
-                    if (loan) {
-                        const newBalance = loan.remainingAmount - Number(item.amount);
-                        await tx.employeeLoan.update({
-                            where: { id: item.loanId },
-                            data: {
-                                remainingAmount: Math.max(0, newBalance),
-                                status: newBalance <= 0 ? 'paid' : 'active'
-                            }
-                        });
-                    }
-                }
-
-                return tx.payrollInvoiceDetail.create({
-                    data: {
-                        invoiceId: invoice.id,
-                        description: item.description,
-                        amount: Number(item.amount),
-                        type: item.type,
-                    }
-                });
-            }));
-
-            // C. Register ZATCA Compliance Record (if local tax laws require payroll reporting)
-            const zatcaRecord = await tx.zATCARecord.create({
-                data: {
-                    invoiceId: invoice.id,
-                    invoiceType: "PAYROLL",
-                    status: "pending", 
-                }
-            });
-
-            return { invoice, lineItems, zatcaRecord };
-        });
-
-        // 4. Generate Notification Message
-        let msg = `تم صرف الراتب بنجاح! الصافي المستحق: ${netTotal.toFixed(2)} ريال.`;
-        if (loanDeductionsAmount > 0 || absenceDeductionsAmount > 0) {
-            msg += ` (تم خصم:`;
-            if (loanDeductionsAmount > 0) msg += ` ${loanDeductionsAmount.toFixed(2)} سداد سلفة`;
-            if (absenceDeductionsAmount > 0) msg += `${loanDeductionsAmount > 0 ? ' و' : ''} ${absenceDeductionsAmount.toFixed(2)} غياب`;
-            msg += `)`;
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: msg,
-            data: result
-        }, { status: 201 });
-
-    } catch (error: any) {
-        console.error("Payroll API Error:", error);
-        return NextResponse.json({
-            success: false,
-            error: "Failed to process payroll",
-            details: error.message
-        }, { status: 500 });
+    if (action === 'run') {
+      const { period } = body;
+      if (!period) {
+        return NextResponse.json({ error: 'مطلوب: period (YYYY-MM)' }, { status: 400 });
+      }
+      const result = await service.runPayroll(period);
+      return NextResponse.json(result);
     }
+
+    if (action === 'create-loan') {
+      const { employeeId, principal, interestRate = 0, termMonths, startDate, purpose } = body;
+      if (!employeeId || !principal || !termMonths) {
+        return NextResponse.json({ error: 'مطلوب: employeeId, principal, termMonths' }, { status: 400 });
+      }
+      const result = await service.createLoan({
+        employeeId,
+        principal:    Number(principal),
+        interestRate: Number(interestRate),
+        termMonths:   Number(termMonths),
+        startDate:    new Date(startDate ?? Date.now()),
+        approvedBy:   ctx.user.id,
+        purpose,
+      });
+      return NextResponse.json(result);
+    }
+
+    if (action === 'wps') {
+      const { payslips, employerIBAN } = body;
+      if (!payslips?.length || !employerIBAN) {
+        return NextResponse.json({ error: 'مطلوب: payslips[], employerIBAN' }, { status: 400 });
+      }
+      const wpsFile = service.generateWPSFile(payslips, employerIBAN);
+      return new NextResponse(wpsFile, {
+        headers: {
+          'Content-Type':        'text/plain; charset=utf-8',
+          'Content-Disposition': `attachment; filename="wps-${body.payslips[0]?.period ?? 'payroll'}.txt"`,
+        },
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'action غير معروف. استخدم: run | create-loan | wps' },
+      { status: 400 }
+    );
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }

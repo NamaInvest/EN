@@ -14,6 +14,16 @@ export type { RecurringFrequency } from './accounting/recurring-je.service';
 export { CreditManagementService } from './ar/credit-management.service';
 export type { CreditDecision, CustomerAgingReport, HoldDecision, AgingBucket } from './ar/credit-management.service';
 
+// AP
+export { PaymentRunService }    from './ap/payment-run.service';
+export { ThreeWayMatchService } from './ap/three-way-match.service';
+export type { PaymentRunSummary, PaymentRunLine, PaymentFileFormat } from './ap/payment-run.service';
+export type { MatchResult, MatchException, MatchStatus }            from './ap/three-way-match.service';
+
+// HR
+export { PayrollService }       from './hr/payroll.service';
+export type { PayslipData, SalaryComponent, LoanScheduleLine }      from './hr/payroll.service';
+
 // Sales — (InvoiceService to be added in next sprint)
 // export { InvoiceService } from './sales/invoice.service';
 
