@@ -15,7 +15,6 @@ function upload(conn, localPath, remotePath) {
         });
     });
 }
-
 function exec(conn, cmd) {
     return new Promise((resolve) => {
         conn.exec(cmd, (err, stream) => {
@@ -29,42 +28,32 @@ function exec(conn, cmd) {
 }
 
 const SITE = '/www/wwwroot/namainvist.com';
-
 const FILES = [
     'src/lib/idempotency.ts',
     'src/lib/state-machine.ts',
     'src/lib/webhooks.ts',
     'src/lib/approval-engine.ts',
     'src/lib/api-keys.ts',
-    'src/lib/services/accounting.service.ts',
-    'src/lib/services/sales.service.ts',
-    'src/lib/services/hr.service.ts',
-    'src/lib/services/index.ts',
-    '.github/workflows/codeql.yml',
+    'src/lib/openapi.ts',
+    'src/lib/prompt-registry.ts',
+    'src/app/api/docs/openapi.json/route.ts',
+    'src/components/ui/states.tsx',
+    'middleware.ts',
 ];
 
 c.on('ready', async () => {
-    console.log('🔌 Phase 2 (Workflow & API) Deploy\n');
-    
-    await exec(c, `mkdir -p ${SITE}/src/lib/services ${SITE}/.github/workflows`);
-    
+    console.log('🚀 Full Phase 2-5 Deploy\n');
+    await exec(c, `mkdir -p ${SITE}/src/app/api/docs/openapi.json ${SITE}/src/components/ui`);
     for (const f of FILES) {
         const local = path.join(__dirname, f);
-        if (fs.existsSync(local)) {
-            await upload(c, local, `${SITE}/${f}`);
-            console.log(`  ✅ ${f}`);
-        }
+        if (fs.existsSync(local)) { await upload(c, local, `${SITE}/${f}`); console.log(`  ✅ ${f}`); }
     }
-    
     console.log('\n🔨 Building...');
     await exec(c, `cd ${SITE} && npm run build 2>&1 | tail -3`);
-    
     console.log('\n🔄 Restarting...');
     await exec(c, 'pm2 restart all --silent && sleep 5 && pm2 list');
-    
-    console.log('\n✅ PHASE 2 DEPLOYED!');
+    console.log('\n✅ ALL PHASES DEPLOYED!');
     c.end();
 });
-
 c.on('error', e => console.error('❌', e.message));
 c.connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
