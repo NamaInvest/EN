@@ -36,9 +36,10 @@ export async function getPrompt(key: string, tenantId: string | null = null, ver
                 return {
                     userTemplate: template.default || template.template,
                     systemPrompt: template.systemPrompt || '',
-                    model: template.model || 'gemini-2.5-flash',
+                    modelHint: template.model || 'gemini-2.5-flash',
                     temperature: template.temperature || 0.2,
                     maxTokens: template.maxTokens || 2048,
+                    version: 1,
                 };
             }
         } catch (e) {

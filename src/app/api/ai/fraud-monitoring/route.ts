@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         });
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: promptTemplate.model || 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: promptTemplate.modelHint || 'gemini-2.5-flash' });
 
         const result = await model.generateContent(prompt);
         let aiText = result.response.text().trim();
