@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function PUT(
     request: NextRequest,
@@ -39,8 +40,8 @@ export async function PUT(
             _sum: { debit: true, credit: true }
         });
         
-        const sumDebit = sumAggr._sum.debit || 0;
-        const sumCredit = sumAggr._sum.credit || 0;
+        const sumDebit = n(sumAggr._sum.debit);
+        const sumCredit = n(sumAggr._sum.credit);
         // Reconciled balance change = Sum of cleared Debits - Sum of cleared Credits
         const clrBal = sumDebit - sumCredit;
 

@@ -224,7 +224,7 @@ export async function transition<T>(
                 userId: params.userId ?? 0,
                 action: `transition:${params.from}→${params.to}`,
                 tableName: params.docType.toLowerCase() + 's',
-                recordId: params.docId,
+                recordId: String(params.docId),
                 details: params.reason ?? null,
             },
         });

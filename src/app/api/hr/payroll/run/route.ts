@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         // Compute preview
         const preview = employees.map(emp => {
             const basic = emp.salary || 0;
-            const additions = (emp.housingAllowance || 0) + (emp.transportAllowance || 0) + (emp.otherAllowance || 0);
+            const additions = n(emp.housingAllowance) + n(emp.transportAllowance) + n(emp.otherAllowance);
             
             // Typical Saudi GOSI for Saudis is 9.75% of basic + housing, but let's approximate 10% of basic for this example if needed, or 0.
             // In a real app we'd check if nationality == SAUDI. We'll use 9% of basic + housing as an example.

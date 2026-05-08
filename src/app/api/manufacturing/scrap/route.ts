@@ -20,7 +20,7 @@ export async function GET(req: Request) {
         const reasonsCount: Record<string, number> = {};
 
         wastages.forEach(w => {
-            totalWastedCost += w.wastedCost;
+            totalWastedCost += n(w.wastedCost);
             const reason = w.reason || 'OTHER';
             reasonsCount[reason] = (reasonsCount[reason] || 0) + 1;
         });

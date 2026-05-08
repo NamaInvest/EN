@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(request: NextRequest) {
 
@@ -59,8 +60,8 @@ export async function POST(request: NextRequest) {
             _sum: { debit: true, credit: true }
         });
 
-        const sumDebit = aggr._sum.debit || 0;
-        const sumCredit = aggr._sum.credit || 0;
+        const sumDebit = n(aggr._sum.debit);
+        const sumCredit = n(aggr._sum.credit);
         const systemBal = sumDebit - sumCredit; // assuming Bank is Asset (Debit normally)
         
         const diff = parseFloat(body.statementBalance) - systemBal;

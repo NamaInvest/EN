@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         const contextData = {
             deleted_invoices_by_staff: deletedAudits.map(a => ({
                 employee: a.user?.fullName || ' ',
-                actionDate: a.date,
+                actionDate: a.createdAt,
                 details: a.details
             })),
             unusual_high_discounts: highDiscounts.map(d => ({

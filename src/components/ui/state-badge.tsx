@@ -46,7 +46,7 @@ export default function StateBadge({ entityType, entityId, currentState, onState
     let allowedTransitions: BaseState[] = [];
     try {
         const machine = getStateMachineFor(entityType);
-        allowedTransitions = machine.getValidTransitions(currentState);
+        allowedTransitions = machine.getAllowedTransitions(currentState);
     } catch (e) {
         // If entityType is not mapped, we just display the badge read-only
     }

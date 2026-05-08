@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -49,8 +50,8 @@ export async function PUT(request: Request) {
         });
 
         // Treasury entry when completed
-        if (body.status === 'completed' && item.cost > 0) {
-            await prisma.treasury.create({ data: { type: 'in', amount: item.cost, description: `صيانة - ${item.deviceType || 'جهاز'}`, referenceType: 'maintenance', referenceId: item.id, userId: body.userId || null } });
+        if (body.status === 'completed' && n(item.cost) > 0) {
+            await prisma.treasury.create({ data: { type: 'in', amount: n(item.cost), description: `صيانة - ${item.deviceType || 'جهاز'}`, referenceType: 'maintenance', referenceId: item.id, userId: body.userId || null } });
         }
 
         return NextResponse.json(item);

@@ -31,7 +31,7 @@ export class GovernanceEngine {
             where: {
                 userId: parseInt(userId), // Assuming userId is numerical in DB
                 action: { in: opposingActions },
-                ...(documentId ? { recordId: documentId } : {})
+                ...(documentId ? { recordId: String(documentId) } : {})
             }
         });
 

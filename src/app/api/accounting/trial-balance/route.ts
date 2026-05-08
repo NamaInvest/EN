@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest) {
             if (!accountTotals[line.accountId]) {
                 accountTotals[line.accountId] = { debit: 0, credit: 0 };
             }
-            accountTotals[line.accountId].debit += line.debit || 0;
-            accountTotals[line.accountId].credit += line.credit || 0;
+            accountTotals[line.accountId].debit += n(line.debit);
+            accountTotals[line.accountId].credit += n(line.credit);
         });
 
         // Merge back into accounts

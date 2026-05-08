@@ -4,7 +4,7 @@ export async function logAuditAction(params: {
     userId: number;
     action: string;
     tableName: string;
-    recordId?: number;
+    recordId?: number | string;
     details?: string;
 }) {
     try {
@@ -13,7 +13,7 @@ export async function logAuditAction(params: {
                 userId: params.userId,
                 action: params.action,
                 tableName: params.tableName,
-                recordId: params.recordId,
+                recordId: params.recordId != null ? String(params.recordId) : undefined,
                 details: params.details,
             }
         });
