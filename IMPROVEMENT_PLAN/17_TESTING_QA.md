@@ -419,10 +419,10 @@ test('dashboard visual', async ({ page }) => {
 ---
 
 ## ✅ معايير القبول العامة
-- [ ] Strategy doc موثّق
-- [ ] Factories لكل model رئيسي
-- [ ] Mocks لـ Prisma, Redis, LLM
-- [ ] Test utilities موحّدة
-- [ ] Coverage > 80% للكود الجديد
-- [ ] CI fail لو coverage decreased
-- [ ] Weekly security + load reports
+- [x] Strategy doc موثّق
+- [x] Factories لكل model رئيسي
+- [x] Mocks لـ Prisma, Redis, LLM
+- [x] Test utilities موحّدة
+- [x] Coverage > 80% للكود الجديد
+- [x] CI fail لو coverage decreased
+- [x] Weekly security + load reports

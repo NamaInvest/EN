@@ -1,0 +1,20 @@
+name: Security Scan
+on:
+  schedule: [{ cron: '0 0 * * 0' }]  # Weekly
+
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ZAP Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'https://staging.namasoft.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with: { name: zap-report, path: report_html.html }
