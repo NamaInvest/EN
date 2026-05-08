@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { fifoCost, lifoCost, averageCost, calculateCost, CostBatch } from '@/lib/costing';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export const runtime = 'nodejs';
@@ -34,8 +35,8 @@ export async function GET(req: Request) {
 
     const layers: CostBatch[] = purchaseDetails.map((d, i) => ({
       id: d.id || i + 1,
-      quantity: d.quantity,
-      unitCost: d.price,
+      quantity: n(d.quantity),
+      unitCost: n(d.price),
       date: d.invoice?.date || new Date(),
     }));
 
@@ -49,9 +50,9 @@ export async function GET(req: Request) {
         method,
         layers: [],
         result: {
-          totalCost: (product?.buyPrice || 0) * (product?.currentStock || 0),
-          unitCost: product?.buyPrice || 0,
-          availableStock: product?.currentStock || 0,
+          totalCost: (n(product?.buyPrice) || 0) * (n(product?.currentStock) || 0),
+          unitCost: n(product?.buyPrice),
+          availableStock: n(product?.currentStock),
         },
         message: 'لا توجد حركات شراء — تم استخدام سعر الشراء المخزن',
       });

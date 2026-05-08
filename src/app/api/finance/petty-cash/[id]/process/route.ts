@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function PUT(
     request: NextRequest,
@@ -52,7 +53,7 @@ export async function PUT(
         else if (pc.status === 'DISBURSED' && status === 'SETTLED') {
             const expenseAmount = parseFloat(settlementAmount);
             updateData.settlementAmount = expenseAmount;
-            updateData.difference = pc.amount - expenseAmount;
+            updateData.difference = n(pc.amount) - expenseAmount;
 
             debitAccount = '5200'; // مصروف (Simplification, usually you map expenses)
             creditAccount = '1230'; // عهد موظفين
@@ -76,10 +77,10 @@ export async function PUT(
                 // Depending on difference, debit expenses and debit/credit Cash.
                 const lines = [];
                 if (status === 'DISBURSED') {
-                    lines.push({ accountCode: debitAccount, debit: pc.amount, credit: 0, description });
-                    lines.push({ accountCode: creditAccount, debit: 0, credit: pc.amount, description });
+                    lines.push({ accountCode: debitAccount, debit: n(pc.amount), credit: 0, description });
+                    lines.push({ accountCode: creditAccount, debit: 0, credit: n(pc.amount), description });
                 } else if (status === 'SETTLED') {
-                    const diff = pc.amount - parseFloat(settlementAmount);
+                    const diff = n(pc.amount) - parseFloat(settlementAmount);
                     lines.push({ accountCode: '5200', debit: parseFloat(settlementAmount), credit: 0, description: 'مصاريف عهدة' });
                     
                     if (diff > 0) { // they return money to safe
@@ -87,7 +88,7 @@ export async function PUT(
                     } else if (diff < 0) { // they spent more, we pay them from safe
                         lines.push({ accountCode: '1110', debit: 0, credit: Math.abs(diff), description: 'صرف تعويض زيادة للصندوق' });
                     }
-                    lines.push({ accountCode: '1230', debit: 0, credit: pc.amount, description: 'إقفال العهدة من ذمة الموظف' });
+                    lines.push({ accountCode: '1230', debit: 0, credit: n(pc.amount), description: 'إقفال العهدة من ذمة الموظف' });
                 }
 
                 await createJournalEntry({

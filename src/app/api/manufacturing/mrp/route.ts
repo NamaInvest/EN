@@ -10,6 +10,7 @@ import { getUserFromRequest } from '@/lib/auth';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 interface MRPItem {
     productId: number;
@@ -62,7 +63,7 @@ export async function GET(req: Request) {
                 const product = ing.rawProduct;
                 if (!product) continue;
 
-                const requiredQty = ing.quantity * order.quantityToProduce; // correct field
+                const requiredQty = n(ing.quantity) * n(order.quantityToProduce); // correct field
                 const existing = requirementsMap.get(product.id);
 
                 if (existing) {
@@ -70,12 +71,12 @@ export async function GET(req: Request) {
                     existing.shortfall = Math.max(0, existing.requiredQty - existing.availableQty);
                     existing.suggestedPOQty = existing.shortfall;
                 } else {
-                    const shortfall = Math.max(0, requiredQty - product.currentStock);
+                    const shortfall = Math.max(0, requiredQty - n(product.currentStock));
                     requirementsMap.set(product.id, {
                         productId: product.id,
                         productName: product.name,
                         requiredQty,
-                        availableQty: product.currentStock,
+                        availableQty: n(product.currentStock),
                         shortfall,
                         suggestedPOQty: shortfall,
                         unitName: product.unit?.name || 'وحدة',

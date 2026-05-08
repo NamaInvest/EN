@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
                         });
 
                         // Calculate daily wage penalty (Assuming 30 working days)
-                        const dailyWage = emp.salary / 30;
+                        const dailyWage = n(emp.salary) / 30;
                         
                         // Apply immediate Salary deduction to the current running month
                         const currentMonth = new Date().getMonth() + 1;
@@ -82,9 +83,9 @@ export async function POST(request: Request) {
                                     employeeId: emp.id,
                                     month: currentMonth,
                                     year: currentYear,
-                                    basicSalary: emp.salary,
+                                    basicSalary: n(emp.salary),
                                     deductions: dailyWage,
-                                    netSalary: emp.salary - dailyWage,
+                                    netSalary: n(emp.salary) - dailyWage,
                                     notes: `خصم آلي ليوم غياب (${today})`
                                 }
                             });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,10 +44,10 @@ export async function GET(req: Request) {
       type: 'daily',
       data: {
         salesCount,
-        salesTotal: salesTotal._sum.total || 0,
-        purchasesTotal: purchasesTotal._sum.total || 0,
-        expensesTotal: expensesTotal._sum.amount || 0,
-        netProfit: (salesTotal._sum.total || 0) - (purchasesTotal._sum.total || 0) - (expensesTotal._sum.amount || 0),
+        salesTotal: n(salesTotal._sum.total),
+        purchasesTotal: n(purchasesTotal._sum.total),
+        expensesTotal: n(expensesTotal._sum.amount),
+        netProfit: n(salesTotal._sum.total) - n(purchasesTotal._sum.total) - n(expensesTotal._sum.amount),
         lowStockAlerts: lowStockProducts.length,
       },
     };
@@ -71,9 +72,9 @@ export async function GET(req: Request) {
                 <h2>📊 التقرير اليومي — ${today}</h2>
                 <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                   <tr><td>عدد الفواتير</td><td><strong>${salesCount}</strong></td></tr>
-                  <tr><td>إجمالي المبيعات</td><td><strong>${(salesTotal._sum.total || 0).toFixed(2)} ر.س</strong></td></tr>
-                  <tr><td>إجمالي المشتريات</td><td>${(purchasesTotal._sum.total || 0).toFixed(2)} ر.س</td></tr>
-                  <tr><td>المصروفات</td><td>${(expensesTotal._sum.amount || 0).toFixed(2)} ر.س</td></tr>
+                  <tr><td>إجمالي المبيعات</td><td><strong>${n(salesTotal._sum.total).toFixed(2)} ر.س</strong></td></tr>
+                  <tr><td>إجمالي المشتريات</td><td>${n(purchasesTotal._sum.total).toFixed(2)} ر.س</td></tr>
+                  <tr><td>المصروفات</td><td>${n(expensesTotal._sum.amount).toFixed(2)} ر.س</td></tr>
                   <tr style="background:#e8f5e9;"><td>صافي الربح</td><td><strong>${dailyReport.data.netProfit.toFixed(2)} ر.س</strong></td></tr>
                   <tr><td>تنبيهات المخزون</td><td>${lowStockProducts.length} منتج</td></tr>
                 </table>

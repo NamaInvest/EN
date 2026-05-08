@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
                 _sum: { amount: true },
                 where: { referenceType: 'CUSTOMER', referenceId: customerId, type: 'in', date: { lt: fromDate } }
             });
-            openingBalance = (prevInvoices._sum?.total || 0) - (prevPayments._sum?.amount || 0);
+            openingBalance = n(prevInvoices._sum?.total) - n(prevPayments._sum?.amount);
         }
 
         // 2. Get period transactions
@@ -113,11 +114,11 @@ export async function GET(req: NextRequest) {
 
         openInvoices.forEach(inv => {
             const days = Math.floor((now.getTime() - inv.date.getTime()) / (1000 * 3600 * 24));
-            if (days <= 0) aging.current += inv.remaining;
-            else if (days <= 30) aging['1-30'] += inv.remaining;
-            else if (days <= 60) aging['31-60'] += inv.remaining;
-            else if (days <= 90) aging['61-90'] += inv.remaining;
-            else aging['90+'] += inv.remaining;
+            if (days <= 0) aging.current += n(inv.remaining);
+            else if (days <= 30) aging['1-30'] += n(inv.remaining);
+            else if (days <= 60) aging['31-60'] += n(inv.remaining);
+            else if (days <= 90) aging['61-90'] += n(inv.remaining);
+            else aging['90+'] += n(inv.remaining);
         });
 
         return NextResponse.json({

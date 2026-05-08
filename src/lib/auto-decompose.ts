@@ -13,6 +13,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { n } from './decimal-utils';
 
 type TxClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -34,7 +35,7 @@ export async function autoDecomposeIfNeeded(
     });
     if (!product) return { decomposed: false, log };
 
-    if (product.currentStock >= 0) return { decomposed: false, log }; // مخزون كافٍ
+    if (n(product.currentStock) >= 0) return { decomposed: false, log }; // مخزون كافٍ
 
     // جلب جميع وحدات المنتج مرتبة من الأصغر للأكبر
     const units = await tx.productUnit.findMany({
@@ -49,7 +50,7 @@ export async function autoDecomposeIfNeeded(
     // بناء تسلسل هرمي: من الأصغر (factor صغير) للأكبر
     const sorted = [...units].sort((a, b) => a.factor - b.factor);
 
-    let deficit = Math.abs(product.currentStock); // العجز بالحبات
+    let deficit = Math.abs(n(product.currentStock)); // العجز بالحبات
     let decomposed = false;
 
     for (const unit of sorted) {

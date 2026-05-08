@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
         const adjustment = await prisma.$transaction(async (tx) => {
             const product = await tx.product.findUnique({ where: { id: parseInt(productId) } });
-            // BUILD SAFETY: if (!product) throw new Error('المنتج غير موجود');
+            if (!product) throw new Error('المنتج غير موجود');
 
             const current = n(product.currentStock);
             const diff = parseFloat(actualQuantity) - current;

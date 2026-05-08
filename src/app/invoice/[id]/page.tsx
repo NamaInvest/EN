@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
@@ -68,8 +68,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     const seller = settings['company_name'] || 'NamaVest POS';
     const vatNo = settings['tax_number'] || '300000000000003';
     const timestamp = invoice.date.toISOString();
-    const totalWithVat = invoice.total.toString();
-    const vatTotal = invoice.taxValue.toString();
+    const totalWithVat = Number(invoice.total).toString();
+    const vatTotal = Number(invoice.taxValue).toString();
 
     const tlvBase64 = getZatcaTLV([
         { id: 1, value: seller },
@@ -127,9 +127,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                             <tr key={idx} style={{ borderBottom: '1px solid #f9f9f9' }}>
                                 <td style={{ padding: '8px 0', fontWeight: '500', color: '#222' }}>{item.productName}</td>
                                 <td style={{ textAlign: 'center', padding: '8px 0', color: '#555' }}>
-                                    {item.quantity} <span style={{ fontSize: '10px', color: '#999' }}>× {item.price.toFixed(2)}</span>
+                                    {Number(item.quantity)} <span style={{ fontSize: '10px', color: '#999' }}>× {Number(item.price).toFixed(2)}</span>
                                 </td>
-                                <td style={{ textAlign: 'left', padding: '8px 0', fontWeight: '600' }}>{item.total.toFixed(2)}</td>
+                                <td style={{ textAlign: 'left', padding: '8px 0', fontWeight: '600' }}>{Number(item.total).toFixed(2)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -139,21 +139,21 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 <div style={{ borderTop: '2px dashed #eee', paddingTop: '16px', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '6px' }}>
                         <span>{t('sys.str_1579')}</span>
-                        <span>{invoice.subtotal.toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
+                        <span>{Number(invoice.subtotal).toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
                     </div>
-                    {invoice.discountValue > 0 && (
+                    {Number(invoice.discountValue) > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#ef4444', marginBottom: '6px' }}>
                             <span>{t('sys.str_69')}</span>
-                            <span>- {invoice.discountValue.toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
+                            <span>- {Number(invoice.discountValue).toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
                         </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '6px' }}>
                         <span>{t('sys.str_1580')}</span>
-                        <span>{invoice.taxValue.toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
+                        <span>{Number(invoice.taxValue).toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '800', marginTop: '12px', color: '#000' }}>
                         <span>{t('sys.str_1581')}</span>
-                        <span>{invoice.total.toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
+                        <span>{Number(invoice.total).toFixed(2)} {settings['currency'] || t('sys.str_68')}</span>
                     </div>
                 </div>
 

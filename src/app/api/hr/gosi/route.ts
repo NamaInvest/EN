@@ -6,6 +6,7 @@ import { getUserFromRequest } from '@/lib/auth';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // معدلات GOSI السعودية 2024
 const GOSI_RATES = {
@@ -37,7 +38,7 @@ export async function GET(req: Request) {
         const summary = employees.map((emp: any) => {
             // Default to Saudi — nationality field not in schema; extend schema to add it
             const isSaudi = true;
-            const baseSalary = emp.salary || 0;
+            const baseSalary = n(emp.salary);
 
             const employeeDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
             const employerContribution = isSaudi
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
         // Update each employee's salary record with GOSI deductions
         for (const emp of employees) {
             const isSaudi = true; // default — add nationality field to schema when needed
-            const baseSalary = emp.salary || 0;
+            const baseSalary = n(emp.salary);
             const empDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
             const empContrib = isSaudi
                 ? baseSalary * (GOSI_RATES.saudiEmployer + GOSI_RATES.hazardSaudi)

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'تمت فوترة هذا الحجز مسبقاً' }, { status: 400 });
         }
 
-        const remainingAmount = booking.total - booking.deposit;
+        const remainingAmount = n(booking.total) - n(booking.deposit);
         if (remainingAmount <= 0) {
             // Already fully paid, just mark as invoiced
             await prisma.booking.update({ where: { id: booking.id }, data: { status: 'invoiced' } });

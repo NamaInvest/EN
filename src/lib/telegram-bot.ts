@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { n } from './decimal-utils';
 
 export async function getBotToken() {
     const setting = await prisma.setting.findUnique({ where: { key: 'telegram_bot_token' } });
@@ -63,7 +64,7 @@ async function getSalesToday(): Promise<string> {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const sales = await prisma.salesInvoice.findMany({
             take: 100, where: { date: { gte: today } } });
-    const totalAmount = sales.reduce((s: any, i: any) => s + (i.total || 0), 0);
+    const totalAmount = sales.reduce((s: any, i: any) => s + (n(i.total) || 0), 0);
     return `📊 <b>مبيعات اليوم</b>\n\n📄 عدد الفواتير: <b>${sales.length}</b>\n💰 إجمالي المبيعات: <b>${fmt(totalAmount)} ر.س</b>`;
 }
 
@@ -153,7 +154,7 @@ async function getTopProducts(): Promise<string> {
     const details = await prisma.salesInvoiceDetail.findMany({
             take: 100, where: { invoice: { date: { gte: d } } } });
     const map = new Map<string, number>();
-    details.forEach(d => { map.set(d.productName || 'غير معروف', (map.get(d.productName || 'غير معروف') || 0) + (d.quantity || 0)); });
+    details.forEach(d => { map.set(d.productName || 'غير معروف', (map.get(d.productName || 'غير معروف') || 0) + (n(d.quantity) || 0)); });
     const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
     if (sorted.length === 0) return '📊 لا توجد مبيعات في آخر 30 يوم';
     let msg = `🏆 <b>أعلى 10 منتجات مبيعاً (آخر 30 يوم)</b>\n\n`;
@@ -316,7 +317,7 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
             return invoice;
         });
 
-        await sendMessage(chatId, `✅ <b>تم استخراج الفاتورة وإضافتها بنجاح!</b>\n━━━━━━━━━━━━━━━━━━\n\n📄 فاتورة رقم: <b>#${savedInvoice.invoiceNo}</b>\n🏢 المورد: <b>${savedInvoice.supplier?.name || 'غير محدد'}</b>\n📦 عدد الأصناف: <b>${savedInvoice.details.length}</b>\n\n💵 الإجمالي (مع الضريبة): <b>${savedInvoice.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س</b>`);
+        await sendMessage(chatId, `✅ <b>تم استخراج الفاتورة وإضافتها بنجاح!</b>\n━━━━━━━━━━━━━━━━━━\n\n📄 فاتورة رقم: <b>#${savedInvoice.invoiceNo}</b>\n🏢 المورد: <b>${savedInvoice.supplier?.name || 'غير محدد'}</b>\n📦 عدد الأصناف: <b>${savedInvoice.details.length}</b>\n\n💵 الإجمالي (مع الضريبة): <b>${n(savedInvoice.total).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س</b>`);
     } catch (err: any) {
         console.error('Telegram AI Invoice Error:', err);
         await sendMessage(chatId, `❌ عذراً، لم نتمكن من تسجيل الفاتورة.\n${err.message || ''}`);

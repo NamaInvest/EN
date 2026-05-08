@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
                 let absentDays = 22 - attendedDays;
                 if (absentDays < 0) absentDays = 0; // Overtime can be handled separately
 
-                const baseSalary = emp.salary || 0;
+                const baseSalary = n(emp.salary);
                 
                 // Deductions: 1 Day salary per absent day
                 const dailyRate = baseSalary / 30;
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
                 let loanDeduction = 0;
                 const empLoans = activeLoans.filter((l: any) => l.employeeId === emp.id);
                 for (const loan of empLoans) {
-                    const toDeduct = Math.min(loan.monthlyDeduction, loan.remainingAmount);
+                    const toDeduct = Math.min(n(loan.monthlyDeduction), n(loan.remainingAmount));
                     loanDeduction += toDeduct;
                     
                     // Update the loan balance
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
                         where: { id: loan.id },
                         data: {
                             remainingAmount: { decrement: toDeduct },
-                            status: (loan.remainingAmount - toDeduct) <= 0 ? 'paid' : 'active'
+                            status: (n(loan.remainingAmount) - toDeduct) <= 0 ? 'paid' : 'active'
                         }
                     });
                 }

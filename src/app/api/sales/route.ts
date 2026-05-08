@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { logDelete, auditContextFromRequest } from '@/lib/field-audit';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
                 where: { id: Number(body.customerId) },
                 select: { creditLimit: true, balance: true, name: true },
             });
-            if (customer && customer.creditLimit > 0) {
+            if (customer && n(customer.creditLimit) > 0) {
                 // Calculate invoice total estimate for check
                 let estTotal = 0;
                 for (const item of body.items) {
@@ -133,10 +134,10 @@ export async function POST(request: Request) {
                 const paymentType = body.paymentType || 'cash';
                 const paid = body.paid !== undefined ? Number(body.paid) : estTotal;
                 const willBeOwed = estTotal - paid; // ما سيبقى ديناً على العميل
-                const currentBalance = customer.balance || 0; // رصيد حالي (ديون قائمة)
-                if (paymentType !== 'cash' && (currentBalance + willBeOwed) > customer.creditLimit) {
+                const currentBalance = n(customer.balance); // رصيد حالي (ديون قائمة)
+                if (paymentType !== 'cash' && (currentBalance + willBeOwed) > n(customer.creditLimit)) {
                     return NextResponse.json({
-                        error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${customer.creditLimit.toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${willBeOwed.toFixed(2)} ر.س`,
+                        error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${n(customer.creditLimit).toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${willBeOwed.toFixed(2)} ر.س`,
                         code: 'CREDIT_LIMIT_EXCEEDED',
                         currentBalance,
                         creditLimit: customer.creditLimit,
@@ -259,11 +260,11 @@ export async function POST(request: Request) {
                 });
 
                 const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true, buyPrice: true } });
-                const baseStock = prod?.currentStock || 0;
+                const baseStock = n(prod?.currentStock);
                 const unitsStock = pUnits.reduce((s: any, u: any) => s + Number((u as any).unitStock || 0) * u.factor, 0);
                 const totalBase = baseStock + unitsStock;
                 
-                totalCost += (prod?.buyPrice || 0) * qtyInBase;
+                totalCost += (n(prod?.buyPrice) || 0) * qtyInBase;
 
                 if (!canGoNegative && qtyInBase > totalBase) {
                     throw new Error(`نفد مخزون الصنف ${item.productName}`);
