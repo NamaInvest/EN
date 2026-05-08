@@ -4,6 +4,7 @@ import { round2 } from '@/lib/money';
 import { postPurchaseReturn } from '@/lib/auto-journal';
 import { purchaseReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
                 },
             });
 
-            if (newReturn.total > 0) {
+            if (n(newReturn.total) > 0) {
                 await tx.treasury.create({
                     data: {
                         type: 'in', amount: newReturn.total,

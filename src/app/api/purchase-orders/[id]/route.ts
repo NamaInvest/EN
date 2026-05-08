@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(
@@ -135,7 +136,7 @@ export async function PUT(
             try {
                 const mappedLandedCosts = landedCostEntries.map((lc: any) => ({
                     accountCode: lc.expenseAccount.code,
-                    amountValue: lc.amount * lc.exchangeRate,
+                    amountValue: n(lc.amount) * n(lc.exchangeRate),
                     description: lc.description
                 }));
 

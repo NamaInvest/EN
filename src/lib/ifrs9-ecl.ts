@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class IFRS9Engine {
     
@@ -33,7 +34,7 @@ export class IFRS9Engine {
         let maxDaysPastDue = 0;
 
         for (const inv of openInvoices) {
-            exposure += inv.remaining;
+            exposure += n(inv.remaining);
             const dueDate = new Date(inv.date);
             dueDate.setDate(dueDate.getDate() + 30); // Assuming 30 days terms
             
@@ -71,9 +72,9 @@ export class IFRS9Engine {
             };
         }
 
-        let probabilityOfDefault = eclModel.stage1Pct;
-        if (stage === 2) probabilityOfDefault = eclModel.stage2Pct;
-        if (stage === 3) probabilityOfDefault = eclModel.stage3Pct;
+        let probabilityOfDefault = n(eclModel.stage1Pct);
+        if (stage === 2) probabilityOfDefault = n(eclModel.stage2Pct);
+        if (stage === 3) probabilityOfDefault = n(eclModel.stage3Pct);
 
         const lossGivenDefault = 0.50; // Assume 50% recovery rate
         const eclAmount = exposure * probabilityOfDefault * lossGivenDefault;
@@ -110,7 +111,7 @@ export class IFRS9Engine {
             const assessment = await this.assessCustomer(customer.id, fiscalPeriodId, asOfDate);
             if (assessment) {
                 assessments.push(assessment);
-                totalECL += assessment.eclAmount;
+                totalECL += n(assessment.eclAmount);
             }
         }
 

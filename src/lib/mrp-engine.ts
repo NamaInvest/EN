@@ -4,6 +4,7 @@
  */
 
 import prisma from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 interface MaterialRequirement {
   productId: number;
@@ -59,7 +60,7 @@ export async function runMRP(manufacturingOrderId: number): Promise<MRPResult> {
 
   // 2. حساب الاحتياج لكل مادة خام
   for (const ingredient of order.recipe.ingredients) {
-    const requiredQty = ingredient.quantity * order.quantity;
+    const requiredQty = n(ingredient.quantity) * order.quantity;
 
     // جلب المخزون المتاح
     const stockData = await prisma.product.findUnique({
@@ -67,9 +68,9 @@ export async function runMRP(manufacturingOrderId: number): Promise<MRPResult> {
       select: { currentStock: true, name: true, buyPrice: true },
     });
 
-    const availableQty = stockData?.currentStock || 0;
+    const availableQty = n(stockData?.currentStock);
     const shortageQty = Math.max(0, requiredQty - availableQty);
-    const unitCost = stockData?.buyPrice || 0;
+    const unitCost = n(stockData?.buyPrice);
 
     const item: MaterialRequirement = {
       productId: ingredient.rawProductId,

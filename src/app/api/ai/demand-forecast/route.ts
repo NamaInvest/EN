@@ -6,6 +6,7 @@ import { getUserFromRequest } from '@/lib/auth';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // Simple moving average + trend forecasting
 function movingAverage(data: number[], window: number): number {
@@ -56,7 +57,7 @@ export async function GET(req: Request) {
         const weekMap: Record<string, number> = {};
         details.forEach((d: any) => {
             const weekKey = getWeekKey(new Date(d.invoice.date));
-            weekMap[weekKey] = (weekMap[weekKey] || 0) + d.quantity;
+            weekMap[weekKey] = (weekMap[weekKey] || 0) + n(d.quantity);
         });
         Object.values(weekMap).forEach(v => weeklyDemand.push(v));
 
@@ -69,9 +70,9 @@ export async function GET(req: Request) {
         const trend = detectTrend(weeklyDemand);
         const trendMultiplier = trend === 'up' ? 1.1 : trend === 'down' ? 0.9 : 1.0;
         const forecastedDemand = Math.ceil(avgWeekly * trendMultiplier * (forecastDays / 7));
-        const currentStock = product?.currentStock || 0;
+        const currentStock = n(product?.currentStock);
         const stockWillLast = avgWeekly > 0 ? Math.floor((currentStock / avgWeekly) * 7) : 999;
-        const recommendedOrder = Math.max(0, forecastedDemand - currentStock + (product?.minQuantity || 0));
+        const recommendedOrder = Math.max(0, forecastedDemand - currentStock + n(product?.minQuantity));
 
         return NextResponse.json({
             product: { id: productId, name: product?.name, currentStock },
@@ -116,9 +117,9 @@ export async function POST(req: Request) {
                     where: { id: tp.productId },
                     select: { name: true, currentStock: true, minQuantity: true },
                 });
-                const avgDaily = (tp._sum?.quantity || 0) / 90;
+                const avgDaily = n(tp._sum?.quantity) / 90;
                 const forecastedDemand = Math.ceil(avgDaily * 30);
-                const currentStock = product?.currentStock || 0;
+                const currentStock = n(product?.currentStock);
                 const stockWillLast = avgDaily > 0 ? Math.floor(currentStock / avgDaily) : 999;
                 return {
                     productId: tp.productId,

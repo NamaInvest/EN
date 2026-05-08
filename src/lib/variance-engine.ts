@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { n } from '@/lib/decimal-utils';
 
 export class VarianceEngine {
     private prisma: PrismaClient;
@@ -25,13 +26,13 @@ export class VarianceEngine {
             const product = await this.prisma.product.findUnique({ where: { id: line.productId } });
             if (!product) continue;
 
-            const standardCost = product.buyPrice || 0; // Simulated standard cost
-            const actualCost = line.price;
+            const standardCost = n(product.buyPrice); // Simulated standard cost
+            const actualCost = n(line.price);
             
             // PPV = (Actual Unit Cost - Standard Unit Cost) * Qty Purchased
             // Positive PPV = Unfavorable (Cost more than standard)
             // Negative PPV = Favorable (Cost less than standard)
-            const ppv = (actualCost - standardCost) * line.quantity;
+            const ppv = (actualCost - standardCost) * n(line.quantity);
             totalPPV += ppv;
         }
 
@@ -40,8 +41,8 @@ export class VarianceEngine {
                 data: {
                     type: 'PPV',
                     orderId: invoice.id,
-                    expectedCost: invoice.subtotal - totalPPV, // simplified
-                    actualCost: invoice.subtotal,
+                    expectedCost: n(invoice.subtotal) - totalPPV, // simplified
+                    actualCost: n(invoice.subtotal),
                     varianceAmount: totalPPV
                 }
             });

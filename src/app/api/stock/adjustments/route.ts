@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { getUserFromRequest } from '@/lib/auth';
+import { n } from '@/lib/decimal-utils';
 
 export async function GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
             const product = await tx.product.findUnique({ where: { id: parseInt(productId) } });
             // BUILD SAFETY: if (!product) throw new Error('المنتج غير موجود');
 
-            const current = product.currentStock;
+            const current = n(product.currentStock);
             const diff = parseFloat(actualQuantity) - current;
 
             if (diff === 0) throw new Error('لا يوجد فارق لتسويته! الرصيد الفعلي يطابق الدفتري.');
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
             });
 
             // Post to Auto Journal
-            const diffCost = diff * (product.buyPrice || product.buyPrice || 0);
+            const diffCost = diff * (n(product.buyPrice) || 0);
             if (diffCost !== 0) {
                 try {
                     await postInventoryAdjustment({

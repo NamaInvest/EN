@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class VendorStatementEngine {
     
@@ -19,8 +20,8 @@ export class VendorStatementEngine {
             _sum: { subtotal: true, taxValue: true, paid: true } 
         });
 
-        const priorInvTotal = (priorInvoices._sum.subtotal || 0) + (priorInvoices._sum.taxValue || 0);
-        const priorPayTotal = (priorInvoices._sum.paid || 0);
+        const priorInvTotal = n(priorInvoices._sum.subtotal) + n(priorInvoices._sum.taxValue);
+        const priorPayTotal = n(priorInvoices._sum.paid);
         // Balance is what we owe: Invoices - Payments
         const openingBalance = priorInvTotal - priorPayTotal;
 
@@ -38,7 +39,7 @@ export class VendorStatementEngine {
         // Merge and sort transactions by date
         const transactions: any[] = [];
         periodInvoices.forEach(inv => {
-            const total = inv.subtotal + inv.taxValue;
+            const total = n(inv.subtotal) + n(inv.taxValue);
             transactions.push({
                 type: 'INVOICE',
                 id: inv.id,
@@ -49,14 +50,14 @@ export class VendorStatementEngine {
                 debit: 0
             });
 
-            if (!includeOnlyOpen && inv.paid > 0) {
+            if (!includeOnlyOpen && n(inv.paid) > 0) {
                 transactions.push({
                     type: 'PAYMENT',
                     id: inv.id,
                     reference: `PAY-PINV-${inv.invoiceNo}`,
                     date: inv.date, // Approximate payment date to invoice date
-                    amount: inv.paid,
-                    debit: inv.paid, // we paid them -> debit their AP account
+                    amount: n(inv.paid),
+                    debit: n(inv.paid), // we paid them -> debit their AP account
                     credit: 0
                 });
             }
@@ -85,7 +86,7 @@ export class VendorStatementEngine {
         periodInvoices.forEach(inv => {
             const dueDate = new Date(inv.date);
             dueDate.setDate(dueDate.getDate() + 30); // Mock 30-day term
-            const remaining = (inv.subtotal + inv.taxValue) - inv.paid;
+            const remaining = (n(inv.subtotal) + n(inv.taxValue)) - n(inv.paid);
             
             if (remaining > 0) {
                 if (toDate <= dueDate) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
             where: { active: true }
         });
 
-        const deficientProducts = allProducts.filter(p => p.currentStock <= p.minQuantity);
+        const deficientProducts = allProducts.filter(p => n(p.currentStock) <= n(p.minQuantity));
 
         if (deficientProducts.length === 0) {
             return NextResponse.json({ message: 'المخزون آمن، لا توجد نواقص تستدعي إنشاء أمر شراء.' }, { status: 400 });
@@ -30,19 +31,19 @@ export async function POST(request: Request) {
         // Calculate a safe "Restock Quantity" (either minQuantity x 2, or a fixed threshold)
         // Here we recommend buying enough to reach double the minimum quantity
         const recommendedItems = deficientProducts.map(p => {
-            let recommendedQty = (p.minQuantity * 2) - p.currentStock;
-            if (recommendedQty <= 0) recommendedQty = p.minQuantity || 1; // Fallback
+            let recommendedQty = (n(p.minQuantity) * 2) - n(p.currentStock);
+            if (recommendedQty <= 0) recommendedQty = n(p.minQuantity) || 1; // Fallback
             
             return {
                 productId: p.id,
                 productName: p.name,
                 quantity: recommendedQty,
-                price: p.buyPrice || 0,
-                total: recommendedQty * (p.buyPrice || 0)
+                price: n(p.buyPrice) || 0,
+                total: recommendedQty * (n(p.buyPrice) || 0)
             };
         });
 
-        const overallTotal = recommendedItems.reduce((acc: any, curr: any) => acc + curr.total, 0);
+        const overallTotal = recommendedItems.reduce((acc: number, curr: any) => acc + curr.total, 0);
 
         const draftOrder = await prisma.purchaseOrder.create({
             data: {

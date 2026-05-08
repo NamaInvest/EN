@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { n } from './decimal-utils';
 
 export class CRMEngine {
     
@@ -141,12 +142,12 @@ export class CRMEngine {
         const stageBreakdown: Record<string, { amount: number, count: number }> = {};
 
         for (const opp of openOpps) {
-            totalUnweighted += opp.amount;
-            totalWeighted += opp.amount * (opp.probability / 100);
+            totalUnweighted += n(opp.amount);
+            totalWeighted += n(opp.amount) * (n(opp.probability) / 100);
             
             const sName = opp.stage.name;
             if (!stageBreakdown[sName]) stageBreakdown[sName] = { amount: 0, count: 0 };
-            stageBreakdown[sName].amount += opp.amount;
+            stageBreakdown[sName].amount += n(opp.amount);
             stageBreakdown[sName].count += 1;
         }
 

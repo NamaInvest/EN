@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { runMRP } from '@/lib/mrp-engine';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -95,7 +96,7 @@ export async function PUT(request: NextRequest) {
 
                 // 1. Deduct Raw Materials based on exact BOM (Bill of Materials) formula
                 for (const ing of currentOrder.recipe.ingredients) {
-                    const requiredQty = ing.quantity * currentOrder.quantityToProduce;
+                    const requiredQty = n(ing.quantity) * n(currentOrder.quantityToProduce);
                     
                     const rawProd = await tx.product.update({
                         where: { id: ing.rawProductId },
@@ -109,7 +110,7 @@ export async function PUT(request: NextRequest) {
                     });
 
                     // We approximate the production cost of the finished good natively from the raw materials' average buy price
-                    totalMaterialCost += (rawProd.buyPrice || 0) * requiredQty;
+                    totalMaterialCost += (n(rawProd.buyPrice) || 0) * requiredQty;
                 }
 
                 // 2. Handle specific Scrap/Wastage reported by the factory floor
@@ -126,7 +127,7 @@ export async function PUT(request: NextRequest) {
                             data: { quantity: { decrement: lostQty } }
                         });
 
-                        const lostCost = (rawProd.buyPrice || 0) * lostQty;
+                        const lostCost = (n(rawProd.buyPrice) || 0) * lostQty;
                         totalMaterialCost += lostCost; // Wastage natively transfers into the cost of the surviving goods
 
                         await tx.manufacturingWastage.create({
@@ -145,16 +146,15 @@ export async function PUT(request: NextRequest) {
                 let overheadCost = 0;
                 if (currentOrder.machineId) {
                     const machine = await tx.machine.findUnique({ where: { id: currentOrder.machineId } });
-                    if (machine && machine.hourlyCost > 0) {
-                        // Assuming basic duration tracking between startDate and now (in hours)
+                    if (machine && n(machine.hourlyCost) > 0) {
                         const hoursElapsed = Math.abs(new Date().getTime() - currentOrder.startDate.getTime()) / 3600000;
-                        overheadCost = hoursElapsed * machine.hourlyCost;
+                        overheadCost = hoursElapsed * n(machine.hourlyCost);
                         totalMaterialCost += overheadCost;
                     }
                 }
 
                 // 4. Finalize the Finished Good by INCREMENTING its stock
-                const singleUnitCost = totalMaterialCost / currentOrder.quantityToProduce;
+                const singleUnitCost = totalMaterialCost / n(currentOrder.quantityToProduce);
                 
                 await tx.product.update({
                     where: { id: currentOrder.recipe.finishedProductId },

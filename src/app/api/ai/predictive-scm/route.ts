@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        const itemsToOrder = lowStockProducts.filter(p => p.currentStock <= p.minQuantity * 1.5);
+        const itemsToOrder = lowStockProducts.filter(p => n(p.currentStock) <= n(p.minQuantity) * 1.5);
         
         if (itemsToOrder.length === 0) {
             return NextResponse.json({ success: true, message: 'المخزون بوضع آمن، لا توجد طلبات ذكية مقترحة.', ordersCreated: 0 });
@@ -40,11 +41,11 @@ export async function POST(request: NextRequest) {
         
         const detailsInput = itemsToOrder.map(product => {
             // Intelligent restock formula: order enough to reach 3x the minimum threshold
-            let qtyToOrder = (product.minQuantity * 3) - product.currentStock;
+            let qtyToOrder = (n(product.minQuantity) * 3) - n(product.currentStock);
             if (qtyToOrder < 1) qtyToOrder = 1;
             
-            const lineTotal = qtyToOrder * product.buyPrice;
-            const lineTax = lineTotal * (product.taxRate / 100);
+            const lineTotal = qtyToOrder * n(product.buyPrice);
+            const lineTax = lineTotal * (n(product.taxRate) / 100);
             
             subtotal += lineTotal;
             taxValue += lineTax;
@@ -53,8 +54,8 @@ export async function POST(request: NextRequest) {
                 productId: product.id,
                 productName: product.name,
                 quantity: qtyToOrder,
-                price: product.buyPrice,
-                taxRate: product.taxRate,
+                price: n(product.buyPrice),
+                taxRate: n(product.taxRate),
                 taxValue: lineTax,
                 total: lineTotal + lineTax
             };

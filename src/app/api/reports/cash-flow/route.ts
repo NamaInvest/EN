@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export const runtime = 'nodejs';
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
     let salariesSum = 0;
     try {
       const salariesTotal = await prisma.salary.aggregate({ _sum: { netSalary: true } });
-      salariesSum = salariesTotal._sum.netSalary || 0;
+      salariesSum = n(salariesTotal._sum.netSalary);
     } catch { /* salary table may not exist */ }
 
     // 2. التدفقات الاستثمارية (Investing)
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
         where: { purchaseDate: dateFilter },
         _sum: { purchasePrice: true },
       });
-      assetsSum = assetsTotal?._sum?.purchasePrice || 0;
+      assetsSum = n(assetsTotal?._sum?.purchasePrice);
     } catch { /* fixedAsset table may not exist */ }
 
     // 3. حركات الخزينة المباشرة
@@ -70,14 +71,14 @@ export async function GET(req: Request) {
     const operating = {
       label: 'التدفقات التشغيلية',
       inflows: {
-        sales: salesTotal._sum.total || 0,
-        otherIncome: treasuryIn._sum.amount || 0,
+        sales: n(salesTotal._sum.total),
+        otherIncome: n(treasuryIn._sum.amount),
       },
       outflows: {
-        purchases: purchasesTotal._sum.total || 0,
-        expenses: expensesTotal._sum.amount || 0,
+        purchases: n(purchasesTotal._sum.total),
+        expenses: n(expensesTotal._sum.amount),
         salaries: salariesSum,
-        otherPayments: treasuryOut._sum.amount || 0,
+        otherPayments: n(treasuryOut._sum.amount),
       },
       net: 0,
     };

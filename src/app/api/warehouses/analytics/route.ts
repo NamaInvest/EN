@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
@@ -29,20 +30,20 @@ export async function GET(request: Request) {
     const lowStockAlerts = [];
 
     for (const ps of productStocks) {
-      if (ps.quantity > 0) {
-        const buyValue = ps.quantity * (ps.product.buyPrice || 0);
-        const sellValue = ps.quantity * (ps.product.sellPrice || 0);
+      if (n(ps.quantity) > 0) {
+        const buyValue = n(ps.quantity) * (n(ps.product.buyPrice) || 0);
+        const sellValue = n(ps.quantity) * (n(ps.product.sellPrice) || 0);
         totalValuationBuy += buyValue;
         totalValuationSell += sellValue;
       }
 
-      if (ps.quantity <= ps.product.minQuantity && ps.product.active) {
+      if (n(ps.quantity) <= n(ps.product.minQuantity) && ps.product.active) {
         lowStockCount++;
         lowStockAlerts.push({
           id: ps.product.id,
           name: ps.product.name,
-          currentStock: ps.quantity,
-          minQuantity: ps.product.minQuantity,
+          currentStock: n(ps.quantity),
+          minQuantity: n(ps.product.minQuantity),
           warehouseName: ps.stock.name,
           stockId: ps.stock.id,
           barcode: ps.product.barcode || '-',

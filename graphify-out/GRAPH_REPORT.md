@@ -9,36 +9,36 @@
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Community 0|Community 0]]
-- [[_COMMUNITY_Community 1|Community 1]]
-- [[_COMMUNITY_Community 2|Community 2]]
-- [[_COMMUNITY_Community 3|Community 3]]
-- [[_COMMUNITY_Community 4|Community 4]]
-- [[_COMMUNITY_Community 5|Community 5]]
-- [[_COMMUNITY_Community 6|Community 6]]
-- [[_COMMUNITY_Community 7|Community 7]]
-- [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 9|Community 9]]
-- [[_COMMUNITY_Community 10|Community 10]]
-- [[_COMMUNITY_Community 11|Community 11]]
-- [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 13|Community 13]]
-- [[_COMMUNITY_Community 14|Community 14]]
-- [[_COMMUNITY_Community 15|Community 15]]
-- [[_COMMUNITY_Community 16|Community 16]]
-- [[_COMMUNITY_Community 17|Community 17]]
-- [[_COMMUNITY_Community 18|Community 18]]
-- [[_COMMUNITY_Community 19|Community 19]]
-- [[_COMMUNITY_Community 20|Community 20]]
-- [[_COMMUNITY_Community 21|Community 21]]
-- [[_COMMUNITY_Community 22|Community 22]]
-- [[_COMMUNITY_Community 23|Community 23]]
-- [[_COMMUNITY_Community 24|Community 24]]
-- [[_COMMUNITY_Community 25|Community 25]]
-- [[_COMMUNITY_Community 26|Community 26]]
-- [[_COMMUNITY_Community 27|Community 27]]
-- [[_COMMUNITY_Community 28|Community 28]]
-- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Advanced API Routes|Advanced API Routes]]
+- [[_COMMUNITY_UI Page Components|UI Page Components]]
+- [[_COMMUNITY_Operational Pages|Operational Pages]]
+- [[_COMMUNITY_Business API Endpoints|Business API Endpoints]]
+- [[_COMMUNITY_Core API Routes|Core API Routes]]
+- [[_COMMUNITY_Page Event Handlers|Page Event Handlers]]
+- [[_COMMUNITY_Audit & Banking Routes|Audit & Banking Routes]]
+- [[_COMMUNITY_Accounting Engine Core|Accounting Engine Core]]
+- [[_COMMUNITY_Backup & System Routes|Backup & System Routes]]
+- [[_COMMUNITY_Electron Protected Main|Electron Protected Main]]
+- [[_COMMUNITY_Financial Operations API|Financial Operations API]]
+- [[_COMMUNITY_Budget & Capture API|Budget & Capture API]]
+- [[_COMMUNITY_Journal & Adjustments API|Journal & Adjustments API]]
+- [[_COMMUNITY_Electron Backup Sync|Electron Backup Sync]]
+- [[_COMMUNITY_Electron Main Process|Electron Main Process]]
+- [[_COMMUNITY_Electron Offline DB|Electron Offline DB]]
+- [[_COMMUNITY_Financial Transaction Routes|Financial Transaction Routes]]
+- [[_COMMUNITY_AI & Messaging Routes|AI & Messaging Routes]]
+- [[_COMMUNITY_ZATCA & Sales Integration|ZATCA & Sales Integration]]
+- [[_COMMUNITY_Sidebar Navigation|Sidebar Navigation]]
+- [[_COMMUNITY_Workflow Lifecycle API|Workflow Lifecycle API]]
+- [[_COMMUNITY_MFA & Auth Security|MFA & Auth Security]]
+- [[_COMMUNITY_Shared UI Components|Shared UI Components]]
+- [[_COMMUNITY_Auth & Login Routes|Auth & Login Routes]]
+- [[_COMMUNITY_AI CFO & Knowledge|AI CFO & Knowledge]]
+- [[_COMMUNITY_POS Sales Page|POS Sales Page]]
+- [[_COMMUNITY_Local PostgreSQL DB|Local PostgreSQL DB]]
+- [[_COMMUNITY_ZATCA Offline Module|ZATCA Offline Module]]
+- [[_COMMUNITY_Python Utility Scripts|Python Utility Scripts]]
+- [[_COMMUNITY_Products & Inventory API|Products & Inventory API]]
 - [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 32|Community 32]]
@@ -588,119 +588,119 @@
 
 ## Communities (2110 total, 298 thin omitted)
 
-### Community 0 - "Community 0"
+### Community 0 - "Advanced API Routes"
 Cohesion: 0.01
 Nodes (51): GET(), GET(), POST(), GET(), POST(), POST(), POST(), GET() (+43 more)
 
-### Community 1 - "Community 1"
+### Community 1 - "UI Page Components"
 Cohesion: 0.01
 Nodes (35): handleCopy(), triggerMatch(), triggerSCM(), fetchAlerts(), generateAutoPO(), handleLogout(), handleSave(), _t() (+27 more)
 
-### Community 2 - "Community 2"
+### Community 2 - "Operational Pages"
 Cohesion: 0.03
 Nodes (28): fetchBackups(), handleCreateBackup(), createVersion(), fetchVersions(), lockVersion(), fetchCaptures(), handleUpload(), fetchSnapshot() (+20 more)
 
-### Community 3 - "Community 3"
+### Community 3 - "Business API Endpoints"
 Cohesion: 0.02
 Nodes (58): GET(), GET(), POST(), GET(), POST(), GET(), POST(), GET() (+50 more)
 
-### Community 4 - "Community 4"
+### Community 4 - "Core API Routes"
 Cohesion: 0.01
 Nodes (50): GET(), GET(), POST(), POST(), GET(), POST(), DELETE(), GET() (+42 more)
 
-### Community 5 - "Community 5"
+### Community 5 - "Page Event Handlers"
 Cohesion: 0.02
 Nodes (54): startReconciliation(), submitReconciliation(), toggleLine(), generateForecast(), _t(), load(), save(), load() (+46 more)
 
-### Community 6 - "Community 6"
+### Community 6 - "Audit & Banking Routes"
 Cohesion: 0.03
 Nodes (18): GET(), POST(), GET(), POST(), GET(), GET(), DELETE(), GET() (+10 more)
 
-### Community 7 - "Community 7"
+### Community 7 - "Accounting Engine Core"
 Cohesion: 0.05
 Nodes (26): AccountingEngine, deleteFile(), deleteFromLocal(), deleteFromS3(), getFileUrl(), getSignatureKey(), uploadFile(), uploadToLocal() (+18 more)
 
-### Community 8 - "Community 8"
+### Community 8 - "Backup & System Routes"
 Cohesion: 0.05
 Nodes (22): GET(), POST(), GET(), GET(), POST(), GET(), POST(), hasPermission() (+14 more)
 
-### Community 9 - "Community 9"
+### Community 9 - "Electron Protected Main"
 Cohesion: 0.06
 Nodes (54): _0x1046df(), _0x121374(), _0x1246(), _0x132d3c(), _0x134e47(), _0x15d059(), _0x17e784(), _0x1b272e() (+46 more)
 
-### Community 10 - "Community 10"
+### Community 10 - "Financial Operations API"
 Cohesion: 0.05
 Nodes (10): db(), GET(), POST(), AllocationEngine, ConsolidationEngine, DunningEngine, FxRevaluationEngine, IFRS9Engine (+2 more)
 
-### Community 11 - "Community 11"
+### Community 11 - "Budget & Capture API"
 Cohesion: 0.04
 Nodes (7): GET(), POST(), GET(), POST(), resolveTenant(), POST(), GET()
 
-### Community 12 - "Community 12"
+### Community 12 - "Journal & Adjustments API"
 Cohesion: 0.1
 Nodes (27): GET(), POST(), POST(), GET(), POST(), createJournalEntry(), getAccountId(), getNextEntryNumber() (+19 more)
 
-### Community 13 - "Community 13"
+### Community 13 - "Electron Backup Sync"
 Cohesion: 0.07
 Nodes (25): _0x177dd6(), _0x19371a(), _0x1b9e17(), _0x1ba70b(), _0x1fb8(), _0x257b6d(), _0x27d0c3(), _0x31d0fd() (+17 more)
 
-### Community 14 - "Community 14"
+### Community 14 - "Electron Main Process"
 Cohesion: 0.09
 Nodes (42): _0x123e96(), _0x136d6b(), _0x15b5a3(), _0x173988(), _0x1827fa(), _0x1c347f(), _0x1d02ca(), _0x1e1443() (+34 more)
 
-### Community 15 - "Community 15"
+### Community 15 - "Electron Offline DB"
 Cohesion: 0.09
 Nodes (39): _0x1685(), _0x1716d0(), _0x174364(), _0x1c9c95(), _0x1d8a24(), _0x21a4(), _0x28a881(), _0x3667() (+31 more)
 
-### Community 16 - "Community 16"
+### Community 16 - "Financial Transaction Routes"
 Cohesion: 0.14
 Nodes (16): GET(), DELETE(), GET(), POST(), PUT(), handleApiError(), round2(), validateMoney() (+8 more)
 
-### Community 17 - "Community 17"
+### Community 17 - "AI & Messaging Routes"
 Cohesion: 0.17
 Nodes (27): GET(), addExpense(), addPurchase(), extractNumber(), fmt(), getAPI(), getBotToken(), getCustomerCount() (+19 more)
 
-### Community 18 - "Community 18"
+### Community 18 - "ZATCA & Sales Integration"
 Cohesion: 0.14
 Nodes (22): decodeZatcaQR(), escapeXml(), extractPublicKeyFromCertificate(), generateECDSASignature(), generatePhase2QRContent(), generateTlvHex(), generateXmlHash(), generateZatcaKeyPair() (+14 more)
 
-### Community 19 - "Community 19"
+### Community 19 - "Sidebar Navigation"
 Cohesion: 0.09
 Nodes (13): gl(), handleLogout(), handleResize(), onLangChange(), onStorage(), addItem(), handleCreate(), loadData() (+5 more)
 
-### Community 20 - "Community 20"
+### Community 20 - "Workflow Lifecycle API"
 Cohesion: 0.08
 Nodes (8): POST(), POST(), POST(), POST(), PaymentRunEngine, YearEndCloseEngine, POST(), POST()
 
-### Community 21 - "Community 21"
+### Community 21 - "MFA & Auth Security"
 Cohesion: 0.08
 Nodes (6): POST(), decryptSecret(), encryptSecret(), MfaEngine, WmsEngine, POST()
 
-### Community 22 - "Community 22"
+### Community 22 - "Shared UI Components"
 Cohesion: 0.08
 Nodes (14): askCopilot(), componentDidCatch(), constructor(), getDerivedStateFromError(), HijriDate(), InactivityGuard(), handleSetLang(), PrintButton() (+6 more)
 
-### Community 23 - "Community 23"
+### Community 23 - "Auth & Login Routes"
 Cohesion: 0.1
 Nodes (17): GET(), POST(), comparePassword(), generateSessionToken(), generateToken(), getTokenFromRequest(), isLegacyAdmin(), verifyToken() (+9 more)
 
-### Community 24 - "Community 24"
+### Community 24 - "AI CFO & Knowledge"
 Cohesion: 0.11
 Nodes (26): POST(), POST(), POST(), POST(), batchIngest(), chunkDocument(), ingestDocument(), searchDocuments() (+18 more)
 
-### Community 25 - "Community 25"
+### Community 25 - "POS Sales Page"
 Cohesion: 0.16
 Nodes (31): addToCart(), applyCoupon(), connectPosManual(), deleteHeldInvoice(), deleteInvoice(), detectPosTerminal(), dispatchKitchenPrinters(), fetchCurrencies() (+23 more)
 
-### Community 27 - "Community 27"
+### Community 27 - "ZATCA Offline Module"
 Cohesion: 0.12
 Nodes (27): _0x10a9(), _0x125a0d(), _0x1edda7(), _0x20e396(), _0x264f58(), _0x2d694b(), _0x2eba85(), _0x316a1a() (+19 more)
 
-### Community 28 - "Community 28"
+### Community 28 - "Python Utility Scripts"
 Cohesion: 0.11
 Nodes (7): audit_file(), fix_file(), fix_file(), fix_file(), clean_file(), generate_context(), PosDB
 
-### Community 29 - "Community 29"
+### Community 29 - "Products & Inventory API"
 Cohesion: 0.16
 Nodes (18): hashPassword(), checkQuota(), quotaErrorResponse(), getSallaConfig(), syncProductToSalla(), syncStockToSalla(), GET(), DELETE() (+10 more)
 
@@ -1612,17 +1612,17 @@ Nodes (3): isPortAvailable(), startNextServer(), waitForServer()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useTranslation()` connect `Community 1` to `Community 2`, `Community 5`, `Community 518`, `Community 19`, `Community 22`, `Community 25`, `Community 31`, `Community 33`, `Community 37`, `Community 38`, `Community 39`, `Community 40`, `Community 42`, `Community 53`, `Community 55`, `Community 57`, `Community 62`, `Community 76`, `Community 78`, `Community 89`, `Community 90`, `Community 91`, `Community 92`, `Community 93`, `Community 94`, `Community 95`, `Community 96`, `Community 104`, `Community 105`, `Community 108`, `Community 109`, `Community 110`, `Community 111`, `Community 119`, `Community 120`, `Community 121`, `Community 122`, `Community 125`, `Community 126`, `Community 136`, `Community 137`, `Community 138`, `Community 139`, `Community 140`, `Community 141`, `Community 142`, `Community 143`, `Community 144`, `Community 145`, `Community 146`, `Community 153`, `Community 154`, `Community 155`, `Community 156`, `Community 157`, `Community 169`, `Community 170`, `Community 171`, `Community 172`, `Community 173`, `Community 174`, `Community 175`, `Community 176`, `Community 187`, `Community 190`, `Community 191`, `Community 214`, `Community 215`, `Community 216`, `Community 217`, `Community 218`, `Community 219`, `Community 220`, `Community 221`, `Community 222`, `Community 223`, `Community 224`, `Community 225`, `Community 226`, `Community 227`, `Community 228`, `Community 229`, `Community 230`, `Community 231`, `Community 245`, `Community 257`, `Community 258`, `Community 259`, `Community 260`, `Community 261`, `Community 262`, `Community 263`, `Community 264`, `Community 265`, `Community 266`, `Community 267`, `Community 268`, `Community 272`, `Community 293`, `Community 294`, `Community 295`, `Community 296`, `Community 297`, `Community 298`, `Community 299`, `Community 300`, `Community 301`, `Community 302`, `Community 303`, `Community 304`, `Community 305`, `Community 306`, `Community 307`, `Community 308`, `Community 309`, `Community 310`, `Community 311`, `Community 312`, `Community 313`, `Community 314`, `Community 340`, `Community 341`, `Community 342`, `Community 343`, `Community 344`, `Community 348`, `Community 380`, `Community 381`, `Community 382`, `Community 383`, `Community 384`, `Community 385`, `Community 386`, `Community 387`, `Community 388`, `Community 389`, `Community 390`, `Community 391`, `Community 392`, `Community 393`, `Community 394`, `Community 395`, `Community 396`, `Community 397`, `Community 398`, `Community 399`, `Community 400`, `Community 401`, `Community 402`, `Community 403`, `Community 404`, `Community 405`, `Community 406`, `Community 407`, `Community 408`, `Community 409`?**
+- **Why does `useTranslation()` connect `UI Page Components` to `Operational Pages`, `Page Event Handlers`, `Community 518`, `Sidebar Navigation`, `Shared UI Components`, `POS Sales Page`, `Community 31`, `Community 33`, `Community 37`, `Community 38`, `Community 39`, `Community 40`, `Community 42`, `Community 53`, `Community 55`, `Community 57`, `Community 62`, `Community 76`, `Community 78`, `Community 89`, `Community 90`, `Community 91`, `Community 92`, `Community 93`, `Community 94`, `Community 95`, `Community 96`, `Community 104`, `Community 105`, `Community 108`, `Community 109`, `Community 110`, `Community 111`, `Community 119`, `Community 120`, `Community 121`, `Community 122`, `Community 125`, `Community 126`, `Community 136`, `Community 137`, `Community 138`, `Community 139`, `Community 140`, `Community 141`, `Community 142`, `Community 143`, `Community 144`, `Community 145`, `Community 146`, `Community 153`, `Community 154`, `Community 155`, `Community 156`, `Community 157`, `Community 169`, `Community 170`, `Community 171`, `Community 172`, `Community 173`, `Community 174`, `Community 175`, `Community 176`, `Community 187`, `Community 190`, `Community 191`, `Community 214`, `Community 215`, `Community 216`, `Community 217`, `Community 218`, `Community 219`, `Community 220`, `Community 221`, `Community 222`, `Community 223`, `Community 224`, `Community 225`, `Community 226`, `Community 227`, `Community 228`, `Community 229`, `Community 230`, `Community 231`, `Community 245`, `Community 257`, `Community 258`, `Community 259`, `Community 260`, `Community 261`, `Community 262`, `Community 263`, `Community 264`, `Community 265`, `Community 266`, `Community 267`, `Community 268`, `Community 272`, `Community 293`, `Community 294`, `Community 295`, `Community 296`, `Community 297`, `Community 298`, `Community 299`, `Community 300`, `Community 301`, `Community 302`, `Community 303`, `Community 304`, `Community 305`, `Community 306`, `Community 307`, `Community 308`, `Community 309`, `Community 310`, `Community 311`, `Community 312`, `Community 313`, `Community 314`, `Community 340`, `Community 341`, `Community 342`, `Community 343`, `Community 344`, `Community 348`, `Community 380`, `Community 381`, `Community 382`, `Community 383`, `Community 384`, `Community 385`, `Community 386`, `Community 387`, `Community 388`, `Community 389`, `Community 390`, `Community 391`, `Community 392`, `Community 393`, `Community 394`, `Community 395`, `Community 396`, `Community 397`, `Community 398`, `Community 399`, `Community 400`, `Community 401`, `Community 402`, `Community 403`, `Community 404`, `Community 405`, `Community 406`, `Community 407`, `Community 408`, `Community 409`?**
   _High betweenness centrality (0.099) - this node is a cross-community bridge._
-- **Why does `Card()` connect `Community 2` to `Community 296`, `Community 1`, `Community 307`, `Community 229`?**
+- **Why does `Card()` connect `Operational Pages` to `Community 296`, `UI Page Components`, `Community 307`, `Community 229`?**
   _High betweenness centrality (0.043) - this node is a cross-community bridge._
-- **Why does `CardContent()` connect `Community 2` to `Community 296`, `Community 307`?**
+- **Why does `CardContent()` connect `Operational Pages` to `Community 296`, `Community 307`?**
   _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **What connects `Fix TS2353 Prisma field mismatch errors by casting affected prisma calls to (pri`, `g`, `y` to the rest of the system?**
   _25 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Community 0` be split into smaller, more focused modules?**
+- **Should `Advanced API Routes` be split into smaller, more focused modules?**
   _Cohesion score 0.01 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
+- **Should `UI Page Components` be split into smaller, more focused modules?**
   _Cohesion score 0.01 - nodes in this community are weakly interconnected._
-- **Should `Community 2` be split into smaller, more focused modules?**
+- **Should `Operational Pages` be split into smaller, more focused modules?**
   _Cohesion score 0.03 - nodes in this community are weakly interconnected._

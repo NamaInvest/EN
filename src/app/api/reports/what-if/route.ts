@@ -42,9 +42,9 @@ export async function GET(req: Request) {
     });
 
     // القيم الحالية
-    const currentRevenue = salesData._sum.subtotal || 0;
-    const currentCOGS = purchasesData._sum.subtotal || 0;
-    const currentExpenses = expensesData._sum.amount || 0;
+    const currentRevenue = n(salesData._sum.subtotal);
+    const currentCOGS = n(purchasesData._sum.subtotal);
+    const currentExpenses = n(expensesData._sum.amount);
     const currentGrossProfit = currentRevenue - currentCOGS;
     const currentNetProfit = currentGrossProfit - currentExpenses;
     const currentMargin = currentRevenue > 0 ? (currentNetProfit / currentRevenue) * 100 : 0;

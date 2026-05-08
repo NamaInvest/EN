@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
 import { salesReturnCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
             }
 
             // Treasury out (Refund to customer) - Point 3: Financial Fees
-            const netRefund = createdReturn.total - restockingFee;
+            const netRefund = n(createdReturn.total) - restockingFee;
             if (netRefund > 0) {
                 await tx.treasury.create({ 
                     data: { 
@@ -384,8 +385,8 @@ export async function POST(request: Request) {
                                 },
                             },
                             invoiceLines: mappedLines,
-                            taxAmount: ret.taxValue.toFixed(2),
-                            totalAmount: ret.total.toFixed(2),
+                            taxAmount: n(ret.taxValue).toFixed(2),
+                            totalAmount: n(ret.total).toFixed(2),
                             // Reference to original invoice for ZATCA BillingReference
                             ...(originalInvoice ? {
                                 cancelation: {
@@ -473,8 +474,8 @@ export async function POST(request: Request) {
                         sellerName: s['company_name'],
                         vatNumber: s['tax_number'],
                         timestamp: new Date().toISOString(),
-                        totalWithVat: ret.total,
-                        vatAmount: ret.taxValue,
+                        totalWithVat: n(ret.total),
+                        vatAmount: n(ret.taxValue),
                     });
                     zatcaQR = qrData;
                     await tx.salesReturn.update({ where: { id: ret.id }, data: { zatcaQr: zatcaQR } });

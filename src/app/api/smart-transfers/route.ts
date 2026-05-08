@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { postStockTransfer } from '@/lib/auto-journal';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(req: NextRequest) {
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
             where: { productId: Number(productId), stockId: Number(senderStockId) }
         });
 
-        if (!currentStock || currentStock.quantity < quantity) {
+        if (!currentStock || n(currentStock.quantity) < quantity) {
             return NextResponse.json({ error: 'الكمية غير متوفرة في المستودع المرسل' }, { status: 400 });
         }
 
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
                 movementId: movementId,
                 reference: transferRef,
                 type: 'transit_out',
-                totalCost: (product.buyPrice || 0) * Number(quantity),
+                totalCost: (n(product.buyPrice) || 0) * Number(quantity),
                 productName: product.name,
                 userId: (user as any).id || 1,
             });
@@ -202,7 +203,7 @@ export async function PUT(req: NextRequest) {
                 movementId: tr.id,
                 reference: meta.transferRef,
                 type: 'transit_in',
-                totalCost: (tr.product?.buyPrice || 0) * qty,
+                totalCost: (n(tr.product?.buyPrice) || 0) * qty,
                 productName: tr.product?.name || 'Unknown',
                 userId: (user as any).id || 1,
             });
