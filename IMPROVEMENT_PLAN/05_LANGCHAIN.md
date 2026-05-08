@@ -245,9 +245,9 @@ const langsmithClient = new Client({ apiKey: process.env.LANGSMITH_API_KEY });
 ---
 
 ## ✅ معايير القبول
-- [ ] 25 ERP tool مسجّل ومُختبر
-- [ ] Tool Registry مع RBAC
-- [ ] Streaming يعمل في copilot
-- [ ] 7 routes هاجرت لـ Orchestrator
-- [ ] LangSmith dashboard يعرض traces
-- [ ] Cost report per tenant per day
+- [x] 25 ERP tool مسجّل ومُختبر
+- [x] Tool Registry مع RBAC
+- [x] Streaming يعمل في copilot
+- [x] 7 routes هاجرت لـ Orchestrator
+- [x] LangSmith dashboard يعرض traces
+- [x] Cost report per tenant per day
