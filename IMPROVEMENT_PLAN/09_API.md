@@ -392,10 +392,10 @@ export { handler as GET, handler as POST };
 ---
 
 ## ✅ معايير القبول
-- [ ] OpenAPI 3.1 docs على `/api/docs`
-- [ ] كل routes تحت `/api/v1/`
-- [ ] Idempotency keys في 5 routes حرجة
-- [ ] ApiKey مع scopes + rate limit per key
-- [ ] Webhooks Manager مع HMAC + retry + dead letter
-- [ ] Postman collection auto-exported
-- [ ] SDK clients (TypeScript) مولّد تلقائياً
+- [x] OpenAPI 3.1 docs على `/api/docs`
+- [x] كل routes تحت `/api/v1/`
+- [x] Idempotency keys في 5 routes حرجة
+- [x] ApiKey مع scopes + rate limit per key
+- [x] Webhooks Manager مع HMAC + retry + dead letter
+- [x] Postman collection auto-exported
+- [x] SDK clients (TypeScript) مولّد تلقائياً
