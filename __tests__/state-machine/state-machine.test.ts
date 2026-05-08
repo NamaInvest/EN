@@ -23,7 +23,7 @@ describe('Document State Machine', () => {
         it('should NOT allow POSTED -> DELETED/DRAFT', () => {
             expect(machine.canTransition('POSTED', 'DRAFT')).toBe(false);
             // It only allows PAID, PARTIAL_PAID, REVERSED
-            const valid = machine.getValidTransitions('POSTED');
+            const valid = machine.getAllowedTransitions('POSTED');
             expect(valid).toEqual(['PAID', 'PARTIAL_PAID', 'REVERSED']);
         });
 

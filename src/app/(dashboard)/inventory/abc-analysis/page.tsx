@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 import {
   ComposedChart,
   Line,
@@ -15,6 +16,7 @@ import {
 } from 'recharts';
 
 export default function AbcAnalysisPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [items, setItems] = useState<any[]>([]);
@@ -49,10 +51,10 @@ export default function AbcAnalysisPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert(`تم تحديث ${data.updatedCount} منتج بنجاح`);
+                toastSuccess(`تم تحديث ${data.updatedCount} منتج بنجاح`);
                 fetchAnalysis();
             } else {
-                alert(data.error || 'فشل التحديث');
+                toastError(data.error || 'فشل التحديث');
             }
         } catch (error) {
             console.error(error);

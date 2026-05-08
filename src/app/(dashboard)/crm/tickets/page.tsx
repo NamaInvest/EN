@@ -3,9 +3,21 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Headphones, Plus, AlertTriangle, Clock, CheckCircle, XCircle, Edit3, MessageSquare } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const prioColors: any = { LOW: '#94A3B8', MEDIUM: '#3B82F6', HIGH: '#EAB308', URGENT: '#EF4444' };
 const statusColors: any = { OPEN: '#3B82F6', IN_PROGRESS: '#8B5CF6', WAITING: '#EAB308', RESOLVED: '#22C55E', CLOSED: '#94A3B8' };
+
+const formSchema = z.object({
+  subject: z.string().min(1, 'الموضوع مطلوب'),
+  priority: z.string().min(1, 'الأولوية مطلوبة'),
+  category: z.string().min(1, 'الفئة مطلوبة'),
+  description: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function SupportTickets() {
   const { lang } = useTranslation();
@@ -15,7 +27,17 @@ export default function SupportTickets() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('');
-  const [form, setForm] = useState<any>({ subject: '', description: '', priority: 'MEDIUM', category: 'GENERAL' });
+  const [saving, setSaving] = useState(false);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+          subject: '',
+          priority: 'MEDIUM',
+          category: 'GENERAL',
+          description: ''
+      }
+  });
 
   useEffect(() => { load(); }, [filter]);
 
@@ -29,17 +51,22 @@ export default function SupportTickets() {
     } catch (e: any) { toastError(e?.message); } finally { setLoading(false); }
   };
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
+    setSaving(true);
     const t = localStorage.getItem('token');
     try {
       const r = await fetch('/api/crm/tickets', {
-        method: form.id ? 'PUT' : 'POST',
+        method: 'POST', // Only CREATE mode is supported in the legacy code too
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify(form)
+        body: JSON.stringify(data)
       });
-      if (r.ok) { toastSuccess('تم الحفظ'); setShowModal(false); load(); }
-    } catch (e: any) { toastError(e?.message); }
+      if (r.ok) { 
+          toastSuccess('تم الحفظ'); 
+          setShowModal(false); 
+          reset();
+          load(); 
+      }
+    } catch (e: any) { toastError(e?.message); } finally { setSaving(false); }
   };
 
   const changeStatus = async (id: number, status: string) => {
@@ -63,7 +90,7 @@ export default function SupportTickets() {
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}><Headphones size={28} color="var(--primary)" /> تذاكر الدعم الفني</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>إدارة طلبات الدعم وتتبع SLA</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setForm({ subject: '', description: '', priority: 'MEDIUM', category: 'GENERAL' }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> تذكرة جديدة</button>
+        <button className="btn btn-primary" onClick={() => { reset(); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> تذكرة جديدة</button>
       </div>
 
       {/* KPIs */}
@@ -122,16 +149,41 @@ export default function SupportTickets() {
       {showModal && (
         <div className="modal-overlay"><div className="modal-content" style={{ maxWidth: '550px', animation: 'slideUp 0.3s ease' }}>
           <div className="modal-header"><h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>تذكرة جديدة</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
-          <div className="modal-body"><form onSubmit={save}>
+          <div className="modal-body"><form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid-2">
-              <div className="input-group" style={{ gridColumn: '1/-1' }}><label className="input-label">الموضوع *</label><input className="input" required value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} /></div>
-              <div className="input-group"><label className="input-label">الأولوية</label><select className="input" value={form.priority} onChange={e => setForm({...form, priority: e.target.value})}><option value="LOW">منخفضة</option><option value="MEDIUM">متوسطة</option><option value="HIGH">عالية</option><option value="URGENT">عاجلة</option></select></div>
-              <div className="input-group"><label className="input-label">الفئة</label><select className="input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option value="GENERAL">عام</option><option value="TECHNICAL">تقني</option><option value="BILLING">مالي</option><option value="FEATURE_REQUEST">طلب ميزة</option></select></div>
-              <div className="input-group" style={{ gridColumn: '1/-1' }}><label className="input-label">الوصف</label><textarea className="input" rows={3} value={form.description||''} onChange={e => setForm({...form, description: e.target.value})} /></div>
+              <div className="input-group" style={{ gridColumn: '1/-1' }}>
+                  <label className="input-label">الموضوع *</label>
+                  <input className={`input ${errors.subject ? 'border-red-500' : ''}`} {...register('subject')} />
+                  {errors.subject && <span className="text-red-500 text-xs mt-1 block">{errors.subject.message}</span>}
+              </div>
+              <div className="input-group">
+                  <label className="input-label">الأولوية</label>
+                  <select className={`input ${errors.priority ? 'border-red-500' : ''}`} {...register('priority')}>
+                      <option value="LOW">منخفضة</option>
+                      <option value="MEDIUM">متوسطة</option>
+                      <option value="HIGH">عالية</option>
+                      <option value="URGENT">عاجلة</option>
+                  </select>
+                  {errors.priority && <span className="text-red-500 text-xs mt-1 block">{errors.priority.message}</span>}
+              </div>
+              <div className="input-group">
+                  <label className="input-label">الفئة</label>
+                  <select className={`input ${errors.category ? 'border-red-500' : ''}`} {...register('category')}>
+                      <option value="GENERAL">عام</option>
+                      <option value="TECHNICAL">تقني</option>
+                      <option value="BILLING">مالي</option>
+                      <option value="FEATURE_REQUEST">طلب ميزة</option>
+                  </select>
+                  {errors.category && <span className="text-red-500 text-xs mt-1 block">{errors.category.message}</span>}
+              </div>
+              <div className="input-group" style={{ gridColumn: '1/-1' }}>
+                  <label className="input-label">الوصف</label>
+                  <textarea className="input" rows={3} {...register('description')} />
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
               <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
-              <button type="submit" className="btn btn-primary">إنشاء التذكرة</button>
+              <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-50">{saving ? 'جاري الحفظ...' : 'إنشاء التذكرة'}</button>
             </div>
           </form></div>
         </div></div>

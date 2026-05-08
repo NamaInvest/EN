@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function ElectronicPrescriptionPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [prescriptions, setPrescriptions] = useState<any[]>([]);
@@ -95,7 +97,7 @@ export default function ElectronicPrescriptionPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (items.length === 0) {
-            alert('يجب إضافة دواء واحد على الأقل للوصفة.');
+            toastWarning('يجب إضافة دواء واحد على الأقل للوصفة.');
             return;
         }
 
@@ -115,9 +117,9 @@ export default function ElectronicPrescriptionPage() {
                 setShowModal(false);
                 setItems([]);
                 fetchData();
-                alert('تمت إضافة الوصفة وإرسالها لمنصة وصفتي بنجاح!');
+                toastSuccess('تمت إضافة الوصفة وإرسالها لمنصة وصفتي بنجاح!');
             } else {
-                alert('Error: ' + data.error);
+                toastError('Error: ' + data.error);
             }
         } catch (error) {
             console.error(error);

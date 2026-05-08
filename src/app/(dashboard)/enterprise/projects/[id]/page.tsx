@@ -14,7 +14,7 @@ export default function ProjectDetails() {
   const params = useParams();
   const id = params?.id as string;
   const { t } = useTranslation();
-  const { error: toastError, success: toastSuccess } = useToast();
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const router = useRouter();
   const [project, setProject] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -54,8 +54,8 @@ export default function ProjectDetails() {
  });
 
  if (res.ok) { setShowModal(false); fetchData(); } 
- else { alert(t('sales.str_2452')); }
- } catch (error) { alert(t('sys.str_446')); } 
+ else { toastWarning(t('sales.str_2452')); }
+ } catch (error) { toastWarning(t('sys.str_446')); } 
  finally { setSaving(false); }
  };
 

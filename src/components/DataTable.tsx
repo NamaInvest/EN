@@ -1,6 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Download, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Download, Printer, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+  SortingState
+} from '@tanstack/react-table';
 
 interface Column {
     key: string;
@@ -19,29 +29,41 @@ interface DataTableProps {
 export function DataTable({ columns, data, searchPlaceholder = 'Search...', itemsPerPage = 10, title }: DataTableProps) {
     const { lang } = useTranslation();
     const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-    const [search, setSearch] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [sorting, setSorting] = useState<SortingState>([]);
 
-    const filteredData = useMemo(() => {
-        return data.filter(item => 
-            columns.some(col => {
-                const val = item[col.key];
-                return val && String(val).toLowerCase().includes(search.toLowerCase());
-            })
-        );
-    }, [data, search, columns]);
+    const tableColumns = useMemo<ColumnDef<any, any>[]>(() => {
+        return columns.map(c => ({
+            accessorKey: c.key,
+            header: c.label,
+            cell: info => c.render ? c.render(info.row.original) : info.getValue(),
+        }));
+    }, [columns]);
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const paginatedData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredData.slice(start, start + itemsPerPage);
-    }, [filteredData, currentPage, itemsPerPage]);
+    const table = useReactTable({
+        data,
+        columns: tableColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+        globalFilterFn: 'includesString',
+        state: {
+            sorting,
+            globalFilter,
+        },
+        initialState: {
+            pagination: { pageSize: itemsPerPage }
+        }
+    });
 
     const handleExportCSV = () => {
         const headers = columns.map(c => c.label).join(',');
-        const rows = filteredData.map(item => 
+        const rows = table.getFilteredRowModel().rows.map(row => 
             columns.map(c => {
-                let val = item[c.key];
+                let val = row.original[c.key];
                 if (typeof val === 'string') val = val.replace(/"/g, '""');
                 return `"${val || ''}"`;
             }).join(',')
@@ -68,8 +90,8 @@ export function DataTable({ columns, data, searchPlaceholder = 'Search...', item
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input 
                         type="text" 
-                        value={search}
-                        onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                        value={globalFilter ?? ''}
+                        onChange={(e) => setGlobalFilter(e.target.value)}
                         placeholder={searchPlaceholder}
                         className="w-full pl-4 pr-10 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-700 dark:text-white"
                     />
@@ -87,25 +109,49 @@ export function DataTable({ columns, data, searchPlaceholder = 'Search...', item
             <div className="overflow-x-auto w-full print:overflow-visible">
                 <table className="w-full text-sm text-right text-gray-500 dark:text-gray-400">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-400">
-                        <tr>
-                            {columns.map((col, i) => (
-                                <th key={i} className="px-6 py-3 font-semibold">{col.label}</th>
-                            ))}
-                        </tr>
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map(header => {
+                                    const canSort = header.column.getCanSort();
+                                    return (
+                                        <th 
+                                            key={header.id} 
+                                            className={`px-6 py-3 font-semibold ${canSort ? 'cursor-pointer select-none group' : ''}`}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                                {canSort && (
+                                                    <span className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
+                                                        {{
+                                                            asc: <ArrowUp className="w-3 h-3" />,
+                                                            desc: <ArrowDown className="w-3 h-3" />
+                                                        }[header.column.getIsSorted() as string] ?? <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        ))}
                     </thead>
                     <tbody>
-                        {paginatedData.length === 0 ? (
+                        {table.getRowModel().rows.length === 0 ? (
                             <tr>
                                 <td colSpan={columns.length} className="px-6 py-8 text-center text-gray-500">
                                     {_t('لا توجد بيانات', 'No data available')}
                                 </td>
                             </tr>
                         ) : (
-                            paginatedData.map((item, i) => (
-                                <tr key={i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                    {columns.map((col, j) => (
-                                        <td key={j} className="px-6 py-4">
-                                            {col.render ? col.render(item) : item[col.key]}
+                            table.getRowModel().rows.map(row => (
+                                <tr key={row.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    {row.getVisibleCells().map(cell => (
+                                        <td key={cell.id} className="px-6 py-4">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
                                 </tr>
@@ -115,22 +161,22 @@ export function DataTable({ columns, data, searchPlaceholder = 'Search...', item
                 </table>
             </div>
 
-            {totalPages > 1 && (
+            {table.getPageCount() > 1 && (
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 print:hidden">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {_t('صفحة', 'Page')} <span className="font-bold">{currentPage}</span> {_t('من', 'of')} <span className="font-bold">{totalPages}</span>
+                        {_t('صفحة', 'Page')} <span className="font-bold">{table.getState().pagination.pageIndex + 1}</span> {_t('من', 'of')} <span className="font-bold">{table.getPageCount()}</span>
                     </span>
                     <div className="flex gap-2">
                         <button 
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
                             className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:hover:bg-gray-700 dark:text-white"
                         >
                             <ChevronRight className="w-4 h-4" />
                         </button>
                         <button 
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
                             className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:hover:bg-gray-700 dark:text-white"
                         >
                             <ChevronLeft className="w-4 h-4" />

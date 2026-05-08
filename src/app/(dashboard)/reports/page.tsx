@@ -160,7 +160,7 @@ export default function ReportsPage() {
  XLSX.writeFile(wb, `${reportTitle}.xlsx`);
  } catch (err) {
  console.error('Excel export error:', err);
- alert(t('sys.str_4318'));
+ toastError(t('sys.str_4318'));
  }
  };
 

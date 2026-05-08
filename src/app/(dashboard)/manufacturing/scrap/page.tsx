@@ -3,6 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const REASON_CODES = [
     'SETUP_LOSS',
@@ -13,19 +17,34 @@ const REASON_CODES = [
     'OTHER'
 ];
 
+const formSchema = z.object({
+    moId: z.number().min(1, 'MO ID is required'),
+    rawProductId: z.number().min(1, 'Raw Product ID is required'),
+    lostQuantity: z.number().min(0.01, 'Quantity is required'),
+    reason: z.string().min(1, 'Reason is required')
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function ScrapTrackingPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [wastages, setWastages] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    // Form states
-    const [moId, setMoId] = useState('');
-    const [rawProductId, setRawProductId] = useState('');
-    const [lostQuantity, setLostQuantity] = useState('');
-    const [reason, setReason] = useState(REASON_CODES[0]);
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            moId: undefined,
+            rawProductId: undefined,
+            lostQuantity: undefined,
+            reason: REASON_CODES[0]
+        }
+    });
 
     useEffect(() => {
         fetchWastages();
@@ -47,33 +66,27 @@ export default function ScrapTrackingPage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    const onSubmit = async (data: FormValues) => {
+        setSaving(true);
         try {
             const res = await fetch('/api/manufacturing/scrap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    moId,
-                    rawProductId,
-                    lostQuantity,
-                    reason
-                })
+                body: JSON.stringify(data)
             });
-            const data = await res.json();
+            const resData = await res.json();
             if (res.ok) {
-                alert('تم تسجيل الهالك بنجاح وتوليد قيد التسوية.');
+                toastSuccess('تم تسجيل الهالك بنجاح وتوليد قيد التسوية.');
                 setIsModalOpen(false);
-                setMoId(''); setRawProductId(''); setLostQuantity('');
+                reset();
                 fetchWastages();
             } else {
-                alert(data.error);
+                toastError(resData.error);
             }
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -178,44 +191,47 @@ export default function ScrapTrackingPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl border-t-4 border-red-600">
                         <h2 className="text-xl font-bold mb-4 dark:text-white">تسجيل هالك / توالف</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم أمر التصنيع (MO ID)</label>
                                 <input 
-                                    type="number" required 
-                                    value={moId} onChange={e => setMoId(e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
+                                    type="number" 
+                                    className={`w-full border ${errors.moId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('moId', { valueAsNumber: true })}
                                 />
+                                {errors.moId && <span className="text-red-500 text-xs mt-1 block">{errors.moId.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم المنتج الخام (Raw Product ID)</label>
                                 <input 
-                                    type="number" required 
-                                    value={rawProductId} onChange={e => setRawProductId(e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
+                                    type="number" 
+                                    className={`w-full border ${errors.rawProductId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('rawProductId', { valueAsNumber: true })}
                                 />
+                                {errors.rawProductId && <span className="text-red-500 text-xs mt-1 block">{errors.rawProductId.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الكمية المهدرة (Lost Qty)</label>
                                 <input 
-                                    type="number" step="0.01" required 
-                                    value={lostQuantity} onChange={e => setLostQuantity(e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
+                                    type="number" step="0.01" 
+                                    className={`w-full border ${errors.lostQuantity ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('lostQuantity', { valueAsNumber: true })}
                                 />
+                                {errors.lostQuantity && <span className="text-red-500 text-xs mt-1 block">{errors.lostQuantity.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">سبب الهالك (Reason Code)</label>
                                 <select 
-                                    value={reason} onChange={e => setReason(e.target.value)}
                                     className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white font-bold"
+                                    {...register('reason')}
                                 >
                                     {REASON_CODES.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                             <div className="flex justify-end space-x-2 rtl:space-x-reverse mt-6">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600">إلغاء</button>
-                                <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded-md font-bold hover:bg-red-700" disabled={loading}>
-                                    اعتماد وترحيل محاسبياً
+                                <button type="button" onClick={() => { setIsModalOpen(false); reset(); }} className="px-4 py-2 text-gray-600">إلغاء</button>
+                                <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded-md font-bold hover:bg-red-700" disabled={saving}>
+                                    {saving ? 'جاري الحفظ...' : 'اعتماد وترحيل محاسبياً'}
                                 </button>
                             </div>
                         </form>

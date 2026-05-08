@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { useParams } from 'next/navigation';
+import { useToast } from '@/components/Toast';
 
 export default async function RFQDetailPage() {
   const { lang } = useTranslation();
+  const { success: toastSuccess, error: toastError } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const params = useParams();
     const id = (await params).id as string;
@@ -40,10 +42,10 @@ export default async function RFQDetailPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`تم الترسية بنجاح! رقم أمر الشراء: ${data.poId}`);
+                toastSuccess(`تم الترسية بنجاح! رقم أمر الشراء: ${data.poId}`);
                 fetchComparison();
             } else {
-                alert(`خطأ: ${data.error}`);
+                toastError(`خطأ: ${data.error}`);
             }
         } catch (e) {
             console.error(e);
@@ -63,7 +65,7 @@ export default async function RFQDetailPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`تم إرسال دعوات لـ ${data.tokens} موردين بنجاح.`);
+                toastSuccess(`تم إرسال دعوات لـ ${data.tokens} موردين بنجاح.`);
                 fetchComparison();
             }
         } catch (e) {

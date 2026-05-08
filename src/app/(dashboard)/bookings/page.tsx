@@ -9,7 +9,7 @@ interface Customer { id: number; name: string }
 
 export default function BookingsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [bookings, setBookings] = useState<Booking[]>([]);
  const [customers, setCustomers] = useState<Customer[]>([]);
  const [showAdd, setShowAdd] = useState(false);
@@ -63,12 +63,12 @@ export default function BookingsPage() {
  body: JSON.stringify({ bookingId }),
  });
  if (res.ok) {
- alert(t('sys.str_470'));
+ toastWarning(t('sys.str_470'));
  load();
  router.push('/sales');
  } else {
  const err = await res.json();
- alert(err.error || t('sys.str_471'));
+ toastError(err.error || t('sys.str_471'));
  }
  };
 

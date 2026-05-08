@@ -1,12 +1,14 @@
 'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 import { PackageCheck, Map, MapPin, Truck, Layers, Route, Mic, Bot } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function DistributionWMS() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const handleReplenishment = async () => {
     try {
@@ -15,10 +17,10 @@ export default function DistributionWMS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ driverId: 1 }),
       });
-      if (res.ok) alert('تم بدء عملية التزويد وحفظها في قاعدة البيانات!');
-      else alert('فشلت العملية');
+      if (res.ok) toastSuccess('تم بدء عملية التزويد وحفظها في قاعدة البيانات!');
+      else toastError('فشلت العملية');
     } catch {
-      alert('خطأ في الاتصال');
+      toastError('خطأ في الاتصال');
     }
   };
 

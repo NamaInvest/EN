@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -33,13 +34,13 @@ export async function GET(request: NextRequest) {
 
         // Compute advanced analytics on the fly
         const enrichedProjects = projects.map(p => {
-            const consumedBudget = p.tasks.reduce((acc: any, t: any) => acc + t.cost, 0);
-            const remainingBudget = p.budget - consumedBudget;
+            const consumedBudget = p.tasks.reduce((acc: number, t: any) => acc + n(t.cost), 0);
+            const remainingBudget = n(p.budget) - consumedBudget;
             return {
                 ...p,
                 consumedBudget,
                 remainingBudget,
-                budgetHealth: consumedBudget > p.budget ? 'danger' : (consumedBudget > p.budget * 0.8 ? 'warning' : 'healthy')
+                budgetHealth: consumedBudget > n(p.budget) ? 'danger' : (consumedBudget > n(p.budget) * 0.8 ? 'warning' : 'healthy')
             };
         });
 

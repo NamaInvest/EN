@@ -6,6 +6,7 @@ import { Check, X, Clock } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function ApprovalsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
  const { t } = useTranslation();
  const [steps, setSteps] = useState<any[]>([]);
@@ -33,7 +34,7 @@ export default function ApprovalsPage() {
  const notes = prompt(action === 'APPROVED' ? 'أضف ملاحظة للموافقة (اختياري)' : 'أضف سبب الرفض (إلزامي)');
  
  if (action === 'REJECTED' && !notes) {
- alert('الرجاء إدخال سبب الرفض');
+ toastWarning('الرجاء إدخال سبب الرفض');
  return;
  }
 
@@ -47,13 +48,13 @@ export default function ApprovalsPage() {
  const data = await res.json();
  
  if (data.error) {
- alert(data.error);
+ toastError(data.error);
  } else {
  // Refresh list
  setSteps(steps.filter(s => s.id !== stepId));
  }
  } catch (error) {
- alert('حدث خطأ');
+ toastError('حدث خطأ');
  } finally {
  setActionLoading(null);
  }

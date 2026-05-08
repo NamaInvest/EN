@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -54,8 +55,8 @@ export async function POST(request: Request) {
         }
 
         // Check Minimum Order Value
-        if (cartTotal && coupon.minOrder > 0 && cartTotal < coupon.minOrder) {
-            return NextResponse.json({ error: `الحد الأدنى للطلب لاستخدام الكوبون هو ${coupon.minOrder}` }, { status: 400 });
+        if (cartTotal && n(coupon.minOrder) > 0 && cartTotal < n(coupon.minOrder)) {
+            return NextResponse.json({ error: `الحد الأدنى للطلب لاستخدام الكوبون هو ${n(coupon.minOrder)}` }, { status: 400 });
         }
 
         return NextResponse.json({

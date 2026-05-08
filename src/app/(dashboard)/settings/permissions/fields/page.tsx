@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 // Example structured list of entities and fields to manage
 const CONFIG = {
@@ -26,6 +27,7 @@ interface RoleFieldPermission {
 }
 
 export default function FieldPermissionsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [permissions, setPermissions] = useState<RoleFieldPermission[]>([]);
@@ -82,7 +84,7 @@ export default function FieldPermissionsPage() {
             }
         } catch (err) {
             console.error('Failed to update permission', err);
-            alert('Failed to save permission');
+            toastWarning('Failed to save permission');
         } finally {
             setSaving(false);
         }

@@ -222,7 +222,7 @@ export async function POST(request: Request) {
                         userId: userId ?? 0,
                         action: `transition:draft→${createdInvoice.status}`,
                         tableName: 'purchaseinvoices',
-                        recordId: createdInvoice.id,
+                        recordId: String(createdInvoice.id),
                         details: `Direct API Creation (State-Machine Bypass Handled)`,
                     },
                 });

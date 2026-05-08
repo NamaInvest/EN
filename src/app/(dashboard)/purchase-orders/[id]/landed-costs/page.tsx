@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default async function LandedCostsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const params = useParams();
  const router = useRouter();
  const orderId = (await params).id as string;
@@ -68,7 +68,7 @@ export default async function LandedCostsPage() {
  });
  fetchData();
  } else {
- alert(t('sys.str_961'));
+ toastWarning(t('sys.str_961'));
  }
  } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
  };

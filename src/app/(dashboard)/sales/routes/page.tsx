@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface Route {
  id: number;
@@ -13,6 +16,14 @@ interface Route {
  _count?: { customers: number };
 }
 
+const formSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    description: z.string().optional().nullable(),
+    salesRepId: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function RoutesPage() {
  const { t } = useTranslation();
  const { error: toastError, success: toastSuccess } = useToast();
@@ -20,8 +31,16 @@ export default function RoutesPage() {
  const [employees, setEmployees] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
+ const [saving, setSaving] = useState(false);
  
- const [form, setForm] = useState({ name: '', description: '', salesRepId: '' });
+ const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+        name: '',
+        description: '',
+        salesRepId: ''
+    }
+ });
 
  useEffect(() => { loadData(); }, []);
 
@@ -39,23 +58,25 @@ export default function RoutesPage() {
  setLoading(false);
  }
 
- const handleCreate = async (e: React.FormEvent) => {
- e.preventDefault();
+ const onSubmit = async (data: FormValues) => {
+ setSaving(true);
  try {
  const token = localStorage.getItem('token') || '';
  const res = await fetch('/api/sales/routes', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify(form)
+ body: JSON.stringify(data)
  });
  if (res.ok) {
  setShowModal(false);
- setForm({ name: '', description: '', salesRepId: '' });
+ reset();
+ toastSuccess(t('sys.str_2092'));
  loadData();
  } else {
- alert(t('sales.str_2468'));
+ toastError(t('sales.str_2468'));
  }
- } catch (e) {}
+ } catch (e) { toastError('حدث خطأ غير متوقع'); }
+ finally { setSaving(false); }
  };
 
  return (<>
@@ -106,18 +127,19 @@ export default function RoutesPage() {
  <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
  <div className="modal" style={{ maxWidth: '500px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
  <h2>{t('sales.str_2463')}</h2>
- <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+ <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
  <div className="input-group" style={{ margin: 0 }}>
  <label className="input-label">{t('sales.str_2464')}</label>
- <input required className="input" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+ <input className={`input ${errors.name ? 'border-red-500' : ''}`} {...register('name')} />
+ {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
  </div>
  <div className="input-group" style={{ margin: 0 }}>
  <label className="input-label">{t('sales.str_2465')}</label>
- <input className="input" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+ <input className="input" {...register('description')} />
  </div>
  <div className="input-group" style={{ margin: 0 }}>
  <label className="input-label">{t('sales.str_2466')}</label>
- <select className="input" value={form.salesRepId} onChange={e => setForm({...form, salesRepId: e.target.value})}>
+ <select className="input" {...register('salesRepId')}>
  <option value="">{t('sales.str_2467')}</option>
  {employees.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
  </select>
@@ -125,7 +147,9 @@ export default function RoutesPage() {
  
  <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('fin.str_206')}</button>
- <button type="submit" className="btn btn-primary">{t('sys.str_2092')}</button>
+ <button type="submit" className="btn btn-primary" disabled={saving}>
+    {saving ? t('sys.str_454') : t('sys.str_2092')}
+ </button>
  </div>
  </form>
  </div>

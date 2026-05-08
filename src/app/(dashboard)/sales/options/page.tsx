@@ -35,8 +35,7 @@ export default function SalesOptionsPage() {
  const [kitchenPrinters, setKitchenPrinters] = useState<any[]>([]);
  const [categories, setCategories] = useState<{id:number, name:string}[]>([]);
  
- // Toasts
- const [toast, setToast] = useState<{msg: string, type: 'success'|'error'} | null>(null);
+ // Toasts are now handled by useToast
 
  useEffect(() => {
  fetchCats();
@@ -125,12 +124,11 @@ export default function SalesOptionsPage() {
  
  await refreshSettings();
  
- setToast({ msg: '✅ تم حفظ الخيارات بنجاح', type: 'success' });
+ toastSuccess('✅ تم حفظ الخيارات بنجاح');
  } catch (error: any) {
- setToast({ msg: '❌ ' + error.message, type: 'error' });
+ toastError('❌ ' + error.message);
  } finally {
  setSaving(false);
- setTimeout(() => setToast(null), 3000);
  }
  };
 
@@ -495,17 +493,6 @@ export default function SalesOptionsPage() {
  </button>
  </div>
  </div>
-
- {toast && (
- <div style={{
- position: 'fixed', bottom: '20px', left: '20px', padding: '15px 25px', zIndex: 9999,
- background: toast.type === 'success' ? '#22c55e' : '#ef4444',
- color: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
- fontWeight: 'bold', fontSize: '15px', animation: 'slideUp 0.3s ease-out'
- }}>
- {toast.msg}
- </div>
- )}
  </div>
  );
 }

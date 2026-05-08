@@ -190,7 +190,7 @@ export default function SalesPage() {
  } else if (data.status === 'REJECTED' || data.status === 'EXPIRED' || data.status === 'DECLINED') {
  clearInterval(interval);
  setBnplPolling(false);
- alert(t('sys.str_807'));
+ toastError(t('sys.str_807'));
  setBnplProvider(null); setBnplUrl(''); setBnplOrderId('');
  }
  } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
@@ -256,15 +256,15 @@ export default function SalesPage() {
  };
 
  const connectPosManual = async () => {
- if (!('serial' in navigator)) { showToast(t('sys.str_808')); return; }
+ if (!('serial' in navigator)) { toastError(t('sys.str_808')); return; }
  try {
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const port = await (navigator as any).serial.requestPort();
  await port.open({ baudRate: 9600 });
  setPosPort(port);
  setPosStatus('connected');
- showToast(t('sys.str_809'));
- } catch (e) { console.warn('POS connect:', e); showToast(t('sys.str_810')); }
+ toastSuccess(t('sys.str_809'));
+ } catch (e) { console.warn('POS connect:', e); toastError(t('sys.str_810')); }
  };
 
  const sendToPos = async (amount: number): Promise<'approved' | 'declined' | 'error' | 'no_device'> => {
@@ -411,9 +411,9 @@ export default function SalesPage() {
  setShowAddCustomer(false);
  setNewCust({ name: '', phone: '', taxNumber: '', street: '', buildingNumber: '', district: '', city: '', postalCode: '', creditLimit: '', notes: '', type: '0' });
  } else {
- alert(t('sys.str_811'));
+ toastError(t('sys.str_811'));
  }
- } catch { alert(t('sys.str_419')); }
+ } catch { toastError(t('sys.str_419')); }
  finally { setSavingCust(false); }
  };
 
@@ -439,9 +439,9 @@ export default function SalesPage() {
  setShowAddProduct(false);
  setNewProd({ name: '', barcode: '', buyPrice: '', sellPrice: '', taxRate: '15', currentStock: '' });
  } else {
- alert(t('sys.str_812'));
+ toastError(t('sys.str_812'));
  }
- } catch { alert(t('sys.str_419')); }
+ } catch { toastError(t('sys.str_419')); }
  finally { setSavingProd(false); }
  };
 

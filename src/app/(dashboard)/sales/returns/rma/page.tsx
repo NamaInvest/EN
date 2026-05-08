@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';import { useToast } from '@/components/Toast';
 
 export default function RMAPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rmas, setRmas] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -32,11 +33,11 @@ export default function RMAPage() {
                 method: 'POST'
             });
             if (res.ok) {
-                alert(`تم تحديث حالة الطلب إلى: ${action}`);
+                toastSuccess(`تم تحديث حالة الطلب إلى: ${action}`);
                 fetchRmas();
             } else {
                 const data = await res.json();
-                alert(`خطأ: ${data.error}`);
+                toastError(`خطأ: ${data.error}`);
             }
         } catch (e) {
             console.error(e);

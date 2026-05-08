@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // GET - قائمة الدخل (Revenue - Expenses = Net Profit)
 import { getUserFromRequest } from '@/lib/auth';
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
         const balances: Record<number, number> = {};
         for (const line of lines) {
             if (!balances[line.accountId]) balances[line.accountId] = 0;
-            balances[line.accountId] += line.credit - line.debit; // normal credit for revenue, will flip for expenses
+            balances[line.accountId] += n(line.credit) - n(line.debit); // normal credit for revenue, will flip for expenses
         }
 
         // Revenue section
@@ -55,10 +56,8 @@ export async function GET(request: Request) {
         // Expense section (flip sign: expenses have debit normal balance)
         let totalExpenses = 0;
         const expenseRows = expenseAccounts.map(acc => {
-            const _balance_dup57 = Math.round(((balances[acc.id] || 0) * -1) * 100) / 100; // flip for expenses
-            // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
+            const balance = Math.round(((balances[acc.id] || 0) * -1) * 100) / 100; // flip for expenses
             totalExpenses += balance;
-            // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
             return { code: acc.code, name: acc.name, amount: balance };
         }).filter(r => r.amount !== 0);
 

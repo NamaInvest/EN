@@ -9,7 +9,7 @@ interface ProductBatch { id: number; productId: number; batchNumber: string; pro
 
 export default function BatchesPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [batches, setBatches] = useState<ProductBatch[]>([]);
  const [products, setProducts] = useState<Product[]>([]);
  const [loading, setLoading] = useState(true);
@@ -60,21 +60,21 @@ export default function BatchesPage() {
 
  const handleSave = async () => {
  if (!editItem && (!form.productId || !form.batchNumber || !form.initialQuantity)) { 
- alert(t('sys.str_445')); return; 
+ toastWarning(t('sys.str_445')); return; 
  }
  setSaving(true);
  try {
  const url = editItem ? `/api/batches/${editItem.id}` : '/api/batches';
  const method = editItem ? 'PUT' : 'POST';
  const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(form) });
- if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
- } catch { alert(t('sys.str_446')); } finally { setSaving(false); }
+ if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); toastError(d.error); }
+ } catch { toastWarning(t('sys.str_446')); } finally { setSaving(false); }
  };
 
  const handleDelete = async (id: number) => {
  if (!confirm(t('sys.str_447'))) return;
  const res = await fetch(`/api/batches/${id}`, { method: 'DELETE', headers: headers() });
- if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
+ if (res.ok) fetchData(); else { const d = await res.json(); toastError(d.error); }
  };
 
  const fmt = (n: number) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -78,7 +78,7 @@ export async function POST(request: Request) {
                         userId: auth?.userId || 1,
                         action: 'GOVERNANCE_VIOLATION_ATTEMPT',
                         tableName: 'JournalEntry',
-                        recordId: 0,
+                        recordId: '0',
                         details: JSON.stringify({ reason: 'Attempted to manually post to control account', attemptedLines: lines })
                     }
                 });

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function PayrollRunPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
@@ -49,10 +51,10 @@ export default function PayrollRunPage() {
             });
             const result = await res.json();
             if (res.ok) {
-                alert(result.message);
+                toastWarning(result.message);
                 fetchPreview();
             } else {
-                alert(result.error);
+                toastError(result.error);
             }
         } catch (error) {
             console.error(error);

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, ClipboardList, Plus, FileText, Settings, Layers } from 'lucide-react';
 import Link from 'next/link';
-
+import { BomsClient } from './components/BomsClient';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 export default async function BomsPage() {
@@ -33,79 +33,8 @@ export default async function BomsPage() {
                 </div>
             </div>
 
-            {/* Data Grid */}
-            <Card className="overflow-hidden border-gray-200 shadow-sm">
-                <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 bg-white">
-                    <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input 
-                            type="text" 
-                            placeholder={_t("ابحث عن وصفة...", "Search recipes...")} 
-                            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                    </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-600 border-b">
-                            <tr>
-                                <th className="px-4 py-3 font-medium">{_t('اسم الوصفة', 'Recipe Name')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('معرف المنتج النهائي', 'Finished Product ID')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('التكلفة الإجمالية', 'Total Cost (Standard)')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('الكمية المتوقعة', 'Expected Yield Qty')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('نسبة الهدر', 'Scrap %')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
-                                <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 bg-white">
-                            {recipes.map((recipe) => (
-                                <tr key={recipe.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-3 font-medium text-gray-900 flex items-center gap-2">
-                                        <Layers className="w-4 h-4 text-indigo-400" />
-                                        {recipe.name}
-                                    </td>
-                                    <td className="px-4 py-3 text-gray-700">
-                                        PROD-{recipe.finishedProductId}
-                                    </td>
-                                    <td className="px-4 py-3 font-medium text-gray-900">
-                                        {recipe.totalCost.toLocaleString()} SAR
-                                    </td>
-                                    <td className="px-4 py-3 text-gray-700">
-                                        {recipe.expectedYieldQty || '-'}
-                                    </td>
-                                    <td className="px-4 py-3 text-red-600">
-                                        {recipe.scrapPercentage}%
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                            recipe.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {recipe.isActive ? _t('نشط', 'Active') : _t('غير نشط', 'Inactive')}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                            <FileText className="w-4 h-4 mr-1" /> {_t('التفاصيل', 'Details')}
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {recipes.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
-                                        <div className="flex flex-col items-center">
-                                            <ClipboardList className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('لا توجد وصفات', 'No BOMs Defined')}</p>
-                                            <p className="text-sm mt-1">{_t('قم بإنشاء الوصفة الأولى لبدء التصنيع.', 'Create your first recipe to start manufacturing.')}</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
+            {/* Data Grid via DataTable v2 */}
+            <BomsClient data={recipes} />
         </div>
     );
 }

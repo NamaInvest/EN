@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -54,13 +55,13 @@ export async function POST(request: NextRequest) {
         });
 
         // Auto-Generate a Journal Entry for Margin Payment (Cash out from Bank)
-        if (newLc.marginPaid > 0) {
+        if (n(newLc.marginPaid) > 0) {
             await prisma.$transaction(async (tx) => {
                  await tx.bankTransaction.create({
                      data: {
                          bankAccountId: newLc.bankId,
                          type: 'out',
-                         amount: newLc.marginPaid,
+                         amount: n(newLc.marginPaid),
                          transactionDate: new Date(),
                          description: `سحب تغطية نقدية لاعتماد مستندي رقم ${newLc.lcNumber}`,
                          reference: `LC-${newLc.id}`
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
                  });
                  await tx.bankAccount.update({
                      where: { id: newLc.bankId },
-                     data: { currentBalance: { decrement: newLc.marginPaid } }
+                     data: { currentBalance: { decrement: n(newLc.marginPaid) } }
                  });
             });
         }

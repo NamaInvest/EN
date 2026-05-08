@@ -9,7 +9,7 @@ interface Coupon { id: number; code: string; discountType: string; discountValue
 
 export default function CouponsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [coupons, setCoupons] = useState<Coupon[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
@@ -37,12 +37,12 @@ export default function CouponsPage() {
  };
 
  const handleSave = async () => {
- if (!form.code || !form.discountValue) { alert(t('sys.str_512')); return; }
+ if (!form.code || !form.discountValue) { toastWarning(t('sys.str_512')); return; }
  setSaving(true);
  try {
  const res = await fetch('/api/coupons', { method: 'POST', headers: headers(), body: JSON.stringify(form) });
- if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
- } catch { alert(t('sys.str_446')); } finally { setSaving(false); }
+ if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); toastError(d.error); }
+ } catch { toastWarning(t('sys.str_446')); } finally { setSaving(false); }
  };
 
  const toggleStatus = async (c: Coupon) => {
@@ -53,7 +53,7 @@ export default function CouponsPage() {
  const handleDelete = async (id: number) => {
  if (!confirm(t('sys.str_513'))) return;
  const res = await fetch(`/api/coupons/${id}`, { method: 'DELETE', headers: headers() });
- if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
+ if (res.ok) fetchData(); else { const d = await res.json(); toastError(d.error); }
  };
 
  const fmt = (n: number) => isNaN(n) ? '0.00' : Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

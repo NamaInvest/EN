@@ -2,34 +2,68 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const listSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    currency: z.string().min(1, 'Currency is required'),
+    validFrom: z.string().min(1, 'Valid From is required'),
+    validTo: z.string().optional().nullable(),
+    priority: z.number()
+});
+
+const testSchema = z.object({
+    testProductId: z.number().min(1, 'Product ID is required'),
+    testQty: z.number().min(0.01, 'Quantity is required'),
+    testCustomerId: z.number().optional().nullable()
+});
+
+type ListFormValues = z.infer<typeof listSchema>;
+type TestFormValues = z.infer<typeof testSchema>;
 
 export default function PricingEnginePage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const { lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [priceLists, setPriceLists] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [showNewListModal, setShowNewListModal] = useState(false);
     const [showTestModal, setShowTestModal] = useState(false);
 
-    // Form states for New Price List
-    const [name, setName] = useState('');
-    const [currency, setCurrency] = useState('SAR');
-    const [validFrom, setValidFrom] = useState('');
-    const [validTo, setValidTo] = useState('');
-    const [priority, setPriority] = useState(0);
-
-    // Form states for Pricing Test
-    const [testProductId, setTestProductId] = useState('');
-    const [testQty, setTestQty] = useState('1');
-    const [testCustomerId, setTestCustomerId] = useState('');
     const [testResult, setTestResult] = useState<any>(null);
+    const [saving, setSaving] = useState(false);
+    const [testing, setTesting] = useState(false);
+
+    const { register: registerList, handleSubmit: handleSubmitList, reset: resetList, formState: { errors: listErrors } } = useForm<ListFormValues>({
+        resolver: zodResolver(listSchema),
+        defaultValues: {
+            name: '',
+            currency: 'SAR',
+            validFrom: '',
+            validTo: '',
+            priority: 0
+        }
+    });
+
+    const { register: registerTest, handleSubmit: handleSubmitTest, reset: resetTest, formState: { errors: testErrors } } = useForm<TestFormValues>({
+        resolver: zodResolver(testSchema),
+        defaultValues: {
+            testProductId: undefined,
+            testQty: 1,
+            testCustomerId: undefined
+        }
+    });
 
     useEffect(() => {
         fetchPriceLists();
     }, []);
 
     const fetchPriceLists = async () => {
+        setLoading(true);
         try {
             const res = await fetch('/api/sales/pricing');
             if (res.ok) {
@@ -43,44 +77,54 @@ export default function PricingEnginePage() {
         }
     };
 
-    const handleCreateList = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreateList = async (data: ListFormValues) => {
+        setSaving(true);
         try {
             const res = await fetch('/api/sales/pricing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name, currency, validFrom, validTo: validTo || null, priority
+                    name: data.name,
+                    currency: data.currency,
+                    validFrom: data.validFrom,
+                    validTo: data.validTo || null,
+                    priority: data.priority
                 })
             });
             if (res.ok) {
                 setShowNewListModal(false);
                 fetchPriceLists();
-                setName('');
+                resetList();
+                toastSuccess('تم إنشاء قائمة الأسعار بنجاح');
             } else {
-                alert('فشل في إنشاء قائمة الأسعار');
+                toastError('فشل في إنشاء قائمة الأسعار');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ أثناء الاتصال بالخادم');
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleTestPricing = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleTestPricing = async (data: TestFormValues) => {
+        setTesting(true);
         try {
             const res = await fetch('/api/sales/pricing/calculate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    productId: testProductId,
-                    qty: testQty,
-                    customerId: testCustomerId || null,
+                    productId: data.testProductId,
+                    qty: data.testQty,
+                    customerId: data.testCustomerId || null,
                 })
             });
-            const data = await res.json();
-            setTestResult(data);
+            const resData = await res.json();
+            setTestResult(resData);
         } catch (error) {
             console.error(error);
+        } finally {
+            setTesting(false);
         }
     };
 
@@ -146,36 +190,38 @@ export default function PricingEnginePage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-[500px] shadow-xl">
                         <h2 className="text-lg font-bold mb-4 dark:text-white">إنشاء قائمة أسعار جديدة</h2>
-                        <form onSubmit={handleCreateList}>
+                        <form onSubmit={handleSubmitList(handleCreateList)}>
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">اسم القائمة</label>
-                                    <input type="text" required value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                    <input type="text" className={`mt-1 block w-full border ${listErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white`} {...registerList('name')} />
+                                    {listErrors.name && <span className="text-red-500 text-xs mt-1 block">{listErrors.name.message}</span>}
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">صالح من</label>
-                                        <input type="date" required value={validFrom} onChange={e => setValidFrom(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                        <input type="date" className={`mt-1 block w-full border ${listErrors.validFrom ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white`} {...registerList('validFrom')} />
+                                        {listErrors.validFrom && <span className="text-red-500 text-xs mt-1 block">{listErrors.validFrom.message}</span>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">صالح إلى (اختياري)</label>
-                                        <input type="date" value={validTo} onChange={e => setValidTo(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                        <input type="date" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" {...registerList('validTo')} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">العملة</label>
-                                        <input type="text" value={currency} onChange={e => setCurrency(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                        <input type="text" className={`mt-1 block w-full border ${listErrors.currency ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white`} {...registerList('currency')} />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الأولوية (أعلى = أهم)</label>
-                                        <input type="number" value={priority} onChange={e => setPriority(Number(e.target.value))} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                        <input type="number" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" {...registerList('priority', { valueAsNumber: true })} />
                                     </div>
                                 </div>
                             </div>
                             <div className="mt-6 flex justify-end space-x-2 rtl:space-x-reverse">
                                 <button type="button" onClick={() => setShowNewListModal(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md">إلغاء</button>
-                                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">حفظ</button>
+                                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md" disabled={saving}>{saving ? 'جاري الحفظ' : 'حفظ'}</button>
                             </div>
                         </form>
                     </div>
@@ -187,20 +233,22 @@ export default function PricingEnginePage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-[500px] shadow-xl">
                         <h2 className="text-lg font-bold mb-4 dark:text-white">اختبار محرك التسعير</h2>
-                        <form onSubmit={handleTestPricing}>
+                        <form onSubmit={handleSubmitTest(handleTestPricing)}>
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم المنتج (ID)</label>
-                                    <input type="number" required value={testProductId} onChange={e => setTestProductId(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white" />
+                                    <input type="number" className={`mt-1 block w-full border ${testErrors.testProductId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white`} {...registerTest('testProductId', { valueAsNumber: true })} />
+                                    {testErrors.testProductId && <span className="text-red-500 text-xs mt-1 block">{testErrors.testProductId.message}</span>}
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الكمية</label>
-                                        <input type="number" step="any" required value={testQty} onChange={e => setTestQty(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white" />
+                                        <input type="number" step="any" className={`mt-1 block w-full border ${testErrors.testQty ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white`} {...registerTest('testQty', { valueAsNumber: true })} />
+                                        {testErrors.testQty && <span className="text-red-500 text-xs mt-1 block">{testErrors.testQty.message}</span>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم العميل (اختياري)</label>
-                                        <input type="number" value={testCustomerId} onChange={e => setTestCustomerId(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white" />
+                                        <input type="number" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white" {...registerTest('testCustomerId', { valueAsNumber: true, setValueAs: v => v === '' ? undefined : parseInt(v, 10) })} />
                                     </div>
                                 </div>
                                 
@@ -216,8 +264,8 @@ export default function PricingEnginePage() {
                                 )}
                             </div>
                             <div className="mt-6 flex justify-end space-x-2 rtl:space-x-reverse">
-                                <button type="button" onClick={() => { setShowTestModal(false); setTestResult(null); }} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md">إغلاق</button>
-                                <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md">تشغيل الاختبار</button>
+                                <button type="button" onClick={() => { setShowTestModal(false); setTestResult(null); resetTest(); }} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md">إغلاق</button>
+                                <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md" disabled={testing}>{testing ? 'جاري التشغيل...' : 'تشغيل الاختبار'}</button>
                             </div>
                         </form>
                     </div>

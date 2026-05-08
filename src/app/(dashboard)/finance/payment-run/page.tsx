@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function PaymentRunPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [runs, setRuns] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -47,10 +49,11 @@ export default function PaymentRunPage() {
                 setShowModal(false);
                 fetchRuns();
             } else {
-                alert(data.error || 'فشلت عملية إنشاء الدورة');
+                toastError(data.error || 'فشلت عملية إنشاء الدورة');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         } finally {
             setLoading(false);
         }
@@ -70,10 +73,11 @@ export default function PaymentRunPage() {
                 }
                 fetchRuns();
             } else {
-                alert(data.error || 'فشلت العملية');
+                toastError(data.error || 'فشلت العملية');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         } finally {
             setLoading(false);
         }
@@ -170,7 +174,7 @@ export default function PaymentRunPage() {
                             <button 
                                 onClick={() => {
                                     navigator.clipboard.writeText(generatedXml);
-                                    alert('تم نسخ المحتوى');
+                                    toastSuccess('تم نسخ المحتوى');
                                 }} 
                                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 mr-2"
                             >

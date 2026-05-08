@@ -36,12 +36,13 @@ export const emailQueue  = new Queue('emailQueue',  { connection: redisConnectio
 export const pdfQueue    = new Queue('pdfQueue',    { connection: redisConnection, defaultJobOptions });
 export const syncQueue   = new Queue('syncQueue',   { connection: redisConnection, defaultJobOptions });
 export const reportQueue = new Queue('reportQueue', { connection: redisConnection, defaultJobOptions });
+export const aiAuditQueue = new Queue('aiAuditQueue', { connection: redisConnection, defaultJobOptions });
 
 // Suppress unhandled errors on queue objects themselves
-[emailQueue, pdfQueue, syncQueue, reportQueue].forEach(q => q.on('error', () => {}));
+[emailQueue, pdfQueue, syncQueue, reportQueue, aiAuditQueue].forEach(q => q.on('error', () => {}));
 
 // ── Worker initialization ────────────────────────────────────────────────
-export const startWorkers = () => {
+export const startWorkers = async () => {
 
     // ── Email Worker ──────────────────────────────────────────────────────
     const emailWorker = new Worker('emailQueue', async job => {
@@ -106,6 +107,57 @@ export const startWorkers = () => {
             return { status: passed ? 'submitted' : 'failed', zatcaStatus: response.status };
         }
 
+        if (job.name === 'webhook_delivery') {
+            const { url, body, headers, subscriptionId, event, attempt, maxAttempts } = job.data;
+            const { PrismaClient } = await import('@prisma/client');
+            const prisma = new PrismaClient();
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body,
+                    signal: AbortSignal.timeout(30000), // 30 second timeout
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                await prisma.webhookDeliveryLog.create({
+                    data: {
+                        subscriptionId,
+                        event,
+                        statusCode: response.status,
+                    },
+                });
+
+                return { status: 'delivered', statusCode: response.status };
+            } catch (error: any) {
+                if (attempt < maxAttempts) {
+                    // Re-throw to trigger BullMQ retry logic
+                    throw error;
+                }
+
+                // Dead letter (final failure)
+                await prisma.webhookDeliveryLog.create({
+                    data: {
+                        subscriptionId,
+                        event,
+                        statusCode: 0,
+                        error: error.message,
+                    },
+                });
+
+                await prisma.webhookSubscription.update({
+                    where: { id: subscriptionId },
+                    data: { failCount: { increment: 1 } },
+                });
+
+                return { status: 'failed_dead_letter' };
+            }
+        }
+
         return { status: 'unknown_job' };
     }, { connection: redisConnection, concurrency: 3 });
 
@@ -124,8 +176,14 @@ export const startWorkers = () => {
         }
     }, { connection: redisConnection, concurrency: 2 });
 
+    // ── AI Audit Worker ───────────────────────────────────────────────────
+    const { dailyAuditWorker } = await import('@/workers/ai/daily-audit.worker');
+    const { cfoReportWorker } = await import('@/workers/ai/cfo-report.worker');
+
+
+
     // ── Global event handlers ─────────────────────────────────────────────
-    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker];
+    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker];
 
     allWorkers.forEach(worker => {
         worker.on('error',     err  => logger.error({}, `[Queue] ${worker.name} error`, { message: err.message }));
@@ -133,7 +191,7 @@ export const startWorkers = () => {
         worker.on('completed', job  => logger.info({},  `[Queue] ${worker.name} job ${job?.id} completed`));
     });
 
-    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report'] });
+    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit'] });
 
     return allWorkers;
 };

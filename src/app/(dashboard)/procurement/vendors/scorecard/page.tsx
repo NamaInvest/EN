@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function VendorScorecardPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [scorecards, setScorecards] = useState<any[]>([]);
@@ -38,11 +40,11 @@ export default function VendorScorecardPage() {
                 body: JSON.stringify(newRating)
             });
             if (res.ok) {
-                alert('تم تسجيل التقييم بنجاح');
+                toastSuccess('تم تسجيل التقييم بنجاح');
                 setShowRatingModal(false);
                 fetchScorecards();
             } else {
-                alert('خطأ أثناء تسجيل التقييم');
+                toastError('خطأ أثناء تسجيل التقييم');
             }
         } catch (error) {
             console.error(error);
@@ -51,7 +53,7 @@ export default function VendorScorecardPage() {
 
     const handleBlockVendor = (vendorName: string) => {
         if (confirm(`هل أنت متأكد من حظر المورد ${vendorName}؟ لن يتمكن من تلقي أوامر شراء جديدة.`)) {
-            alert(`تم حظر المورد: ${vendorName}`);
+            toastSuccess(`تم حظر المورد: ${vendorName}`);
             // Call block API in reality
         }
     };
@@ -61,7 +63,7 @@ export default function VendorScorecardPage() {
         try {
             const res = await fetch('/api/cron/vendor-scoring');
             const data = await res.json();
-            alert(`تم تشغيل التحديث بنجاح. معالجة ${data.processed} مورد.`);
+            toastSuccess(`تم تشغيل التحديث بنجاح. معالجة ${data.processed} مورد.`);
             fetchScorecards();
         } catch (e) {
             console.error(e);

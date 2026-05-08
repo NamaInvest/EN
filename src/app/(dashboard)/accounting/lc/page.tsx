@@ -7,6 +7,7 @@ import { useToast } from '@/components/Toast';
 const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function LcManagementPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
  const { t } = useTranslation();
  const [lcs, setLcs] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export default function LcManagementPage() {
  setShowNewLc(false);
  fetchData();
  } else {
- alert(t('fin.str_1716'));
+ toastWarning(t('fin.str_1716'));
  }
  } catch (e) {
  console.error(e);

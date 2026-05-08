@@ -13,7 +13,7 @@ interface Customer {
 
 export default function CustomersPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [customers, setCustomers] = useState<Customer[]>([]);
  const [search, setSearch] = useState('');
  const [typeFilter, setTypeFilter] = useState('');
@@ -93,7 +93,7 @@ export default function CustomersPage() {
 
  const sendReminder = async (c: Customer) => {
  if (!c.phone) {
- alert(t('sys.str_542'));
+ toastWarning(t('sys.str_542'));
  return;
  }
  setSendingReminderId(c.id);
@@ -106,12 +106,12 @@ export default function CustomersPage() {
  });
  const data = await res.json();
  if (data.success) {
- alert(t('sys.str_543'));
+ toastWarning(t('sys.str_543'));
  } else {
- alert(`❌ فشل الإرسال: ${data.error}`);
+ toastError(`❌ فشل الإرسال: ${data.error}`);
  }
  } catch (err) {
- alert(t('sys.str_544'));
+ toastWarning(t('sys.str_544'));
  } finally {
  setSendingReminderId(null);
  }

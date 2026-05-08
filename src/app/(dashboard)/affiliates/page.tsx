@@ -5,6 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function SaaS_Affiliate_Dashboard() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
  const { t } = useTranslation();
  const [referralLink, setReferralLink] = useState('');
@@ -27,7 +28,7 @@ export default function SaaS_Affiliate_Dashboard() {
 
  const handleCopy = () => {
  navigator.clipboard.writeText(referralLink);
- alert(t('sys.str_287'));
+ toastWarning(t('sys.str_287'));
  };
 
  return (
@@ -93,7 +94,7 @@ export default function SaaS_Affiliate_Dashboard() {
  <div style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px' }}>{stats.earnings}</div>
  </div>
  <button 
- onClick={() => alert(t('sys.str_288'))}
+ onClick={() => toastWarning(t('sys.str_288'))}
  style={{ marginLeft: 'auto', padding: '10px 20px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
  {t('sys.str_284')}</button>
  </div>

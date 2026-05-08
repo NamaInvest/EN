@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function LeaseContractsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const { lang } = useTranslation();
  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -24,7 +25,7 @@ export default function LeaseContractsPage() {
  <div className="p-6">
  <div className="flex justify-between items-center mb-6">
  <h1 className="text-2xl font-bold">🏢 إدارة الأملاك - عقود الإيجار</h1>
- <button onClick={() => alert('جاري تطوير واجهة إنشاء العقد الجديد')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+ <button onClick={() => toastWarning('جاري تطوير واجهة إنشاء العقد الجديد')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
  + عقد جديد
  </button>
  </div>

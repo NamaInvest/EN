@@ -3,8 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
+import { useToast } from '@/components/Toast';
+
 export default function BankReconRulesPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
@@ -68,16 +71,17 @@ export default function BankReconRulesPage() {
                 })
             });
             if (res.ok) {
-                alert('تم إنشاء القاعدة بنجاح');
+                toastSuccess('تم إنشاء القاعدة بنجاح');
                 setIsModalOpen(false);
                 setName(''); setDescriptionContains('');
                 fetchData();
             } else {
                 const err = await res.json();
-                alert(err.error);
+                toastError(err.error);
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         } finally {
             setLoading(false);
         }

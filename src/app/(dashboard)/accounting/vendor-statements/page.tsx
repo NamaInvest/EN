@@ -29,7 +29,7 @@ export default async function VendorStatementsPage() {
         const existing = vendorsMap.get(name) || { total: 0, outstanding: 0, invoiceCount: 0, lastActivity: inv.date };
         existing.total += Number(inv.total || 0);
         existing.invoiceCount += 1;
-        if (inv.remaining > 0) {
+        if (Number(inv.remaining) > 0) {
             existing.outstanding += Number(inv.remaining || 0);
         }
         if (inv.date > existing.lastActivity) {

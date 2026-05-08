@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, RefreshCw, TrendingDown, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function ECLCalculatorPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,11 @@ export default function ECLCalculatorPage() {
         body: JSON.stringify({ totalECL: data.portfolioECL.totalECL })
       });
       const result = await r.json();
-      alert(r.ok ? result.message : result.error);
+      if (r.ok) {
+        toastSuccess(result.message);
+      } else {
+        toastError(result.error);
+      }
     } catch {} finally { setLoading(false); }
   };
 

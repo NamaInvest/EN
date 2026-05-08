@@ -74,6 +74,14 @@ function isDisabledRoute(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // ─── API Versioning Rewrite (Phase 9.2) ─────────────────────────
+  // Allow external API consumers to use /api/v1/* while routing to internal /api/*
+  if (pathname.startsWith('/api/v1/')) {
+      const newUrl = new URL(request.url);
+      newUrl.pathname = pathname.replace('/api/v1/', '/api/');
+      return NextResponse.rewrite(newUrl);
+  }
+
   // ─── Disabled routes: always return 410 Gone ──────────────────
   if (isDisabledRoute(pathname)) {
     return new NextResponse(

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CapacityPlanningPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [machines, setMachines] = useState<any[]>([]);
@@ -73,7 +75,7 @@ export default function CapacityPlanningPage() {
                 fetchData();
             } else {
                 const data = await res.json();
-                alert(data.error);
+                toastError(data.error);
             }
         } catch (error) {
             console.error(error);

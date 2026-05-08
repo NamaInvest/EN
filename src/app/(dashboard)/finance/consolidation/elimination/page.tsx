@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';import { useToast } from '@/components/Toast';
 
 export default function IntercompanyEliminationPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [pairs, setPairs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,13 +39,14 @@ export default function IntercompanyEliminationPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert('تمت عملية الاستبعاد (Elimination) بنجاح وتم توليد القيود.');
+                toastSuccess('تمت عملية الاستبعاد (Elimination) بنجاح وتم توليد القيود.');
                 fetchPairs();
             } else {
-                alert(data.error);
+                toastError(data.error);
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         } finally {
             setLoading(false);
         }

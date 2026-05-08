@@ -10,9 +10,11 @@ import { QRCodeCanvas } from 'qrcode.react';
 import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { FeatureGuard } from '@/hooks/FeatureGuard';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useToast } from '@/components/Toast';
 
 export default function POSPage() {
     const { t, lang } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     const isRTL = lang === 'ar';
 
@@ -80,7 +82,7 @@ export default function POSPage() {
         setCart([]);
         setSelectedCustomer(null);
         removeCoupon();
-        alert(t('sys.str_4064'));
+        toastSuccess(t('sys.str_4064'));
     };
 
     const handleRestoreOrder = (order: any) => {
@@ -145,7 +147,7 @@ export default function POSPage() {
                 cacheProducts(data.products || []);
             }
         } catch (e) {
-            alert(t('sys.str_4069'));
+            toastError(t('sys.str_4069'));
         } finally {
             setLoading(false);
         }
@@ -191,7 +193,7 @@ export default function POSPage() {
 
     const addToCart = (product: any) => {
         if (!allowNegativeStock && product.stock <= 0) {
-            alert(t('sys.str_4070'));
+            toastError(t('sys.str_4070'));
             return;
         }
         setCart(prev => {
@@ -227,13 +229,13 @@ export default function POSPage() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_68')}`);
+                toastSuccess(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_68')}`);
             } else {
-                alert(data.error);
+                toastError(data.error);
                 setAppliedCoupon(null);
             }
         } catch {
-            alert(t('sys.str_4071'));
+            toastError(t('sys.str_4071'));
         }
         setCouponLoading(false);
     };
@@ -377,10 +379,10 @@ export default function POSPage() {
                 setSelectedCustomer(null); 
                 if (!isOffline) fetchProducts(); 
             } else {
-                alert(data?.error || t('sys.str_4075'));
+                toastError(data?.error || t('sys.str_4075'));
             }
         } catch (e) {
-            alert(t('sys.str_4076'));
+            toastError(t('sys.str_4076'));
         } finally {
             setIsProcessing(false);
         }

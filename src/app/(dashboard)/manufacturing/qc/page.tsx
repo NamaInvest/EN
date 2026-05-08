@@ -3,51 +3,83 @@ import React, { useState, useEffect } from 'react';
 import { Microscope, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+  manufacturingOrderId: z.string().min(1, 'أمر التصنيع مطلوب'),
+  inspectedQuantity: z.number().min(0.01, 'يجب أن تكون الكمية المفحوصة أكبر من 0'),
+  passedQuantity: z.number().min(0, 'لا يمكن أن تكون سالبة'),
+  failedQuantity: z.number().min(0, 'لا يمكن أن تكون سالبة'),
+  notes: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function QCPage() {
- const { success, info } = useToast();
+ const { success, info, error: toastError } = useToast();
 
  const [orders, setOrders] = useState([]);
  const [checks, setChecks] = useState([]);
  const [loading, setLoading] = useState(true);
  const [showForm, setShowForm] = useState(false);
- const [formData, setFormData] = useState({ manufacturingOrderId: '', inspectedQuantity: 0, passedQuantity: 0, failedQuantity: 0, notes: '' });
+ const [saving, setSaving] = useState(false);
+
+ const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+     resolver: zodResolver(formSchema),
+     defaultValues: {
+         manufacturingOrderId: '',
+         inspectedQuantity: undefined,
+         passedQuantity: undefined,
+         failedQuantity: undefined,
+         notes: ''
+     }
+ });
 
  useEffect(() => { fetchData(); }, []);
 
  const fetchData = async () => {
- try {
- const [woRes, qcRes] = await Promise.all([
- fetch('/api/manufacturing/work-orders'),
- fetch('/api/manufacturing/quality-control')
- ]);
- const woData = await woRes.json();
- const qcData = await qcRes.json();
- if (woRes.ok) setOrders(woData.filter((o:any) => o.status === 'in_progress' || o.status === 'completed'));
- if (qcRes.ok) setChecks(qcData);
- } catch (error) {
- console.error('Error fetching data', error);
- } finally {
- setLoading(false);
- }
+   setLoading(true);
+   try {
+     const [woRes, qcRes] = await Promise.all([
+       fetch('/api/manufacturing/work-orders'),
+       fetch('/api/manufacturing/quality-control')
+     ]);
+     const woData = await woRes.json();
+     const qcData = await qcRes.json();
+     if (woRes.ok) setOrders(woData.filter((o:any) => o.status === 'in_progress' || o.status === 'completed'));
+     if (qcRes.ok) setChecks(qcData);
+   } catch (error) {
+     console.error('Error fetching data', error);
+   } finally {
+     setLoading(false);
+   }
  };
 
- const handleSubmit = async (e: React.FormEvent) => {
- e.preventDefault();
- try {
- const res = await fetch('/api/manufacturing/quality-control', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(formData)
- });
- if (res.ok) {
- setShowForm(false);
- fetchData();
- setFormData({ manufacturingOrderId: '', inspectedQuantity: 0, passedQuantity: 0, failedQuantity: 0, notes: '' });
- }
- } catch (error) {
- console.error('Error creating QC log', error);
- }
+ const onSubmit = async (data: FormValues) => {
+   setSaving(true);
+   try {
+     const res = await fetch('/api/manufacturing/quality-control', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(data)
+     });
+     if (res.ok) {
+       setShowForm(false);
+       fetchData();
+       reset();
+       success('تم تسجيل الفحص بنجاح');
+     } else {
+         const d = await res.json();
+         toastError(d.message || 'حدث خطأ');
+     }
+   } catch (error) {
+     console.error('Error creating QC log', error);
+     toastError('حدث خطأ أثناء الاتصال بالخادم');
+   } finally {
+       setSaving(false);
+   }
  };
 
  return (
@@ -58,7 +90,7 @@ export default function QCPage() {
  بوابة الجودة والمطابقة (Quality Control)
  </h1>
  <button 
- onClick={() => setShowForm(!showForm)}
+ onClick={() => { setShowForm(!showForm); reset(); }}
  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
  >
  <CheckCircle className="w-5 h-5" /> تسجيل فحص جديد
@@ -68,34 +100,63 @@ export default function QCPage() {
  {showForm && (
  <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-blue-500">
  <h2 className="text-xl font-semibold mb-4">نموذج الفحص المخزني</h2>
- <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
  <label className="block text-sm text-slate-700 mb-1">أمر التصنيع المرتبط</label>
- <select required className="w-full border p-2 rounded" value={formData.manufacturingOrderId} onChange={e => setFormData({...formData, manufacturingOrderId: e.target.value})}>
+ <select 
+    className={`w-full border p-2 rounded ${errors.manufacturingOrderId ? 'border-red-500' : ''}`} 
+    {...register('manufacturingOrderId')}
+ >
  <option value="">اختر أمر التصنيع...</option>
  {orders.map((o: any) => (
  <option key={o.id} value={o.id}>{o.orderNumber} - {o.recipe?.name}</option>
  ))}
  </select>
+ {errors.manufacturingOrderId && <span className="text-red-500 text-xs mt-1 block">{errors.manufacturingOrderId.message}</span>}
  </div>
  <div>
  <label className="block text-sm text-slate-700 mb-1">الكمية المفحوصة (إجمالي)</label>
- <input required type="number" className="w-full border p-2 rounded" value={formData.inspectedQuantity} onChange={e => setFormData({...formData, inspectedQuantity: parseFloat(e.target.value)})} />
+ <input 
+    type="number" 
+    step="any"
+    className={`w-full border p-2 rounded ${errors.inspectedQuantity ? 'border-red-500' : ''}`} 
+    {...register('inspectedQuantity', { valueAsNumber: true })}
+ />
+ {errors.inspectedQuantity && <span className="text-red-500 text-xs mt-1 block">{errors.inspectedQuantity.message}</span>}
  </div>
  <div>
  <label className="block text-sm text-green-700 font-bold mb-1">الكمية المطابقة (نجاح)</label>
- <input required type="number" className="w-full border p-2 rounded border-green-300" value={formData.passedQuantity} onChange={e => setFormData({...formData, passedQuantity: parseFloat(e.target.value)})} />
+ <input 
+    type="number" 
+    step="any"
+    className={`w-full border p-2 rounded border-green-300 ${errors.passedQuantity ? 'border-red-500' : ''}`} 
+    {...register('passedQuantity', { valueAsNumber: true })}
+ />
+ {errors.passedQuantity && <span className="text-red-500 text-xs mt-1 block">{errors.passedQuantity.message}</span>}
  </div>
  <div>
  <label className="block text-sm text-red-700 font-bold mb-1">الكمية التالفة (هدر / Scrap)</label>
- <input required type="number" className="w-full border p-2 rounded border-red-300" value={formData.failedQuantity} onChange={e => setFormData({...formData, failedQuantity: parseFloat(e.target.value)})} />
+ <input 
+    type="number" 
+    step="any"
+    className={`w-full border p-2 rounded border-red-300 ${errors.failedQuantity ? 'border-red-500' : ''}`} 
+    {...register('failedQuantity', { valueAsNumber: true })}
+ />
+ {errors.failedQuantity && <span className="text-red-500 text-xs mt-1 block">{errors.failedQuantity.message}</span>}
  </div>
  <div className="md:col-span-2">
  <label className="block text-sm text-slate-700 mb-1">ملاحظات الفاحص (أسباب الرفض إن وجدت)</label>
- <textarea className="w-full border p-2 rounded" rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
+ <textarea 
+    className="w-full border p-2 rounded" 
+    rows={3} 
+    {...register('notes')}
+ ></textarea>
  </div>
- <div className="md:col-span-2 flex justify-end">
- <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">اعتماد الفحص</button>
+ <div className="md:col-span-2 flex justify-end gap-3">
+ <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 rounded text-slate-600 bg-slate-100 hover:bg-slate-200">إلغاء</button>
+ <button type="submit" disabled={saving} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+     {saving ? 'جاري الحفظ...' : 'اعتماد الفحص'}
+ </button>
  </div>
  </form>
  </div>

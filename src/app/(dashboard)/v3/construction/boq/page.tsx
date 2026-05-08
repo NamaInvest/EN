@@ -4,9 +4,11 @@ import { useTranslation } from '@/lib/i18n';
 import { HardHat, FileBarChart2, Truck, CheckSquare, Hammer, Building2, Plane, CloudRain } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/Toast';
 
 export default function ConstructionBOQ() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const handleGenerateInvoice = async () => {
     try {
@@ -15,10 +17,10 @@ export default function ConstructionBOQ() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId: 1, totalCost: 14500000 }),
       });
-      if (res.ok) alert('تم توليد فاتورة التقدّم وحفظها بنجاح!');
-      else alert('فشل التوليد');
+      if (res.ok) toastSuccess('تم توليد فاتورة التقدّم وحفظها بنجاح!');
+      else toastError('فشل التوليد');
     } catch {
-      alert('خطأ في الاتصال');
+      toastError('خطأ في الاتصال');
     }
   };
 

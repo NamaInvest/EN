@@ -2,9 +2,11 @@
 "use client"
 import React, { useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function ConsolidationDashboard() {
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const [isGenerating, setIsGenerating] = useState(false);
  const [status, setStatus] = useState<string>("DRAFT");
@@ -19,7 +21,7 @@ export default function ConsolidationDashboard() {
 
  const handlePostConsolidation = async () => {
  setStatus("POSTED");
- alert("Consolidated Financials Locked and Posted to GL.");
+ toastSuccess("Consolidated Financials Locked and Posted to GL.");
  };
 
  return (

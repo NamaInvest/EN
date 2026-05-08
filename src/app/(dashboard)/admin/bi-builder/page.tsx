@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { BarChart3, Settings, Table as TableIcon, Download, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/Toast';
 
 const MODELS = ['SalesInvoice', 'PurchaseInvoice', 'Customer', 'Product', 'JournalEntry', 'Employee'];
 const MODEL_FIELDS: Record<string, string[]> = {
@@ -15,6 +16,7 @@ const MODEL_FIELDS: Record<string, string[]> = {
 };
 
 export default function BIBuilderDashboard() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [selectedModel, setSelectedModel] = useState<string>('SalesInvoice');
@@ -41,7 +43,7 @@ export default function BIBuilderDashboard() {
             if (data.success) {
                 setResults(data.data);
             } else {
-                alert(data.error);
+                toastError(data.error);
             }
         } catch (e) {
             console.error(e);

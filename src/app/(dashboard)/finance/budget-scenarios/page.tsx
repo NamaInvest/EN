@@ -3,8 +3,21 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { TrendingUp, Plus, Edit3, Trash2, BarChart3, ArrowUpDown, Layers } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const statusColors: any = { ACTIVE: '#22C55E', DRAFT: '#94A3B8', ARCHIVED: '#6B7280' };
+
+const formSchema = z.object({
+  id: z.number().optional().nullable(),
+  name: z.string().min(1, 'اسم السيناريو مطلوب'),
+  baseYear: z.number().min(2000, 'سنة غير صالحة'),
+  growthRate: z.number().optional().nullable(),
+  description: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function BudgetScenarios() {
   const { lang } = useTranslation();
@@ -13,7 +26,18 @@ export default function BudgetScenarios() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState<any>({ name: '', description: '', baseYear: new Date().getFullYear(), growthRate: '' });
+  const [saving, setSaving] = useState(false);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+          id: undefined,
+          name: '',
+          baseYear: new Date().getFullYear(),
+          growthRate: 0,
+          description: ''
+      }
+  });
 
   useEffect(() => { load(); }, []);
 
@@ -26,17 +50,22 @@ export default function BudgetScenarios() {
     } catch (e: any) { toastError(e?.message); } finally { setLoading(false); }
   };
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
+    setSaving(true);
     const t = localStorage.getItem('token');
     try {
       const r = await fetch('/api/budgets/scenarios', {
-        method: form.id ? 'PUT' : 'POST',
+        method: data.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify(form)
+        body: JSON.stringify(data)
       });
-      if (r.ok) { toastSuccess('تم الحفظ'); setShowModal(false); load(); }
-    } catch (e: any) { toastError(e?.message); }
+      if (r.ok) { 
+          toastSuccess('تم الحفظ'); 
+          setShowModal(false); 
+          reset();
+          load(); 
+      }
+    } catch (e: any) { toastError(e?.message); } finally { setSaving(false); }
   };
 
   const del = async (id: number) => {
@@ -52,7 +81,7 @@ export default function BudgetScenarios() {
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}><Layers size={28} color="var(--primary)" /> سيناريوهات الميزانية</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>تحليل What-If للميزانيات (Best/Worst/Most Likely)</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setForm({ name: '', description: '', baseYear: new Date().getFullYear(), growthRate: '' }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> سيناريو جديد</button>
+        <button className="btn btn-primary" onClick={() => { reset({ id: undefined, name: '', baseYear: new Date().getFullYear(), growthRate: 0, description: '' }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> سيناريو جديد</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
@@ -81,7 +110,7 @@ export default function BudgetScenarios() {
                   <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '12px', background: (statusColors[s.status] || '#94A3B8') + '20', color: statusColors[s.status], fontWeight: '700' }}>{s.status}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setForm(s); setShowModal(true); }}><Edit3 size={15} /></button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { reset(s); setShowModal(true); }}><Edit3 size={15} /></button>
                   <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => del(s.id)}><Trash2 size={15} /></button>
                 </div>
               </div>
@@ -99,17 +128,32 @@ export default function BudgetScenarios() {
 
       {showModal && (
         <div className="modal-overlay"><div className="modal-content" style={{ maxWidth: '500px', animation: 'slideUp 0.3s ease' }}>
-          <div className="modal-header"><h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>{form.id ? 'تعديل' : 'سيناريو جديد'}</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
-          <div className="modal-body"><form onSubmit={save}>
+          <div className="modal-header"><h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>{/* id might be there from reset if modifying */ 'تعديل أو سيناريو جديد'}</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
+          <div className="modal-body"><form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid-2">
-              <div className="input-group" style={{ gridColumn: '1/-1' }}><label className="input-label">اسم السيناريو *</label><input className="input" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-              <div className="input-group"><label className="input-label">السنة الأساس</label><input className="input" type="number" dir="ltr" value={form.baseYear} onChange={e => setForm({ ...form, baseYear: e.target.value })} /></div>
-              <div className="input-group"><label className="input-label">معدل النمو %</label><input className="input" type="number" step="0.1" dir="ltr" value={form.growthRate || ''} onChange={e => setForm({ ...form, growthRate: e.target.value })} /></div>
-              <div className="input-group" style={{ gridColumn: '1/-1' }}><label className="input-label">الوصف</label><textarea className="input" rows={2} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+              <div className="input-group" style={{ gridColumn: '1/-1' }}>
+                  <label className="input-label">اسم السيناريو *</label>
+                  <input className={`input ${errors.name ? 'border-red-500' : ''}`} {...register('name')} />
+                  {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
+              </div>
+              <div className="input-group">
+                  <label className="input-label">السنة الأساس</label>
+                  <input className={`input ${errors.baseYear ? 'border-red-500' : ''}`} type="number" dir="ltr" {...register('baseYear', { valueAsNumber: true })} />
+                  {errors.baseYear && <span className="text-red-500 text-xs mt-1 block">{errors.baseYear.message}</span>}
+              </div>
+              <div className="input-group">
+                  <label className="input-label">معدل النمو %</label>
+                  <input className={`input ${errors.growthRate ? 'border-red-500' : ''}`} type="number" step="any" dir="ltr" {...register('growthRate', { valueAsNumber: true })} />
+                  {errors.growthRate && <span className="text-red-500 text-xs mt-1 block">{errors.growthRate.message}</span>}
+              </div>
+              <div className="input-group" style={{ gridColumn: '1/-1' }}>
+                  <label className="input-label">الوصف</label>
+                  <textarea className="input" rows={2} {...register('description')} />
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
               <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>إلغاء</button>
-              <button type="submit" className="btn btn-primary">حفظ</button>
+              <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-50">{saving ? 'جاري الحفظ...' : 'حفظ'}</button>
             </div>
           </form></div>
         </div></div>

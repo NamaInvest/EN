@@ -17,6 +17,8 @@ interface VisionResult {
 }
 
 export default function VisionInventoryPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
+
 
  const { t } = useTranslation();
  const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -56,27 +58,27 @@ export default function VisionInventoryPage() {
  body: formData,
  });
 
- if (res.ok) {
- const data = await res.json();
- setResults(data.results);
- } else {
- alert(t('stock.str_2674'));
- }
- } catch (error) {
- console.error("Error processing image:", error);
- alert(t('stock.str_2675'));
- } finally {
- setLoading(false);
- }
- };
+      if (res.ok) {
+        const data = await res.json();
+        setResults(data.results);
+      } else {
+        toastError(t('stock.str_2674'));
+      }
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toastError(t('stock.str_2675'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const syncStock = async () => {
- alert(t('stock.str_2676'));
- // Here we would send results back to a /api/stocktake/save endpoint
- setResults(null);
- setImagePreview(null);
- setImageFile(null);
- };
+  const syncStock = async () => {
+    toastSuccess(t('stock.str_2676'));
+    // Here we would send results back to a /api/stocktake/save endpoint
+    setResults(null);
+    setImagePreview(null);
+    setImageFile(null);
+  };
 
  return (
  <div className="space-y-6 animate-fade-in p-2 md:p-6" style={{ maxWidth: '800px', margin: '0 auto' }}>

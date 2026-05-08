@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 // GET - الميزانية العمومية (Assets = Liabilities + Equity)
 import { getUserFromRequest } from '@/lib/auth';
@@ -33,8 +34,8 @@ export async function GET(request: Request) {
         const rawBalances: Record<number, { debit: number; credit: number }> = {};
         for (const line of lines) {
             if (!rawBalances[line.accountId]) rawBalances[line.accountId] = { debit: 0, credit: 0 };
-            rawBalances[line.accountId].debit += line.debit;
-            rawBalances[line.accountId].credit += line.credit;
+            rawBalances[line.accountId].debit += n(line.debit);
+            rawBalances[line.accountId].credit += n(line.credit);
         }
 
         // Calculate net balances

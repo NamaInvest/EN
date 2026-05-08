@@ -3,6 +3,21 @@ import { useState, useEffect } from 'react';
 import { Building2, Plus, ArrowDownRight, Printer } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+  assetName: z.string().min(1, 'اسم الأصل مطلوب'),
+  assetType: z.string().min(1, 'نوع الأصل مطلوب'),
+  purchaseDate: z.string().min(1, 'تاريخ الشراء مطلوب'),
+  purchaseCost: z.number().min(0, 'التكلفة يجب أن تكون أكبر من أو تساوي 0'),
+  salvageValue: z.number().min(0, 'القيمة التخريدية يجب أن تكون أكبر من أو تساوي 0'),
+  usefulLifeYears: z.number().min(1, 'العمر الافتراضي يجب أن يكون أكبر من 0'),
+  location: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function FixedAssetsPage() {
  const { t } = useTranslation();
@@ -10,7 +25,25 @@ export default function FixedAssetsPage() {
  const [assets, setAssets] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
+ const [saving, setSaving] = useState(false);
  
+ const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormValues>({
+     resolver: zodResolver(formSchema),
+     defaultValues: {
+         assetName: '',
+         assetType: '',
+         purchaseDate: '',
+         purchaseCost: 0,
+         salvageValue: 0,
+         usefulLifeYears: 5,
+         location: ''
+     }
+ });
+
+ const currentPurchaseCost = watch('purchaseCost') || 0;
+ const currentSalvageValue = watch('salvageValue') || 0;
+ const currentUsefulLifeYears = watch('usefulLifeYears') || 1;
+
  // Calculate current dynamic depreciation on the fly for display
  const calculateBookValue = (asset: any) => {
  const purchaseDate = new Date(asset.purchaseDate);
@@ -28,10 +61,6 @@ export default function FixedAssetsPage() {
  return (asset.purchaseCost - totalDepreciation).toFixed(2);
  };
 
- const [form, setForm] = useState({ 
- assetName: '', assetType: '', purchaseDate: '', purchaseCost: '', salvageValue: '0', usefulLifeYears: '5', location: '' 
- });
-
  useEffect(() => { loadData(); }, []);
 
  async function loadData() {
@@ -44,23 +73,26 @@ export default function FixedAssetsPage() {
  setLoading(false);
  }
 
- const handleCreate = async (e: React.FormEvent) => {
- e.preventDefault();
+ const onSubmit = async (data: FormValues) => {
+ setSaving(true);
  try {
  const token = localStorage.getItem('token') || '';
  const res = await fetch('/api/finance/assets', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify(form)
+ body: JSON.stringify(data)
  });
  if (res.ok) {
  setShowModal(false);
- setForm({ assetName: '', assetType: '', purchaseDate: '', purchaseCost: '', salvageValue: '0', usefulLifeYears: '5', location: '' });
+ reset();
  loadData();
+ toastSuccess(t('sys.str_180'));
  } else {
- alert(t('fin.str_2020'));
+ toastError(t('fin.str_2020'));
  }
- } catch (e) {}
+ } catch (e) { toastError('حدث خطأ غير متوقع'); } finally {
+     setSaving(false);
+ }
  };
 
  return (<>
@@ -71,7 +103,7 @@ export default function FixedAssetsPage() {
  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('fin.str_1994')}</span>
  <div className="toolbar-spacer" />
  <button className="btn btn-outline" style={{ fontSize: '12px' }}><Printer size={16} style={{display:'inline', marginRight:'4px'}}/> {t('fin.str_1995')}</button>
- <button onClick={() => setShowModal(true)} className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>
+ <button onClick={() => { setShowModal(true); reset(); }} className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>
  <Plus size={16} style={{marginRight:'5px'}} /> {t('sys.str_334')}</button>
  </div>
 
@@ -124,16 +156,17 @@ export default function FixedAssetsPage() {
  <div className="modal-backdrop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
  <div className="modal animate-scale-in" style={{ maxWidth: '600px', width: '95%', backgroundColor: 'var(--card-bg, white)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
  <h2>{t('fin.str_2004')}</h2>
- <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+ <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
  
  <div style={{ display: 'flex', gap: '15px' }}>
  <div className="input-group" style={{ margin: 0, flex: 2 }}>
  <label className="input-label">{t('fin.str_2005')}</label>
- <input required type="text" className="input" value={form.assetName} onChange={e => setForm({...form, assetName: e.target.value})} placeholder={t('fin.str_2021')} />
+ <input type="text" className={`input ${errors.assetName ? 'border-red-500' : ''}`} placeholder={t('fin.str_2021')} {...register('assetName')} />
+ {errors.assetName && <span className="text-red-500 text-xs mt-1 block">{errors.assetName.message}</span>}
  </div>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('fin.str_2006')}</label>
- <select required className="input" value={form.assetType} onChange={e => setForm({...form, assetType: e.target.value})}>
+ <select className={`input ${errors.assetType ? 'border-red-500' : ''}`} {...register('assetType')}>
  <option value="">{t('fin.str_2007')}</option>
  <option value={t('fin.str_2008')}>{t('fin.str_2008')}</option>
  <option value={t('fin.str_2022')}>{t('fin.str_2009')}</option>
@@ -141,43 +174,49 @@ export default function FixedAssetsPage() {
  <option value={t('fin.str_2023')}>{t('fin.str_2011')}</option>
  <option value={t('fin.str_2012')}>{t('fin.str_2012')}</option>
  </select>
+ {errors.assetType && <span className="text-red-500 text-xs mt-1 block">{errors.assetType.message}</span>}
  </div>
  </div>
 
  <div style={{ display: 'flex', gap: '15px' }}>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('fin.str_2013')}</label>
- <input required type="date" className="input" value={form.purchaseDate} onChange={e => setForm({...form, purchaseDate: e.target.value})} />
+ <input type="date" className={`input ${errors.purchaseDate ? 'border-red-500' : ''}`} {...register('purchaseDate')} />
+ {errors.purchaseDate && <span className="text-red-500 text-xs mt-1 block">{errors.purchaseDate.message}</span>}
  </div>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('fin.str_2014')}</label>
- <input type="text" className="input" value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder={t('fin.str_2024')} />
+ <input type="text" className={`input ${errors.location ? 'border-red-500' : ''}`} placeholder={t('fin.str_2024')} {...register('location')} />
+ {errors.location && <span className="text-red-500 text-xs mt-1 block">{errors.location.message}</span>}
  </div>
  </div>
 
  <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('fin.str_2015')}</label>
- <input required type="number" step="any" min="0" className="input" value={form.purchaseCost} onChange={e => setForm({...form, purchaseCost: e.target.value})} style={{fontWeight:'bold'}} />
+ <input type="number" step="any" min="0" className={`input ${errors.purchaseCost ? 'border-red-500' : ''}`} style={{fontWeight:'bold'}} {...register('purchaseCost', { valueAsNumber: true })} />
+ {errors.purchaseCost && <span className="text-red-500 text-xs mt-1 block">{errors.purchaseCost.message}</span>}
  </div>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('fin.str_2016')}</label>
- <input required type="number" step="any" min="0" className="input" value={form.salvageValue} onChange={e => setForm({...form, salvageValue: e.target.value})} />
+ <input type="number" step="any" min="0" className={`input ${errors.salvageValue ? 'border-red-500' : ''}`} {...register('salvageValue', { valueAsNumber: true })} />
+ {errors.salvageValue && <span className="text-red-500 text-xs mt-1 block">{errors.salvageValue.message}</span>}
  </div>
  <div className="input-group" style={{ margin: 0, flex: 1 }}>
  <label className="input-label">{t('sys.str_613')}</label>
- <input required type="number" min="1" className="input" value={form.usefulLifeYears} onChange={e => setForm({...form, usefulLifeYears: e.target.value})} />
+ <input type="number" min="1" className={`input ${errors.usefulLifeYears ? 'border-red-500' : ''}`} {...register('usefulLifeYears', { valueAsNumber: true })} />
+ {errors.usefulLifeYears && <span className="text-red-500 text-xs mt-1 block">{errors.usefulLifeYears.message}</span>}
  </div>
  </div>
 
- {parseFloat(form.purchaseCost) > 0 && (
+ {currentPurchaseCost > 0 && (
  <div style={{ padding: '10px 15px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#1e40af', fontSize: '12px' }}>
- {t('fin.str_2017')}<strong>{((parseFloat(form.purchaseCost) - parseFloat(form.salvageValue||'0')) / parseFloat(form.usefulLifeYears||'1')).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong> {t('fin.str_2018')}</div>
+ {t('fin.str_2017')}<strong>{((currentPurchaseCost - currentSalvageValue) / Math.max(1, currentUsefulLifeYears)).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong> {t('fin.str_2018')}</div>
  )}
 
  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
  <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">{t('fin.str_206')}</button>
- <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#2563eb', color: 'white' }}>{t('fin.str_2019')}</button>
+ <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-50" style={{ backgroundColor: '#2563eb', color: 'white' }}>{saving ? 'جاري الحفظ...' : t('fin.str_2019')}</button>
  </div>
  </form>
  </div>

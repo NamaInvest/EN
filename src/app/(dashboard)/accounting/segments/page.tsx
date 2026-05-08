@@ -1,9 +1,13 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { ArrowRight, Plus, Layers, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface Segment {
   id: number;
@@ -14,6 +18,15 @@ interface Segment {
   isActive: boolean;
 }
 
+const formSchema = z.object({
+  code: z.string().min(1, 'Code is required'),
+  name: z.string().min(1, 'Name is required'),
+  nameEn: z.string().optional().nullable(),
+  type: z.string()
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function SegmentsPage() {
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
@@ -22,8 +35,17 @@ export default function SegmentsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({ code: '', name: '', nameEn: '', type: 'GEO' });
   const [saving, setSaving] = useState(false);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      code: '',
+      name: '',
+      nameEn: '',
+      type: 'GEO'
+    }
+  });
 
   const TYPE_LABELS: Record<string, string> = {
     GEO: _t('جغرافي', 'Geographic'),
@@ -42,24 +64,22 @@ export default function SegmentsPage() {
 
   useEffect(() => { fetchItems(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.code || !form.name) return;
+  const onSubmit = async (data: FormValues) => {
     setSaving(true);
     try {
       const res = await fetch('/api/accounting/segments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(data),
       });
       if (res.ok) {
-        setForm({ code: '', name: '', nameEn: '', type: 'GEO' });
+        reset();
         setShowForm(false);
         fetchItems();
         ts(_t('تم الحفظ بنجاح', 'Saved successfully'));
       } else {
-        const data = await res.json();
-        te(data.error || _t('فشل الحفظ', 'Save failed'));
+        const resData = await res.json();
+        te(resData.error || _t('فشل الحفظ', 'Save failed'));
       }
     } catch { te(_t('خطأ في الاتصال', 'Connection error')); }
     finally { setSaving(false); }
@@ -89,30 +109,34 @@ export default function SegmentsPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
           <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '700' }}>{_t('إضافة قطاع جديد', 'Add New Segment')}</h3>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px', alignItems: 'end' }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px', alignItems: 'start' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الرمز', 'Code')} *</label>
-              <input className="input" placeholder={_t('مثال: SEG01', 'e.g. SEG01')} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
+              <input className={`input ${errors.code ? 'border-red-500' : ''}`} placeholder={_t('مثال: SEG01', 'e.g. SEG01')} {...register('code')} />
+              {errors.code && <span className="text-red-500 text-xs mt-1 block">{errors.code.message}</span>}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الاسم (عربي)', 'Name (Arabic)')} *</label>
-              <input className="input" placeholder={_t('المنطقة الوسطى', 'Central Region')} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+              <input className={`input ${errors.name ? 'border-red-500' : ''}`} placeholder={_t('المنطقة الوسطى', 'Central Region')} {...register('name')} />
+              {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('الاسم (إنجليزي)', 'Name (English)')}</label>
-              <input className="input" placeholder="e.g. Central Region" value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} />
+              <input className="input" placeholder="e.g. Central Region" {...register('nameEn')} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px' }}>{_t('النوع', 'Type')}</label>
-              <select className="input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+              <select className="input" {...register('type')}>
                 <option value="GEO">{_t('جغرافي', 'Geographic')}</option>
                 <option value="PRODUCT_LINE">{_t('خط إنتاج', 'Product Line')}</option>
                 <option value="CHANNEL">{_t('قناة توزيع', 'Distribution Channel')}</option>
               </select>
             </div>
-            <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? _t('جاري الحفظ...', 'Saving...') : _t('حفظ', 'Save')}
-            </button>
+            <div style={{ marginTop: '23px' }}>
+              <button className="btn btn-primary" type="submit" disabled={saving}>
+                {saving ? _t('جاري الحفظ...', 'Saving...') : _t('حفظ', 'Save')}
+              </button>
+            </div>
           </form>
         </div>
       )}

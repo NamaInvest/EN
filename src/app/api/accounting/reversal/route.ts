@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 import { assertReversible, DocumentType } from '@/lib/document-state-machine';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -39,8 +40,8 @@ export async function POST(request: Request) {
         const reversalLines = originalEntry.lines.map((line: any) => ({
             accountCode: line.account.code,
             costCenterId: line.costCenterId ?? undefined,
-            debit: line.credit,
-            credit: line.debit,
+            debit: n(line.credit),
+            credit: n(line.debit),
             description: `عكس: ${line.description || ''}`.trim(),
         }));
 
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
             userId: user.userId,
             branchId: originalEntry.branchId,
             currencyId: originalEntry.currencyId,
-            exchangeRate: originalEntry.exchangeRate,
+            exchangeRate: originalEntry.exchangeRate ? n(originalEntry.exchangeRate) : undefined,
         });
 
         if (!result.success) {

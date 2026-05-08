@@ -166,7 +166,7 @@
 |--------|--------|-------|
 | Routes بدون auth | 297 (45%) | 0 |
 | Routes بدون Zod | 650 (98%) | 0 |
-| Float financial fields | 251 | 0 |
+| Float financial fields | 0 | 0 |
 | auto-journal coverage | 3.8% | 100% |
 | Test coverage | غير معلوم | 80% |
 | E2E tests | 0 | 25+ |

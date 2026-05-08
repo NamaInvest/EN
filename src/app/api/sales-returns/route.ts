@@ -222,7 +222,7 @@ export async function POST(request: Request) {
                         userId: userId ?? 0,
                         action: `transition:draft→completed`, // Returns are generally completed
                         tableName: 'salesreturns',
-                        recordId: createdReturn.id,
+                        recordId: String(createdReturn.id),
                         details: `Direct API Creation (State-Machine Bypass Handled)`,
                     },
                 });

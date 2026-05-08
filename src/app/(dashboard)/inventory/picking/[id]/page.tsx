@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default async function PickingListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ export default async function PickingListPage({ params }: { params: Promise<{ id
 
     const handleConfirm = async () => {
         // Here we would confirm the pick, subtract stock, and update status
-        alert('تم تأكيد السحب (Pick) بناءً على FEFO.');
+        toastSuccess('تم تأكيد السحب (Pick) بناءً على FEFO.');
     };
 
     if (loading) return <div className="p-8 text-blue-600">جاري تحميل قائمة السحب...</div>;

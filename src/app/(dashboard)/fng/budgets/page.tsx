@@ -93,7 +93,7 @@ export default async function BudgetsPage() {
                                         OPERATIONAL
                                     </td>
                                     <td className="px-4 py-3 text-right font-medium text-gray-900">
-                                        SAR {b.totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        SAR {Number(b.totalAmount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded text-xs font-bold ${

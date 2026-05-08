@@ -263,6 +263,18 @@ async function seedCompanyData(params: {
 export async function POST(req: Request) {
 
     try {
+        // Enforce Authentication
+        const { auth } = await import('@clerk/nextjs/server');
+        const { userId } = await auth();
+        
+        // As a fallback for background processing, we check for PROVISION_SECRET header
+        const secretHeader = req.headers.get('x-provision-secret');
+        const isSystemAuth = secretHeader === process.env.PROVISION_SECRET;
+
+        if (!userId && !isSystemAuth) {
+             return NextResponse.json({ success: false, message: 'Unauthorized. Login required to provision tenant.' }, { status: 401 });
+        }
+
         const body = await req.json();
         const {
             companyNameAr,
@@ -282,6 +294,7 @@ export async function POST(req: Request) {
             city,
             cityEn: cityEnFromClient,
         } = body;
+
 
         if (!companyNameAr || !city || !mobile) {
             return NextResponse.json(

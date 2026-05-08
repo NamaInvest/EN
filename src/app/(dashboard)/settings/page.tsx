@@ -73,7 +73,7 @@ export default function SettingsPage() {
  
  const { lang } = useTranslation();
  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const router = useRouter();
  // Create fresh t fn from translate + lang every render - bypasses any context reference issues
  const t = useMemo(() => (key: string) => translate(key, lang as any), [lang]);
@@ -925,13 +925,13 @@ export default function SettingsPage() {
  {isOwner && !hiddenModules.includes('btn_factory_reset') && (
  <button className="btn" onClick={async () => {
  const code = prompt('تنبيه خطير جداً!\nهذا الزر سيقوم بمسح كافة الفواتير، المخزون، المنتجات، التصنيفات والعملاء، والرجوع لوضع المصنع.\nاكتب WIPE_SYSTEM_N11 للتأكيد:');
- if (code !== 'WIPE_SYSTEM_N11') { if (code) alert('كلمة التأكيد غير صحيحة.'); return; }
+ if (code !== 'WIPE_SYSTEM_N11') { if (code) toastWarning('كلمة التأكيد غير صحيحة.'); return; }
  try {
  const token = localStorage.getItem('token');
  const res = await fetch('/api/system/reset', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ confirmation: code }) });
- if (res.ok) { alert('✅ تم مسح وتهيئة النظام بنجاح!'); window.location.reload(); }
- else { const d = await res.json(); alert(`❌ ${d.error}`); }
- } catch (e) { alert('فشل الاتصال الخادم'); }
+ if (res.ok) { toastSuccess('✅ تم مسح وتهيئة النظام بنجاح!'); window.location.reload(); }
+ else { const d = await res.json(); toastError(`❌ ${d.error}`); }
+ } catch (e) { toastError('فشل الاتصال الخادم'); }
  }} style={{ background: '#dc2626', color: '#fff', border: '1px solid #991b1b', fontWeight: '800' }}>
  فرمتة وتهيئة النظام بالكامل (الرجوع لضبط المصنع)
  </button>

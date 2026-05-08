@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, ShieldAlert, Smartphone, Monitor, Key, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function SecuritySettingsClient({ initialData }: { initialData: any }) {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
     const [data, setData] = useState(initialData);
     const [isEnrolling, setIsEnrolling] = useState(false);
     const [enrollData, setEnrollData] = useState<any>(null);
@@ -70,7 +72,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
     const disableMfa = async () => {
         const code = prompt('Please enter your current 6-digit MFA code to disable Two-Factor Authentication:');
         if (!code || code.length !== 6) {
-            alert('Invalid code. MFA was not disabled.');
+            toastWarning('Invalid code. MFA was not disabled.');
             return;
         }
 
@@ -84,13 +86,13 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
             const result = await res.json();
             if (result.success) {
                 setData({ ...data, mfaEnabled: false, mfaMethod: null, backupCodesCount: 0 });
-                alert('MFA disabled successfully.');
+                toastSuccess('MFA disabled successfully.');
             } else {
-                alert(result.error || 'Failed to disable MFA. Incorrect code.');
+                toastError(result.error || 'Failed to disable MFA. Incorrect code.');
             }
         } catch (e) {
             console.error(e);
-            alert('An error occurred.');
+            toastError('An error occurred.');
         }
         setIsSubmitting(false);
     };

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function AppointmentsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [appointments, setAppointments] = useState<any[]>([]);
@@ -66,9 +68,9 @@ export default function AppointmentsPage() {
             if (data.success) {
                 setShowModal(false);
                 fetchData();
-                alert('تم الحجز بنجاح!');
+                toastSuccess('تم الحجز بنجاح!');
             } else {
-                alert('Error: ' + data.error);
+                toastError('Error: ' + data.error);
             }
         } catch (error) {
             console.error(error);

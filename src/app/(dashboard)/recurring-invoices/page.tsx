@@ -39,7 +39,7 @@ export default function RecurringInvoicesPage() {
  setCronResult(data);
  if(data.success) fetchContracts(); // refresh table dates
  } catch(e) {
- alert(t('sys.str_1059'));
+ toastError(t('sys.str_1059'));
  } finally {
  setCronLoading(false);
  }

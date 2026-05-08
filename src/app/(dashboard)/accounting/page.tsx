@@ -140,7 +140,7 @@ export default function AccountingPage() {
  setNewAccount({ code: '', name: '', type: 'asset', level: 1, parentId: 0 }); 
  loadAccounts(); 
  }
- else { const e = await res.json(); alert(e.error); }
+ else { const e = await res.json(); toastError(e.error); }
  };
 
  const openAddSubAccount = (parentAcc: Account) => {
@@ -162,10 +162,10 @@ export default function AccountingPage() {
  const res = await fetch('/api/accounting/accounts/init', { method: 'POST' });
  if (res.ok) {
  const data = await res.json();
- alert(data.message);
+ toastSuccess(data.message);
  loadAccounts();
  } else {
- alert(t('fin.str_255'));
+ toastError(t('fin.str_255'));
  }
  setLoading(false);
  };
@@ -173,17 +173,17 @@ export default function AccountingPage() {
  const handleAddCostCenter = async () => {
  const res = await fetch('/api/accounting/cost-centers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newCostCenter) });
  if (res.ok) { setNewCostCenter({ code: '', name: '', isActive: true }); loadCostCenters(); }
- else { const e = await res.json(); alert(e.error || 'Failed'); }
+ else { const e = await res.json(); toastError(e.error || 'Failed'); }
  };
 
  // Add journal entry
  const handleAddJournal = async () => {
  const totalD = journalLines.reduce((s, l) => s + l.debit, 0);
  const totalC = journalLines.reduce((s, l) => s + l.credit, 0);
- if (Math.abs(totalD - totalC) > 0.01) { alert(`القيد غير متوازن: مدين ${totalD} ≠ دائن ${totalC}`); return; }
+ if (Math.abs(totalD - totalC) > 0.01) { toastError(`القيد غير متوازن: مدين ${totalD} ≠ دائن ${totalC}`); return; }
  const res = await fetch('/api/accounting/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: journalDesc, lines: journalLines.filter(l => l.debit > 0 || l.credit > 0) }) });
  if (res.ok) { setShowAddJournal(false); setJournalDesc(''); setJournalLines([{ accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }, { accountCode: '', costCenterId: 0, debit: 0, credit: 0, description: '' }]); loadJournals(); }
- else { const e = await res.json(); alert(e.error); }
+ else { const e = await res.json(); toastError(e.error); }
  };
 
  const handlePostJournal = async (e: any, id: number) => {
@@ -191,7 +191,7 @@ export default function AccountingPage() {
  if (!confirm('هل أنت متأكد من ترحيل هذا القيد؟ لا يمكن تعديله بعد الترحيل.')) return;
  const res = await fetch(`/api/accounting/journal/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'posted' }) });
  if (res.ok) { loadJournals(); }
- else { const err = await res.json(); alert(err.error || 'فشل الترحيل'); }
+ else { const err = await res.json(); toastError(err.error || 'فشل الترحيل'); }
  };
 
  const handleReverseJournal = async (e: any, id: number) => {
@@ -200,7 +200,7 @@ export default function AccountingPage() {
  if (!reason) return;
  const res = await fetch(`/api/accounting/reversal`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ journalEntryId: id, reason }) });
  if (res.ok) { loadJournals(); }
- else { const err = await res.json(); alert(err.error || 'فشل العكس'); }
+ else { const err = await res.json(); toastError(err.error || 'فشل العكس'); }
  };
 
  const handleStartClosing = async (periodId: number) => {

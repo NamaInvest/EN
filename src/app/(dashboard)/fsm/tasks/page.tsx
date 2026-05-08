@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, Navigation, Clock, Box } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function TechnicianPortalPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [tickets, setTickets] = useState([]);
@@ -32,7 +34,7 @@ export default function TechnicianPortalPage() {
             const data = await res.json();
             if (data.success) {
                 setTickets(tickets.filter((t: any) => t.id !== ticketId));
-                alert('Ticket completed successfully!');
+                toastSuccess('Ticket completed successfully!');
             }
         } catch (e) {
             console.error(e);

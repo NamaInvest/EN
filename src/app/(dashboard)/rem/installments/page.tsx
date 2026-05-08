@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function RentInstallmentsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const { lang } = useTranslation();
  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -24,7 +25,7 @@ export default function RentInstallmentsPage() {
  <div className="p-6">
  <div className="flex justify-between items-center mb-6">
  <h1 className="text-2xl font-bold">🏢 إدارة الأملاك - الدفعات والأقساط</h1>
- <button onClick={() => alert('جاري برمجة شاشة التحصيل')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+ <button onClick={() => toastWarning('جاري برمجة شاشة التحصيل')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
  + استلام دفعة
  </button>
  </div>

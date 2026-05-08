@@ -21,7 +21,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
             return NextResponse.json({ error: 'إجراء غير صالح' }, { status: 400 });
         }
 
-        const result = await ApprovalEngine.processStep(stepId, _auth.id.toString(), action, notes);
+        const engine = new ApprovalEngine(request);
+        const result = await engine.approve('approval_step', stepId, { approverId: parseInt(_auth.id?.toString() || '0'), notes });
 
         return NextResponse.json(result);
     } catch (error: any) {

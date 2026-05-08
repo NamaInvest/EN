@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 type WFState = { id: string; name: string; nameAr: string; color: string; x: number; y: number; isFinal: boolean };
 type WFTransition = { id: string; from: string; to: string; label: string; labelAr: string; conditions: any[]; actions: any[]; requiredRole?: string };
@@ -17,6 +18,7 @@ const MODELS = [
 const COLORS = ['#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#795548', '#607D8B'];
 
 export default function WorkflowBuilderPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang: language } = useTranslation();
   const isAr = language === 'ar';
   const [model, setModel] = useState('PurchaseInvoice');
@@ -51,7 +53,7 @@ export default function WorkflowBuilderPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'save', definition: { name: model + ' Workflow', targetModel: model, states, transitions } }),
       });
-      alert(isAr ? 'تم الحفظ ✅' : 'Saved ✅');
+      toastSuccess(isAr ? 'تم الحفظ ✅' : 'Saved ✅');
     } catch { } finally { setSaving(false); }
   };
 

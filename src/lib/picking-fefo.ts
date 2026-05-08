@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { n } from '@/lib/decimal-utils';
 
 export interface FefoAllocationResult {
     batchId: number;
@@ -43,7 +44,7 @@ export async function allocateFEFO(
     for (const batch of batches) {
         if (remainingQty <= 0) break;
 
-        const available = batch.currentQuantity;
+        const available = n(batch.currentQuantity);
         const toAllocate = Math.min(available, remainingQty);
 
         allocation.push({

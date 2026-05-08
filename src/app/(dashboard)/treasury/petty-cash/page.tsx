@@ -36,7 +36,9 @@ export default async function PettyCashPage() {
             {/* Data Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {funds.map((fund) => {
-                    const progress = fund.maxLimit > 0 ? (fund.currentBalance / fund.maxLimit) * 100 : 0;
+                    const maxLimit = Number(fund.maxLimit);
+                    const currentBalance = Number(fund.currentBalance);
+                    const progress = maxLimit > 0 ? (currentBalance / maxLimit) * 100 : 0;
                     const isLow = progress < 20;
 
                     return (
@@ -61,12 +63,12 @@ export default async function PettyCashPage() {
                                         <div>
                                             <p className="text-xs text-gray-500 mb-1">{_t('الرصيد الحالي', 'Current Balance')}</p>
                                             <p className={`text-2xl font-bold ${isLow ? 'text-red-600' : 'text-gray-900'}`}>
-                                                SAR {fund.currentBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                SAR {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(currentBalance)}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs text-gray-500 mb-1">{_t('Max Limit', 'Max Limit')}</p>
-                                            <p className="text-sm font-medium text-gray-700">SAR {fund.maxLimit?.toLocaleString()}</p>
+                                            <p className="text-sm font-medium text-gray-700">SAR {new Intl.NumberFormat('en-US').format(maxLimit)}</p>
                                         </div>
                                     </div>
 

@@ -47,12 +47,25 @@ export async function addDocumentToVectorMine(
 
     const prisma = getPrisma();
     const doc    = await prisma.knowledgeDocument.create({
-        data: { tenantId, title, content, embedding: vector, metadata },
+        data: { 
+            tenantId, 
+            title, 
+            content, 
+            metadata,
+            chunks: {
+                create: {
+                    tenantId,
+                    chunkIndex: 0,
+                    content,
+                    embedding: vector,
+                    tokenCount: Math.ceil(content.length / 4)
+                }
+            }
+        },
     });
 
     logger.info({ tenantId }, 'vector-store: document indexed', { docId: doc.id, title });
-    // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
-    return doc.id;
+    return doc.id as unknown as number;
 }
 
 /**
@@ -74,11 +87,12 @@ export async function searchVectorMine(
         // pgvector syntax: ORDER BY embedding <=> '[...]'::vector LIMIT k
         const vectorLiteral = `[${queryVector.join(',')}]`;
         const rows: any[] = await (prisma as any).$queryRaw`
-            SELECT id, title, content, metadata,
-                   1 - (embedding <=> ${vectorLiteral}::vector) AS score
-            FROM knowledge_documents
-            WHERE tenant_id = ${tenantId}
-            ORDER BY embedding <=> ${vectorLiteral}::vector
+            SELECT d.id, d.title, d.content, d.metadata,
+                   1 - (c.embedding_vec <=> ${vectorLiteral}::vector) AS score
+            FROM knowledge_documents d
+            JOIN knowledge_chunks c ON d.id = c.document_id
+            WHERE d.tenant_id = ${tenantId}
+            ORDER BY c.embedding_vec <=> ${vectorLiteral}::vector
             LIMIT ${topK}
         `;
         logger.info({ tenantId }, 'vector-store: pgvector search', { hits: rows.length });
@@ -92,11 +106,11 @@ export async function searchVectorMine(
     const allDocs = await prisma.knowledgeDocument.findMany({
         where: { tenantId },
         take: 500,
-        select: { id: true, title: true, content: true, embedding: true, metadata: true },
+        select: { id: true, title: true, content: true, metadata: true, chunks: { select: { embedding: true } } },
     });
 
     const scored = allDocs.map((doc: any) => {
-        const vec   = doc.embedding as number[] | null;
+        const vec   = doc.chunks?.[0]?.embedding as number[] | null;
         const score = vec ? cosineSimilarity(queryVector, vec) : 0;
         return { id: doc.id, title: doc.title, content: doc.content, score, metadata: doc.metadata };
     });

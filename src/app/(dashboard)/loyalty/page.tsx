@@ -10,7 +10,7 @@ interface LoyaltyPoint { id: number; customerId: number; points: number; totalEa
 
 export default function LoyaltyPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [loyalties, setLoyalties] = useState<LoyaltyPoint[]>([]);
  const [loading, setLoading] = useState(true);
  
@@ -74,9 +74,9 @@ export default function LoyaltyPage() {
  fetch('/api/settings', { method: 'POST', headers: headers(), body: JSON.stringify({ key: 'loyalty_redeem_rate', value: redeemRate }) })
  ];
  await Promise.all(promises);
- alert(t('sys.str_697'));
+ toastWarning(t('sys.str_697'));
  setShowSettings(false);
- } catch (e) { alert(t('sys.str_698')); }
+ } catch (e) { toastWarning(t('sys.str_698')); }
  finally { setSavingSettings(false); }
  };
 

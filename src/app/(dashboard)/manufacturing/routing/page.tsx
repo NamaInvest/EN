@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function RoutingOptimizationPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [recipes, setRecipes] = useState<any[]>([]);
@@ -55,11 +57,11 @@ export default function RoutingOptimizationPage() {
                 })
             });
             if (res.ok) {
-                alert('تم حفظ وتحديث مسارات الإنتاج بنجاح.');
+                toastSuccess('تم حفظ وتحديث مسارات الإنتاج بنجاح.');
                 fetchData();
             } else {
                 const data = await res.json();
-                alert(data.error);
+                toastError(data.error);
             }
         } catch (error) {
             console.error(error);

@@ -2,6 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+    name: z.string().min(1, 'اسم الفرصة مطلوب'),
+    amount: z.number().min(1, 'المبلغ المتوقع يجب أن يكون أكبر من 0'),
+    accountId: z.string().min(1, 'العميل مطلوب'),
+    expectedCloseDate: z.string().min(1, 'تاريخ الإغلاق المتوقع مطلوب')
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function CRMOpportunitiesPage() {
   const { lang } = useTranslation();
@@ -11,12 +23,19 @@ export default function CRMOpportunitiesPage() {
     const [accounts, setAccounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [saving, setSaving] = useState(false);
     
     // For reason modal (Win/Loss)
     const [reasonModal, setReasonModal] = useState({ show: false, oppId: 0, stageId: 0, title: '', reason: '' });
 
-    const [formData, setFormData] = useState({
-        name: '', amount: '', accountId: '', stageId: '', expectedCloseDate: ''
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: '',
+            amount: undefined,
+            accountId: '',
+            expectedCloseDate: ''
+        }
     });
 
     useEffect(() => {
@@ -32,9 +51,6 @@ export default function CRMOpportunitiesPage() {
                 setStages(data.data.stages);
                 setOpportunities(data.data.opportunities);
                 setAccounts(data.data.accounts);
-                if (data.data.stages.length > 0 && !formData.stageId) {
-                    setFormData(prev => ({ ...prev, stageId: data.data.stages[0].id.toString() }));
-                }
             }
         } catch (error) {
             console.error(error);
@@ -43,21 +59,24 @@ export default function CRMOpportunitiesPage() {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: FormValues) => {
+        setSaving(true);
         try {
+            const stageId = stages.length > 0 ? stages[0].id.toString() : '';
             const res = await fetch('/api/crm/opportunities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'CREATE', payload: formData })
+                body: JSON.stringify({ action: 'CREATE', payload: { ...data, stageId } })
             });
             if (res.ok) {
                 setShowModal(false);
-                setFormData(prev => ({ ...prev, name: '', amount: '', expectedCloseDate: '' }));
+                reset();
                 fetchData();
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -202,29 +221,50 @@ export default function CRMOpportunitiesPage() {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
                         <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white border-b pb-2">فرصة بيعية جديدة</h2>
-                        <form onSubmit={handleCreate} className="space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الفرصة (Opportunity Name)</label>
-                                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                <input 
+                                    type="text" 
+                                    className={`mt-1 w-full border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('name')}
+                                />
+                                {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">العميل (Account)</label>
-                                <select required value={formData.accountId} onChange={e => setFormData({...formData, accountId: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white">
+                                <select 
+                                    className={`mt-1 w-full border ${errors.accountId ? 'border-red-500' : 'border-gray-300'} rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('accountId')}
+                                >
                                     <option value="">-- اختر عميل --</option>
                                     {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                                 </select>
+                                {errors.accountId && <span className="text-red-500 text-xs mt-1 block">{errors.accountId.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">المبلغ المتوقع (SAR)</label>
-                                <input required type="number" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                <input 
+                                    type="number" 
+                                    className={`mt-1 w-full border ${errors.amount ? 'border-red-500' : 'border-gray-300'} rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('amount', { valueAsNumber: true })}
+                                />
+                                {errors.amount && <span className="text-red-500 text-xs mt-1 block">{errors.amount.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">تاريخ الإغلاق المتوقع</label>
-                                <input required type="date" value={formData.expectedCloseDate} onChange={e => setFormData({...formData, expectedCloseDate: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
+                                <input 
+                                    type="date" 
+                                    className={`mt-1 w-full border ${errors.expectedCloseDate ? 'border-red-500' : 'border-gray-300'} rounded-md p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('expectedCloseDate')}
+                                />
+                                {errors.expectedCloseDate && <span className="text-red-500 text-xs mt-1 block">{errors.expectedCloseDate.message}</span>}
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">إلغاء</button>
-                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-bold">حفظ</button>
+                                <button type="button" onClick={() => { setShowModal(false); reset(); }} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">إلغاء</button>
+                                <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-bold disabled:opacity-50">
+                                    {saving ? 'جاري الحفظ...' : 'حفظ'}
+                                </button>
                             </div>
                         </form>
                     </div>

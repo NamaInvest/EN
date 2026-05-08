@@ -17,6 +17,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { AsyncLocalStorage } from 'async_hooks';
+import { applySoftDeleteMiddleware } from './prisma-soft-delete';
 
 // ── Tenant context store ─────────────────────────────────────────
 // يخزّن اسم الـ tenant الحالي عبر Stack الطلب
@@ -32,8 +33,11 @@ const pool = globalForPrisma.prismaPool || new Map<string, PrismaClient>();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prismaPool = pool;
 
 // ── DB URL builder ──────────────────────────────────────────────
-export function getDbUrl(tenant: string): string {
-    const base = process.env.DATABASE_URL;
+export function getDbUrl(tenant: string, isRead = false): string {
+    let base = process.env.DATABASE_URL;
+    if (isRead && process.env.DATABASE_REPLICA_URL) {
+        base = process.env.DATABASE_REPLICA_URL;
+    }
     if (!base) {
         throw new Error('DATABASE_URL environment variable is required (set in .env)');
     }
@@ -43,7 +47,6 @@ export function getDbUrl(tenant: string): string {
     }
     
     // In Phase 1 RLS, we use a single database and rely on tenantId extension.
-    // So we just return the base URL!
     return base;
 }
 
@@ -86,18 +89,23 @@ function withRLS(client: PrismaClient, tenantId: string) {
 }
 
 // ── Get or create Prisma client for tenant ──────────────────────
-export function getClient(tenant: string) {
-    if (!pool.has('SHARED_DB_INSTANCE')) {
-        pool.set(
-            'SHARED_DB_INSTANCE',
-            new PrismaClient({
-                datasources: { db: { url: getDbUrl(tenant) } },
-                log: process.env.NODE_ENV === 'development' ? ['error'] : [],
-            })
-        );
+export function getClient(tenant: string, options: { read?: boolean } = {}) {
+    const isRead = !!options.read;
+    const poolKey = isRead ? 'SHARED_DB_INSTANCE_READ' : 'SHARED_DB_INSTANCE';
+
+    if (!pool.has(poolKey)) {
+        const client = new PrismaClient({
+            datasources: { db: { url: getDbUrl(tenant, isRead) } },
+            log: process.env.NODE_ENV === 'development' ? ['error'] : [],
+        });
+        
+        // Apply soft delete middleware BEFORE RLS wrapper
+        applySoftDeleteMiddleware(client);
+        
+        pool.set(poolKey, client);
     }
     
-    const baseClient = pool.get('SHARED_DB_INSTANCE')!;
+    const baseClient = pool.get(poolKey)!;
     
     // Return the extended client for this specific tenant
     return withRLS(baseClient, tenant);
@@ -169,9 +177,9 @@ export function resolveTenant(req?: {
  *     const items = await prisma.product.findMany();
  *   }
  */
-export function getPrisma(req?: Request | { headers?: unknown }): PrismaClient {
+export function getPrisma(req?: Request | { headers?: unknown }, options: { read?: boolean } = {}): PrismaClient {
     // @ts-expect-error [TS2739] Missing required properties
-    return getClient(resolveTenant(req as Parameters<typeof resolveTenant>[0]));
+    return getClient(resolveTenant(req as Parameters<typeof resolveTenant>[0]), options);
 }
 
 // Alias للتوافق مع الكود القديم

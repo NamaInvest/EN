@@ -40,7 +40,7 @@ export default function StocktakePage() {
  body: JSON.stringify({ items, applyAdjustment: apply }),
  });
  if (res.ok) { setShowNew(false); loadStocktakes(); if (apply) loadProducts(); }
- else { const e = await res.json(); alert(e.error); }
+ else { const e = await res.json(); toastError(e.error || t('stock.str_2638')); }
  } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
  setLoading(false);
  };

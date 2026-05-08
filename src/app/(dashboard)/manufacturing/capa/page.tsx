@@ -4,6 +4,27 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Activity, CheckCircle2, AlertTriangle, FileWarning, Search, Wrench, ShieldCheck } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const ncrSchema = z.object({
+  inspectionId: z.any(),
+  description: z.string().min(1, 'الوصف مطلوب'),
+  severity: z.string().min(1, 'الخطورة مطلوبة'),
+  dispositionType: z.string().min(1, 'الإجراء المتخذ مطلوب'),
+  costImpact: z.any()
+});
+
+const capaSchema = z.object({
+  rootCause: z.string().min(1, 'السبب الجذري مطلوب'),
+  correctiveAction: z.string().min(1, 'الإجراء التصحيحي مطلوب'),
+  owner: z.string().min(1, 'المسؤول مطلوب'),
+  dueDate: z.string().min(1, 'تاريخ الاستحقاق مطلوب')
+});
+
+type NcrFormValues = z.infer<typeof ncrSchema>;
+type CapaFormValues = z.infer<typeof capaSchema>;
 
 export default function CAPAPage() {
  const { success, error: toastError } = useToast();
@@ -15,13 +36,25 @@ export default function CAPAPage() {
  const [isCapaModalOpen, setIsCapaModalOpen] = useState(false);
  const [selectedNcr, setSelectedNcr] = useState<any>(null);
 
- // Forms
- const [ncrForm, setNcrForm] = useState({
- inspectionId: '', severity: 'MEDIUM', description: '', dispositionType: 'SCRAP', costImpact: 0
+ const { register: registerNcr, handleSubmit: handleSubmitNcr, reset: resetNcr, formState: { errors: ncrErrors, isSubmitting: isSubmittingNcr } } = useForm<NcrFormValues>({
+     resolver: zodResolver(ncrSchema),
+     defaultValues: {
+         inspectionId: undefined,
+         severity: 'MEDIUM',
+         description: '',
+         dispositionType: 'SCRAP',
+         costImpact: 0
+     }
  });
 
- const [capaForm, setCapaForm] = useState({
- rootCause: '', correctiveAction: '', owner: '', dueDate: ''
+ const { register: registerCapa, handleSubmit: handleSubmitCapa, reset: resetCapa, formState: { errors: capaErrors, isSubmitting: isSubmittingCapa } } = useForm<CapaFormValues>({
+     resolver: zodResolver(capaSchema),
+     defaultValues: {
+         rootCause: '',
+         correctiveAction: '',
+         owner: '',
+         dueDate: ''
+     }
  });
 
  useEffect(() => {
@@ -45,17 +78,22 @@ export default function CAPAPage() {
  }
  };
 
- const submitNcr = async (e: React.FormEvent) => {
- e.preventDefault();
+ const submitNcr = async (data: NcrFormValues) => {
  try {
  const res = await fetch('/api/manufacturing/capa', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ ...ncrForm, actionType: 'CREATE_NCR' })
+ body: JSON.stringify({ 
+     ...data, 
+     inspectionId: Number(data.inspectionId), 
+     costImpact: Number(data.costImpact || 0), 
+     actionType: 'CREATE_NCR' 
+ })
  });
  if (res.ok) {
  success('تم إنشاء تقرير عدم المطابقة بنجاح');
  setIsNcrModalOpen(false);
+ resetNcr();
  fetchData();
  } else {
  toastError('فشل إنشاء التقرير');
@@ -65,17 +103,17 @@ export default function CAPAPage() {
  }
  };
 
- const submitCapa = async (e: React.FormEvent) => {
- e.preventDefault();
+ const submitCapa = async (data: CapaFormValues) => {
  try {
  const res = await fetch('/api/manufacturing/capa', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ ...capaForm, ncrId: selectedNcr.id, actionType: 'CREATE_CAPA' })
+ body: JSON.stringify({ ...data, ncrId: selectedNcr.id, actionType: 'CREATE_CAPA' })
  });
  if (res.ok) {
  success('تم تسجيل الإجراء التصحيحي بنجاح');
  setIsCapaModalOpen(false);
+ resetCapa();
  fetchData();
  } else {
  toastError('فشل تسجيل الإجراء');
@@ -126,7 +164,7 @@ export default function CAPAPage() {
  <p className="text-slate-400 mt-1">تقارير عدم المطابقة والإجراءات التصحيحية والوقائية</p>
  </div>
  </div>
- <button onClick={() => setIsNcrModalOpen(true)} className="flex items-center px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-rose-600/20">
+ <button onClick={() => { setIsNcrModalOpen(true); resetNcr(); }} className="flex items-center px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-rose-600/20">
  <FileWarning className="w-5 h-5 ml-2" /> تقرير عدم مطابقة (NCR)
  </button>
  </div>
@@ -140,19 +178,21 @@ export default function CAPAPage() {
  <FileWarning className="w-6 h-6 ml-2 text-rose-400" /> إصدار NCR
  </h3>
  </div>
- <form onSubmit={submitNcr} className="p-6 space-y-4">
+ <form onSubmit={handleSubmitNcr(submitNcr)} className="p-6 space-y-4">
  <div>
  <label className="block text-sm text-slate-400 mb-1">رقم الفحص (Inspection ID)</label>
- <input type="number" required value={ncrForm.inspectionId} onChange={e => setNcrForm({...ncrForm, inspectionId: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" />
+ <input type="number" className={`w-full bg-slate-950 border ${ncrErrors.inspectionId ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500`} {...registerNcr('inspectionId')} />
+ {ncrErrors.inspectionId?.message && <span className="text-red-500 text-xs mt-1 block">{String(ncrErrors.inspectionId.message)}</span>}
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">وصف الانحراف والمشكلة</label>
- <textarea required rows={3} value={ncrForm.description} onChange={e => setNcrForm({...ncrForm, description: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"></textarea>
+ <textarea rows={3} className={`w-full bg-slate-950 border ${ncrErrors.description ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500`} {...registerNcr('description')}></textarea>
+ {ncrErrors.description && <span className="text-red-500 text-xs mt-1 block">{ncrErrors.description.message}</span>}
  </div>
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="block text-sm text-slate-400 mb-1">الخطورة</label>
- <select value={ncrForm.severity} onChange={e => setNcrForm({...ncrForm, severity: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500">
+ <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500" {...registerNcr('severity')}>
  <option value="CRITICAL">حرج (Critical)</option>
  <option value="HIGH">عالي (High)</option>
  <option value="MEDIUM">متوسط (Medium)</option>
@@ -161,7 +201,7 @@ export default function CAPAPage() {
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">الإجراء المتخذ (Disposition)</label>
- <select value={ncrForm.dispositionType} onChange={e => setNcrForm({...ncrForm, dispositionType: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500">
+ <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500" {...registerNcr('dispositionType')}>
  <option value="SCRAP">إتلاف (Scrap)</option>
  <option value="REWORK">إعادة عمل (Rework)</option>
  <option value="RETURN_VENDOR">إرجاع للمورد</option>
@@ -171,11 +211,11 @@ export default function CAPAPage() {
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">الأثر المالي المتوقع (Cost Impact)</label>
- <input type="number" value={ncrForm.costImpact} onChange={e => setNcrForm({...ncrForm, costImpact: parseFloat(e.target.value) || 0})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" />
+ <input type="number" step="any" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" {...registerNcr('costImpact')} />
  </div>
  <div className="flex justify-end pt-4 space-x-3 space-x-reverse">
  <button type="button" onClick={() => setIsNcrModalOpen(false)} className="px-5 py-2.5 bg-slate-800 text-white rounded-xl">إلغاء</button>
- <button type="submit" className="px-5 py-2.5 bg-rose-600 text-white rounded-xl font-bold">حفظ واعتماد</button>
+ <button type="submit" disabled={isSubmittingNcr} className="px-5 py-2.5 bg-rose-600 text-white rounded-xl font-bold disabled:opacity-50">{isSubmittingNcr ? 'جاري الحفظ...' : 'حفظ واعتماد'}</button>
  </div>
  </form>
  </div>
@@ -191,31 +231,35 @@ export default function CAPAPage() {
  <Wrench className="w-6 h-6 ml-2 text-blue-400" /> إصدار خطة تصحيحية (CAPA)
  </h3>
  </div>
- <form onSubmit={submitCapa} className="p-6 space-y-4">
+ <form onSubmit={handleSubmitCapa(submitCapa)} className="p-6 space-y-4">
  <div className="bg-slate-800 p-3 rounded-lg text-sm text-slate-300 border border-slate-700">
  مرتبط بـ NCR #{selectedNcr.id}: {selectedNcr.description}
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">السبب الجذري (Root Cause)</label>
- <textarea required rows={2} value={capaForm.rootCause} onChange={e => setCapaForm({...capaForm, rootCause: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+ <textarea rows={2} className={`w-full bg-slate-950 border ${capaErrors.rootCause ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`} {...registerCapa('rootCause')}></textarea>
+ {capaErrors.rootCause && <span className="text-red-500 text-xs mt-1 block">{capaErrors.rootCause.message}</span>}
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">الإجراء التصحيحي (Corrective Action)</label>
- <textarea required rows={2} value={capaForm.correctiveAction} onChange={e => setCapaForm({...capaForm, correctiveAction: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+ <textarea rows={2} className={`w-full bg-slate-950 border ${capaErrors.correctiveAction ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`} {...registerCapa('correctiveAction')}></textarea>
+ {capaErrors.correctiveAction && <span className="text-red-500 text-xs mt-1 block">{capaErrors.correctiveAction.message}</span>}
  </div>
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="block text-sm text-slate-400 mb-1">المسؤول (Owner)</label>
- <input type="text" required value={capaForm.owner} onChange={e => setCapaForm({...capaForm, owner: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500" />
+ <input type="text" className={`w-full bg-slate-950 border ${capaErrors.owner ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500`} {...registerCapa('owner')} />
+ {capaErrors.owner && <span className="text-red-500 text-xs mt-1 block">{capaErrors.owner.message}</span>}
  </div>
  <div>
  <label className="block text-sm text-slate-400 mb-1">تاريخ الاستحقاق</label>
- <input type="date" required value={capaForm.dueDate} onChange={e => setCapaForm({...capaForm, dueDate: e.target.value})} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500" />
+ <input type="date" className={`w-full bg-slate-950 border ${capaErrors.dueDate ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-blue-500`} {...registerCapa('dueDate')} />
+ {capaErrors.dueDate && <span className="text-red-500 text-xs mt-1 block">{capaErrors.dueDate.message}</span>}
  </div>
  </div>
  <div className="flex justify-end pt-4 space-x-3 space-x-reverse">
  <button type="button" onClick={() => setIsCapaModalOpen(false)} className="px-5 py-2.5 bg-slate-800 text-white rounded-xl">إلغاء</button>
- <button type="submit" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold">تسجيل الـ CAPA</button>
+ <button type="submit" disabled={isSubmittingCapa} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold disabled:opacity-50">{isSubmittingCapa ? 'جاري الحفظ...' : 'تسجيل الـ CAPA'}</button>
  </div>
  </form>
  </div>
@@ -249,7 +293,7 @@ export default function CAPAPage() {
  <Wrench className="w-5 h-5 ml-2 text-blue-400" />
  سجل الإجراءات التصحيحية (CAPAs)
  </h4>
- <button onClick={() => { setSelectedNcr(ncr); setIsCapaModalOpen(true); }} className="text-sm text-blue-400 hover:text-blue-300 font-medium">
+ <button onClick={() => { setSelectedNcr(ncr); resetCapa(); setIsCapaModalOpen(true); }} className="text-sm text-blue-400 hover:text-blue-300 font-medium">
  + إضافة إجراء تصحيحي
  </button>
  </div>

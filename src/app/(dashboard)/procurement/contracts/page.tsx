@@ -2,26 +2,52 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+  supplierId: z.string().min(1, 'المورد مطلوب'),
+  title: z.string().min(1, 'عنوان العقد مطلوب'),
+  description: z.string().optional().nullable(),
+  startDate: z.string().min(1, 'تاريخ البداية مطلوب'),
+  endDate: z.string().min(1, 'تاريخ النهاية مطلوب'),
+  value: z.number().min(0, 'القيمة يجب أن تكون رقم إيجابي'),
+  currency: z.string(),
+  paymentTerms: z.string().optional().nullable(),
+  autoRenew: z.boolean(),
+  alertDaysBefore: z.number().min(1)
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function SupplierContractsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [contracts, setContracts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    const [newContract, setNewContract] = useState({
-        supplierId: '1',
-        title: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        value: '',
-        currency: 'SAR',
-        paymentTerms: '',
-        autoRenew: false,
-        alertDaysBefore: 30
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            supplierId: '1',
+            title: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            value: 0,
+            currency: 'SAR',
+            paymentTerms: '',
+            autoRenew: false,
+            alertDaysBefore: 30
+        }
     });
+
+    const watchAutoRenew = watch('autoRenew');
 
     useEffect(() => {
         fetchContracts();
@@ -38,31 +64,34 @@ export default function SupplierContractsPage() {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    const onSubmit = async (data: FormValues) => {
+        setSaving(true);
         try {
             const res = await fetch('/api/procurement/contracts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newContract)
+                body: JSON.stringify(data)
             });
-            const data = await res.json();
+            const resData = await res.json();
             if (res.ok) {
                 setShowModal(false);
+                reset();
                 fetchContracts();
                 
                 // ZATCA VAT Check simulation
-                if (Number(newContract.value) > 100000 && newContract.currency === 'SAR') {
-                    alert('تنبيه ZATCA: قيمة العقد تتجاوز 100,000 ريال سعودي. يرجى التأكد من تسجيل المورد في ضريبة القيمة المضافة.');
+                if (data.value > 100000 && data.currency === 'SAR') {
+                    toastError('تنبيه ZATCA: قيمة العقد تتجاوز 100,000 ريال سعودي. يرجى التأكد من تسجيل المورد في ضريبة القيمة المضافة.');
+                } else {
+                    toastSuccess('تم إضافة العقد بنجاح');
                 }
             } else {
-                alert(data.error || 'فشل إضافة العقد');
+                toastError(resData.error || 'فشل إضافة العقد');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ');
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -71,7 +100,7 @@ export default function SupplierContractsPage() {
         try {
             const res = await fetch('/api/cron/contracts');
             const data = await res.json();
-            alert(`تنبيهات مولدة: ${data.alertsGenerated}\nتم التجديد التلقائي: ${data.autoRenewed}`);
+            toastError(`تنبيهات مولدة: ${data.alertsGenerated}\nتم التجديد التلقائي: ${data.autoRenewed}`);
             fetchContracts();
         } catch (e) {
             console.error(e);
@@ -113,7 +142,7 @@ export default function SupplierContractsPage() {
                         تحديث وتنبيه (Cron)
                     </button>
                     <button 
-                        onClick={() => setShowModal(true)}
+                        onClick={() => { reset(); setShowModal(true); }}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold"
                     >
                         + عقد جديد
@@ -166,28 +195,27 @@ export default function SupplierContractsPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4 dark:text-white">تسجيل عقد مورد جديد</h2>
-                        <form onSubmit={handleCreate} className="space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">المورد</label>
                                     <select 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.supplierId}
-                                        onChange={e => setNewContract({...newContract, supplierId: e.target.value})}
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.supplierId ? 'border-red-500' : ''}`}
+                                        {...register('supplierId')}
                                     >
                                         <option value="1">شركة التوريدات الحديثة</option>
                                         <option value="2">مؤسسة الأفق للتجارة</option>
                                     </select>
+                                    {errors.supplierId && <span className="text-red-500 text-xs mt-1 block">{errors.supplierId.message}</span>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">عنوان العقد</label>
                                     <input 
                                         type="text" 
-                                        required 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.title}
-                                        onChange={e => setNewContract({...newContract, title: e.target.value})}
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.title ? 'border-red-500' : ''}`}
+                                        {...register('title')}
                                     />
+                                    {errors.title && <span className="text-red-500 text-xs mt-1 block">{errors.title.message}</span>}
                                 </div>
                             </div>
                             
@@ -196,21 +224,19 @@ export default function SupplierContractsPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">تاريخ البداية</label>
                                     <input 
                                         type="date" 
-                                        required 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.startDate}
-                                        onChange={e => setNewContract({...newContract, startDate: e.target.value})}
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.startDate ? 'border-red-500' : ''}`}
+                                        {...register('startDate')}
                                     />
+                                    {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate.message}</span>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">تاريخ الانتهاء</label>
                                     <input 
                                         type="date" 
-                                        required 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.endDate}
-                                        onChange={e => setNewContract({...newContract, endDate: e.target.value})}
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.endDate ? 'border-red-500' : ''}`}
+                                        {...register('endDate')}
                                     />
+                                    {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate.message}</span>}
                                 </div>
                             </div>
 
@@ -219,19 +245,18 @@ export default function SupplierContractsPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">القيمة الإجمالية للعقد</label>
                                     <input 
                                         type="number" 
-                                        required 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.value}
-                                        onChange={e => setNewContract({...newContract, value: e.target.value})}
+                                        step="any"
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.value ? 'border-red-500' : ''}`}
+                                        {...register('value', { valueAsNumber: true })}
                                     />
+                                    {errors.value && <span className="text-red-500 text-xs mt-1 block">{errors.value.message}</span>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">شروط الدفع (Payment Terms)</label>
                                     <input 
                                         type="text" 
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
-                                        value={newContract.paymentTerms}
-                                        onChange={e => setNewContract({...newContract, paymentTerms: e.target.value})}
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.paymentTerms ? 'border-red-500' : ''}`}
+                                        {...register('paymentTerms')}
                                         placeholder="Net 30, Net 60..."
                                     />
                                 </div>
@@ -241,9 +266,8 @@ export default function SupplierContractsPage() {
                                 <label className="flex items-center space-x-2 rtl:space-x-reverse">
                                     <input 
                                         type="checkbox" 
-                                        checked={newContract.autoRenew}
-                                        onChange={e => setNewContract({...newContract, autoRenew: e.target.checked})}
                                         className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        {...register('autoRenew')}
                                     />
                                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">تجديد تلقائي (Auto-Renew)</span>
                                 </label>
@@ -252,9 +276,8 @@ export default function SupplierContractsPage() {
                                     <span className="text-sm text-gray-500">التنبيه قبل</span>
                                     <input 
                                         type="number" 
-                                        className="w-16 border-gray-300 rounded-md shadow-sm p-1 text-center dark:bg-gray-700 dark:text-white"
-                                        value={newContract.alertDaysBefore}
-                                        onChange={e => setNewContract({...newContract, alertDaysBefore: Number(e.target.value)})}
+                                        className={`w-16 border-gray-300 rounded-md shadow-sm p-1 text-center dark:bg-gray-700 dark:text-white ${errors.alertDaysBefore ? 'border-red-500' : ''}`}
+                                        {...register('alertDaysBefore', { valueAsNumber: true })}
                                     />
                                     <span className="text-sm text-gray-500">يوم</span>
                                 </div>
@@ -265,14 +288,13 @@ export default function SupplierContractsPage() {
                                 <textarea 
                                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
                                     rows={3}
-                                    value={newContract.description}
-                                    onChange={e => setNewContract({...newContract, description: e.target.value})}
+                                    {...register('description')}
                                 ></textarea>
                             </div>
 
                             <div className="flex justify-end space-x-2 rtl:space-x-reverse pt-4">
                                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md dark:text-gray-300 dark:hover:bg-gray-700">إلغاء</button>
-                                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">اعتماد وحفظ العقد</button>
+                                <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">{saving ? 'جاري الحفظ...' : 'اعتماد وحفظ العقد'}</button>
                             </div>
                         </form>
                     </div>

@@ -2,8 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { Form } from '@/components/forms/Form';
+import { FormField } from '@/components/forms/FormField';
+import { FormSelect } from '@/components/forms/FormSelect';
+import { z } from 'zod';
 
 const STAGES = ['NEW', 'CONTACTED', 'QUALIFIED', 'DISQUALIFIED'];
+
+const formSchema = z.object({
+    companyName: z.string().min(1, 'اسم الشركة مطلوب'),
+    contactPerson: z.string().min(1, 'الشخص المسؤول مطلوب'),
+    email: z.string().email('بريد إلكتروني غير صالح').optional().or(z.literal('')),
+    phone: z.string().optional(),
+    source: z.string().optional(),
+    industry: z.string().optional(),
+    expectedRevenue: z.number().min(0, 'يجب أن يكون مبلغ الإيراد 0 أو أكثر').optional()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function CRMLeadsPage() {
   const { lang } = useTranslation();
@@ -11,10 +27,8 @@ export default function CRMLeadsPage() {
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    
-    const [formData, setFormData] = useState({
-        companyName: '', contactPerson: '', email: '', phone: '', source: 'Website', industry: '', expectedRevenue: ''
-    });
+    const [saving, setSaving] = useState(false);
+
 
     useEffect(() => {
         fetchLeads();
@@ -35,21 +49,22 @@ export default function CRMLeadsPage() {
         }
     };
 
-    const handleCreateLead = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: FormValues) => {
+        setSaving(true);
         try {
             const res = await fetch('/api/crm/leads', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'CREATE', payload: formData })
+                body: JSON.stringify({ action: 'CREATE', payload: data })
             });
             if (res.ok) {
                 setShowModal(false);
-                setFormData({ companyName: '', contactPerson: '', email: '', phone: '', source: 'Website', industry: '', expectedRevenue: '' });
                 fetchLeads();
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -194,53 +209,52 @@ export default function CRMLeadsPage() {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-xl p-6">
                         <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white border-b pb-2">إضافة عميل محتمل (Lead)</h2>
-                        <form onSubmit={handleCreateLead} className="space-y-4">
+                        <Form<typeof formSchema> 
+                            schema={formSchema}
+                            defaultValues={{
+                                companyName: '',
+                                contactPerson: '',
+                                email: '',
+                                phone: '',
+                                source: 'Website',
+                                industry: '',
+                                expectedRevenue: undefined
+                            }}
+                            onSubmit={onSubmit}
+                            className="space-y-4"
+                        >
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة</label>
-                                    <input required type="text" value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الشخص المسؤول (Contact)</label>
-                                    <input required type="text" value={formData.contactPerson} onChange={e => setFormData({...formData, contactPerson: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
-                                </div>
+                                <FormField name="companyName" label="اسم الشركة" />
+                                <FormField name="contactPerson" label="الشخص المسؤول (Contact)" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">البريد الإلكتروني</label>
-                                    <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم الهاتف</label>
-                                    <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
-                                </div>
+                                <FormField name="email" type="email" label="البريد الإلكتروني" />
+                                <FormField name="phone" label="رقم الهاتف" />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">المصدر (Source)</label>
-                                    <select value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white">
-                                        <option value="Website">موقع إلكتروني</option>
-                                        <option value="Referral">إحالة</option>
-                                        <option value="Cold Call">اتصال مباشر</option>
-                                        <option value="Social Media">شبكات تواصل</option>
-                                        <option value="Exhibition">معرض/مؤتمر</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الصناعة / المجال</label>
-                                    <input type="text" value={formData.industry} onChange={e => setFormData({...formData, industry: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الإيراد المتوقع (SAR)</label>
-                                    <input type="number" value={formData.expectedRevenue} onChange={e => setFormData({...formData, expectedRevenue: e.target.value})} className="mt-1 w-full border-gray-300 rounded-md p-2 dark:bg-gray-700 dark:text-white" placeholder="مثال: 50000" />
-                                </div>
+                                <FormSelect
+                                    name="source"
+                                    label="المصدر (Source)"
+                                    defaultValue="Website"
+                                    options={[
+                                        { value: 'Website', label: 'موقع إلكتروني' },
+                                        { value: 'Referral', label: 'إحالة' },
+                                        { value: 'Cold Call', label: 'اتصال مباشر' },
+                                        { value: 'Social Media', label: 'شبكات تواصل' },
+                                        { value: 'Exhibition', label: 'معرض/مؤتمر' },
+                                    ]}
+                                />
+                                <FormField name="industry" label="الصناعة / المجال" />
+                                <FormField name="expectedRevenue" type="number" label="الإيراد المتوقع (SAR)" />
                             </div>
                             
                             <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
                                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">إلغاء</button>
-                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-bold">حفظ العميل</button>
+                                <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-bold disabled:opacity-50">
+                                    {saving ? 'جاري الحفظ...' : 'حفظ العميل'}
+                                </button>
                             </div>
-                        </form>
+                        </Form>
                     </div>
                 </div>
             )}

@@ -3,20 +3,39 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+  employeeId: z.string().min(1, 'الموظف مطلوب'),
+  period: z.string().min(1, 'الفترة مطلوبة'),
+  score: z.number().min(0, 'الحد الأدنى 0').max(100, 'الحد الأقصى 100'),
+  notes: z.string().optional().nullable()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function EmployeeEvaluationsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [evaluations, setEvaluations] = useState<any[]>([]);
  const [employees, setEmployees] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
+ const [saving, setSaving] = useState(false);
  
- // Form State
- const [employeeId, setEmployeeId] = useState('');
- const [period, setPeriod] = useState(new Date().getFullYear().toString());
- const [score, setScore] = useState(100);
- const [notes, setNotes] = useState('');
+ const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormValues>({
+     resolver: zodResolver(formSchema),
+     defaultValues: {
+         employeeId: '',
+         period: new Date().getFullYear().toString(),
+         score: 100,
+         notes: ''
+     }
+ });
+
+ const currentScore = watch('score') || 0;
 
  useEffect(() => {
  loadData();
@@ -36,27 +55,31 @@ export default function EmployeeEvaluationsPage() {
  setLoading(false);
  };
 
- const handleSave = async (e: React.FormEvent) => {
- e.preventDefault();
+ const onSubmit = async (data: FormValues) => {
+ setSaving(true);
  try {
  const res = await fetch('/api/hr/evaluations', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({
- employeeId: parseInt(employeeId),
- period,
- score: parseInt(score.toString()),
- notes,
+ employeeId: parseInt(data.employeeId),
+ period: data.period,
+ score: data.score,
+ notes: data.notes,
  evaluationDate: new Date().toISOString()
  })
  });
  if (res.ok) {
  setShowModal(false);
+ reset();
  loadData();
+ toastSuccess('تم الحفظ بنجاح');
  } else {
- alert(t('sys.str_4627'));
+ toastWarning(t('sys.str_4627'));
  }
- } catch (error: any) { toastError(error?.message || 'حدث خطأ'); }
+ } catch (error: any) { toastError(error?.message || 'حدث خطأ'); } finally {
+     setSaving(false);
+ }
  };
 
  return (
@@ -64,7 +87,7 @@ export default function EmployeeEvaluationsPage() {
  <div className="flex justify-between items-center mb-6">
  <h1 className="text-2xl font-bold">📊 HR - Employee Appraisals</h1>
  <button 
- onClick={() => setShowModal(true)}
+ onClick={() => { setShowModal(true); reset(); }}
  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
  + Start Evaluation Map
  </button>
@@ -77,36 +100,39 @@ export default function EmployeeEvaluationsPage() {
  <h2 className="text-xl font-bold text-slate-800">تقييم جديد</h2>
  <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
  </div>
- <form onSubmit={handleSave} className="p-6">
+ <form onSubmit={handleSubmit(onSubmit)} className="p-6">
  <div className="space-y-4">
  <div>
  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4622')}</label>
- <select required value={employeeId} onChange={e => setEmployeeId(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600">
+ <select className={`w-full p-2 border ${errors.employeeId ? 'border-red-500' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-600`} {...register('employeeId')}>
  <option value="">{t('sys.str_2106')}</option>
  {employees.map(emp => (
  <option key={emp.id} value={emp.id}>{emp.name}</option>
  ))}
  </select>
+ {errors.employeeId && <span className="text-red-500 text-xs mt-1 block">{errors.employeeId.message}</span>}
  </div>
  <div>
  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4623')}</label>
- <input required type="text" value={period} onChange={e => setPeriod(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" placeholder="e.g. Q1 2026" />
+ <input type="text" className={`w-full p-2 border ${errors.period ? 'border-red-500' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-600`} placeholder="e.g. Q1 2026" {...register('period')} />
+ {errors.period && <span className="text-red-500 text-xs mt-1 block">{errors.period.message}</span>}
  </div>
  <div>
  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4624')}</label>
- <input required type="number" min="0" max="100" value={score} onChange={e => setScore(Number(e.target.value))} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600" />
+ <input type="number" min="0" max="100" className={`w-full p-2 border ${errors.score ? 'border-red-500' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-600`} {...register('score', { valueAsNumber: true })} />
+ {errors.score && <span className="text-red-500 text-xs mt-1 block">{errors.score.message}</span>}
  <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
- <div className={`h-2 rounded-full ${score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{width: `${score}%`}}></div>
+ <div className={`h-2 rounded-full ${currentScore >= 80 ? 'bg-green-500' : currentScore >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{width: `${Math.min(100, Math.max(0, currentScore))}%`}}></div>
  </div>
  </div>
  <div>
  <label className="block text-sm font-bold text-slate-700 mb-1">{t('sys.str_4625')}</label>
- <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600"></textarea>
+ <textarea rows={3} className={`w-full p-2 border ${errors.notes ? 'border-red-500' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-600`} {...register('notes')}></textarea>
  </div>
  </div>
  <div className="mt-6 flex justify-end gap-3">
  <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg">إلغاء</button>
- <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20">حفظ التقييم</button>
+ <button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-md shadow-blue-600/20 disabled:opacity-50">{saving ? 'جاري الحفظ...' : 'حفظ التقييم'}</button>
  </div>
  </form>
  </div>

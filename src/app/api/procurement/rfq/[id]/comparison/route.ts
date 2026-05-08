@@ -41,7 +41,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             });
 
             // Find best price
-            const validPrices = itemBids.map(b => b.unitPrice).filter(p => p !== null) as number[];
+            const validPrices = itemBids.map(b => b.unitPrice !== null ? n(b.unitPrice) : null).filter((p): p is number => p !== null);
             const bestPrice = validPrices.length > 0 ? Math.min(...validPrices) : null;
 
             return {

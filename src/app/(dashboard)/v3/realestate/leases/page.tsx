@@ -4,9 +4,11 @@ import { useTranslation } from '@/lib/i18n';
 import { Building, Key, Wallet, FileText, Wrench, KeyRound, Glasses, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/Toast';
 
 export default function RealEstateLeases() {
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     <div className="p-6 bg-slate-100 min-h-screen text-slate-800 space-y-6 max-w-7xl mx-auto">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">{_t('GLOBAL ENTERPRISE FEATURES', 'GLOBAL ENTERPRISE FEATURES')}</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-teal-600 text-white font-bold hover:opacity-90 shadow-lg"><KeyRound className="w-4 h-4 mr-2"/>{_t('Generate Smart Lock PIN', 'Generate Smart Lock PIN')}</Button>\n        <Button className="bg-indigo-500 text-white font-bold hover:opacity-90 shadow-lg"><Glasses className="w-4 h-4 mr-2"/> 3D Virtual Tour</Button>\n        <Button className="bg-sky-500 text-white font-bold hover:opacity-90 shadow-lg"><MessageSquare className="w-4 h-4 mr-2"/>{_t('Tenant Social Portal', 'Tenant Social Portal')}</Button>\n        </div>\n      </div>
@@ -15,7 +17,7 @@ export default function RealEstateLeases() {
           <h1 className="text-3xl font-black flex items-center gap-3 text-slate-800"><Building className="text-teal-600 w-8 h-8"/>{_t('Al-Faisaliah Tower', 'Al-Faisaliah Tower')}</h1>
           <p className="text-slate-500 mt-1 font-medium">Commercial Property • 45 Units • 92% Occupancy</p>
         </div>
-        <Button onClick={() => { fetch("/api/v3/realestate/leases", { method: "POST", body: JSON.stringify({ propertyId: 1, tenantId: 1, rentAmount: 120000 }) }).then(()=>alert("Lease Contract Created in DB!")); }} className="bg-teal-600 hover:bg-teal-700 font-bold"><Key className="w-4 h-4 mr-2"/>{_t('New Lease Contract', 'New Lease Contract')}</Button>
+        <Button onClick={() => { fetch("/api/v3/realestate/leases", { method: "POST", body: JSON.stringify({ propertyId: 1, tenantId: 1, rentAmount: 120000 }) }).then(()=>toastSuccess("Lease Contract Created in DB!")); }} className="bg-teal-600 hover:bg-teal-700 font-bold"><Key className="w-4 h-4 mr-2"/>{_t('New Lease Contract', 'New Lease Contract')}</Button>
       </div>
 
       <div className="grid grid-cols-3 gap-6">

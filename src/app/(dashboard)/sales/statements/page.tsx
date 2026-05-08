@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 
 export default function CustomerStatementGeneratorPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -45,9 +47,10 @@ export default function CustomerStatementGeneratorPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ template: selectedTemplate, customerIds: customers.map(c => c.id) })
             });
-            alert('Bulk statements generated successfully.');
+            toastSuccess('Bulk statements generated successfully.');
         } catch (error) {
             console.error('Error generating bulk', error);
+            toastError('Failed to generate bulk statements');
         }
     };
 

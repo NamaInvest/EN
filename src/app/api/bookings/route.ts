@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: NextRequest) {
@@ -35,8 +36,8 @@ export async function POST(request: Request) {
             },
         });
 
-        if (booking.deposit > 0) {
-            await prisma.treasury.create({ data: { type: 'in', amount: booking.deposit, description: `عربون حجز #${bookingNo}`, referenceType: 'booking', referenceId: booking.id, userId: body.userId || null } });
+        if (n(booking.deposit) > 0) {
+            await prisma.treasury.create({ data: { type: 'in', amount: n(booking.deposit), description: `عربون حجز #${bookingNo}`, referenceType: 'booking', referenceId: booking.id, userId: body.userId || null } });
         }
 
         return NextResponse.json(booking, { status: 201 });

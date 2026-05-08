@@ -51,7 +51,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         userId: user.userId,
         action: 'GDPR_DELETE',
         tableName: 'customers',
-        recordId: customerId,
+        recordId: String(customerId),
         details: `تم حذف البيانات الشخصية للعميل "${customer.name}" وفقاً لنظام حماية البيانات (PDPL)`,
       },
     });

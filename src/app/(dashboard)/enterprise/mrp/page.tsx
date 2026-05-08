@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default function EnterpriseMRP() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [data, setData] = useState({ orders: [], machines: [], recipesCount: 0 });
  const [recipes, setRecipes] = useState<any[]>([]);
  const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -48,8 +48,8 @@ export default function EnterpriseMRP() {
  body: JSON.stringify({ ...formData, type: 'order' })
  });
  if (res.ok) { setShowOrderModal(false); fetchData(); } 
- else { alert(t('sys.str_1862')); }
- } catch (error) { alert(t('sys.str_631')); } 
+ else { toastWarning(t('sys.str_1862')); }
+ } catch (error) { toastWarning(t('sys.str_631')); } 
  finally { setSaving(false); }
  };
 
@@ -61,7 +61,7 @@ export default function EnterpriseMRP() {
  body: JSON.stringify({ id, action })
  });
  fetchData();
- } catch (error) { alert(t('sys.str_631')); }
+ } catch (error) { toastWarning(t('sys.str_631')); }
  };
 
  const getMachineStatusColor = (status: string) => {

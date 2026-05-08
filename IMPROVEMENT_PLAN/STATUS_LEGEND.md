@@ -14,7 +14,7 @@
 | **AI** | LangChain orchestrator مع 8 tools، Gemini integration، RAG endpoint، prompt registry |
 | **Workflow** | 4 BullMQ queues (email, pdf, sync, report)، 16 cron routes |
 | **Security** | Clerk auth، Sentry، rate limiting (Redis)، encryption |
-| **Storage** | PostgreSQL، embedded-postgres للـ desktop |
+| **Storage** | PostgreSQL، embedded-postgres للـ desktop، Soft deletes (`deletedAt`)، pgBackRest + DR runbook |
 | **UI** | 441 page، i18n، RTL Arabic، Tailwind v4 |
 | **Testing** | 571 test files (محركات GOSI، WPS، EOS، ZATCA) |
 | **Compliance** | ZATCA Phase 2 basic، GOSI calculator، WPS generator، EOS calculator |
@@ -54,11 +54,9 @@
 | ❌ tanstack/react-table | [13](13_FRONTEND_UIUX.md) |
 | ❌ react-hook-form adoption | [13](13_FRONTEND_UIUX.md) |
 | ❌ Dark mode (معطّل) | [13](13_FRONTEND_UIUX.md) |
-| ❌ Soft deletes | [10](10_DATA_STORAGE.md) |
 | ❌ Doppler/Vault secrets | [15](15_INFRASTRUCTURE_DEVOPS.md) |
 | ❌ OpenTelemetry tracing | [15](15_INFRASTRUCTURE_DEVOPS.md) |
 | ❌ Prometheus + Grafana | [15](15_INFRASTRUCTURE_DEVOPS.md) |
-| ❌ pgBackRest | [10](10_DATA_STORAGE.md) |
 
 ### Modules مفقودة
 - ❌ Customer Portal
@@ -102,7 +100,6 @@
 | ⚠️ Sentry | sampling = 1.0 في prod = **مكلف جداً** |
 | ⚠️ Ghost PostgreSQL | على Hetzner (Unix socket 5433) = **خطر** |
 | ⚠️ DataTable | مخصصة بسيطة — **بدون sorting/virtualization** |
-| ⚠️ FieldAuditTrail + FieldAuditLog | **نموذجين متضاربين** |
 | ⚠️ NumberSequence + NumberingSequence | نفس الفكرة، **migration ناقص** |
 | ⚠️ Health endpoint | `/api/health` يفحص DB فقط، **Redis/ZATCA placeholders** |
 | ⚠️ RBAC | في UI فقط، **ليس في API layer** |
@@ -117,7 +114,6 @@
 | `/api/accounting/balance-sheet` | بيانات مالية مكشوفة |
 
 ### حقول معطّلة
-- 🔴 **251 حقل Float لمبالغ مالية** — مخالف صريح لـ CLAUDE.md
 - 🔴 الـ migrations **2 فقط** لـ 157 model
 - 🔴 **0 E2E tests** رغم وجود Playwright في الخطط
 
@@ -173,7 +169,7 @@
 
 ### الأرقام الإجمالية للنظام (من الفحص):
 - **NA Routes: 661** — منها 297 بدون auth، 650 بدون Zod
-- **Models: 157** — مع 251 حقل Float مالي يجب تحويلها
+- **Models: 157** — تم تحويل جميع الحقول المالية إلى Decimal
 - **Pages: 441** — مع 109 dead button، 70 بدون i18n
 - **Tests: 571** — لكن **لا coverage measurement**، **0 E2E**
 - **Migrations: 2** فقط — لـ 157 model 🚨

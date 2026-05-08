@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { ArrowRight, Plus, Building2, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface ProfitCenter {
   id: number;
@@ -15,16 +19,32 @@ interface ProfitCenter {
   createdAt: string;
 }
 
+const formSchema = z.object({
+  code: z.string().min(1, 'الرمز مطلوب'),
+  name: z.string().min(1, 'الاسم (عربي) مطلوب'),
+  nameEn: z.string().optional().nullable(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function ProfitCentersPage() {
   const { lang } = useTranslation();
+  const { success: toastSuccess, error: toastError } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [items, setItems] = useState<ProfitCenter[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({ code: '', name: '', nameEn: '' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+          code: '',
+          name: '',
+          nameEn: ''
+      }
+  });
 
   const fetchItems = async () => {
     setLoading(true);
@@ -40,27 +60,25 @@ export default function ProfitCentersPage() {
 
   useEffect(() => { fetchItems(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.code || !form.name) return;
+  const onSubmit = async (data: FormValues) => {
     setSaving(true);
-    setError('');
     try {
       const res = await fetch('/api/accounting/profit-centers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(data),
       });
       if (res.ok) {
-        setForm({ code: '', name: '', nameEn: '' });
+        reset();
         setShowForm(false);
+        toastSuccess('تم حفظ مركز الربحية بنجاح');
         fetchItems();
       } else {
-        const data = await res.json();
-        setError(data.error || 'فشل الحفظ');
+        const resData = await res.json();
+        toastError(resData.error || 'فشل الحفظ');
       }
     } catch {
-      setError('خطأ في الاتصال');
+      toastError('خطأ في الاتصال');
     } finally {
       setSaving(false);
     }
@@ -96,24 +114,27 @@ export default function ProfitCentersPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
           <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>إضافة مركز ربحية جديد</h3>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', alignItems: 'start' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الرمز *</label>
-              <input className="input" placeholder="مثال: PC001" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
+              <input className={`input ${errors.code ? 'border-red-500' : ''}`} placeholder="مثال: PC001" {...register('code')} />
+              {errors.code && <span className="text-red-500 text-xs mt-1 block">{errors.code.message}</span>}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الاسم (عربي) *</label>
-              <input className="input" placeholder="مثال: إدارة المبيعات" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+              <input className={`input ${errors.name ? 'border-red-500' : ''}`} placeholder="مثال: إدارة المبيعات" {...register('name')} />
+              {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>الاسم (إنجليزي)</label>
-              <input className="input" placeholder="e.g. Sales Dept" value={form.nameEn} onChange={e => setForm({ ...form, nameEn: e.target.value })} />
+              <input className="input" placeholder="e.g. Sales Dept" {...register('nameEn')} />
             </div>
-            <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? 'جاري الحفظ...' : 'حفظ'}
-            </button>
+            <div style={{ marginTop: '23px' }}>
+              <button className="btn btn-primary" type="submit" disabled={saving}>
+                {saving ? 'جاري الحفظ...' : 'حفظ'}
+              </button>
+            </div>
           </form>
-          {error && <div style={{ color: '#ef4444', marginTop: '0.75rem', fontSize: '0.9rem' }}>{error}</div>}
         </div>
       )}
 
@@ -134,8 +155,8 @@ export default function ProfitCentersPage() {
           <p>لا توجد مراكز ربحية بعد. أضف أول مركز ربحية من الزر أعلاه.</p>
         </div>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--border)', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                 <th style={{ padding: '1rem', textAlign: 'right', width: '15%' }}>الرمز</th>

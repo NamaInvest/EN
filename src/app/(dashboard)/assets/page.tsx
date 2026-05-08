@@ -7,6 +7,7 @@ import { useToast } from '@/components/Toast';
 const _t = (ar: string, en: string) => ar; // i18n helper
 
 export default function FixedAssetsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
  const { t } = useTranslation();
  const [assets, setAssets] = useState<any[]>([]);
@@ -51,7 +52,7 @@ export default function FixedAssetsPage() {
  setShowNewAsset(false);
  fetchAssets();
  } else {
- alert(t('sys.str_364'));
+ toastWarning(t('sys.str_364'));
  }
  } catch (e) {
  console.error(e);
@@ -70,10 +71,10 @@ export default function FixedAssetsPage() {
  });
  const data = await res.json();
  if(res.ok) {
- alert(data.message);
+ toastWarning(data.message);
  fetchAssets();
  } else {
- alert(data.error || t('sys.str_366'));
+ toastError(data.error || t('sys.str_366'));
  }
  } catch (e) {
  console.error(e);

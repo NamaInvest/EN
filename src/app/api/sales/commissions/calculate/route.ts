@@ -48,7 +48,7 @@ export async function POST(req: Request) {
                 if (rule.rewardType === 'PERCENTAGE') {
                     commissionAmount = n(totalSales) * (n(rule.rewardValue) / 100);
                 } else {
-                    commissionAmount = rule.rewardValue; // FIXED
+                    commissionAmount = n(rule.rewardValue); // FIXED
                 }
             }
 

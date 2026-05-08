@@ -90,7 +90,7 @@ export default async function QualityInspectionsPage() {
                                         {insp.product?.name || 'Multiple/Unknown'}
                                     </td>
                                     <td className="px-4 py-3 text-gray-700">
-                                        {insp.inspectedQty || '-'}
+                                        {insp.inspectedQty !== null ? Number(insp.inspectedQty) : '-'}
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">
                                         USER-{insp.inspectorId}

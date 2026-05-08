@@ -2,28 +2,50 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
-export default async function BOMVersionsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+const formSchema = z.object({
+    newVersionNumber: z.string().min(1, 'رقم الإصدار مطلوب'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+export default function BOMVersionsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
     const [product, setProduct] = useState<any>(null);
     const [versions, setVersions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
     const [sourceVersion, setSourceVersion] = useState<any>(null);
-    const [newVersionNumber, setNewVersionNumber] = useState('');
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
     const [compareVersions, setCompareVersions] = useState<any[]>([]); // [v1, v2]
+    const [resolvedId, setResolvedId] = useState<string | null>(null);
+
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: { newVersionNumber: '' }
+    });
 
     useEffect(() => {
-        fetchVersions();
-    }, []);
+        params.then(p => setResolvedId(p.id));
+    }, [params]);
+
+    useEffect(() => {
+        if (resolvedId) {
+            fetchVersions();
+        }
+    }, [resolvedId]);
 
     const fetchVersions = async () => {
+        if (!resolvedId) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/manufacturing/boms/${(await params).id}/versions`);
+            const res = await fetch(`/api/manufacturing/boms/${resolvedId}/versions`);
             const result = await res.json();
             if (result.success) {
                 setProduct(result.data.product);
@@ -45,10 +67,10 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
             });
             const data = await res.json();
             if (res.ok) {
-                alert('تم تفعيل الإصدار بنجاح.');
+                toastSuccess('تم تفعيل الإصدار بنجاح.');
                 fetchVersions();
             } else {
-                alert(data.error);
+                toastError(data.error);
             }
         } catch (error) {
             console.error(error);
@@ -57,30 +79,32 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
         }
     };
 
-    const handleCloneSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onCloneSubmit = async (data: FormValues) => {
+        if (!resolvedId) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/manufacturing/boms/${(await params).id}/versions`, {
+            const res = await fetch(`/api/manufacturing/boms/${resolvedId}/versions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     sourceVersionId: sourceVersion.id,
-                    newVersionNumber,
+                    newVersionNumber: data.newVersionNumber,
                     ingredients: sourceVersion.ingredients, // clone as is, edit later
                     ecrReference: 'User Clone Action'
                 })
             });
-            const data = await res.json();
+            const resData = await res.json();
             if (res.ok) {
-                alert('تم إنشاء نسخة جديدة بنجاح.');
+                toastSuccess('تم إنشاء نسخة جديدة بنجاح.');
                 setIsCloneModalOpen(false);
+                reset();
                 fetchVersions();
             } else {
-                alert(data.error);
+                toastError(resData.error || 'حدث خطأ أثناء الإنشاء');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ في الاتصال');
         } finally {
             setLoading(false);
         }
@@ -96,7 +120,7 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
             setCompareVersions([versions[0], versions[1]]);
             setIsCompareModalOpen(true);
         } else {
-            alert('يجب أن يكون هناك إصدارين على الأقل للمقارنة.');
+            toastWarning('يجب أن يكون هناك إصدارين على الأقل للمقارنة.');
         }
     };
 
@@ -124,7 +148,7 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
                             const active = versions.find(v => v.status === 'ACTIVE') || versions[0];
                             if (active) {
                                 setSourceVersion(active);
-                                setNewVersionNumber(`V${versions.length + 1}.0`);
+                                setValue('newVersionNumber', `V${versions.length + 1}.0`);
                                 setIsCloneModalOpen(true);
                             }
                         }}
@@ -191,13 +215,13 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl">
                         <h2 className="text-xl font-bold mb-4 dark:text-white">إنشاء إصدار BOM جديد</h2>
-                        <form onSubmit={handleCloneSubmit}>
+                        <form onSubmit={handleSubmit(onCloneSubmit)}>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نسخ من (Source Version)</label>
                                 <input 
                                     type="text" 
                                     disabled 
-                                    value={sourceVersion.versionNumber} 
+                                    value={sourceVersion?.versionNumber || ''} 
                                     className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 dark:bg-gray-700 dark:text-white"
                                 />
                             </div>
@@ -205,14 +229,13 @@ export default async function BOMVersionsPage({ params }: { params: Promise<{ id
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم الإصدار الجديد</label>
                                 <input 
                                     type="text" 
-                                    required 
-                                    value={newVersionNumber}
-                                    onChange={e => setNewVersionNumber(e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
+                                    className={`w-full border ${errors.newVersionNumber ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}
+                                    {...register('newVersionNumber')}
                                 />
+                                {errors.newVersionNumber && <span className="text-red-500 text-xs mt-1 block">{errors.newVersionNumber.message}</span>}
                             </div>
                             <div className="flex justify-end space-x-2 rtl:space-x-reverse mt-6">
-                                <button type="button" onClick={() => setIsCloneModalOpen(false)} className="px-4 py-2 text-gray-600">إلغاء</button>
+                                <button type="button" onClick={() => { setIsCloneModalOpen(false); reset(); }} className="px-4 py-2 text-gray-600">إلغاء</button>
                                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md font-bold" disabled={loading}>حفظ وإنشاء DRAFT</button>
                             </div>
                         </form>

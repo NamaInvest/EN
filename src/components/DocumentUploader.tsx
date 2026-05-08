@@ -5,7 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 
 interface DocumentUploaderProps {
     documentType: string;
-    documentId: number;
+    documentId: number | string;
     title?: string;
 }
 

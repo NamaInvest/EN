@@ -6,8 +6,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/Toast';
 
 export default function ApprovalInboxPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [requests, setRequests] = useState<any[]>([]);
@@ -50,7 +52,7 @@ export default function ApprovalInboxPage() {
                 setNotes('');
                 fetchRequests(); // Refresh inbox
             } else {
-                alert('Action failed');
+                toastWarning('Action failed');
             }
         } catch (error) {
             console.error('Action error', error);

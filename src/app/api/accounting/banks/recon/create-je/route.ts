@@ -19,12 +19,11 @@ export async function POST(req: NextRequest) {
         const je = await prisma.journalEntry.create({
             data: {
                 entryNumber: `JE-RECON-${Date.now()}`,
-                date: line.transactionDate,
+                entryDate: line.transactionDate?.toISOString().split('T')[0] ?? new Date().toISOString().split('T')[0],
                 description,
                 status: 'POSTED',
                 lines: {
                     create: [
-                        // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
                         { accountId: parseInt(accountId, 10), debit: line.type === 'DEBIT' ? line.amount : 0, credit: line.type === 'CREDIT' ? line.amount : 0 }
                     ]
                 }

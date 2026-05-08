@@ -11,6 +11,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { postSalary } from '@/lib/auto-journal';
+import { n } from '@/lib/decimal-utils';
 
 interface PayrollResult {
     employeeId: number;
@@ -67,9 +68,8 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
         where: { employeeId, status: 'active' },
         select: { monthlyDeduction: true },
     });
-    const loanDeduction = loans.reduce((s: number, l: any) => s + (l.monthlyDeduction || 0), 0);
-
-    const allowances = (employee.housingAllowance || 0) + (employee.transportAllowance || 0) + (employee.otherAllowance || 0);
+    const allowances = n(employee.housingAllowance) + n(employee.transportAllowance) + n(employee.otherAllowance);
+    const loanDeduction = loans.reduce((s: number, l: any) => s + n(l.monthlyDeduction), 0);
     const totalDeductions = absentDeduction + loanDeduction;
     const netSalary = Math.max(0, basicSalary + allowances - totalDeductions);
 
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
                 });
                 
                 for (const loan of activeLoans) {
-                    const newRemaining = Math.max(0, loan.remainingAmount - loan.monthlyDeduction);
+                    const newRemaining = Math.max(0, n(loan.remainingAmount) - n(loan.monthlyDeduction));
                     await prisma.employeeLoan.update({
                         where: { id: loan.id },
                         data: {

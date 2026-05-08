@@ -1,7 +1,50 @@
 "use client";
 import React, { useEffect } from 'react';
-// @ts-ignore — dynamic exports from landing page
-import { modulesList, INDUSTRIES, POWER_CLUSTERS } from '../page';
+import { Calculator, Package, ShoppingCart, Cog, Brain, Pill, ShoppingBag, UtensilsCrossed, Factory } from 'lucide-react';
+
+// ─── Local data (design1 standalone — not imported from page) ───────────────
+const modulesList: { cat: string; icon: React.ReactNode; title: string; desc: string }[] = [
+  { cat: 'finance', icon: <Calculator size={18}/>, title: 'المحاسبة المالية', desc: 'قيود يومية وشجرة حسابات متعددة المستويات' },
+  { cat: 'finance', icon: <Calculator size={18}/>, title: 'الحسابات البنكية', desc: 'تتبع الأرصدة والتسويات البنكية' },
+  { cat: 'finance', icon: <Calculator size={18}/>, title: 'ميزان المراجعة', desc: 'Drill-Down حتى القيد الأصلي' },
+  { cat: 'finance', icon: <Calculator size={18}/>, title: 'الموازنات التقديرية', desc: 'رقابة مالية ومقارنة الفعلي بالمتوقع' },
+  { cat: 'finance', icon: <Calculator size={18}/>, title: 'العهد والنثريات', desc: 'صرف وتسوية مصاريف الفروع' },
+  { cat: 'sales', icon: <ShoppingCart size={18}/>, title: 'المبيعات B2B', desc: 'فوترة ZATCA Phase 2 كاملة' },
+  { cat: 'sales', icon: <ShoppingCart size={18}/>, title: 'نقطة البيع POS', desc: 'باركود سريع وأوفلاين مزامن' },
+  { cat: 'sales', icon: <ShoppingCart size={18}/>, title: 'أهداف المبيعات', desc: 'قياس أداء المندوبين لحظياً' },
+  { cat: 'sales', icon: <ShoppingCart size={18}/>, title: 'مرتجعات المبيعات', desc: 'إشعارات دائنة وإعادة للمخزون' },
+  { cat: 'purchases', icon: <Package size={18}/>, title: 'طلبات الشراء (PR)', desc: 'دورة اعتماد احتياجات الأقسام' },
+  { cat: 'purchases', icon: <Package size={18}/>, title: 'أوامر الشراء (PO)', desc: 'تأكيد الكميات والأسعار للمورد' },
+  { cat: 'purchases', icon: <Package size={18}/>, title: 'فواتير المشتريات', desc: 'إدخال مباشر مع ربط محاسبي' },
+  { cat: 'stock', icon: <Package size={18}/>, title: 'بطاقات المنتجات', desc: 'Matrix + وحدات تحويل متعددة' },
+  { cat: 'stock', icon: <Package size={18}/>, title: 'الأرصدة الحية', desc: 'متاح، محجوز، مباع لحظياً' },
+  { cat: 'stock', icon: <Package size={18}/>, title: 'الباركود والملصقات', desc: 'طباعة جماعية EAN/QR/Code128' },
+  { cat: 'stock', icon: <Package size={18}/>, title: 'تواريخ الصلاحية', desc: 'FEFO تلقائي وتنبيهات الانتهاء' },
+  { cat: 'stock', icon: <Package size={18}/>, title: 'WMS المتقدم', desc: 'أرفف ومواقع وتوجيه العمال' },
+  { cat: 'hr', icon: <Cog size={18}/>, title: 'إدارة الموظفين', desc: 'ملف متكامل من التعيين للتقاعد' },
+  { cat: 'hr', icon: <Cog size={18}/>, title: 'مسيرات الرواتب', desc: 'WPS متوافق وقيد محاسبي آلي' },
+  { cat: 'hr', icon: <Cog size={18}/>, title: 'الحضور والانصراف', desc: 'ربط ZKTeco والبصمة الوجهية' },
+  { cat: 'ai', icon: <Brain size={18}/>, title: 'المدير المالي الذكي', desc: 'تشخيص مالي وتوصيات استراتيجية' },
+  { cat: 'ai', icon: <Brain size={18}/>, title: 'كشف الاحتيال AI', desc: 'رادار ذكي للتلاعب والشذوذ' },
+  { cat: 'enterprise', icon: <Factory size={18}/>, title: 'أوامر التصنيع', desc: 'تتبع الإنتاج واحتساب التكلفة' },
+  { cat: 'admin', icon: <Cog size={18}/>, title: 'مركز القيادة والإعدادات', desc: 'سياسات الشركة والمظهر والمستخدمين' },
+];
+
+const INDUSTRIES = [
+  { id: 'pharmacy', icon: <Pill size={26}/>, title: 'الصيدليات' },
+  { id: 'retail', icon: <ShoppingBag size={26}/>, title: 'التموينات والحلويات' },
+  { id: 'restaurant', icon: <UtensilsCrossed size={26}/>, title: 'المطاعم والكافيهات' },
+  { id: 'factory', icon: <Factory size={26}/>, title: 'المصانع والإنتاج' },
+  { id: 'services', icon: <Cog size={26}/>, title: 'الخدمات والصيانة' },
+];
+
+const POWER_CLUSTERS = [
+  { icon: <Calculator size={28}/>, title: 'السيطرة المالية', count: 13, desc: 'وداعاً للأخطاء الحسابية. نظام دقيق مع تقارير ضريبية فورية.' },
+  { icon: <Package size={28}/>, title: 'قوة المخزون', count: 14, desc: 'تحكم كامل بالكميات وتواريخ الانتهاء ومواقع الأرفف.' },
+  { icon: <ShoppingCart size={28}/>, title: 'تجربة البيع', count: 19, desc: 'POS سريع مع نظام ولاء يبني علاقة طويلة مع عملائك.' },
+  { icon: <Cog size={28}/>, title: 'كفاءة التشغيل', count: 25, desc: 'أتمتة كاملة من المادة الخام للمنتج النهائي.' },
+  { icon: <Brain size={28}/>, title: 'الذكاء الاصطناعي', count: 6, desc: 'قرر بناءً على البيانات. AI يكشف التلاعب ويتنبأ بالمبيعات.' },
+];
 
 export default function Design1() {
   useEffect(() => {
@@ -322,7 +365,7 @@ export default function Design1() {
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-              {modulesList.map((m, i) => (
+              {modulesList.map((m: { icon: React.ReactNode; title: string; desc: string; cat: string }, i: number) => (
                 <div key={i} className="group bg-white/5 p-8 rounded-[2rem] border border-white/5 hover:bg-white/10 hover:border-[#10b981]/30 transition-all text-center flex flex-col items-center justify-center">
                   <div className="text-[#10b981]/80 mb-4 [&>svg]:w-8 [&>svg]:h-8">
                     {m.icon}

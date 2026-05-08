@@ -20,7 +20,7 @@ const ASSET_TYPES = [
 
 export default function FixedAssetsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [assets, setAssets] = useState<FixedAssetItem[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
@@ -63,20 +63,20 @@ export default function FixedAssetsPage() {
  };
 
  const handleSave = async () => {
- if (!form.assetName || !form.purchaseCost) { alert(t('sys.str_4239')); return; }
+ if (!form.assetName || !form.purchaseCost) { toastWarning(t('sys.str_4239')); return; }
  setSaving(true);
  try {
  const url = editItem ? `/api/fixed-assets/${editItem.id}` : '/api/fixed-assets';
  const method = editItem ? 'PUT' : 'POST';
  const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(form) });
- if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); alert(d.error); }
- } catch { alert(t('sys.str_4240')); } finally { setSaving(false); }
+ if (res.ok) { setShowModal(false); fetchData(); } else { const d = await res.json(); toastError(d.error); }
+ } catch { toastWarning(t('sys.str_4240')); } finally { setSaving(false); }
  };
 
  const handleDelete = async (id: number) => {
  if (!confirm(t('sys.str_4241'))) return;
  const res = await fetch(`/api/fixed-assets/${id}`, { method: 'DELETE', headers: headers() });
- if (res.ok) fetchData(); else { const d = await res.json(); alert(d.error); }
+ if (res.ok) fetchData(); else { const d = await res.json(); toastError(d.error); }
  };
 
  const handleDepreciate = async (id: number) => {
@@ -84,9 +84,9 @@ export default function FixedAssetsPage() {
  setSaving(true);
  try {
  const res = await fetch(`/api/fixed-assets/${id}/depreciate`, { method: 'POST', headers: headers() });
- if (res.ok) { fetchData(); setShowDepModal(null); alert(t('sys.str_4243')); }
- else { const d = await res.json(); alert(d.error); }
- } catch { alert(t('sys.str_4244')); } finally { setSaving(false); }
+ if (res.ok) { fetchData(); setShowDepModal(null); toastWarning(t('sys.str_4243')); }
+ else { const d = await res.json(); toastError(d.error); }
+ } catch { toastWarning(t('sys.str_4244')); } finally { setSaving(false); }
  };
 
  const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

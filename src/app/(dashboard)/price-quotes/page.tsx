@@ -9,6 +9,7 @@ interface QuoteDetail { productName: string; quantity: number; price: number; to
 interface Quote { id: number; quoteNo: number; date: string; total: number; status: string; notes: string; details: QuoteDetail[] }
 
 export default function PriceQuotesPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const { success, info } = useToast();
  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -251,7 +252,7 @@ export default function PriceQuotesPage() {
  if (res.ok) {
  const inv = await res.json();
  setConvertingId(null);
- alert(`✅ تم إنشاء #${inv.invoiceNo} بنجاح!`);
+ toastSuccess(`✅ تم إنشاء #${inv.invoiceNo} بنجاح!`);
  // تحديث حالة ال
  await fetch(`/api/price-quotes?id=${quote.id}`, {
  method: 'PATCH',
@@ -261,10 +262,10 @@ export default function PriceQuotesPage() {
  load();
  } else {
  const err = await res.json();
- alert(`❌ فشل ال: ${err.error || 'خطأ غير معروف'}`);
+ toastError(`❌ فشل ال: ${err.error || 'خطأ غير معروف'}`);
  }
  } catch (e: any) {
- alert(`❌ خطأ: ${e.message}`);
+ toastError(`❌ خطأ: ${e.message}`);
  }
  setConverting(false);
  };

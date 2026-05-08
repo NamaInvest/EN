@@ -8,7 +8,7 @@ import { useToast } from '@/components/Toast';
 
 export default function BankStatementPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const params = useParams();
  const router = useRouter();
  const [bank, setBank] = useState<any>(null);
@@ -54,7 +54,7 @@ export default function BankStatementPage() {
 
  const handleSaveTransaction = async () => {
  if (!form.amount || isNaN(parseFloat(form.amount)) || parseFloat(form.amount) <= 0) {
- alert(t('fin.str_2810'));
+ toastWarning(t('fin.str_2810'));
  return;
  }
 
@@ -79,11 +79,11 @@ export default function BankStatementPage() {
  fetchData(); // Refresh statement and balance
  } else {
  const data = await res.json();
- alert(data.error || t('sys.str_961'));
+ toastError(data.error || t('sys.str_961'));
  }
  } catch (error) {
  console.error(error);
- alert(t('sys.str_446'));
+ toastWarning(t('sys.str_446'));
  } finally {
  setSaving(false);
  }

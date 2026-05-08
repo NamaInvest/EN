@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toast';
 
 export default function EnterpriseProjects() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const router = useRouter();
  const [projects, setProjects] = useState<any[]>([]);
  const [customers, setCustomers] = useState<any[]>([]);
@@ -72,10 +72,10 @@ export default function EnterpriseProjects() {
  setShowModal(false);
  fetchData();
  } else {
- alert(t('sys.str_1889'));
+ toastWarning(t('sys.str_1889'));
  }
  } catch (error) {
- alert(t('sys.str_1890'));
+ toastWarning(t('sys.str_1890'));
  } finally {
  setSaving(false);
  }
@@ -93,7 +93,7 @@ export default function EnterpriseProjects() {
  fetchData();
  }
  } catch (error) {
- alert(t('sys.str_446'));
+ toastWarning(t('sys.str_446'));
  }
  };
 

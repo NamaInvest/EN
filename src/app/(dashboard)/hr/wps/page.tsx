@@ -3,11 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, UploadCloud, AlertCircle, CheckCircle, ShieldCheck, RefreshCw, Search, Eye, XCircle, Building2, Users, CreditCard, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const BANKS: Record<string,string> = {
  RJHI:'مصرف الراجحي', ALBI:'بنك الإنماء', SABB:'ساب', SNB:'البنك الأهلي السعودي',
  BSFR:'بنك البلاد', RIBL:'بنك الرياض', ARNB:'البنك العربي الوطني', BJAZ:'بنك الجزيرة'
 };
+
+const formSchema = z.object({
+  payrollRunId: z.string().min(1, 'رقم مسير الرواتب مطلوب'),
+  bankCode: z.string().min(1, 'البنك مطلوب'),
+  employerId: z.string().min(10, 'السجل التجاري يجب أن يكون 10 أرقام').max(10, 'السجل التجاري يجب ألا يزيد عن 10 أرقام'),
+  employerName: z.string().min(2, 'اسم المنشأة مطلوب'),
+  molId: z.string().min(1, 'رقم المنشأة في وزارة العمل مطلوب')
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function WPSDashboard() {
  const { lang } = useTranslation();
@@ -16,11 +29,15 @@ export default function WPSDashboard() {
  const [data, setData] = useState<any>(null);
  const [loading, setLoading] = useState(true);
  const [tab, setTab] = useState<'generate'|'batches'|'validate'|'compliance'>('generate');
- const [genForm, setGenForm] = useState({ payrollRunId: '', bankCode: 'RJHI', employerId: '', employerName: '', molId: '' });
  const [generating, setGenerating] = useState(false);
  const [validating, setValidating] = useState(false);
  const [valResult, setValResult] = useState<any>(null);
  const [selectedBatch, setSelectedBatch] = useState<any>(null);
+
+ const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  resolver: zodResolver(formSchema),
+  defaultValues: { payrollRunId: '', bankCode: 'RJHI', employerId: '', employerName: '', molId: '' }
+ });
 
  const fetchData = async () => {
  setLoading(true);
@@ -32,14 +49,13 @@ export default function WPSDashboard() {
  };
  useEffect(() => { fetchData(); }, []);
 
- const generateSif = async () => {
- if (!genForm.payrollRunId || !genForm.bankCode) { showError(_t('أدخل رقم مسير الرواتب والبنك','Enter payroll run ID and bank')); return; }
+ const onSubmitSif = async (formData: FormValues) => {
  setGenerating(true);
  try {
  const res = await fetch('/api/hr/wps', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
- body: JSON.stringify({ action: 'generate', ...genForm, payrollRunId: parseInt(genForm.payrollRunId) })
+ body: JSON.stringify({ action: 'generate', ...formData, payrollRunId: parseInt(formData.payrollRunId) })
  });
  const d = await res.json();
  if (res.ok) { success(_t('تم توليد ملف SIF v3 بنجاح','SIF v3 file generated successfully')); fetchData(); setTab('batches'); }
@@ -147,36 +163,43 @@ export default function WPSDashboard() {
  {tab === 'generate' && (
  <div className="card" style={{ padding:'24px' }}>
  <h2 style={{ fontSize:'18px', marginBottom:'20px' }}>{_t('توليد ملف SIF v3 (مدد 2026)','Generate SIF v3 File (Mudad 2026)')}</h2>
+ <form onSubmit={handleSubmit(onSubmitSif)}>
  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'16px' }}>
  <div>
  <label style={{ display:'block', marginBottom:'4px', fontSize:'13px', color:'#6b7280' }}>{_t('رقم مسير الرواتب','Payroll Run ID')}</label>
- <input className="form-input" type="number" value={genForm.payrollRunId} onChange={e=>setGenForm({...genForm, payrollRunId:e.target.value})} placeholder="1" />
+ <input className={`form-input ${errors.payrollRunId ? 'border-red-500' : ''}`} type="number" {...register('payrollRunId')} placeholder="1" />
+ {errors.payrollRunId && <span className="text-red-500 text-xs mt-1">{errors.payrollRunId.message}</span>}
  </div>
  <div>
  <label style={{ display:'block', marginBottom:'4px', fontSize:'13px', color:'#6b7280' }}>{_t('البنك','Bank')}</label>
- <select className="form-select" value={genForm.bankCode} onChange={e=>setGenForm({...genForm, bankCode:e.target.value})}>
+ <select className={`form-select ${errors.bankCode ? 'border-red-500' : ''}`} {...register('bankCode')}>
  {Object.entries(BANKS).map(([k,v])=><option key={k} value={k}>{v} ({k})</option>)}
  </select>
+ {errors.bankCode && <span className="text-red-500 text-xs mt-1">{errors.bankCode.message}</span>}
  </div>
  <div>
  <label style={{ display:'block', marginBottom:'4px', fontSize:'13px', color:'#6b7280' }}>{_t('رقم المنشأة (وزارة العمل)','Employer MOL ID')}</label>
- <input className="form-input" value={genForm.molId} onChange={e=>setGenForm({...genForm, molId:e.target.value})} placeholder="7001234567" />
+ <input className={`form-input ${errors.molId ? 'border-red-500' : ''}`} {...register('molId')} placeholder="7001234567" />
+ {errors.molId && <span className="text-red-500 text-xs mt-1">{errors.molId.message}</span>}
  </div>
  <div>
  <label style={{ display:'block', marginBottom:'4px', fontSize:'13px', color:'#6b7280' }}>{_t('السجل التجاري','Employer ID (CR)')}</label>
- <input className="form-input" value={genForm.employerId} onChange={e=>setGenForm({...genForm, employerId:e.target.value})} placeholder="1010123456" />
+ <input className={`form-input ${errors.employerId ? 'border-red-500' : ''}`} {...register('employerId')} placeholder="1010123456" />
+ {errors.employerId && <span className="text-red-500 text-xs mt-1">{errors.employerId.message}</span>}
  </div>
  <div>
  <label style={{ display:'block', marginBottom:'4px', fontSize:'13px', color:'#6b7280' }}>{_t('اسم المنشأة','Employer Name')}</label>
- <input className="form-input" value={genForm.employerName} onChange={e=>setGenForm({...genForm, employerName:e.target.value})} placeholder="شركة نما" />
+ <input className={`form-input ${errors.employerName ? 'border-red-500' : ''}`} {...register('employerName')} placeholder="شركة نما" />
+ {errors.employerName && <span className="text-red-500 text-xs mt-1">{errors.employerName.message}</span>}
  </div>
  </div>
  <div style={{ marginTop:'20px', display:'flex', gap:'10px' }}>
- <button className="btn btn-primary" onClick={generateSif} disabled={generating}>
+ <button type="submit" className="btn btn-primary" disabled={generating}>
  <FileText size={16} style={{ marginLeft:'5px' }} />
  {generating ? _t('جاري التوليد...','Generating...') : _t('توليد ملف SIF v3','Generate SIF v3')}
  </button>
  </div>
+ </form>
  <div style={{ marginTop:'16px', padding:'12px', background:'#f0f9ff', borderRadius:'8px', fontSize:'13px', color:'#1e40af' }}>
  <strong>{_t('ملاحظة:','Note:')}</strong> {_t('يتم التوليد بصيغة SIF v3 المعتمدة من مدد 2026، تشمل: الراتب الأساسي، بدل السكن، بدل النقل، البدلات الأخرى، الاستقطاعات (GOSI)، صافي الراتب، نوع العقد، والجنسية.','Generated in SIF v3 format approved by Mudad 2026, includes: Basic salary, Housing, Transport, Other allowances, Deductions (GOSI), Net salary, Contract type, and Nationality.')}
  </div>

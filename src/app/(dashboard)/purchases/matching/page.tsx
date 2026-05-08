@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function ThreeWayMatchPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess, warning: toastWarning } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -33,11 +35,11 @@ export default function ThreeWayMatchPage() {
         try {
             const res = await fetch('/api/purchases/matching', { method: 'POST' });
             const data = await res.json();
-            alert(`تم تشغيل المطابقة بنجاح. تمت معالجة ${data.processed} فاتورة.`);
+            toastSuccess(`تم تشغيل المطابقة بنجاح. تمت معالجة ${data.processed} فاتورة.`);
             fetchMatches();
         } catch (e) {
             console.error(e);
-            alert('حدث خطأ أثناء تشغيل المطابقة');
+            toastError('حدث خطأ أثناء تشغيل المطابقة');
         } finally {
             setLoading(false);
         }
@@ -45,7 +47,7 @@ export default function ThreeWayMatchPage() {
 
     const handleResolve = async (override: boolean) => {
         if (!overrideNotes && override) {
-            alert('يجب إدخال ملاحظات لتجاوز المطابقة');
+            toastWarning('يجب إدخال ملاحظات لتجاوز المطابقة');
             return;
         }
 
@@ -57,15 +59,16 @@ export default function ThreeWayMatchPage() {
             });
 
             if (res.ok) {
-                alert(override ? 'تم تجاوز الاستثناء والموافقة على الدفع' : 'تم إضافة الملاحظات بنجاح');
+                toastSuccess(override ? 'تم تجاوز الاستثناء والموافقة على الدفع' : 'تم إضافة الملاحظات بنجاح');
                 setSelectedMatch(null);
                 setOverrideNotes('');
                 fetchMatches();
             } else {
-                alert('فشلت العملية');
+                toastError('فشلت العملية');
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         }
     };
 

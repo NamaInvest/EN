@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(req: NextRequest) {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
             const days = Math.floor((now.getTime() - inv.date.getTime()) / (1000 * 3600 * 24));
             if (days > 90) {
                 // IFRS 9: Provision 5% of debts older than 90 days
-                totalProvision += inv.remaining * 0.05;
+                totalProvision += n(inv.remaining) * 0.05;
             }
         });
 

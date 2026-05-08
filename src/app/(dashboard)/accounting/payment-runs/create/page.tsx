@@ -5,22 +5,41 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, ChevronRight, Calculator, FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+    dueDateUntil: z.string().min(1, 'Due date is required'),
+    currency: z.string(),
+    includeDiscountWindow: z.boolean(),
+    paymentMethod: z.string()
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function CreatePaymentRunPage() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
+    const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({
-        dueDateUntil: '',
-        currency: 'SAR',
-        includeDiscountWindow: true,
-        paymentMethod: 'SARIE'
-    });
-    
     const [loading, setLoading] = useState(false);
     const [proposalData, setProposalData] = useState<any>(null);
 
-    const handlePropose = async () => {
+    const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            dueDateUntil: '',
+            currency: 'SAR',
+            includeDiscountWindow: true,
+            paymentMethod: 'SARIE'
+        }
+    });
+
+    const formData = watch();
+
+    const handlePropose = async (data: FormValues) => {
         setLoading(true);
         // Simulate API call for proposing payment run
         setTimeout(() => {
@@ -40,7 +59,7 @@ export default function CreatePaymentRunPage() {
         setLoading(true);
         // Simulate API call for saving the run
         setTimeout(() => {
-            alert('Payment Run submitted for approval successfully!');
+            toastSuccess('Payment Run submitted for approval successfully!');
             window.location.href = '/accounting/payment-runs';
         }, 1000);
     };
@@ -81,61 +100,60 @@ export default function CreatePaymentRunPage() {
                     <CardHeader>
                         <CardTitle>{_t('Selection Criteria', 'Selection Criteria')}</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">{_t('Due Date Until', 'Due Date Until')}</label>
-                                <input 
-                                    type="date" 
-                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.dueDateUntil}
-                                    onChange={e => setFormData({...formData, dueDateUntil: e.target.value})}
-                                />
-                                <p className="text-xs text-gray-500">{_t('Include all open AP items due on or before this date.', 'Include all open AP items due on or before this date.')}</p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">{_t('العملة', 'Currency')}</label>
-                                <select 
-                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.currency}
-                                    onChange={e => setFormData({...formData, currency: e.target.value})}
-                                >
-                                    <option value="SAR">{_t('SAR - Saudi Riyal', 'SAR - Saudi Riyal')}</option>
-                                    <option value="USD">{_t('USD - US Dollar', 'USD - US Dollar')}</option>
-                                    <option value="EUR">{_t('EUR - Euro', 'EUR - Euro')}</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Payment Method / Format</label>
-                                <select 
-                                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.paymentMethod}
-                                    onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
-                                >
-                                    <option value="SARIE">SARIE (Saudi Banks Excel/CSV)</option>
-                                    <option value="SEPA">{_t('SEPA XML (pain.001.001.09)', 'SEPA XML (pain.001.001.09)')}</option>
-                                    <option value="SWIFT">{_t('SWIFT MT103', 'SWIFT MT103')}</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2 pt-8">
-                                <label className="flex items-center gap-3">
+                    <CardContent>
+                        <form onSubmit={handleSubmit(handlePropose)} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">{_t('Due Date Until', 'Due Date Until')}</label>
                                     <input 
-                                        type="checkbox" 
-                                        className="w-5 h-5 text-blue-600 rounded"
-                                        checked={formData.includeDiscountWindow}
-                                        onChange={e => setFormData({...formData, includeDiscountWindow: e.target.checked})}
+                                        type="date" 
+                                        className={`w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none ${errors.dueDateUntil ? 'border-red-500' : 'border-gray-300'}`}
+                                        {...register('dueDateUntil')}
                                     />
-                                    <span className="text-sm font-medium text-gray-700">{_t('Include future invoices within cash discount windows', 'Include future invoices within cash discount windows')}</span>
-                                </label>
+                                    {errors.dueDateUntil && <p className="text-red-500 text-xs mt-1">{errors.dueDateUntil.message}</p>}
+                                    <p className="text-xs text-gray-500">{_t('Include all open AP items due on or before this date.', 'Include all open AP items due on or before this date.')}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">{_t('العملة', 'Currency')}</label>
+                                    <select 
+                                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        {...register('currency')}
+                                    >
+                                        <option value="SAR">{_t('SAR - Saudi Riyal', 'SAR - Saudi Riyal')}</option>
+                                        <option value="USD">{_t('USD - US Dollar', 'USD - US Dollar')}</option>
+                                        <option value="EUR">{_t('EUR - Euro', 'EUR - Euro')}</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Payment Method / Format</label>
+                                    <select 
+                                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        {...register('paymentMethod')}
+                                    >
+                                        <option value="SARIE">SARIE (Saudi Banks Excel/CSV)</option>
+                                        <option value="SEPA">{_t('SEPA XML (pain.001.001.09)', 'SEPA XML (pain.001.001.09)')}</option>
+                                        <option value="SWIFT">{_t('SWIFT MT103', 'SWIFT MT103')}</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2 pt-8">
+                                    <label className="flex items-center gap-3">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-5 h-5 text-blue-600 rounded"
+                                            {...register('includeDiscountWindow')}
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">{_t('Include future invoices within cash discount windows', 'Include future invoices within cash discount windows')}</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex justify-end pt-6 border-t border-gray-100">
-                            <Button onClick={handlePropose} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                                {loading ? 'Analyzing...' : 'Generate Proposal'}
-                                {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
-                            </Button>
-                        </div>
+                            <div className="flex justify-end pt-6 border-t border-gray-100">
+                                <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                                    {loading ? 'Analyzing...' : 'Generate Proposal'}
+                                    {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
+                                </Button>
+                            </div>
+                        </form>
                     </CardContent>
                 </Card>
             )}

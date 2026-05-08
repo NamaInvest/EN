@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default function EnterpriseWMS() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [wmsData, setWmsData] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [expandedStock, setExpandedStock] = useState<number | null>(null);
@@ -56,8 +56,8 @@ export default function EnterpriseWMS() {
  if (res.ok) {
  setShowModal(false);
  fetchData();
- } else { alert(t('sys.str_418')); }
- } catch (error) { alert(t('sys.str_446')); } 
+ } else { toastWarning(t('sys.str_418')); }
+ } catch (error) { toastWarning(t('sys.str_446')); } 
  finally { setSaving(false); }
  };
 

@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { lang } = useTranslation();
+  const { warning: toastWarning } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [customer, setCustomer] = useState<any>(null);
     const [creditInfo, setCreditInfo] = useState<any>(null);
@@ -49,7 +51,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             }
         } catch (e) {
             console.error(e);
-            alert('Failed to update hold status');
+            toastWarning('Failed to update hold status');
         } finally {
             setHolding(false);
         }

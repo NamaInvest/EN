@@ -19,7 +19,7 @@ const CATEGORIES = [
   { id: 'admin', label: 'الإدارة', emoji: '⚙️' },
 ];
 
-export const modulesList = [
+const modulesList = [
   { cat: 'finance', icon: <Calculator size={18}/>, title: "المحاسبة المالية", desc: "قيود يومية وشجرة حسابات متعددة المستويات" },
   { cat: 'finance', icon: <Building size={18}/>, title: "الحسابات البنكية", desc: "تتبع الأرصدة والتسويات البنكية" },
   { cat: 'finance', icon: <BarChart2 size={18}/>, title: "ميزان المراجعة", desc: "Drill-Down حتى القيد الأصلي" },

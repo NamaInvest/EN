@@ -14,16 +14,14 @@ const rmaTransitions = {
     SCRAPPED: []
 };
 
-const rmaStateMachine = new StateMachine('RMA', rmaTransitions);
+const rmaStateMachine = StateMachine.create('RMA', { initial: 'REQUESTED', transitions: rmaTransitions });
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string, action: string }> }) {
 
-  const { id, action } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const id = parseInt((await params).id);
-        // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-        const { action } = params;
+        const { id: idStr, action } = await params;
+        const id = parseInt(idStr);
         const targetState = action.toUpperCase();
 
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
@@ -35,7 +33,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
         // Use the centralized StateMachine to validate
         try {
-            await rmaStateMachine.transition(id, currentState, targetState);
+            await rmaStateMachine.transition({ id, status: currentState }, targetState);
         } catch (e: any) {
             return NextResponse.json({ error: e.message }, { status: 400 });
         }

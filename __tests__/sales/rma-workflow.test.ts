@@ -1,20 +1,22 @@
 import { StateMachine } from '../../src/lib/state-machine';
 
 describe('RMA State Machine', () => {
-    let rmaStateMachine: StateMachine<string>;
+    let rmaStateMachine: StateMachine;
 
     beforeAll(() => {
-        const rmaTransitions = {
-            REQUESTED: ['APPROVED', 'REJECTED'],
-            APPROVED: ['RECEIVED'],
-            RECEIVED: ['INSPECTED'],
-            INSPECTED: ['REFUNDED', 'RESTOCKED', 'SCRAPPED'],
-            REJECTED: [],
-            REFUNDED: [],
-            RESTOCKED: [],
-            SCRAPPED: []
-        };
-        rmaStateMachine = new StateMachine('RMA', rmaTransitions);
+        rmaStateMachine = StateMachine.create('RMA', {
+            initial: 'REQUESTED',
+            transitions: {
+                REQUESTED: ['APPROVED', 'REJECTED'],
+                APPROVED: ['RECEIVED'],
+                RECEIVED: ['INSPECTED'],
+                INSPECTED: ['REFUNDED', 'RESTOCKED', 'SCRAPPED'],
+                REJECTED: [],
+                REFUNDED: [],
+                RESTOCKED: [],
+                SCRAPPED: []
+            }
+        });
     });
 
     it('should allow REQUESTED to APPROVED', () => {
@@ -36,7 +38,7 @@ describe('RMA State Machine', () => {
     });
 
     it('should NOT allow moving from REFUNDED to anywhere else', () => {
-        expect(rmaStateMachine.getValidTransitions('REFUNDED').length).toBe(0);
+        expect(rmaStateMachine.getAllowedTransitions('REFUNDED').length).toBe(0);
         expect(rmaStateMachine.canTransition('REFUNDED', 'APPROVED')).toBe(false);
     });
 });

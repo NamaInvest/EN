@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast';
 
 export default function EnterpriseLegal() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [data, setData] = useState({ notes: [], lgs: [] });
  const [customers, setCustomers] = useState<any[]>([]);
  const [banks, setBanks] = useState<any[]>([]);
@@ -57,8 +57,8 @@ export default function EnterpriseLegal() {
  });
 
  if (res.ok) { setShowModal(false); fetchData(); } 
- else { alert(t('sys.str_418')); }
- } catch (error) { alert(t('sys.str_446')); } 
+ else { toastWarning(t('sys.str_418')); }
+ } catch (error) { toastWarning(t('sys.str_446')); } 
  finally { setSaving(false); }
  };
 
@@ -71,8 +71,8 @@ export default function EnterpriseLegal() {
  body: JSON.stringify({ id, entityType: 'note', status: 'COLLECTED' })
  });
  if (res.ok) fetchData();
- else alert(t('sys.str_1823'));
- } catch (error) { alert(t('sys.str_446')); }
+ else toastWarning(t('sys.str_1823'));
+ } catch (error) { toastWarning(t('sys.str_446')); }
  };
 
  const isDueSoon = (dateStr: string) => {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
+import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 export async function POST(request: Request) {
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
             if (b.currency === 'EUR') rate = 4.0;
             if (b.currency === 'GBP') rate = 4.7;
 
-            const sarEquivalent = b.currentBalance * rate;
+            const sarEquivalent = n(b.currentBalance) * rate;
             totalCashSAR += sarEquivalent;
 
             return {

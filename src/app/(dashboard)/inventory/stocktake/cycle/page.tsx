@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function CycleCountPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [stocktakes, setStocktakes] = useState<any[]>([]);
@@ -42,7 +44,7 @@ export default function CycleCountPage() {
         try {
             const res = await fetch('/api/cron/cycle-count');
             const data = await res.json();
-            alert(data.message);
+            toastWarning(data.message);
             fetchStocktakes();
         } catch (e) {
             console.error(e);
@@ -60,10 +62,10 @@ export default function CycleCountPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert('تم اعتماد الجرد وتسوية المخزون بنجاح.');
+                toastSuccess('تم اعتماد الجرد وتسوية المخزون بنجاح.');
                 fetchStocktakes();
             } else {
-                alert(data.error || 'فشل الاعتماد');
+                toastError(data.error || 'فشل الاعتماد');
             }
         } catch (e) {
             console.error(e);

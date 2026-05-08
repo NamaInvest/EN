@@ -5,8 +5,11 @@ import { Cpu, Settings, Factory, Workflow, AlertTriangle, Wrench } from 'lucide-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+import { useToast } from '@/components/Toast';
+
 export default function ManufacturingMRP() {
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     // @ts-expect-error [TS2304] Cannot find name
@@ -16,7 +19,7 @@ export default function ManufacturingMRP() {
           <h1 className="text-3xl font-black flex items-center gap-3"><Factory className="text-indigo-400"/>{_t('MRP Engine', 'MRP Engine')}</h1>
           <p className="text-indigo-200 mt-2">{_t('Multi-level BOM Explosion & Work Order Routing', 'Multi-level BOM Explosion & Work Order Routing')}</p>
         </div>
-        <Button onClick={() => { fetch("/api/v3/manufacturing/mrp", { method: "POST", body: JSON.stringify({ productId: 1, components: [] }) }).then(()=>alert("MRP Run Complete & Saved to DB!")); }} className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-6 h-12 rounded-lg">{_t('Run MRP Calculation', 'Run MRP Calculation')}</Button>
+        <Button onClick={() => { fetch("/api/v3/manufacturing/mrp", { method: "POST", body: JSON.stringify({ productId: 1, components: [] }) }).then(()=>toastSuccess("MRP Run Complete & Saved to DB!")); }} className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-6 h-12 rounded-lg">{_t('Run MRP Calculation', 'Run MRP Calculation')}</Button>
       </div>
 
       <div className="grid grid-cols-3 gap-6">

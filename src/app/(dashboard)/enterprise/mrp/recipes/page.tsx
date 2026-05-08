@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toast';
 
 export default function BOMRecipes() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const router = useRouter();
  const [recipes, setRecipes] = useState<any[]>([]);
  const [products, setProducts] = useState<any[]>([]);
@@ -67,7 +67,7 @@ export default function BOMRecipes() {
  const handleSave = async (e: React.FormEvent) => {
  e.preventDefault();
  if (ingredients.some(i => !i.rawProductId || i.quantity <= 0)) {
- alert(t('sys.str_2835'));
+ toastWarning(t('sys.str_2835'));
  return;
  }
 
@@ -91,9 +91,9 @@ export default function BOMRecipes() {
  setIngredients([{ rawProductId: '', quantity: 1, estimatedCost: 0 }]);
  fetchData();
  } else {
- alert(t('sys.str_2836'));
+ toastWarning(t('sys.str_2836'));
  }
- } catch (error) { alert(t('sys.str_446')); } 
+ } catch (error) { toastWarning(t('sys.str_446')); } 
  finally { setSaving(false); }
  };
 

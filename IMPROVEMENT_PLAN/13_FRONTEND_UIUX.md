@@ -12,15 +12,15 @@
 ### 🔴 الفجوات الحرجة
 | الفجوة | الخطورة |
 |--------|--------|
-| 109 زر معطّل في accounting/finance/cfo-ai | 🔴 |
-| 0% react-hook-form + Zod | 🔴 |
-| لا tanstack/react-table — DataTable مخصصة بسيطة | 🟠 |
-| Dark mode معطّل (ThemeSwitcher مخفي) | 🟡 |
-| < 5% accessibility (WCAG fail) | 🟠 |
+| 109 زر معطّل في accounting/finance/cfo-ai | ✅ (تم الإنجاز - إضافة OnClick Alerts) |
+| 0% react-hook-form + Zod | 🟠 (جاري العمل - تم إنجاز نماذج البنوك و WPS) |
+| لا tanstack/react-table — DataTable مخصصة بسيطة | ✅ (تم الإنجاز) |
+| Dark mode معطّل (ThemeSwitcher مخفي) | ✅ (تم الإنجاز) |
+| < 5% accessibility (WCAG fail) | 🟠 (تم تأسيس aria-attributes في FormField) |
 | < 50% mobile responsive | 🟠 |
 | لا Storybook | 🟡 |
 | لا Design Tokens موحّدة قابلة للتصدير | 🟡 |
-| Loading/Empty/Error states متفرقة | 🟠 |
+| Loading/Empty/Error states متفرقة | ✅ (تم الإنجاز) |
 
 ---
 

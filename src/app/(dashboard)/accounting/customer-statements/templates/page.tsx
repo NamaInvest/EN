@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { Plus, Edit2, Trash2, Copy, CheckCircle, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, FileText } from 'lucide-react';
+import { useToast } from '@/components/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface Template {
     id: number;
@@ -16,24 +20,41 @@ interface Template {
     createdAt: string;
 }
 
+const formSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    isDefault: z.boolean(),
+    headerMessage: z.string().optional().nullable(),
+    footerMessage: z.string().optional().nullable(),
+    showAging: z.boolean(),
+    showPaidInvoices: z.boolean(),
+    primaryColor: z.string()
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function CustomerStatementTemplates() {
-  const { lang } = useTranslation();
-  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
+    const { lang } = useTranslation();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [templates, setTemplates] = useState<Template[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
 
-    // Form state
-    const [formData, setFormData] = useState({
-        name: '',
-        isDefault: false,
-        headerMessage: '',
-        footerMessage: '',
-        showAging: true,
-        showPaidInvoices: false,
-        primaryColor: '#000000'
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: '',
+            isDefault: false,
+            headerMessage: '',
+            footerMessage: '',
+            showAging: true,
+            showPaidInvoices: false,
+            primaryColor: '#000000'
+        }
     });
+
+    const primaryColorWatch = watch('primaryColor');
 
     useEffect(() => {
         fetchTemplates();
@@ -60,7 +81,7 @@ export default function CustomerStatementTemplates() {
     const handleOpenModal = (template?: Template) => {
         if (template) {
             setEditingTemplate(template);
-            setFormData({
+            reset({
                 name: template.name,
                 isDefault: template.isDefault,
                 headerMessage: template.headerMessage || '',
@@ -71,7 +92,7 @@ export default function CustomerStatementTemplates() {
             });
         } else {
             setEditingTemplate(null);
-            setFormData({
+            reset({
                 name: '',
                 isDefault: false,
                 headerMessage: '',
@@ -84,9 +105,7 @@ export default function CustomerStatementTemplates() {
         setIsModalOpen(true);
     };
 
-    const handleSave = async () => {
-        if (!formData.name) return alert('Name is required');
-        
+    const handleSave = async (data: FormValues) => {
         const method = editingTemplate ? 'PUT' : 'POST';
         const url = editingTemplate 
             ? `/api/accounting/customer-statements/templates/${editingTemplate.id}`
@@ -96,16 +115,18 @@ export default function CustomerStatementTemplates() {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(data)
             });
             if (res.ok) {
+                toastSuccess(editingTemplate ? 'Template updated successfully' : 'Template created successfully');
                 setIsModalOpen(false);
                 fetchTemplates();
             } else {
-                alert('Error saving template');
+                toastWarning('Error saving template');
             }
         } catch (err) {
             console.error('Save error:', err);
+            toastError('Connection error');
         }
     };
 
@@ -114,6 +135,7 @@ export default function CustomerStatementTemplates() {
         try {
             await fetch(`/api/accounting/customer-statements/templates/${id}`, { method: 'DELETE' });
             fetchTemplates();
+            toastSuccess('Template deleted successfully');
         } catch (err) {
             console.error('Delete error:', err);
         }
@@ -206,109 +228,106 @@ export default function CustomerStatementTemplates() {
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
                         </div>
                         
-                        <div className="p-6 space-y-6">
-                            {/* General */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">اسم القالب *</label>
-                                    <input 
-                                        type="text" 
-                                        className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                        value={formData.name}
-                                        onChange={e => setFormData({...formData, name: e.target.value})}
-                                        placeholder="مثال: قالب كبار العملاء"
-                                    />
-                                </div>
-                                <div className="flex flex-col justify-end">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
-                                            checked={formData.isDefault}
-                                            onChange={e => setFormData({...formData, isDefault: e.target.checked})}
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">تعيين كقالب افتراضي</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Content */}
-                            <div className="space-y-4 border-t border-gray-100 pt-4">
-                                <h3 className="text-sm font-bold text-gray-900">محتوى الكشف</h3>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">الترويسة (Header Message)</label>
-                                    <textarea 
-                                        className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                        rows={2}
-                                        value={formData.headerMessage}
-                                        onChange={e => setFormData({...formData, headerMessage: e.target.value})}
-                                        placeholder="رسالة ترحيبية تظهر في أعلى كشف الحساب..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">التذييل (Footer Message / Bank Details)</label>
-                                    <textarea 
-                                        className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                        rows={3}
-                                        value={formData.footerMessage}
-                                        onChange={e => setFormData({...formData, footerMessage: e.target.value})}
-                                        placeholder="مثال: يرجى تحويل المستحقات على حساب الآيبان SA1234..."
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Options */}
-                            <div className="space-y-4 border-t border-gray-100 pt-4">
-                                <h3 className="text-sm font-bold text-gray-900">إعدادات العرض</h3>
+                        <form onSubmit={handleSubmit(handleSave)}>
+                            <div className="p-6 space-y-6">
+                                {/* General */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">اسم القالب *</label>
                                         <input 
-                                            type="checkbox" 
-                                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
-                                            checked={formData.showAging}
-                                            onChange={e => setFormData({...formData, showAging: e.target.checked})}
+                                            type="text" 
+                                            className={`w-full border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                                            {...register('name')}
+                                            placeholder="مثال: قالب كبار العملاء"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">إظهار جدول أعمار الديون (Aging)</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
-                                            checked={formData.showPaidInvoices}
-                                            onChange={e => setFormData({...formData, showPaidInvoices: e.target.checked})}
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">إظهار الفواتير المسددة بالكامل</span>
-                                    </label>
+                                        {errors.name && <span className="text-red-500 text-xs mt-1">{errors.name.message}</span>}
+                                    </div>
+                                    <div className="flex flex-col justify-end">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
+                                                {...register('isDefault')}
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">تعيين كقالب افتراضي</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">لون العلامة التجارية</label>
-                                    <div className="flex items-center gap-3">
-                                        <input 
-                                            type="color" 
-                                            className="w-10 h-10 rounded border-0 p-0 cursor-pointer"
-                                            value={formData.primaryColor}
-                                            onChange={e => setFormData({...formData, primaryColor: e.target.value})}
+
+                                {/* Content */}
+                                <div className="space-y-4 border-t border-gray-100 pt-4">
+                                    <h3 className="text-sm font-bold text-gray-900">محتوى الكشف</h3>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">الترويسة (Header Message)</label>
+                                        <textarea 
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            rows={2}
+                                            {...register('headerMessage')}
+                                            placeholder="رسالة ترحيبية تظهر في أعلى كشف الحساب..."
                                         />
-                                        <span className="text-sm text-gray-500">{formData.primaryColor}</span>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">التذييل (Footer Message / Bank Details)</label>
+                                        <textarea 
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            rows={3}
+                                            {...register('footerMessage')}
+                                            placeholder="مثال: يرجى تحويل المستحقات على حساب الآيبان SA1234..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Options */}
+                                <div className="space-y-4 border-t border-gray-100 pt-4">
+                                    <h3 className="text-sm font-bold text-gray-900">إعدادات العرض</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
+                                                {...register('showAging')}
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">إظهار جدول أعمار الديون (Aging)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 h-5 w-5"
+                                                {...register('showPaidInvoices')}
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">إظهار الفواتير المسددة بالكامل</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">لون العلامة التجارية</label>
+                                        <div className="flex items-center gap-3">
+                                            <input 
+                                                type="color" 
+                                                className="w-10 h-10 rounded border-0 p-0 cursor-pointer"
+                                                {...register('primaryColor')}
+                                            />
+                                            <span className="text-sm text-gray-500">{primaryColorWatch}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-                            <button 
-                                onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                            >
-                                إلغاء
-                            </button>
-                            <button 
-                                onClick={handleSave}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                            >
-                                حفظ القالب
-                            </button>
-                        </div>
+                            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                    إلغاء
+                                </button>
+                                <button 
+                                    type="submit"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                                >
+                                    حفظ القالب
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

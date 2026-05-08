@@ -5,6 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function HRJobsPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
  const { t } = useTranslation();
  const [jobs, setJobs] = useState<any[]>([]);
@@ -24,7 +25,7 @@ export default function HRJobsPage() {
 
  const handleAddJob = async () => {
  if (!newJob.title || !newJob.department) {
- alert(t('hr.str_2165'));
+ toastWarning(t('hr.str_2165'));
  return;
  }
  try {
@@ -39,10 +40,10 @@ export default function HRJobsPage() {
  setShowAddModal(false);
  setNewJob({ title: '', department: '' });
  } else {
- alert(t('hr.str_2166'));
+ toastWarning(t('hr.str_2166'));
  }
  } catch {
- alert(t('sys.str_446'));
+ toastWarning(t('sys.str_446'));
  }
  };
 

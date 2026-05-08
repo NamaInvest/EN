@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function PayrollConfigPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [config, setConfig] = useState<any>({
@@ -58,9 +60,9 @@ export default function PayrollConfigPage() {
             });
             const result = await res.json();
             if (res.ok) {
-                alert(result.message);
+                toastWarning(result.message);
             } else {
-                alert(result.error);
+                toastError(result.error);
             }
         } catch (error) {
             console.error(error);

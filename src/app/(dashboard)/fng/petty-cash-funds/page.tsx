@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 
 export default function PettyCashFundsPage() {
  const { t } = useTranslation();
- const { error: toastError, success: toastSuccess } = useToast();
+ const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [funds, setFunds] = useState<any[]>([]);
  const [employees, setEmployees] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
@@ -72,10 +72,10 @@ export default function PettyCashFundsPage() {
  setShowModal(false);
  fetchData();
  } else {
- alert(t('sys.str_2113'));
+ toastWarning(t('sys.str_2113'));
  }
  } catch (error) {
- alert(t('sys.str_2085'));
+ toastWarning(t('sys.str_2085'));
  } finally {
  setSaving(false);
  }
@@ -91,7 +91,7 @@ export default function PettyCashFundsPage() {
  });
  if (res.ok) fetchData();
  } catch (error) {
- alert(t('sys.str_446'));
+ toastWarning(t('sys.str_446'));
  }
  };
 

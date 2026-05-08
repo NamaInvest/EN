@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';import { useToast } from '@/components/Toast';
 
 export default function CommissionsPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess, warning: toastWarning } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [rules, setRules] = useState<any[]>([]);
     const [commissions, setCommissions] = useState<any[]>([]);
@@ -36,7 +37,7 @@ export default function CommissionsPage() {
     };
 
     const handleCalculate = async () => {
-        if (!selectedRule) return alert('يرجى اختيار قاعدة عمولة');
+        if (!selectedRule) return toastWarning('يرجى اختيار قاعدة عمولة');
         
         setLoading(true);
         try {
@@ -51,10 +52,10 @@ export default function CommissionsPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`تم حساب العمولة: ${data.commissionsCreated} سجلات تم إنشاؤها.`);
+                toastSuccess(`تم حساب العمولة: ${data.commissionsCreated} سجلات تم إنشاؤها.`);
                 fetchCommissions();
             } else {
-                alert(`خطأ: ${data.error}`);
+                toastError(`خطأ: ${data.error}`);
             }
         } catch (e) {
             console.error(e);
@@ -65,7 +66,7 @@ export default function CommissionsPage() {
 
     const handlePay = async (id: number) => {
         // Here we would call an API that creates a payroll adjustment and posts the JE
-        alert('تم رفع أمر الدفع للنظام المحاسبي (سيتم الاعتماد مع مسير الرواتب)');
+        toastSuccess('تم رفع أمر الدفع للنظام المحاسبي (سيتم الاعتماد مع مسير الرواتب)');
     };
 
     return (

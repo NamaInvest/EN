@@ -5,6 +5,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function WPSPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const { lang } = useTranslation();
  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -34,7 +35,7 @@ export default function WPSPage() {
 
  const handleGenerate = async () => {
  if (!payrollRunId || !bankCode || !companyId) {
- alert('Please fill in all fields');
+ toastWarning('Please fill in all fields');
  return;
  }
 
@@ -54,10 +55,10 @@ export default function WPSPage() {
  
  if (!res.ok) throw new Error(data.error || 'Failed to generate SIF');
 
- alert('WPS Batch Generated successfully');
+ toastSuccess('WPS Batch Generated successfully');
  fetchHistory(); // Refresh history
  } catch (error: any) {
- alert(error.message);
+ toastError(error.message);
  } finally {
  setLoading(false);
  }
@@ -73,10 +74,10 @@ export default function WPSPage() {
  method: 'POST'
  });
  if (!res.ok) throw new Error('Failed to update status');
- alert('Marked as uploaded');
+ toastWarning('Marked as uploaded');
  fetchHistory();
  } catch (error: any) {
- alert(error.message);
+ toastError(error.message);
  }
  };
 

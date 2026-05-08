@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
             include: {
                 user: { select: { username: true, fullName: true } }
             },
-            orderBy: { date: 'desc' },
+            orderBy: { createdAt: 'desc' },
             take: 50
         });
 

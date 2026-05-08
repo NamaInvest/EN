@@ -14,9 +14,11 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
+import { useToast } from '@/components/Toast';
 
 export default function CashFlowForecastPage() {
   const { lang } = useTranslation();
+  const { error: toastError, success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -63,13 +65,14 @@ export default function CashFlowForecastPage() {
                 })
             });
             if (res.ok) {
-                alert('تم حفظ لقطة (Snapshot) للتوقعات بنجاح للرجوع إليها لاحقاً.');
+                toastSuccess('تم حفظ لقطة (Snapshot) للتوقعات بنجاح للرجوع إليها لاحقاً.');
             } else {
                 const err = await res.json();
-                alert(err.error);
+                toastError(err.error);
             }
         } catch (error) {
             console.error(error);
+            toastError('حدث خطأ غير متوقع');
         } finally {
             setLoading(false);
         }

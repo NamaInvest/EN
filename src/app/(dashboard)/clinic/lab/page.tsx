@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/components/Toast';
 
 export default function LabIntegrationPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [orders, setOrders] = useState<any[]>([]);
@@ -67,7 +69,7 @@ export default function LabIntegrationPage() {
     const handleCreateOrder = async (e: React.FormEvent) => {
         e.preventDefault();
         if (selectedTestIds.length === 0) {
-            alert('الرجاء تحديد تحليل واحد على الأقل.');
+            toastWarning('الرجاء تحديد تحليل واحد على الأقل.');
             return;
         }
 
@@ -87,9 +89,9 @@ export default function LabIntegrationPage() {
                 setShowCreateModal(false);
                 setSelectedTestIds([]);
                 fetchData();
-                alert('تم إنشاء طلب التحليل بنجاح وإرساله لنظام LIS.');
+                toastSuccess('تم إنشاء طلب التحليل بنجاح وإرساله لنظام LIS.');
             } else {
-                alert('Error: ' + data.error);
+                toastError('Error: ' + data.error);
             }
         } catch (error) {
             console.error(error);

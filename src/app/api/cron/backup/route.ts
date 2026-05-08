@@ -47,7 +47,7 @@ export async function GET(req: Request) {
                 userId: null,
                 action: 'SYSTEM_BACKUP',
                 tableName: 'SYSTEM',
-                recordId: 0,
+                recordId: '0',
                 details: JSON.stringify(manifest),
             },
         }).catch(() => {}); // Don't fail if auditLog schema differs

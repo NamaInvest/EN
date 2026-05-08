@@ -26,7 +26,7 @@ export default function CashApplicationPage() {
  setIsAutoApplying(true);
  setTimeout(() => {
  setIsAutoApplying(false);
- alert(`Auto-Applied using ${strategy} strategy.`);
+ success(`Auto-Applied using ${strategy} strategy.`);
  }, 1500);
  };
 

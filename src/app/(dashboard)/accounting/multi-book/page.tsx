@@ -105,7 +105,7 @@ export default async function MultiBookDashboard() {
                                                 {entry.bookId === 2 ? 'TAX_BOOK' : 'MANAGEMENT_BOOK'}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-sm">SAR {(entry.totalDebit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td className="px-4 py-3 text-sm">SAR {Number(entry.totalDebit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                         <td className="px-4 py-3 text-sm text-right space-x-2">
                                             <Button variant="ghost" size="sm">{_t('View JE', 'View JE')}</Button>
                                         </td>

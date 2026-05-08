@@ -26,7 +26,8 @@
 | البند | الملاحظة |
 |-------|----------|
 | اختبار DR Runbook على بيئة staging | يُنصح به قبل الـ production القادم |
-| `FieldAuditLog` لا يزال موجوداً | محتفظ به للتوافقية — يمكن إزالته في مرحلة لاحقة |
+| ~~`FieldAuditLog` لا يزال موجوداً~~ | ✅ تم إزالته بالكامل من Schema والكود. |
+| ~~Read Replicas~~ | ✅ تم إضافتها في `src/lib/prisma.ts` بنجاح عبر `getPrisma(req, { read: true })`. |
 
 ---
 

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect } from 'react';
 import { Calculator, FileText, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
@@ -60,13 +60,13 @@ export default function SalariesPage() {
  const data = await r.json();
  
  if (r.ok) { 
- alert(data.message);
+ toastSuccess(data.message);
  load(); 
  } else {
- alert(data.error || t('sys.str_1123'));
+ toastError(data.error || t('sys.str_1123'));
  }
  } catch(e) {
- alert(t('sys.str_1124'));
+ toastError(t('sys.str_1124'));
  }
  setIsGenerating(false);
  };

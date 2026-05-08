@@ -4,9 +4,11 @@ import { useTranslation } from '@/lib/i18n';
 import { ShoppingCart, Search, CreditCard, ScanLine, Printer, Trash2, RefreshCcw, BrainCircuit, WifiOff, Brain } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/Toast';
 
 export default function RetailPOS() {
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [cart, setCart] = useState([{ id: 1, name: 'Wireless Headphones', price: 299, qty: 1 }]);
   return (
@@ -53,7 +55,7 @@ export default function RetailPOS() {
           <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>{_t('الإجمالي', 'Total')}</span><span>{_t('SAR 343.85', 'SAR 343.85')}</span></div>
           <div className="grid grid-cols-2 gap-2 mt-4">
             <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/>{_t('طباعة / Print', 'Print')}</Button>
-            <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>alert("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/>{_t('Pay Now', 'Pay Now')}</Button>
+            <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>toastSuccess("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/>{_t('Pay Now', 'Pay Now')}</Button>
             <Button variant="outline" className="h-12 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100">{_t('Layaway', 'Layaway')}</Button>
             <Button variant="outline" className="h-12 border-slate-300 text-sm hover:bg-slate-100">{_t('Gift Receipt', 'Gift Receipt')}</Button>
           </div>

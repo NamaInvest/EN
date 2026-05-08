@@ -88,7 +88,7 @@ export class AccountingService {
               userId: authUserId || 1,
               action: 'GOVERNANCE_VIOLATION_ATTEMPT',
               tableName: 'JournalEntry',
-              recordId: 0,
+              recordId: '0',
               details: JSON.stringify({ reason: 'Manual post to control account', lines }),
             },
           });

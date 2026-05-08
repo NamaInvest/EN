@@ -5,37 +5,52 @@ import { useTranslation } from '@/lib/i18n';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const formSchema = z.object({
+    productId: z.string().min(1, 'Product ID is required'),
+    warehouseId: z.string().min(1, 'Warehouse ID is required'),
+    qty: z.number().min(1, 'Quantity must be at least 1'),
+    requestedDate: z.string().min(1, 'Requested Date is required')
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function ATPSimulatorPage() {
-  const { t } = useTranslation();
-
-    const [form, setForm] = useState({
-        productId: 'PROD-1001',
-        warehouseId: 'WH-MAIN',
-        qty: 200,
-        requestedDate: new Date().toISOString().split('T')[0]
-    });
-    
+    const { t } = useTranslation();
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
-    async function handleCheck(e: any) {
-        e.preventDefault();
-        setLoading(true);
-        const res = await fetch('/api/sales/atp/check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ...form,
-                qty: Number(form.qty)
-            })
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            setResult(data.result);
+    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            productId: 'PROD-1001',
+            warehouseId: 'WH-MAIN',
+            qty: 200,
+            requestedDate: new Date().toISOString().split('T')[0]
         }
-        setLoading(false);
+    });
+
+    async function onSubmit(data: FormValues) {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/sales/atp/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (res.ok) {
+                const resData = await res.json();
+                setResult(resData.result);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -49,22 +64,26 @@ export default function ATPSimulatorPage() {
                         <CardTitle>بيانات الطلب</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleCheck} className="space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
                                 <label className="block text-sm mb-1">رمز المنتج</label>
-                                <Input value={form.productId} onChange={e => setForm({...form, productId: e.target.value})} required />
+                                <Input className={errors.productId ? 'border-red-500' : ''} {...register('productId')} />
+                                {errors.productId && <span className="text-red-500 text-xs mt-1 block">{errors.productId.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">المستودع</label>
-                                <Input value={form.warehouseId} onChange={e => setForm({...form, warehouseId: e.target.value})} required />
+                                <Input className={errors.warehouseId ? 'border-red-500' : ''} {...register('warehouseId')} />
+                                {errors.warehouseId && <span className="text-red-500 text-xs mt-1 block">{errors.warehouseId.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">الكمية المطلوبة</label>
-                                <Input type="number" value={form.qty} onChange={e => setForm({...form, qty: Number(e.target.value)})} required />
+                                <Input type="number" className={errors.qty ? 'border-red-500' : ''} {...register('qty', { valueAsNumber: true })} />
+                                {errors.qty && <span className="text-red-500 text-xs mt-1 block">{errors.qty.message}</span>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">تاريخ التسليم المطلوب</label>
-                                <Input type="date" value={form.requestedDate} onChange={e => setForm({...form, requestedDate: e.target.value})} required />
+                                <Input type="date" className={errors.requestedDate ? 'border-red-500' : ''} {...register('requestedDate')} />
+                                {errors.requestedDate && <span className="text-red-500 text-xs mt-1 block">{errors.requestedDate.message}</span>}
                             </div>
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading ? 'جاري الفحص...' : 'فحص توفر الكمية (Check ATP)'}

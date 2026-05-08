@@ -10,9 +10,11 @@ import InvoiceReceipt from '@/components/InvoiceReceipt';
 import { useTranslation } from "@/lib/i18n";
 import { FeatureGuard } from '@/hooks/FeatureGuard';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useToast } from '@/components/Toast';
 
 export default function RestaurantPOS() {
     const { t } = useTranslation();
+    const { error: toastError, success: toastSuccess } = useToast();
     const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     // Force RTL for this specific layout to match image perfectly
     const isRTL = true;
@@ -95,7 +97,7 @@ export default function RestaurantPOS() {
     };
 
     const createTable = async () => {
-        if (!activeZone) return alert('اختر منطقة أولاً');
+        if (!activeZone) return toastError('اختر منطقة أولاً');
         const countStr = prompt('كم عدد الطاولات التي تريد إضافتها؟', '1');
         if (!countStr) return;
         const count = Math.max(1, Math.min(50, parseInt(countStr) || 1));
@@ -251,7 +253,7 @@ export default function RestaurantPOS() {
                     if (kitchenWin) kitchenWin.document.write(kitchenHtml);
                 }
             }
-        } catch (e) { alert('حدث خطأ'); }
+        } catch (e) { toastError('حدث خطأ'); }
     };
 
     const saveHeldOrders = (orders: any[]) => {
@@ -272,7 +274,7 @@ export default function RestaurantPOS() {
         setCart([]);
         setSelectedCustomer(null);
         removeCoupon();
-        alert(t('sys.str_4112'));
+        toastSuccess(t('sys.str_4112'));
     };
 
     const handleRestoreOrder = (order: any) => {
@@ -336,7 +338,7 @@ export default function RestaurantPOS() {
                 cacheProducts(data.products || []);
             }
         } catch (e) {
-            alert(t('sys.str_4069'));
+            toastError(t('sys.str_4069'));
         } finally {
             setLoading(false);
         }
@@ -382,7 +384,7 @@ export default function RestaurantPOS() {
 
     const addToCart = (product: any) => {
         if (!allowNegativeStock && product.stock <= 0) {
-            alert(t('sys.str_4070'));
+            toastError(t('sys.str_4070'));
             return;
         }
         setCart(prev => {
@@ -474,10 +476,10 @@ export default function RestaurantPOS() {
                 setNumpadValue('');
                 if (!isOffline) fetchProducts(); // refresh stock only if online
             } else {
-                alert(data?.error || t('sys.str_4075'));
+                toastError(data?.error || t('sys.str_4075'));
             }
         } catch (e) {
-            alert(t('sys.str_4076'));
+            toastError(t('sys.str_4076'));
         } finally {
             setIsProcessing(false);
         }
@@ -496,13 +498,13 @@ export default function RestaurantPOS() {
             const data = await res.json();
             if (res.ok) {
                 setAppliedCoupon(data);
-                alert(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_4105')}`);
+                toastSuccess(`${t('pos.coupon_success')}  ${data.discountType === 'percentage' ? data.discountValue + '%' : data.discountValue + t('sys.str_4105')}`);
             } else {
-                alert(data.error);
+                toastError(data.error);
                 setAppliedCoupon(null);
             }
         } catch {
-            alert(t('sys.str_4071'));
+            toastError(t('sys.str_4071'));
         }
         setCouponLoading(false);
     };

@@ -1,12 +1,14 @@
-﻿'use client';
+'use client';
 import React from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Users, GraduationCap, Bus, Bell, BookOpen, Brain, ScanSearch, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/Toast';
 
 export default function SchoolSIS() {
   const { lang } = useTranslation();
+  const { success: toastSuccess } = useToast();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     <div className="p-6 bg-slate-50 min-h-screen text-slate-800 space-y-6 max-w-7xl mx-auto">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">{_t('GLOBAL ENTERPRISE FEATURES', 'GLOBAL ENTERPRISE FEATURES')}</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-purple-600 text-white font-bold hover:opacity-90 shadow-lg"><Brain className="w-4 h-4 mr-2"/>{_t('Predictive Dropout AI', 'Predictive Dropout AI')}</Button>\n        <Button className="bg-slate-600 text-white font-bold hover:opacity-90 shadow-lg"><ScanSearch className="w-4 h-4 mr-2"/>{_t('Plagiarism Scanner', 'Plagiarism Scanner')}</Button>\n        <Button className="bg-red-500 text-white font-bold hover:opacity-90 shadow-lg"><MapPin className="w-4 h-4 mr-2"/>{_t('RFID Live Tracking', 'RFID Live Tracking')}</Button>\n        </div>\n      </div>
@@ -39,7 +41,7 @@ export default function SchoolSIS() {
           <Card className="p-6 border-red-100 shadow-sm bg-red-50">
             <h3 className="font-bold text-red-800 mb-2 flex items-center gap-2"><Bell className="w-4 h-4"/>{_t('Dunning Alert', 'Dunning Alert')}</h3>
             <p className="text-sm text-red-700 font-medium">Installment #2 is overdue by 14 days. LMS access will be restricted in 48 hours.</p>
-            <Button onClick={() => { fetch("/api/v3/school/sis", { method: "POST", body: JSON.stringify({ name: "Student 1", grade: "G4" }) }).then(()=>alert("Reminder Sent & Logged to DB!")); }} size="sm" variant="destructive" className="w-full mt-4">{_t('Send Reminder', 'Send Reminder')}</Button>
+            <Button onClick={() => { fetch("/api/v3/school/sis", { method: "POST", body: JSON.stringify({ name: "Student 1", grade: "G4" }) }).then(()=>toastSuccess("Reminder Sent & Logged to DB!")); }} size="sm" variant="destructive" className="w-full mt-4">{_t('Send Reminder', 'Send Reminder')}</Button>
           </Card>
         </div>
         

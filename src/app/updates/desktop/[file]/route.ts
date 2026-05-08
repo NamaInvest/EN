@@ -10,9 +10,8 @@ export const dynamic = 'force-dynamic';
  * 
  * يوفّر ملف معلومات التحديث لـ electron-updater
  */
-export async function GET(req: Request, { params }: { params: { file: string } | Promise<{ file: string }> }) {
-    const resolvedParams = await Promise.resolve(params);
-    const file = resolvedParams?.file;
+export async function GET(req: Request, { params }: { params: Promise<{ file: string }> }) {
+    const { file } = await params;
     
     if (!file) {
         return NextResponse.json({ error: 'Filename is required' }, { status: 400 });

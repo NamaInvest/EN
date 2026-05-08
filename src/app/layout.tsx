@@ -283,7 +283,7 @@ export default async function RootLayout({
           }} />
         )}
         <script dangerouslySetInnerHTML={{ __html:
-          `try{localStorage.removeItem('namainvest-theme-premium');document.documentElement.className='';}catch(e){}`
+          `try{const saved=localStorage.getItem('namainvest-theme-premium');if(saved&&saved!=='default'){document.documentElement.className=saved;}}catch(e){}`
         }} />
         <script dangerouslySetInnerHTML={{ __html:
           `document.addEventListener('focusin',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.select();}});`

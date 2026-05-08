@@ -4,8 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { FileText, Play, Eye, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function BulkRunPage() {
+  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [loading, setLoading] = useState(false);
@@ -72,7 +74,7 @@ export default function BulkRunPage() {
 
     const handleRun = async () => {
         if (!dateFrom || !dateTo) {
-            alert('يرجى تحديد تاريخ البداية والنهاية');
+            toastWarning('يرجى تحديد تاريخ البداية والنهاية');
             return;
         }
 
@@ -85,14 +87,14 @@ export default function BulkRunPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert(`تم بدء تشغيل الدفعة ${data.batch.batchNumber} بنجاح!`);
+                toastSuccess(`تم بدء تشغيل الدفعة ${data.batch.batchNumber} بنجاح!`);
                 fetchBatches();
             } else {
-                alert(data.error || 'حدث خطأ أثناء التشغيل');
+                toastError(data.error || 'حدث خطأ أثناء التشغيل');
             }
         } catch (e) {
             console.error(e);
-            alert('حدث خطأ بالاتصال');
+            toastError('حدث خطأ بالاتصال');
         } finally {
             setLoading(false);
         }
