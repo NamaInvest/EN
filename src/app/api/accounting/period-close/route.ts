@@ -14,8 +14,7 @@ export async function GET(req: NextRequest) {
         const periodId = req.nextUrl.searchParams.get('periodId');
         if (!periodId) return NextResponse.json({ error: 'مطلوب: periodId' }, { status: 400 });
 
-        // @ts-expect-error [TS2554] Argument count mismatch
-        const status = await getPeriodCloseStatus(prisma, parseInt(periodId));
+        const status = await getPeriodCloseStatus(prisma as any, parseInt(periodId));
         return NextResponse.json(status);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
@@ -30,8 +29,7 @@ export async function POST(req: NextRequest) {
 
         if (body.action === 'init') {
             if (!body.periodId) return NextResponse.json({ error: 'مطلوب: periodId' }, { status: 400 });
-            // @ts-expect-error [TS2554] Argument count mismatch
-            const count = await initPeriodCloseTasks(prisma, body.periodId);
+            const count = await initPeriodCloseTasks(prisma as any, body.periodId);
             return NextResponse.json({ initialized: count });
         }
 
@@ -39,9 +37,7 @@ export async function POST(req: NextRequest) {
             if (!body.periodId || !body.taskCode || !body.userId) {
                 return NextResponse.json({ error: 'مطلوب: periodId, taskCode, userId' }, { status: 400 });
             }
-            // @ts-expect-error [TS2554] Argument count mismatch
-            const result = await completeTask(prisma, body.periodId, body.taskCode, body.userId, body.notes);
-            // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
+            const result = await completeTask(prisma as any, body.periodId, body.taskCode, body.userId, body.notes);
             if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });
             return NextResponse.json({ success: true });
         }
