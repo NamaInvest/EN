@@ -1,9 +1,10 @@
-# AI-24 — GitHub Actions CI/CD Pipeline
+# Namasoft ERP — CI/CD Pipeline
+# Lint → TypeCheck (0 errors) → Unit Tests → A11y Tests → Build → Deploy
 name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, hardening/critical-fixes-2026-05-07]
   pull_request:
     branches: [main]
 
@@ -32,20 +33,16 @@ jobs:
       - name: ESLint
         run: npx eslint src/ --max-warnings 50
 
-      # NOTE: TypeScript currently has known errors documented in HARDENING.md.
-      # We capture the count and fail the build only if it INCREASES vs. the baseline.
-      # Baseline drops as we fix legacy errors; never raise it without good reason.
-      - name: TypeScript Check (baseline-aware)
+      - name: TypeScript Check (zero-error policy)
         run: |
-          npx tsc --noEmit --skipLibCheck 2>&1 | tee tsc-output.log || true
-          ERR_COUNT=$(grep -c "error TS" tsc-output.log || echo 0)
-          BASELINE=95
-          echo "TypeScript errors: $ERR_COUNT (baseline: $BASELINE)"
-          if [ "$ERR_COUNT" -gt "$BASELINE" ]; then
-            echo "❌ TypeScript error count increased. New errors must be fixed before merge."
+          ERROR_COUNT=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || echo 0)
+          echo "TypeScript errors: $ERROR_COUNT (baseline: 0)"
+          if [ "$ERROR_COUNT" -gt "0" ]; then
+            echo "❌ TypeScript errors detected. All errors must be fixed before merge."
+            npx tsc --noEmit 2>&1 | grep "error TS" | head -20
             exit 1
           fi
-          echo "✅ TypeScript error count within baseline."
+          echo "✅ Zero TypeScript errors — great job!"
 
   test:
     name: Test Suite
@@ -69,10 +66,56 @@ jobs:
       - name: Run Tests
         run: npx vitest run --reporter=verbose
 
+      - name: i18n Coverage Scan
+        run: |
+          FILE_COUNT=$(npx tsx scripts/find-untranslated.ts 2>&1 | grep 'Files with issues' | grep -o '[0-9]*' || echo 0)
+          echo "Files with untranslated strings: $FILE_COUNT"
+          # Warn but don't block — tracking via untranslated-strings.json
+        continue-on-error: true
+
+  a11y:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build for A11y
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+      - name: Start server
+        run: npx next start &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run Accessibility Tests
+        run: npx playwright test tests/a11y/ --grep "@a11y"
+        continue-on-error: true # Non-blocking until WCAG baseline is set
+
   build:
     name: Production Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, a11y]
     steps:
       - uses: actions/checkout@v6
 
