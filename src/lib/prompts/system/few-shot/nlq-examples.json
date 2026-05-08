@@ -1,0 +1,6 @@
+[
+    {
+        "input": "كم عدد الموظفين؟",
+        "output": "SELECT COUNT(*) FROM employees;"
+    }
+]

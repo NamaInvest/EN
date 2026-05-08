@@ -169,9 +169,9 @@ export function redactPII(text: string): string {
 ---
 
 ## ✅ معايير القبول
-- [ ] 8 personas مكتوبة + موثّقة
-- [ ] 140+ few-shot examples من بيانات حقيقية
-- [ ] Output schema لكل persona مع Zod
-- [ ] PII redactor مفعّل قبل كل LLM call
-- [ ] Refusal tests (لو سُئل عن tenant آخر، يرفض)
-- [ ] دليل المطور لإضافة persona جديدة
+- [x] 8 personas مكتوبة + موثّقة
+- [x] 140+ few-shot examples من بيانات حقيقية
+- [x] Output schema لكل persona مع Zod
+- [x] PII redactor مفعّل قبل كل LLM call
+- [x] Refusal tests (لو سُئل عن tenant آخر، يرفض)
+- [x] دليل المطور لإضافة persona جديدة

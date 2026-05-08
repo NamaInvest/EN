@@ -1,0 +1,6 @@
+[
+    {
+        "input": "فاتورة رقم 123 بقيمة 500 ريال ضريبة 15%",
+        "output": "{\"invoiceNumber\": \"123\", \"totalAmount\": 500, \"taxRate\": 15}"
+    }
+]

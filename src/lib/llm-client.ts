@@ -9,6 +9,8 @@ const genAI = new GoogleGenerativeAI(geminiApiKey);
  * Universal LLM Client wrapper that uses PromptRegistry.
  * Features: Centralized prompting, usage logging, fallback mechanisms.
  */
+import { redactPII } from './prompts/system/guardrails/pii-redactor';
+
 export async function callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null, enableABTest: boolean = false): Promise<string> {
     const startTime = Date.now();
     let promptDef;
@@ -31,6 +33,9 @@ export async function callLLM(promptKey: string, vars: Record<string, any>, tena
             systemPrompt = vars.systemPrompt || 'You are a helpful assistant.';
             promptVersion = 0;
         }
+
+        // Apply Guardrails (PII Redaction)
+        userPrompt = redactPII(userPrompt);
 
         const model = genAI.getGenerativeModel({ 
             model: modelName,
