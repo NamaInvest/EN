@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 
 export async function GET(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -70,36 +71,25 @@ export async function GET(req: NextRequest) {
         };
 
         // 3. Ask AI to analyze
-        const apiKey = process.env.GEMINI_API_KEY;
+        const setting = await prisma.setting.findUnique({ where: { key: 'gemini_api_key' } });
+        let apiKey = setting?.value || process.env.GEMINI_API_KEY || '';
+        if (apiKey) apiKey = apiKey.replace(/[\"\'\\]/g, '').trim();
+
         if (!apiKey) {
-             return NextResponse.json({ success: false, error: '     (GEMINI_API_KEY)' });
+             return NextResponse.json({ success: false, error: 'API key is missing' });
         }
+
+        const promptTemplate = await getPrompt('fraud.invoice_anomaly', auth.tenantId);
+        if (!promptTemplate?.userTemplate) {
+            return NextResponse.json({ success: false, error: 'Prompt template not found' }, { status: 500 });
+        }
+
+        const prompt = renderPrompt(promptTemplate.userTemplate, {
+            contextData: JSON.stringify(contextData, null, 2)
+        });
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-        const prompt = `
-            (AI Fraud Detector)       (NAMA INVEST).
-                    ȡ        (  )      .
-        
-          :
-        ${JSON.stringify(contextData, null, 2)}
-
-        :
-            JSON ء    Markdown (   \`\`\`json)      (Interface):
-        {
-           "securityScore": number, //  0  100 (100    0   )
-           "status": "Safe" | "Warning" | "Critical",
-           "alerts": [
-               {
-                   "severity": "low" | "medium" | "high",
-                   "title": " ",
-                   "description": "       "
-               }
-           ],
-           "recommendation": "     "
-        }
-        `;
+        const model = genAI.getGenerativeModel({ model: promptTemplate.model || 'gemini-2.5-flash' });
 
         const result = await model.generateContent(prompt);
         let aiText = result.response.text().trim();

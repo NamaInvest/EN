@@ -21,11 +21,11 @@
 
 ### 🚨 برومبتات يتيمة (يجب هجرتها)
 1. ~~[src/app/api/ai-cfo/route.ts](../src/app/api/ai-cfo/route.ts) — CFO Analysis~~ ✅ تم الهجرة للـ Registry
-2. [src/app/api/ai-cfo/report/route.ts](../src/app/api/ai-cfo/report/route.ts) — CFO Daily Report
-3. [src/app/api/purchases/ocr/route.ts](../src/app/api/purchases/ocr/route.ts) — Invoice OCR
-4. [src/app/api/ai/fraud-monitoring/route.ts](../src/app/api/ai/fraud-monitoring/route.ts)
-5. [src/app/api/ai/copilot/chat/route.ts](../src/app/api/ai/copilot/chat/route.ts)
-6. [src/app/api/ai-auditor/route.ts](../src/app/api/ai-auditor/route.ts) (تحقق)
+2. ~~[src/app/api/ai-cfo/report/route.ts](../src/app/api/ai-cfo/report/route.ts) — CFO Daily Report~~ ✅ تم الهجرة
+3. ~~[src/app/api/purchases/ocr/route.ts](../src/app/api/purchases/ocr/route.ts) — Invoice OCR~~ ✅ تم الهجرة
+4. ~~[src/app/api/ai/fraud-monitoring/route.ts](../src/app/api/ai/fraud-monitoring/route.ts)~~ ✅ تم الهجرة
+5. ~~[src/app/api/ai/copilot/chat/route.ts](../src/app/api/ai/copilot/chat/route.ts)~~ ✅ تم الهجرة
+6. ~~[src/app/api/ai-auditor/route.ts](../src/app/api/ai-auditor/route.ts)~~ ✅ تم الهجرة
 
 ---
 

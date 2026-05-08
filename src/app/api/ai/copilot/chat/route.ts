@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
 import { invokeChain } from '@/lib/langchain-orchestrator';
-
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 export async function GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
@@ -80,15 +80,17 @@ export async function POST(request: Request) {
 
         const contextStr = history.map((m: any) => `${m.role}: ${m.content}`).join('\n');
 
-        // 4. Call LLM with conversation context
-        const systemPrompt = `You are NamaSoft AI Copilot, a helpful enterprise assistant for a Saudi ERP system.
-You help with accounting, HR, inventory, manufacturing, sales, and compliance questions.
-Answer in the same language the user uses (Arabic or English).
-Be concise but thorough. If you don't know, say so.
+        // 4. Get System Prompt from Registry
+        const promptTemplate = await getPrompt('copilot.general_assistant', tenantId);
+        if (!promptTemplate?.systemPrompt) {
+            return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
+        }
 
-Previous conversation:
-${contextStr}`;
+        const systemPrompt = renderPrompt(promptTemplate.systemPrompt, {
+            contextStr: contextStr
+        });
 
+        // 5. Call LLM with conversation context
         const answer = await invokeChain('copilot.chat', {
             prompt: message,
             systemPrompt

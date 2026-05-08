@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { sendMessage, getBotToken, getGeminiKey } from '@/lib/telegram-bot';
+import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 
 export async function GET(req: NextRequest) {
 
@@ -80,25 +81,15 @@ export async function GET(req: NextRequest) {
             console.log('Master Chat ID not set. Skipping Telegram notification.');
         }
 
-        const prompt = `
-أنت (المدقق المالي الذكي) لشركة تجارية تعمل بنظام نما إنفست ERP.
-اليك ملخص جميع عمليات اليوم (المبيعات، المشتريات، والمصروفات) بصيغة JSON:
-${JSON.stringify(rawData, null, 2)}
+        const promptTemplate = await getPrompt('audit.daily_audit', null); // Cron job, no specific tenant, or global
 
-مهمتك:
-1. تحليل البيانات بشكل دقيق وصارم.
-2. البحث عن الأخطاء الانتباهية (Anomalies) مثل: 
-   - مصروفات عالية جداً أو غير منطقية.
-   - فواتير بيع خاسرة (تم بيع منتج بسعر رخيص جداً بالخطأ).
-   - انخفاض ضخم في المبيعات مقارنة باليوم العادي أو ارتفاع غير مبرر.
-3. التنبيه على أي موردين أو عملاء متكررين بشكل غريب.
+        if (!promptTemplate?.userTemplate) {
+            return NextResponse.json({ error: 'Prompt template not found' }, { status: 500 });
+        }
 
-المخرجات المطلوبة:
-اكتب رسالة قصيرة، احترافية، ومباشرة للمدير التنفيذي باللغة العربية، لتُرسل عبر التلجرام.
-استخدم تنسيق HTML الآمن الخاص بتلجرام (مثل <b> <i> <u>).
-ابدأ التحية بـ 🔍 **تقرير المدقق الآلي اليومي**
-ولا تتجاوز 150 كلمة. كن عملياً (بدون تنظير). إذا كانت الحسابات سليمة، أرسل رسالة إيجابية ومحفزة. وإذا كانت هناك كارثة، أرسلها بنداء عاجل!
-`;
+        const prompt = renderPrompt(promptTemplate.userTemplate, {
+            rawData: JSON.stringify(rawData, null, 2)
+        });
 
         const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey.replace(/[\"\'\\]/g, '').trim()}`, {
             method: 'POST',
