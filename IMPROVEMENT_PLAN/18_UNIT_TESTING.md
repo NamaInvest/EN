@@ -436,10 +436,10 @@ npx stryker run
 ---
 
 ## ✅ معايير القبول
-- [ ] Coverage report يظهر في كل PR
-- [ ] Coverage > 80% (إجمالي)
-- [ ] Coverage > 95% للملفات الحرجة
-- [ ] Property tests على decimal arithmetic
-- [ ] State machine transitions كلها مختبرة
-- [ ] Multi-tenant isolation tests شاملة
-- [ ] Mutation score > 80% للمحركات الحرجة
+- [x] Coverage report يظهر في كل PR
+- [x] Coverage > 80% (إجمالي)
+- [x] Coverage > 95% للملفات الحرجة
+- [x] Property tests على decimal arithmetic
+- [x] State machine transitions كلها مختبرة
+- [x] Multi-tenant isolation tests شاملة
+- [x] Mutation score > 80% للمحركات الحرجة
