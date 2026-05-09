@@ -2,15 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { processMessage, sendMessage, getBotToken, processPhoto, processVoice } from '@/lib/telegram-bot';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
-// Telegram sends updates via POST
+// Telegram Update schema (lenient — Telegram adds fields regularly)
+const TelegramUpdateSchema = z.object({
+  update_id: z.number().optional(),
+  message:   z.object({
+    chat:  z.object({ id: z.number() }),
+    text:  z.string().max(4096).optional(),
+    voice: z.object({ file_id: z.string() }).optional(),
+    audio: z.object({ file_id: z.string() }).optional(),
+    photo: z.array(z.object({ file_id: z.string(), width: z.number(), height: z.number() })).optional(),
+  }).optional(),
+}).passthrough(); // allow extra Telegram fields
+
+const GETQuerySchema = z.object({
+  action: z.enum(['set', 'info', 'remove']).optional(),
+});
+
 async function _POST(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
-        const body = await req.json();
-        const message = body?.message;
+        const rawBody = await req.json();
+        const parsed = TelegramUpdateSchema.safeParse(rawBody);
+        if (!parsed.success) return NextResponse.json({ ok: true }); // never reject Telegram
 
+        const message = parsed.data.message;
         if (!message) return NextResponse.json({ ok: true });
 
         const chatId = message.chat?.id;

@@ -1,26 +1,29 @@
-import { PrismaClient } from "@prisma/client";
+/**
+ * Clerk → NamaSoft User Sync
+ * POST /api/auth/sync
+ *
+ * يُزامن بيانات المستخدم من Clerk إلى جدول users المحلي.
+ * يعمل فقط على الموقع الرئيسي (namainvist.com) — ممنوع على subdomains.
+ */
 import { withRoute } from '@/lib/api/with-route';
-import { currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { getUserFromRequest } from '@/lib/auth';
+import { getPrisma } from '@/lib/prisma';
+import { currentUser } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
-const prisma = new PrismaClient();
+const MAIN_SITE_HOSTS = new Set([
+  'namainvist.com',
+  'www.namainvist.com',
+]);
 
-async function _POST(req: Request) {
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    if (!_getAuth(req)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
+async function _POST(req: NextRequest) {
+  const prisma = getPrisma(req);
   try {
-    // ── منع الإنشاء التلقائي على Tenant subdomains ──────────────────────
-    // هذا المسار يعمل فقط على الموقع الرئيسي (namainvist.com)
-    // أي شركة تدير مستخدميها عبر لوحة الإعدادات فقط
+    // ── فقط الموقع الرئيسي يُسمح بمزامنة المستخدمين ─────────────────────
     const headersList = await headers();
-    const host = headersList.get('host') || '';
-    const isMainSite =
-      host === 'namainvist.com' ||
-      host === 'www.namainvist.com' ||
-      host.startsWith('localhost');
+    const host = (headersList.get('host') || '').split(':')[0]; // strip port
 
+    const isMainSite = MAIN_SITE_HOSTS.has(host) || host === 'localhost' || host === '127.0.0.1';
     if (!isMainSite) {
       return NextResponse.json(
         { error: 'User sync not allowed on tenant subdomains' },
@@ -28,39 +31,37 @@ async function _POST(req: Request) {
       );
     }
 
+    // ── مصادقة Clerk ──────────────────────────────────────────────────────
     const user = await currentUser();
-
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const email = user.emailAddresses[0]?.emailAddress;
     if (!email) {
-      return NextResponse.json({ error: "Email required" }, { status: 400 });
+      return NextResponse.json({ error: 'Clerk account must have a verified email' }, { status: 400 });
     }
 
-    // Check if user exists by username (email)
-    let dbUser = await prisma.user.findUnique({
-      where: { username: email },
-    });
+    // ── إنشاء أو استرجاع المستخدم المحلي ─────────────────────────────────
+    let dbUser = await prisma.user.findUnique({ where: { username: email } });
 
     if (!dbUser) {
-      // Auto-create user if they login with Google (main site only)
       dbUser = await prisma.user.create({
         data: {
-          username: email,
-          fullName: user.firstName ? `${user.firstName} ${user.lastName || ''}` : email.split('@')[0],
-          passwordHash: "clerk_managed",
-          role: "cashier", // Default fallback role
-          active: true,
+          username:     email,
+          fullName:     user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : email.split('@')[0],
+          passwordHash: 'clerk_managed',
+          role:         'cashier', // دور افتراضي — يمكن للمسؤول تغييره لاحقاً
+          active:       true,
         },
       });
     }
 
-    return NextResponse.json({ success: true, user: dbUser });
+    return NextResponse.json({ success: true, user: { id: dbUser.id, username: dbUser.username, role: dbUser.role } });
+
   } catch (error: any) {
-    console.error("Sync user error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error('Sync user error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 

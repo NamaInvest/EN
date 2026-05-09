@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { z } from 'zod';
 
 // Arabic to English transliteration map
 import { getUserFromRequest } from '@/lib/auth';
@@ -54,9 +55,18 @@ function transliterate(arabic: string): string {
     return result;
 }
 
+const POSTSchema = z.object({
+  text: z.string().max(1000, 'النص طويل جداً'),
+});
+
 async function _POST(request: Request) {
     try {
-        const { text } = await request.json();
+        const rawBody = await request.json();
+        const parsed = POSTSchema.safeParse(rawBody);
+        if (!parsed.success) {
+          return NextResponse.json({ result: '', error: parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+        const { text } = parsed.data;
         if (!text) return NextResponse.json({ result: '' });
         const result = transliterate(text);
         return NextResponse.json({ result });

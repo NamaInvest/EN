@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { processMessage } from '@/lib/telegram-bot';
+import { z } from 'zod';
 
-// Internal API endpoint for processing Telegram commands
-// Used by the polling script
+const POSTSchema = z.object({
+  text: z.string().min(1, 'النص مطلوب').max(4096),
+});
+
 async function _POST(req: NextRequest) {
-
     try {
-        const { text } = await req.json();
-        if (!text) return NextResponse.json({ response: '❌ لا يوجد نص' });
-
+        const rawBody = await req.json();
+        const parsed = POSTSchema.safeParse(rawBody);
+        if (!parsed.success) {
+          return NextResponse.json({ response: '❌ لا يوجد نص' });
+        }
+        const { text } = parsed.data;
         const response = await processMessage(text);
         return NextResponse.json({ response });
     } catch (error: any) {

@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
 
-const prisma = new PrismaClient();
 const MAX_BACKUPS_PER_LICENSE = 3;
 const BACKUP_DIR = process.env.BACKUP_STORAGE_PATH || '/tmp/nama-backups';
+const MAX_FILE_SIZE_MB = 500;
 
 async function _POST(req: NextRequest) {
-
+  const prisma = getPrisma(req);
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-    const licenseKey = formData.get('license_key') as string | null;
-    const hardwareId = formData.get('hardware_id') as string | null;
+    const file        = formData.get('file')        as File   | null;
+    const licenseKey  = formData.get('license_key') as string | null;
+    const hardwareId  = formData.get('hardware_id') as string | null;
 
     if (!file || !licenseKey) {
       return NextResponse.json(
@@ -23,7 +23,20 @@ async function _POST(req: NextRequest) {
       );
     }
 
-    // Verify license exists
+    // Validate license key format (alphanumeric + dashes)
+    if (!/^[A-Z0-9-]{10,30}$/i.test(licenseKey)) {
+      return NextResponse.json({ success: false, message: 'Invalid license key format' }, { status: 400 });
+    }
+
+    // Validate file size (max 500MB)
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      return NextResponse.json({ success: false, message: `File too large (max ${MAX_FILE_SIZE_MB}MB)` }, { status: 413 });
+    }
+
+    // Validate file extension
+    if (!file.name.match(/\.(sql|gz|sql\.gz|dump)$/i) && file.type !== 'application/octet-stream') {
+      return NextResponse.json({ success: false, message: 'Invalid file type — only SQL/GZ backups allowed' }, { status: 400 });
+    }
     const license = await prisma.$queryRawUnsafe(
       `SELECT id, company_name_ar FROM desktop_licenses WHERE license_key = $1 LIMIT 1`,
       licenseKey
