@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);

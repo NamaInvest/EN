@@ -7,6 +7,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { fulfillAccess, eraseSubject } from '@/lib/pdpl-engine';
+import { z } from 'zod';
 
 async function _POST(
     req: NextRequest,

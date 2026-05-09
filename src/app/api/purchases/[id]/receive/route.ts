@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

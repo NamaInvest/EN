@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { ProvisionsService } from '@/services/payroll/provisions.service';
+import { z } from 'zod';
 
 // POST /api/payroll/provisions/run
 // Body: { period: '2025-01' }  →  يُشغَّل آخر يوم من الشهر

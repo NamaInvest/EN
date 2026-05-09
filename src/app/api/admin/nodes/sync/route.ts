@@ -4,6 +4,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
+import { z } from 'zod';
 
 const execAsync = promisify(exec);
 const prismaMaster = new PrismaClient();

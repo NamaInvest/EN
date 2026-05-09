@@ -4,6 +4,7 @@ import { getPrisma, resolveTenant } from '@/lib/prisma';
 import { invokeChain } from '@/lib/langchain-orchestrator';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {

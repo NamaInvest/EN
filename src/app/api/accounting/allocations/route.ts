@@ -10,6 +10,7 @@ import { getPrisma } from '@/lib/prisma';
 import { AllocationService, AllocationRule } from '@/services/accounting/allocation.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { Decimal } from '@prisma/client/runtime/library';
+import { z } from 'zod';
 
 function buildCtx(req: NextRequest): BusinessContext {
   const tenantId = req.headers.get('x-tenant-id') ?? 'default';

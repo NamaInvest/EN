@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { KanbanEngine } from '@/lib/kanban-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

@@ -6,6 +6,7 @@ import { treasuryCreateSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {

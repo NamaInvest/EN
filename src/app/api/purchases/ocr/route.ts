@@ -5,6 +5,7 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);

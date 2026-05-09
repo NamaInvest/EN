@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
+import { z } from 'zod';
 
 // POST /api/assets/leases/post-monthly
 // Body: { targetMonth: '2025-01-01' }

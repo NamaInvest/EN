@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { WPSGenerator } from '@/lib/wps-generator';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(
     request: Request,
     context: { params: Promise<{ batchId: string }> }

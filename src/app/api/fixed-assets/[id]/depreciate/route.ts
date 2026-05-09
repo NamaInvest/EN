@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');

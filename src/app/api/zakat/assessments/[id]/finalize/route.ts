@@ -4,6 +4,7 @@ import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

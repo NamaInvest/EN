@@ -5,6 +5,7 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

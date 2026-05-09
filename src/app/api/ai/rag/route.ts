@@ -5,6 +5,7 @@ import { queryRAG } from '@/lib/vector-store';
 import { invokeChain } from '@/lib/langchain-orchestrator';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(req: Request) {
     try {
         const auth = getUserFromRequest(req as any);

@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
+import { z } from 'zod';
 
 // POST /api/assets/leases/[id]/post-inception
 async function _POST(request: NextRequest, { params }: { params: { id: string } }) {

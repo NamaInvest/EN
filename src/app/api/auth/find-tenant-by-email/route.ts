@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 /**
  * POST /api/auth/find-tenant-by-email
  * Searches all tenant databases to find which subdomain has a user with the given email.

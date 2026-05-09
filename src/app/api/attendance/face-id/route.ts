@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // Advanced AI Vision Middleware for Facial Recognition
 // Mocks connecting to AWS Rekognition or local Python OpenCV Daemon

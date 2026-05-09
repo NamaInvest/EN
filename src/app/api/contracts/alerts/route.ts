@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 /**
  * POST /api/contracts/alerts — Check all contracts and generate alerts for expiring ones
  * GET  /api/contracts/alerts — Get active contract expiry alerts

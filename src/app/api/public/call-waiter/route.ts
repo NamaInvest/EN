@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // Public API - customer can call waiter from QR menu
 async function _POST(req: NextRequest) {

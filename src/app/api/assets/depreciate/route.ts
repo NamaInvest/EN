@@ -4,6 +4,7 @@ import { FixedAssetsEngine } from '@/lib/fixed-assets-engine';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(_request: NextRequest) {
     try {
         // Delegate to engine: handles all asset types, methods, salvage caps, JE + log

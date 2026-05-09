@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 const prisma = new PrismaClient();
 
 async function _POST(request: NextRequest) {

@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { seedSocpaCoA } from '@/lib/seed-socpa-coa';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);

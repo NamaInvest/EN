@@ -4,6 +4,7 @@ import { getPrisma, resolveTenant } from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 async function _GET(request: Request) {

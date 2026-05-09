@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { z } from 'zod';
 
 // بيانات دخول ICE - يمكن نقلها لـ env لاحقاً
 const ICE_USERNAME = process.env.ICE_USERNAME || 'admin';

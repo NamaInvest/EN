@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 // Simple moving average + trend forecasting
 function movingAverage(data: number[], window: number): number {

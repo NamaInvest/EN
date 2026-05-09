@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { SalesInvoiceService, CreateInvoiceInput } from '@/services/sales/invoice.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 
 /**
  * Helper to build the BusinessContext from the incoming request headers and auth

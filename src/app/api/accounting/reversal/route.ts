@@ -6,6 +6,7 @@ import { assertReversible, DocumentType } from '@/lib/document-state-machine';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _POST(request: Request) {
     const prisma = getPrisma(request as any);
     const user = getUserFromRequest(request as any);

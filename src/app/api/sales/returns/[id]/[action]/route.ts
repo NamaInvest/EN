@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { StateMachine } from '@/lib/state-machine';
+import { z } from 'zod';
 
 // Define the RMA State Machine rules
 const rmaTransitions = {

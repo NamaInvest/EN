@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { BackupEngine } from '@/lib/backup-engine';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);

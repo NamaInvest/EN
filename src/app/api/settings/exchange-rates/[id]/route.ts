@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
