@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { BackupEngine } from '@/lib/backup-engine';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     const prisma = getPrisma(req);
     if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(serialized);
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     const prisma = getPrisma(req);
     if (!auth || !(await hasPermission(auth.userId, 'manage_system', prisma))) {
@@ -40,3 +41,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(result, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'ADMIN' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

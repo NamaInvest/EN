@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * حذف البيانات الشخصية للعميل (GDPR / PDPL)
  * يحافظ على السجلات المالية مع إخفاء الهوية
  */
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = getUserFromRequest(req as any);
   if (!user || user.role !== 'admin') {
@@ -66,3 +67,5 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     await prisma.$disconnect();
   }
 }
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'DEFAULT' });

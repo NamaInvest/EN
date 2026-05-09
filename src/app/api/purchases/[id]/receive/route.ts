@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function PUT(
+async function _PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -59,3 +60,5 @@ export async function PUT(
         return NextResponse.json({ error: 'فشل بتحديث حالة الاستلام' }, { status: 500 });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'FINANCIAL' });

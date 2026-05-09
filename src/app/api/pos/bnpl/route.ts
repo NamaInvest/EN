@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getBnplKeys, createTabbySession, createTamaraSession } from '@/lib/bnpl';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -42,3 +43,5 @@ export async function POST(request: NextRequest) {
         return apiError(error, 'فشل في إنشاء جلسة التقسيط', { context: 'pos/bnpl' });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

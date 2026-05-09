@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { Pool } from 'pg';
@@ -22,7 +23,7 @@ const getMasterPool = () => {
  *      (  )
  *   :        subdomain 
  */
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     try {
         const { email } = await req.json();
 
@@ -110,3 +111,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: '  ' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });

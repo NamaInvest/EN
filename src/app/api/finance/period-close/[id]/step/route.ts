@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
     try {
@@ -23,3 +24,5 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const PATCH = withRoute(async ({ req }, context) => _PATCH(req as any, context), { rateLimit: 'DEFAULT' });

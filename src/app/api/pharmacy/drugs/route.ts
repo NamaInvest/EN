@@ -1,122 +1,131 @@
-import { getUserFromRequest } from '@/lib/auth';
 /**
  * Pharmacy Drugs API — إدارة الأدوية
- * GET  /api/pharmacy/drugs — قائمة الأدوية
- * POST /api/pharmacy/drugs — إضافة دواء جديد (مع Product)
+ * GET  /api/pharmacy/drugs  — قائمة الأدوية
+ * POST /api/pharmacy/drugs  — إضافة دواء جديد (مع Product)
  */
 import { NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { withRoute } from '@/lib/api/with-route';
 
-export async function GET(req: Request) {
-    const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+const CreateDrugSchema = z.object({
+  name:            z.string().min(1, 'اسم الدواء مطلوب'),
+  nameEn:          z.string().optional().default(''),
+  barcode:         z.string().optional().nullable(),
+  buyPrice:        z.number().min(0).default(0),
+  sellPrice:       z.number().min(0).default(0),
+  mohMaxPrice:     z.number().min(0).default(0),
+  minQuantity:     z.number().min(0).default(5),
+  categoryId:      z.number().int().positive().optional().nullable(),
+  unitId:          z.number().int().positive().default(1),
+  sfdaNumber:      z.string().optional().default(''),
+  genericName:     z.string().min(1, 'الاسم العلمي مطلوب'),
+  genericNameEn:   z.string().optional().default(''),
+  drugClass:       z.enum(['OTC', 'RX', 'CONTROLLED', 'SUPPLEMENT']).default('OTC'),
+  manufacturer:    z.string().optional().nullable(),
+  countryOfOrigin: z.string().optional().nullable(),
+  storageTemp:     z.enum(['room', 'refrigerated', 'frozen']).default('room'),
+  requiresRx:      z.boolean().default(false),
+  isControlled:    z.boolean().default(false),
+});
 
-    const url = new URL(req.url);
-    const search = url.searchParams.get('q') || '';
-    const drugClass = url.searchParams.get('class') || '';
-    const lowStock = url.searchParams.get('lowStock') === 'true';
-    const expiringSoon = url.searchParams.get('expiringSoon') === 'true';
+export const GET = withRoute(async ({ req, prisma }) => {
+  const url         = new URL(req.url);
+  const search      = url.searchParams.get('q') || '';
+  const drugClass   = url.searchParams.get('class') || '';
+  const lowStock    = url.searchParams.get('lowStock') === 'true';
+  const expiringSoon = url.searchParams.get('expiringSoon') === 'true';
 
-    try {
-        const where: any = { active: true };
-        if (drugClass) where.drugClass = drugClass;
-        if (search) {
-            where.OR = [
-                { genericName: { contains: search, mode: 'insensitive' } },
-                { sfdaNumber: { contains: search } },
-                { product: { name: { contains: search, mode: 'insensitive' } } },
-            ];
-        }
+  const where: any = { active: true };
+  if (drugClass) where.drugClass = drugClass;
+  if (search) {
+    where.OR = [
+      { genericName: { contains: search, mode: 'insensitive' } },
+      { sfdaNumber:  { contains: search } },
+      { product:     { name: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
 
-        // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const drugs = await prisma.pharmacyDrug.findMany({
-            take: 100,
-            where,
-            include: {
-                product: {
-                    select: {
-                        id: true, name: true, nameEn: true, barcode: true,
-                        currentStock: true, minQuantity: true, sellPrice: true,
-                        buyPrice: true, expiryDate: true, batches: {
-                            select: { batchNumber: true, expiryDate: true, currentQuantity: true },
-                            orderBy: { expiryDate: 'asc' },
-                        },
-                    },
-                },
-            },
-            orderBy: { genericName: 'asc' },
-        });
+  // pharmacyDrug model is pending `prisma generate` — use `as any` until then
+  const drugs = await (prisma as any).pharmacyDrug.findMany({
+    take: 100,
+    where,
+    include: {
+      product: {
+        select: {
+          id: true, name: true, nameEn: true, barcode: true,
+          currentStock: true, minQuantity: true, sellPrice: true,
+          buyPrice: true, expiryDate: true,
+          batches: {
+            select: { batchNumber: true, expiryDate: true, currentQuantity: true },
+            orderBy: { expiryDate: 'asc' },
+          },
+        },
+      },
+    },
+    orderBy: { genericName: 'asc' },
+  });
 
-        let result = drugs;
+  let result: any[] = drugs;
 
-        // Filter by low stock
-        if (lowStock) {
-            result = result.filter((d: any) => d.product.currentStock <= d.product.minQuantity);
-        }
+  if (lowStock) {
+    result = result.filter((d: any) => d.product.currentStock <= d.product.minQuantity);
+  }
 
-        // Filter expiring within 30 days
-        if (expiringSoon) {
-            const in30 = new Date();
-            in30.setDate(in30.getDate() + 30);
-            result = result.filter((d: any) =>
-                d.product.batches.some((b: any) => b.expiryDate && new Date(b.expiryDate) <= in30)
-            );
-        }
+  if (expiringSoon) {
+    const in30 = new Date();
+    in30.setDate(in30.getDate() + 30);
+    result = result.filter((d: any) =>
+      d.product.batches.some((b: any) => b.expiryDate && new Date(b.expiryDate) <= in30)
+    );
+  }
 
-        return NextResponse.json({ total: result.length, drugs: result });
-    } catch (e: any) {
-        console.error(e);
-        return NextResponse.json({ error: 'خطأ في تحميل الأدوية' }, { status: 500 });
-    }
-}
+  return NextResponse.json({ total: result.length, drugs: result });
+}, { rateLimit: 'DEFAULT' });
 
-export async function POST(req: Request) {
-    const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+export const POST = withRoute(async ({ req, prisma }) => {
+  const raw = await req.json().catch(() => ({}));
+  const parsed = CreateDrugSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
 
-    try {
-        const body = await req.json();
+  const body = parsed.data;
 
-        // 1. Create Product first
-        // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const product = await prisma.product.create({
-            data: {
-                name: body.name,
-                nameEn: body.nameEn || '',
-                barcode: body.barcode || null,
-                buyPrice: parseFloat(body.buyPrice) || 0,
-                sellPrice: parseFloat(body.sellPrice) || parseFloat(body.mohMaxPrice) || 0,
-                minQuantity: parseFloat(body.minQuantity) || 5,
-                taxRate: 0, // أدوية معفاة من الضريبة في السعودية
-                categoryId: body.categoryId ? parseInt(body.categoryId) : null,
-                unitId: body.unitId ? parseInt(body.unitId) : 1,
-            },
-        });
+  // 1. Create Product first
+  const product = await prisma.product.create({
+    data: {
+      name:        body.name,
+      nameEn:      body.nameEn,
+      barcode:     body.barcode ?? null,
+      buyPrice:    body.buyPrice,
+      sellPrice:   body.sellPrice || body.mohMaxPrice,
+      minQuantity: body.minQuantity,
+      taxRate:     0, // أدوية معفاة من الضريبة في السعودية
+      categoryId:  body.categoryId ?? null,
+      unitId:      body.unitId,
+    },
+  });
 
-        // 2. Create PharmacyDrug linked to product
-        // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const drug = await prisma.pharmacyDrug.create({
-            data: {
-                productId: product.id,
-                sfdaNumber: body.sfdaNumber,
-                genericName: body.genericName,
-                genericNameEn: body.genericNameEn || '',
-                drugClass: body.drugClass || 'OTC',
-                manufacturer: body.manufacturer || null,
-                countryOfOrigin: body.countryOfOrigin || null,
-                storageTemp: body.storageTemp || 'room',
-                mohMaxPrice: parseFloat(body.mohMaxPrice) || 0,
-                requiresRx: body.requiresRx || false,
-                isControlled: body.isControlled || false,
-            },
-            include: { product: true },
-        });
+  // 2. Create PharmacyDrug linked to product
+  const drug = await (prisma as any).pharmacyDrug.create({
+    data: {
+      productId:       product.id,
+      sfdaNumber:      body.sfdaNumber,
+      genericName:     body.genericName,
+      genericNameEn:   body.genericNameEn,
+      drugClass:       body.drugClass,
+      manufacturer:    body.manufacturer ?? null,
+      countryOfOrigin: body.countryOfOrigin ?? null,
+      storageTemp:     body.storageTemp,
+      mohMaxPrice:     body.mohMaxPrice,
+      requiresRx:      body.requiresRx,
+      isControlled:    body.isControlled,
+    },
+    include: { product: true },
+  });
 
-        return NextResponse.json(drug, { status: 201 });
-    } catch (e: any) {
-        console.error(e);
-        return NextResponse.json({ error: 'خطأ في إضافة الدواء' }, { status: 500 });
-    }
-}
+  return NextResponse.json(drug, { status: 201 });
+}, { rateLimit: 'DEFAULT' });

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+async function _GET() {
 
   try {
     const sequences = await prisma.numberingSequence.findMany({
@@ -23,3 +24,5 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch numbering sequences' }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });

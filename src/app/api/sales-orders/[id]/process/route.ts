@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function PUT(
+async function _PUT(
     request: NextRequest,
     context: { params: Promise<{ id: string }> }
 ) {
@@ -104,3 +105,5 @@ export async function PUT(
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'sales-orders/[id]/process' });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });

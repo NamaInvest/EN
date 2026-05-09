@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { exec } from "child_process";
 import { getUserFromRequest } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     try {
         const user = getUserFromRequest(req as any);
         if (!user) {
@@ -48,3 +49,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

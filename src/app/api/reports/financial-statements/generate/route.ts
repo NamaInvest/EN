@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
@@ -7,7 +8,7 @@ import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
  * POST /api/reports/financial-statements/generate
  * Body: { type: 'BS'|'IS'|'CF'|'TB', from, to, priorFrom?, priorTo? }
  */
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
  * GET /api/reports/financial-statements/generate
  * Query: ?type=TB&from=2025-01-01&to=2025-12-31
  */
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -76,3 +77,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ success: true, type, data: result });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

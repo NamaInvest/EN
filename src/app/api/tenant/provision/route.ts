@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 
@@ -260,7 +261,7 @@ async function seedCompanyData(params: {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         // Enforce Authentication
@@ -448,3 +449,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, message: 'خطأ عام: ' + e.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

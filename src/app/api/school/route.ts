@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         const tenantString = resolveTenant(req as any);
@@ -73,3 +74,5 @@ export async function POST(req: NextRequest) {
         }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

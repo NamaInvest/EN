@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
     try {
@@ -28,3 +29,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // GET - شجرة الحسابات
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - إضافة حساب جديد
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 }
 
 // PUT - تعديل حساب
-export async function PUT(request: Request) {
+async function _PUT(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -89,7 +90,7 @@ export async function PUT(request: Request) {
 }
 
 // DELETE - حذف حساب (فقط إذا لم يكن له حركات)
-export async function DELETE(request: Request) {
+async function _DELETE(request: Request) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -119,3 +120,11 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'فشل في حذف الحساب' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'FINANCIAL' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'FINANCIAL' });

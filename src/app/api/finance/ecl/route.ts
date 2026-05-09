@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // Baseline IFRS 9 PD (Probability of Default) per bucket
@@ -15,7 +16,7 @@ const PD_RATES = {
 // Assuming an average recovery rate of 40%, LGD = 60% (0.6)
 const DEFAULT_LGD = 0.6;
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
@@ -119,7 +120,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
@@ -140,3 +141,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

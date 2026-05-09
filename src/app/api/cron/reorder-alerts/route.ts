@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Priority 2: Reorder Point Cron Job
  * يفحص كل المنتجات التي وصلت لحد إعادة الطلب (minQuantity)
@@ -7,7 +8,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     // Allow cron secret or authenticated user
@@ -77,3 +78,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'Cron error' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'CRON' });

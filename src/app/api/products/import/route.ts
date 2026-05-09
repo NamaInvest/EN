@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import * as xlsx from 'xlsx';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -156,3 +157,5 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في استيراد المنتجات' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

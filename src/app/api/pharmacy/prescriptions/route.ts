@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Prescriptions API — إدارة الوصفات الطبية
  * GET  /api/pharmacy/prescriptions?patientId=1
@@ -8,7 +9,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
 }
 
 // PUT — Dispense prescription
-export async function PUT(req: Request) {
+async function _PUT(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -164,3 +165,9 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: 'خطأ في صرف الوصفة' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'DEFAULT' });

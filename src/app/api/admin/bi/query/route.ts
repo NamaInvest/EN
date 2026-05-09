@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
@@ -35,3 +36,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

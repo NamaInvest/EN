@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     try {
         const { searchParams } = new URL(req.url);
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -65,3 +66,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

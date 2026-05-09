@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
@@ -7,7 +8,7 @@ const prisma = new PrismaClient();
 const MAX_BACKUPS_PER_LICENSE = 3;
 const BACKUP_DIR = process.env.BACKUP_STORAGE_PATH || '/tmp/nama-backups';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
   try {
     const formData = await req.formData();
@@ -99,3 +100,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'UPLOAD' });

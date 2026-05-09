@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 // Auth mock
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     try {
         // In a real app, you'd get the user from session:
         // const session = await getServerSession(authOptions);
@@ -30,3 +31,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

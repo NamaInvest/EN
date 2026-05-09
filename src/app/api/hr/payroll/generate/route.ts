@@ -1,23 +1,24 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
-import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+const GeneratePayrollSchema = z.object({
+  month: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).refine(v => v >= 1 && v <= 12, 'الشهر 1-12'),
+  year:  z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).refine(v => v >= 2020 && v <= 2099, 'السنة غير صالحة'),
+});
 
-
+async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const body = await request.json();
-        const month = parseInt(body.month);
-        const year = parseInt(body.year);
-
-        if (!month || !year) {
-            return NextResponse.json({ error: 'الشهر والسنة مطلوبان' }, { status: 400 });
+        const raw    = await request.json();
+        const parsed = GeneratePayrollSchema.safeParse(raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors }, { status: 400 });
         }
+        const { month, year } = parsed.data;
 
         // 1. Fetch all active employees
         const employees = await prisma.employee.findMany({
@@ -170,3 +171,5 @@ export async function POST(request: Request) {
         return apiError(error, 'فشل توليد مسير الرواتب', { context: 'hr/payroll/generate' });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

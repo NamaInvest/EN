@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -20,3 +21,5 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch loyalty points' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

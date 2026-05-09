@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     try {
         const tmpDir = '/tmp/debug_zatca_perfect';
@@ -51,3 +52,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

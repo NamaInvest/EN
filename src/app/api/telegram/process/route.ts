@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { processMessage } from '@/lib/telegram-bot';
 
 // Internal API endpoint for processing Telegram commands
 // Used by the polling script
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         const { text } = await req.json();
@@ -16,3 +17,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ response: '❌ خطأ في معالجة الطلب' });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

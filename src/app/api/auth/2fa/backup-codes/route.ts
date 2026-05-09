@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { MfaEngine } from '@/lib/mfa-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 /**
  * POST /api/auth/2fa/backup-codes — Regenerate backup codes (invalidates old set)
  */
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -31,3 +32,5 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'فشل إنشاء رموز الاحتياط' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });

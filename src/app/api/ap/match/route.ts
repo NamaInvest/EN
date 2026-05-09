@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { ThreeWayMatchService } from '@/services/ap/three-way-match.service';
 import { PaymentRunService } from '@/services/ap/payment-run.service';
@@ -22,7 +23,7 @@ function buildCtx(req: NextRequest): BusinessContext {
   } as unknown as BusinessContext;
 }
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
   try {
     const prisma = getPrisma(req);
     const ctx    = buildCtx(req);
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   try {
     const prisma  = getPrisma(req);
     const ctx     = buildCtx(req);
@@ -119,3 +120,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { ApprovalEngine } from '@/lib/approval-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+async function _POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -30,3 +31,5 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         return NextResponse.json({ error: error.message || 'فشل في معالجة طلب الاعتماد' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

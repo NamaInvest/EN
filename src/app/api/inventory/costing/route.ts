@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { fifoCost, lifoCost, averageCost, calculateCost, CostBatch } from '@/lib/costing';
 import { n } from '@/lib/decimal-utils';
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/inventory/costing — حساب تكلفة المخزون بطرق مختلفة
  * ?productId=1&method=fifo|lifo|average&qty=10
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -87,3 +88,4 @@ export async function GET(req: Request) {
   }
 }
 
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

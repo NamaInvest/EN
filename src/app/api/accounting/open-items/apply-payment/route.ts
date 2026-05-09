@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { OpenItemsEngine } from "@/lib/open-items";
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
   try {
     const { paymentOpenItemId, allocations } = await req.json();
@@ -18,3 +19,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

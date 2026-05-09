@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { transition, assertEditable, DocumentType, DocumentStatus } from '@/lib/document-state-machine';
 import { n } from '@/lib/decimal-utils';
@@ -16,7 +17,7 @@ async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     }
 }
 
-export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+async function _PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -131,7 +132,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }
 }
 
-export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+async function _PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -201,3 +202,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         return NextResponse.json({ error: error.message || 'فشل في تغيير الحالة' }, { status: 400 });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'FINANCIAL' });
+
+export const PATCH = withRoute(async ({ req }, context) => _PATCH(req as any, context), { rateLimit: 'FINANCIAL' });

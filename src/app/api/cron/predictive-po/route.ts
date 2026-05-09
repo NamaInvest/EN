@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req);
   try {
@@ -77,3 +78,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to run predictive procurement' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'CRON' });

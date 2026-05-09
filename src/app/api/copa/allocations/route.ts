@@ -4,10 +4,11 @@
  * GET  /api/copa/allocations — List allocation rules
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { runAllocation } from '@/lib/copa-engine';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
@@ -46,3 +47,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
@@ -6,7 +7,7 @@ import { n } from '@/lib/decimal-utils';
 // Automatically allocates Shipping, Customs, and Insurance costs to imported products
 // to calculate the TRUE `buyPrice` (Cost of Goods Sold - COGS)
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req);
   try {
@@ -142,3 +143,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to calculate landed costs' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

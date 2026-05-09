@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
@@ -59,3 +60,5 @@ function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 
 const execAsync = promisify(exec);
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const { subdomain } = await req.json();
@@ -38,3 +39,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message || "Failed to create physical backup archive." }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

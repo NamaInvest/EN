@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 
-export async function PUT(
+async function _PUT(
     request: NextRequest,
     context: { params: Promise<{ id: string }> }
 ) {
@@ -60,3 +61,5 @@ export async function PUT(
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });

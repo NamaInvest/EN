@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // License Verify — Public endpoint called by desktop app
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
@@ -68,3 +69,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ valid: false, offline: true, error: 'لا يمكن التحقق حالياً' });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

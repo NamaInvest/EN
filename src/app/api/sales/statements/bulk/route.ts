@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -16,3 +17,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

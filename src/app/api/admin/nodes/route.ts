@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { exec } from "child_process";
 import { promisify } from "util";
 import { PrismaClient } from "@prisma/client";
@@ -8,7 +9,7 @@ const prisma = new PrismaClient();
 
 // Security: In a real app, require NextAuth Token with Role='master'. 
 // For demo, we leave it open, but we check if request comes from within.
-export async function GET() {
+async function _GET() {
 
   try {
     // 1. Fetch PM2 list
@@ -50,7 +51,7 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const { action, subdomain } = await req.json(); // action: 'start', 'stop', 'restart'
@@ -83,3 +84,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "PM2 execution failed." }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'ADMIN' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

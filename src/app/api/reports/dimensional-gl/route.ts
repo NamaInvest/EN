@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
@@ -11,7 +12,7 @@ import { getUserFromRequest } from '@/lib/auth';
  *   to: YYYY-MM-DD
  *   accountId: (optional) filter by specific account
  */
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -119,3 +120,5 @@ export async function GET(req: NextRequest) {
         return apiError(e, 'فشل تقرير الأستاذ البُعدي', { context: 'reports/dimensional-gl' });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

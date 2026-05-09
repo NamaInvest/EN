@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { resolveTenant } from '@/lib/prisma';
 import { queryRAG } from '@/lib/vector-store';
 import { invokeChain } from '@/lib/langchain-orchestrator';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,3 +34,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to process RAG pipeline' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { BankFeedEngine } from '@/lib/bank-feed-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     try { return NextResponse.json(await BankFeedEngine.getEntries(prisma, user.tenantId || '', status)); }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -25,3 +26,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'action required' }, { status: 400 });
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

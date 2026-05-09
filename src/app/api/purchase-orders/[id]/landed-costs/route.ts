@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function GET(
+async function _GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -27,7 +28,7 @@ export async function GET(
     }
 }
 
-export async function POST(
+async function _POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -79,3 +80,7 @@ export async function POST(
         return NextResponse.json({ error: 'فشل في إضافة التكلفة الموزعة' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

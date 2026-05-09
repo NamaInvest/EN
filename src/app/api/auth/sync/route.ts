@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { withRoute } from '@/lib/api/with-route';
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -6,7 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     if (!_getAuth(req)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
   try {
@@ -62,3 +63,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });

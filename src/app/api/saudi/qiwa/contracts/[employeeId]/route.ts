@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Qiwa Contracts API
  * GET  /api/saudi/qiwa/contracts/[employeeId] — Get employee contracts
@@ -10,7 +11,7 @@ import { getEmployeeContracts } from '@/lib/qiwa-engine';
 
 const db = (p: any) => p as any;
 
-export async function GET(
+async function _GET(
     req: NextRequest,
     { params }: { params: Promise<{ employeeId: string }> }
 ) {
@@ -28,7 +29,7 @@ export async function GET(
     }
 }
 
-export async function POST(
+async function _POST(
     req: NextRequest,
     { params }: { params: Promise<{ employeeId: string }> }
 ) {
@@ -62,3 +63,7 @@ export async function POST(
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

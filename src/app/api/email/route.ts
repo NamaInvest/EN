@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/email';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
 
     try {
         const auth = getUserFromRequest(request as any);
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Test endpoint (GET)
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     try {
         const { searchParams } = new URL(request.url);
@@ -60,3 +61,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

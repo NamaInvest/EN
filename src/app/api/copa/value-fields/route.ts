@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
 // COPA Value Fields — الحقول الكمية لنظام المحاسبة الربحية
-export async function GET() {
+async function _GET() {
     return NextResponse.json({
         fields: [
             { key: 'revenue', label: 'الإيراد', type: 'currency' },
@@ -14,3 +15,5 @@ export async function GET() {
         ]
     });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });

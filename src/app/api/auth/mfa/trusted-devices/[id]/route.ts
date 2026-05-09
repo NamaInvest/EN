@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
     try {
         const id = parseInt((await params).id);
@@ -40,3 +41,5 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'AUTH' });

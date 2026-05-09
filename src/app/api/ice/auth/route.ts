@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
@@ -32,7 +33,7 @@ function verifyIceToken(token: string): boolean {
 }
 
 // POST: تسجيل الدخول
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const { username, password } = await req.json();
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
 }
 
 // DELETE: تسجيل الخروج
-export async function DELETE() {
+async function _DELETE() {
 
     const response = NextResponse.json({ success: true });
     response.cookies.delete('ice_token');
@@ -70,7 +71,7 @@ export async function DELETE() {
 }
 
 // GET: فحص حالة الجلسة
-export async function GET() {
+async function _GET() {
 
     const cookieStore = await cookies();
     const token = cookieStore.get('ice_token')?.value;
@@ -81,3 +82,9 @@ export async function GET() {
 
     return NextResponse.json({ authenticated: true, user: ICE_USERNAME });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'AUTH' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(), { rateLimit: 'AUTH' });

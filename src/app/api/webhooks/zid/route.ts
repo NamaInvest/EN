@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
 // زد ويب هوك - استقبال الطلبات الجديدة
 // الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -181,3 +182,5 @@ async function processOrder(order: Record<string, any>, prisma: any) {
 
     console.log(`تم استيراد طلب زد رقم ${order.id} بنجاح كفاتورة #${invoice.invoiceNo}`);
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

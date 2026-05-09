@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { ContractEngine } from '@/lib/contract-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -27,3 +28,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'action: create | renew | terminate' }, { status: 400 });
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

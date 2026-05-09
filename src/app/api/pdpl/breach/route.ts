@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * PDPL Breach Incident API
  * GET  /api/pdpl/breach — Get active breaches
@@ -8,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { recordBreach, getActiveBreaches } from '@/lib/pdpl-engine';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -40,3 +41,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

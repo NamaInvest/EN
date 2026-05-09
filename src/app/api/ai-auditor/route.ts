@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { sendMessage, getBotToken, getGeminiKey } from '@/lib/telegram-bot';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
@@ -114,3 +115,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AI' });

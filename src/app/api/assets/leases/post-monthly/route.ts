@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
 
 // POST /api/assets/leases/post-monthly
 // Body: { targetMonth: '2025-01-01' }
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -19,3 +20,5 @@ export async function POST(request: NextRequest) {
   const result = await svc.postMonthlyEntries(targetDate);
   return NextResponse.json({ success: true, ...result });
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

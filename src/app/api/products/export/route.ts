@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import * as xlsx from 'xlsx';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -74,3 +75,5 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في تصدير المنتجات' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

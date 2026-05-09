@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 // Get pending orders from digital menu
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
 }
 
 // Approve or reject an order
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
@@ -76,3 +77,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,11 +1,12 @@
 ﻿// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { MfaEngine } from '@/lib/mfa-engine';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { userId, code } = body;
@@ -57,3 +58,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 401 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("email");
@@ -30,3 +31,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

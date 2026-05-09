@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
@@ -67,3 +68,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

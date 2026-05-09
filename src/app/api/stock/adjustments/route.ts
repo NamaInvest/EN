@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { getUserFromRequest } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
 
     try {
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
 
     // Auth guard
@@ -107,3 +108,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 400 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

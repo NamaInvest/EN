@@ -1,10 +1,11 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 ﻿import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 
 // GET - ط§ظ„ظ‚ظٹظˆط¯ ط§ظ„ظٹظˆظ…ظٹط©
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
 }
 
 // POST - ط¥ط¶ط§ظپط© ظ‚ظٹط¯ ظٹط¯ظˆظٹ
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -130,3 +131,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¥ظ†ط´ط§ط، ط§ظ„ظ‚ظٹط¯' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

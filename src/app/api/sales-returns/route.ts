@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
 import { salesReturnCreateSchema } from '@/lib/validations';
@@ -6,7 +7,7 @@ import { handleApiError } from '@/lib/api-handler';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     } catch (e: any) { return handleApiError(e); }
 }
 
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -517,3 +518,7 @@ export async function POST(request: Request) {
         return handleApiError(e); 
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

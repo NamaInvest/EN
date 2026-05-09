@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Project EVM API
  * GET /api/projects/evm?projectId=X — EVM metrics for one project
@@ -8,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { WBSEngine } from '@/lib/wbs-engine';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -32,3 +33,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

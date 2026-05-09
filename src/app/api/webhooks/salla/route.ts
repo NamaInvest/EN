@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import crypto from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
@@ -9,7 +10,7 @@ function verifySallaSignature(bodyStr: string, secret: string, signature: string
     return hash === signature;
 }
 
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -191,3 +192,5 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
         console.error('Auto-journal for Salla webhook failed:', jErr);
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function PUT(request: NextRequest) {
+async function _PUT(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -50,3 +51,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'فشل تحديث حالة المطابقة' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'FINANCIAL' });

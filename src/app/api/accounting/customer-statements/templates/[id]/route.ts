@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
     try {
@@ -34,7 +35,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
     try {
@@ -47,3 +48,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'FINANCIAL' });
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'FINANCIAL' });

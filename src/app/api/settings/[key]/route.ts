@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request, { params }: { params: Promise<{ key: string }> }) {
+async function _GET(request: Request, { params }: { params: Promise<{ key: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -14,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ key:
     } catch (error: any) { console.error(error); return NextResponse.json({ error: 'خطأ' }, { status: 500 }); }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ key: string }> }) {
+async function _PUT(request: Request, { params }: { params: Promise<{ key: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -36,3 +37,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ key:
         return NextResponse.json(setting);
     } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });

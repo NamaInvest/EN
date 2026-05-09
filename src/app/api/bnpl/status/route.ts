@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -22,3 +23,5 @@ export async function GET(request: Request) {
         status: randomStatus
     });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

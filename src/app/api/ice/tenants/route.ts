@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
@@ -30,7 +31,7 @@ function verifyIceToken(token: string): boolean {
     } catch { return false; }
 }
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     const cookieStore = await cookies();
     const token = cookieStore.get('ice_token')?.value;
@@ -137,3 +138,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

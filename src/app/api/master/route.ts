@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { exec } from 'child_process';
 import util from 'util';
 
 const execAsync = util.promisify(exec);
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -53,3 +54,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: e.message });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

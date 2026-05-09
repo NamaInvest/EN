@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = (process.env.JWT_SECRET as string);
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const authHeader = req.headers.get('authorization');
@@ -88,3 +89,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'خلل داخلي في خوادم تمارا.' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // Public API - no auth required
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     try {
         const prisma = getPrisma(req);
         
@@ -42,3 +43,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

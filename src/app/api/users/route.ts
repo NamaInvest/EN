@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { getUserFromRequest, hasPermission, hashPassword } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function PUT(request: NextRequest) {
+async function _PUT(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -201,7 +202,7 @@ export async function PUT(request: NextRequest) {
     }
 }
 
-export async function PATCH(request: NextRequest) {
+async function _PATCH(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -229,7 +230,7 @@ export async function PATCH(request: NextRequest) {
     }
 }
 
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -251,3 +252,13 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في حذف المستخدم' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'DEFAULT' });
+
+export const PATCH = withRoute(async ({ req }) => _PATCH(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

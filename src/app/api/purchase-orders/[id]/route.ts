@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(
+async function _GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -26,7 +27,7 @@ export async function GET(
 }
 
 
-export async function PUT(
+async function _PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -164,3 +165,7 @@ export async function PUT(
         return NextResponse.json({ error: 'فشل بتحديث الحالة' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });

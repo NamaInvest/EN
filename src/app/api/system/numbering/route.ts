@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { peekNextNumber, resetSequence, NUMBERING_DEFAULTS } from '@/lib/numbering';
 
@@ -6,7 +7,7 @@ import { peekNextNumber, resetSequence, NUMBERING_DEFAULTS } from '@/lib/numberi
 // GET /api/system/numbering?code=WO&branchId=1 — تكوين محدد
 // GET /api/system/numbering?peek=WO — معاينة الرقم التالي بدون استهلاك
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
 
 // POST /api/system/numbering — إنشاء/تحديث تكوين سلسلة
 // body: { code, prefix?, suffix?, padLength?, resetFrequency?, branchId?, isActive?, name? }
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
 }
 
 // DELETE /api/system/numbering?id=123 — تعطيل سلسلة (soft delete)
-export async function DELETE(request: Request) {
+async function _DELETE(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -125,7 +126,7 @@ export async function DELETE(request: Request) {
 }
 
 // PATCH /api/system/numbering?action=reset&code=WO&branchId=1
-export async function PATCH(request: Request) {
+async function _PATCH(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -153,3 +154,11 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: error.message || 'فشل التنفيذ' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PATCH = withRoute(async ({ req }) => _PATCH(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

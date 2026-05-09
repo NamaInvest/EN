@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { WPSGenerator } from '@/lib/wps-generator';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(
+async function _POST(
     request: Request,
     context: { params: Promise<{ batchId: string }> }
 ) {
@@ -24,3 +25,5 @@ export async function POST(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'FINANCIAL' });

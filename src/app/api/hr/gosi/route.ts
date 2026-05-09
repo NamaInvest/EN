@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * GOSI (التأمينات الاجتماعية) Payroll Deductions API
  * GET  /api/hr/gosi — ملخص اشتراكات GOSI للشهر
@@ -16,7 +17,7 @@ const GOSI_RATES = {
     hazardSaudi: 0.02,        // مخاطر مهنية: 2% على صاحب العمل
 };
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -73,7 +74,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -157,3 +158,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'خطأ في تسجيل GOSI' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

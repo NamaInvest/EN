@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
@@ -58,3 +59,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

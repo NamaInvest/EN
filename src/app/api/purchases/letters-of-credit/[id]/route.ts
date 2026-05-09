@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
     const prisma = getPrisma(request);
     try {
@@ -43,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
     const prisma = getPrisma(request);
     try {
@@ -62,3 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         return NextResponse.json({ error: 'فشل في حذف الاعتماد. قد يكون مرتبطاً بمشتريات.' }, { status: 500 });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'FINANCIAL' });
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'FINANCIAL' });

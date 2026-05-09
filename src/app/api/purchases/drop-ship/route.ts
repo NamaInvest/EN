@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req);
     try {
         const auth = await getUserFromRequest(req as any);
@@ -127,3 +128,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to confirm drop ship' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

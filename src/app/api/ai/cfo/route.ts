@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { callLLM } from '@/lib/llm-client';
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req);
   try {
     const auth = getUserFromRequest(req as any);
@@ -67,3 +68,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to communicate with AI Engine' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

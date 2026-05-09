@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getB2BUserFromRequest } from '@/lib/b2b-auth';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const auth = getB2BUserFromRequest(req);
@@ -28,3 +29,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

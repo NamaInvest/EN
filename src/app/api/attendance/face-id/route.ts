@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // Advanced AI Vision Middleware for Facial Recognition
 // Mocks connecting to AWS Rekognition or local Python OpenCV Daemon
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req);
   try {
@@ -82,3 +83,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Vision AI matching failed' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

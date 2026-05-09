@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     const prisma = getPrisma(req);
     try {
@@ -102,3 +103,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

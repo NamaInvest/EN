@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import packageJson from '../../../../package.json';
 
-export async function GET() {
+async function _GET() {
 
     // This API provides the latest version for the desktop application.
     // In production, this can be managed via DB, but hardcoding for now as requested.
@@ -13,3 +14,5 @@ export async function GET() {
         releaseNotes: 'تحسينات في نظام ZATCA وإصلاحات لمشاكل الواجهة'
     });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });

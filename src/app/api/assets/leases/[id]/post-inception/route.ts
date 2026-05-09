@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
 
 // POST /api/assets/leases/[id]/post-inception
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+async function _POST(request: NextRequest, { params }: { params: { id: string } }) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -22,3 +23,5 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: err.message }, { status: 422 });
   }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

@@ -1,6 +1,7 @@
 import ollama from 'ollama'
+import { withRoute } from '@/lib/api/with-route';
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const { sectionName } = await req.json()
 
@@ -12,3 +13,5 @@ export async function POST(req: Request) {
 
     return Response.json({ explanation: response.message.content })
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -31,7 +32,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
@@ -56,3 +57,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/orders/[id]' });
     }
 }
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'DEFAULT' });

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const user = getUserFromRequest(req as any);
@@ -85,3 +86,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

@@ -1,86 +1,89 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
-
 import { getUserFromRequest } from '@/lib/auth';
+import { postStockTransfer } from '@/lib/auto-journal';
+
 const StockTransferItemSchema = z.object({
-    productId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))),
+    productId:   z.union([z.string(), z.number()]).transform(v => parseInt(String(v))),
     productName: z.string().optional().nullable(),
-    quantity: z.union([z.string(), z.number()]).transform(v => parseFloat(String(v))),
+    quantity:    z.union([z.string(), z.number()]).transform(v => parseFloat(String(v))),
 });
 
 const StockTransferSchema = z.object({
     fromStockId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
-    toStockId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
-    userId: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
-    notes: z.string().optional().nullable(),
-    items: z.array(StockTransferItemSchema).min(1, 'يجب تحديد صنف واحد على الأقل للتحويل'),
+    toStockId:   z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
+    userId:      z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).optional().nullable(),
+    notes:       z.string().optional().nullable(),
+    items:       z.array(StockTransferItemSchema).min(1, 'يجب تحديد صنف واحد على الأقل للتحويل'),
 });
-export async function GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const transfers = await prisma.stockTransfer.findMany({
             take: 100, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(transfers);
     } catch (e: any) {
-        console.error(e);
         return NextResponse.json([], { status: 500 });
     }
 }
 
-export async function POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+async function _POST(request: NextRequest) {
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
-        const parsed = StockTransferSchema.safeParse(rawBody);
+        const parsed  = StockTransferSchema.safeParse(rawBody);
         if (!parsed.success) {
-            return apiError({ message: 'بيانات التحويل غير صالحة', errors: parsed.error.format() }, 'الرجاء التأكد من إدخال كافة حقول التحويل بشكل صحيح', { status: 400 });
+            return apiError(
+                { message: 'بيانات التحويل غير صالحة', errors: parsed.error.format() },
+                'الرجاء التأكد من إدخال كافة حقول التحويل بشكل صحيح',
+                { status: 400 }
+            );
         }
-        const body = parsed.data;
-        const last = await prisma.stockTransfer.findFirst({ orderBy: { transferNo: 'desc' } });
-        const transferNo = (last?.transferNo || 0) + 1;
 
+        const body        = parsed.data;
+        const last        = await prisma.stockTransfer.findFirst({ orderBy: { transferNo: 'desc' } });
+        const transferNo  = (last?.transferNo || 0) + 1;
         const fromStockId = body.fromStockId ? Number(body.fromStockId) : null;
-        const toStockId = body.toStockId ? Number(body.toStockId) : null;
-        const items = body.items || [];
+        const toStockId   = body.toStockId   ? Number(body.toStockId)   : null;
+        const items       = body.items || [];
 
+        // ── Stock Availability Check ─────────────────────────────────────────
         if (fromStockId && toStockId) {
             for (const item of items) {
-                const sourceStock = await prisma.productStock.findUnique({
+                const src = await prisma.productStock.findUnique({
                     where: { productId_stockId: { productId: item.productId, stockId: fromStockId } }
                 });
-                if (!sourceStock || n(sourceStock.quantity) < item.quantity) {
-                    return NextResponse.json({ error: `الكمية ${item.productName} عبر المصدر غير كافية للتحويل.` }, { status: 400 });
+                if (!src || n(src.quantity) < item.quantity) {
+                    return NextResponse.json(
+                        { error: `الكمية المتاحة لـ "${item.productName}" غير كافية للتحويل.` },
+                        { status: 400 }
+                    );
                 }
             }
         }
 
+        // ── Transaction: Create Transfer + Update Stock ───────────────────────
         const transfer = await prisma.$transaction(async (tx) => {
             const tr = await tx.stockTransfer.create({
                 data: {
                     transferNo,
                     fromStockId,
                     toStockId,
-                    userId: body.userId || null,
-                    notes: body.notes || null,
+                    userId:  body.userId || null,
+                    notes:   body.notes  || null,
                     details: {
                         create: items.map((item: any) => ({
-                            productId: item.productId,
+                            productId:   item.productId,
                             productName: item.productName || '',
-                            quantity: item.quantity || 0,
+                            quantity:    item.quantity    || 0,
                         })),
                     },
                 },
@@ -91,9 +94,9 @@ export async function POST(request: Request) {
                 for (const item of items) {
                     await tx.productStock.update({
                         where: { productId_stockId: { productId: item.productId, stockId: fromStockId } },
-                        data: { quantity: { decrement: item.quantity } }
+                        data:  { quantity: { decrement: item.quantity } }
                     });
-                    
+
                     const existingTarget = await tx.productStock.findUnique({
                         where: { productId_stockId: { productId: item.productId, stockId: toStockId } }
                     });
@@ -101,15 +104,11 @@ export async function POST(request: Request) {
                     if (existingTarget) {
                         await tx.productStock.update({
                             where: { productId_stockId: { productId: item.productId, stockId: toStockId } },
-                            data: { quantity: { increment: item.quantity } }
+                            data:  { quantity: { increment: item.quantity } }
                         });
                     } else {
                         await tx.productStock.create({
-                            data: {
-                                productId: item.productId, 
-                                stockId: toStockId, 
-                                quantity: item.quantity
-                            }
+                            data: { productId: item.productId, stockId: toStockId, quantity: item.quantity }
                         });
                     }
                 }
@@ -117,9 +116,27 @@ export async function POST(request: Request) {
             return tr;
         });
 
+        // ── Auto-Journal: قيد تحويل مخزون ───────────────────────────────────
+        if (fromStockId && toStockId && items.length > 0) {
+            const firstName = items[0]?.productName || 'بضاعة محولة';
+            const totalQty  = items.reduce((s: number, i: any) => s + (i.quantity || 0), 0);
+            postStockTransfer({
+                movementId:  transfer.id,
+                reference:   `STK-${transferNo}`,
+                type:        'transit_out',
+                totalCost:   totalQty, // TODO: multiply by avg cost once cost field is available
+                productName: firstName,
+                userId:      auth.userId,
+                date:        new Date().toISOString().split('T')[0],
+            }).catch(err => console.error('[auto-journal] stock-transfer:', err.message));
+        }
+
         return NextResponse.json(transfer, { status: 201 });
     } catch (e: any) {
-        console.error("Transfer Error:", e);
-        return NextResponse.json({ error: e.message || 'فشل' }, { status: 500 });
+        console.error('Transfer Error:', e);
+        return NextResponse.json({ error: e.message || 'فشل إنشاء التحويل' }, { status: 500 });
     }
 }
+
+export const GET  = withRoute(async ({ req }) => _GET(req as any),  { rateLimit: 'DEFAULT'   });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

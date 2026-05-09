@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -15,7 +16,7 @@ import { getUserFromRequest } from '@/lib/auth';
  *   - byDay         : time-series (last `days` calendar days, missing days = 0)
  *   - logs          : 100 most-recent rows for the table view
  */
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -143,3 +144,5 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'ADMIN' });

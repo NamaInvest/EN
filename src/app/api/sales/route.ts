@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { round2, validateMoney } from '@/lib/money';
 import { postSalesInvoice } from '@/lib/auto-journal';
@@ -43,7 +44,7 @@ const SalesInvoiceSchema = z.object({
     originalInvoiceId: z.union([z.string(), z.number()]).optional().nullable(),
 });
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: Request) {
+async function _POST(request: Request) {
 
     const prisma = getPrisma(request);
     try {
@@ -186,7 +187,7 @@ export async function POST(request: Request) {
         );
 
         
-        const invoice = await prisma.$transaction(async (tx) => {
+        const invoice = await prisma.$transaction(async (tx: any) => {
             // [ZATCA ICV RACE CONDITION FIX] Lock the zatca counter rows exclusively in this transaction
             await tx.$executeRaw`SELECT id FROM "settings" WHERE "key" IN ('zatca_invoice_counter', 'zatca_last_pih') FOR UPDATE`;
 
@@ -246,10 +247,9 @@ export async function POST(request: Request) {
 
             let totalCost = 0;
             for (const item of items) {
-                const _qty_dup253 = Number(item.quantity) || 1;
+                const qty = Number(item.quantity) || 1;
                 const productId = Number(item.productId);
                 const unitFactor = Number(item.unitFactor) || 1;
-                // @ts-expect-error [TS2304] Cannot find name
                 const qtyInBase = qty * unitFactor;
 
                 const pUnits = await tx.productUnit.findMany({
@@ -322,7 +322,6 @@ export async function POST(request: Request) {
 
                     if (activeRecipe && activeRecipe.ingredients.length > 0) {
                         for (const ing of activeRecipe.ingredients) {
-                            // @ts-expect-error [TS2304] Cannot find name
                             const requiredQty = ing.quantity * qty;
                             
                             await tx.product.update({
@@ -657,7 +656,7 @@ export async function POST(request: Request) {
     }
 }
 
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -677,7 +676,7 @@ export async function DELETE(request: NextRequest) {
             const allSales = await prisma.salesInvoice.findMany({
             take: 100, include: { details: true } });
             
-            const result = await prisma.$transaction(async (tx) => {
+            const result = await prisma.$transaction(async (tx: any) => {
                 // Reverse stock
                 for (const inv of allSales) {
                     for (const detail of inv.details) {
@@ -717,7 +716,7 @@ export async function DELETE(request: NextRequest) {
         const invoice = await prisma.salesInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // Reverse stock (re-increment what was sold) safely for both global and warehouse stock
             for (const detail of invoice.details) {
                 await tx.product.update({
@@ -769,3 +768,8 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في حذف الفاتورة' }, { status: 500 });
     }
 }
+
+// ── Route Security ────────────────────────────────────────────────────────
+export const GET    = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const POST   = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

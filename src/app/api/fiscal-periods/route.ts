@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/fiscal-periods — قائمة الفترات المالية
  * POST /api/fiscal-periods — إقفال أو فتح فترة مالية
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'صلاحية المدير مطلوبة لإقفال الفترات' }, { status: 403 });
@@ -97,3 +98,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

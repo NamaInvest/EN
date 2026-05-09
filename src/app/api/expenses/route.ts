@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { round2 } from '@/lib/money';
 import { expenseCreateSchema, expenseUpdateSchema } from '@/lib/validations';
@@ -7,7 +8,7 @@ import { getMainBranchId } from '@/lib/getDefaults';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: Request) {
+async function _POST(request: Request) {
 
     const prisma = getPrisma(request);
     try {
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
     }
 }
 
-export async function PUT(request: NextRequest) {
+async function _PUT(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -157,7 +158,7 @@ export async function PUT(request: NextRequest) {
     }
 }
 
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
@@ -202,3 +203,11 @@ export async function DELETE(request: NextRequest) {
         return handleApiError(error);
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

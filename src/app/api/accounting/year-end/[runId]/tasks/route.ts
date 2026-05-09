@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request, { params }: { params: Promise<{ runId: string }> }) {
+async function _GET(req: Request, { params }: { params: Promise<{ runId: string }> }) {
 
   const { runId } = await params;
   try {
@@ -22,3 +23,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ runId: s
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

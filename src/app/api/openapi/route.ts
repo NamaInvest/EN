@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
 /**
  * AI-11 — OpenAPI 3.1 Specification Endpoint
  * Auto-generated API documentation.
  */
-export async function GET() {
+async function _GET() {
 
     const spec = {
         openapi: '3.1.0',
@@ -86,3 +87,5 @@ export async function GET() {
 
     return NextResponse.json(spec);
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });

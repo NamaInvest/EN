@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 
@@ -80,7 +81,7 @@ async function ensureTable(pool: Pool) {
 }
 
 // GET: List all licenses or verify a license key
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
@@ -186,7 +187,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST: Create, activate, or manage licenses
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
   if (process.env.DESKTOP_MODE === 'true') {
     return NextResponse.json({ error: 'Not available in desktop mode' }, { status: 400 });
@@ -322,3 +323,7 @@ export async function POST(req: NextRequest) {
     await pool.end();
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

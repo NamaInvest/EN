@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { CRMEngine } from '@/lib/crm-engine';
 
-export async function POST(
+async function _POST(
     req: NextRequest, 
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -18,3 +19,5 @@ export async function POST(
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

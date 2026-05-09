@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { syncProductToSalla } from '@/lib/salla';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
@@ -12,7 +13,7 @@ async function hasPermission(prisma: any, userId: number, module: string): Promi
     return false;
 }
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -204,7 +205,7 @@ export async function POST(request: Request) {
 }
 
 // Stock reset: set all products' currentStock to 0
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -242,3 +243,9 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في تصفير المخزون' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function DELETE(
+async function _DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -43,3 +44,5 @@ export async function DELETE(
         return NextResponse.json({ error: 'فشل الحذف' }, { status: 500 });
     }
 }
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'DEFAULT' });

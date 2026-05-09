@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { exec } from "child_process";
 import { promisify } from "util";
 import { PrismaClient } from "@prisma/client";
@@ -8,7 +9,7 @@ const execAsync = promisify(exec);
 const prismaMaster = new PrismaClient();
 const BASE_DOMAIN = "namainvist.com";
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         console.log("[SYNC_ENGINE] Starting Reverse Database ETL...");
@@ -107,3 +108,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Failed to run Reverse Database Sync." }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

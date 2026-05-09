@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * PDPL DSR Fulfill API
  * POST /api/pdpl/dsr/[id]/fulfill — Process a data subject request
@@ -7,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { fulfillAccess, eraseSubject } from '@/lib/pdpl-engine';
 
-export async function POST(
+async function _POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -41,3 +42,5 @@ export async function POST(
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

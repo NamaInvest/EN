@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
     try {
@@ -35,3 +36,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Server Error', details: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

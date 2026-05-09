@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Priority 4: Payroll Engine API
  * يحتسب الراتب من سجلات الحضور والانصراف
@@ -86,7 +87,7 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
 }
 
 // GET — Preview payroll for all active employees
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -122,7 +123,7 @@ export async function GET(req: Request) {
 }
 
 // POST — Commit payroll (save Salary records + auto-journal)
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -209,3 +210,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'خطأ في تثبيت الرواتب' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

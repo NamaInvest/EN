@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { comparePassword, generateToken } from '@/lib/auth';
 import { rateLimitOrReject } from '@/lib/rate-limit';
 
-export async function POST(request: Request) {
+async function _POST(request: Request) {
     // Rate limit: max 10 login attempts per minute per IP
     const rateLimitResponse = await rateLimitOrReject(request, { max: 10, windowMs: 60_000 });
     if (rateLimitResponse) return rateLimitResponse;
@@ -98,3 +99,5 @@ export async function POST(request: Request) {
         );
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });

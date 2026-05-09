@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/banks/import — استيراد كشف حساب بنكي (CSV)
  * يقبل ملف CSV ويحوله إلى حركات بنكية مع مطابقة تلقائية
  */
-export async function POST(req: Request) {
+async function _POST(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -101,3 +102,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

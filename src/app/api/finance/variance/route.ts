@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { VarianceEngine } from '@/lib/variance-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
         const auth = getUserFromRequest(req as any);
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
         const auth = getUserFromRequest(req as any);
@@ -40,3 +41,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

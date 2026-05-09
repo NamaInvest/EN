@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -94,3 +95,5 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'فشل توليد أمر الشراء الذكي' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

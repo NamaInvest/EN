@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // This Webhook receives messages sent back by employees/managers to the Official WhatsApp Number
 // It allows for interactive DB mutations via text (e.g., "1" = approve, "2" = reject)
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req);
   try {
@@ -100,3 +101,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to process WhatsApp Webhook' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

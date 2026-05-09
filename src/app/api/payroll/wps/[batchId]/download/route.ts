@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(
+async function _GET(
     request: Request,
     context: { params: Promise<{ batchId: string }> }
 ) {
@@ -40,3 +41,5 @@ export async function GET(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

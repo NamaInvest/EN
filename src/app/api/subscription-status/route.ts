@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
 const prisma = new PrismaClient();
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -51,3 +52,5 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ active: true }); // Fail-open to avoid locking legitimately paying users during database DB drops
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { getPrisma } from '@/lib/prisma';
 import { existsSync } from 'fs';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -95,3 +96,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'فشل جلب المستندات' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

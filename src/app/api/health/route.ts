@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
 /**
  * Health Check Endpoint
@@ -9,7 +10,7 @@ import { NextResponse } from 'next/server';
  *
  * Security: Does NOT expose sensitive environment details in production.
  */
-export async function GET() {
+async function _GET() {
     const startTime = Date.now();
 
     const checks: Record<string, 'ok' | 'error' | 'warn'> = {
@@ -87,3 +88,5 @@ export async function GET() {
         headers: { 'Cache-Control': 'no-store' },
     });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });

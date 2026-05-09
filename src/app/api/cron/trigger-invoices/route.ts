@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import QRCode from 'qrcode'; // if missing we will just use dummy or skip phase 1 qr generation text
 
 // This endpoint is meant to be called daily (e.g. at 00:01 AM) by a Cron Job
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
@@ -97,3 +98,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'CRON' });

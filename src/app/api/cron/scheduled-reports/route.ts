@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/cron/scheduled-reports — إرسال التقارير المجدولة
  * يُستدعى عبر cron job خارجي (كل يوم الساعة 8 صباحاً مثلاً)
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
   try {
     const now = new Date();
@@ -98,3 +99,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'CRON' });

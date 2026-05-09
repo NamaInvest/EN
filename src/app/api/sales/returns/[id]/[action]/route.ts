@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { StateMachine } from '@/lib/state-machine';
 
@@ -16,7 +17,7 @@ const rmaTransitions = {
 
 const rmaStateMachine = StateMachine.create('RMA', { initial: 'REQUESTED', transitions: rmaTransitions });
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string, action: string }> }) {
+async function _POST(req: Request, { params }: { params: Promise<{ id: string, action: string }> }) {
 
     const prisma = getPrisma(req as any);
     try {
@@ -64,3 +65,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'FINANCIAL' });

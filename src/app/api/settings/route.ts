@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
 
     try {
         const user = getUserFromRequest(request as any);
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Clear ZATCA integration data
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
 
     try {
         const auth = getUserFromRequest(request as any);
@@ -51,7 +52,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Save or Update Configuration Settings
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
 
     try {
         const auth = getUserFromRequest(request as any);
@@ -89,3 +90,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error?.message || 'فشل في حفظ الإعدادات' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

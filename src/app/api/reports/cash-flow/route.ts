@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/reports/cash-flow — تقرير التدفقات النقدية
  * يصنف الحركات إلى: تشغيلية، استثمارية، تمويلية
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -117,3 +118,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

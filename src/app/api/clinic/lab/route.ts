@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     try {
         const orders = await prisma.labOrder.findMany({
@@ -53,7 +54,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
     }
 }
 
-export async function PUT(req: Request) {
+async function _PUT(req: Request) {
 
     try {
         // Used to update result values (enter results)
@@ -129,3 +130,9 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'DEFAULT' });

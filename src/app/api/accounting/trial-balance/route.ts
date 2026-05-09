@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
@@ -7,7 +8,7 @@ import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
  * GET /api/accounting/trial-balance
  * Query: ?from=2025-01-01&to=2025-12-31
  */
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -35,3 +36,5 @@ export async function GET(request: NextRequest) {
     rows,
   });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

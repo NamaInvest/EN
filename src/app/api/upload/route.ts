@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 import { auth } from '@clerk/nextjs/server';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     try {
         const { userId } = await auth();
         if (!userId) {
@@ -52,3 +53,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: err.message || 'فشل رفع الملف' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'UPLOAD' });

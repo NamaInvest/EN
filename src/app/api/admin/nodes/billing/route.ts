@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -28,3 +29,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Failed to update tenant billing." }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'ADMIN' });

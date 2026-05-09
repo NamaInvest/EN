@@ -7,6 +7,7 @@
  * POST /api/payroll?action=gosi        — Run GOSI batch for month
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { getPrisma }           from '@/lib/prisma';
 import { getUserFromRequest }   from '@/lib/auth';
@@ -54,7 +55,7 @@ function buildCtx(req: NextRequest, auth: ReturnType<typeof getUserFromRequest>)
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
   const auth = getUserFromRequest(req as any);
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -98,7 +99,7 @@ export async function GET(req: NextRequest) {
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   const auth = getUserFromRequest(req as any);
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -176,3 +177,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

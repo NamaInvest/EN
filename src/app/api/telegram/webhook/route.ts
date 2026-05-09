@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { processMessage, sendMessage, getBotToken, processPhoto, processVoice } from '@/lib/telegram-bot';
 import { getPrisma } from '@/lib/prisma';
 
 // Telegram sends updates via POST
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
 }
 
 // GET endpoint to set webhook + health check
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     const { searchParams } = new URL(req.url);
@@ -98,3 +99,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ status: 'ok', bot: 'Nama Invest Telegram Bot' });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

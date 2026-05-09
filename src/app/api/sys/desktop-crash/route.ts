@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma'; // Assuming standard location
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
   try {
     const data = await req.json();
@@ -27,3 +28,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

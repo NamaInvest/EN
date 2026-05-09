@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Leave Balance API
  * GET /api/hr/leaves/balance?employeeId=X — رصيد إجازات الموظف
@@ -6,7 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -26,3 +27,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

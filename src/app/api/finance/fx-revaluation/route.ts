@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * FX Revaluation API Routes
  * GET  — List revaluation runs
@@ -8,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,3 +48,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

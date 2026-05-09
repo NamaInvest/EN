@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * AI Demand Forecaster API
  * GET /api/ai/demand-forecast?productId=X&days=30
@@ -26,7 +27,7 @@ function detectTrend(data: number[]): 'up' | 'down' | 'stable' {
     return 'stable';
 }
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -94,7 +95,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -150,3 +151,7 @@ function getWeekKey(date: Date): string {
     d.setDate(d.getDate() - d.getDay());
     return d.toISOString().split('T')[0];
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AI' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

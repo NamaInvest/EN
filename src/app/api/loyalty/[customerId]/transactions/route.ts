@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request, { params }: { params: Promise<{ customerId: string }> }) {
+async function _GET(request: Request, { params }: { params: Promise<{ customerId: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -21,3 +22,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ cust
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

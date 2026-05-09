@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrisma } from '@/lib/prisma';
 
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const auth = getUserFromRequest(req as any);
@@ -88,3 +89,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: msg, debug: errMsg.slice(0, 300) }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

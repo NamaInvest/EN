@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/field-service — قائمة تذاكر الخدمة الميدانية
  * POST /api/field-service — إنشاء تذكرة جديدة
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -97,7 +98,7 @@ export async function POST(req: Request) {
 /**
  * PATCH /api/field-service — تحديث حالة التذكرة
  */
-export async function PATCH(req: Request) {
+async function _PATCH(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -132,3 +133,9 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PATCH = withRoute(async ({ req }) => _PATCH(req as any), { rateLimit: 'DEFAULT' });

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
 
 // إرسال رسالة واتساب مع خيار إرفاق الفاتورة أو التذكير
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(request: Request) {
+async function _POST(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -105,3 +106,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'فشل الاتصال بخادم الواتساب المدمج' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

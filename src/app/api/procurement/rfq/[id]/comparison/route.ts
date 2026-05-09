@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
     const prisma = getPrisma(req as any);
@@ -79,3 +80,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

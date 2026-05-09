@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // Meta Webhook Verification
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const { searchParams } = new URL(req.url);
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
 }
 
 // Meta Webhook Incoming Messages (Customer Text -> Gemini -> WhatsApp)
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
@@ -206,3 +207,7 @@ ${catalogContext}
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

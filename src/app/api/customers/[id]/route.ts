@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -20,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -61,7 +62,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -86,3 +87,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }, context) => _DELETE(req as any, context), { rateLimit: 'DEFAULT' });

@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { MfaEngine } from '@/lib/mfa-engine';
 
@@ -7,7 +8,7 @@ import { getUserFromRequest } from '@/lib/auth';
  * POST /api/auth/2fa/setup — Begin 2FA enrollment for the current user.
  * Returns the TOTP secret + QR image (otpauth URI baked in).
  */
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
 /**
  * DELETE /api/auth/2fa/setup — Disable 2FA. Caller must have verified TOTP first.
  */
-export async function DELETE(request: NextRequest) {
+async function _DELETE(request: NextRequest) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -52,3 +53,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'فشل إلغاء التحقق الثنائي' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'AUTH' });

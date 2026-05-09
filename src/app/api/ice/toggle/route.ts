@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
@@ -41,7 +42,7 @@ async function verifyIceAuth(): Promise<boolean> {
 }
 
 // POST: toggle module
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     if (!await verifyIceAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { subdomain, moduleName, enabled } = await req.json();
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
 }
 
 // PATCH: subscription management (extend trial, change plan, update quota)
-export async function PATCH(req: Request) {
+async function _PATCH(req: Request) {
     if (!await verifyIceAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
@@ -262,7 +263,7 @@ export async function PATCH(req: Request) {
 }
 
 // DELETE: حذف مستأجر بالكامل (قاعدة البيانات + حساب Clerk + السجل)
-export async function DELETE(req: Request) {
+async function _DELETE(req: Request) {
     if (!await verifyIceAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { subdomain } = await req.json();
@@ -327,3 +328,9 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const PATCH = withRoute(async ({ req }) => _PATCH(req as any), { rateLimit: 'DEFAULT' });
+
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

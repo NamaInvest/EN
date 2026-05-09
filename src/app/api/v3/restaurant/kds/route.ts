@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     try {
         const data = await prisma.restaurantKDSTicket.findMany({ take: 50, orderBy: { id: "desc" } });
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json().catch(() => ({}));
@@ -23,3 +24,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

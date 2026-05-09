@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 
 export const runtime = 'nodejs';
@@ -17,7 +18,7 @@ const getMasterPool = () => {
 /**
  * GET /api/tenant/check-status?userId=clerk_xxx
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
@@ -71,7 +72,7 @@ export async function GET(req: Request) {
 /**
  * POST /api/tenant/check-status — تحديث clerk_user_id للـ tenant
  */
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     try {
         const body = await req.json();
@@ -96,3 +97,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

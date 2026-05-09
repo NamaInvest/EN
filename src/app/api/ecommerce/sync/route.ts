@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 // This is the Central Hub for Omnichannel E-commerce
@@ -7,7 +8,7 @@ import { getPrisma } from '@/lib/prisma';
 const SALLA_API_TOKEN = process.env.SALLA_ACCESS_TOKEN || "DEMO_TOKEN_12345";
 const SALLA_BASE_URL = 'https://api.salla.dev/admin/v2';
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req);
   try {
@@ -68,3 +69,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to sync ecommerce channel' }, { status: 500 });
   }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

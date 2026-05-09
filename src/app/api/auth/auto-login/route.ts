@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
@@ -6,7 +7,7 @@ import { generateToken } from '@/lib/auth';
 import { getUserFromRequest } from '@/lib/auth';
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 
-export async function GET(request: Request) {
+async function _GET(request: Request) {
   const _guardUser = getUserFromRequest(request as any);
   if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
@@ -62,3 +63,5 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: e.message }, { status: 400 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AUTH' });

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { NLQEngine } from '@/lib/nlq-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -14,3 +15,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(result);
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AI' });

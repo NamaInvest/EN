@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     try {
         const variations = [
@@ -13,3 +14,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

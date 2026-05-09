@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
         const auth = getUserFromRequest(req as any);
@@ -63,3 +64,5 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

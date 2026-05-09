@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
 
 // Add a new Recurring Contract
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req as any);
     if (!user)
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
 }
 
 // Get all active Recurring Contracts
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req as any);
     if (!user)
@@ -123,3 +124,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

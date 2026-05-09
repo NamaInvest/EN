@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { n } from '@/lib/decimal-utils';
@@ -29,7 +30,7 @@ function safeEvalFormula(formula: string, context: Record<string, number>): numb
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
@@ -164,3 +165,5 @@ export async function POST(req: Request) {
 }
 
 // Force TS re-evaluation
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

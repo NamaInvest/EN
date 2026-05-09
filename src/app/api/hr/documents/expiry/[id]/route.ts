@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * Document Expiry Alert Actions
  * POST /api/hr/documents/expiry/[id] — تجديد أو تجاهل تنبيه
@@ -6,7 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -34,3 +35,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         return NextResponse.json({ error: e.message }, { status: 400 });
     }
 }
+
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });

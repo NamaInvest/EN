@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { LotEngine } from '@/lib/lot-engine';
 
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
 
     try {
         const url = new URL(req.url);
@@ -12,3 +13,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

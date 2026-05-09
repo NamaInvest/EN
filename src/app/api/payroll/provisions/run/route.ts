@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { ProvisionsService } from '@/services/payroll/provisions.service';
 
 // POST /api/payroll/provisions/run
 // Body: { period: '2025-01' }  →  يُشغَّل آخر يوم من الشهر
-export async function POST(request: NextRequest) {
+async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -28,8 +29,12 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/payroll/provisions/run?period=2025-01
-export async function GET(request: NextRequest) {
+async function _GET(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   return NextResponse.json({ info: 'استخدم POST مع { period: "YYYY-MM" } لتشغيل مخصصات الشهر' });
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

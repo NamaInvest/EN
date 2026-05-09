@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { calculateVendorScore } from '@/lib/vendor-scoring';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
 
     // This endpoint should be protected and only called by a cron job scheduler.
     // We can add simple token validation here in production.
@@ -32,3 +33,5 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'CRON' });

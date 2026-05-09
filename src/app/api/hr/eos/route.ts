@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 /**
  * EOS (End of Service) API Routes
  * GET  /api/hr/eos — قائمة تسويات نهاية الخدمة
@@ -8,7 +9,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { SaudiEOSEngine, EOSReason } from '@/lib/saudi-eos-engine';
 
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -36,7 +37,7 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+async function _POST(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -62,3 +63,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: e.message || 'خطأ في حساب نهاية الخدمة' }, { status: 400 });
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

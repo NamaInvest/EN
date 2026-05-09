@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
 import { Pool } from 'pg';
 import { clerkClient } from '@clerk/nextjs/server';
@@ -25,7 +26,7 @@ const getMasterPool = () => {
  * 2. يبحث عن الـ tenant بالإيميل (كل إيميل مرتبط بـ tenant واحد فقط)
  * 3. يولّد SSO token ويحوّل المستخدم للـ subdomain الصحيح
  */
-export async function GET(req: Request) {
+async function _GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
@@ -92,3 +93,5 @@ export async function GET(req: Request) {
         await pool.end().catch(() => {});
     }
 }
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AUTH' });

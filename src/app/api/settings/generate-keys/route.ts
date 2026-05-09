@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
 
     try {
         // Fetch ZATCA settings from DB
@@ -77,3 +78,5 @@ businessCategory = ${s['zatca_industry'] || 'Technology'}
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

@@ -1,114 +1,103 @@
-import { getUserFromRequest } from '@/lib/auth';
 /**
  * Pharmacy Patients API — إدارة المرضى
  * GET  /api/pharmacy/patients?nationalId=1XXXXXXXXX
- * POST /api/pharmacy/patients
+ * POST /api/pharmacy/patients — إنشاء/تحديث مريض (upsert)
  */
 import { NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { withRoute } from '@/lib/api/with-route';
 
-export async function GET(req: Request) {
-    const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+const UpsertPatientSchema = z.object({
+  nationalId:       z.string().min(10, 'الهوية الوطنية مطلوبة').max(15),
+  name:             z.string().min(1, 'الاسم مطلوب'),
+  nameEn:           z.string().optional().nullable(),
+  phone:            z.string().optional().nullable(),
+  dateOfBirth:      z.string().optional().nullable(),
+  gender:           z.enum(['male', 'female']).optional().nullable(),
+  allergies:        z.array(z.string()).optional().nullable(),
+  insuranceCompany: z.string().optional().nullable(),
+  insuranceCardNo:  z.string().optional().nullable(),
+  copayPercent:     z.number().min(0).max(100).default(20),
+  notes:            z.string().optional().nullable(),
+});
 
-    const url = new URL(req.url);
-    const nationalId = url.searchParams.get('nationalId');
-    const phone = url.searchParams.get('phone');
-    const search = url.searchParams.get('q');
+export const GET = withRoute(async ({ req, prisma }) => {
+  const url        = new URL(req.url);
+  const nationalId = url.searchParams.get('nationalId');
+  const phone      = url.searchParams.get('phone');
+  const search     = url.searchParams.get('q');
 
-    try {
-        if (nationalId) {
-            // Lookup specific patient with full history
-            // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-            const patient = await prisma.pharmacyPatient.findUnique({
-                where: { nationalId },
-                include: {
-                    prescriptions: {
-                        include: { items: { include: { drug: true } } },
-                        orderBy: { createdAt: 'desc' },
-                        take: 10,
-                    },
-                    medicationLogs: {
-                        orderBy: { dispensedAt: 'desc' },
-                        take: 20,
-                    },
-                    insuranceClaims: {
-                        orderBy: { submittedAt: 'desc' },
-                        take: 10,
-                    },
-                },
-            });
-            if (!patient) return NextResponse.json({ error: 'المريض غير موجود' }, { status: 404 });
-            return NextResponse.json(patient);
-        }
-
-        const where: any = {};
-        if (phone) where.phone = { contains: phone };
-        if (search) {
-            where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { nationalId: { contains: search } },
-                { phone: { contains: search } },
-            ];
-        }
-
-        // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const patients = await prisma.pharmacyPatient.findMany({
-            where,
-            select: {
-                id: true, nationalId: true, name: true, phone: true,
-                insuranceCompany: true, copayPercent: true, allergies: true,
-            },
-            orderBy: { name: 'asc' },
-            take: 50,
-        });
-
-        return NextResponse.json({ total: patients.length, patients });
-    } catch (e: any) {
-        return NextResponse.json({ error: 'خطأ في البحث' }, { status: 500 });
+  if (nationalId) {
+    // pharmacyPatient model pending `prisma generate`
+    const patient = await (prisma as any).pharmacyPatient.findUnique({
+      where:   { nationalId },
+      include: {
+        prescriptions: {
+          include:  { items: { include: { drug: true } } },
+          orderBy:  { createdAt: 'desc' },
+          take:     10,
+        },
+        medicationLogs:   { orderBy: { dispensedAt: 'desc' }, take: 20 },
+        insuranceClaims:  { orderBy: { submittedAt: 'desc' }, take: 10 },
+      },
+    });
+    if (!patient) {
+      return NextResponse.json({ error: 'المريض غير موجود' }, { status: 404 });
     }
-}
+    return NextResponse.json(patient);
+  }
 
-export async function POST(req: Request) {
-    const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+  const where: any = {};
+  if (phone)  where.phone = { contains: phone };
+  if (search) {
+    where.OR = [
+      { name:       { contains: search, mode: 'insensitive' } },
+      { nationalId: { contains: search } },
+      { phone:      { contains: search } },
+    ];
+  }
 
-    try {
-        const body = await req.json();
+  const patients = await (prisma as any).pharmacyPatient.findMany({
+    where,
+    select: {
+      id: true, nationalId: true, name: true, phone: true,
+      insuranceCompany: true, copayPercent: true, allergies: true,
+    },
+    orderBy: { name: 'asc' },
+    take:    50,
+  }).catch(() => []) as any[];
 
-        // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const patient = await prisma.pharmacyPatient.upsert({
-            where: { nationalId: body.nationalId },
-            update: {
-                name: body.name,
-                phone: body.phone || null,
-                dateOfBirth: body.dateOfBirth || null,
-                gender: body.gender || null,
-                allergies: body.allergies ? JSON.stringify(body.allergies) : null,
-                insuranceCompany: body.insuranceCompany || null,
-                insuranceCardNo: body.insuranceCardNo || null,
-                copayPercent: parseFloat(body.copayPercent) || 20,
-                notes: body.notes || null,
-            },
-            create: {
-                nationalId: body.nationalId,
-                name: body.name,
-                nameEn: body.nameEn || null,
-                phone: body.phone || null,
-                dateOfBirth: body.dateOfBirth || null,
-                gender: body.gender || null,
-                allergies: body.allergies ? JSON.stringify(body.allergies) : null,
-                insuranceCompany: body.insuranceCompany || null,
-                insuranceCardNo: body.insuranceCardNo || null,
-                copayPercent: parseFloat(body.copayPercent) || 20,
-                notes: body.notes || null,
-            },
-        });
+  return NextResponse.json({ total: patients.length, patients });
+}, { rateLimit: 'DEFAULT' });
 
-        return NextResponse.json(patient, { status: 201 });
-    } catch (e: any) {
-        return NextResponse.json({ error: 'خطأ في حفظ المريض' }, { status: 500 });
-    }
-}
+export const POST = withRoute(async ({ req, prisma }) => {
+  const raw    = await req.json().catch(() => ({}));
+  const parsed = UpsertPatientSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const b       = parsed.data;
+  const shared  = {
+    name:             b.name,
+    phone:            b.phone ?? null,
+    dateOfBirth:      b.dateOfBirth ?? null,
+    gender:           b.gender ?? null,
+    allergies:        b.allergies ? JSON.stringify(b.allergies) : null,
+    insuranceCompany: b.insuranceCompany ?? null,
+    insuranceCardNo:  b.insuranceCardNo ?? null,
+    copayPercent:     b.copayPercent,
+    notes:            b.notes ?? null,
+  };
+
+  const patient = await (prisma as any).pharmacyPatient.upsert({
+    where:  { nationalId: b.nationalId },
+    update: shared,
+    create: { nationalId: b.nationalId, nameEn: b.nameEn ?? null, ...shared },
+  });
+
+  return NextResponse.json(patient, { status: 201 });
+}, { rateLimit: 'DEFAULT' });
