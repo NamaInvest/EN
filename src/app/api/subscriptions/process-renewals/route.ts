@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { SubscriptionEngine } from '@/lib/subscription-engine';
+import { requireCronSecret } from '@/lib/cron-guard';
 
 async function _POST(req: NextRequest) {
+  const guard = requireCronSecret(req as any);
+  if (guard) return guard;
+
     try {
         // In production, verify cron secret
         const authHeader = req.headers.get('authorization');

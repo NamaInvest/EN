@@ -4,8 +4,12 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _POST(request: Request) {
-    const prisma = getPrisma(request);
+import { requireCronSecret } from '@/lib/cron-guard';
+async function _POST(req: Request) {
+  const guard = requireCronSecret(req as any);
+  if (guard) return guard;
+
+    const prisma = getPrisma(req);
     try {
         console.log(">> CRON EXECUTION: Running HR Attendance Automation...");
         

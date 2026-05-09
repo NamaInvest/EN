@@ -6,8 +6,12 @@ import crypto from 'crypto';
 // Nama Invest 4.0: AI Self-Healing Middleware
 // Automatically detects and fixes stuck ZATCA invoices, orphan records, and background sync failures
 import { getUserFromRequest } from '@/lib/auth';
-async function _POST(request: Request) {
-    const prisma = getPrisma(request);
+import { requireCronSecret } from '@/lib/cron-guard';
+async function _POST(req: Request) {
+  const guard = requireCronSecret(req as any);
+  if (guard) return guard;
+
+    const prisma = getPrisma(req);
   try {
     const yesterday = new Date();
     yesterday.setHours(yesterday.getHours() - 24);

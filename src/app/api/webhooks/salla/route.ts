@@ -3,12 +3,24 @@ import { withRoute } from '@/lib/api/with-route';
 import crypto from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { z } from 'zod';
 
 import { getUserFromRequest } from '@/lib/auth';
-function verifySallaSignature(bodyStr: string, secret: string, signature: string) {
-    const hash = crypto.createHmac('sha256', secret).update(bodyStr).digest('hex');
-    return hash === signature;
+
+/** Timing-safe HMAC comparison */
+function verifySallaSignature(bodyStr: string, secret: string, signature: string): boolean {
+    const expected = crypto.createHmac('sha256', secret).update(bodyStr).digest('hex');
+    if (expected.length !== signature.length) return false;
+    try {
+        return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+    } catch { return false; }
 }
+
+const SallaPayloadSchema = z.object({
+    event:    z.string().min(1),
+    event_id: z.string().optional(),
+    data:     z.any(),
+}).passthrough();
 
 async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
@@ -38,7 +50,11 @@ async function _POST(request: NextRequest) {
         }
 
         const payload = JSON.parse(rawBody);
-        const { event, event_id, data } = payload;
+        const parsedPayload = SallaPayloadSchema.safeParse(payload);
+        if (!parsedPayload.success) {
+            return NextResponse.json({ error: 'Invalid webhook payload structure' }, { status: 400 });
+        }
+        const { event, event_id, data } = parsedPayload.data;
         
         console.log(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
 

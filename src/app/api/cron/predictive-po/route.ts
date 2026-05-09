@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { requireCronSecret } from '@/lib/cron-guard';
 
 async function _POST(req: Request) {
+  const guard = requireCronSecret(req as any);
+  if (guard) return guard;
+
 
     const prisma = getPrisma(req);
   try {

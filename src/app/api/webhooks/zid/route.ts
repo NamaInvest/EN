@@ -1,41 +1,66 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { z } from 'zod';
+import crypto from 'crypto';
 
 // زد ويب هوك - استقبال الطلبات الجديدة
-// الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
 import { getUserFromRequest } from '@/lib/auth';
-async function _POST(request: Request) {
+
+/** Timing-safe token comparison for Zid */
+function verifyZidToken(received: string, expected: string): boolean {
+    const recv = received.replace(/^Bearer /, '');
+    const expc = expected.replace(/^Bearer /, '');
+    if (recv.length !== expc.length) return false;
+    try {
+        return crypto.timingSafeEqual(Buffer.from(recv), Buffer.from(expc));
+    } catch { return false; }
+}
+
+const ZidPayloadSchema = z.object({
+    event: z.string().min(1),
+    data:  z.any(),
+}).passthrough();
+
+// الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const bodyText = await request.text();
-        const signature = request.headers.get('Authorization') || request.headers.get('authorization');
+        const bodyText   = await request.text();
+        const authHeader = request.headers.get('Authorization') || request.headers.get('authorization') || '';
 
-        // 1. التحقق من التوافق (الأمان)
+        // 1. جلب إعدادات الربط من قاعدة البيانات
         const settings = await prisma.setting.findMany({
             take: 100,
             where: { key: { in: ['zid_enabled', 'zid_webhook_secret'] } }
         });
-        const zidEnabled = settings.find(s => s.key === 'zid_enabled')?.value === '1';
+        const zidEnabled   = settings.find(s => s.key === 'zid_enabled')?.value === '1';
         const clientSecret = settings.find(s => s.key === 'zid_webhook_secret')?.value || '';
 
         if (!zidEnabled) {
             return NextResponse.json({ message: 'الربط غير مفعل' }, { status: 400 });
         }
 
-        // Zid uses a pre-shared token passed in Authorization header
-        if (signature && clientSecret && signature !== `Bearer ${clientSecret}` && signature !== clientSecret) {
-            console.error('Zid Webhook: Invalid Signature/Token');
-            return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 }); 
+        // 2. التحقق من التوقيع بطريقة آمنة زمنياً (timing-safe)
+        if (clientSecret) {
+            if (!authHeader || !verifyZidToken(authHeader, clientSecret)) {
+                console.error('Zid Webhook: Invalid Signature/Token');
+                return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 });
+            }
         }
 
-        const payload = JSON.parse(bodyText);
-        
-        // 2. معالجة الحدث بناءً على نوعه
+        // 3. تحليل الـ payload مع Zod
+        const rawPayload    = JSON.parse(bodyText);
+        const parsedPayload = ZidPayloadSchema.safeParse(rawPayload);
+        if (!parsedPayload.success) {
+            return NextResponse.json({ error: 'هيكل الطلب غير صالح' }, { status: 400 });
+        }
+        const payload = parsedPayload.data;
+
+        // 4. معالجة الحدث بناءً على نوعه
         if (payload.event === 'order.created' || payload.event === 'order.updated') {
             const order = payload.data;
-            
             if (order.status?.code === 'delivered' || order.status?.code === 'paid' || order.is_paid) {
                 await processOrder(order, prisma);
             }
