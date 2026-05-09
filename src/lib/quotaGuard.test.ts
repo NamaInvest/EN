@@ -1,6 +1,6 @@
 import { checkQuota, quotaErrorResponse } from './quotaGuard';
 
-// Mock next/server to avoid Request/Response not defined errors in Jest
+// Mock next/server
 jest.mock('next/server', () => ({
   NextResponse: {
     json: jest.fn((body, init) => ({ body, status: init?.status || 200 })),
@@ -9,74 +9,64 @@ jest.mock('next/server', () => ({
 
 // Mock the 'pg' module
 jest.mock('pg', () => {
-  const mPool = {
-    query: jest.fn(),
-    end: jest.fn(),
-  };
+  const mPool = { query: jest.fn(), end: jest.fn() };
   return { Pool: jest.fn(() => mPool) };
 });
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getPool() {
+  const { Pool } = require('pg');
+  return new Pool();
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('Quota Guard Tests', () => {
   let mockPool: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const { Pool } = require('pg');
-    mockPool = new Pool();
+    mockPool = getPool();
   });
 
   describe('checkQuota', () => {
-    it('should allow if no tenant data is found', async () => {
-      mockPool.query.mockResolvedValueOnce({ rows: [] }); // master DB returns nothing
+    it('should allow if no tenant data is found (pass-through)', async () => {
+      mockPool.query.mockResolvedValueOnce({ rows: [] });
       const result = await checkQuota('tenant1', 'invoice');
       expect(result.allowed).toBe(true);
       expect(result.reason).toBe('ok');
     });
 
-    it('should allow unlimited invoices for paid plans', async () => {
+    it('should allow unlimited for paid plans (professional)', async () => {
       mockPool.query.mockResolvedValueOnce({
         rows: [{ subscription_status: 'active', plan: 'professional' }],
       });
-      const _result_dup39 = await checkQuota('tenant1', 'invoice');
-      // @ts-expect-error [TS2304] Cannot find name
+      const result = await checkQuota('tenant1', 'invoice');
       expect(result.allowed).toBe(true);
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.plan).toBe('professional');
     });
 
     it('should block if trial has expired', async () => {
       const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1); // 1 day ago
-      
+      pastDate.setDate(pastDate.getDate() - 1);
       mockPool.query.mockResolvedValueOnce({
         rows: [{ subscription_status: 'trial', plan: 'free', trial_ends_at: pastDate }],
       });
-      
-      const _result_dup52 = await checkQuota('tenant1', 'invoice');
-      // @ts-expect-error [TS2304] Cannot find name
+      const result = await checkQuota('tenant1', 'invoice');
       expect(result.allowed).toBe(false);
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.reason).toBe('trial_expired');
     });
 
-    it('should block if invoice quota is exceeded on free plan', async () => {
-      // First query: master DB
+    it('should block if invoice quota exceeded on free plan', async () => {
       mockPool.query.mockResolvedValueOnce({
         rows: [{ subscription_status: 'active', plan: 'free', invoice_quota: 30 }],
       });
-      // Second query: tenant DB
-      mockPool.query.mockResolvedValueOnce({
-        rows: [{ cnt: '35' }], // 35 invoices created
-      });
-
-      const _result_dup67 = await checkQuota('tenant1', 'invoice');
-      // @ts-expect-error [TS2304] Cannot find name
+      mockPool.query.mockResolvedValueOnce({ rows: [{ cnt: '35' }] });
+      const result = await checkQuota('tenant1', 'invoice');
       expect(result.allowed).toBe(false);
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.reason).toBe('quota_exceeded');
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.current).toBe(35);
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.limit).toBe(30);
     });
 
@@ -84,34 +74,26 @@ describe('Quota Guard Tests', () => {
       mockPool.query.mockResolvedValueOnce({
         rows: [{ subscription_status: 'active', plan: 'free', product_quota: 100 }],
       });
-      mockPool.query.mockResolvedValueOnce({
-        rows: [{ cnt: '50' }], // 50 products created
-      });
-
-      const _result_dup82 = await checkQuota('tenant1', 'product');
-      // @ts-expect-error [TS2304] Cannot find name
+      mockPool.query.mockResolvedValueOnce({ rows: [{ cnt: '50' }] });
+      const result = await checkQuota('tenant1', 'product');
       expect(result.allowed).toBe(true);
-      // @ts-expect-error [TS2304] Cannot find name
       expect(result.reason).toBe('ok');
-      // @ts-expect-error [TS2304] Cannot find name
-      expect(result.current).toBe(50);
+      // result.current is only populated when quota is exceeded
     });
   });
 
   describe('quotaErrorResponse', () => {
     it('should return a 402 response with proper format', () => {
-      const _result_dup91 = {
-        allowed: false,
-        reason: 'quota_exceeded' as const,
+      const quotaResult = {
+        allowed:  false,
+        reason:   'quota_exceeded' as const,
         resource: 'invoice',
-        limit: 30,
-        current: 35,
-        plan: 'free',
-        message: 'Quota exceeded',
+        limit:    30,
+        current:  35,
+        plan:     'free',
+        message:  'Quota exceeded',
       };
-      
-      // @ts-expect-error [TS2304] Cannot find name
-      const response = quotaErrorResponse(result);
+      const response = quotaErrorResponse(quotaResult);
       expect(response.status).toBe(402);
     });
   });

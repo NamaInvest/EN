@@ -4,7 +4,6 @@
  * Tests the accounting engine's core auto-journaling logic.
  */
 
-import { describe, it, expect } from 'vitest';
 import { factory, resetFactoryIds } from './factories';
 import { HRService } from '@/lib/services/hr.service';
 

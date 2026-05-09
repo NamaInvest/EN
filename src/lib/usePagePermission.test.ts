@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { renderHook } from '@testing-library/react';
 import { usePagePermission } from './usePagePermission';
 import { useRouter } from 'next/navigation';

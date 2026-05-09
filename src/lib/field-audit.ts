@@ -90,6 +90,8 @@ export async function logFieldChanges(
     ctx: AuditContext = {}
 ): Promise<number> {
     if (!before && !after) return 0;
+    // Only audit sensitive entities — skip non-financial models
+    if (!SENSITIVE_ENTITIES.has(entityType)) return 0;
 
     const txId = ctx.transactionId ?? newTxId();
     const fields = new Set<string>([
