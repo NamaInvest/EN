@@ -19,7 +19,14 @@
     "electron:build": "npm version patch --no-git-tag-version && node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win",
     "electron:pack": "next build && electron-builder --dir",
     "electron:protect": "node scripts/protect-code.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "jest --passWithNoTests --forceExit",
+    "test:unit": "jest --testPathIgnorePatterns=financial-integration --passWithNoTests --forceExit",
+    "test:e2e": "cross-env TEST_BASE_URL=http://localhost:3000 jest --testPathPattern=financial-integration --runInBand --forceExit",
+    "test:cov": "jest --coverage --passWithNoTests --forceExit",
+    "openapi": "node scripts/generate-openapi.js",
+    "audit:zod": "node scripts/audit-zod.js",
+    "typecheck": "npx tsc --noEmit"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

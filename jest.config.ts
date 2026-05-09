@@ -2,20 +2,57 @@ import type { Config } from 'jest'
 import nextJest from 'next/jest.js'
 
 const createJestConfig = nextJest({
-  // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
   dir: './',
 })
 
-// Add any custom config to be passed to Jest
 const config: Config = {
   coverageProvider: 'v8',
-  testEnvironment: 'jsdom',
-  // Add more setup options before each test is run
+  testEnvironment:  'node',           // node env for API tests
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  // Test patterns
+  testMatch: [
+    '**/__tests__/**/*.test.ts',
+    '**/__tests__/**/*.test.tsx',
+    '**/*.test.ts',
+    '**/*.test.tsx',
+    '!**/__tests__/api/financial-integration.test.ts', // Needs live server — run with npm run test:e2e
+  ],
+  // Coverage configuration
+  collectCoverageFrom: [
+    'src/lib/**/*.ts',
+    'src/services/**/*.ts',
+    'src/app/api/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/__tests__/**',
+  ],
+  coverageThreshold: {
+    global: {
+      branches:   50,
+      functions:  50,
+      lines:      50,
+      statements: 50,
+    },
+  },
+  // Separate project for integration tests
+  projects: [
+    {
+      displayName:    'unit',
+      testEnvironment: 'node',
+      testMatch:      ['<rootDir>/src/**/*.test.ts', '!<rootDir>/src/__tests__/api/**'],
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+    },
+    {
+      displayName:    'react',
+      testEnvironment: 'jsdom',
+      testMatch:      ['<rootDir>/src/**/*.test.tsx'],
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+    },
+  ],
 }
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 export default createJestConfig(config)
