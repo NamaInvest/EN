@@ -1,12 +1,25 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  description: z.any().optional(),
+  amount: z.number().optional(),
+  bankAccountId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { description, amount, bankAccountId } = body;
 
         // Fetch active rules sorted by priority

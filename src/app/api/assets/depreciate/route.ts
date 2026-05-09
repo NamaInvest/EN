@@ -6,10 +6,6 @@ import { apiError } from '@/lib/api-error';
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(_request: NextRequest) {
   // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     try {
         // Delegate to engine: handles all asset types, methods, salvage caps, JE + log
         const depreciatedCount = await FixedAssetsEngine.runDepreciation(new Date());

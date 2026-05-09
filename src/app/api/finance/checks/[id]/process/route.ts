@@ -4,6 +4,12 @@ import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
+
+
+const _PUTSchema = z.object({
+  status: z.any().optional(),
+}).passthrough();
 
 async function _PUT(
     request: NextRequest,
@@ -21,6 +27,11 @@ async function _PUT(
         const id = parseInt((await params).id);
 
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { status } = body; // UNDER_COLLECTION, CLEARED, BOUNCED
 
         if (!status) return NextResponse.json({ error: 'يجب توفير الحالة الجديدة' }, { status: 400 });

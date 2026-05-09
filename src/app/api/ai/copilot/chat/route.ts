@@ -5,9 +5,6 @@ import { invokeChain } from '@/lib/langchain-orchestrator';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
@@ -41,9 +38,6 @@ async function _GET(request: Request) {
 }
 
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);

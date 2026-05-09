@@ -3,6 +3,21 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  orgName: z.any().optional(),
+  orgNameEn: z.any().optional(),
+  vatNumber: z.any().optional(),
+  crn: z.any().optional(),
+  street: z.any().optional(),
+  building: z.any().optional(),
+  district: z.any().optional(),
+  city: z.any().optional(),
+  cityEn: z.any().optional(),
+  postal: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -13,6 +28,11 @@ async function _POST(req: NextRequest) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const settingsToSave = [
             { key: 'company_name', value: body.orgName || '' },

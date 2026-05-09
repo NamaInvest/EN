@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const renewals = await (prisma as any).contractRenewal.findMany({
@@ -17,14 +14,32 @@ async function _GET(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }
 
+
+const _POSTSchema = z.object({
+  contractId: z.union([z.string(), z.number()]).optional(),
+  renewalDate: z.string().optional(),
+  newEndDate: z.string().optional(),
+  priceAdjustment: z.number().optional(),
+  autoRenew: z.any().optional(),
+  reminderDays: z.union([z.string(), z.number()]).optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const item = await (prisma as any).contractRenewal.create({
       data: { contractId: parseInt(data.contractId), renewalDate: new Date(data.renewalDate), newEndDate: new Date(data.newEndDate), priceAdjustment: data.priceAdjustment ? parseFloat(data.priceAdjustment) : null, autoRenew: data.autoRenew || false, reminderDays: parseInt(data.reminderDays) || 30 }
     });
@@ -32,11 +47,15 @@ async function _POST(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }
 
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  priceAdjustment: z.number().optional(),
+  autoRenew: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();

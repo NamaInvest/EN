@@ -3,16 +3,26 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _PUTSchema = z.object({
+  name: z.any().optional(),
+  parentId: z.union([z.string(), z.number()]).optional(),
+  description: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const category = await prisma.category.update({
             where: { id: parseInt((await params).id) },
             data: { 
@@ -29,9 +39,6 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 }
 
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);

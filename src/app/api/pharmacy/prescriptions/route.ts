@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -43,6 +44,19 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  patientId: z.union([z.string(), z.number()]).optional(),
+  wasfatyRef: z.any().optional(),
+  doctorName: z.any().optional(),
+  doctorLicense: z.any().optional(),
+  clinicName: z.any().optional(),
+  prescriptionDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  source: z.any().optional(),
+  imageUrl: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
@@ -50,6 +64,16 @@ async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
         const prescription = await prisma.prescription.create({
@@ -90,6 +114,12 @@ async function _POST(req: Request) {
 }
 
 // PUT — Dispense prescription
+
+const _PUTSchema = z.object({
+  prescriptionId: z.union([z.string(), z.number()]).optional(),
+  items: z.array(z.any()).optional(),
+}).passthrough();
+
 async function _PUT(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);

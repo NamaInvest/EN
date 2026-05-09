@@ -3,6 +3,16 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getStateMachineFor, BaseState } from '@/lib/state-machine';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  entityType: z.any().optional(),
+  entityId: z.union([z.string(), z.number()]).optional(),
+  targetState: z.any().optional(),
+  currentState: z.any().optional(),
+  reason: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
@@ -14,6 +24,11 @@ async function _POST(req: Request) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { entityType, entityId, targetState, currentState, reason } = body;
 
         if (!entityType || !entityId || !targetState || !currentState) {

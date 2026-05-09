@@ -2,12 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 // Public API - customer can place order from QR menu
+
+const _POSTSchema = z.object({
+  tableId: z.union([z.string(), z.number()]).optional(),
+  tableName: z.any().optional(),
+  items: z.array(z.any()).optional(),
+  customerName: z.any().optional(),
+  customerPhone: z.string().optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     try {
         const prisma = getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { tableId, tableName, items, customerName, customerPhone, notes } = body;
 
         if (!items || !items.length) {

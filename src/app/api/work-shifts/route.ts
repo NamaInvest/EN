@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,14 @@ async function _GET(req: Request) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  startTime: z.any().optional(),
+  endTime: z.any().optional(),
+  breakMins: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user || user.role !== 'admin') {
@@ -45,6 +54,11 @@ async function _POST(req: Request) {
 
   try {
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const { name, startTime, endTime, breakMins } = body;
 
     if (!name || !startTime || !endTime) {

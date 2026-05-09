@@ -5,6 +5,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  signedXml: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     let tmpDir = '';
     try {
@@ -12,6 +18,11 @@ async function _POST(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { signedXml } = body;
 
         if (!signedXml) {

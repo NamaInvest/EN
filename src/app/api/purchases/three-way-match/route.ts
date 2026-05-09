@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _GET(request: NextRequest) {
 
@@ -26,6 +27,13 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  matchId: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
 
     const prisma = getPrisma(request);
@@ -34,6 +42,11 @@ async function _PUT(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { matchId, status, notes } = body; // status: 'approved' | 'rejected'
 
         if (!matchId || !status) {

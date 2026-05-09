@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
 
 // ZATCA Sandbox endpoints
 const ZATCA_API_BASE = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  otp: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { action, otp } = body;
 
         // Fetch CSR from DB

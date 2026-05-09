@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -47,6 +48,14 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
     }
 }
 
+
+const _POSTSchema = z.object({
+  sourceVersionId: z.union([z.string(), z.number()]).optional(),
+  newVersionNumber: z.any().optional(),
+  ingredients: z.any().optional(),
+  ecrReference: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
@@ -54,6 +63,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
     try {
         const productId = Number((await params).id);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { sourceVersionId, newVersionNumber, ingredients, ecrReference } = body;
 
         // Clone flow:

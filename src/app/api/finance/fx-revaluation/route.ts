@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     try {
@@ -28,12 +29,22 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  periodEndDate: z.string().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { periodEndDate } = body;
 
         const result = await FxRevaluationEngine.runRevaluation(

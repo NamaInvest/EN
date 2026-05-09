@@ -55,10 +55,6 @@ function transliterate(arabic: string): string {
 }
 
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     try {
         const { text } = await request.json();
         if (!text) return NextResponse.json({ result: '' });

@@ -2,12 +2,25 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  totalAmount: z.number().optional(),
+  bypassCreditLimit: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerId, totalAmount, bypassCreditLimit } = body;
 
         if (!customerId || totalAmount === undefined) {

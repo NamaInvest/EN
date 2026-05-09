@@ -2,13 +2,24 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { exec } from 'child_process';
 import util from 'util';
+import { z } from 'zod';
 
 const execAsync = util.promisify(exec);
+
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         // Safety lock - this API only reacts to localhost/root processes if needed
         // but since we rely on the frontend password "namamaster", we will process commands here

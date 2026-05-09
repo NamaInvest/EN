@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _PUTSchema = z.object({
+  isDefault: z.boolean().optional(),
+  name: z.any().optional(),
+  headerMessage: z.any().optional(),
+  footerMessage: z.any().optional(),
+  showAging: z.any().optional(),
+  showPaidInvoices: z.any().optional(),
+  primaryColor: z.any().optional(),
+}).passthrough();
 
 async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -8,6 +20,11 @@ async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> 
     try {
         const id = parseInt((await params).id, 10);
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         if (body.isDefault) {
             await prisma.customerStatementTemplate.updateMany({

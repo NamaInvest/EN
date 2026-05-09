@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // Baseline IFRS 9 PD (Probability of Default) per bucket
 const PD_RATES = {
@@ -120,11 +121,21 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  totalECL: z.number().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { totalECL } = body;
 
         // In a real scenario, we'd check the current balance of the Allowance account (1219)

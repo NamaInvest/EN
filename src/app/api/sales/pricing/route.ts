@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -22,11 +23,28 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  currency: z.any().optional(),
+  validFrom: z.any().optional(),
+  validTo: z.any().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+  customerCategoryId: z.union([z.string(), z.number()]).optional(),
+  channelId: z.union([z.string(), z.number()]).optional(),
+  priority: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { name, currency, validFrom, validTo, customerId, customerCategoryId, channelId, priority } = body;
 
         const newList = await prisma.priceList.create({

@@ -4,10 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 
 // GET all units
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const units = await prisma.unit.findMany({
@@ -20,13 +18,20 @@ async function _GET(request: NextRequest) {
 }
 
 // POST create new unit name
-async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.name?.trim()) return NextResponse.json({ error: 'الاسم مطلوب' }, { status: 400 });
         const unit = await prisma.unit.create({ data: { name: body.name.trim() } });
         return NextResponse.json(unit, { status: 201 });
@@ -39,9 +44,6 @@ async function _POST(request: NextRequest) {
 // DELETE a unit by id
 async function _DELETE(request: NextRequest) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

@@ -4,10 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const resolvedParams = await params;
@@ -27,15 +25,13 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
     }
 }
 
+
+const _POSTSchema = z.object({
+  amount: z.number().optional(),
+  type: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request);
     try {
         const resolvedParams = await params;
@@ -43,6 +39,11 @@ async function _POST(request: Request, { params }: { params: Promise<{ id: strin
         if (isNaN(bankAccountId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const amount = parseFloat(body.amount);
         if (isNaN(amount) || amount <= 0) {

@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const cards = await prisma.giftCard.findMany({
@@ -22,14 +19,22 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  code: z.any().optional(),
+  initialBalance: z.any().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const code = body.code?.trim() || Math.random().toString(36).substring(2, 10).toUpperCase();
         
         if (!body.initialBalance) {

@@ -9,6 +9,7 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // قاعدة تفاعلات أساسية (تُوسّع مع DrugBank API)
 const KNOWN_INTERACTIONS: Record<string, { with: string; severity: 'high' | 'moderate' | 'low'; message: string }[]> = {
@@ -57,12 +58,23 @@ async function _GET(req: Request) {
     return checkInteractions(prisma, drugIds);
 }
 
+
+const _POSTSchema = z.object({
+  drugIds: z.array(z.any()).optional(),
+  genericNames: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const drugIds: number[] = (body.drugIds || []).map(Number).filter(Boolean);
     const genericNames: string[] = body.genericNames || [];
 

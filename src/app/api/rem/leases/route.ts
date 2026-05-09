@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
@@ -28,6 +29,18 @@ async function _GET(req: NextRequest) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  contractNumber: z.any().optional(),
+  unitId: z.union([z.string(), z.number()]).optional(),
+  tenantId: z.union([z.string(), z.number()]).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  rentAmount: z.number().optional(),
+  paymentFrequency: z.any().optional(),
+  status: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
@@ -35,6 +48,11 @@ async function _POST(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     
     // Create base lease
     const contract = await prisma.leaseContract.create({

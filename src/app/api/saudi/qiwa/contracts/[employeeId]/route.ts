@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getEmployeeContracts } from '@/lib/qiwa-engine';
+import { z } from 'zod';
 
 const db = (p: any) => p as any;
 
@@ -29,6 +30,17 @@ async function _GET(
     }
 }
 
+
+const _POSTSchema = z.object({
+  contractNo: z.any().optional(),
+  contractType: z.any().optional(),
+  startDate: z.string().optional(),
+  qiwaStatus: z.any().optional(),
+  endDate: z.string().optional(),
+  position: z.any().optional(),
+  wageAmount: z.number().optional(),
+}).passthrough();
+
 async function _POST(
     req: NextRequest,
     { params }: { params: Promise<{ employeeId: string }> }
@@ -41,6 +53,11 @@ async function _POST(
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.contractNo || !body.contractType || !body.startDate) {
             return NextResponse.json({ error: 'مطلوب: contractNo, contractType, startDate' }, { status: 400 });
         }

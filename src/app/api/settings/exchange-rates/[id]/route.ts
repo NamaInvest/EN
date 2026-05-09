@@ -4,9 +4,6 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);

@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { BankStatementEngine } from '@/lib/bank-statement-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  bankAccountId: z.union([z.string(), z.number()]).optional(),
+  fileName: z.any().optional(),
+  fileContent: z.any().optional(),
+  formatHint: z.any().optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { bankAccountId, fileName, fileContent, formatHint, userId } = body;
 
         if (!bankAccountId || !fileContent) {

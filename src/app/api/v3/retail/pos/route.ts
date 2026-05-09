@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
 
@@ -12,10 +13,21 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  total: z.number().optional(),
+  branchId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const data = await prisma.retailPOSOrder.create({
             data: { total: body.total || 0, status: "completed", branchId: body.branchId || 1 }
         });

@@ -8,9 +8,6 @@ import { getUserFromRequest } from '@/lib/auth';
  * Used by auto-login to redirect users to the correct tenant subdomain.
  */
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     try {
         const { email } = await request.json();
         if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });

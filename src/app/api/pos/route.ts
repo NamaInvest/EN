@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  stockId: z.union([z.string(), z.number()]).optional(),
+  paymentType: z.any().optional(),
+  notes: z.any().optional(),
+  details: z.array(z.any()).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
@@ -15,6 +25,11 @@ async function _POST(req: NextRequest) {
 
         // Parse Request Body
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const {
             customerId,
             stockId = 1,

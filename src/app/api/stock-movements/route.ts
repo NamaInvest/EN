@@ -5,11 +5,8 @@ import { syncStockToSalla } from '@/lib/salla';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -21,14 +18,26 @@ async function _GET(request: Request) {
     } catch (error: any) { console.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
+
+const _POSTSchema = z.object({
+  productId: z.union([z.string(), z.number()]).optional(),
+  stockId: z.union([z.string(), z.number()]).optional(),
+  type: z.any().optional(),
+  quantity: z.number().optional(),
+  referenceType: z.any().optional(),
+  notes: z.any().optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const movement = await prisma.stockMovement.create({
             data: { productId: parseInt(body.productId), stockId: parseInt(body.stockId) || 1, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId || null },
         });

@@ -7,6 +7,7 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -40,6 +41,11 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -47,6 +53,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.invoiceId) {
             return NextResponse.json({ error: 'مطلوب: invoiceId' }, { status: 400 });
         }

@@ -5,6 +5,7 @@ import { syncProductToSalla } from '@/lib/salla';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function hasPermission(prisma: any, userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
     if (!user) return false;
@@ -14,9 +15,6 @@ async function hasPermission(prisma: any, userId: number, module: string): Promi
 }
 
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);
@@ -73,13 +71,21 @@ async function _GET(request: NextRequest) {
     }
 }
 
-async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  buyPrice: z.number().optional(),
+}).passthrough();
+
+async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         // --- Quota Guard (Product Limit) ---
         const tenant = (request as any).headers?.get?.('x-tenant') ||
@@ -206,9 +212,6 @@ async function _POST(request: Request) {
 
 // Stock reset: set all products' currentStock to 0
 async function _DELETE(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);

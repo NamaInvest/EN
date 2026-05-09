@@ -4,12 +4,26 @@ import { getPrisma } from '@/lib/prisma';
 import { WavePickingEngine } from '@/lib/wave-picking';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  warehouseId: z.union([z.string(), z.number()]).optional(),
+  orderIds: z.array(z.any()).optional(),
+  maxLines: z.array(z.any()).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'slotting') {
             const result = await WavePickingEngine.slottingAnalysis(prisma, body.warehouseId || 1);
             return NextResponse.json(result);

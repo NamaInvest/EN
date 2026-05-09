@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
 import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -31,6 +32,15 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  supplierId: z.union([z.string(), z.number()]).optional(),
+  orderId: z.union([z.string(), z.number()]).optional(),
+  stockId: z.union([z.string(), z.number()]).optional(),
+  notes: z.any().optional(),
+  items: z.array(z.any()).optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     try {
@@ -40,6 +50,11 @@ async function _POST(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { supplierId, orderId, stockId, notes, items } = body;
 
         const seqResult = await getNextNumber(prisma, 'GRN');

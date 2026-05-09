@@ -1,11 +1,25 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { BudgetEngine } from '@/lib/budget-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  accountId: z.union([z.string(), z.number()]).optional(),
+  costCenterId: z.union([z.string(), z.number()]).optional(),
+  newAmount: z.number().optional(),
+  date: z.string().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { accountId, costCenterId, newAmount, date } = body;
 
         if (!accountId || !newAmount || !date) {

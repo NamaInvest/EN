@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { getUserFromRequest, hasPermission, hashPassword } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _GET(request: NextRequest) {
 
@@ -26,6 +27,13 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  username: z.any().optional(),
+  password: z.string().min(1).optional(),
+  fullName: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
 
     const prisma = getPrisma(request);
@@ -36,6 +44,16 @@ async function _POST(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية إدارة المستخدمين' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const username = String(body.username || '').trim();
         const password = String(body.password || '').trim();
         const fullName = String(body.fullName || '').trim();
@@ -134,6 +152,15 @@ async function _POST(request: NextRequest) {
         return NextResponse.json({ error: 'فشل في إنشاء المستخدم' }, { status: 500 });
     }
 }
+
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  modules: z.any().optional(),
+  permissions: z.any().optional(),
+  fullName: z.any().optional(),
+  ful: z.any().optional(),
+}).passthrough();
 
 async function _PUT(request: NextRequest) {
 

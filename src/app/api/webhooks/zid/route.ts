@@ -7,9 +7,6 @@ import { postSalesInvoice } from '@/lib/auto-journal';
 // الرابط المفترض تسجيله في زد: https://yourdomain.com/api/webhooks/zid
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const bodyText = await request.text();

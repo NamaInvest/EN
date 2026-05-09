@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _GET(request: NextRequest) {
 
@@ -27,6 +28,21 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  lcNumber: z.any().optional(),
+  bankId: z.union([z.string(), z.number()]).optional(),
+  supplierId: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+  currencyId: z.union([z.string(), z.number()]).optional(),
+  exchangeRate: z.number().optional(),
+  openDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  status: z.any().optional(),
+  marginPercent: z.any().optional(),
+  marginPaid: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
 
     const prisma = getPrisma(request);
@@ -38,6 +54,11 @@ async function _POST(request: Request) {
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         // @ts-ignore - Prisma Language Server sync lock
         const lc = await prisma.letterOfCredit.create({

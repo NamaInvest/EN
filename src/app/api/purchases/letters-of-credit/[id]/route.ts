@@ -2,6 +2,24 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
+
+
+const _PUTSchema = z.object({
+  lcNumber: z.any().optional(),
+  bankId: z.union([z.string(), z.number()]).optional(),
+  supplierId: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+  currencyId: z.union([z.string(), z.number()]).optional(),
+  exchangeRate: z.number().optional(),
+  openDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  status: z.any().optional(),
+  marginPercent: z.any().optional(),
+  marginPaid: z.union([z.string(), z.number()]).optional(),
+  portOfLoading: z.any().optional(),
+  p: z.any().optional(),
+}).passthrough();
 
 async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
@@ -15,6 +33,11 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 
         const id = parseInt((await params).id);
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         const lc = await prisma.letterOfCredit.update({
             where: { id },

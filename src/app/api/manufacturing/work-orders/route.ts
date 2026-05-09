@@ -6,11 +6,8 @@ import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-
 import { canTransition, DocumentType } from '@/lib/document-state-machine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const orders: any = await prisma.manufacturingOrder.findMany({
@@ -32,14 +29,29 @@ async function _GET(request: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  recipeId: z.union([z.string(), z.number()]).optional(),
+  quantityToProduce: z.number().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  machineId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { recipeId, quantityToProduce, startDate, endDate, machineId } = body;
 
         const { formatted: orderNumber } = await getNextNumber(prisma as any, 'WO');
@@ -64,11 +76,14 @@ async function _POST(request: Request) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  completionData: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

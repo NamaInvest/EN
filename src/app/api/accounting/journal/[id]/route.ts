@@ -5,6 +5,7 @@ import { transition, assertEditable, DocumentType, DocumentStatus } from '@/lib/
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     const [year, month] = dateString.split('-').map(Number);
     if (year && month) {
@@ -17,11 +18,16 @@ async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  description: z.any().optional(),
+  reference: z.any().optional(),
+  date: z.string().optional(),
+  lines: z.array(z.any()).optional(),
+}).passthrough();
+
 async function _PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -46,6 +52,16 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
 
         // 3. Process the update
         const body = await request.json();
+
+        const _parsed = _PATCHSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { description, reference, date, lines } = body;
         
         await checkFiscalPeriodOpen(prisma, date || entry.entryDate);
@@ -132,11 +148,14 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
     }
 }
 
+
+const _PATCHSchema = z.object({
+  status: z.any().optional(),
+  reason: z.any().optional(),
+}).passthrough();
+
 async function _PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

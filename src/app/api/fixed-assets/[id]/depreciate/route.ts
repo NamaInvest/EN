@@ -5,9 +5,6 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);

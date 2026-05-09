@@ -7,12 +7,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postCopaDocument, slice } from '@/lib/copa-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  sourceType: z.any().optional(),
+  sourceId: z.union([z.string(), z.number()]).optional(),
+  postingDate: z.string().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+  productId: z.union([z.string(), z.number()]).optional(),
+  channelCode: z.any().optional(),
+  regionCode: z.any().optional(),
+  profitCenterId: z.union([z.string(), z.number()]).optional(),
+  segmentId: z.union([z.string(), z.number()]).optional(),
+  revenue: z.any().optional(),
+  cogs: z.any().optional(),
+  discount: z.number().optional(),
+  freight: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         const result = await postCopaDocument(prisma, {
             sourceType: body.sourceType || 'MANUAL',

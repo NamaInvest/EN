@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { SSOEngine } from '@/lib/sso-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -13,12 +14,24 @@ async function _GET(req: NextRequest) {
     });
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  user: z.any().optional(),
+  email: z.string().email().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'provision') {
             const result = await SSOEngine.scimProvisionUser(prisma, body.user);
             return NextResponse.json(result);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -55,11 +56,21 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  pairs: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { pairs } = body;
 
         // Auto-elimination JE on consolidation

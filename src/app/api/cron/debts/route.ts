@@ -5,10 +5,6 @@ import { getPrisma } from '@/lib/prisma';
 // This is an automation endpoint expected to be called by a CRON daemon
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         console.log(">> CRON EXECUTION: Running Financial Debt Automation...");

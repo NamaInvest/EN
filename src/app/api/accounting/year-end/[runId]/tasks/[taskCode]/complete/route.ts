@@ -2,6 +2,13 @@
 import { NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import { YearEndCloseEngine } from "@/lib/year-end-engine";
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  notes: z.any().optional(),
+  fileId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request, { params }: { params: Promise<{ runId: string; taskCode: string }> }) {
 
@@ -11,6 +18,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ runId: string
     const { taskCode } = params;
     const userId = "system-user";
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const { notes, fileId } = body;
 
     if (isNaN(runId) || !taskCode) {

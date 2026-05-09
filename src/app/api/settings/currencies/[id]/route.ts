@@ -3,10 +3,19 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _PUTSchema = z.object({
+  isDefault: z.boolean().optional(),
+  code: z.any().optional(),
+  nameAr: z.any().optional(),
+  nameEn: z.any().optional(),
+  symbol: z.any().optional(),
+  exchangeRate: z.number().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough();
+
+async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);
@@ -14,6 +23,11 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         
         const id = parseInt((await params).id);
         const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         // Disable other defaults if this becomes default
         if (data.isDefault) {
@@ -44,9 +58,6 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 }
 
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);

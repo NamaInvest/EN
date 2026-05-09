@@ -3,11 +3,8 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const ncrs = await prisma.nonConformanceReport.findMany({
@@ -27,14 +24,31 @@ async function _GET(request: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  inspectionId: z.union([z.string(), z.number()]).optional(),
+  severity: z.any().optional(),
+  description: z.any().optional(),
+  dispositionType: z.any().optional(),
+  costImpact: z.number().optional(),
+  action: z.any().optional(),
+  actionType: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { inspectionId, severity, description, dispositionType, costImpact, action, actionType } = body;
 
         // actionType: 'CREATE_NCR' or 'CREATE_CAPA'
@@ -74,11 +88,14 @@ async function _POST(request: Request) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  capaId: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  effectivenessReview: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

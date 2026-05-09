@@ -4,10 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -36,16 +34,31 @@ async function _GET(request: Request) {
     }
 }
 
-async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  salesRepId: z.union([z.string(), z.number()]).optional(),
+  notes: z.any().optional(),
+  items: z.array(z.any()).optional(),
+  subtotal: z.number().optional(),
+  taxValue: z.number().optional(),
+  total: z.number().optional(),
+  isTaxInclusive: z.number().optional(),
+  isDropShip: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerId, salesRepId, notes, items, subtotal, taxValue, total, isTaxInclusive, isDropShip } = body;
 
         // @ts-ignore

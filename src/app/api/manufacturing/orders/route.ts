@@ -6,10 +6,8 @@ import { runMRP } from '@/lib/mrp-engine';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const orders = await prisma.manufacturingOrder.findMany({
@@ -33,14 +31,31 @@ async function _GET(request: NextRequest) {
     }
 }
 
-async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  recipeId: z.union([z.string(), z.number()]).optional(),
+  machineId: z.union([z.string(), z.number()]).optional(),
+  quantityToProduce: z.number().optional(),
+  quantity: z.number().optional(),
+  stockId: z.union([z.string(), z.number()]).optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const lastOrder = await prisma.manufacturingOrder.findFirst({ orderBy: { id: 'desc' } });
         const nextId = (lastOrder?.id || 0) + 1;
@@ -74,10 +89,14 @@ async function _POST(request: NextRequest) {
     }
 }
 
-async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  wastageData: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

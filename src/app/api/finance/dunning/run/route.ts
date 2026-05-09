@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { DunningEngine } from '@/lib/dunning-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  asOfDate: z.string().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const asOfDate = body.asOfDate ? new Date(body.asOfDate) : new Date();
         
         const results = await DunningEngine.executeDailyRun(asOfDate);

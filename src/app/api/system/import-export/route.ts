@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { ImportExportEngine } from '@/lib/import-export-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -17,12 +18,25 @@ async function _GET(req: NextRequest) {
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  csv: z.any().optional(),
+  model: z.any().optional(),
+  mapping: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'detect') {
             const result = ImportExportEngine.parseCSV(body.csv);
             const autoMapping = ImportExportEngine.autoMap(result.columns, body.model);

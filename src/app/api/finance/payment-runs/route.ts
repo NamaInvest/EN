@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { PaymentRunEngine } from '@/lib/payment-run-engine';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
 
@@ -18,10 +19,22 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  runDate: z.string().optional(),
+  nextPaymentDate: z.string().optional(),
+  bankAccountId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { runDate, nextPaymentDate, bankAccountId } = body;
         
         if (!runDate || !nextPaymentDate || !bankAccountId) {

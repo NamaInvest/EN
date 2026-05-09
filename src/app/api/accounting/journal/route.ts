@@ -3,12 +3,10 @@ import { withRoute } from '@/lib/api/with-route';
 ﻿import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createJournalEntry } from '@/lib/auto-journal';
+import { z } from 'zod';
 
 // GET - ط§ظ„ظ‚ظٹظˆط¯ ط§ظ„ظٹظˆظ…ظٹط©
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -43,11 +41,17 @@ async function _GET(request: Request) {
 }
 
 // POST - ط¥ط¶ط§ظپط© ظ‚ظٹط¯ ظٹط¯ظˆظٹ
+
+const _POSTSchema = z.object({
+  description: z.any().optional(),
+  reference: z.any().optional(),
+  date: z.string().optional(),
+  lines: z.array(z.any()).optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
@@ -56,6 +60,11 @@ async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { description, reference, date, lines, userId } = body;
 
         if (!description || !lines || lines.length < 2) {

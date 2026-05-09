@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const plans = await (prisma as any).subscriptionPlan.findMany({
@@ -17,14 +14,34 @@ async function _GET(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  code: z.any().optional(),
+  description: z.any().optional(),
+  billingCycle: z.any().optional(),
+  price: z.number().optional(),
+  trialDays: z.union([z.string(), z.number()]).optional(),
+  features: z.any().optional(),
+  maxUsers: z.any().optional(),
+  active: z.boolean().optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const plan = await (prisma as any).subscriptionPlan.create({
       data: { name: data.name, code: data.code, description: data.description || null, billingCycle: data.billingCycle || 'MONTHLY', price: parseFloat(data.price), trialDays: parseInt(data.trialDays) || 0, features: data.features || null, maxUsers: data.maxUsers ? parseInt(data.maxUsers) : null, active: data.active !== false }
     });
@@ -32,11 +49,18 @@ async function _POST(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
 }
 
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  name: z.any().optional(),
+  code: z.any().optional(),
+  description: z.any().optional(),
+  billingCycle: z.any().optional(),
+  price: z.number().optional(),
+  active: z.boolean().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();

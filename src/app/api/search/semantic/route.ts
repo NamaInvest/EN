@@ -9,9 +9,6 @@ import { getUserFromRequest } from '@/lib/auth';
  * Searches across all indexed documents using vector similarity.
  */
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

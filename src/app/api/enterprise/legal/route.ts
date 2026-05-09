@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request as any);
 
     try {
@@ -52,15 +49,32 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  noteNumber: z.any().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+  dueDate: z.string().optional(),
+  status: z.any().optional(),
+  notes: z.any().optional(),
+  entityType: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request as any);
 
     try {
         const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { entityType } = data; // 'note' or 'lg'
 
         if (entityType === 'note') {
@@ -101,11 +115,14 @@ async function _POST(request: NextRequest) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  entityType: z.any().optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request as any);
 
     try {

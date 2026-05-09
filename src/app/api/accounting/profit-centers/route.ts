@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -21,6 +22,14 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  code: z.any().optional(),
+  name: z.any().optional(),
+  nameEn: z.any().optional(),
+  parentId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -28,6 +37,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { code, name, nameEn, parentId } = body;
         if (!code || !name) {
             return NextResponse.json({ error: 'code و name مطلوبان' }, { status: 400 });

@@ -10,6 +10,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { CreditManagementService } from '@/services/ar/credit-management.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
+import { z } from 'zod';
 
 function buildCtx(req: NextRequest): BusinessContext {
   const tenantId = req.headers.get('x-tenant-id') ?? 'default';
@@ -51,12 +52,23 @@ async function _GET(req: NextRequest) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
   try {
     const prisma  = getPrisma(req);
     const ctx     = buildCtx(req);
     const service = new CreditManagementService(prisma as any, ctx);
     const body    = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
     const { customerId, amount } = body;
     if (!customerId || amount == null) {

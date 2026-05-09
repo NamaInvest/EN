@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { NumberingEngine } from '@/lib/numbering-engine';
+import { z } from 'zod';
 
 const db = (p: any) => p as any;
 
@@ -22,11 +23,32 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  code: z.any().optional(),
+  name: z.any().optional(),
+  prefix: z.any().optional(),
+  suffix: z.any().optional(),
+  padLength: z.any().optional(),
+  resetPeriod: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const prisma = getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         if (body.action === 'seed') {
             const count = await NumberingEngine.seedDefaults(prisma);
@@ -50,6 +72,11 @@ async function _POST(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+
+const _PUTSchema = z.object({
+  code: z.any().optional(),
+}).passthrough();
 
 async function _PUT(req: NextRequest) {
 

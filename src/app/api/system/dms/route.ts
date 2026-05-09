@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { DMSEngine } from '@/lib/dms-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -19,12 +20,27 @@ async function _GET(req: NextRequest) {
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  name: z.any().optional(),
+  parentId: z.union([z.string(), z.number()]).optional(),
+  documentId: z.union([z.string(), z.number()]).optional(),
+  newPath: z.any().optional(),
+  newSize: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'upload') return NextResponse.json(await DMSEngine.upload(prisma, { ...body, uploadedBy: (user as any).id, tenantId: (user as any).tenantId || '' }));
         if (body.action === 'create_folder') return NextResponse.json(await DMSEngine.createFolder(prisma, body.name, body.parentId, (user as any).tenantId || ''));
         if (body.action === 'new_version') return NextResponse.json(await DMSEngine.newVersion(prisma, body.documentId, body.newPath, body.newSize));

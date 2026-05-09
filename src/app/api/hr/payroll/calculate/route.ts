@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { postSalary } from '@/lib/auto-journal';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 interface PayrollResult {
     employeeId: number;
@@ -123,6 +124,13 @@ async function _GET(req: Request) {
 }
 
 // POST — Commit payroll (save Salary records + auto-journal)
+
+const _POSTSchema = z.object({
+  month: z.union([z.string(), z.number()]).optional(),
+  year: z.union([z.string(), z.number()]).optional(),
+  branchId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
@@ -130,6 +138,11 @@ async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const month: number = parseInt(body.month);
         const year: number  = parseInt(body.year);
         const branchId: number | null = body.branchId ? parseInt(body.branchId) : null;

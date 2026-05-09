@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -61,11 +62,23 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  month: z.union([z.string(), z.number()]).optional(),
+  year: z.union([z.string(), z.number()]).optional(),
+  data: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { month, year, data } = body;
 
         // Check if already processed

@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  segment: z.any().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { segment, dateFrom, dateTo } = body;
 
         // Base where clause for active customers

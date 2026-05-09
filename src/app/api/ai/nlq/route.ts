@@ -4,12 +4,23 @@ import { getPrisma } from '@/lib/prisma';
 import { NLQEngine } from '@/lib/nlq-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  question: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.question) return NextResponse.json({ error: 'مطلوب: question' }, { status: 400 });
         const result = await NLQEngine.query(prisma, body.question);
         return NextResponse.json(result);

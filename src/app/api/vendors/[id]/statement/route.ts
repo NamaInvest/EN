@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { VendorStatementEngine } from '@/lib/vendor-statement';
 import { emailQueue } from '@/lib/queue';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
+  format: z.any().optional(),
+  sendEmail: z.string().email().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
@@ -9,6 +18,11 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
     try {
         const vendorId = parseInt((await params).id);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { fromDate, toDate, format, sendEmail } = body;
 
         const statement = await VendorStatementEngine.generateStatement(

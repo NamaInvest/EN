@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 
 // Force Node.js runtime (ssh2 uses native crypto — not compatible with Edge)
 export const runtime = 'nodejs';
@@ -261,6 +262,26 @@ async function seedCompanyData(params: {
     }
 }
 
+
+const _POSTSchema = z.object({
+  companyNameAr: z.any().optional(),
+  companyNameEn: z.any().optional(),
+  businessDomain: z.any().optional(),
+  branchName: z.any().optional(),
+  branchNameEn: z.any().optional(),
+  mobile: z.string().optional(),
+  address: z.any().optional(),
+  district: z.any().optional(),
+  buildingNo: z.any().optional(),
+  postalCode: z.any().optional(),
+  vatNumber: z.any().optional(),
+  crnNumber: z.any().optional(),
+  clerkUserId: z.union([z.string(), z.number()]).optional(),
+  clerkEmail: z.string().email().optional(),
+  city: z.any().optional(),
+  cityEn: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     try {
@@ -277,6 +298,11 @@ async function _POST(req: Request) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const {
             companyNameAr,
             companyNameEn: companyNameEnFromClient,

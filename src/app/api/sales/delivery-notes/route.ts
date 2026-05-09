@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
@@ -31,6 +32,13 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  salesOrderId: z.union([z.string(), z.number()]).optional(),
+  items: z.array(z.any()).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
@@ -41,6 +49,11 @@ async function _POST(req: NextRequest) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerId, salesOrderId, items } = body;
 
         const agg = await prisma.deliveryNote.aggregate({ _max: { noteNo: true } });

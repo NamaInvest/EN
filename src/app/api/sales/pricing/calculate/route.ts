@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 function safeEvalFormula(formula: string, context: Record<string, number>): number {
     // Only allow specific tokens (cost, list, qty, weight) and basic math operators
@@ -30,11 +31,25 @@ function safeEvalFormula(formula: string, context: Record<string, number>): numb
     }
 }
 
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  productId: z.union([z.string(), z.number()]).optional(),
+  qty: z.number().optional(),
+  channel: z.any().optional(),
+  date: z.string().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerId, productId, qty, channel, date } = body;
 
         if (!productId || qty === undefined) {

@@ -8,9 +8,6 @@ import { getUserFromRequest } from '@/lib/auth';
  * GET  /api/contracts/alerts — Get active contract expiry alerts
  */
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);
@@ -56,9 +53,6 @@ async function _POST(request: NextRequest) {
 }
 
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const alerts = await prisma.systemAlert.findMany({

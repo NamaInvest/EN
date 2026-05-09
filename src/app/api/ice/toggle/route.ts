@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
+import { z } from 'zod';
 
 const ICE_SECRET = process.env.ICE_SECRET;
 // BUILD SAFETY: if (!ICE_SECRET) throw new Error('CRITICAL: ICE_SECRET is not set in environment variables!');
@@ -42,6 +43,16 @@ async function verifyIceAuth(): Promise<boolean> {
 }
 
 // POST: toggle module
+
+const _POSTSchema = z.object({
+  subdomain: z.any().optional(),
+  action: z.any().optional(),
+  days: z.union([z.string(), z.number()]).optional(),
+  plan: z.any().optional(),
+  invoiceQuota: z.any().optional(),
+  productQuota: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     if (!await verifyIceAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -111,10 +122,30 @@ async function _POST(req: Request) {
 }
 
 // PATCH: subscription management (extend trial, change plan, update quota)
+
+const _PATCHSchema = z.object({
+  subdomain: z.any().optional(),
+  action: z.any().optional(),
+  days: z.union([z.string(), z.number()]).optional(),
+  plan: z.any().optional(),
+  invoiceQuota: z.any().optional(),
+  productQuota: z.any().optional(),
+}).passthrough();
+
 async function _PATCH(req: Request) {
     if (!await verifyIceAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
+
+        const _parsed = _PATCHSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const { subdomain, action, days, plan, invoiceQuota, productQuota } = body;
 
     if (!subdomain) return NextResponse.json({ error: 'subdomain required' }, { status: 400 });

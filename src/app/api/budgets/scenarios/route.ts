@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const scenarios = await (prisma as any).budgetScenario.findMany({
@@ -22,14 +19,30 @@ async function _GET(request: NextRequest) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  description: z.any().optional(),
+  baseYear: z.union([z.string(), z.number()]).optional(),
+  growthRate: z.number().optional(),
+  status: z.any().optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const scenario = await (prisma as any).budgetScenario.create({
       data: {
         name: data.name,
@@ -45,11 +58,16 @@ async function _POST(request: NextRequest) {
   }
 }
 
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  name: z.any().optional(),
+  description: z.any().optional(),
+  growthRate: z.number().optional(),
+  status: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
@@ -64,10 +82,6 @@ async function _PUT(request: NextRequest) {
 }
 
 async function _DELETE(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const id = new URL(request.url).searchParams.get('id');

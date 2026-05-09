@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
@@ -19,12 +20,26 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  description: z.any().optional(),
+  priority: z.any().optional(),
+  scheduledDate: z.string().optional(),
+  technicianId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerId, description, priority, scheduledDate, technicianId } = body;
 
         const ticket = await prisma.serviceTicket.create({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as Request);
@@ -24,6 +25,15 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  assetName: z.any().optional(),
+  acquisitionCost: z.number().optional(),
+  purchaseCost: z.number().optional(),
+  purchaseDate: z.string().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as Request);
 
@@ -34,6 +44,11 @@ async function _POST(req: NextRequest) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const name = body.name || body.assetName;
         const acquisitionCost = parseFloat(body.acquisitionCost ?? body.purchaseCost ?? '0');
         if (!name || !acquisitionCost) {

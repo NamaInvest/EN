@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
@@ -69,10 +70,27 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  patientId: z.union([z.string(), z.number()]).optional(),
+  doctorId: z.union([z.string(), z.number()]).optional(),
+  roomId: z.union([z.string(), z.number()]).optional(),
+  date: z.string().optional(),
+  startTime: z.any().optional(),
+  duration: z.any().optional(),
+  type: z.any().optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const appointment = await prisma.appointment.create({
             data: {

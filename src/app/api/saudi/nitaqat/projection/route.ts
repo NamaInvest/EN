@@ -7,6 +7,14 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { computeSaudizationPct, projectImpact } from '@/lib/qiwa-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  saudiHires: z.any().optional(),
+  expatHires: z.any().optional(),
+  activityCode: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -15,6 +23,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const saudiHires = body.saudiHires || 0;
         const expatHires = body.expatHires || 0;
         const activityCode = body.activityCode || 'DEFAULT';

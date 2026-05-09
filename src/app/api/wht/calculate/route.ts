@@ -6,6 +6,14 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { WHTEngine } from '@/lib/wht-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+  serviceType: z.any().optional(),
+  preview: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -13,6 +21,11 @@ async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.invoiceId || !body.serviceType) {
             return NextResponse.json({ error: 'مطلوب: invoiceId, serviceType' }, { status: 400 });
         }

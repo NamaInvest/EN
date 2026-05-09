@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
+import { z } from 'zod';
 
 // A simple Phase 1 TLV generator. In a real system, Phase 2 uses ECDSA signatures and hashes.
 function getTLV(tag: number, value: string): Buffer {
@@ -13,10 +14,20 @@ function getTLV(tag: number, value: string): Buffer {
     return Buffer.concat([tagBuffer, lengthBuffer, valueBuffer]);
 }
 
+
+const _POSTSchema = z.object({
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { invoiceId } = body;
 
         const invoice = await prisma.salesInvoice.findUnique({

@@ -5,15 +5,24 @@ import { getPrisma } from '@/lib/prisma';
 import { WPSGenerator } from '@/lib/wps-generator';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  payrollRunId: z.union([z.string(), z.number()]).optional(),
+  bankCode: z.any().optional(),
+  companyId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request as any);
 
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { payrollRunId, bankCode, companyId } = body;
 
         if (!payrollRunId || !bankCode || !companyId) {

@@ -6,6 +6,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  otp: z.any().optional(),
+}).passthrough();
 
 async function _POST(request: NextRequest) {
 
@@ -18,6 +25,11 @@ async function _POST(request: NextRequest) {
         if (!isAdmin) return NextResponse.json({ error: 'صلاحيات المدير مطلوبة' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { action, otp } = body;
 
         if (action === 'clear_settings') {

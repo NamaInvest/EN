@@ -3,11 +3,21 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
+import { z } from 'zod';
 
 /**
  * POST /api/reports/financial-statements/generate
  * Body: { type: 'BS'|'IS'|'CF'|'TB', from, to, priorFrom?, priorTo? }
  */
+
+const _POSTSchema = z.object({
+  type: z.any().optional(),
+  from: z.any().optional(),
+  to: z.any().optional(),
+  priorFrom: z.any().optional(),
+  priorTo: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -16,6 +26,11 @@ async function _POST(request: NextRequest) {
   const prisma   = getPrisma(request);
 
   const body = await request.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
   const { type = 'BS', from, to, priorFrom, priorTo } = body;
 
   if (!from || !to) {

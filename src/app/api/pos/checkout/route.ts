@@ -8,6 +8,18 @@ import { getNextNumber } from '@/lib/numbering';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  cart: z.any().optional(),
+  total: z.number().optional(),
+  tax: z.number().optional(),
+  discount: z.number().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+  paymentMethod: z.any().optional(),
+  couponId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -15,6 +27,11 @@ async function _POST(req: NextRequest) {
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { cart, total, tax, discount, customerId, paymentMethod, couponId } = body;
 
         if (!cart || !cart.length) {

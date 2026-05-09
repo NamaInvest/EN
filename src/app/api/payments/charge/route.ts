@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MoyasarEngine } from '@/lib/payment-gateway/moyasar';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+  gateway: z.any().optional(),
+  source: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { invoiceId, amount, gateway, source } = body;
 
         let transaction;

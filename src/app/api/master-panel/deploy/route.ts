@@ -3,6 +3,13 @@ import { withRoute } from '@/lib/api/with-route';
 import { exec } from "child_process";
 import { getUserFromRequest } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  tenantId: z.union([z.string(), z.number()]).optional(),
+  port: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     try {
@@ -18,6 +25,11 @@ async function _POST(req: NextRequest) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { tenantId, port } = body;
 
         if (!tenantId || !port) {

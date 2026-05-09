@@ -9,6 +9,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getVatCategories, seedVatCategories, buildVatReturn } from '@/lib/vat-classifier';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -31,6 +32,11 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -38,6 +44,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'seed') {
             const count = await seedVatCategories(prisma);
             return NextResponse.json({ seeded: count });

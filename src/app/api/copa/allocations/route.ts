@@ -7,12 +7,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { runAllocation } from '@/lib/copa-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  ruleId: z.union([z.string(), z.number()]).optional(),
+  periodFrom: z.any().optional(),
+  periodTo: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         if (!body.ruleId || !body.periodFrom || !body.periodTo) {
             return NextResponse.json({ error: 'مطلوب: ruleId, periodFrom, periodTo' }, { status: 400 });

@@ -7,14 +7,6 @@ import { handleApiError } from '@/lib/api-handler';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request);
     try {
         const salaries = await prisma.salary.findMany({
@@ -27,14 +19,6 @@ async function _GET(request: Request) {
 }
 
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();

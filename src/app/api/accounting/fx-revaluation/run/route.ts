@@ -1,11 +1,25 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  fiscalPeriodId: z.union([z.string(), z.number()]).optional(),
+  baseCurrencyCode: z.any().optional(),
+  periodEndDate: z.string().optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { fiscalPeriodId, baseCurrencyCode, periodEndDate, userId } = body;
 
         if (!fiscalPeriodId || !baseCurrencyCode || !periodEndDate || !userId) {

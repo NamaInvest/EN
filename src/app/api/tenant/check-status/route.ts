@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -72,10 +73,22 @@ async function _GET(req: Request) {
 /**
  * POST /api/tenant/check-status — تحديث clerk_user_id للـ tenant
  */
+
+const _POSTSchema = z.object({
+  clerkUserId: z.union([z.string(), z.number()]).optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+  subdomain: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const clerkUserId = body.clerkUserId || body.userId;
         const subdomain = body.subdomain;
 

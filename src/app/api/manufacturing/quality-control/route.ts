@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const checks = await prisma.qualityCheck.findMany({
@@ -24,14 +21,25 @@ async function _GET(request: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  manufacturingOrderId: z.union([z.string(), z.number()]).optional(),
+  inspectedQuantity: z.number().optional(),
+  passedQuantity: z.number().optional(),
+  failedQuantity: z.number().optional(),
+  notes: z.any().optional(),
+  inspectorId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { manufacturingOrderId, inspectedQuantity, passedQuantity, failedQuantity, notes, inspectorId } = body;
 
         // Ensure order exists

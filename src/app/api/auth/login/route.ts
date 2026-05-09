@@ -4,6 +4,13 @@ import { getPrisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { comparePassword, generateToken } from '@/lib/auth';
 import { rateLimitOrReject } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  username: z.any().optional(),
+  password: z.string().min(1).optional(),
+}).passthrough();
 
 async function _POST(request: Request) {
     // Rate limit: max 10 login attempts per minute per IP
@@ -13,6 +20,11 @@ async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const username = String(body.username || '').trim();
         const password = String(body.password || '').trim();
 

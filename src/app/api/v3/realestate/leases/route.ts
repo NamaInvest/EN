@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
 
@@ -12,10 +13,22 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  propertyId: z.union([z.string(), z.number()]).optional(),
+  tenantId: z.union([z.string(), z.number()]).optional(),
+  rentAmount: z.number().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const data = await prisma.realEstateLease.create({
             data: { propertyId: body.propertyId || 1, tenantId: body.tenantId || 1, rentAmount: body.rentAmount || 0, startDate: new Date(), endDate: new Date(), status: "active" }
         });

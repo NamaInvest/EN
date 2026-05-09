@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
@@ -22,6 +23,15 @@ async function _GET(req: NextRequest) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  title: z.any().optional(),
+  department: z.any().optional(),
+  description: z.any().optional(),
+  requirements: z.any().optional(),
+  status: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
@@ -29,6 +39,11 @@ async function _POST(req: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const job = await prisma.jobPosting.create({
       data: {
         title: data.title,

@@ -2,10 +2,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MfaEngine } from '@/lib/mfa-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  userId: z.union([z.string(), z.number()]).optional(),
+  code: z.any().optional(),
+  deviceName: z.any().optional(),
+  days: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { userId, code, deviceName, days } = body;
         if (!userId || !code || !deviceName) return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
 

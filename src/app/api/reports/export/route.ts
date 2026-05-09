@@ -9,10 +9,6 @@ import { getUserFromRequest } from '@/lib/auth';
  * Export financial reports in CSV format (Excel-compatible with Arabic support)
  */
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);

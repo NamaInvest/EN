@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { createDSR, getDSRQueue, getOverdueDSRs } from '@/lib/pdpl-engine';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -27,6 +28,14 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  requestType: z.any().optional(),
+  subjectType: z.any().optional(),
+  subjectId: z.union([z.string(), z.number()]).optional(),
+  subjectIdentifier: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -34,6 +43,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.requestType || !body.subjectType || !body.subjectId || !body.subjectIdentifier) {
             return NextResponse.json({ error: 'مطلوب: requestType, subjectType, subjectId, subjectIdentifier' }, { status: 400 });
         }

@@ -8,6 +8,17 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { CPQEngine } from '@/lib/cpq-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  productId: z.union([z.string(), z.number()]).optional(),
+  quantity: z.number().optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+  lines: z.array(z.any()).optional(),
+  quoteId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -16,6 +27,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const action = body.action || 'price';
 
         if (action === 'price') {

@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const stores = await (prisma as any).storeFront.findMany({
@@ -17,14 +14,34 @@ async function _GET(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  slug: z.any().optional(),
+  domain: z.any().optional(),
+  theme: z.any().optional(),
+  currency: z.any().optional(),
+  language: z.any().optional(),
+  status: z.any().optional(),
+  tenantId: z.union([z.string(), z.number()]).optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+  them: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const store = await (prisma as any).storeFront.create({
       data: { name: data.name, slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-'), domain: data.domain || null, theme: data.theme || 'default', currency: data.currency || 'SAR', language: data.language || 'ar', status: data.status || 'ACTIVE', tenantId: data.tenantId || 'default' }
     });
@@ -32,11 +49,17 @@ async function _POST(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }
 
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  name: z.any().optional(),
+  domain: z.any().optional(),
+  theme: z.any().optional(),
+  status: z.any().optional(),
+  settings: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();

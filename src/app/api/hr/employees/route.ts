@@ -4,11 +4,8 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);
@@ -27,14 +24,30 @@ async function _GET(request: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  salary: z.number().optional(),
+  name: z.any().optional(),
+  phone: z.string().optional(),
+  position: z.any().optional(),
+  housingAllowance: z.any().optional(),
+  transportAllowance: z.any().optional(),
+  otherAllowance: z.any().optional(),
+  bankName: z.any().optional(),
+  iban: z.any().optional(),
+  startDate: z.string().optional(),
+  branchId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         body.salary = typeof body.salary === 'string' ? body.salary.replace(/,/g, '') : body.salary;
         const employee = await prisma.employee.create({
             data: {

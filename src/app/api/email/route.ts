@@ -3,6 +3,13 @@ import { withRoute } from '@/lib/api/with-route';
 import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/email';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  type: z.any().optional(),
+  to: z.any().optional(),
+}).passthrough();
 
 async function _POST(request: NextRequest) {
 
@@ -15,6 +22,11 @@ async function _POST(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { type, to, ...data } = body;
 
         let emailData: { subject: string; html: string } | null = null;

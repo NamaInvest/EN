@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
@@ -17,11 +18,28 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  custodianId: z.union([z.string(), z.number()]).optional(),
+  fundName: z.any().optional(),
+  maxLimit: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
     try {
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         // Ensure there is at least one employee if not provided
         let empId = parseInt(body.custodianId);
@@ -52,6 +70,16 @@ async function _POST(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  fundName: z.any().optional(),
+  custodianId: z.union([z.string(), z.number()]).optional(),
+  maxLimit: z.any().optional(),
+  currentBalance: z.any().optional(),
+  status: z.any().optional(),
+}).passthrough();
 
 async function _PUT(req: NextRequest) {
     const prisma = getPrisma(req as any);

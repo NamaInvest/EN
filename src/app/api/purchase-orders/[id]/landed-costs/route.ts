@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _GET(
     request: NextRequest,
@@ -28,6 +29,11 @@ async function _GET(
     }
 }
 
+
+const _POSTSchema = z.object({
+  expenseAccountId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -43,6 +49,11 @@ async function _POST(
 
         const orderId = parseInt((await params).id);
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const order = await prisma.purchaseOrder.findUnique({
             where: { id: orderId },

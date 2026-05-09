@@ -5,16 +5,31 @@ import { getPrisma } from '@/lib/prisma';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _PUTSchema = z.object({
+  salary: z.number().optional(),
+  name: z.any().optional(),
+  phone: z.string().optional(),
+  position: z.any().optional(),
+  housingAllowance: z.any().optional(),
+  transportAllowance: z.any().optional(),
+  otherAllowance: z.any().optional(),
+  ba: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const employeeId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         body.salary = typeof body.salary === 'string' ? body.salary.replace(/,/g, '') : body.salary;
 
         // Read before state for audit
@@ -47,9 +62,6 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 }
 
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 

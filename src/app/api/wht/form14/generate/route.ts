@@ -7,6 +7,12 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { WHTEngine } from '@/lib/wht-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  period: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -14,6 +20,11 @@ async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const period = body.period; // YYYY-MM
         if (!period || !/^\d{4}-\d{2}$/.test(period)) {
             return NextResponse.json({ error: 'مطلوب period بصيغة YYYY-MM' }, { status: 400 });

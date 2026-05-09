@@ -4,15 +4,27 @@ import { getBnplKeys, createTabbySession, createTamaraSession } from '@/lib/bnpl
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _POSTSchema = z.object({
+  provider: z.any().optional(),
+  amount: z.number().optional(),
+  items: z.array(z.any()).optional(),
+  phone: z.string().optional(),
+  customerName: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { provider, amount, items, phone, customerName } = body;
 
         if (!amount || !items || !provider) {

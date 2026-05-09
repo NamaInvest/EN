@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  vendorId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -12,6 +18,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { vendorId } = body;
 
         if (!vendorId) return NextResponse.json({ error: 'vendorId is required' }, { status: 400 });

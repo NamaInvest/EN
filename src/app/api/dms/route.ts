@@ -4,11 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const { searchParams } = new URL(request.url);
@@ -24,14 +21,29 @@ async function _GET(request: NextRequest) {
   } catch (error: any) { return apiError(error, 'Error', { context: 'dms' }); }
 }
 
+
+const _POSTSchema = z.object({
+  type: z.any().optional(),
+  name: z.any().optional(),
+  parentId: z.union([z.string(), z.number()]).optional(),
+  tenantId: z.union([z.string(), z.number()]).optional(),
+  path: z.any().optional(),
+  mimeType: z.any().optional(),
+  size: z.any().optional(),
+  folderId: z.union([z.string(), z.number()]).optional(),
+  tags: z.array(z.any()).optional(),
+  uploadedBy: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const data = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     if (data.type === 'folder') {
       const folder = await (prisma as any).dmsFolder.create({ data: { name: data.name, parentId: data.parentId ? parseInt(data.parentId) : null, tenantId: data.tenantId || 'default' } });
       return NextResponse.json(folder);

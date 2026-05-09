@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 // Meta Webhook Verification
 async function _GET(req: NextRequest) {
@@ -29,10 +30,21 @@ async function _GET(req: NextRequest) {
 }
 
 // Meta Webhook Incoming Messages (Customer Text -> Gemini -> WhatsApp)
+
+const _POSTSchema = z.object({
+  object: z.any().optional(),
+  entry: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         // 1. Acknowledge Receipt Immediately (Meta drops webhooks that don't 200 OK within seconds)
         // Note: For Next.js App Router, we technically MUST return a response. We will do it asynchronously or block.

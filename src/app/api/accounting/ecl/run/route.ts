@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { IFRS9Engine } from '@/lib/ifrs9-ecl';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  fiscalPeriodId: z.union([z.string(), z.number()]).optional(),
+  asOfDate: z.string().optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { fiscalPeriodId, asOfDate, userId } = body;
 
         if (!fiscalPeriodId || !asOfDate || !userId) {

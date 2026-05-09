@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _PATCHSchema = z.object({
+  status: z.any().optional(),
+  notes: z.any().optional(),
+}).passthrough();
 
 async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -8,6 +15,11 @@ async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }
     try {
         const stepId = parseInt((await params).id);
         const body = await req.json();
+
+        const _parsed = _PATCHSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { status, notes } = body;
 
         const updated = await prisma.periodCloseChecklist.update({

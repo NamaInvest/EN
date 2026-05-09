@@ -2,15 +2,24 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  order_id: z.union([z.string(), z.number()]).optional(),
+  orderId: z.union([z.string(), z.number()]).optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     try {
         const { searchParams } = new URL(request.url);
         const platform = searchParams.get('platform') || 'unknown';
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const orderId = body.order_id || body.orderId || body.id || '';
         console.log(`[Delivery] Order from ${platform}: ${orderId}`);
         return NextResponse.json({ ok: true, platform, orderId });

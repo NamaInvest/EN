@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 import crypto from 'crypto';
+import { z } from 'zod';
 
 const MASTER_DB_URL = process.env.DATABASE_URL || '';
 
@@ -187,6 +188,30 @@ async function _GET(req: NextRequest) {
 }
 
 // POST: Create, activate, or manage licenses
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  company_name: z.any().optional(),
+  company_name_ar: z.any().optional(),
+  company_name_en: z.any().optional(),
+  contact_email: z.string().email().optional(),
+  contact_phone: z.string().optional(),
+  expires_at: z.any().optional(),
+  notes: z.any().optional(),
+  max_devices: z.any().optional(),
+  business_domain: z.any().optional(),
+  mobile: z.string().optional(),
+  vat_number: z.any().optional(),
+  crn_number: z.any().optional(),
+  city: z.any().optional(),
+  city_en: z.any().optional(),
+  district: z.any().optional(),
+  street_name: z.any().optional(),
+  building_no: z.any().optional(),
+  postal_code: z.any().optional(),
+  tenant_account_id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
   if (process.env.DESKTOP_MODE === 'true') {
@@ -198,6 +223,11 @@ async function _POST(req: NextRequest) {
   try {
     await ensureTable(pool);
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const { action } = body;
 
     if (action === 'create') {

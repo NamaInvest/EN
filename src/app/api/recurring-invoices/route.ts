@@ -2,8 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
+import { z } from 'zod';
 
 // Add a new Recurring Contract
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  frequency: z.any().optional(),
+  startDate: z.string().optional(),
+  items: z.array(z.any()).optional(),
+  subtotal: z.number().optional(),
+  taxValue: z.number().optional(),
+  total: z.number().optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req as any);
@@ -11,6 +24,11 @@ async function _POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const {
       customerId,
       frequency,

@@ -4,10 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     if (!_getAuth(request)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
     const prisma = getPrisma(request);
@@ -24,18 +22,27 @@ async function _GET(request: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  branchId: z.union([z.string(), z.number()]).optional(),
+  currentBalance: z.any().optional(),
+  bankName: z.any().optional(),
+  accountName: z.any().optional(),
+  accountNumber: z.any().optional(),
+  iban: z.any().optional(),
+  currency: z.any().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const branchId = body.branchId ? parseInt(body.branchId.toString()) : null;
         const initialBalance = parseFloat(body.currentBalance || '0');

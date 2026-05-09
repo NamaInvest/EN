@@ -12,6 +12,7 @@ import { getPrisma } from '@/lib/prisma';
 import { ThreeWayMatchService } from '@/services/ap/three-way-match.service';
 import { PaymentRunService } from '@/services/ap/payment-run.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
+import { z } from 'zod';
 
 function buildCtx(req: NextRequest): BusinessContext {
   return {
@@ -46,6 +47,13 @@ async function _GET(req: NextRequest) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+  poId: z.union([z.string(), z.number()]).optional(),
+  tolerance: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
   try {
     const prisma  = getPrisma(req);
@@ -53,6 +61,11 @@ async function _POST(req: NextRequest) {
     const { searchParams } = req.nextUrl;
     const action  = searchParams.get('action') ?? '';
     const body    = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
     // ── 3-Way Match ───────────────────────────────────────────────────────────
     if (action === 'match') {

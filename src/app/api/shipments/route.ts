@@ -3,18 +3,34 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 /**
  * POST /api/shipments — Create a shipment tracking record
  * GET  /api/shipments — List all shipments with status
  */
+
+const _POSTSchema = z.object({
+  salesInvoiceId: z.union([z.string(), z.number()]).optional(),
+  purchaseOrderId: z.union([z.string(), z.number()]).optional(),
+  carrier: z.any().optional(),
+  trackingNumber: z.any().optional(),
+  status: z.any().optional(),
+  estimatedDelivery: z.any().optional(),
+  shippingCost: z.number().optional(),
+  recipientName: z.any().optional(),
+  recipientPhone: z.string().optional(),
+  recipientAddress: z.any().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const shipment = await prisma.shipment.create({
             data: {
                 salesInvoiceId: body.salesInvoiceId || null,
@@ -39,10 +55,6 @@ async function _POST(request: NextRequest) {
 }
 
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     const prisma = getPrisma(request);
     try {
         const { searchParams } = new URL(request.url);

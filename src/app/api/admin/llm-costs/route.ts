@@ -17,9 +17,6 @@ import { getUserFromRequest } from '@/lib/auth';
  *   - logs          : 100 most-recent rows for the table view
  */
 async function _GET(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);

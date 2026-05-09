@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -32,11 +33,26 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  moId: z.union([z.string(), z.number()]).optional(),
+  rawProductId: z.union([z.string(), z.number()]).optional(),
+  lostQuantity: z.number().optional(),
+  reason: z.any().optional(),
+  wastagePhotoUrl: z.any().optional(),
+  serialOrBatchNumber: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { moId, rawProductId, lostQuantity, reason, wastagePhotoUrl, serialOrBatchNumber } = body;
 
         // Verify MO and Product

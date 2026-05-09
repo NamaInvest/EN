@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  model: z.any().optional(),
+  fields: z.any().optional(),
+  limit: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { model, fields, limit } = body;
 
         if (!model || !fields || fields.length === 0) {

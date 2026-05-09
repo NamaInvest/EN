@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { LeaveEngine } from '@/lib/leave-engine';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -42,12 +43,27 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  employeeId: z.union([z.string(), z.number()]).optional(),
+  leaveType: z.any().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  reason: z.any().optional(),
+  attachmentUrl: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { employeeId, leaveType, startDate, endDate, reason, attachmentUrl } = body;
 
         if (!employeeId || !leaveType || !startDate || !endDate) {

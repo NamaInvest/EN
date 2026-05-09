@@ -4,9 +4,6 @@ import { prisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     try {
         const user = getUserFromRequest(request as any);
         if (!user || user.role !== 'admin') {
@@ -27,9 +24,6 @@ async function _GET(request: NextRequest) {
 }
 
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     try {
         const user = getUserFromRequest(request as any);
         if (!user || user.role !== 'admin') {

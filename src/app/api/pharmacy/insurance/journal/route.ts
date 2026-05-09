@@ -7,6 +7,13 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  claimId: z.union([z.string(), z.number()]).optional(),
+  paidAmount: z.number().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
@@ -15,6 +22,11 @@ async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { claimId, paidAmount } = body;
 
         // @ts-ignore — pharmacy model

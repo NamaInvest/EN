@@ -3,10 +3,8 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request, { params }: { params: Promise<{ key: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const { key } = await params;
@@ -15,11 +13,13 @@ async function _GET(request: Request, { params }: { params: Promise<{ key: strin
     } catch (error: any) { console.error(error); return NextResponse.json({ error: 'خطأ' }, { status: 500 }); }
 }
 
+
+const _PUTSchema = z.object({
+  value: z.any().optional(),
+}).passthrough();
+
 async function _PUT(request: Request, { params }: { params: Promise<{ key: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request as any);
@@ -29,6 +29,11 @@ async function _PUT(request: Request, { params }: { params: Promise<{ key: strin
     try {
         const { key } = await params;
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const setting = await prisma.setting.upsert({
             where: { key },
             update: { value: body.value },

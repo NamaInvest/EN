@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { IntercompanyEngine } from '@/lib/intercompany-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -15,12 +16,23 @@ async function _GET(req: NextRequest) {
         return NextResponse.json(await IntercompanyEngine.getTransactions(prisma));
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (body.action === 'create_rule') return NextResponse.json(await IntercompanyEngine.createRule(prisma, body));
         if (body.action === 'reconcile') return NextResponse.json(await IntercompanyEngine.reconcile(prisma, body.id));
         return NextResponse.json(await IntercompanyEngine.processInvoice(prisma, body));

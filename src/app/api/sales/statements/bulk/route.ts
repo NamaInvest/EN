@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  customerIds: z.array(z.any()).optional(),
+  template: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { customerIds, template } = body;
 
         // In a real application, you would generate PDF statements using something like Puppeteer or PDFKit

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -31,11 +32,31 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  bankAccountId: z.union([z.string(), z.number()]).optional(),
+  conditions: z.any().optional(),
+  action: z.any().optional(),
+  actionParams: z.any().optional(),
+  priority: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { name, bankAccountId, conditions, action, actionParams, priority } = body;
 
         const newRule = await prisma.bankReconRule.create({
@@ -55,6 +76,12 @@ async function _POST(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  enabled: z.boolean().optional(),
+}).passthrough();
 
 async function _PUT(req: Request) {
 

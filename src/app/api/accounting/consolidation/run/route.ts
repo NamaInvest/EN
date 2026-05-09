@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { ConsolidationEngine } from '@/lib/consolidation-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  groupId: z.union([z.string(), z.number()]).optional(),
+  fiscalPeriodId: z.union([z.string(), z.number()]).optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { groupId, fiscalPeriodId, userId } = body;
 
         if (!groupId || !fiscalPeriodId || !userId) {

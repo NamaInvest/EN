@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
 
@@ -19,11 +20,23 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  code: z.any().optional(),
+  name: z.any().optional(),
+  type: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         if (!body.code || !body.name || !body.type) {
             return NextResponse.json({ error: 'مطلوب: code, name, type' }, { status: 400 });

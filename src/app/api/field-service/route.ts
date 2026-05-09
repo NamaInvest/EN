@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -47,12 +48,37 @@ async function _GET(req: Request) {
   }
 }
 
+
+const _POSTSchema = z.object({
+  customerId: z.union([z.string(), z.number()]).optional(),
+  technicianId: z.union([z.string(), z.number()]).optional(),
+  type: z.any().optional(),
+  priority: z.any().optional(),
+  description: z.any().optional(),
+  scheduledDate: z.string().optional(),
+  laborCost: z.number().optional(),
+  partsCost: z.number().optional(),
+  notes: z.any().optional(),
+  latitude: z.any().optional(),
+  longitude: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   try {
     const body = await req.json();
+
+        const _parsed = _PATCHSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const {
       customerId, technicianId, type, priority,
       description, scheduledDate, laborCost, partsCost, notes,
@@ -98,6 +124,16 @@ async function _POST(req: Request) {
 /**
  * PATCH /api/field-service — تحديث حالة التذكرة
  */
+
+const _PATCHSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+  technicianId: z.union([z.string(), z.number()]).optional(),
+  laborCost: z.number().optional(),
+  partsCost: z.number().optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
 async function _PATCH(req: Request) {
   const user = getUserFromRequest(req as any);
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

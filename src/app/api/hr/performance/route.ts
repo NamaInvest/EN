@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -38,11 +39,27 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  employeeId: z.union([z.string(), z.number()]).optional(),
+  evaluatorId: z.union([z.string(), z.number()]).optional(),
+  period: z.any().optional(),
+  score: z.any().optional(),
+  strengths: z.any().optional(),
+  weaknesses: z.any().optional(),
+  recommendations: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { employeeId, evaluatorId, period, score, strengths, weaknesses, recommendations } = body;
 
         // In a real 360 review, we'd check if evaluatorId == employeeId for Self-Assessment, 

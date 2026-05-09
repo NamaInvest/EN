@@ -6,6 +6,15 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  newExpiryDate: z.string().optional(),
+  renewalCost: z.number().optional(),
+  dismissReason: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,6 +25,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { action, newExpiryDate, renewalCost, dismissReason } = body;
 
         if (action === 'renew') {

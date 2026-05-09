@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { z } from 'zod';
 
 async function _GET(request: NextRequest) {
 
@@ -28,6 +29,14 @@ async function _GET(request: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  name: z.any().optional(),
+  description: z.any().optional(),
+  salesRepId: z.union([z.string(), z.number()]).optional(),
+  active: z.boolean().optional(),
+}).passthrough();
+
 async function _POST(request: NextRequest) {
 
     const prisma = getPrisma(request);
@@ -37,6 +46,11 @@ async function _POST(request: NextRequest) {
         if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         if (!body.name) {
              return NextResponse.json({ error: 'اسم خط السير مطلوب' }, { status: 400 });

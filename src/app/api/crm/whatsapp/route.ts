@@ -6,13 +6,24 @@ import path from 'path';
 
 // إرسال رسالة واتساب مع خيار إرفاق الفاتورة أو التذكير
 import { getUserFromRequest } from '@/lib/auth';
-async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _POSTSchema = z.object({
+  phone: z.string().optional(),
+  message: z.any().optional(),
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+  type: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { phone, message, invoiceId, type = 'invoice' } = body;
 
         if (!phone) {

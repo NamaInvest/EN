@@ -4,6 +4,15 @@ import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  category: z.any().optional(),
+  description: z.any().optional(),
+  amount: z.number().optional(),
+  glAccountId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -11,6 +20,11 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
     const { id } = await params;
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { category, description, amount, glAccountId } = body;
         if (!category || !['ADD', 'DEDUCT'].includes(category)) {
             return NextResponse.json({ error: 'category must be ADD or DEDUCT' }, { status: 400 });

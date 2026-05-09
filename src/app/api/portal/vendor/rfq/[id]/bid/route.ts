@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  items: z.array(z.any()).optional(),
+}).passthrough();
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -21,6 +27,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { items } = body; // items: [{rfqDetailId, unitPrice, deliveryDays}]
 
         if (!items || !Array.isArray(items)) {

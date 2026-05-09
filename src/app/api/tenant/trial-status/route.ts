@@ -7,10 +7,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
     try {
         const headersList = await headers();
         const tenant = headersList.get('x-tenant');

@@ -4,9 +4,6 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const auth = getUserFromRequest(request as any);
     if (!auth || auth.role !== 'admin') {
         return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

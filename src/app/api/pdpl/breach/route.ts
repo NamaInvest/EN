@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { recordBreach, getActiveBreaches } from '@/lib/pdpl-engine';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
@@ -22,6 +23,13 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  category: z.any().optional(),
+  severity: z.any().optional(),
+  affectedRecords: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -29,6 +37,11 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         if (!body.category || !body.severity || body.affectedRecords === undefined) {
             return NextResponse.json({ error: 'مطلوب: category, severity, affectedRecords' }, { status: 400 });
         }

@@ -4,6 +4,12 @@ import { getPrisma } from '@/lib/prisma';
 import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
+
+const _POSTSchema = z.object({
+  metrics: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -13,6 +19,11 @@ async function _POST(req: NextRequest) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { metrics } = body;
 
         if (!metrics) {

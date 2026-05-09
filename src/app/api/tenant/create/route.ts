@@ -3,8 +3,16 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from "@prisma/client";
 import { currentUser } from "@clerk/nextjs/server";
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
+
+
+const _POSTSchema = z.object({
+  fallbackEmail: z.string().email().optional(),
+  orgName: z.any().optional(),
+  vatNumber: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
@@ -14,6 +22,11 @@ async function _POST(req: Request) {
     
     // Safety check: Fallback to body-provided email if NextAuth is mocked locally
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const userEmail = user?.emailAddresses[0]?.emailAddress || body.fallbackEmail;
 
     if (!userEmail) {

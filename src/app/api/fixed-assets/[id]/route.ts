@@ -4,10 +4,8 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { id } = await params;
     const prisma = getPrisma(request);
     try {
@@ -22,10 +20,18 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ id: st
     }
 }
 
-async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _PUTSchema = z.object({
+  name: z.any().optional(),
+  nameAr: z.any().optional(),
+  salvageValue: z.any().optional(),
+  usefulLifeYears: z.union([z.string(), z.number()]).optional(),
+  depreciationMethod: z.any().optional(),
+  locationId: z.union([z.string(), z.number()]).optional(),
+  status: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);
@@ -34,6 +40,11 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const data: Record<string, unknown> = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.nameAr !== undefined) data.nameAr = body.nameAr;
@@ -55,9 +66,6 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 }
 
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     const _auth = _getAuth(request);

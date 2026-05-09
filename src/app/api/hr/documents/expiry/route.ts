@@ -7,6 +7,7 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
     const user = getUserFromRequest(req as any);
@@ -21,12 +22,22 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  channels: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const channels = body.channels || ['DASHBOARD'];
         const result = await DocumentExpiryEngine.scanAndAlert(channels);
         return NextResponse.json({ success: true, ...result });

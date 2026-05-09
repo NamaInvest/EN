@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
 
@@ -30,11 +31,24 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _PUTSchema = z.object({
+  orderId: z.union([z.string(), z.number()]).optional(),
+  newStartDate: z.string().optional(),
+  newEndDate: z.string().optional(),
+  machineId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _PUT(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { orderId, newStartDate, newEndDate, machineId } = body;
 
         const updated = await prisma.manufacturingOrder.update({

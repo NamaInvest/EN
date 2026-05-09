@@ -7,6 +7,12 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  date: z.string().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
     const user = getUserFromRequest(req as any);
@@ -14,6 +20,11 @@ async function _POST(req: Request) {
 
     try {
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const accrualDate = body.date ? new Date(body.date) : new Date();
         const result = await LeaveEngine.runMonthlyAccrual(accrualDate, user.userId);
         return NextResponse.json({ success: true, ...result });

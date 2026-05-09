@@ -3,10 +3,8 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const installments = await prisma.installment.findMany({
@@ -15,18 +13,23 @@ async function _GET(request: NextRequest) {
     } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
+
+const _POSTSchema = z.object({
+  totalAmount: z.number().optional(),
+  installmentCount: z.any().optional(),
+  invoiceId: z.union([z.string(), z.number()]).optional(),
+  customerId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 async function _POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-    // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const totalAmount = parseFloat(body.totalAmount) || 0;
         const count = parseInt(body.installmentCount) || 1;
         const paymentAmount = totalAmount / count;

@@ -3,12 +3,18 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 const prisma = new PrismaClient();
 
-async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  companyId: z.union([z.string(), z.number()]).optional(),
+  action: z.any().optional(),
+  days: z.union([z.string(), z.number()]).optional(),
+  planLabel: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: NextRequest) {
     const user = await getUserFromRequest(request as any);
     if (!user || user.role !== 'owner') {
         return NextResponse.json({ error: 'عفواً، هذه الصلاحية مخصصة لمالك المنصة فقط' }, { status: 403 });
@@ -16,6 +22,11 @@ async function _POST(request: NextRequest) {
 
     try {
         const body = await request.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { companyId, action, days, planLabel } = body;
 
         if (!companyId || !action) {

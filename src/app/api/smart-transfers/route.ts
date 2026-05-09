@@ -5,6 +5,7 @@ import { postStockTransfer } from '@/lib/auto-journal';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -61,6 +62,14 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  productId: z.union([z.string(), z.number()]).optional(),
+  senderStockId: z.union([z.string(), z.number()]).optional(),
+  receiverStockId: z.union([z.string(), z.number()]).optional(),
+  quantity: z.number().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -68,6 +77,16 @@ async function _POST(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { productId, senderStockId, receiverStockId, quantity } = body;
 
         if (!productId || !senderStockId || !receiverStockId || quantity <= 0) {
@@ -133,6 +152,11 @@ async function _POST(req: NextRequest) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+
+const _PUTSchema = z.object({
+  movementId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _PUT(req: NextRequest) {
     const prisma = getPrisma(req);

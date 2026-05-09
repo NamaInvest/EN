@@ -4,14 +4,25 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
-async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+import { z } from 'zod';
 
+const _PUTSchema = z.object({
+  ingredients: z.any().optional(),
+  name: z.any().optional(),
+  finishedProductId: z.union([z.string(), z.number()]).optional(),
+  isActive: z.boolean().optional(),
+}).passthrough();
+
+async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const recipeId = parseInt(id);
 
         // Delete old ingredients and recreate
@@ -56,9 +67,6 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request as any);

@@ -1,11 +1,28 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma'; // Assuming standard location
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  osPlatform: z.any().optional(),
+  osRelease: z.any().optional(),
+  appVersion: z.any().optional(),
+  errorMessage: z.any().optional(),
+  stackTrace: z.any().optional(),
+  tenantInfo: z.any().optional(),
+  notes: z.any().optional(),
+}).passthrough();
 
 async function _POST(req: Request) {
 
   try {
     const data = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(data);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
     const report = await prisma.desktopCrashReport.create({
       data: {

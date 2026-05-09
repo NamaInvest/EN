@@ -5,10 +5,6 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const items = await (prisma as any).freightOrder.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
@@ -16,10 +12,6 @@ async function _GET(request: NextRequest) {
   } catch (e: any) { return apiError(e, 'Error', { context: 'logistics/freight' }); }
 }
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const d = await request.json();

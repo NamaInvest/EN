@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { CRMEngine } from '@/lib/crm-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  createCustomer: z.any().optional(),
+}).passthrough();
 
 async function _POST(
     req: NextRequest, 
@@ -12,6 +18,11 @@ async function _POST(
         // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
         const { id } = params;
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         
         const result = await CRMEngine.winOpportunity(parseInt(id, 10), body.createCustomer !== false);
         return NextResponse.json(result);

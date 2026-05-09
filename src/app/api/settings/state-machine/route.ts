@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { transition, getAvailableActions, seedDefaultTransitions } from '@/lib/state-machine-engine';
+import { z } from 'zod';
 
 const db = (p: any) => p as any;
 
@@ -33,11 +34,27 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  action: z.any().optional(),
+  docType: z.any().optional(),
+  currentState: z.any().optional(),
+  transitionAction: z.any().optional(),
+  userRole: z.any().optional(),
+  fromState: z.any().optional(),
+  toState: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
     try {
         const prisma = getPrisma(req);
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         if (body.action === 'seed') {
             const count = await seedDefaultTransitions(prisma);

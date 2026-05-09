@@ -5,10 +5,8 @@ import { getPrisma } from '@/lib/prisma';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -21,16 +19,34 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
     }
 }
 
-async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _PUTSchema = z.object({
+  name: z.any().optional(),
+  phone: z.string().optional(),
+  address: z.any().optional(),
+  street: z.any().optional(),
+  buildingNumber: z.any().optional(),
+  district: z.any().optional(),
+  city: z.any().optional(),
+  postalCode: z.any().optional(),
+  type: z.any().optional(),
+  creditLimit: z.any().optional(),
+  taxNumber: z.number().optional(),
+  crNo: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const customerId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
 
         // 1. Read before state for audit
         const before = await prisma.customer.findUnique({ where: { id: customerId } });
@@ -63,9 +79,6 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 }
 
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 

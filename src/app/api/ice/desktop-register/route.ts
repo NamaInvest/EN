@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
@@ -63,10 +64,36 @@ async function ensureTable() {
   } catch {}
 }
 
+
+const _POSTSchema = z.object({
+  licenseKey: z.any().optional(),
+  license_key: z.any().optional(),
+  companyNameAr: z.any().optional(),
+  companyNameEn: z.any().optional(),
+  businessDomain: z.any().optional(),
+  mobile: z.string().optional(),
+  vatNumber: z.any().optional(),
+  crnNumber: z.any().optional(),
+  city: z.any().optional(),
+  cityEn: z.any().optional(),
+  district: z.any().optional(),
+  streetName: z.any().optional(),
+  buildingNo: z.any().optional(),
+  postalCode: z.any().optional(),
+  hardwareId: z.union([z.string(), z.number()]).optional(),
+  deviceName: z.any().optional(),
+  appVersion: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
     const {
       companyNameAr, companyNameEn, businessDomain,
       mobile, vatNumber, crnNumber,

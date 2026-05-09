@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { getUserFromRequest } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
+import { z } from 'zod';
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -35,6 +36,13 @@ async function _GET(req: Request) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  productId: z.union([z.string(), z.number()]).optional(),
+  actualQuantity: z.number().optional(),
+  reason: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
 
@@ -50,6 +58,11 @@ async function _POST(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { productId, actualQuantity, reason } = body;
 
         if (!productId || actualQuantity === undefined) {

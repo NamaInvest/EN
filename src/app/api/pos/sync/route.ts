@@ -6,10 +6,6 @@ import { apiError } from '@/lib/api-error';
 // POST: Sync offline sales to server
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const { sales } = await request.json();
@@ -73,10 +69,6 @@ async function _POST(request: NextRequest) {
 
 // GET: Get data for offline cache (products + customers)
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
-
   const prisma = getPrisma(request as any);
   try {
     const products = await (prisma as any).product.findMany({

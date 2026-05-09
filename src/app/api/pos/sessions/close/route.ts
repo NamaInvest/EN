@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PosSessionEngine } from '@/lib/pos-session-engine';
+import { z } from 'zod';
+
+
+const _POSTSchema = z.object({
+  sessionId: z.union([z.string(), z.number()]).optional(),
+  actualClosingCash: z.any().optional(),
+  userId: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
 
     try {
         const body = await req.json().catch(() => ({}));
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { sessionId, actualClosingCash, userId } = body;
         
         if (!sessionId || actualClosingCash === undefined) {

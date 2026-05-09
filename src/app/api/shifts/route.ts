@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { z } from 'zod';
 const parseAmount = (val: any) => {
     if (val === undefined || val === null || val === '') return 0;
     const str = String(val)
@@ -13,9 +14,6 @@ const parseAmount = (val: any) => {
 };
 
 async function _GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request as any);
 
     try {
@@ -45,14 +43,30 @@ async function _GET(request: NextRequest) {
     }
 }
 
-async function _POST(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _POSTSchema = z.object({
+  userId: z.union([z.string(), z.number()]).optional(),
+  startCash: z.any().optional(),
+  startingCash: z.any().optional(),
+  branchId: z.union([z.string(), z.number()]).optional(),
+  notes: z.any().optional(),
+}).passthrough();
+
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
     try {
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { userId, startCash, startingCash, branchId, notes } = body;
 
         if (!userId) {
@@ -92,10 +106,16 @@ async function _POST(request: NextRequest) {
     }
 }
 
-async function _PUT(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
 
+const _PUTSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  endCash: z.any().optional(),
+  endingCashActual: z.any().optional(),
+  notes: z.any().optional(),
+  status: z.any().optional(),
+}).passthrough();
+
+async function _PUT(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
     try {
@@ -135,9 +155,6 @@ async function _PUT(request: NextRequest) {
 
 async function _DELETE(request: NextRequest) {
   // @ts-expect-error [TS2448] Block-scoped variable ordering issue
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
-
     const prisma = getPrisma(request as any);
 
     // Auth guard

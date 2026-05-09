@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
 const JWT_SECRET = (process.env.JWT_SECRET as string);
+
+
+const _POSTSchema = z.object({
+  totalAmount: z.number().optional(),
+  phone: z.string().optional(),
+  customerName: z.any().optional(),
+  orderId: z.union([z.string(), z.number()]).optional(),
+  items: z.array(z.any()).optional(),
+}).passthrough();
 
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -23,6 +33,11 @@ async function _POST(req: NextRequest) {
         }
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { totalAmount, phone, customerName, orderId, items } = body;
 
         if (!totalAmount || !phone) return NextResponse.json({ error: 'المبلغ المالي ورقم الجوال مطلوبان.' }, { status: 400 });

@@ -8,6 +8,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { CashFlowForecastingEngine } from '@/lib/cash-flow-forecasting';
+import { z } from 'zod';
 
 async function _GET(req: NextRequest) {
     try {
@@ -41,12 +42,25 @@ async function _GET(req: NextRequest) {
     }
 }
 
+
+const _POSTSchema = z.object({
+  period: z.any().optional(),
+  scenario: z.any().optional(),
+  horizonMonths: z.union([z.string(), z.number()]).optional(),
+  action: z.any().optional(),
+}).passthrough();
+
 async function _POST(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
         const { period = 'MONTHLY', scenario = 'REALISTIC', horizonMonths = 3, action } = body;
 
         if (action === 'compare') {
