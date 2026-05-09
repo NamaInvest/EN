@@ -1,126 +1,152 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
-import { getNextNumber } from '@/lib/numbering';
-import { n } from '@/lib/decimal-utils';
+/**
+ * Purchase Orders API Route — Full CRUD with Saga orchestration
+ * ──────────────────────────────────────────────────────────────────────────
+ * GET    /api/purchase-orders         — List POs with filters
+ * POST   /api/purchase-orders         — Create PO via PurchaseOrderSaga
+ * POST   /api/purchase-orders?action=grn — Receive goods (GRN Saga)
+ * PATCH  /api/purchase-orders/:id     — Update status (approve/reject)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { z }                         from 'zod';
+import { getPrisma }                 from '@/lib/prisma';
+import { getUserFromRequest }        from '@/lib/auth';
+import { validateRequest, validateQuery, PaginationSchema, DateRangeSchema } from '@/lib/api/validate-request';
+import { buildPurchaseOrderSaga, buildGRNSaga } from '@/lib/workflow/saga/purchase-sagas';
+import { Decimal }                   from '@prisma/client/runtime/library';
 
-import { getUserFromRequest } from '@/lib/auth';
-export async function GET(request: NextRequest) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+// ─── Schemas ──────────────────────────────────────────────────────────────────
 
-    const prisma = getPrisma(request);
-    try {
-        const auth = getUserFromRequest(request as any);
-        const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
+const CreatePOSchema = z.object({
+  supplierId:     z.number().int().positive().optional(),
+  date:           z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD'),
+  items:          z.array(z.object({
+    productId:  z.number().int().positive(),
+    quantity:   z.number().positive(),
+    unitCost:   z.number().positive(),
+    taxRate:    z.number().min(0).max(100).default(15),
+  })).min(1, 'At least one item required'),
+  notes:          z.string().optional(),
+  branchId:       z.number().int().positive().optional(),
+  requireApproval: z.boolean().default(false),
+});
 
-        const where: Record<string, unknown> = {};
-        if (user && user.role !== 'admin' && user.branchId) {
-            where.branchId = user.branchId;
-        }
+const GRNSchema = z.object({
+  purchaseOrderId: z.number().int().positive(),
+  receivedDate:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'receivedDate must be YYYY-MM-DD'),
+  items:           z.array(z.object({
+    productId:        z.number().int().positive(),
+    receivedQuantity: z.number().positive(),
+  })).min(1),
+  stockId:         z.number().int().positive().optional(),
+  notes:           z.string().optional(),
+});
 
-        const orders = await prisma.purchaseOrder.findMany({
-            take: 100, 
-            where,
-            include: { details: true, supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, 
-            orderBy: { id: 'desc' } 
-        });
-        return NextResponse.json(orders);
-    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
+const POListQuerySchema = PaginationSchema.merge(DateRangeSchema).extend({
+  status:     z.string().optional(),
+  supplierId: z.string().optional().transform((v) => v ? parseInt(v, 10) : undefined),
+});
+
+// ─── GET ──────────────────────────────────────────────────────────────────────
+
+export async function GET(req: NextRequest) {
+  const auth = getUserFromRequest(req as any);
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { data: q, error } = validateQuery(req, POListQuerySchema);
+  if (error) return error;
+
+  try {
+    const prisma   = getPrisma(req);
+    const tenantId = req.headers.get('x-tenant-id') ?? 'default';
+
+    const where: Record<string, unknown> = { tenantId };
+    if (q.status)     where.status = q.status;
+    if (q.supplierId) where.supplierId = q.supplierId;
+    if (q.from || q.to) {
+      where.date = {};
+      if (q.from) (where.date as any).gte = new Date(q.from);
+      if (q.to)   (where.date as any).lte = new Date(q.to);
+    }
+
+    const [orders, total] = await Promise.all([
+      prisma.purchaseOrder.findMany({
+        where,
+        include: {
+          supplier: { select: { id: true, name: true } },
+          details:  { include: { product: { select: { name: true, unit: true } } } },
+        },
+        orderBy: { id: 'desc' },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      prisma.purchaseOrder.count({ where }),
+    ]);
+
+    return NextResponse.json({ data: orders, total, page: q.page, limit: q.limit });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }
 
-export async function POST(request: Request) {
-  const _guardUser = getUserFromRequest(request as any);
-  if (!_guardUser) return new Response(JSON.stringify({error:"Unauthorized"}),{status:401,headers:{"Content-Type":"application/json"}});
+// ─── POST ─────────────────────────────────────────────────────────────────────
 
-    const prisma = getPrisma(request);
-    try {
-        const body = await request.json();
-        const userId = body.userId ? parseInt(body.userId) : null;
-        let branchId = body.branchId ? parseInt(body.branchId) : null;
-        
-        if (!branchId && userId) {
-            const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
-            branchId = user?.branchId || null;
-        }
+export async function POST(req: NextRequest) {
+  const auth = getUserFromRequest(req as any);
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const seqResult = await getNextNumber(prisma, 'PO', branchId);
-        const orderNo = seqResult.current;
+  const action   = req.nextUrl.searchParams.get('action');
+  const tenantId = req.headers.get('x-tenant-id') ?? 'default';
 
-        let subtotal = 0;
-        const details = (body.items || []).map((item: any) => {
-            const qty = parseFloat(item.quantity) || 1;
-            const price = parseFloat(item.price) || 0;
-            const itemSub = qty * price;
-            const tax = itemSub * 0.15;
-            subtotal += itemSub;
-            return { 
-                productId: parseInt(item.productId), 
-                productName: item.productName || '',
-                quantity: qty, 
-                price: price, 
-                taxRate: 15,
-                taxValue: tax,
-                total: itemSub + tax
-            };
-        });
+  try {
+    const prisma = getPrisma(req);
 
-        const taxValue = subtotal * 0.15;
-        const total = subtotal + taxValue;
+    // ── Create GRN ────────────────────────────────────────────────────────
+    if (action === 'grn') {
+      const { data, error } = await validateRequest(req, GRNSchema);
+      if (error) return error;
 
-        // Check Maker-Checker Approval Rules
-        const rules = await prisma.approvalRule.findMany({
-            take: 100,
-            where: {
-                documentType: 'PURCHASE_ORDER',
-                isActive: true,
-                minAmount: { lte: total }
-            },
-            orderBy: { level: 'asc' }
-        });
+      const saga = buildGRNSaga(prisma as any);
+      const result = await saga.execute({
+        tenantId,
+        userId:          auth.userId,
+        purchaseOrderId: data.purchaseOrderId,
+        data: {
+          receivedDate: data.receivedDate,
+          items:        data.items,
+          stockId:      data.stockId,
+          notes:        data.notes,
+        },
+      });
 
-        const applicableRules = rules.filter(r => r.maxAmount === null || n(r.maxAmount) >= total);
-        
-        let initialStatus = 'pending';
-        if (applicableRules.length > 0) {
-            initialStatus = 'pending_approval';
-        }
-
-        const order = await prisma.purchaseOrder.create({
-            data: {
-                orderNo, 
-                supplierId: body.supplierId ? parseInt(body.supplierId) : null,
-                stockId: body.stockId ? parseInt(body.stockId) : 1,
-                date: new Date(),
-                subtotal, taxValue, total,
-                status: initialStatus, notes: body.notes || null, 
-                userId, branchId,
-                details: { create: details },
-            },
-            include: { details: true },
-        });
-
-        // Generate Approval Request and Steps if needed
-        if (applicableRules.length > 0 && userId) {
-            await prisma.approvalRequest.create({
-                data: {
-                    documentType: 'PURCHASE_ORDER',
-                    documentId: order.id,
-                    status: 'pending',
-                    requestedBy: userId,
-                    steps: {
-                        create: applicableRules.map(r => ({
-                            approverId: r.approverId,
-                            level: r.level,
-                            status: 'pending'
-                        }))
-                    }
-                }
-            });
-        }
-
-        return NextResponse.json(order, { status: 201 });
-    } catch (e: any) { 
-        console.error(e); 
-        return NextResponse.json({ error: 'فشل في الحفظ' }, { status: 500 }); 
+      return NextResponse.json({ success: true, grnId: result.grnId }, { status: 201 });
     }
+
+    // ── Create Purchase Order ─────────────────────────────────────────────
+    const { data, error } = await validateRequest(req, CreatePOSchema);
+    if (error) return error;
+
+    const saga = buildPurchaseOrderSaga(prisma as any);
+    const result = await saga.execute({
+      tenantId,
+      userId: auth.userId,
+      data: {
+        supplierId:      data.supplierId,
+        date:            data.date,
+        items:           data.items,
+        notes:           data.notes,
+        branchId:        data.branchId,
+        requireApproval: data.requireApproval,
+      },
+    });
+
+    return NextResponse.json({
+      success:          true,
+      purchaseOrderId:  result.purchaseOrderId,
+      approvalRequestId: result.approvalRequestId,
+      status:           data.requireApproval ? 'pending_approval' : 'approved',
+    }, { status: 201 });
+
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }

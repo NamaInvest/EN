@@ -36,4 +36,9 @@ export class Saga<T> {
       throw error;
     }
   }
+
+  /** Alias for run() — preferred for API route callers */
+  execute(initialContext: T): Promise<T> {
+    return this.run(initialContext);
+  }
 }

@@ -1,109 +1,159 @@
 /**
- * ProjectCostingService — تكاليف المشروع + الربحية + WBS
- *
- * يُحسب:
- *   1. التكلفة الفعلية = عمالة + مواد + مصروفات عامة
- *   2. التكلفة المخططة (Budget)
- *   3. EAC = AC + (BAC - EV) / CPI  (Estimate At Completion)
- *   4. هامش الربح الإجمالي والصافي
- *   5. نسبة الإكمال للاعتراف بالإيراد (IFRS 15 % completion)
+ * Project Costing Service — EVM using actual schema
  */
+import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import type { PrismaClient } from '@prisma/client';
-import type { BusinessContext } from '@/services/shared/event-bus.service';
+
+export interface EVMMetrics {
+  projectId: number;
+  asOfDate: Date;
+  budgetAtCompletion: number;
+  plannedValue: number;
+  actualCost: number;
+  earnedValue: number;
+  scheduleVariance: number;
+  costVariance: number;
+  schedulePerformanceIndex: number;
+  costPerformanceIndex: number;
+  estimateAtCompletion: number;
+  estimateToComplete: number;
+  percentComplete: number;
+  status: 'ON_TRACK' | 'COST_OVERRUN' | 'SCHEDULE_DELAY' | 'CRITICAL';
+}
 
 export class ProjectCostingService {
-  constructor(
-    private readonly prisma: PrismaClient,
-    private readonly ctx: BusinessContext,
-  ) {}
+  constructor(private prisma: PrismaClient) {}
 
-  /** حساب التكلفة الفعلية للمشروع */
-  async calculateCost(projectId: string) {
-    const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
-
-    const project = await prisma.project?.findFirst?.({
+  /**
+   * Earned Value Management metrics
+   */
+  async getEVM(tenantId: string, projectId: number, asOfDate: Date): Promise<EVMMetrics> {
+    const project = await this.prisma.project.findFirstOrThrow({
       where: { id: projectId, tenantId },
-      select: { id: true, name: true, budget: true, contractValue: true, startDate: true, endDate: true },
-    }).catch(() => null);
+    });
 
-    if (!project) throw new Error(`المشروع ${projectId} غير موجود`);
+    const tasks = await this.prisma.projectTask.findMany({
+      where: { projectId, tenantId },
+    });
 
-    // جلب التكاليف الفعلية من GL
-    const glCosts = await prisma.journalLine?.groupBy?.({
-      by: ['accountCode'],
-      where: {
-        tenantId,
-        journalEntry: { status: 'POSTED', sourceId: projectId, sourceType: 'PROJECT' },
-        accountCode:  { gte: '5000', lte: '5999' }, // حسابات المصروفات
-      },
-      _sum: { debit: true },
-    }).catch(() => []) ?? [];
+    const budgetLines = await this.prisma.projectBudgetLine.findMany({
+      where: { projectId, tenantId },
+      select: { planned: true, actual: true },
+    });
 
-    const laborCost     = glCosts.filter((r: any) => r.accountCode >= '5100' && r.accountCode <= '5149').reduce((s: number, r: any) => s + Number(r._sum.debit ?? 0), 0);
-    const materialCost  = glCosts.filter((r: any) => r.accountCode >= '5100' && r.accountCode < '5100').reduce((s: number, r: any) => s + Number(r._sum.debit ?? 0), 0);
-    const overheadCost  = glCosts.filter((r: any) => r.accountCode >= '5200').reduce((s: number, r: any) => s + Number(r._sum.debit ?? 0), 0);
-    const totalActual   = glCosts.reduce((s: number, r: any) => s + Number(r._sum.debit ?? 0), 0);
+    const bac = Number(project.budget ?? 0);
 
-    // Earned Value Metrics
-    const budget          = Number(project.budget ?? 0);
-    const contractValue   = Number(project.contractValue ?? 0);
-    const pctComplete     = budget > 0 ? Math.min(100, (totalActual / budget) * 100) : 0;
-    const ev              = (pctComplete / 100) * budget;   // Earned Value
-    const cpi             = ev > 0 ? ev / totalActual : 1; // Cost Performance Index
-    const eac             = cpi > 0 ? budget / cpi : budget; // Estimate At Completion
-    const variance        = budget - totalActual;
-    const grossMargin     = contractValue - totalActual;
-    const grossMarginPct  = contractValue > 0 ? (grossMargin / contractValue) * 100 : 0;
+    // Planned value — time-based
+    const start = project.startDate ?? new Date();
+    const end = project.endDate ?? new Date();
+    const totalDays = Math.max(1, this.daysBetween(start, end));
+    const elapsed = Math.min(this.daysBetween(start, asOfDate), totalDays);
+    const pv = bac * (elapsed / totalDays);
+
+    // Actual cost — from budget line actuals
+    const ac = budgetLines.reduce((s, b) => s + Number(b.actual ?? 0), 0);
+
+    // % complete — task-based
+    const totalTasks = tasks.length || 1;
+    const doneTasks = tasks.filter((t) => t.status === 'DONE' || t.status === 'COMPLETED').length;
+    const percentComplete = doneTasks / totalTasks;
+    const ev = bac * percentComplete;
+
+    const sv = ev - pv;
+    const cv = ev - ac;
+    const spi = pv > 0 ? ev / pv : 1;
+    const cpi = ac > 0 ? ev / ac : 1;
+    const eac = cpi > 0 ? bac / cpi : bac;
+    const etc = eac - ac;
+
+    let status: EVMMetrics['status'] = 'ON_TRACK';
+    if (cpi < 0.9 && spi < 0.9) status = 'CRITICAL';
+    else if (cpi < 0.95) status = 'COST_OVERRUN';
+    else if (spi < 0.95) status = 'SCHEDULE_DELAY';
 
     return {
       projectId,
-      projectName:    project.name,
-      budget,
-      contractValue,
-      totalActualCost: totalActual,
-      laborCost,
-      materialCost,
-      overheadCost,
-      pctComplete:    +pctComplete.toFixed(1),
-      earnedValue:    +ev.toFixed(2),
-      cpi:            +cpi.toFixed(3),
-      eac:            +eac.toFixed(2),
-      costVariance:   +variance.toFixed(2),
-      grossMargin:    +grossMargin.toFixed(2),
-      grossMarginPct: +grossMarginPct.toFixed(1),
-      status:         cpi >= 1 ? 'ON_BUDGET' : cpi >= 0.9 ? 'AT_RISK' : 'OVER_BUDGET',
+      asOfDate,
+      budgetAtCompletion: bac,
+      plannedValue: Math.round(pv * 100) / 100,
+      actualCost: Math.round(ac * 100) / 100,
+      earnedValue: Math.round(ev * 100) / 100,
+      scheduleVariance: Math.round(sv * 100) / 100,
+      costVariance: Math.round(cv * 100) / 100,
+      schedulePerformanceIndex: Math.round(spi * 100) / 100,
+      costPerformanceIndex: Math.round(cpi * 100) / 100,
+      estimateAtCompletion: Math.round(eac * 100) / 100,
+      estimateToComplete: Math.round(etc * 100) / 100,
+      percentComplete: Math.round(percentComplete * 10000) / 100,
+      status,
     };
   }
 
-  /** ترحيل تكلفة مشروع (Timesheet / Material) */
-  async postProjectCost(projectId: string, type: 'LABOR' | 'MATERIAL' | 'EXPENSE', amount: number, description: string) {
-    const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
-    const amt      = new Decimal(amount);
+  /**
+   * Budget vs actual breakdown
+   */
+  async getCostBreakdown(tenantId: string, projectId: number): Promise<{
+    lines: { category: string; planned: number; actual: number; variance: number }[];
+    totalPlanned: number;
+    totalActual: number;
+    totalVariance: number;
+  }> {
+    const budgetLines = await this.prisma.projectBudgetLine.findMany({
+      where: { projectId, tenantId },
+      select: { category: true, planned: true, actual: true },
+    });
 
-    const accountCode = type === 'LABOR' ? '5130' : type === 'MATERIAL' ? '5110' : '5200';
-    const crAccount   = type === 'LABOR' ? '2120' : '1310';
+    const lines = budgetLines.map((b) => ({
+      category: b.category,
+      planned: Number(b.planned),
+      actual: Number(b.actual),
+      variance: Number(b.planned) - Number(b.actual),
+    }));
 
-    await prisma.journalEntry?.create?.({
+    const totalPlanned = lines.reduce((s, l) => s + l.planned, 0);
+    const totalActual = lines.reduce((s, l) => s + l.actual, 0);
+
+    return { lines, totalPlanned, totalActual, totalVariance: totalPlanned - totalActual };
+  }
+
+  /**
+   * Record time entry
+   */
+  async recordTimeEntry(tenantId: string, data: {
+    projectId: number;
+    employeeId: number;
+    taskId?: number;
+    date: Date;
+    hours: number;
+    description: string;
+    billable: boolean;
+  }): Promise<number> {
+    const entry = await this.prisma.projectTimeEntry.create({
       data: {
         tenantId,
-        reference:   `PROJ-COST-${projectId}-${Date.now()}`,
-        description: `${description} — مشروع ${projectId}`,
-        date:        new Date(),
-        status:      'POSTED',
-        sourceType:  'PROJECT',
-        sourceId:    projectId,
-        lines: {
-          create: [
-            { tenantId, accountCode, debit: amt,           credit: new Decimal(0), description },
-            { tenantId, accountCode: crAccount, debit: new Decimal(0), credit: amt, description: 'مقابل' },
-          ],
-        },
+        projectId: data.projectId,
+        employeeId: data.employeeId,
+        taskId: data.taskId,
+        date: data.date,
+        hours: new Decimal(data.hours),
+        description: data.description,
+        billable: data.billable,
       },
-    }).catch(() => null);
+    });
+    return entry.id;
+  }
 
-    return { projectId, type, amount, accountCode };
+  /**
+   * Update budget line actual
+   */
+  async recordActualCost(tenantId: string, budgetLineId: number, amount: number): Promise<void> {
+    await this.prisma.projectBudgetLine.update({
+      where: { id: budgetLineId },
+      data: { actual: { increment: new Decimal(amount) } },
+    });
+  }
+
+  private daysBetween(a: Date, b: Date): number {
+    return Math.max(1, Math.ceil((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)));
   }
 }
