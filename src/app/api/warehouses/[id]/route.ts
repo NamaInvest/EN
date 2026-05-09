@@ -57,7 +57,6 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 }
 
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request as any);

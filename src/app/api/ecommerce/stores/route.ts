@@ -38,9 +38,9 @@ async function _POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
 
-        const _parsed = _POSTSchema.safeParse(data);
+        const _parsed2 = _POSTSchema.safeParse(data);
         if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
         }
     const store = await (prisma as any).storeFront.create({
       data: { name: data.name, slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-'), domain: data.domain || null, theme: data.theme || 'default', currency: data.currency || 'SAR', language: data.language || 'ar', status: data.status || 'ACTIVE', tenantId: data.tenantId || 'default' }

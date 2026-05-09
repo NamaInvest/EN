@@ -27,7 +27,6 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: Request, context: { params: Promise<{ id: string }> }) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -58,9 +57,9 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
 
-        const _parsed = _PUTSchema.safeParse(body);
+        const _parsed2 = _PUTSchema.safeParse(body);
         if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
         }
         const { description, reference, date, lines } = body;
         
@@ -155,7 +154,6 @@ const _PATCHSchema = z.object({
 }).passthrough();
 
 async function _PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

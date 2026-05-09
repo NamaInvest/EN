@@ -53,9 +53,9 @@ async function _POST(req: Request) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
 
-        const _parsed = _POSTSchema.safeParse(body);
+        const _parsed2 = _POSTSchema.safeParse(body);
         if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
         }
         const { name, bankAccountId, conditions, action, actionParams, priority } = body;
 

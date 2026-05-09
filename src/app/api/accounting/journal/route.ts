@@ -51,7 +51,6 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     // Auth guard
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);

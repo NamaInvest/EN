@@ -43,7 +43,6 @@ async function _POST(request: NextRequest) {
 
 // DELETE a unit by id
 async function _DELETE(request: NextRequest) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     const { getUserFromRequest } = require('@/lib/auth');
     const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

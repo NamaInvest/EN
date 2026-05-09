@@ -5,7 +5,6 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _POST(_request: NextRequest) {
-  // @ts-expect-error [TS2552] Cannot find name (typo or missing import)
     try {
         // Delegate to engine: handles all asset types, methods, salvage caps, JE + log
         const depreciatedCount = await FixedAssetsEngine.runDepreciation(new Date());

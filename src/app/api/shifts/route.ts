@@ -63,9 +63,9 @@ async function _POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
 
-        const _parsed = _POSTSchema.safeParse(body);
+        const _parsed2 = _POSTSchema.safeParse(body);
         if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
         }
         const { userId, startCash, startingCash, branchId, notes } = body;
 
@@ -154,7 +154,6 @@ async function _PUT(request: NextRequest) {
 }
 
 async function _DELETE(request: NextRequest) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     const prisma = getPrisma(request as any);
 
     // Auth guard

@@ -4,7 +4,6 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 async function _GET(request: Request) {
-  // @ts-expect-error [TS2448] Block-scoped variable ordering issue
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
