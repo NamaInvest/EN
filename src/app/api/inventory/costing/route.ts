@@ -30,8 +30,7 @@ async function _GET(req: Request) {
     }
 
     // 1. جلب جميع حركات الشراء (طبقات التكلفة)
-    const purchaseDetails = await prisma.purchaseInvoiceDetail.findMany({
-            take: 100,
+    const purchaseDetails = await prisma.purchaseInvoiceDetail.findMany({ take: 100,
       where: { productId },
       include: { invoice: { select: { date: true, invoiceNo: true } } },
       orderBy: { id: 'asc' },

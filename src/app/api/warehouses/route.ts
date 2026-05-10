@@ -19,8 +19,7 @@ async function _GET(request: NextRequest) {
         whereClause.branchId = parseInt(branchId);
     }
 
-    const warehouses = await prisma.stock.findMany({
-            take: 100,
+    const warehouses = await prisma.stock.findMany({ take: 100,
       where: whereClause,
       include: {
         branch: true

@@ -12,8 +12,7 @@ async function _GET(req: NextRequest) {
         const user = await getUserFromRequest(req as any);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const tickets = await prisma.serviceTicket.findMany({
-            take: 100,
+        const tickets = await prisma.serviceTicket.findMany({ take: 100,
             orderBy: { createdAt: 'desc' }
         });
 

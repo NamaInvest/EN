@@ -85,8 +85,7 @@ async function _PUT(
             }));
 
             // @ts-ignore - VSCode bypass
-            const landedCostEntries = await prisma.landedCost.findMany({
-            take: 100, 
+            const landedCostEntries = await prisma.landedCost.findMany({ take: 100, 
                 where: { purchaseOrderId: id },
                 include: { expenseAccount: true }
             });

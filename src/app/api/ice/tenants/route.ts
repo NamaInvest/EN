@@ -31,7 +31,9 @@ function verifyIceToken(token: string): boolean {
         if (sig !== expectedSig) return false;
         const payload = JSON.parse(Buffer.from(data, 'base64').toString());
         return payload.exp > Date.now();
-    } catch { return false; }
+    } catch (err: unknown) {
+ log.error('src/app/api/ice/tenants/route.ts', { error: err instanceof Error ? err.message : err });
+ return false; }
 }
 
 async function _GET(req: Request) {
@@ -113,7 +115,9 @@ async function _GET(req: Request) {
                         try { hiddenModules = JSON.parse(s.value); } catch {}
                     }
                 }
-            } catch { /* DB not ready */ }
+            } catch (err: unknown) {
+ log.error('src/app/api/ice/tenants/route.ts', { error: err instanceof Error ? err.message : err });
+ /* DB not ready */ }
 
             return {
                 id: acc.id, subdomain, dbName,

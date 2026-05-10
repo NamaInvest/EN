@@ -40,10 +40,11 @@ async function _GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const invoices = await prisma.purchaseInvoice.findMany({
-            take: 100, where, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { id: true, username: true, fullName: true, role: true } } }, orderBy: { id: 'desc' } });
+        const invoices = await prisma.purchaseInvoice.findMany({ take: 100, where, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { id: true, username: true, fullName: true, role: true } } }, orderBy: { id: 'desc' } });
         return NextResponse.json(invoices);
-    } catch (error: any) { return handleApiError(error); }
+    } catch (error: any) {
+ log.error('src/app/api/purchases/route.ts', { error: error instanceof Error ? error.message : error });
+ return handleApiError(error); }
 }
 
 async function _POST(request: Request) {
@@ -258,7 +259,9 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(invoice, { status: 201 });
-    } catch (error: any) { return handleApiError(error); }
+    } catch (error: any) {
+ log.error('src/app/api/purchases/route.ts', { error: error instanceof Error ? error.message : error });
+ return handleApiError(error); }
 }
 
 async function _PUT(request: Request) {
@@ -311,7 +314,9 @@ async function _PUT(request: Request) {
         } catch (e: any) { log.error('[audit] Purchase payment audit failed:', e); }
 
         return NextResponse.json(updated);
-    } catch (error: any) { return handleApiError(error); }
+    } catch (error: any) {
+ log.error('src/app/api/purchases/route.ts', { error: error instanceof Error ? error.message : error });
+ return handleApiError(error); }
 }
 
 async function _DELETE(request: NextRequest) {
@@ -365,6 +370,8 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
     } catch (error: any) {
+        log.error('src/app/api/purchases/route.ts', { error: error instanceof Error ? error.message : error });
+
         return handleApiError(error);
     }
 }

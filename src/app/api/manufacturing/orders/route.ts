@@ -14,8 +14,7 @@ const log = logger.child({ service: 'manufacturing.orders' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const orders = await prisma.manufacturingOrder.findMany({
-            take: 100,
+        const orders = await prisma.manufacturingOrder.findMany({ take: 100,
             include: {
                 recipe: { include: { finishedProduct: true, ingredients: { include: { rawProduct: true } } } },
                 machine: true,
@@ -24,13 +23,13 @@ async function _GET(request: NextRequest) {
             orderBy: { id: 'desc' }
         });
 
-        const recipes = await prisma.recipe.findMany({
-            take: 100, where: { isActive: true }, include: { finishedProduct: true } });
-        const machines = await prisma.machine.findMany({
-            take: 100, where: { status: 'active' } });
+        const recipes = await prisma.recipe.findMany({ take: 100, where: { isActive: true }, include: { finishedProduct: true } });
+        const machines = await prisma.machine.findMany({ take: 100, where: { status: 'active' } });
 
         return NextResponse.json({ orders, recipes, machines }, { status: 200 });
     } catch (error: any) {
+        log.error('src/app/api/manufacturing/orders/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'فشل جلب أوامر التصنيع', { context: 'manufacturing/orders' });
     }
 }
@@ -89,6 +88,8 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ ...newOrder, mrp: mrpResult }, { status: 201 });
     } catch (error: any) {
+        log.error('src/app/api/manufacturing/orders/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'Error creating Manufacturing Order', { context: 'manufacturing/orders' });
     }
 }

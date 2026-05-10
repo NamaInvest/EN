@@ -13,8 +13,7 @@ async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const jobs = await prisma.jobPosting.findMany({
-            take: 100,
+    const jobs = await prisma.jobPosting.findMany({ take: 100,
       include: {
         applicants: true,
       },

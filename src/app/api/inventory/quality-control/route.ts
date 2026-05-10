@@ -14,8 +14,7 @@ async function _GET(req: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Get PENDING inspections
-        const pending = await prisma.qualityInspection.findMany({
-            take: 100,
+        const pending = await prisma.qualityInspection.findMany({ take: 100,
             where: { status: 'PENDING' },
             orderBy: { createdAt: 'desc' }
         });

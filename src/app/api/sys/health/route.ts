@@ -43,6 +43,8 @@ async function _GET(request: NextRequest) {
                     restarts: p.pm2_env.restart_time
                 })));
             } catch (e: any) {
+                log.error('src/app/api/sys/health/route.ts', { error: e instanceof Error ? e.message : e });
+
                 resolve([]);
             }
         });

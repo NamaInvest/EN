@@ -11,10 +11,11 @@ const log = logger.child({ service: 'planning.slots' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).planningSlot.findMany({
-            take: 100, orderBy: { startTime: 'asc' } });
+    const items = await (prisma as any).planningSlot.findMany({ take: 100, orderBy: { startTime: 'asc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'planning/slots' }); }
+  } catch (e: any) {
+ log.error('src/app/api/planning/slots/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'planning/slots' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -22,7 +23,9 @@ async function _POST(request: NextRequest) {
     const d = await request.json();
     const item = await (prisma as any).planningSlot.create({ data: { employeeName: d.employeeName, role: d.role || null, startTime: new Date(d.startTime), endTime: new Date(d.endTime), notes: d.notes || null, color: d.color || '#3B82F6', tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'planning/slots' }); }
+  } catch (e: any) {
+ log.error('src/app/api/planning/slots/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'planning/slots' }); }
 }
 async function _DELETE(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -31,7 +34,9 @@ async function _DELETE(request: NextRequest) {
     const id = searchParams.get('id');
     if (id) await (prisma as any).planningSlot.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ ok: true });
-  } catch (e: any) { return apiError(e, 'Error', { context: 'planning/slots' }); }
+  } catch (e: any) {
+ log.error('src/app/api/planning/slots/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'planning/slots' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

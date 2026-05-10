@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        let currencies = await prisma.currency.findMany({
-            take: 100,
+        let currencies = await prisma.currency.findMany({ take: 100,
             orderBy: { id: 'asc' }
         });
 
@@ -31,8 +30,7 @@ async function _GET(request: NextRequest) {
                     { code: 'OMR', nameAr: 'ريال عماني', nameEn: 'Omani Rial', symbol: 'ر.ع', exchangeRate: 9.74, isDefault: false, isActive: true }
                 ]
             });
-            currencies = await prisma.currency.findMany({
-            take: 100,
+            currencies = await prisma.currency.findMany({ take: 100,
                 orderBy: { id: 'asc' }
             });
         }

@@ -59,8 +59,7 @@ async function _GET(request: NextRequest) {
             });
         }
 
-        const products = await prisma.product.findMany({
-            take: 100,
+        const products = await prisma.product.findMany({ take: 100,
             where,
             include: { category: true, unit: true, productStocks: { include: { stock: true } }, productUnits: true },
             orderBy: { id: 'desc' },
@@ -231,6 +230,8 @@ async function _DELETE(request: NextRequest) {
                 const result = await prisma.product.deleteMany({});
                 return NextResponse.json({ success: true, message: `تم حذف ${result.count} منتج نهائياً` });
             } catch (e: any) {
+                log.error('src/app/api/products/route.ts', { error: e instanceof Error ? e.message : e });
+
                 // Fallback to soft delete
                 const _result_dup228 = await prisma.product.updateMany({ data: { active: false } });
                 // @ts-expect-error [TS2448] Block-scoped variable ordering issue

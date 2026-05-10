@@ -15,8 +15,7 @@ async function _GET(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
-        const items = await prisma.copaCharacteristic.findMany({
-            take: 100, orderBy: { id: 'asc' } });
+        const items = await prisma.copaCharacteristic.findMany({ take: 100, orderBy: { id: 'asc' } });
         return NextResponse.json(items);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
@@ -54,6 +53,8 @@ async function _POST(req: NextRequest) {
         });
         return NextResponse.json(item, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/copa/characteristics/route.ts', { error: e instanceof Error ? e.message : e });
+
         if (e.code === 'P2002') return NextResponse.json({ error: 'الكود مستخدم مسبقاً' }, { status: 409 });
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

@@ -10,8 +10,7 @@ const log = logger.child({ service: 'manufacturing.work-centers' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const centers = await prisma.workCenter.findMany({
-            take: 100,
+        const centers = await prisma.workCenter.findMany({ take: 100,
             include: {
                 machine: true,
                 operations: true

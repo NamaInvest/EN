@@ -33,8 +33,7 @@ async function _POST(req: NextRequest) {
             customerWhere = { ...customerWhere, customerType: 'VIP' };
         }
 
-        const customers = await prisma.customer.findMany({
-            take: 100,
+        const customers = await prisma.customer.findMany({ take: 100,
             where: customerWhere,
             select: { id: true, name: true }
         });
@@ -86,6 +85,8 @@ async function _POST(req: NextRequest) {
                     });
                     successCount++;
                 } catch (e: any) {
+                    log.error('src/app/api/accounting/customer-statements/bulk/run/route.ts', { error: e instanceof Error ? e.message : e });
+
                     failedCount++;
                 }
             }

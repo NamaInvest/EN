@@ -15,8 +15,7 @@ async function _POST(request: Request) {
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId } }) : null;
 
         // 1. Fetch exactly what is deficient
-        const allProducts = await prisma.product.findMany({
-            take: 100,
+        const allProducts = await prisma.product.findMany({ take: 100,
             where: { active: true }
         });
 

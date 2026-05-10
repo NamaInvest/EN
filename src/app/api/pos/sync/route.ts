@@ -95,6 +95,8 @@ async function _POST(request: NextRequest) {
 
         results.push({ offlineId: sale.id, serverId: invoice.id, status: 'synced' });
       } catch (itemError: any) {
+        log.error('src/app/api/pos/sync/route.ts', { error: itemError instanceof Error ? itemError.message : itemError });
+
         results.push({ offlineId: sale.id, status: 'error', error: itemError.message });
       }
     }
@@ -105,6 +107,8 @@ async function _POST(request: NextRequest) {
       results,
     });
   } catch (e: any) {
+    log.error('src/app/api/pos/sync/route.ts', { error: e instanceof Error ? e.message : e });
+
     return apiError(e, 'Sync Error', { context: 'pos/sync' });
   }
 }
@@ -133,6 +137,8 @@ async function _GET(request: NextRequest) {
       cachedAt:  new Date().toISOString(),
     });
   } catch (e: any) {
+    log.error('src/app/api/pos/sync/route.ts', { error: e instanceof Error ? e.message : e });
+
     return apiError(e, 'Cache Error', { context: 'pos/sync' });
   }
 }

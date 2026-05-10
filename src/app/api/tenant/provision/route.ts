@@ -47,7 +47,9 @@ async function translateArToEn(text: string): Promise<string> {
         );
         const data = await res.json();
         return data?.[0]?.[0]?.[0] || text;
-    } catch {
+    } catch (err: unknown) {
+        log.error('src/app/api/tenant/provision/route.ts', { error: err instanceof Error ? err.message : err });
+
         return text;
     }
 }
@@ -259,6 +261,8 @@ async function seedCompanyData(params: {
 
         return { ok: true };
     } catch (err: any) {
+        log.error('src/app/api/tenant/provision/route.ts', { error: err instanceof Error ? err.message : err });
+
         return { ok: false, error: err.message };
     } finally {
         if (prisma) await prisma.$disconnect();

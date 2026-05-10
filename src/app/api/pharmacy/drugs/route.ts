@@ -49,8 +49,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
   }
 
   // pharmacyDrug model is pending `prisma generate` — use `as any` until then
-  const drugs = await (prisma as any).pharmacyDrug.findMany({
-    take: 100,
+  const drugs = await (prisma as any).pharmacyDrug.findMany({ take: 100,
     where,
     include: {
       product: {

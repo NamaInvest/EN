@@ -34,6 +34,8 @@ async function _GET(req: NextRequest) {
                 });
             }
         } catch (e: any) {
+            log.error('src/app/api/public/table/route.ts', { error: e instanceof Error ? e.message : e });
+
             // Table model might not exist
         }
 

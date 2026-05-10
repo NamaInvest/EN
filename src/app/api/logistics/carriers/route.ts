@@ -11,10 +11,11 @@ const log = logger.child({ service: 'logistics.carriers' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).carrierRate.findMany({
-            take: 100, orderBy: { carrierName: 'asc' } });
+    const items = await (prisma as any).carrierRate.findMany({ take: 100, orderBy: { carrierName: 'asc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'logistics/carriers' }); }
+  } catch (e: any) {
+ log.error('src/app/api/logistics/carriers/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'logistics/carriers' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -22,7 +23,9 @@ async function _POST(request: NextRequest) {
     const d = await request.json();
     const item = await (prisma as any).carrierRate.create({ data: { carrierName: d.carrierName, zoneFrom: d.zoneFrom, zoneTo: d.zoneTo, weightMin: parseFloat(d.weightMin) || 0, weightMax: parseFloat(d.weightMax) || 9999, rate: parseFloat(d.rate) || 0, currency: d.currency || 'SAR', tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'logistics/carriers' }); }
+  } catch (e: any) {
+ log.error('src/app/api/logistics/carriers/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'logistics/carriers' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

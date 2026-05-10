@@ -16,13 +16,14 @@ async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
-        const segments = await db(prisma).segment.findMany({
-            take: 100,
+        const segments = await db(prisma).segment.findMany({ take: 100,
             orderBy: { code: 'asc' },
             select: { id: true, code: true, name: true, nameEn: true, type: true, isActive: true },
         });
         return NextResponse.json(segments);
     } catch (e: any) {
+        log.error('src/app/api/accounting/segments/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل جلب القطاعات', { context: 'accounting/segments' });
     }
 }
@@ -72,6 +73,8 @@ async function _POST(req: NextRequest) {
         });
         return NextResponse.json(seg, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/accounting/segments/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل إنشاء قطاع', { context: 'accounting/segments' });
     }
 }

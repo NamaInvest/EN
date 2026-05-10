@@ -15,8 +15,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ runId: string 
       return NextResponse.json({ error: "Invalid runId" }, { status: 400 });
     }
 
-    const tasks = await prisma.yearEndCloseTask.findMany({
-            take: 100,
+    const tasks = await prisma.yearEndCloseTask.findMany({ take: 100,
       where: { runId },
       orderBy: { sequenceNumber: "asc" },
     });

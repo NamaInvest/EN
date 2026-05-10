@@ -23,8 +23,7 @@ async function _GET(req: NextRequest) {
             if (to) where.date.lte = new Date(to + 'T23:59:59');
         }
 
-        const returns = await prisma.salesReturn.findMany({
-            take: 100,
+        const returns = await prisma.salesReturn.findMany({ take: 100,
             where,
             include: {
                 details: {
@@ -35,8 +34,7 @@ async function _GET(req: NextRequest) {
         });
 
         // Also fetch stocks to map destinationStockId to stock name
-        const stocks = await prisma.stock.findMany({
-            take: 100, select: { id: true, name: true } });
+        const stocks = await prisma.stock.findMany({ take: 100, select: { id: true, name: true } });
         const stockMap = Object.fromEntries(stocks.map(s => [s.id, s.name]));
 
         const formattedReturns = returns.map((r: any) => ({

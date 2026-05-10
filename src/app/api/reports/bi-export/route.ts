@@ -70,8 +70,7 @@ async function _GET(request: NextRequest) {
                 }))
             );
         } else if (entity === 'inventory') {
-            const products = await prisma.product.findMany({
-            take: 100,
+            const products = await prisma.product.findMany({ take: 100,
                 include: { category: { select: { name: true } }, productStocks: { include: { stock: { select: { name: true } } } } },
             });
             data = products.map(p => ({

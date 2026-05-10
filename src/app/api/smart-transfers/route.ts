@@ -17,8 +17,7 @@ async function _GET(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Retrieve specifically 'transit_out' movements meaning items sent out but maybe not received
-        const transits = await prisma.stockMovement.findMany({
-            take: 100,
+        const transits = await prisma.stockMovement.findMany({ take: 100,
             where: { type: 'transit_out' },
             include: { 
                 product: { select: { name: true } }, 

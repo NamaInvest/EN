@@ -48,8 +48,7 @@ async function _POST(request: Request) {
         if (n(employee.otherAllowance) > 0) additions.push({ id: counter++, description: 'بدلات أخرى', amount: n(employee.otherAllowance), type: 'addition' });
 
         // 2. Loan Deductions (Active loans)
-        const activeLoans = await prisma.employeeLoan.findMany({
-            take: 100,
+        const activeLoans = await prisma.employeeLoan.findMany({ take: 100,
             where: { employeeId: parseInt(employeeId), status: 'active', remainingAmount: { gt: 0 } }
         });
 
@@ -72,8 +71,7 @@ async function _POST(request: Request) {
         // (Assuming a simple logic: if attendance doesn't exist for a weekday, it's an absence. But since we just query 'attendance' table)
         // Let's find explicit 'absent' status if they use it, or count days without check_in.
         // For now, let's just query records in the given month (e.g. date starts with '2026-05')
-        const attendanceRecords = await prisma.attendance.findMany({
-            take: 100,
+        const attendanceRecords = await prisma.attendance.findMany({ take: 100,
             where: {
                 employeeId: parseInt(employeeId),
                 date: { startsWith: period }

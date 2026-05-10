@@ -27,8 +27,7 @@ async function _GET(req: Request) {
         // In a real scenario we'd query StockMovement where type is 'OUT' or 'ISSUE' or 'SALES'
         // For NamaSoft V3, stock movements are in `StockMovement`.
         
-        const products: any[] = await (prisma.product as any).findMany({
-            take: 100,
+        const products: any[] = await (prisma.product as any).findMany({ take: 100,
             where: { active: true },
             select: {
                 id: true,

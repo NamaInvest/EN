@@ -1,9 +1,9 @@
 /**
- * Goods Received Notes (GRN) API — Complete Implementation
+ * Goods Received Notes (GRN) API â€” Complete Implementation
  * 
- * GET  /api/grn           — List GRNs
- * POST /api/grn           — Create GRN + auto-journal (Dr Inventory / Cr GRNI)
- * PUT  /api/grn           — Update GRN status (approve/reject)
+ * GET  /api/grn           â€” List GRNs
+ * POST /api/grn           â€” Create GRN + auto-journal (Dr Inventory / Cr GRNI)
+ * PUT  /api/grn           â€” Update GRN status (approve/reject)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,11 +17,11 @@ import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'grn' });
 
-// ── Schemas ───────────────────────────────────────────────────────────────────
+// â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GrnItemSchema = z.object({
   productId:   z.number().int().positive(),
-  quantity:    z.number().positive('الكمية يجب أن تكون موجبة'),
+  quantity:    z.number().positive('ط§ظ„ظƒظ…ظٹط© ظٹط¬ط¨ ط£ظ† طھظƒظˆظ† ظ…ظˆط¬ط¨ط©'),
   unitCost:    z.number().min(0),
   totalCost:   z.number().min(0).optional(),
   batchNo:     z.string().optional(),
@@ -30,9 +30,9 @@ const GrnItemSchema = z.object({
 });
 
 const CreateGrnSchema = z.object({
-  supplierId:       z.number().int().positive('المورد مطلوب'),
+  supplierId:       z.number().int().positive('ط§ظ„ظ…ظˆط±ط¯ ظ…ط·ظ„ظˆط¨'),
   purchaseOrderId:  z.number().int().optional(),
-  items:            z.array(GrnItemSchema).min(1, 'يجب إضافة صنف واحد على الأقل'),
+  items:            z.array(GrnItemSchema).min(1, 'ظٹط¬ط¨ ط¥ط¶ط§ظپط© طµظ†ظپ ظˆط§ط­ط¯ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„'),
   stockId:          z.number().int().optional(),
   branchId:         z.number().int().optional(),
   date:             z.string().optional(),
@@ -40,7 +40,7 @@ const CreateGrnSchema = z.object({
   receivedById:     z.number().int().optional(),
 });
 
-// ── GET ───────────────────────────────────────────────────────────────────────
+// â”€â”€ GET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _GET(req: NextRequest) {
   const prisma  = getPrisma(req);
@@ -75,7 +75,7 @@ async function _GET(req: NextRequest) {
   }
 }
 
-// ── POST ──────────────────────────────────────────────────────────────────────
+// â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _POST(req: NextRequest, auth: any) {
   const prisma = getPrisma(req);
@@ -84,7 +84,7 @@ async function _POST(req: NextRequest, auth: any) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors },
+      { error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©', details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
@@ -159,7 +159,7 @@ async function _POST(req: NextRequest, auth: any) {
       return created;
     });
 
-    // ── Auto-Journal: Dr Inventory / Cr GRNI ─────────────────────────────────
+    // â”€â”€ Auto-Journal: Dr Inventory / Cr GRNI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (totalCost > 0.01) {
       await postGRN({
         grnNo,
@@ -176,10 +176,12 @@ async function _POST(req: NextRequest, auth: any) {
       grn,
       grnNo,
       totalCost: Math.round(totalCost * 100) / 100,
-      message:   `تم استلام البضاعة GRN-${grnNo} وترحيل القيد المحاسبي (مدين: المخزون / دائن: بضاعة غير مفوترة)`,
+      message:   `طھظ… ط§ط³طھظ„ط§ظ… ط§ظ„ط¨ط¶ط§ط¹ط© GRN-${grnNo} ظˆطھط±ط­ظٹظ„ ط§ظ„ظ‚ظٹط¯ ط§ظ„ظ…ط­ط§ط³ط¨ظٹ (ظ…ط¯ظٹظ†: ط§ظ„ظ…ط®ط²ظˆظ† / ط¯ط§ط¦ظ†: ط¨ط¶ط§ط¹ط© ط؛ظٹط± ظ…ظپظˆطھط±ط©)`,
     }, { status: 201 });
 
   } catch (e: any) {
+    log.error('src/app/api/grn/route.ts', { error: e instanceof Error ? e.message : e });
+
     // If GRN table doesn't exist yet, just update stock directly
     if (e.message?.includes('does not exist') || e.message?.includes('Unknown model')) {
       // Fallback: direct stock update
@@ -205,7 +207,7 @@ async function _POST(req: NextRequest, auth: any) {
         success:  true,
         grnNo,
         totalCost: Math.round(totalCost * 100) / 100,
-        message:  `تم استلام البضاعة وترحيل القيد المحاسبي (fallback mode)`,
+        message:  `طھظ… ط§ط³طھظ„ط§ظ… ط§ظ„ط¨ط¶ط§ط¹ط© ظˆطھط±ط­ظٹظ„ ط§ظ„ظ‚ظٹط¯ ط§ظ„ظ…ط­ط§ط³ط¨ظٹ (fallback mode)`,
       }, { status: 201 });
     }
 
@@ -213,7 +215,7 @@ async function _POST(req: NextRequest, auth: any) {
   }
 }
 
-// ── Exports ───────────────────────────────────────────────────────────────────
+// â”€â”€ Exports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const GET = withRoute(
   async ({ req }) => _GET(req as any),

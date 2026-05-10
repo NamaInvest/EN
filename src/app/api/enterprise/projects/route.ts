@@ -16,8 +16,7 @@ async function _GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
         
-        const projects = await prisma.project.findMany({
-            take: 100,
+        const projects = await prisma.project.findMany({ take: 100,
             where: {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },

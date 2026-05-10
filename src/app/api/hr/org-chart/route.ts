@@ -9,8 +9,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const employees = await prisma.employee.findMany({
-            take: 100,
+        const employees = await prisma.employee.findMany({ take: 100,
             where: { active: true },
             select: {
                 id: true,

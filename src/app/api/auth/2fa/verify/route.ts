@@ -59,6 +59,8 @@ async function _POST(request: NextRequest) {
                 await MfaEngine.verify(uid, token, 'totp');
             }
         } catch (err: any) {
+            log.error('src/app/api/auth/2fa/verify/route.ts', { error: err instanceof Error ? err.message : err });
+
             const msg = (err as Error).message || '';
             const status = msg.includes('Invalid') || msg.includes('locked') ? 401 : 500;
             return NextResponse.json({ error: msg || 'فشل التحقق' }, { status });

@@ -11,8 +11,7 @@ const log = logger.child({ service: 'fixed-assets' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const assets = await prisma.fixedAsset.findMany({
-            take: 100,
+        const assets = await prisma.fixedAsset.findMany({ take: 100,
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(assets);

@@ -68,6 +68,8 @@ async function _GET(req: NextRequest) {
       },
     });
   } catch (err: any) {
+    log.error('src/app/api/ice/license/verify/route.ts', { error: err instanceof Error ? err.message : err });
+
     // If DB connection fails, allow offline grace period
     return NextResponse.json({ valid: false, offline: true, error: 'لا يمكن التحقق حالياً' });
   }

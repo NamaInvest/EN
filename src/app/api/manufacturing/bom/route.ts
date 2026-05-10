@@ -11,8 +11,7 @@ const log = logger.child({ service: 'manufacturing.bom' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const recipes: any = await prisma.recipe.findMany({
-            take: 100,
+        const recipes: any = await prisma.recipe.findMany({ take: 100,
             include: {
                 finishedProduct: true,
                 ingredients: {

@@ -11,10 +11,11 @@ const log = logger.child({ service: 'contracts.renewals' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const renewals = await (prisma as any).contractRenewal.findMany({
-            take: 100, orderBy: { renewalDate: 'asc' } });
+    const renewals = await (prisma as any).contractRenewal.findMany({ take: 100, orderBy: { renewalDate: 'asc' } });
     return NextResponse.json(renewals);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
+  } catch (error: any) {
+ log.error('src/app/api/contracts/renewals/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }
 
 
@@ -47,7 +48,9 @@ async function _POST(request: NextRequest) {
       data: { contractId: parseInt(data.contractId), renewalDate: new Date(data.renewalDate), newEndDate: new Date(data.newEndDate), priceAdjustment: data.priceAdjustment ? parseFloat(data.priceAdjustment) : null, autoRenew: data.autoRenew || false, reminderDays: parseInt(data.reminderDays) || 30 }
     });
     return NextResponse.json(item);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
+  } catch (error: any) {
+ log.error('src/app/api/contracts/renewals/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }
 
 
@@ -64,7 +67,9 @@ async function _PUT(request: NextRequest) {
     const data = await request.json();
     const item = await (prisma as any).contractRenewal.update({ where: { id: parseInt(data.id) }, data: { status: data.status, priceAdjustment: data.priceAdjustment ? parseFloat(data.priceAdjustment) : undefined, autoRenew: data.autoRenew } });
     return NextResponse.json(item);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'contracts/renewals' }); }
+  } catch (error: any) {
+ log.error('src/app/api/contracts/renewals/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'contracts/renewals' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

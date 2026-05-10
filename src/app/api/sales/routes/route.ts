@@ -17,8 +17,7 @@ async function _GET(request: NextRequest) {
         if (!(await hasPermission(auth.userId, 'sales', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // @ts-ignore
-        const routes = await prisma.route.findMany({
-            take: 100,
+        const routes = await prisma.route.findMany({ take: 100,
             include: {
                 salesRep: true,
                 _count: { select: { customers: true } }

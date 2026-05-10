@@ -11,8 +11,7 @@ const log = logger.child({ service: 'accounting/accounts' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const accounts = await prisma.account.findMany({
-            take: 100,
+        const accounts = await prisma.account.findMany({ take: 100,
             orderBy: { code: 'asc' },
         });
         return NextResponse.json(accounts);

@@ -14,8 +14,7 @@ async function _GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get('branchId');
 
-    const costCenters = await prisma.costCenter.findMany({
-            take: 100,
+    const costCenters = await prisma.costCenter.findMany({ take: 100,
       where: {
         ...(branchId ? { branchId: parseInt(branchId) } : {}),
       },

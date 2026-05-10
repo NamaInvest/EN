@@ -24,6 +24,8 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json(history);
     } catch (e: any) {
+        log.error('src/app/api/finance/dunning/history/route.ts', { error: e instanceof Error ? e.message : e });
+
         return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
 }

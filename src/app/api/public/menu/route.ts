@@ -11,23 +11,20 @@ async function _GET(req: NextRequest) {
         const prisma = getPrisma(req);
         
         // Get company info for header
-        const settings = await prisma.setting.findMany({
-            take: 100,
+        const settings = await prisma.setting.findMany({ take: 100,
             where: { key: { in: ['company_name', 'company_logo', 'tax_rate'] } }
         });
         const s: Record<string, string> = {};
         settings.forEach((st: any) => { s[st.key] = st.value ?? ''; });
 
         // Get all active products with categories
-        const products = await prisma.product.findMany({
-            take: 100,
+        const products = await prisma.product.findMany({ take: 100,
             where: { active: true },
             select: { id: true, name: true, sellPrice: true, currentStock: true, imagePath: true, categoryId: true, category: { select: { id: true, name: true } } },
             orderBy: { name: 'asc' }
         });
 
-        const categories = await prisma.category.findMany({
-            take: 100, orderBy: { name: 'asc' } });
+        const categories = await prisma.category.findMany({ take: 100, orderBy: { name: 'asc' } });
 
         return NextResponse.json({
             success: true,

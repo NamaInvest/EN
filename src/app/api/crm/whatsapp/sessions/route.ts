@@ -13,8 +13,7 @@ async function _GET(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Retrieve all AI WhatsApp sessions stored in the generic Settings table
-        const sessionRecords = await prisma.setting.findMany({
-            take: 100,
+        const sessionRecords = await prisma.setting.findMany({ take: 100,
             where: { key: { startsWith: 'whatsapp_session_' } },
             orderBy: { id: 'desc' }
         });

@@ -13,8 +13,7 @@ async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const trips = await prisma.fleetTrip.findMany({
-            take: 100,
+    const trips = await prisma.fleetTrip.findMany({ take: 100,
       include: {
         vehicle: true,
         driver: true

@@ -18,7 +18,9 @@ function verifyZidToken(received: string, expected: string): boolean {
     if (recv.length !== expc.length) return false;
     try {
         return crypto.timingSafeEqual(Buffer.from(recv), Buffer.from(expc));
-    } catch { return false; }
+    } catch (err: unknown) {
+ log.error('src/app/api/webhooks/zid/route.ts', { error: err instanceof Error ? err.message : err });
+ return false; }
 }
 
 const ZidPayloadSchema = z.object({
@@ -34,8 +36,7 @@ async function _POST(request: NextRequest) {
         const authHeader = request.headers.get('Authorization') || request.headers.get('authorization') || '';
 
         // 1. جلب إعدادات الربط من قاعدة البيانات
-        const settings = await prisma.setting.findMany({
-            take: 100,
+        const settings = await prisma.setting.findMany({ take: 100,
             where: { key: { in: ['zid_enabled', 'zid_webhook_secret'] } }
         });
         const zidEnabled   = settings.find(s => s.key === 'zid_enabled')?.value === '1';

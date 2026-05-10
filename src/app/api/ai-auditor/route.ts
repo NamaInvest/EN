@@ -22,20 +22,17 @@ async function _GET(req: NextRequest) {
         today.setHours(0, 0, 0, 0);
 
         // Fetch today's transactions
-        const sales = await prisma.salesInvoice.findMany({
-            take: 100,
+        const sales = await prisma.salesInvoice.findMany({ take: 100,
             where: { date: { gte: today } },
             include: { details: true, customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
-        const purchases = await prisma.purchaseInvoice.findMany({
-            take: 100,
+        const purchases = await prisma.purchaseInvoice.findMany({ take: 100,
             where: { date: { gte: today } },
             include: { details: true, supplier: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
-        const expenses = await prisma.expense.findMany({
-            take: 100,
+        const expenses = await prisma.expense.findMany({ take: 100,
             where: { date: { gte: today } }
         });
 

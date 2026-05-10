@@ -13,8 +13,7 @@ async function _POST(req: Request) {
     const { phone } = await req.json();
     if (!phone) return NextResponse.json({ error: 'رقم جوال ولي الأمر مطلوب' }, { status: 400 });
 
-    const students = await prisma.student.findMany({
-            take: 100,
+    const students = await prisma.student.findMany({ take: 100,
       where: { guardianPhone: phone },
       include: {
         enrollments: { include: { academicClass: true } }

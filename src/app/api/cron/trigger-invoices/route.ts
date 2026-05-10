@@ -13,8 +13,7 @@ async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         // Find all SalesOrders flagged as Recurring with a due date passing NOW
-        const activeContracts = await prisma.salesOrder.findMany({
-            take: 100,
+        const activeContracts = await prisma.salesOrder.findMany({ take: 100,
             where: { status: { startsWith: 'RECURRING_' } },
             include: { details: true, customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
@@ -24,7 +23,9 @@ async function _GET(req: NextRequest) {
 
         for (const contract of activeContracts) {
             let meta;
-            try { meta = JSON.parse(contract.notes || '{}'); } catch(e) { continue; }
+            try { meta = JSON.parse(contract.notes || '{}'); } catch(e) {
+ log.error('src/app/api/cron/trigger-invoices/route.ts', { error: e instanceof Error ? e.message : e });
+ continue; }
             
             if (!meta.nextBillingDate) continue;
             

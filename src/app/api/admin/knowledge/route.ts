@@ -17,8 +17,7 @@ async function _GET(request: Request) {
         const tenantId = resolveTenant(request as any);
 
         // Don't return embeddings, just metadata
-        const docs = await prisma.knowledgeDocument.findMany({
-            take: 100,
+        const docs = await prisma.knowledgeDocument.findMany({ take: 100,
             where: { tenantId: tenantId },
             select: { id: true, title: true, createdAt: true, metadata: true },
             orderBy: { createdAt: 'desc' }

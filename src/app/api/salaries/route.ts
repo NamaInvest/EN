@@ -14,13 +14,14 @@ const log = logger.child({ service: 'salaries' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const salaries = await prisma.salary.findMany({
-            take: 100, 
+        const salaries = await prisma.salary.findMany({ take: 100, 
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } }, 
             orderBy: { id: 'desc' } 
         });
         return NextResponse.json(salaries);
-    } catch (e: any) { return handleApiError(e); }
+    } catch (e: any) {
+ log.error('src/app/api/salaries/route.ts', { error: e instanceof Error ? e.message : e });
+ return handleApiError(e); }
 }
 
 async function _POST(request: Request) {
@@ -73,7 +74,9 @@ async function _POST(request: Request) {
         });
 
         return NextResponse.json(salary, { status: 201 });
-    } catch (e: any) { return handleApiError(e); }
+    } catch (e: any) {
+ log.error('src/app/api/salaries/route.ts', { error: e instanceof Error ? e.message : e });
+ return handleApiError(e); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

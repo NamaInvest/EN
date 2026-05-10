@@ -15,7 +15,7 @@ async function _GET(request: NextRequest) {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         const prisma = getPrisma(request);
-        const settings = await prisma.setting.findMany();
+        const settings = await prisma.setting.findMany({ take: 100 });
         // Filter out sensitive ZATCA keys from public response
         const sensitiveKeys = ['zatca_private_key', 'zatca_certificate', 'zatca_compliance_token', 'zatca_compliance_secret', 'zatca_production_token', 'zatca_production_secret'];
         const filtered = settings.map(s => sensitiveKeys.includes(s.key) ? { ...s, value: '***' } : s);

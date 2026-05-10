@@ -16,8 +16,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
         const id = parseInt(resolvedParams.id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
-        const transactions = await prisma.bankTransaction.findMany({
-            take: 100, 
+        const transactions = await prisma.bankTransaction.findMany({ take: 100, 
             where: { bankAccountId: id },
             orderBy: { transactionDate: 'desc' } 
         });

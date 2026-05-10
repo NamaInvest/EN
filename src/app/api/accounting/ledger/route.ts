@@ -30,8 +30,7 @@ async function _GET(request: Request) {
         if (from) entryWhere.entryDate = { ...(entryWhere.entryDate as object || {}), gte: from };
         if (to) entryWhere.entryDate = { ...(entryWhere.entryDate as object || {}), lte: to };
 
-        const lines = await prisma.journalLine.findMany({
-            take: 100,
+        const lines = await prisma.journalLine.findMany({ take: 100,
             where: {
                 accountId,
                 entry: entryWhere,

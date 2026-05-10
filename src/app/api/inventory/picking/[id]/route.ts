@@ -35,6 +35,8 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
                 const graceDays = 7;
                 allocations = await allocateFEFO(prisma as any, detail.productId, n(detail.quantity), graceDays);
             } catch (e: any) {
+                log.error('src/app/api/inventory/picking/[id]/route.ts', { error: e instanceof Error ? e.message : e });
+
                 error = e.message;
             }
 

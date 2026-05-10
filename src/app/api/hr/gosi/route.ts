@@ -31,8 +31,7 @@ async function _GET(req: Request) {
     const year = parseInt(url.searchParams.get('year') || String(new Date().getFullYear()));
 
     try {
-        const employees = await prisma.employee.findMany({
-            take: 100,
+        const employees = await prisma.employee.findMany({ take: 100,
             where: { active: true },
             select: {
                 id: true, name: true,
@@ -99,8 +98,7 @@ async function _POST(req: Request) {
         const month = parseInt(body.month) || new Date().getMonth() + 1;
         const year = parseInt(body.year) || new Date().getFullYear();
 
-        const employees = await prisma.employee.findMany({
-            take: 100,
+        const employees = await prisma.employee.findMany({ take: 100,
             where: { active: true },
             select: { id: true, name: true, salary: true },
         });

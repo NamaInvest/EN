@@ -26,8 +26,7 @@ async function _POST(req: Request) {
         const { dueBefore, currency, bankAccountId } = body;
 
         // Fetch pending approved invoices
-        const pendingInvoices = await prisma.purchaseInvoice.findMany({
-            take: 100,
+        const pendingInvoices = await prisma.purchaseInvoice.findMany({ take: 100,
             where: {
                 status: 'APPROVED_FOR_PAYMENT',
                 date: { lte: new Date(dueBefore) },

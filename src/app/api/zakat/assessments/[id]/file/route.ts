@@ -32,6 +32,8 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         });
         return NextResponse.json(updated);
     } catch (e: any) {
+        log.error('src/app/api/zakat/assessments/[id]/file/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل تسجيل التقديم', { context: 'zakat/file' });
     }
 }

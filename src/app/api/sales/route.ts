@@ -79,8 +79,7 @@ async function _GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
+        const invoices = await prisma.salesInvoice.findMany({ take: 100,
             where,
             include: { customer: true, details: true, user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } },
             orderBy: { id: 'desc' },
@@ -256,8 +255,7 @@ async function _POST(request: Request) {
                 const unitFactor = Number(item.unitFactor) || 1;
                 const qtyInBase = qty * unitFactor;
 
-                const pUnits = await tx.productUnit.findMany({
-            take: 100,
+                const pUnits = await tx.productUnit.findMany({ take: 100,
                     where: { productId },
                     include: { unit: true },
                     orderBy: { factor: 'asc' },
@@ -399,8 +397,7 @@ async function _POST(request: Request) {
             const finalSettings: Record<string, string> = {};
 
             try {
-                const zatcaSettings = await tx.setting.findMany({
-            take: 100,
+                const zatcaSettings = await tx.setting.findMany({ take: 100,
                     where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_private_key', 'zatca_certificate', 'zatca_enabled', 'zatca_production_token', 'zatca_production_secret', 'zatca_environment', 'zatca_last_pih', 'zatca_invoice_counter', 'tax_rate', 'POS_TAX_INCLUSIVE'] } }
                 });
                 
@@ -648,6 +645,8 @@ async function _POST(request: Request) {
                     await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: JSON.stringify(zatcaResult.validationResults) } });
                 }
             } catch (reportErr: any) {
+                log.error('src/app/api/sales/route.ts', { error: reportErr instanceof Error ? reportErr.message : reportErr });
+
                 await prisma.salesInvoice.update({ where: { id: invoice.createdInvoice.id }, data: { zatcaStatus: 'failed', zatcaResponse: reportErr.message } });
             }
         }
@@ -677,8 +676,7 @@ async function _DELETE(request: NextRequest) {
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف كل الفواتير' }, { status: 403 });
 
             // Reverse stock for ALL items before deleting
-            const allSales = await prisma.salesInvoice.findMany({
-            take: 100, include: { details: true } });
+            const allSales = await prisma.salesInvoice.findMany({ take: 100, include: { details: true } });
             
             const result = await prisma.$transaction(async (tx: any) => {
                 // Reverse stock
@@ -695,6 +693,8 @@ async function _DELETE(request: NextRequest) {
                                 create: { productId: detail.productId, stockId: inv.stockId, quantity: detail.quantity },
                             });
                         } catch (e: any) {
+                            log.error('src/app/api/sales/route.ts', { error: e instanceof Error ? e.message : e });
+
                             // Ignored (Product might have been deleted)
                         }
                     }

@@ -29,6 +29,8 @@ async function _POST(
         const result = await PaymentRunEngine.executePayments(parseInt(id, 10), userId);
         return NextResponse.json(result);
     } catch (e: any) {
+        log.error('src/app/api/finance/payment-runs/[id]/execute/route.ts', { error: e instanceof Error ? e.message : e });
+
         return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
 }

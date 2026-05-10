@@ -30,8 +30,7 @@ async function _GET(req: Request) {
         if (!project) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
 
         // @ts-ignore — new model added in this session; IDE cache refresh needed
-        const lines = await prisma.projectBudgetLine.findMany({
-            take: 100,
+        const lines = await prisma.projectBudgetLine.findMany({ take: 100,
             where: { projectId },
             orderBy: { category: 'asc' },
         });

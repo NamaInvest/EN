@@ -14,8 +14,7 @@ async function _GET(request: Request) {
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
-        const periods = await prisma.fiscalPeriod.findMany({
-            take: 100,
+        const periods = await prisma.fiscalPeriod.findMany({ take: 100,
             include: {
                 periodCloseChecklists: true,
                 periodLockLogs: true

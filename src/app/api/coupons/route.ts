@@ -11,8 +11,7 @@ const log = logger.child({ service: 'coupons' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const coupons = await prisma.coupon.findMany({
-            take: 100,
+        const coupons = await prisma.coupon.findMany({ take: 100,
             orderBy: { id: 'desc' },
             include: { usages: true }
         });

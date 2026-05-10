@@ -16,8 +16,7 @@ async function _GET(request: NextRequest) {
         const search = searchParams.get('search') || '';
         
         // Fetch all warehouses (Stocks)
-        const stocks = await prisma.stock.findMany({
-            take: 100,
+        const stocks = await prisma.stock.findMany({ take: 100,
             where: {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },

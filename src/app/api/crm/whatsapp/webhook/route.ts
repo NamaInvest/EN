@@ -28,6 +28,8 @@ async function _GET(req: NextRequest) {
         }
         return new NextResponse('Invalid request', { status: 400 });
     } catch (e: any) {
+        log.error('src/app/api/crm/whatsapp/webhook/route.ts', { error: e instanceof Error ? e.message : e });
+
         return new NextResponse('Error', { status: 500 });
     }
 }
@@ -82,7 +84,7 @@ async function _POST(req: NextRequest) {
         log.info(`[WhatsApp Incoming] from ${senderPhone}: ${incomingText}`);
 
         // 2. Fetch Keys and Products context
-        const allSettings = await prisma.setting.findMany();
+        const allSettings = await prisma.setting.findMany({ take: 100 });
         const sMap: Record<string, string> = {};
         allSettings.forEach(s => sMap[s.key] = s.value || '');
 

@@ -12,8 +12,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const matches = await prisma.threeWayMatch.findMany({
-            take: 100,
+        const matches = await prisma.threeWayMatch.findMany({ take: 100,
             include: {
                 invoice: {
                     include: { supplier: true }
@@ -37,8 +36,7 @@ async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         // 1. Find pending PurchaseInvoices that have a PO but no ThreeWayMatch record
-        const pendingInvoices = await prisma.purchaseInvoice.findMany({
-            take: 100,
+        const pendingInvoices = await prisma.purchaseInvoice.findMany({ take: 100,
             where: {
                 purchaseOrderId: { not: null },
                 ThreeWayMatch: null
@@ -66,8 +64,7 @@ async function _POST(req: Request) {
 
             if (!po) continue;
 
-            const grns = await prisma.goodsReceiptNote.findMany({
-            take: 100,
+            const grns = await prisma.goodsReceiptNote.findMany({ take: 100,
                 where: { orderId: po.id },
                 include: { details: true }
             });

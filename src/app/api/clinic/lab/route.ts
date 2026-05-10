@@ -31,7 +31,7 @@ async function _GET(req: Request) {
         // I'll manually stitch LabTest since relation might not be defined explicitly in LabResult include 
         // if not added properly, but I did add `testId` map.
         // Actually to be safe from Prisma TS errors if relation is missing, I'll fetch tests separately
-        const testsList = await prisma.labTest.findMany();
+        const testsList = await prisma.labTest.findMany({ take: 100 });
         
         // Enhance orders with test details
         const enhancedOrders = orders.map((order: any) => ({
@@ -134,8 +134,7 @@ async function _PUT(req: Request) {
 
         // Auto update order status if all results are entered
         const orderId = updated.orderId;
-        const allResults = await prisma.labResult.findMany({
-            take: 100, where: { orderId } });
+        const allResults = await prisma.labResult.findMany({ take: 100, where: { orderId } });
         const allEntered = allResults.every((r: any) => r.value && r.value.trim() !== '');
 
         if (allEntered) {

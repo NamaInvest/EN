@@ -16,8 +16,7 @@ async function _POST(request: Request) {
 
         const tenantId = resolveTenant(request as any);
 
-        const banks = await prisma.bankAccount.findMany({
-            take: 100,
+        const banks = await prisma.bankAccount.findMany({ take: 100,
             where: { isActive: true }
         });
 

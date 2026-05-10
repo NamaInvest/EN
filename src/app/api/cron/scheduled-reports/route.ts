@@ -87,7 +87,9 @@ async function _GET(req: Request) {
           }),
         });
         emailSent = emailResp.ok;
-      } catch {
+      } catch (err: unknown) {
+        log.error('src/app/api/cron/scheduled-reports/route.ts', { error: err instanceof Error ? err.message : err });
+
         emailSent = false;
       }
     }

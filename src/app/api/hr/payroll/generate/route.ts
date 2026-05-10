@@ -25,8 +25,7 @@ async function _POST(request: Request) {
         const { month, year } = parsed.data;
 
         // 1. Fetch all active employees
-        const employees = await prisma.employee.findMany({
-            take: 100,
+        const employees = await prisma.employee.findMany({ take: 100,
             where: { active: true }
         });
 
@@ -38,15 +37,13 @@ async function _POST(request: Request) {
         const startDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
         const endDateStr = `${year}-${String(month).padStart(2, '0')}-31`; // Approx
 
-        const attendances = await prisma.attendance.findMany({
-            take: 100,
+        const attendances = await prisma.attendance.findMany({ take: 100,
             where: {
                 date: { gte: startDateStr, lte: endDateStr }
             }
         });
 
-        const activeLoans = await prisma.employeeLoan.findMany({
-            take: 100,
+        const activeLoans = await prisma.employeeLoan.findMany({ take: 100,
             where: { status: 'active', remainingAmount: { gt: 0 } }
         });
 

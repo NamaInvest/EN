@@ -16,11 +16,12 @@ async function _GET(req: NextRequest) {
         // Check if restaurant tables exist in DB
         let zones: any[] = [];
         try {
-            zones = await prisma.restaurantZone.findMany({
-            take: 100,
+            zones = await prisma.restaurantZone.findMany({ take: 100,
                 include: { tables: { include: { sessions: { where: { status: 'Active' } } } } }
             });
         } catch (e: any) {
+            log.error('src/app/api/pos/restaurant/floor/route.ts', { error: e instanceof Error ? e.message : e });
+
             // If tables don't exist, create them via raw SQL
             if (e.message?.includes('does not exist') || e.code === 'P2021') {
                 await prisma.$executeRawUnsafe(`
@@ -88,7 +89,9 @@ async function _POST(req: NextRequest) {
                     "endedAt" TIMESTAMP(3)
                 );
             `);
-        } catch (e: any) { /* tables already exist */ }
+        } catch (e: any) {
+ log.error('src/app/api/pos/restaurant/floor/route.ts', { error: e instanceof Error ? e.message : e });
+ /* tables already exist */ }
 
         if (action === 'create_zone') {
             const zone = await prisma.restaurantZone.create({ data: { name: payload.name } });
@@ -135,8 +138,7 @@ async function _POST(req: NextRequest) {
 
         if (action === 'delete_zone') {
             // Delete all tables and sessions in this zone first
-            const tables = await prisma.restaurantTable.findMany({
-            take: 100, where: { zoneId: payload.zoneId } });
+            const tables = await prisma.restaurantTable.findMany({ take: 100, where: { zoneId: payload.zoneId } });
             for (const table of tables) {
                 await prisma.$executeRawUnsafe(`DELETE FROM "RestaurantSession" WHERE "tableId" = ${table.id}`);
             }

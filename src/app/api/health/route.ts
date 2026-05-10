@@ -32,7 +32,9 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1`;
     await prisma.$disconnect();
     checks.database = 'ok';
-  } catch {
+  } catch (err: unknown) {
+    log.error('src/app/api/health/route.ts', { error: err instanceof Error ? err.message : err });
+
     checks.database = 'error';
   }
 
@@ -54,7 +56,9 @@ export async function GET() {
         : 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
       const res = await fetch(zatcaUrl, { method: 'HEAD', signal: AbortSignal.timeout(2000) });
       checks.zatca = res.ok ? 'ok' : 'warn';
-    } catch {
+    } catch (err: unknown) {
+      log.error('src/app/api/health/route.ts', { error: err instanceof Error ? err.message : err });
+
       checks.zatca = 'warn'; // ZATCA down — don't mark app as 503
     }
   }

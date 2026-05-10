@@ -46,8 +46,7 @@ async function _POST(req: NextRequest) {
         // Calculate some basic stats for preview
         const aggregated = await prisma.salesInvoice.aggregate({
             where: {
-                customerId: { in: (await prisma.customer.findMany({
-            take: 100, where: customerWhere, select: { id: true } })).map(c => c.id) },
+                customerId: { in: (await prisma.customer.findMany({ take: 100, where: customerWhere, select: { id: true } })).map(c => c.id) },
                 remaining: { gt: 0 }
             },
             _sum: { remaining: true }

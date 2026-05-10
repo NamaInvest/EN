@@ -18,8 +18,7 @@ async function _POST(req: Request) {
     targetDate.setDate(today.getDate() + 7);
 
     // Filter active leases where an installment is due in the next 7 days and is unpaid
-    const dueInstallments = await prisma.rentInstallment.findMany({
-            take: 100,
+    const dueInstallments = await prisma.rentInstallment.findMany({ take: 100,
       where: {
         isPaid: false,
         dueDate: {
@@ -59,8 +58,7 @@ async function _POST(req: Request) {
     // 2. Fetch Leases expiring in 30 days to send Renewal Notification
     const expireTarget = new Date();
     expireTarget.setDate(today.getDate() + 30);
-    const expiringContracts = await prisma.leaseContract.findMany({
-            take: 100,
+    const expiringContracts = await prisma.leaseContract.findMany({ take: 100,
       where: {
         status: 'ACTIVE',
         endDate: {

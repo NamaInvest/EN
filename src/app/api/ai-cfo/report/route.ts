@@ -65,8 +65,7 @@ async function _GET(req: NextRequest) {
             _sum: { currentStock: true } // We'll just pass total items, cost is harder without buy_price * current_stock sum capability in prisma, so we loop:
         });
         
-        const allProducts = await prisma.product.findMany({
-            take: 100,
+        const allProducts = await prisma.product.findMany({ take: 100,
             where: { currentStock: { gt: 0 } },
             select: { currentStock: true, buyPrice: true }
         });

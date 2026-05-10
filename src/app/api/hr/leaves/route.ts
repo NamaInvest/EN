@@ -32,8 +32,7 @@ async function _GET(req: Request) {
             lte: new Date(year, 11, 31),
         };
 
-        const requests = await (prisma as any).leaveRequest.findMany({
-            take: 100,
+        const requests = await (prisma as any).leaveRequest.findMany({ take: 100,
             where,
             include: { employee: { select: { id: true, name: true, position: true } } },
             orderBy: { createdAt: 'desc' },

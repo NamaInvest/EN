@@ -11,10 +11,11 @@ const log = logger.child({ service: 'portal.users' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).portalUser.findMany({
-            take: 100, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).portalUser.findMany({ take: 100, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'portal/users' }); }
+  } catch (e: any) {
+ log.error('src/app/api/portal/users/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'portal/users' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -24,7 +25,9 @@ async function _POST(request: NextRequest) {
     const hash = await bcrypt.hash(d.password || '123456', 10);
     const item = await (prisma as any).portalUser.create({ data: { partyId: d.partyId ? parseInt(d.partyId) : null, name: d.name, email: d.email, passwordHash: hash, tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'portal/users' }); }
+  } catch (e: any) {
+ log.error('src/app/api/portal/users/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'portal/users' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

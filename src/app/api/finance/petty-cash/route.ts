@@ -16,8 +16,7 @@ async function _GET(request: NextRequest) {
         if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // @ts-ignore
-        const records = await prisma.pettyCashTransaction.findMany({
-            take: 100,
+        const records = await prisma.pettyCashTransaction.findMany({ take: 100,
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             orderBy: { requestDate: 'desc' }
         });

@@ -11,8 +11,7 @@ const log = logger.child({ service: 'bookings' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const bookings = await prisma.booking.findMany({
-            take: 100, orderBy: { id: 'desc' }, include: { customer: { select: { name: true } } } });
+        const bookings = await prisma.booking.findMany({ take: 100, orderBy: { id: 'desc' }, include: { customer: { select: { name: true } } } });
         return NextResponse.json(bookings);
     } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }

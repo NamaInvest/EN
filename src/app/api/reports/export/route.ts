@@ -29,8 +29,7 @@ async function _GET(request: NextRequest) {
 
         if (reportType === 'trial-balance') {
             filename = `trial_balance_${new Date().toISOString().slice(0, 10)}`;
-            const accounts = await prisma.account.findMany({
-            take: 100, orderBy: { code: 'asc' } });
+            const accounts = await prisma.account.findMany({ take: 100, orderBy: { code: 'asc' } });
 
             const dateFilter: any = {};
             if (fromDate || toDate) {
@@ -39,8 +38,7 @@ async function _GET(request: NextRequest) {
                 if (toDate) dateFilter.entry = { ...dateFilter.entry, entryDate: { ...(dateFilter.entry?.entryDate || {}), lte: toDate } };
             }
 
-            const lines = await prisma.journalLine.findMany({
-            take: 100,
+            const lines = await prisma.journalLine.findMany({ take: 100,
                 where: dateFilter,
                 select: { accountId: true, debit: true, credit: true },
             });
@@ -68,13 +66,11 @@ async function _GET(request: NextRequest) {
 
         } else if (reportType === 'income-statement') {
             filename = `income_statement_${new Date().toISOString().slice(0, 10)}`;
-            const accounts = await prisma.account.findMany({
-            take: 100,
+            const accounts = await prisma.account.findMany({ take: 100,
                 where: { type: { in: ['revenue', 'expense'] } },
                 orderBy: { code: 'asc' },
             });
-            const _lines_dup74 = await prisma.journalLine.findMany({
-            take: 100,
+            const _lines_dup74 = await prisma.journalLine.findMany({ take: 100,
                 where: { accountId: { in: accounts.map(a => a.id) } },
                 select: { accountId: true, debit: true, credit: true },
             });
@@ -103,8 +99,7 @@ async function _GET(request: NextRequest) {
 
         } else if (reportType === 'balance-sheet') {
             filename = `balance_sheet_${new Date().toISOString().slice(0, 10)}`;
-            const _accounts_dup102 = await prisma.account.findMany({
-            take: 100,
+            const _accounts_dup102 = await prisma.account.findMany({ take: 100,
                 where: { type: { in: ['asset', 'liability', 'equity'] } },
                 orderBy: { code: 'asc' },
             });

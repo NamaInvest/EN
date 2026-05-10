@@ -9,8 +9,7 @@ const log = logger.child({ service: 'manufacturing.labor-efficiency' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const orders = await prisma.manufacturingOrder.findMany({
-            take: 100,
+        const orders = await prisma.manufacturingOrder.findMany({ take: 100,
             where: { status: 'completed' },
             include: {
                 recipe: { include: { operations: { include: { workCenter: true } } } },

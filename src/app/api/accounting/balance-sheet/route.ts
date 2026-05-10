@@ -15,15 +15,13 @@ async function _GET(request: Request) {
         const asOf = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
         // Get all accounts
-        const allAccounts = await prisma.account.findMany({
-            take: 100,
+        const allAccounts = await prisma.account.findMany({ take: 100,
             where: { isActive: true },
             orderBy: { code: 'asc' },
         });
 
         // Get all journal lines up to date
-        const lines = await prisma.journalLine.findMany({
-            take: 100,
+        const lines = await prisma.journalLine.findMany({ take: 100,
             where: {
                 entry: { entryDate: { lte: asOf } },
             },

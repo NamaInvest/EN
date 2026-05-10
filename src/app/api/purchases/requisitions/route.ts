@@ -18,8 +18,7 @@ async function _GET(req: NextRequest) {
         const decoded: any = jwt.verify(token, (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
-        const prs = await prisma.purchaseRequisition.findMany({
-            take: 100,
+        const prs = await prisma.purchaseRequisition.findMany({ take: 100,
             include: {
                 requester: { select: { fullName: true, username: true } },
                 approver: { select: { fullName: true } },

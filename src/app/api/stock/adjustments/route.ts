@@ -21,8 +21,7 @@ async function _GET(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         // Get past adjustments
-        const adjustments = await prisma.stockMovement.findMany({
-            take: 100,
+        const adjustments = await prisma.stockMovement.findMany({ take: 100,
             where: {
                 type: { in: ['adjustment', 'adjustment_in', 'adjustment_out'] }
             },

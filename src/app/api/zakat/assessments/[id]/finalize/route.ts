@@ -17,6 +17,8 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         const result = await ZakatEngine.finalize(parseInt(id, 10), user.userId);
         return NextResponse.json(result);
     } catch (e: any) {
+        log.error('src/app/api/zakat/assessments/[id]/finalize/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل اعتماد التقدير', { context: 'zakat/finalize' });
     }
 }

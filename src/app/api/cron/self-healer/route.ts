@@ -23,8 +23,7 @@ async function _POST(req: Request) {
 
     // 1. Healing Stuck ZATCA Invoices
     // Any invoice stuck in 'pending' for more than 24 hours
-    const stuckInvoices = await prisma.salesInvoice.findMany({
-            take: 100,
+    const stuckInvoices = await prisma.salesInvoice.findMany({ take: 100,
       where: { 
           zatcaStatus: 'pending',
           date: { lte: yesterday }

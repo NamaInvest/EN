@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        let schedules = await (prisma as any).deferredRevenueSchedule.findMany({
-            take: 100,
+        let schedules = await (prisma as any).deferredRevenueSchedule.findMany({ take: 100,
             include: { invoice: true, lines: true },
             orderBy: { id: 'desc' }
         });
@@ -78,8 +77,7 @@ async function _POST(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
         // Mock running monthly recognition
-        const schedules = await (prisma as any).deferredRevenueSchedule.findMany({
-            take: 100,
+        const schedules = await (prisma as any).deferredRevenueSchedule.findMany({ take: 100,
             where: { status: 'ACTIVE' }
         });
 

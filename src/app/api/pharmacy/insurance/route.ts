@@ -40,8 +40,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
   if (company) where.insuranceCompany = { contains: company, mode: 'insensitive' };
 
   // insuranceClaim model pending `prisma generate`
-  const claims = await (prisma as any).insuranceClaim.findMany({
-    take: 100,
+  const claims = await (prisma as any).insuranceClaim.findMany({ take: 100,
     where,
     include: { patient: { select: { nationalId: true, name: true, phone: true } } },
     orderBy: { submittedAt: 'desc' },

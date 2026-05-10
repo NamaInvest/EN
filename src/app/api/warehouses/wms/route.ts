@@ -26,8 +26,7 @@ async function _GET(req: Request) {
     const stockId = parseInt(url.searchParams.get('stockId') || url.searchParams.get('warehouseId') || '1');
 
     try {
-        const zones = await prisma.warehouseZone.findMany({
-            take: 100,
+        const zones = await prisma.warehouseZone.findMany({ take: 100,
             where: { stockId },   // correct field
             include: {
                 racks: { include: { bins: true } },
@@ -36,8 +35,7 @@ async function _GET(req: Request) {
         });
 
         // Stock occupancy per product
-        const stocks = await prisma.productStock.findMany({
-            take: 100,
+        const stocks = await prisma.productStock.findMany({ take: 100,
             where: { stockId },
             include: {
                 product: {

@@ -41,8 +41,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
   const search = searchParams.get('search') || '';
 
   const [orders, machines, recipesCount] = await Promise.all([
-    prisma.manufacturingOrder.findMany({
-      take: 100,
+    prisma.manufacturingOrder.findMany({ take: 100,
       where: { OR: [{ orderNumber: { contains: search, mode: 'insensitive' } }] },
       include: {
         recipe: {
@@ -55,7 +54,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
       },
       orderBy: { id: 'desc' },
     }),
-    (prisma as any).machine.findMany().catch(() => []),
+    (prisma as any).machine.findMany({ take: 100 }).catch(() => []),
     prisma.recipe.count(),
   ]);
 

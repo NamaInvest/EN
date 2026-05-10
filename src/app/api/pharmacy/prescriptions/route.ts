@@ -31,8 +31,7 @@ async function _GET(req: Request) {
         if (status) where.status = status;
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const prescriptions = await prisma.prescription.findMany({
-            take: 100,
+        const prescriptions = await prisma.prescription.findMany({ take: 100,
             where,
             include: {
                 patient: { select: { nationalId: true, name: true, phone: true, allergies: true } },

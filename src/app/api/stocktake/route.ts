@@ -11,8 +11,7 @@ const log = logger.child({ service: 'stocktake' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const stocktakes = await prisma.stocktake.findMany({
-            take: 100,
+        const stocktakes = await prisma.stocktake.findMany({ take: 100,
             include: { items: true },
             orderBy: { id: 'desc' },
         });
@@ -34,8 +33,7 @@ async function _POST(request: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const products = await prisma.product.findMany({
-            take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
+        const products = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
             const product = products.find(p => p.id === item.productId);

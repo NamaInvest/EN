@@ -26,6 +26,8 @@ async function _GET(request: NextRequest) {
     });
     return NextResponse.json(tickets);
   } catch (error: any) {
+    log.error('src/app/api/crm/tickets/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error fetching tickets', { context: 'crm/tickets' });
   }
 }
@@ -84,6 +86,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(ticket);
   } catch (error: any) {
+    log.error('src/app/api/crm/tickets/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error creating ticket', { context: 'crm/tickets' });
   }
 }
@@ -120,6 +124,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(ticket);
   } catch (error: any) {
+    log.error('src/app/api/crm/tickets/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error updating ticket', { context: 'crm/tickets' });
   }
 }

@@ -82,8 +82,7 @@ async function _GET(request: NextRequest) {
       // Enrich byUser with usernames
       const userIds = byUser.map((u: any) => u.userId).filter(Boolean);
       const users = userIds.length > 0
-        ? await prisma.user.findMany({
-            take: 100, where: { id: { in: userIds } }, select: { id: true, username: true, fullName: true } })
+        ? await prisma.user.findMany({ take: 100, where: { id: { in: userIds } }, select: { id: true, username: true, fullName: true } })
         : [];
       const userMap = new Map(users.map((u: any) => [u.id, u.fullName || u.username]));
 
@@ -109,8 +108,7 @@ async function _GET(request: NextRequest) {
     // Enrich with user names
     const userIds = [...new Set(logs.map((l: any) => l.userId).filter(Boolean))];
     const users = userIds.length > 0
-      ? await prisma.user.findMany({
-            take: 100, where: { id: { in: userIds as number[] } }, select: { id: true, username: true, fullName: true } })
+      ? await prisma.user.findMany({ take: 100, where: { id: { in: userIds as number[] } }, select: { id: true, username: true, fullName: true } })
       : [];
     const userMap = new Map(users.map((u: any) => [u.id, u.fullName || u.username]));
 
@@ -170,6 +168,8 @@ async function _GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
+    log.error('src/app/api/audit/field-trail/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'audit/field-trail' });
   }
 }

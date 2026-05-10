@@ -13,19 +13,18 @@ const log = logger.child({ service: 'accounting.lc' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const lcs = await prisma.letterOfCredit.findMany({
-            take: 100,
+        const lcs = await prisma.letterOfCredit.findMany({ take: 100,
             include: { bank: true, supplier: true },
             orderBy: { id: 'desc' }
         });
         
-        const banks = await prisma.bankAccount.findMany({
-            take: 100, where: { isActive: true } });
-        const suppliers = await prisma.customer.findMany({
-            take: 100, where: { type: { in: [1, 2] } } });
+        const banks = await prisma.bankAccount.findMany({ take: 100, where: { isActive: true } });
+        const suppliers = await prisma.customer.findMany({ take: 100, where: { type: { in: [1, 2] } } });
 
         return NextResponse.json({ lcs, banks, suppliers }, { status: 200 });
     } catch (error: any) {
+        log.error('src/app/api/accounting/lc/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'فشل جلب الاعتمادات المستندية', { context: 'accounting/lc' });
     }
 }
@@ -97,6 +96,8 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json(newLc, { status: 201 });
     } catch (error: any) {
+        log.error('src/app/api/accounting/lc/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'Error opening LC', { context: 'accounting/lc' });
     }
 }

@@ -19,8 +19,7 @@ async function _POST(req: Request) {
 
     if (!tenant) return NextResponse.json({ error: 'عذراً لا يوجد مستأجر مسجل بهذا الرقم' }, { status: 404 });
 
-    const leases = await prisma.leaseContract.findMany({
-            take: 100,
+    const leases = await prisma.leaseContract.findMany({ take: 100,
       where: { tenantId: tenant.id },
       include: {
         unit: { include: { property: true } },

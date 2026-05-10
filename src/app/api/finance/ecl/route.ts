@@ -24,8 +24,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const customers = await prisma.customer.findMany({
-            take: 100,
+        const customers = await prisma.customer.findMany({ take: 100,
             where: { balance: { gt: 0 } },
             select: {
                 id: true,

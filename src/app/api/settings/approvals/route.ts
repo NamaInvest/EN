@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const rules = await prisma.approvalRule.findMany({
-            take: 100,
+        const rules = await prisma.approvalRule.findMany({ take: 100,
             include: { approver: { select: { id: true, fullName: true, role: true } } },
             orderBy: { level: 'asc' }
         });

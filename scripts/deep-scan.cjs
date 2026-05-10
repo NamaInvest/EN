@@ -63,12 +63,17 @@ let noPagination = [];
 for (const f of routes) {
   const c = fs.readFileSync(f, 'utf8');
   const rel = f.replace(ROOT, '').replace(/\\/g, '/').replace(/^\//, '');
-  if (c.includes('findMany') && !c.includes('take:') && !c.includes('limit') && !c.includes('take =')) {
+  // Accept take:, limit:, skip:, take =, const take, let take, or Math.min(...take...)
+  const hasPagination = c.includes('take:') || c.includes('limit') ||
+    c.includes('take =') || c.includes('const take') || c.includes('let take') ||
+    c.includes('Math.min');
+  if (c.includes('findMany') && !hasPagination) {
     noPagination.push(rel);
   }
 }
 console.log(`\n[4] Routes with findMany but no pagination: ${noPagination.length}`);
 noPagination.slice(0, 8).forEach(f => console.log('   ', f));
+
 
 // 5. Tests with empty test bodies
 let emptyTests = [];

@@ -11,10 +11,11 @@ const log = logger.child({ service: 'compliance.audits' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).internalAudit.findMany({
-            take: 100, include: { _count: { select: { findings: true } } }, orderBy: { createdAt: 'desc' } });
+    const items = await (prisma as any).internalAudit.findMany({ take: 100, include: { _count: { select: { findings: true } } }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/audits' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/audits/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/audits' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -22,7 +23,9 @@ async function _POST(request: NextRequest) {
     const d = await request.json();
     const item = await (prisma as any).internalAudit.create({ data: { title: d.title, scope: d.scope || null, auditor: d.auditor || null, startDate: d.startDate ? new Date(d.startDate) : null, endDate: d.endDate ? new Date(d.endDate) : null, status: d.status || 'PLANNED', tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/audits' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/audits/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/audits' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

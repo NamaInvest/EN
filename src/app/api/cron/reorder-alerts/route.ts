@@ -24,8 +24,7 @@ async function _GET(req: Request) {
         const alerts: { productId: number; name: string; current: number; min: number }[] = [];
 
         // Product uses 'active' (Boolean) and 'minQuantity' (Float)
-        const lowStockProducts = await prisma.product.findMany({
-            take: 100,
+        const lowStockProducts = await prisma.product.findMany({ take: 100,
             where: {
                 active: true,
                 minQuantity: { gt: 0 },

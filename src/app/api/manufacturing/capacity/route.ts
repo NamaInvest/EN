@@ -11,15 +11,13 @@ async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         // Fetch all work centers / machines as resources
-        const machines = await prisma.machine.findMany({
-            take: 100,
+        const machines = await prisma.machine.findMany({ take: 100,
             where: { status: 'active' },
             select: { id: true, name: true, code: true }
         });
 
         // Fetch all MOs that have start/end dates and are not cancelled
-        const orders = await prisma.manufacturingOrder.findMany({
-            take: 100,
+        const orders = await prisma.manufacturingOrder.findMany({ take: 100,
             where: {
                 status: { in: ['draft', 'in_progress', 'scheduled'] },
                 startDate: { not: undefined },

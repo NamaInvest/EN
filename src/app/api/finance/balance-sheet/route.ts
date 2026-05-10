@@ -14,8 +14,7 @@ async function _GET(req: Request) {
         const asOfDate = asOfDateStr ? new Date(asOfDateStr) : new Date();
 
         // Fetch all accounts with their lines
-        const accounts = await prisma.account.findMany({
-            take: 100,
+        const accounts = await prisma.account.findMany({ take: 100,
             include: {
                 journalLines: {
                     where: {

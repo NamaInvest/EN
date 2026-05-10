@@ -21,8 +21,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
 
         if (!rfq) return NextResponse.json({ error: 'RFQ not found' }, { status: 404 });
 
-        const bids = await prisma.vendorBid.findMany({
-            take: 100,
+        const bids = await prisma.vendorBid.findMany({ take: 100,
             where: { rfqId: id },
             include: {
                 vendor: { select: { vendorName: true } },

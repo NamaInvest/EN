@@ -24,6 +24,8 @@ async function _GET(req: NextRequest, { params }: { params: Promise<{ id: string
         const form = await ZakatEngine.generateForm(assessment.id);
         return NextResponse.json({ assessment, form });
     } catch (e: any) {
+        log.error('src/app/api/zakat/assessments/[id]/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل جلب التقدير', { context: 'zakat/assessments/[id]' });
     }
 }

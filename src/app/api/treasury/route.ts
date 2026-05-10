@@ -32,10 +32,11 @@ async function _GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const entries = await prisma.treasury.findMany({
-            take: 100, where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
+        const entries = await prisma.treasury.findMany({ take: 100, where, include: { user: { select: { id: true, username: true, fullName: true, role: true, phone: true } } }, orderBy: { date: 'desc' } });
         return NextResponse.json(entries);
-    } catch (error: any) { 
+    } catch (error: any) {
+        log.error('src/app/api/treasury/route.ts', { error: error instanceof Error ? error.message : error });
+ 
         return handleApiError(error); 
     }
 }
@@ -72,7 +73,9 @@ async function _POST(request: Request) {
         });
         
         return NextResponse.json(entry, { status: 201 });
-    } catch (error: any) { 
+    } catch (error: any) {
+        log.error('src/app/api/treasury/route.ts', { error: error instanceof Error ? error.message : error });
+ 
         return handleApiError(error); 
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Sales Returns API — Complete Implementation
+ * Sales Returns API â€” Complete Implementation
  * Aligned with actual Prisma schema: SalesReturn model
  * Fields: returnNo, originalInvoiceId, customerId, subtotal, taxValue, total, userId, details[]
  */
@@ -15,7 +15,7 @@ import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'sales-returns' });
 
-// ── Schema ────────────────────────────────────────────────────────────────────
+// â”€â”€ Schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ReturnDetailSchema = z.object({
   productId:   z.number().int().positive(),
@@ -26,10 +26,10 @@ const ReturnDetailSchema = z.object({
 });
 
 const CreateSalesReturnSchema = z.object({
-  originalInvoiceId: z.number().int().positive('رقم الفاتورة الأصلية مطلوب'),
+  originalInvoiceId: z.number().int().positive('ط±ظ‚ظ… ط§ظ„ظپط§طھظˆط±ط© ط§ظ„ط£طµظ„ظٹط© ظ…ط·ظ„ظˆط¨'),
   customerId:        z.number().int().optional(),
-  details:           z.array(ReturnDetailSchema).min(1, 'يجب تحديد صنف واحد على الأقل'),
-  reason:            z.string().min(1, 'سبب المرتجع مطلوب'),
+  details:           z.array(ReturnDetailSchema).min(1, 'ظٹط¬ط¨ طھط­ط¯ظٹط¯ طµظ†ظپ ظˆط§ط­ط¯ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„'),
+  reason:            z.string().min(1, 'ط³ط¨ط¨ ط§ظ„ظ…ط±طھط¬ط¹ ظ…ط·ظ„ظˆط¨'),
   branchId:          z.number().int().optional(),
   destinationStockId: z.number().int().optional(),
   date:              z.string().optional(),
@@ -37,7 +37,7 @@ const CreateSalesReturnSchema = z.object({
   notes:             z.string().optional(),
 });
 
-// ── GET ───────────────────────────────────────────────────────────────────────
+// â”€â”€ GET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _GET(req: NextRequest) {
   const prisma = getPrisma(req);
@@ -74,7 +74,7 @@ async function _GET(req: NextRequest) {
   }
 }
 
-// ── POST ──────────────────────────────────────────────────────────────────────
+// â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _POST(req: NextRequest, auth: any) {
   const prisma = getPrisma(req);
@@ -83,7 +83,7 @@ async function _POST(req: NextRequest, auth: any) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors },
+      { error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©', details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
@@ -144,12 +144,12 @@ async function _POST(req: NextRequest, auth: any) {
       }
     }
 
-    // Treasury entry — cash refund
+    // Treasury entry â€” cash refund
     await tx.treasury.create({
       data: {
         type:          'out',
         amount:        total,
-        description:   `مرتجع مبيعات رقم ${returnNo}`,
+        description:   `ظ…ط±طھط¬ط¹ ظ…ط¨ظٹط¹ط§طھ ط±ظ‚ظ… ${returnNo}`,
         referenceType: 'salesReturn',
         referenceId:   ret.id,
         userId:        auth?.userId || null,
@@ -160,7 +160,7 @@ async function _POST(req: NextRequest, auth: any) {
     return ret;
   });
 
-  // ── Auto-Journal: عكس إيرادات المبيعات ───────────────────────────────────
+  // â”€â”€ Auto-Journal: ط¹ظƒط³ ط¥ظٹط±ط§ط¯ط§طھ ط§ظ„ظ…ط¨ظٹط¹ط§طھ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await postSalesReturn({
     returnNo,
     total,
@@ -177,11 +177,11 @@ async function _POST(req: NextRequest, auth: any) {
     subtotal,
     taxValue,
     total:    Math.round(total * 100) / 100,
-    message:  `تم تسجيل مرتجع المبيعات #${returnNo} وترحيل القيد المحاسبي العكسي`,
+    message:  `طھظ… طھط³ط¬ظٹظ„ ظ…ط±طھط¬ط¹ ط§ظ„ظ…ط¨ظٹط¹ط§طھ #${returnNo} ظˆطھط±ط­ظٹظ„ ط§ظ„ظ‚ظٹط¯ ط§ظ„ظ…ط­ط§ط³ط¨ظٹ ط§ظ„ط¹ظƒط³ظٹ`,
   }, { status: 201 });
 }
 
-// ── Exports ───────────────────────────────────────────────────────────────────
+// â”€â”€ Exports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const GET = withRoute(
   async ({ req }) => _GET(req as any),

@@ -20,6 +20,8 @@ async function _GET(request: NextRequest) {
     });
     return NextResponse.json(items);
   } catch (error: any) {
+    log.error('src/app/api/projects/time-entries/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/time-entries' });
   }
 }
@@ -59,6 +61,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/projects/time-entries/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/time-entries' });
   }
 }
@@ -71,6 +75,8 @@ async function _DELETE(request: NextRequest) {
     await (prisma as any).projectTimeEntry.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/projects/time-entries/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/time-entries' });
   }
 }

@@ -11,8 +11,7 @@ const log = logger.child({ service: 'batches' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const batches = await prisma.productBatch.findMany({
-            take: 100,
+        const batches = await prisma.productBatch.findMany({ take: 100,
             include: { product: { select: { name: true, barcode: true } } },
             orderBy: { expiryDate: 'asc' }
         });

@@ -55,8 +55,7 @@ async function _POST(request: NextRequest) {
             if (!otp) return NextResponse.json({ error: 'ظٹط±ط¬ظ‰ ط¥ط¯ط®ط§ظ„ ط±ظ…ط² OTP' }, { status: 400 });
 
             // Get company settings
-            const settings = await prisma.setting.findMany({
-            take: 100,
+            const settings = await prisma.setting.findMany({ take: 100,
                 where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_environment'] } }
             });
             const s: Record<string, string> = {};

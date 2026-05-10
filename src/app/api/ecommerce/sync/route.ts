@@ -58,8 +58,7 @@ async function _POST(req: Request) {
     const { platform, action, payload } = parsed.data as any;
 
     if (platform === 'salla' && action === 'sync_products_up') {
-      const products = await prisma.product.findMany({
-        take:   100,
+      const products = await prisma.product.findMany({ take: 100,
         where:  { active: true, sellPrice: { gt: 0 } },
         select: { id: true, name: true, nameEn: true, barcode: true, currentStock: true, sellPrice: true, taxRate: true, description: true },
       });

@@ -19,8 +19,7 @@ async function _GET(request: Request) {
         const conversationId = searchParams.get('conversationId');
 
         if (conversationId) {
-            const messages = await prisma.aiConversationMessage.findMany({
-            take: 100,
+            const messages = await prisma.aiConversationMessage.findMany({ take: 100,
                 where: { conversationId },
                 orderBy: { createdAt: 'asc' }
             });

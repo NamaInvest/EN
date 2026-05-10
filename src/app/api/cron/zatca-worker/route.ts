@@ -64,6 +64,8 @@ async function _GET(request: Request) {
                 const errorSummary = zatcaResponse.errors?.map(e => `${e.code}: ${e.message}`).join(', ');
                 results.push({ id: record.id, status: passed ? 'success' : 'failed', error: errorSummary });
             } catch (err: any) {
+                log.error('src/app/api/cron/zatca-worker/route.ts', { error: err instanceof Error ? err.message : err });
+
                 await prisma.zATCARecord.update({
                     where: { id: record.id },
                     data: { status: 'failed', zatcaResponse: err.message },

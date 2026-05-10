@@ -18,8 +18,7 @@ async function _GET(request: NextRequest) {
         
         if (!projectId) return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
 
-        const tasks = await prisma.projectTask.findMany({
-            take: 100,
+        const tasks = await prisma.projectTask.findMany({ take: 100,
             where: { projectId: parseInt(projectId) },
             orderBy: { id: 'asc' },
         });
@@ -125,6 +124,8 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم الحذف' });
     } catch (error: any) {
+        log.error('src/app/api/enterprise/projects/tasks/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }

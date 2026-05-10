@@ -35,14 +35,15 @@ async function _GET(request: NextRequest) {
             where.branchId = parseInt(branchQuery);
         }
 
-        const expenses = await prisma.expense.findMany({
-            take: 100, 
+        const expenses = await prisma.expense.findMany({ take: 100, 
             where, 
             include: { user: { select: { id: true, username: true, fullName: true, role: true } }, costCenter: true }, 
             orderBy: { date: 'desc' } 
         });
         return NextResponse.json(expenses);
-    } catch (error: any) { 
+    } catch (error: any) {
+        log.error('src/app/api/expenses/route.ts', { error: error instanceof Error ? error.message : error });
+ 
         return handleApiError(error); 
     }
 }
@@ -113,7 +114,9 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(expense, { status: 201 });
-    } catch (error: any) { 
+    } catch (error: any) {
+        log.error('src/app/api/expenses/route.ts', { error: error instanceof Error ? error.message : error });
+ 
         return handleApiError(error); 
     }
 }
@@ -159,6 +162,8 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json(expense);
     } catch (error: any) {
+        log.error('src/app/api/expenses/route.ts', { error: error instanceof Error ? error.message : error });
+
         return handleApiError(error);
     }
 }
@@ -205,6 +210,8 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم حذف المصروف بنجاح' });
     } catch (error: any) {
+        log.error('src/app/api/expenses/route.ts', { error: error instanceof Error ? error.message : error });
+
         return handleApiError(error);
     }
 }

@@ -79,6 +79,8 @@ async function _POST(
         });
         return NextResponse.json(contract, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/saudi/qiwa/contracts/[employeeId]/route.ts', { error: e instanceof Error ? e.message : e });
+
         if (e.code === 'P2002') return NextResponse.json({ error: 'رقم العقد مستخدم مسبقاً' }, { status: 409 });
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

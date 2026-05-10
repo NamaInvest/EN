@@ -19,7 +19,7 @@ async function _GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   try {
-    const periods = await (prisma as any).fiscalPeriod?.findMany?.({
+    const periods = await (prisma as any).fiscalPeriod?.findMany?.({ take: 100,
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
 

@@ -13,14 +13,15 @@ async function _GET(request: NextRequest) {
   try {
     const projectId = new URL(request.url).searchParams.get('projectId');
     if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
-    const items = await prisma.projectResource.findMany({
-            take: 100,
+    const items = await prisma.projectResource.findMany({ take: 100,
       where: { projectId: parseInt(projectId) },
       include: { employee: { select: { name: true, position: true } } },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(items);
   } catch (error: any) {
+    log.error('src/app/api/projects/resources/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/resources' });
   }
 }
@@ -60,6 +61,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/projects/resources/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/resources' });
   }
 }
@@ -72,6 +75,8 @@ async function _DELETE(request: NextRequest) {
     await prisma.projectResource.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/projects/resources/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/resources' });
   }
 }

@@ -10,8 +10,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ customerId
     const prisma = getPrisma(request);
     try {
         const { customerId } = await params;
-        const transactions = await prisma.loyaltyTransaction.findMany({
-            take: 100,
+        const transactions = await prisma.loyaltyTransaction.findMany({ take: 100,
             where: { customerId: parseInt(customerId) },
             orderBy: { createdAt: 'desc' }
         });

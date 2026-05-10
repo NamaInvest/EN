@@ -16,22 +16,19 @@ async function _GET(request: Request) {
         const to = searchParams.get('to') || new Date().toISOString().split('T')[0];
 
         // Get revenue accounts (4xxx)
-        const revenueAccounts = await prisma.account.findMany({
-            take: 100,
+        const revenueAccounts = await prisma.account.findMany({ take: 100,
             where: { type: 'revenue', isActive: true },
             orderBy: { code: 'asc' },
         });
 
         // Get expense accounts (5xxx)
-        const expenseAccounts = await prisma.account.findMany({
-            take: 100,
+        const expenseAccounts = await prisma.account.findMany({ take: 100,
             where: { type: 'expense', isActive: true },
             orderBy: { code: 'asc' },
         });
 
         // Get all journal lines in date range
-        const lines = await prisma.journalLine.findMany({
-            take: 100,
+        const lines = await prisma.journalLine.findMany({ take: 100,
             where: {
                 entry: { entryDate: { gte: from, lte: to } },
             },

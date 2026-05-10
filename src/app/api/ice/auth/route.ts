@@ -31,7 +31,9 @@ function verifyIceToken(token: string): boolean {
         const payload = JSON.parse(Buffer.from(data, 'base64').toString());
         if (payload.exp < Date.now()) return false;
         return payload.user === ICE_USERNAME;
-    } catch {
+    } catch (err: unknown) {
+        log.error('src/app/api/ice/auth/route.ts', { error: err instanceof Error ? err.message : err });
+
         return false;
     }
 }

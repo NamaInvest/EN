@@ -24,7 +24,9 @@ async function _GET(request: NextRequest) {
                 try {
                     const r = await pool.query(`SELECT value FROM "Setting" WHERE key = 'hidden_modules' LIMIT 1`);
                     value = r.rows[0]?.value;
-                } catch {
+                } catch (err: unknown) {
+                    log.error('src/app/api/tenant/hidden-modules/route.ts', { error: err instanceof Error ? err.message : err });
+
                     // Fallback to lowercase settings
                     try {
                         const r2 = await pool.query(`SELECT value FROM settings WHERE key = 'hidden_modules' LIMIT 1`);

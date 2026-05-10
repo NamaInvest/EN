@@ -10,8 +10,7 @@ async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     try {
         // Fetch all products with their ABC class
-        const products: any[] = await (prisma.product as any).findMany({
-            take: 100,
+        const products: any[] = await (prisma.product as any).findMany({ take: 100,
             where: { active: true },
             select: { id: true, abcClass: true, currentStock: true }
         });

@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
-        const rates = await prisma.exchangeRate.findMany({
-            take: 100,
+        const rates = await prisma.exchangeRate.findMany({ take: 100,
             orderBy: { date: 'desc' },
             include: { currency: true }
         });

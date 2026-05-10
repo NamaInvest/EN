@@ -10,8 +10,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const leads = await prisma.lead.findMany({
-            take: 100,
+        const leads = await prisma.lead.findMany({ take: 100,
             orderBy: { expectedRevenue: 'desc' }
         });
         

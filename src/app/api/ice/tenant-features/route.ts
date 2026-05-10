@@ -13,8 +13,7 @@ async function _GET(req: Request) {
         const tenantAccountId = searchParams.get('tenantAccountId');
         if (!tenantAccountId) return NextResponse.json({ error: 'Missing tenantAccountId' }, { status: 400 });
 
-        const flags = await prisma.tenantFeatureFlag.findMany({
-            take: 100,
+        const flags = await prisma.tenantFeatureFlag.findMany({ take: 100,
             where: { tenantAccountId: Number(tenantAccountId) }
         });
         

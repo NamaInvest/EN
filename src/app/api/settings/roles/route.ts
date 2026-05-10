@@ -15,8 +15,7 @@ async function _GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const users = await prisma.user.findMany({
-            take: 100,
+        const users = await prisma.user.findMany({ take: 100,
             include: { permissions: true },
             orderBy: { id: 'asc' }
         });

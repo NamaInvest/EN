@@ -48,7 +48,9 @@ async function _GET(req: Request) {
     try {
       const salariesTotal = await prisma.salary.aggregate({ _sum: { netSalary: true } });
       salariesSum = n(salariesTotal._sum.netSalary);
-    } catch { /* salary table may not exist */ }
+    } catch (err: unknown) {
+ log.error('src/app/api/reports/cash-flow/route.ts', { error: err instanceof Error ? err.message : err });
+ /* salary table may not exist */ }
 
     // 2. التدفقات الاستثمارية (Investing)
     let assetsSum = 0;
@@ -58,7 +60,9 @@ async function _GET(req: Request) {
         _sum: { purchasePrice: true },
       });
       assetsSum = n(assetsTotal?._sum?.purchasePrice);
-    } catch { /* fixedAsset table may not exist */ }
+    } catch (err: unknown) {
+ log.error('src/app/api/reports/cash-flow/route.ts', { error: err instanceof Error ? err.message : err });
+ /* fixedAsset table may not exist */ }
 
     // 3. حركات الخزينة المباشرة
     const treasuryIn = await prisma.treasury.aggregate({

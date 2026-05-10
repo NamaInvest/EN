@@ -11,8 +11,7 @@ async function _POST(req: NextRequest) {
 
     try {
         // Fetch ZATCA settings from DB
-        const settingsRaw = await prisma.setting.findMany({
-            take: 100,
+        const settingsRaw = await prisma.setting.findMany({ take: 100,
             where: { key: { startsWith: 'zatca_' } }
         });
         const taxNumberSetting = await prisma.setting.findUnique({ where: { key: 'tax_number' } });

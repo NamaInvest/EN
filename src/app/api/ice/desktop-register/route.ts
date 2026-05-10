@@ -284,7 +284,9 @@ async function _POST(req: NextRequest) {
             break;
           }
         }
-      } catch { /* backups table may not exist yet — ignore */ }
+      } catch (err: unknown) {
+ log.error('src/app/api/ice/desktop-register/route.ts', { error: err instanceof Error ? err.message : err });
+ /* backups table may not exist yet — ignore */ }
     }
 
     return NextResponse.json({

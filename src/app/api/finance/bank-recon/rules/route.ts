@@ -10,14 +10,12 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const rules = await prisma.bankReconRule.findMany({
-            take: 100,
+        const rules = await prisma.bankReconRule.findMany({ take: 100,
             orderBy: { priority: 'asc' },
             include: { bankAccount: true }
         });
 
-        const bankAccounts = await prisma.bankAccount.findMany({
-            take: 100,
+        const bankAccounts = await prisma.bankAccount.findMany({ take: 100,
             where: { isActive: true },
             select: { id: true, bankName: true, accountNumber: true, currency: true }
         });

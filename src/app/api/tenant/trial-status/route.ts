@@ -61,7 +61,9 @@ async function _GET(request: NextRequest) {
             } finally {
                 await tenantPool.end();
             }
-        } catch { /* تجاهل أخطاء العد */ }
+        } catch (err: unknown) {
+ log.error('src/app/api/tenant/trial-status/route.ts', { error: err instanceof Error ? err.message : err });
+ /* تجاهل أخطاء العد */ }
 
         return NextResponse.json({
             isTrialActive: isTrial,

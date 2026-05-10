@@ -38,6 +38,8 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, result });
     } catch (error: any) {
+        log.error('src/app/api/accounting/budget/check/route.ts', { error: error instanceof Error ? error.message : error });
+
         // If strict budgeting throws an error
         return NextResponse.json({ success: false, error: error.message }, { status: 403 });
     }

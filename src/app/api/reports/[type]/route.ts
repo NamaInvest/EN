@@ -33,8 +33,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
 
         switch (type) {
             case 'sales': {
-                const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
+                const invoices = await prisma.salesInvoice.findMany({ take: 100,
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
                     include: { customer: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
@@ -47,8 +46,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'purchases': {
-                const invoices = await prisma.purchaseInvoice.findMany({
-            take: 100,
+                const invoices = await prisma.purchaseInvoice.findMany({ take: 100,
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
                     include: { supplier: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
@@ -60,8 +58,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'stock': {
-                const products = await prisma.product.findMany({
-            take: 100, where: { active: true }, include: { category: true, unit: true }, orderBy: { name: 'asc' } });
+                const products = await prisma.product.findMany({ take: 100, where: { active: true }, include: { category: true, unit: true }, orderBy: { name: 'asc' } });
                 const totalValue = products.reduce((s: number, p: any) => s + n(p.currentStock) * n(p.buyPrice), 0);
                 return NextResponse.json({
                     summary: { 'عدد المنتجات': products.length, 'قيمة المخزون': totalValue },
@@ -69,8 +66,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'expenses': {
-                const expenses = await prisma.expense.findMany({
-            take: 100, where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, orderBy: { date: 'desc' } });
+                const expenses = await prisma.expense.findMany({ take: 100, where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, orderBy: { date: 'desc' } });
                 const total = expenses.reduce((s: number, e: any) => s + n(e.amount), 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المصروفات': total, 'عدد العمليات': expenses.length },
@@ -78,8 +74,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'customers': {
-                const customers = await prisma.customer.findMany({
-            take: 100, where: { active: true }, orderBy: { name: 'asc' } });
+                const customers = await prisma.customer.findMany({ take: 100, where: { active: true }, orderBy: { name: 'asc' } });
                 const totalBalance = customers.reduce((s: number, c: any) => s + n(c.balance), 0);
                 return NextResponse.json({
                     summary: { 'عدد العملاء': customers.filter(c => c.type === 0).length, 'عدد الموردين': customers.filter(c => c.type === 1).length, 'إجمالي الأرصدة': totalBalance },
@@ -109,8 +104,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'users-list': {
-                const users = await prisma.user.findMany({
-            take: 100,
+                const users = await prisma.user.findMany({ take: 100,
                     where: { active: true },
                     select: { id: true, fullName: true, role: true },
                     orderBy: { fullName: 'asc' },
@@ -133,18 +127,12 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 const hasDayDate = Object.keys(dayDate).length > 0;
                 const dayWhere = { ...(hasDayDate ? { date: dayDate } : {}), ...userFilter, ...branchFilter };
 
-                const sales = await prisma.salesInvoice.findMany({
-            take: 100, where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const purchases = await prisma.purchaseInvoice.findMany({
-            take: 100, where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const expenses = await prisma.expense.findMany({
-            take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const treasury = await prisma.treasury.findMany({
-            take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const salesReturns = await prisma.salesReturn.findMany({
-            take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
-                const purchaseReturns = await prisma.purchaseReturn.findMany({
-            take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
+                const sales = await prisma.salesInvoice.findMany({ take: 100, where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const purchases = await prisma.purchaseInvoice.findMany({ take: 100, where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const expenses = await prisma.expense.findMany({ take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const treasury = await prisma.treasury.findMany({ take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const salesReturns = await prisma.salesReturn.findMany({ take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
+                const purchaseReturns = await prisma.purchaseReturn.findMany({ take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
 
                 const totalSales = sales.reduce((s: number, i: any) => s + n(i.total), 0);
                 const totalPurchases = purchases.reduce((s: number, i: any) => s + n(i.total), 0);
@@ -205,12 +193,10 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 sinceDate.setDate(sinceDate.getDate() - days);
 
                 // Get all active products
-                const allProducts = await prisma.product.findMany({
-            take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
+                const allProducts = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
 
                 // Get sales quantities per product in the period
-                const salesDetails = await prisma.salesInvoiceDetail.findMany({
-            take: 100,
+                const salesDetails = await prisma.salesInvoiceDetail.findMany({ take: 100,
                     where: { invoice: { date: { gte: sinceDate } } },
                     select: { productId: true, quantity: true },
                 });

@@ -14,14 +14,14 @@ async function _GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const folderId = searchParams.get('folderId');
     if (folderId) {
-      const docs = await (prisma as any).dmsDocument.findMany({
-            take: 100, where: { folderId: parseInt(folderId) }, orderBy: { createdAt: 'desc' } });
+      const docs = await (prisma as any).dmsDocument.findMany({ take: 100, where: { folderId: parseInt(folderId) }, orderBy: { createdAt: 'desc' } });
       return NextResponse.json(docs);
     }
-    const folders = await (prisma as any).dmsFolder.findMany({
-            take: 100, orderBy: { name: 'asc' } });
+    const folders = await (prisma as any).dmsFolder.findMany({ take: 100, orderBy: { name: 'asc' } });
     return NextResponse.json(folders);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'dms' }); }
+  } catch (error: any) {
+ log.error('src/app/api/dms/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'dms' }); }
 }
 
 
@@ -55,7 +55,9 @@ async function _POST(request: NextRequest) {
       data: { name: data.name, path: data.path || '', mimeType: data.mimeType || 'application/octet-stream', size: parseInt(data.size) || 0, folderId: data.folderId ? parseInt(data.folderId) : null, tags: data.tags || null, uploadedBy: parseInt(data.uploadedBy) || 0, tenantId: data.tenantId || 'default' }
     });
     return NextResponse.json(doc);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'dms' }); }
+  } catch (error: any) {
+ log.error('src/app/api/dms/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'dms' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

@@ -20,13 +20,11 @@ async function _POST(req: Request) {
         // Find employees who did NOT clock in today
         const today = new Date().toISOString().split('T')[0];
         
-        const activeEmployees = await prisma.employee.findMany({
-            take: 100,
+        const activeEmployees = await prisma.employee.findMany({ take: 100,
             where: { active: true }
         });
 
-        const todaysAttendance = await prisma.attendance.findMany({
-            take: 100,
+        const todaysAttendance = await prisma.attendance.findMany({ take: 100,
             where: { date: today }
         });
 

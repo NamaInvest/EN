@@ -11,13 +11,14 @@ const log = logger.child({ service: 'budgets.scenarios' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const scenarios = await (prisma as any).budgetScenario.findMany({
-            take: 100,
+    const scenarios = await (prisma as any).budgetScenario.findMany({ take: 100,
       include: { lines: true, _count: { select: { lines: true } } },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(scenarios);
   } catch (error: any) {
+    log.error('src/app/api/budgets/scenarios/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'budgets/scenarios' });
   }
 }
@@ -57,6 +58,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(scenario);
   } catch (error: any) {
+    log.error('src/app/api/budgets/scenarios/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'budgets/scenarios' });
   }
 }
@@ -80,6 +83,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(scenario);
   } catch (error: any) {
+    log.error('src/app/api/budgets/scenarios/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'budgets/scenarios' });
   }
 }
@@ -93,6 +98,8 @@ async function _DELETE(request: NextRequest) {
     await (prisma as any).budgetScenario.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/budgets/scenarios/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'budgets/scenarios' });
   }
 }

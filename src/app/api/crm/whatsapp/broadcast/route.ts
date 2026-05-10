@@ -29,8 +29,7 @@ async function _POST(request: Request) {
         }
 
         // Fetch WhatsApp Settings from Prisma
-        const settings = await prisma.setting.findMany({
-            take: 100,
+        const settings = await prisma.setting.findMany({ take: 100,
             where: { key: { in: ['whatsapp_enabled', 'whatsapp_token', 'whatsapp_phone_id'] } }
         });
 
@@ -46,16 +45,16 @@ async function _POST(request: Request) {
         // We fetch clients from the 'customer' table.
         let targetPhones = [];
         try {
-            const customers = await prisma.customer.findMany({
-            take: 100,
+            const customers = await prisma.customer.findMany({ take: 100,
                 where: { phone: { not: null } },
                 select: { phone: true, name: true }
             });
             targetPhones = customers.map(c => ({ phone: c.phone, name: c.name }));
         } catch (e: any) {
+            log.error('src/app/api/crm/whatsapp/broadcast/route.ts', { error: e instanceof Error ? e.message : e });
+
             // Fallback to Users table if customer table is isolated
-            const users = await prisma.user.findMany({
-            take: 100,
+            const users = await prisma.user.findMany({ take: 100,
                 where: { phone: { not: null } },
                 select: { phone: true, fullName: true }
             });
@@ -93,6 +92,8 @@ async function _POST(request: Request) {
                 if (res.ok) successCount++;
                 else failCount++;
             } catch (err: any) {
+                log.error('src/app/api/crm/whatsapp/broadcast/route.ts', { error: err instanceof Error ? err.message : err });
+
                 failCount++;
             }
         }

@@ -19,8 +19,7 @@ async function _GET(request: NextRequest) {
         const responseData: any = {};
 
         if (type === 'all' || type === 'notes') {
-            responseData.notes = await prisma.promissoryNote.findMany({
-            take: 100,
+            responseData.notes = await prisma.promissoryNote.findMany({ take: 100,
                 where: {
                     OR: [
                         { noteNumber: { contains: search, mode: 'insensitive' } },
@@ -33,8 +32,7 @@ async function _GET(request: NextRequest) {
         }
 
         if (type === 'all' || type === 'lgs') {
-            responseData.lgs = await prisma.letterOfGuarantee.findMany({
-            take: 100,
+            responseData.lgs = await prisma.letterOfGuarantee.findMany({ take: 100,
                 where: {
                     OR: [
                         { lgNumber: { contains: search, mode: 'insensitive' } }

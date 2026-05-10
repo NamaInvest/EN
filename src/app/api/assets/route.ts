@@ -11,12 +11,13 @@ const log = logger.child({ service: 'assets' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request);
   try {
-    const assets = await prisma.asset.findMany({
-            take: 100,
+    const assets = await prisma.asset.findMany({ take: 100,
       orderBy: { id: "desc" },
     });
     return NextResponse.json(assets, { status: 200 });
   } catch (error: any) {
+    log.error('src/app/api/assets/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, "فشل جلب الأصول", { context: "assets" });
   }
 }
@@ -62,6 +63,8 @@ async function _POST(request: NextRequest) {
 
     return NextResponse.json(newAsset, { status: 201 });
   } catch (error: any) {
+    log.error('src/app/api/assets/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, "Error registering Fixed Asset", {
       context: "assets",
     });

@@ -10,8 +10,7 @@ const log = logger.child({ service: 'hr.loans' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const loans = await prisma.employeeLoan.findMany({
-            take: 100,
+        const loans = await prisma.employeeLoan.findMany({ take: 100,
             include: { employee: true },
             orderBy: { id: 'desc' }
         });

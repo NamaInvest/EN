@@ -40,8 +40,7 @@ async function _POST(request: Request) {
 
         // BUILD SAFETY: if (!run) throw new Error('PayrollRun not found');
 
-        const salaries = await prisma.salary.findMany({
-            take: 100,
+        const salaries = await prisma.salary.findMany({ take: 100,
             where: {
                 month: run.month,
                 year: run.year

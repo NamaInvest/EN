@@ -17,7 +17,9 @@ function verifySallaSignature(bodyStr: string, secret: string, signature: string
     if (expected.length !== signature.length) return false;
     try {
         return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
-    } catch { return false; }
+    } catch (err: unknown) {
+ log.error('src/app/api/webhooks/salla/route.ts', { error: err instanceof Error ? err.message : err });
+ return false; }
 }
 
 const SallaPayloadSchema = z.object({
@@ -37,8 +39,7 @@ async function _POST(request: NextRequest) {
         const rawBody = await request.text();
 
         // Fetch Salla config directly from database to get the secret
-        const settings = await prisma.setting.findMany({
-            take: 100,
+        const settings = await prisma.setting.findMany({ take: 100,
             where: { key: { in: ['salla_enabled', 'salla_client_secret'] } }
         });
         const config: Record<string, string> = {};

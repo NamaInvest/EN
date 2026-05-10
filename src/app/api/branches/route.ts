@@ -11,8 +11,7 @@ async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
     try {
-        const branches = await prisma.branch.findMany({
-            take: 100,
+        const branches = await prisma.branch.findMany({ take: 100,
             include: {
                 _count: {
                     select: {

@@ -11,10 +11,11 @@ const log = logger.child({ service: 'cmms.schedules' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).maintenanceSchedule.findMany({
-            take: 100, include: { _count: { select: { workOrders: true } } }, orderBy: { nextDate: 'asc' } });
+    const items = await (prisma as any).maintenanceSchedule.findMany({ take: 100, include: { _count: { select: { workOrders: true } } }, orderBy: { nextDate: 'asc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'cmms/schedules' }); }
+  } catch (e: any) {
+ log.error('src/app/api/cmms/schedules/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'cmms/schedules' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -22,7 +23,9 @@ async function _POST(request: NextRequest) {
     const d = await request.json();
     const item = await (prisma as any).maintenanceSchedule.create({ data: { assetName: d.assetName, type: d.type || 'PREVENTIVE', frequency: d.frequency || 'MONTHLY', nextDate: d.nextDate ? new Date(d.nextDate) : null, assignedTo: d.assignedTo, tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'cmms/schedules' }); }
+  } catch (e: any) {
+ log.error('src/app/api/cmms/schedules/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'cmms/schedules' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

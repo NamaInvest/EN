@@ -15,8 +15,7 @@ async function _GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const prompts = await prisma.promptTemplate.findMany({
-            take: 100,
+        const prompts = await prisma.promptTemplate.findMany({ take: 100,
             orderBy: [{ key: 'asc' }, { version: 'desc' }]
         });
         

@@ -10,8 +10,7 @@ const log = logger.child({ service: 'installments' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const installments = await prisma.installment.findMany({
-            take: 100, include: { customer: { select: { id: true, name: true, phone: true,  } }, payments: true }, orderBy: { id: 'desc' } });
+        const installments = await prisma.installment.findMany({ take: 100, include: { customer: { select: { id: true, name: true, phone: true,  } }, payments: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(installments);
     } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }

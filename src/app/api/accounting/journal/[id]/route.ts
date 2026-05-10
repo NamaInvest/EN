@@ -86,8 +86,7 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
         // Actually it's better to fetch the account types or codes from the DB to be safe.
         // Let's do it using Prisma.
         const accountIds = lines.map((l: any) => l.accountId);
-        const accounts = await prisma.account.findMany({
-            take: 100, where: { id: { in: accountIds } } });
+        const accounts = await prisma.account.findMany({ take: 100, where: { id: { in: accountIds } } });
         const isRestrictedByCode = accounts.some((acc: any) => CONTROL_ACCOUNTS.includes(acc.code));
         if (isRestrictedByCode) {
             try {
@@ -190,8 +189,7 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
             apply: async () => {
                 // If it's becoming POSTED, we must update the account balances!
                 if (status === DocumentStatus.POSTED && entry.status !== DocumentStatus.POSTED) {
-                    const lines = await prisma.journalLine.findMany({
-            take: 100, where: { entryId: id } });
+                    const lines = await prisma.journalLine.findMany({ take: 100, where: { entryId: id } });
                     for (const line of lines) {
                         const account = await prisma.account.findUnique({ where: { id: line.accountId } });
                         if (account) {

@@ -20,8 +20,7 @@ async function _GET(request: NextRequest) {
         const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : new Date().getMonth() + 1;
 
         // @ts-ignore
-        const targets = await prisma.salesTarget.findMany({
-            take: 100,
+        const targets = await prisma.salesTarget.findMany({ take: 100,
             where: { year, month },
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             orderBy: { targetAmount: 'desc' }
@@ -35,8 +34,7 @@ async function _GET(request: NextRequest) {
 
         // Fetch all sales invoices for this period with a salesRepId
         // @ts-ignore
-        const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
+        const invoices = await prisma.salesInvoice.findMany({ take: 100,
             where: {
                 date: { gte: startDate, lte: endDate },
                 status: { not: 'cancelled' },

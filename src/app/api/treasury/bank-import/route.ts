@@ -86,7 +86,9 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
   // Decode if base64
   let fileContent = content as string;
   if (/^[A-Za-z0-9+/]+=*$/.test(fileContent.substring(0, 100))) {
-    try { fileContent = Buffer.from(fileContent, 'base64').toString('utf-8'); } catch { /* keep as-is */ }
+    try { fileContent = Buffer.from(fileContent, 'base64').toString('utf-8'); } catch (err: unknown) {
+ log.error('src/app/api/treasury/bank-import/route.ts', { error: err instanceof Error ? err.message : err });
+ /* keep as-is */ }
   }
 
   const { format, transactions } = BankStatementImporter.parse(fileContent);

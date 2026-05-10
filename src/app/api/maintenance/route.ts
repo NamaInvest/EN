@@ -11,8 +11,7 @@ const log = logger.child({ service: 'maintenance' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const items = await prisma.maintenance.findMany({
-            take: 100, orderBy: { id: 'desc' } });
+        const items = await prisma.maintenance.findMany({ take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(items);
     } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }

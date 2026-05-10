@@ -16,8 +16,7 @@ async function _GET(req: NextRequest) {
         const decoded = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
-        const assets = await prisma.fixedAsset.findMany({
-            take: 100,
+        const assets = await prisma.fixedAsset.findMany({ take: 100,
             orderBy: { id: 'desc' },
         });
 

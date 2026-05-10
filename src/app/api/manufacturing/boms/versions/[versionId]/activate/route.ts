@@ -25,8 +25,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ versionId: st
         const productId = newVersion.recipe.finishedProductId;
 
         // Find currently active versions for this product
-        const activeVersions = await prisma.bOMVersion.findMany({
-            take: 100,
+        const activeVersions = await prisma.bOMVersion.findMany({ take: 100,
             where: {
                 recipe: { finishedProductId: productId },
                 status: 'ACTIVE'

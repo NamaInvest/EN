@@ -12,8 +12,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const wastages = await prisma.manufacturingWastage.findMany({
-            take: 100,
+        const wastages = await prisma.manufacturingWastage.findMany({ take: 100,
             include: {
                 order: true,
                 rawProduct: true

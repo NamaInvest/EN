@@ -35,7 +35,9 @@ function verifyIceToken(token: string): boolean {
         if (sig !== expectedSig) return false;
         const payload = JSON.parse(Buffer.from(data, 'base64').toString());
         return payload.exp > Date.now();
-    } catch { return false; }
+    } catch (err: unknown) {
+ log.error('src/app/api/ice/toggle/route.ts', { error: err instanceof Error ? err.message : err });
+ return false; }
 }
 
 async function verifyIceAuth(): Promise<boolean> {

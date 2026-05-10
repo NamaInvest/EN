@@ -14,14 +14,15 @@ async function _GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
     if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
-    const items = await prisma.projectMilestone.findMany({
-            take: 100,
+    const items = await prisma.projectMilestone.findMany({ take: 100,
       where: { projectId: parseInt(projectId) },
       include: { phase: { select: { name: true, color: true } } },
       orderBy: { dueDate: 'asc' }
     });
     return NextResponse.json(items);
   } catch (error: any) {
+    log.error('src/app/api/projects/milestones/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/milestones' });
   }
 }
@@ -63,6 +64,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/projects/milestones/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/milestones' });
   }
 }
@@ -95,6 +98,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/projects/milestones/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/milestones' });
   }
 }
@@ -107,6 +112,8 @@ async function _DELETE(request: NextRequest) {
     await prisma.projectMilestone.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/projects/milestones/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'projects/milestones' });
   }
 }

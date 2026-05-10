@@ -23,8 +23,7 @@ async function _GET(request: NextRequest) {
         if (bankAccountId) conditions.bankAccountId = parseInt(bankAccountId);
 
         // @ts-ignore
-        const records = await prisma.bankReconciliation.findMany({
-            take: 100,
+        const records = await prisma.bankReconciliation.findMany({ take: 100,
             where: conditions,
             include: { bankAccount: true },
             orderBy: { statementDate: 'desc' }
@@ -96,8 +95,7 @@ async function _POST(request: NextRequest) {
         });
 
         // Fetch uncleared lines to return them for matching
-        const unclearedLines = await prisma.journalLine.findMany({
-            take: 100,
+        const unclearedLines = await prisma.journalLine.findMany({ take: 100,
             where: {
                 accountId: parseInt(body.bankAccountId),
                 isReconciled: false,

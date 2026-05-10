@@ -13,8 +13,7 @@ async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const leases = await prisma.leaseContract.findMany({
-            take: 100,
+    const leases = await prisma.leaseContract.findMany({ take: 100,
       include: {
         tenant: true,
         unit: {

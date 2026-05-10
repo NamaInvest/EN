@@ -33,8 +33,7 @@ async function _GET(req: Request) {
         });
 
         // Outstanding Invoices
-        const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
+        const invoices = await prisma.salesInvoice.findMany({ take: 100,
             where: { 
                 customerId: Number(customerId),
                 status: { not: 'paid' }

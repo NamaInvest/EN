@@ -27,8 +27,7 @@ async function _GET(req: Request) {
         if (status) where.status = status;
         if (employeeId) where.employeeId = parseInt(employeeId);
 
-        const calculations = await prisma.endOfServiceCalculation.findMany({
-            take: 100,
+        const calculations = await prisma.endOfServiceCalculation.findMany({ take: 100,
             where,
             include: { employee: { select: { id: true, name: true, position: true } } },
             orderBy: { createdAt: 'desc' },

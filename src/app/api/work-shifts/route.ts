@@ -19,7 +19,7 @@ async function _GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   try {
-    const shifts = await (prisma as any).workShift?.findMany?.({
+    const shifts = await (prisma as any).workShift?.findMany?.({ take: 100,
       orderBy: { id: 'asc' },
     });
 

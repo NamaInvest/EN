@@ -9,8 +9,7 @@ const log = logger.child({ service: 'loyalty' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const loyalties = await prisma.loyaltyPoint.findMany({
-            take: 100,
+        const loyalties = await prisma.loyaltyPoint.findMany({ take: 100,
             include: { customer: { select: { name: true, phone: true } } },
             orderBy: { points: 'desc' }
         });

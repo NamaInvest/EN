@@ -52,7 +52,9 @@ async function _POST(request: NextRequest) {
                     await tenantPool.end();
                     return NextResponse.json({ found: true, subdomain: t.subdomain });
                 }
-            } catch {
+            } catch (err: unknown) {
+                log.error('src/app/api/auth/find-tenant-by-email/route.ts', { error: err instanceof Error ? err.message : err });
+
                 // DB might not have email column or doesn't exist
             } finally {
                 await tenantPool.end().catch(() => {});

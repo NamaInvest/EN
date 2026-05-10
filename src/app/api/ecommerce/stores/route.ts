@@ -11,10 +11,11 @@ const log = logger.child({ service: 'ecommerce.stores' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const stores = await (prisma as any).storeFront.findMany({
-            take: 100, include: { _count: { select: { orders: true } } }, orderBy: { createdAt: 'desc' } });
+    const stores = await (prisma as any).storeFront.findMany({ take: 100, include: { _count: { select: { orders: true } } }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(stores);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
+  } catch (error: any) {
+ log.error('src/app/api/ecommerce/stores/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }
 
 
@@ -49,7 +50,9 @@ async function _POST(request: NextRequest) {
       data: { name: data.name, slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-'), domain: data.domain || null, theme: data.theme || 'default', currency: data.currency || 'SAR', language: data.language || 'ar', status: data.status || 'ACTIVE', tenantId: data.tenantId || 'default' }
     });
     return NextResponse.json(store);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
+  } catch (error: any) {
+ log.error('src/app/api/ecommerce/stores/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }
 
 
@@ -68,7 +71,9 @@ async function _PUT(request: NextRequest) {
     const data = await request.json();
     const store = await (prisma as any).storeFront.update({ where: { id: parseInt(data.id) }, data: { name: data.name, domain: data.domain, theme: data.theme, status: data.status, settings: data.settings } });
     return NextResponse.json(store);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
+  } catch (error: any) {
+ log.error('src/app/api/ecommerce/stores/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'ecommerce/stores' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

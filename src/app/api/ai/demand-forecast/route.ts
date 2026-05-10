@@ -47,8 +47,7 @@ async function _GET(req: Request) {
         const ninetyDaysAgo = new Date();
         ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-        const details = await prisma.salesInvoiceDetail.findMany({
-            take: 100,
+        const details = await prisma.salesInvoiceDetail.findMany({ take: 100,
             where: {
                 productId,
                 invoice: { date: { gte: ninetyDaysAgo } },

@@ -9,8 +9,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const runs = await prisma.paymentRun.findMany({
-            take: 100,
+        const runs = await prisma.paymentRun.findMany({ take: 100,
             orderBy: { id: 'desc' }
         });
         return NextResponse.json({ data: runs });

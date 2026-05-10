@@ -24,8 +24,7 @@ async function _GET(req: NextRequest) {
         }
 
         // Return all budgets analysis if no specific budgetId is passed
-        const activeBudgets = await prisma.budget.findMany({
-            take: 100,
+        const activeBudgets = await prisma.budget.findMany({ take: 100,
             where: { status: 'APPROVED' },
             select: { id: true }
         });

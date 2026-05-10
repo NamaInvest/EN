@@ -14,8 +14,7 @@ async function _GET(req: Request) {
             where: { key: 'payroll_accounting_config' }
         });
 
-        const accounts = await prisma.account.findMany({
-            take: 100,
+        const accounts = await prisma.account.findMany({ take: 100,
             where: { isActive: true },
             select: { id: true, code: true, name: true, type: true }
         });

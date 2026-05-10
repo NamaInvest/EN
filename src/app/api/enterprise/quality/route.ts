@@ -11,8 +11,7 @@ async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
     try {
-        const inspections = await prisma.qualityInspection.findMany({
-            take: 100,
+        const inspections = await prisma.qualityInspection.findMany({ take: 100,
             orderBy: { inspectionDate: 'desc' }
         });
         

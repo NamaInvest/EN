@@ -14,13 +14,14 @@ async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
-        const profitCenters = await prisma.profitCenter.findMany({
-            take: 100,
+        const profitCenters = await prisma.profitCenter.findMany({ take: 100,
             orderBy: { code: 'asc' },
             select: { id: true, code: true, name: true, nameEn: true, parentId: true, isActive: true, createdAt: true },
         });
         return NextResponse.json(profitCenters);
     } catch (e: any) {
+        log.error('src/app/api/accounting/profit-centers/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل جلب مراكز الربحية', { context: 'accounting/profit-centers' });
     }
 }
@@ -67,6 +68,8 @@ async function _POST(req: NextRequest) {
         });
         return NextResponse.json(pc, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/accounting/profit-centers/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل إنشاء مركز ربحية', { context: 'accounting/profit-centers' });
     }
 }

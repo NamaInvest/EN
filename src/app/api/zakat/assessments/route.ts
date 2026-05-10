@@ -22,6 +22,8 @@ async function _GET(req: NextRequest) {
         });
         return NextResponse.json(assessments);
     } catch (e: any) {
+        log.error('src/app/api/zakat/assessments/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل جلب تقديرات الزكاة', { context: 'zakat/assessments' });
     }
 }
@@ -52,6 +54,8 @@ async function _POST(req: NextRequest) {
         });
         return NextResponse.json(assessment, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/zakat/assessments/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل إنشاء تقدير الزكاة', { context: 'zakat/assessments' });
     }
 }

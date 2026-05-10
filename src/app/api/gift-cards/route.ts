@@ -11,8 +11,7 @@ const log = logger.child({ service: 'gift-cards' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const cards = await prisma.giftCard.findMany({
-            take: 100,
+        const cards = await prisma.giftCard.findMany({ take: 100,
             orderBy: { id: 'desc' }
         });
         return NextResponse.json(cards);

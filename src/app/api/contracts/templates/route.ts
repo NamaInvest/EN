@@ -11,13 +11,14 @@ const log = logger.child({ service: 'contracts.templates' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).contractTemplate.findMany({
-            take: 100,
+    const items = await (prisma as any).contractTemplate.findMany({ take: 100,
       include: { clauses: { orderBy: { sortOrder: 'asc' } }, _count: { select: { clauses: true } } },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(items);
   } catch (error: any) {
+    log.error('src/app/api/contracts/templates/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'contracts/templates' });
   }
 }
@@ -55,6 +56,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/contracts/templates/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'contracts/templates' });
   }
 }
@@ -78,6 +81,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/contracts/templates/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'contracts/templates' });
   }
 }
@@ -91,6 +96,8 @@ async function _DELETE(request: NextRequest) {
     await (prisma as any).contractTemplate.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/contracts/templates/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'contracts/templates' });
   }
 }

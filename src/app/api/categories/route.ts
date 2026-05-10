@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        const categories = await prisma.category.findMany({
-            take: 100, orderBy: { id: 'asc' } });
+        const categories = await prisma.category.findMany({ take: 100, orderBy: { id: 'asc' } });
         return NextResponse.json(categories);
     } catch (error: any) {
         log.error('Categories GET error:', error);

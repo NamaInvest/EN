@@ -11,8 +11,7 @@ const log = logger.child({ service: 'price-quotes' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const quotes = await prisma.priceQuote.findMany({
-            take: 100, include: { details: true }, orderBy: { id: 'desc' } });
+        const quotes = await prisma.priceQuote.findMany({ take: 100, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(quotes);
     } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }

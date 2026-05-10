@@ -16,7 +16,9 @@ async function _GET(request: NextRequest) {
     const where = ruleId ? { ruleId: parseInt(ruleId) } : {};
     const items = await (prisma as any).complianceRule.findMany({ include: { checks: { orderBy: { checkDate: 'desc' }, take: 5 } }, orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/rules' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/rules/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/rules' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -24,7 +26,9 @@ async function _POST(request: NextRequest) {
     const d = await request.json();
     const item = await (prisma as any).complianceRule.create({ data: { name: d.name, regulation: d.regulation || null, description: d.description || null, frequency: d.frequency || 'MONTHLY', responsible: d.responsible || null, tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/rules' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/rules/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/rules' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

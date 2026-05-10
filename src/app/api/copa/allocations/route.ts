@@ -54,8 +54,7 @@ async function _GET(req: NextRequest) {
 
     try {
         const prisma = await getPrisma(req);
-        const rules = await prisma.copaAllocationRule.findMany({
-            take: 100,
+        const rules = await prisma.copaAllocationRule.findMany({ take: 100,
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(rules);

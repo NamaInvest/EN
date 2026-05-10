@@ -10,8 +10,7 @@ async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
     try {
-        const data = await prisma.budget.findMany({
-            take: 100,
+        const data = await prisma.budget.findMany({ take: 100,
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(data);

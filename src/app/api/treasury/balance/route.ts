@@ -17,7 +17,9 @@ async function _GET(request: Request) {
         ]);
         const balance = n(inAgg._sum.amount) - n(outAgg._sum.amount);
         return NextResponse.json({ balance });
-    } catch (error: any) { return handleApiError(error); }
+    } catch (error: any) {
+ log.error('src/app/api/treasury/balance/route.ts', { error: error instanceof Error ? error.message : error });
+ return handleApiError(error); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

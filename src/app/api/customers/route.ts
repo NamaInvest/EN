@@ -25,8 +25,7 @@ async function _GET(request: Request) {
       where.type = parseInt(type);
     }
 
-    const customers = await prisma.customer.findMany({
-            take: 100,
+    const customers = await prisma.customer.findMany({ take: 100,
       where,
       orderBy: { id: "desc" },
     });

@@ -19,14 +19,15 @@ async function _GET(request: NextRequest) {
     if (status) where.status = status;
     if (type) where.type = type;
 
-    const campaigns = await (prisma as any).crmCampaign.findMany({
-            take: 100,
+    const campaigns = await (prisma as any).crmCampaign.findMany({ take: 100,
       where,
       include: { _count: { select: { members: true } } },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(campaigns);
   } catch (error: any) {
+    log.error('src/app/api/crm/campaigns/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error fetching campaigns', { context: 'crm/campaigns' });
   }
 }
@@ -71,6 +72,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(campaign);
   } catch (error: any) {
+    log.error('src/app/api/crm/campaigns/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error creating campaign', { context: 'crm/campaigns' });
   }
 }
@@ -96,6 +99,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(campaign);
   } catch (error: any) {
+    log.error('src/app/api/crm/campaigns/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error updating campaign', { context: 'crm/campaigns' });
   }
 }
@@ -109,6 +114,8 @@ async function _DELETE(request: NextRequest) {
     await (prisma as any).crmCampaign.delete({ where: { id: parseInt(id) } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    log.error('src/app/api/crm/campaigns/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error deleting campaign', { context: 'crm/campaigns' });
   }
 }

@@ -9,8 +9,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const rules = await prisma.commissionRule.findMany({
-            take: 100,
+        const rules = await prisma.commissionRule.findMany({ take: 100,
             where: { isActive: true },
             orderBy: { targetAmount: 'asc' }
         });

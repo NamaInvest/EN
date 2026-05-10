@@ -10,8 +10,7 @@ async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
   try {
-    const properties = await prisma.property.findMany({
-            take: 100,
+    const properties = await prisma.property.findMany({ take: 100,
       include: {
         units: true
       },

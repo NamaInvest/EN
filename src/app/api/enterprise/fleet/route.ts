@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-    const vehicles = await prisma.vehicle.findMany({
-            take: 100,
+    const vehicles = await prisma.vehicle.findMany({ take: 100,
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(vehicles);

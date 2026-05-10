@@ -12,8 +12,7 @@ async function _GET(req: NextRequest) {
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const rules = await prisma.commissionRule.findMany({
-            take: 100,
+    const rules = await prisma.commissionRule.findMany({ take: 100,
       include: {
         payments: true
       },

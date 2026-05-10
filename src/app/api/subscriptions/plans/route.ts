@@ -11,10 +11,11 @@ const log = logger.child({ service: 'subscriptions.plans' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const plans = await (prisma as any).subscriptionPlan.findMany({
-            take: 100, include: { _count: { select: { subscriptions: true } } }, orderBy: { price: 'asc' } });
+    const plans = await (prisma as any).subscriptionPlan.findMany({ take: 100, include: { _count: { select: { subscriptions: true } } }, orderBy: { price: 'asc' } });
     return NextResponse.json(plans);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
+  } catch (error: any) {
+ log.error('src/app/api/subscriptions/plans/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
 }
 
 
@@ -49,7 +50,9 @@ async function _POST(request: NextRequest) {
       data: { name: data.name, code: data.code, description: data.description || null, billingCycle: data.billingCycle || 'MONTHLY', price: parseFloat(data.price), trialDays: parseInt(data.trialDays) || 0, features: data.features || null, maxUsers: data.maxUsers ? parseInt(data.maxUsers) : null, active: data.active !== false }
     });
     return NextResponse.json(plan);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
+  } catch (error: any) {
+ log.error('src/app/api/subscriptions/plans/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
 }
 
 
@@ -69,7 +72,9 @@ async function _PUT(request: NextRequest) {
     const data = await request.json();
     const plan = await (prisma as any).subscriptionPlan.update({ where: { id: parseInt(data.id) }, data: { name: data.name, code: data.code, description: data.description, billingCycle: data.billingCycle, price: data.price ? parseFloat(data.price) : undefined, active: data.active } });
     return NextResponse.json(plan);
-  } catch (error: any) { return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
+  } catch (error: any) {
+ log.error('src/app/api/subscriptions/plans/route.ts', { error: error instanceof Error ? error.message : error });
+ return apiError(error, 'Error', { context: 'subscriptions/plans' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

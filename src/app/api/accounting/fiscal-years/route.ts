@@ -14,13 +14,14 @@ async function _GET(req: NextRequest) {
 
     const prisma = getPrisma(req);
     try {
-        const fiscalYears = await prisma.fiscalYear.findMany({
-            take: 100,
+        const fiscalYears = await prisma.fiscalYear.findMany({ take: 100,
             orderBy: { yearNumber: 'desc' },
             select: { id: true, yearNumber: true, startDate: true, endDate: true, status: true },
         });
         return NextResponse.json(fiscalYears);
     } catch (e: any) {
+        log.error('src/app/api/accounting/fiscal-years/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل جلب السنوات المالية', { context: 'accounting/fiscal-years' });
     }
 }
@@ -58,6 +59,8 @@ async function _POST(req: NextRequest) {
         });
         return NextResponse.json(fy, { status: 201 });
     } catch (e: any) {
+        log.error('src/app/api/accounting/fiscal-years/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل إنشاء سنة مالية', { context: 'accounting/fiscal-years' });
     }
 }

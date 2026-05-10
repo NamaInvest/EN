@@ -25,17 +25,14 @@ async function _GET(req: Request) {
             });
         }
 
-        const stages = await prisma.pipelineStage.findMany({
-            take: 100, orderBy: { sortOrder: 'asc' } });
-        const opportunities = await prisma.opportunity.findMany({
-            take: 100,
+        const stages = await prisma.pipelineStage.findMany({ take: 100, orderBy: { sortOrder: 'asc' } });
+        const opportunities = await prisma.opportunity.findMany({ take: 100,
             include: { stage: true, account: true },
             orderBy: { expectedCloseDate: 'asc' }
         });
 
         // Also fetch accounts for the dropdown
-        const accounts = await prisma.crmAccount.findMany({
-            take: 100, select: { id: true, name: true } });
+        const accounts = await prisma.crmAccount.findMany({ take: 100, select: { id: true, name: true } });
 
         return NextResponse.json({ success: true, data: { stages, opportunities, accounts } });
     } catch (e: any) {

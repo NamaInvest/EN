@@ -95,7 +95,9 @@ async function _GET(req: NextRequest) {
     ]);
 
     return NextResponse.json({ items, total, page, pages: Math.ceil(total / take) });
-  } catch {
+  } catch (err: unknown) {
+    log.error('src/app/api/adjustments/route.ts', { error: err instanceof Error ? err.message : err });
+
     // Fallback: table might not exist yet
     return NextResponse.json({ items: [], total: 0, page: 1, pages: 0 });
   }

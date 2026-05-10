@@ -13,8 +13,7 @@ async function _GET(request: Request) {
     if (!_getAuth(request)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
     const prisma = getPrisma(request);
     try {
-        const banks = await prisma.bankAccount.findMany({
-            take: 100, 
+        const banks = await prisma.bankAccount.findMany({ take: 100, 
             include: { branch: true },
             orderBy: { id: 'desc' } 
         });

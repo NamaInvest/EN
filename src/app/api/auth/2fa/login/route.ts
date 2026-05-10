@@ -49,10 +49,14 @@ async function _POST(request: NextRequest) {
         try {
             isValid = await MfaEngine.verify(user.id, token, 'totp', { ipAddress: request.headers.get('x-forwarded-for') || undefined, userAgent: request.headers.get('user-agent') });
         } catch (e: any) {
+            log.error('src/app/api/auth/2fa/login/route.ts', { error: e instanceof Error ? e.message : e });
+
             // TOTP failed, try backup code
             try {
                 isValid = await MfaEngine.verifyBackupCode(user.id, token, { ipAddress: request.headers.get('x-forwarded-for') || undefined, userAgent: request.headers.get('user-agent') });
             } catch (err: any) {
+                log.error('src/app/api/auth/2fa/login/route.ts', { error: err instanceof Error ? err.message : err });
+
                 isValid = false;
             }
         }

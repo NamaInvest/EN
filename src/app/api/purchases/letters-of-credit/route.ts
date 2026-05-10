@@ -18,8 +18,7 @@ async function _GET(request: NextRequest) {
         if (!allowed) return NextResponse.json({ error: 'ليس لديك صلاحية' }, { status: 403 });
 
         // @ts-ignore - Prisma Language Server sync lock
-        const lcs = await prisma.letterOfCredit.findMany({
-            take: 100,
+        const lcs = await prisma.letterOfCredit.findMany({ take: 100,
             include: { bank: true, supplier: true, currency: true },
             orderBy: { id: 'desc' }
         });

@@ -14,8 +14,7 @@ async function _GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
         const where = search ? { name: { contains: search, mode: 'insensitive' as const } } : {};
-        const employees = await prisma.employee.findMany({
-            take: 100,
+        const employees = await prisma.employee.findMany({ take: 100,
             where,
             include: { branch: true },
             orderBy: { id: 'desc' },

@@ -103,6 +103,8 @@ async function _PUT(
         return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
 
     } catch (error: any) {
+        log.error('src/app/api/sales-orders/[id]/process/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'sales-orders/[id]/process' });
     }
 }

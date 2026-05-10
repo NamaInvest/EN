@@ -11,10 +11,11 @@ const log = logger.child({ service: 'compliance.risks' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).riskRegister.findMany({
-            take: 100, orderBy: { riskScore: 'desc' } });
+    const items = await (prisma as any).riskRegister.findMany({ take: 100, orderBy: { riskScore: 'desc' } });
     return NextResponse.json(items);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/risks' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/risks/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/risks' }); }
 }
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -23,7 +24,9 @@ async function _POST(request: NextRequest) {
     const score = (parseInt(d.likelihood) || 1) * (parseInt(d.impact) || 1);
     const item = await (prisma as any).riskRegister.create({ data: { title: d.title, category: d.category || 'OPERATIONAL', likelihood: parseInt(d.likelihood) || 1, impact: parseInt(d.impact) || 1, riskScore: score, owner: d.owner || null, mitigationPlan: d.mitigationPlan || null, status: d.status || 'OPEN', tenantId: d.tenantId || 'default' } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/risks' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/risks/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/risks' }); }
 }
 async function _PUT(request: NextRequest) {
   const prisma = getPrisma(request as any);
@@ -32,7 +35,9 @@ async function _PUT(request: NextRequest) {
     const score = d.likelihood && d.impact ? parseInt(d.likelihood) * parseInt(d.impact) : undefined;
     const item = await (prisma as any).riskRegister.update({ where: { id: parseInt(d.id) }, data: { title: d.title, category: d.category, likelihood: d.likelihood ? parseInt(d.likelihood) : undefined, impact: d.impact ? parseInt(d.impact) : undefined, riskScore: score, owner: d.owner, mitigationPlan: d.mitigationPlan, status: d.status } });
     return NextResponse.json(item);
-  } catch (e: any) { return apiError(e, 'Error', { context: 'compliance/risks' }); }
+  } catch (e: any) {
+ log.error('src/app/api/compliance/risks/route.ts', { error: e instanceof Error ? e.message : e });
+ return apiError(e, 'Error', { context: 'compliance/risks' }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

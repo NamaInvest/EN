@@ -25,7 +25,7 @@ async function _GET(request: NextRequest) {
   const tenantId = user.tenantId ?? 'default';
   const prisma = getPrisma(request);
 
-  const accounts = await (prisma as any).account.findMany({
+  const accounts = await (prisma as any).account.findMany({ take: 100,
     where: { tenantId },
     orderBy: { code: 'asc' },
     select: { id: true, code: true, nameAr: true, name: true, type: true, parentId: true, isControl: true, controlType: true },

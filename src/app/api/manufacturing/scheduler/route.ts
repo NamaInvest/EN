@@ -9,8 +9,7 @@ const log = logger.child({ service: 'manufacturing.scheduler' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const centers = await (prisma as any).workCenter.findMany({
-            take: 100,
+        const centers = await (prisma as any).workCenter.findMany({ take: 100,
             include: {
                 operations: {
                     include: {

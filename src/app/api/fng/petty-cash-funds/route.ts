@@ -10,8 +10,7 @@ async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
 
     try {
-        const data = await prisma.pettyCashFund.findMany({
-            take: 100,
+        const data = await prisma.pettyCashFund.findMany({ take: 100,
             include: { custodian: true },
             orderBy: { createdAt: 'desc' }
         });

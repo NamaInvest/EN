@@ -37,8 +37,7 @@ async function _GET(req: NextRequest) {
         });
 
         // List groups
-        const groups = await db.consolidationGroup.findMany({
-            take: 100,
+        const groups = await db.consolidationGroup.findMany({ take: 100,
             where: { isActive: true }
         });
 

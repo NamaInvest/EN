@@ -59,8 +59,7 @@ async function _GET(req: NextRequest) {
         }
 
         // Fetch lines with dimension + account info
-        const lines = await prisma.journalLine.findMany({
-            take: 100,
+        const lines = await prisma.journalLine.findMany({ take: 100,
             where,
             select: {
                 [dimConfig.field]: true,
@@ -120,6 +119,8 @@ async function _GET(req: NextRequest) {
             },
         });
     } catch (e: any) {
+        log.error('src/app/api/reports/dimensional-gl/route.ts', { error: e instanceof Error ? e.message : e });
+
         return apiError(e, 'فشل تقرير الأستاذ البُعدي', { context: 'reports/dimensional-gl' });
     }
 }

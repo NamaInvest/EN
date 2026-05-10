@@ -10,8 +10,7 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
-        const permissions = await prisma.roleFieldPermission.findMany({
-            take: 100,
+        const permissions = await prisma.roleFieldPermission.findMany({ take: 100,
             orderBy: [{ roleName: 'asc' }, { modelName: 'asc' }, { fieldName: 'asc' }]
         });
         return NextResponse.json(permissions);

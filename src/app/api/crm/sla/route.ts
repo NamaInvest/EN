@@ -11,12 +11,13 @@ const log = logger.child({ service: 'crm.sla' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {
-    const items = await (prisma as any).slaPolicy.findMany({
-            take: 100,
+    const items = await (prisma as any).slaPolicy.findMany({ take: 100,
       orderBy: { priority: 'asc' }
     });
     return NextResponse.json(items);
   } catch (error: any) {
+    log.error('src/app/api/crm/sla/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'crm/sla' });
   }
 }
@@ -58,6 +59,8 @@ async function _POST(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/crm/sla/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'crm/sla' });
   }
 }
@@ -90,6 +93,8 @@ async function _PUT(request: NextRequest) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
+    log.error('src/app/api/crm/sla/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error', { context: 'crm/sla' });
   }
 }

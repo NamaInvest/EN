@@ -14,8 +14,7 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const matches = await (prisma as any).threeWayMatch.findMany({
-            take: 100,
+        const matches = await (prisma as any).threeWayMatch.findMany({ take: 100,
             include: {
                 invoice: { select: { invoiceNo: true, total: true, supplier: { select: { name: true } } } },
                 purchaseOrder: { select: { orderNo: true, total: true } },

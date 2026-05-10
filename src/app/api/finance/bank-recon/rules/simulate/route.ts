@@ -26,8 +26,7 @@ async function _POST(req: Request) {
         const { description, amount, bankAccountId } = body;
 
         // Fetch active rules sorted by priority
-        const rules = await prisma.bankReconRule.findMany({
-            take: 100,
+        const rules = await prisma.bankReconRule.findMany({ take: 100,
             where: { 
                 enabled: true,
                 OR: [

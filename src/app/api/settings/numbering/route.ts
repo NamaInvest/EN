@@ -10,8 +10,7 @@ const prisma = new PrismaClient();
 async function _GET() {
 
   try {
-    const sequences = await prisma.numberingSequence.findMany({
-            take: 100,
+    const sequences = await prisma.numberingSequence.findMany({ take: 100,
       orderBy: { code: 'asc' },
     });
     

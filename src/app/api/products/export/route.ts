@@ -27,8 +27,7 @@ async function _GET(request: NextRequest) {
         if (categoryFilter) where.categoryId = parseInt(categoryFilter);
         if (!includeInactive) where.active = true;
 
-        const products = await prisma.product.findMany({
-            take: 100,
+        const products = await prisma.product.findMany({ take: 100,
             where,
             include: { category: true, unit: true },
             orderBy: { id: 'asc' }

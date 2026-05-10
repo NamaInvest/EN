@@ -30,8 +30,7 @@ async function _GET(req: Request) {
             };
         }
 
-        const appointments = await prisma.appointment.findMany({
-            take: 100,
+        const appointments = await prisma.appointment.findMany({ take: 100,
             where: whereClause,
             include: {
                 patient: true,
@@ -55,7 +54,7 @@ async function _GET(req: Request) {
             take: 20
         });
 
-        const rooms = await prisma.clinicRoom.findMany();
+        const rooms = await prisma.clinicRoom.findMany({ take: 100 });
 
         return NextResponse.json({
             success: true,

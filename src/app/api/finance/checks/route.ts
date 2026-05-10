@@ -22,8 +22,7 @@ async function _GET(request: NextRequest) {
         if (type) conditions.type = type;
 
         // @ts-ignore
-        const checks = await prisma.checkTransaction.findMany({
-            take: 100,
+        const checks = await prisma.checkTransaction.findMany({ take: 100,
             where: conditions,
             include: {
                 customer: true,

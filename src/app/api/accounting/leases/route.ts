@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        let leases = await (prisma as any).ifrsLeaseContract.findMany({
-            take: 100,
+        let leases = await (prisma as any).ifrsLeaseContract.findMany({ take: 100,
             orderBy: { id: 'desc' }
         });
 

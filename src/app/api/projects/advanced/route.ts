@@ -61,8 +61,7 @@ async function _GET(request: NextRequest) {
     }
 
     // List all projects with summary
-    const projects = await prisma.project.findMany({
-            take: 100,
+    const projects = await prisma.project.findMany({ take: 100,
       include: {
         customer: { select: { name: true } },
         tasks: true,
@@ -85,6 +84,8 @@ async function _GET(request: NextRequest) {
 
     return NextResponse.json(enriched);
   } catch (error: any) {
+    log.error('src/app/api/projects/advanced/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error fetching project data', { context: 'projects/advanced' });
   }
 }

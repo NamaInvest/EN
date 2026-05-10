@@ -31,8 +31,7 @@ async function _POST(req: Request) {
     const productIdsToRestock = lowStocks.map((s: any) => s.productId);
     
     // Check if these products already have a DRAFT or OPEN PO
-    const existingPOs = await prisma.purchaseOrderDetail.findMany({
-            take: 100,
+    const existingPOs = await prisma.purchaseOrderDetail.findMany({ take: 100,
       where: {
         productId: { in: productIdsToRestock },
         order: { status: { in: ['DRAFT', 'PENDING', 'OPEN'] } }
@@ -49,8 +48,7 @@ async function _POST(req: Request) {
 
     // Process and Create Auto-draft PO
     // Fetch generic Supplier (Fallback) and Base products to calculate suggested order total
-    const productsInfo = await prisma.product.findMany({
-            take: 100,
+    const productsInfo = await prisma.product.findMany({ take: 100,
       where: { id: { in: productsNeedingOrdering } },
       select: { id: true, name: true, buyPrice: true }
     });

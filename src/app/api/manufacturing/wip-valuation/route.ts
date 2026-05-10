@@ -9,8 +9,7 @@ const log = logger.child({ service: 'manufacturing.wip-valuation' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
-        const wipOrders = await prisma.manufacturingOrder.findMany({
-            take: 100,
+        const wipOrders = await prisma.manufacturingOrder.findMany({ take: 100,
             where: { status: 'in_progress' },
             include: {
                 recipe: { include: { finishedProduct: true } },

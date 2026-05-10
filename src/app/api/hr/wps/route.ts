@@ -13,8 +13,7 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const batches = await prisma.wPSBatch.findMany({
-            take: 100,
+        const batches = await prisma.wPSBatch.findMany({ take: 100,
             include: {
                 payrollRun: { select: { year: true, month: true } }
             },
@@ -69,7 +68,7 @@ async function _POST(request: NextRequest) {
 
         if (!payrollRun) return NextResponse.json({ error: 'مسير الرواتب غير موجود' }, { status: 404 });
 
-        const employees = await prisma.employee.findMany();
+        const employees = await prisma.employee.findMany({ take: 100 });
         const totalAmount = employees.reduce((sum: number, emp: any) => sum + Number(emp.basicSalary || 0), 0);
         
         // Generate SIF Content Mock

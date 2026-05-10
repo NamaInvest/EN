@@ -92,6 +92,8 @@ async function _GET(request: NextRequest) {
 
     return NextResponse.json(kpis);
   } catch (error: any) {
+    log.error('src/app/api/bi/kpis/route.ts', { error: error instanceof Error ? error.message : error });
+
     return apiError(error, 'Error fetching BI data', { context: 'bi/kpis' });
   }
 }

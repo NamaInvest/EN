@@ -10,8 +10,7 @@ const prisma = new PrismaClient();
 async function _GET(req: NextRequest) {
 
     try {
-        const queue = await prisma.invoiceMatchResult.findMany({
-            take: 100,
+        const queue = await prisma.invoiceMatchResult.findMany({ take: 100,
             where: {
                 status: {
                     in: ['HOLD_PRICE', 'HOLD_QTY', 'HOLD_TOTAL', 'MANUAL_REVIEW']

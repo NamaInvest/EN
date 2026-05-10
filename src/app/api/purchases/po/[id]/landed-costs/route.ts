@@ -12,8 +12,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
     const prisma = getPrisma(req as any);
     try {
         const poId = Number((await params).id);
-        const costs = await prisma.landedCost.findMany({
-            take: 100,
+        const costs = await prisma.landedCost.findMany({ take: 100,
             where: { purchaseOrderId: poId },
             include: { expenseAccount: true }
         });

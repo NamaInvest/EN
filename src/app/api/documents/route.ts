@@ -78,8 +78,7 @@ async function _GET(request: NextRequest) {
         }
 
         // @ts-ignore - Local VSCode bypass
-        const docs = await prisma.documentArchive.findMany({
-            take: 100,
+        const docs = await prisma.documentArchive.findMany({ take: 100,
             where: {
                 documentType,
                 documentId: parseInt(documentId)

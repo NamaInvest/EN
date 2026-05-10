@@ -13,8 +13,7 @@ async function _GET(request: Request) {
     const orderId = searchParams.get('orderId');
 
     try {
-        const checks = await prisma.qualityCheck.findMany({
-            take: 100,
+        const checks = await prisma.qualityCheck.findMany({ take: 100,
             where: orderId ? { manufacturingOrderId: parseInt(orderId) } : undefined,
             include: { order: { include: { recipe: true } } },
             orderBy: { id: 'asc' }

@@ -22,8 +22,7 @@ async function _GET(request: Request) {
             return NextResponse.json({ forecasts: [], scenario: null });
         }
 
-        const forecasts = await prisma.liquidityForecast.findMany({
-            take: 100,
+        const forecasts = await prisma.liquidityForecast.findMany({ take: 100,
             where: { tenantId, scenarioId: scenario.id },
             orderBy: [{ weekNumber: 'asc' }, { category: 'asc' }]
         });

@@ -194,8 +194,7 @@ async function _POST(req: NextRequest) {
         // Generate ZATCA Barcode for Receipt
         let zatcaQr = '';
         try {
-            const zatcaSettings = await prisma.setting.findMany({
-            take: 100,
+            const zatcaSettings = await prisma.setting.findMany({ take: 100,
                 where: { key: { in: ['company_name', 'tax_number'] } }
             });
             const s: Record<string, string> = {};

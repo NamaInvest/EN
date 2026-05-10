@@ -25,8 +25,7 @@ async function _GET(request: Request) {
         }
 
         // @ts-ignore
-        const orders = await prisma.salesOrder.findMany({
-            take: 100,
+        const orders = await prisma.salesOrder.findMany({ take: 100,
             where,
             include: { customer: { select: { id: true, name: true, phone: true,  } }, salesRep: true, details: true },
             orderBy: { id: 'desc' }
@@ -132,6 +131,8 @@ async function _POST(request: Request) {
 
         return NextResponse.json(order, { status: 201 });
     } catch (error: any) {
+        log.error('src/app/api/sales-orders/route.ts', { error: error instanceof Error ? error.message : error });
+
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'sales-orders' });
     }
 }

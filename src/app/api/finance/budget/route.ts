@@ -14,8 +14,7 @@ async function _GET(request: Request) {
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const tenantId = resolveTenant(request as any);
 
-        const versions = await (prisma as any).budgetVersion.findMany({
-            take: 100,
+        const versions = await (prisma as any).budgetVersion.findMany({ take: 100,
             where: { tenantId },
             orderBy: { createdAt: 'desc' },
             include: { _count: { select: { lines: true } } }

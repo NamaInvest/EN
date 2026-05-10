@@ -58,6 +58,8 @@ async function _POST(req: Request) {
                 const { stdout } = await execAsync(`pm2 ${body.action} ${target} --update-env`);
                 return NextResponse.json({ success: true, output: `Successfully executed ${body.action} on ${target}` });
             } catch (e: any) {
+                log.error('src/app/api/master/route.ts', { error: e instanceof Error ? e.message : e });
+
                 // If the node doesn't exist, we could return a specific error
                 return NextResponse.json({ success: false, error: e.message });
             }

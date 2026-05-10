@@ -16,10 +16,11 @@ const log = logger.child({ service: 'purchase-returns' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const returns = await prisma.purchaseReturn.findMany({
-            take: 100, orderBy: { id: 'desc' } });
+        const returns = await prisma.purchaseReturn.findMany({ take: 100, orderBy: { id: 'desc' } });
         return NextResponse.json(returns);
-    } catch (e: any) { return handleApiError(e); }
+    } catch (e: any) {
+ log.error('src/app/api/purchase-returns/route.ts', { error: e instanceof Error ? e.message : e });
+ return handleApiError(e); }
 }
 
 async function _POST(request: Request) {
@@ -83,7 +84,9 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(ret, { status: 201 });
-    } catch (e: any) { return handleApiError(e); }
+    } catch (e: any) {
+ log.error('src/app/api/purchase-returns/route.ts', { error: e instanceof Error ? e.message : e });
+ return handleApiError(e); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
