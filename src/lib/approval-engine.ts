@@ -1,184 +1,305 @@
 /**
- * Approval Workflow Runtime
- * ──────────────────────────────────────────────────────────
- * Multi-level approval system for financial documents.
- * Integrates with StateMachine for state transitions.
+ * Approval Workflow Runtime â€” v2 (P2.3)
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * Multi-level approval engine backed by real DB models:
+ *   ApprovalRule â†’ defines who approves what amount
+ *   ApprovalRequest â†’ one request per document
+ *   ApprovalStep â†’ one row per approver per level
+ *   ApprovalWorkflow â†’ optional named workflow template
  *
- * Features:
- * - Configurable approval chains (by amount thresholds)
- * - Multi-approver support
- * - Auto-escalation on timeout
- * - Audit trail
- *
- * Usage:
- *   const engine = new ApprovalEngine(req);
- *   await engine.submit('invoice', invoiceId, { amount: 150000, userId: 1 });
- *   await engine.approve('invoice', invoiceId, { approverId: 2 });
+ * Flow:
+ *   1. submit()   â†’ create ApprovalRequest + ApprovalStep rows
+ *   2. approve()  â†’ mark step approved, check if all levels done
+ *   3. reject()   â†’ reject entire request
+ *   4. getStatus() â†’ current state with approver details
  */
 
-import { PrismaClient } from '@prisma/client';
 import { getPrisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { AppError } from '@/lib/api-handler';
-import { InvoiceMachine, JournalMachine, PurchaseOrderMachine, type TransitionContext } from '@/lib/state-machine';
+import { Decimal } from '@prisma/client/runtime/library';
 
-const log = logger.child({ route: 'ApprovalEngine' });
+const log = logger.child({ service: 'ApprovalEngine' });
 
-// ── Approval Rules ──
-interface ApprovalRule {
-  minAmount: number;
-  maxAmount: number;
-  requiredApprovers: number;
-  approverRoles: string[];
-  escalationHours?: number;
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export interface SubmitOptions {
+  tenantId: string;
+  documentType: string;   // 'PURCHASE_ORDER' | 'SALES_INVOICE' | 'PAYMENT' | 'LEAVE_REQUEST'
+  documentId: number;
+  amount: number;
+  requestedBy: number;    // userId
+  notes?: string;
 }
 
-const APPROVAL_RULES: ApprovalRule[] = [
-  { minAmount: 0, maxAmount: 10000, requiredApprovers: 0, approverRoles: [] }, // Auto-approve
-  { minAmount: 10000, maxAmount: 50000, requiredApprovers: 1, approverRoles: ['manager', 'admin'] },
-  { minAmount: 50000, maxAmount: 200000, requiredApprovers: 2, approverRoles: ['manager', 'admin', 'cfo'] },
-  { minAmount: 200000, maxAmount: Infinity, requiredApprovers: 2, approverRoles: ['cfo', 'ceo'], escalationHours: 24 },
-];
-
-function getRule(amount: number): ApprovalRule {
-  return APPROVAL_RULES.find(r => amount >= r.minAmount && amount < r.maxAmount) || APPROVAL_RULES[0];
+export interface ApproveOptions {
+  tenantId: string;
+  requestId: number;
+  approverId: number;
+  notes?: string;
 }
 
-const MACHINES: Record<string, ReturnType<typeof InvoiceMachine['describe']> & { canTransition: (a: string, b: string) => boolean; transition: any }> = {
-  invoice: InvoiceMachine as any,
-  journal: JournalMachine as any,
-  purchase_order: PurchaseOrderMachine as any,
-};
+export interface RejectOptions {
+  tenantId: string;
+  requestId: number;
+  rejectorId: number;
+  reason: string;
+}
+
+export interface ApprovalStatus {
+  requestId: number;
+  status: 'pending' | 'approved' | 'rejected' | 'auto_approved';
+  documentType: string;
+  documentId: number;
+  pendingLevel: number | null;
+  totalLevels: number;
+  steps: {
+    id: number;
+    level: number;
+    status: string;
+    approverId: number | null;
+    approverName?: string | null;
+    actionDate: Date | null;
+    notes: string | null;
+  }[];
+}
+
+// â”€â”€ Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class ApprovalEngine {
-  private prisma: PrismaClient;
+  private prisma: ReturnType<typeof getPrisma>;
 
   constructor(req?: Request) {
-    this.prisma = getPrisma(req) as any;
+    this.prisma = getPrisma(req) as ReturnType<typeof getPrisma>;
   }
 
-  /** Submit document for approval */
-  async submit(
-    documentType: string,
-    documentId: number,
-    options: { amount: number; userId: number; notes?: string }
-  ): Promise<{ status: string; requiresApproval: boolean; rule: ApprovalRule }> {
-    const rule = getRule(options.amount);
+  // â”€â”€ 1. Submit for approval â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    // Auto-approve small amounts
-    if (rule.requiredApprovers === 0) {
-      log.info(`Auto-approved ${documentType} #${documentId} (amount: ${options.amount})`);
-      return { status: 'auto_approved', requiresApproval: false, rule };
+  async submit(opts: SubmitOptions): Promise<{
+    requestId: number | null;
+    status: 'pending_approval' | 'auto_approved';
+    levelsRequired: number;
+  }> {
+    const { tenantId, documentType, documentId, amount, requestedBy, notes } = opts;
+
+    // Check if already has a pending request
+    const existing = await (this.prisma as any).approvalRequest.findFirst({
+      where: { tenantId, documentType, documentId, status: 'pending' },
+    });
+    if (existing) {
+      log.warn(`Document ${documentType}#${documentId} already has a pending approval`);
+      return { requestId: existing.id, status: 'pending_approval', levelsRequired: 0 };
     }
 
-    // Create approval request
-    try {
-      await this.prisma.auditLog.create({
-        data: {
-          userId: options.userId,
-          action: 'APPROVAL_SUBMITTED',
-          tableName: documentType,
-          recordId: String(documentId),
-          details: JSON.stringify({
-            amount: options.amount,
-            requiredApprovers: rule.requiredApprovers,
-            approverRoles: rule.approverRoles,
-            notes: options.notes,
-            submittedAt: new Date().toISOString(),
-          }),
-        },
-      });
-    } catch { /* best effort audit */ }
-
-    log.info(`Approval required for ${documentType} #${documentId}: ${rule.requiredApprovers} approver(s) from [${rule.approverRoles.join(', ')}]`);
-
-    return { status: 'pending_approval', requiresApproval: true, rule };
-  }
-
-  /** Approve a document */
-  async approve(
-    documentType: string,
-    documentId: number,
-    options: { approverId: number; notes?: string }
-  ): Promise<{ approved: boolean; remainingApprovals: number }> {
-    // Log approval
-    try {
-      await this.prisma.auditLog.create({
-        data: {
-          userId: options.approverId,
-          action: 'APPROVAL_GRANTED',
-          tableName: documentType,
-          recordId: String(documentId),
-          details: JSON.stringify({
-            notes: options.notes,
-            approvedAt: new Date().toISOString(),
-          }),
-        },
-      });
-    } catch { /* best effort */ }
-
-    // Count existing approvals for this document
-    const approvalCount = await this.prisma.auditLog.count({
+    // Load applicable rules sorted by level
+    const rules = await (this.prisma as any).approvalRule.findMany({
       where: {
-        tableName: documentType,
-        recordId: String(documentId),
-        action: 'APPROVAL_GRANTED',
+        tenantId,
+        documentType,
+        isActive: true,
+        minAmount: { lte: amount },
+        OR: [
+          { maxAmount: null },
+          { maxAmount: { gte: amount } },
+        ],
+      },
+      orderBy: { level: 'asc' },
+    });
+
+    // Auto-approve if no rules match
+    if (rules.length === 0) {
+      log.info(`Auto-approved ${documentType}#${documentId} (no rules for amount ${amount})`);
+      return { requestId: null, status: 'auto_approved', levelsRequired: 0 };
+    }
+
+    // Create the request
+    const request = await (this.prisma as any).approvalRequest.create({
+      data: {
+        tenantId,
+        documentType,
+        documentId,
+        status: 'pending',
+        requestedBy,
+        steps: {
+          create: rules.map((rule: any) => ({
+            tenantId,
+            level: rule.level,
+            approverId: rule.approverId ?? null,
+            status: 'pending',
+            notes: rule.approverId ? null : `Role required: ${rule.approverRole}`,
+          })),
+        },
       },
     });
 
-    // Check if enough approvals (simplified — in production, get actual amount from document)
-    const rule = APPROVAL_RULES[1]; // Default mid-tier
-    const remainingApprovals = Math.max(0, rule.requiredApprovers - approvalCount);
+    log.info(`Approval request #${request.id} created for ${documentType}#${documentId} â€” ${rules.length} level(s)`);
 
-    log.info(`Approval granted for ${documentType} #${documentId} by user ${options.approverId} (${remainingApprovals} remaining)`);
-
-    return { approved: remainingApprovals === 0, remainingApprovals };
+    return { requestId: request.id, status: 'pending_approval', levelsRequired: rules.length };
   }
 
-  /** Reject a document */
-  async reject(
-    documentType: string,
-    documentId: number,
-    options: { rejectorId: number; reason: string }
-  ): Promise<void> {
-    try {
-      await this.prisma.auditLog.create({
-        data: {
-          userId: options.rejectorId,
-          action: 'APPROVAL_REJECTED',
-          tableName: documentType,
-          recordId: String(documentId),
-          details: JSON.stringify({
-            reason: options.reason,
-            rejectedAt: new Date().toISOString(),
-          }),
-        },
-      });
-    } catch { /* best effort */ }
+  // â”€â”€ 2. Approve (by approver) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    log.info(`Rejected ${documentType} #${documentId} by user ${options.rejectorId}: ${options.reason}`);
-  }
+  async approve(opts: ApproveOptions): Promise<{
+    fullyApproved: boolean;
+    nextLevel: number | null;
+    requestId: number;
+  }> {
+    const { tenantId, requestId, approverId, notes } = opts;
 
-  /** Get approval history for a document */
-  async getHistory(documentType: string, documentId: number) {
-    return this.prisma.auditLog.findMany({
-      where: {
-        tableName: documentType,
-        recordId: String(documentId),
-        action: { in: ['APPROVAL_SUBMITTED', 'APPROVAL_GRANTED', 'APPROVAL_REJECTED'] },
-      },
-      orderBy: { createdAt: 'asc' },
+    const request = await (this.prisma as any).approvalRequest.findFirst({
+      where: { id: requestId, tenantId, status: 'pending' },
+      include: { steps: { orderBy: { level: 'asc' } } },
     });
+
+    if (!request) throw new AppError(`Approval request #${requestId} not found or already resolved`, 404);
+
+    // Find the current pending level
+    const pendingStep = request.steps.find((s: any) => s.status === 'pending');
+    if (!pendingStep) throw new AppError('No pending step found', 400);
+
+    // Verify the approver is allowed for this step
+    if (pendingStep.approverId && pendingStep.approverId !== approverId) {
+      throw new AppError(`User ${approverId} is not the designated approver for this step`, 403);
+    }
+
+    // Mark this step as approved
+    await (this.prisma as any).approvalStep.update({
+      where: { id: pendingStep.id },
+      data: {
+        status: 'approved',
+        approverId,
+        actionDate: new Date(),
+        notes: notes ?? null,
+      },
+    });
+
+    // Check if all steps are now approved
+    const remainingSteps = request.steps.filter(
+      (s: any) => s.id !== pendingStep.id && s.status === 'pending'
+    );
+
+    if (remainingSteps.length === 0) {
+      // Fully approved â€” update request status
+      await (this.prisma as any).approvalRequest.update({
+        where: { id: requestId },
+        data: { status: 'approved' },
+      });
+
+      log.info(`Request #${requestId} fully approved by user ${approverId}`);
+      return { fullyApproved: true, nextLevel: null, requestId };
+    }
+
+    const nextLevel = remainingSteps[0].level;
+    log.info(`Request #${requestId} step approved, waiting for level ${nextLevel}`);
+    return { fullyApproved: false, nextLevel, requestId };
   }
 
-  /** Get pending approvals for a user */
-  async getPendingForUser(userId: number) {
-    return this.prisma.auditLog.findMany({
-      where: {
-        action: 'APPROVAL_SUBMITTED',
+  // â”€â”€ 3. Reject â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  async reject(opts: RejectOptions): Promise<void> {
+    const { tenantId, requestId, rejectorId, reason } = opts;
+
+    const request = await (this.prisma as any).approvalRequest.findFirst({
+      where: { id: requestId, tenantId, status: 'pending' },
+    });
+
+    if (!request) throw new AppError(`Approval request #${requestId} not found`, 404);
+
+    await (this.prisma as any).approvalRequest.update({
+      where: { id: requestId },
+      data: { status: 'rejected' },
+    });
+
+    // Mark all pending steps as rejected
+    await (this.prisma as any).approvalStep.updateMany({
+      where: { requestId, status: 'pending' },
+      data: {
+        status: 'rejected',
+        approverId: rejectorId,
+        actionDate: new Date(),
+        notes: reason,
       },
-      orderBy: { createdAt: 'desc' },
+    });
+
+    log.info(`Request #${requestId} rejected by user ${rejectorId}: ${reason}`);
+  }
+
+  // â”€â”€ 4. Get Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  async getStatus(tenantId: string, documentType: string, documentId: number): Promise<ApprovalStatus | null> {
+    const request = await (this.prisma as any).approvalRequest.findFirst({
+      where: { tenantId, documentType, documentId },
+      orderBy: { requestedAt: 'desc' },
+      include: {
+        steps: {
+          orderBy: { level: 'asc' },
+          include: { approver: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    if (!request) return null;
+
+    const pendingStep = request.steps.find((s: any) => s.status === 'pending');
+
+    return {
+      requestId: request.id,
+      status: request.status as ApprovalStatus['status'],
+      documentType: request.documentType,
+      documentId: request.documentId,
+      pendingLevel: pendingStep?.level ?? null,
+      totalLevels: request.steps.length,
+      steps: request.steps.map((s: any) => ({
+        id: s.id,
+        level: s.level,
+        status: s.status,
+        approverId: s.approverId,
+        approverName: s.approver?.name ?? null,
+        actionDate: s.actionDate,
+        notes: s.notes,
+      })),
+    };
+  }
+
+  // â”€â”€ 5. Get Pending for User â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  async getPendingForUser(tenantId: string, userId: number, userRole?: string) {
+    const where: any = {
+      tenantId,
+      status: 'pending',
+      request: { status: 'pending' },
+    };
+
+    // Steps specifically assigned to this user
+    where.OR = [
+      { approverId: userId },
+    ];
+
+    // Also get role-based steps if role provided
+    if (userRole) {
+      where.OR.push({
+        approverId: null, // Role-based (no specific user)
+      });
+    }
+
+    const steps = await (this.prisma as any).approvalStep.findMany({
+      where,
+      include: {
+        request: {
+          select: {
+            id: true,
+            documentType: true,
+            documentId: true,
+            requestedAt: true,
+            requester: { select: { id: true, name: true } },
+          },
+        },
+      },
+      orderBy: { request: { requestedAt: 'asc' } },
       take: 50,
     });
+
+    return steps;
   }
 }
+

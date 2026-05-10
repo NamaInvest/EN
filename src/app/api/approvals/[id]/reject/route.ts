@@ -1,55 +1,68 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { ApprovalEngine } from '@/lib/approval-engine';
+import { getPrisma } from '@/lib/prisma';
 
+const RejectSchema = z.object({
+  reason: z.string().min(5, 'يجب ذكر سبب الرفض').max(1000),
+});
 
-const _POSTSchema = z.object({
-  notes: z.any().optional(),
-  reason: z.any().optional(),
-}).passthrough();
-
-async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-
+async function handler(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+  userId: number,
+  tenantId: string
+) {
   const { id } = await params;
-    try {
-        const requestId = parseInt((await params).id);
-        const body = await req.json();
+  const requestId = parseInt(id);
+  if (isNaN(requestId)) return NextResponse.json({ error: 'Invalid approval ID' }, { status: 400 });
 
-        const _parsed = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-        const { notes, reason } = body;
+  const body = await req.json().catch(() => ({}));
+  const parsed = RejectSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid body', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
 
-        // Find the pending step
-        const step = await prisma.approvalStep.findFirst({
-            where: { requestId, status: 'pending' },
-            orderBy: { id: 'asc' }
-        });
+  const engine = new ApprovalEngine(req);
+  await engine.reject({
+    tenantId,
+    requestId,
+    rejectorId: userId,
+    reason: parsed.data.reason,
+  });
 
-        if (!step) {
-            return NextResponse.json({ error: 'No pending approval steps found' }, { status: 404 });
-        }
+  // Update the source document status to 'rejected'
+  const prisma = getPrisma(req) as any;
+  const request = await prisma.approvalRequest.findUnique({
+    where: { id: requestId },
+    select: { documentType: true, documentId: true },
+  });
 
-        // Mark step as rejected
-        await prisma.approvalStep.update({
-            where: { id: step.id },
-            data: { status: 'rejected', notes: `Reason: ${reason}. Notes: ${notes}`, actionDate: new Date() }
-        });
-
-        // Mark entire request as rejected
-        await prisma.approvalRequest.update({
-            where: { id: requestId },
-            data: { status: 'rejected' }
-        });
-        
-        // Here you would also update the actual document status (e.g. PurchaseOrder.status = 'REJECTED')
-
-        return NextResponse.json({ success: true, message: 'Request rejected' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+  if (request) {
+    const docMap: Record<string, { model: string }> = {
+      PURCHASE_ORDER: { model: 'purchaseOrder' },
+      SALES_INVOICE:  { model: 'salesInvoice' },
+      PAYMENT:        { model: 'paymentRun' },
+      LEAVE_REQUEST:  { model: 'leaveRequest' },
+      JOURNAL_ENTRY:  { model: 'journalEntry' },
+    };
+    const mapping = docMap[request.documentType];
+    if (mapping && prisma[mapping.model]) {
+      await prisma[mapping.model].updateMany({
+        where: { id: request.documentId },
+        data:  { status: 'rejected' },
+      });
     }
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: 'تم رفض الطلب وإشعار مقدّمه',
+  });
 }
 
-export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(
+  async (ctx, context) => handler(ctx.req as Request, context, ctx.auth.userId, ctx.auth.tenantId),
+  { rateLimit: 'DEFAULT' }
+);

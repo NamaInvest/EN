@@ -63,17 +63,21 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run Tests (Jest — 309/309 must pass)
-        run: npx jest --passWithNoTests --forceExit --no-coverage --ci
+      - name: Run Tests with Coverage (309/309 must pass)
+        run: npx jest --passWithNoTests --forceExit --coverage --ci
         env:
           CI: true
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to Codecov (P5.1)
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: namasoft-erp
           fail_ci_if_error: false
         continue-on-error: true
+
 
       - name: i18n Coverage Scan
         run: |

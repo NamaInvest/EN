@@ -1,35 +1,26 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { prisma } from '@/lib/prisma';
-// Auth mock
+import { ApprovalEngine } from '@/lib/approval-engine';
 
-async function _GET(req: Request) {
-    try {
-        // In a real app, you'd get the user from session:
-        // const session = await getServerSession(authOptions);
-        // const userId = session?.user?.id;
-        
-        // For demonstration, we'll fetch all pending requests (or you can filter by approverId)
-        const { searchParams } = new URL(req.url);
-        const status = searchParams.get('status') || 'pending';
-        
-        const requests = await prisma.approvalRequest.findMany({
-            take: 100,
-            where: {
-                status: status,
-                // In reality: steps: { some: { approverId: userId, status: 'pending' } }
-            },
-            include: {
-                requester: { select: { id: true, fullName: true, username: true } },
-                steps: true
-            },
-            orderBy: { requestedAt: 'desc' }
-        });
+/**
+ * GET /api/approvals/inbox
+ * Returns pending approvals for the authenticated user
+ * Supports: ?status=pending|approved|rejected
+ */
+async function handler(req: Request, userId: number, tenantId: string) {
+  const { searchParams } = new URL(req.url);
+  const userRole = searchParams.get('role') ?? undefined;
 
-        return NextResponse.json(requests);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  const engine = new ApprovalEngine(req);
+  const items = await engine.getPendingForUser(tenantId, userId, userRole);
+
+  return NextResponse.json({
+    count: items.length,
+    items,
+  });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(
+  async (ctx) => handler(ctx.req as Request, ctx.auth.userId, ctx.auth.tenantId),
+  { rateLimit: 'DEFAULT' }
+);
