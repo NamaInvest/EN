@@ -6,6 +6,7 @@ export default function MasterPanelPage() {
     const { t } = useTranslation();
     const [companies, setCompanies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState('');
 
     const fetchCompanies = async () => {
         try {
@@ -24,7 +25,7 @@ export default function MasterPanelPage() {
     useEffect(() => { fetchCompanies(); }, []);
 
     const handleAction = async (companyId: number, action: string, days: number = 0) => {
-        if (!confirm(t('sys.str_177'))) return;
+        if (!window.confirm(t('sys.str_177'))) return;
         const res = await fetch('/api/subscriptions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -34,7 +35,8 @@ export default function MasterPanelPage() {
             fetchCompanies();
         } else {
             const data = await res.json();
-            alert(data.error || t('sys.str_178'));
+            setErrorMsg(data.error || t('sys.str_178'));
+            setTimeout(() => setErrorMsg(''), 5000);
         }
     };
 
@@ -42,6 +44,11 @@ export default function MasterPanelPage() {
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6" dir="rtl">
+            {errorMsg && (
+                <div style={{ padding: '12px 16px', background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.4)', color: '#dc2626', borderRadius: '8px', fontWeight: 600 }}>
+                    ❌ {errorMsg}
+                </div>
+            )}
             <div className="flex justify-between items-center bg-[#1a1c23] p-6 rounded-xl border border-white/10">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">{t('sys.str_169')}</h1>

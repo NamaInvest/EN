@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Server, Play, Square, RotateCw, Activity, ShieldAlert, CheckCircle, Search, Database } from "lucide-react";
+import { Server, Play, Square, RotateCw, Activity, ShieldAlert, CheckCircle, Search, Database, AlertTriangle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 type NodeData = {
@@ -27,6 +27,12 @@ export default function SaaSAdminDashboard() {
     const [nodes, setNodes] = useState<NodeData[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [toastMsg, setToastMsg]   = useState<{ text: string; type: 'success'|'error' } | null>(null);
+
+    const showToast = (text: string, type: 'success'|'error' = 'error') => {
+        setToastMsg({ text, type });
+        setTimeout(() => setToastMsg(null), 5000);
+    };
 
     const fetchNodes = async () => {
         try {
@@ -54,7 +60,7 @@ export default function SaaSAdminDashboard() {
         if (loginUsername === "admin" && loginPassword === "nama2026") {
             setIsAuthenticated(true);
         } else {
-            alert(t('sys.str_1548'));
+            showToast(t('sys.str_1548'), 'error');
         }
     };
 
@@ -102,13 +108,12 @@ export default function SaaSAdminDashboard() {
             });
             const data = await res.json();
             if (data.success) {
-                // Instantly re-fetch
                 await fetchNodes();
             } else {
-                alert(t('sys.str_1549') + data.error);
+                showToast(t('sys.str_1549') + data.error, 'error');
             }
         } catch (e) {
-            alert(t('sys.str_1550'));
+            showToast(t('sys.str_1550'), 'error');
         } finally {
             setActionLoading(null);
         }
@@ -151,7 +156,7 @@ export default function SaaSAdminDashboard() {
             });
             await fetchNodes();
         } catch(e) {
-            alert(t('sys.str_1551'));
+            showToast(t('sys.str_1551'), 'error');
         }
     };
 
@@ -167,12 +172,12 @@ export default function SaaSAdminDashboard() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`✅ تم أخذ النسخة الاحتياطية بنجاح:\n${data.message}`);
+                showToast(`✅ تم أخذ النسخة الاحتياطية بنجاح: ${data.message}`, 'success');
             } else {
-                alert(t('sys.str_1526') + data.error);
+                showToast(t('sys.str_1526') + data.error, 'error');
             }
         } catch (e) {
-            alert(t('sys.str_1552'));
+            showToast(t('sys.str_1552'), 'error');
         } finally {
             setActionLoading(null);
         }
@@ -180,6 +185,20 @@ export default function SaaSAdminDashboard() {
 
     return (
         <div className="app-layout" dir="rtl">
+            {/* Inline Toast */}
+            {toastMsg && (
+                <div style={{
+                    position: 'fixed', top: 16, right: 16, zIndex: 9999,
+                    padding: '12px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '14px',
+                    background: toastMsg.type === 'success' ? 'rgba(16,185,129,0.15)' : 'rgba(220,38,38,0.15)',
+                    border: `1px solid ${toastMsg.type === 'success' ? '#10b981' : '#dc2626'}`,
+                    color: toastMsg.type === 'success' ? '#10b981' : '#dc2626',
+                    display: 'flex', alignItems: 'center', gap: 8, maxWidth: 400,
+                }}>
+                    <AlertTriangle className="w-4 h-4" />
+                    {toastMsg.text}
+                </div>
+            )}
             <div className="main-content" style={{ maxWidth: '100%', margin: 0 }}>
                 {/* Header */}
                 <div className="page-header" style={{ marginBottom: '24px' }}>
@@ -196,10 +215,10 @@ export default function SaaSAdminDashboard() {
                                     const res = await fetch("/api/admin/nodes/sync", { method: "POST" });
                                     const data = await res.json();
                                     if(data.success) {
-                                        alert(t('sys.str_1553') + data.count + t('sys.str_1554'));
+                                        showToast(t('sys.str_1553') + data.count + t('sys.str_1554'), 'success');
                                         await fetchNodes();
                                     } else {
-                                        alert(t('sys.str_1555') + data.error);
+                                        showToast(t('sys.str_1555') + data.error, 'error');
                                     }
                                 } finally {
                                     setActionLoading(null);

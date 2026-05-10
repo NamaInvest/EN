@@ -26,7 +26,7 @@ export default function MasterControlPanel() {
       setAuthenticated(true);
       fetchNodes();
     } else {
-      alert(t('sys.str_164'));
+      logAction(`[AUTH ERROR] ${t('sys.str_164')}`);
     }
   };
 

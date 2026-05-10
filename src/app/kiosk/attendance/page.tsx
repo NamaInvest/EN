@@ -107,8 +107,8 @@ export default function AICameraAttendanceKiosk() {
         videoRef.current.srcObject = mediaStream;
       }
     } catch (err) {
-      console.error("Camera access denied or failed", err);
-      alert(t('sys.str_4601'));
+      const tlE = new Date().toLocaleTimeString();
+      setLogs(prev => [`[${tlE}] 🔴 Camera access denied. Please allow camera permissions.`, ...prev]);
     }
   };
 

@@ -24,6 +24,7 @@ export default function B2BShopPage() {
     const [loading, setLoading] = useState(true);
     const [placingOrder, setPlacingOrder] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
@@ -84,10 +85,12 @@ export default function B2BShopPage() {
                 setSuccessMessage(`✅ تم اعتماد طلبية رقم #${data.order.orderNo} بنجاح! سيتم تجهيزها قريباً.`);
                 setTimeout(() => setSuccessMessage(''), 8000);
             } else {
-                alert(data.error);
+                setErrorMessage(data.error || 'حدث خطأ');
+                setTimeout(() => setErrorMessage(''), 6000);
             }
         } catch (e: any) {
-            alert(t('sys.str_4594') + e.message);
+            setErrorMessage(t('sys.str_4594') + e.message);
+            setTimeout(() => setErrorMessage(''), 6000);
         } finally {
             setPlacingOrder(false);
         }
@@ -161,6 +164,11 @@ export default function B2BShopPage() {
                 {successMessage && (
                     <div style={{ background: '#d4edda', color: '#155724', padding: '15px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
                         {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div style={{ background: '#f8d7da', color: '#721c24', padding: '15px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
+                        ❌ {errorMessage}
                     </div>
                 )}
 

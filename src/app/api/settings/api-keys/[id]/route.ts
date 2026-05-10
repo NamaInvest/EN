@@ -1,45 +1,66 @@
 /**
- * API Keys List/Revoke — GET/DELETE /api/settings/api-keys/[id]
+ * PATCH /DELETE /api/settings/api-keys/[id]
+ * Manage existing API keys (revoke or update name/scopes).
  */
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { invalidateApiKeyCache } from '@/lib/api/api-key-auth';
+import { z } from 'zod';
 
-async function getHandler(ctx: any, { params }: any) {
-  const { id } = await params;
-  const prisma = ctx.prisma as any;
+const UpdateApiKeySchema = z.object({
+  name:     z.string().min(3).max(100).optional(),
+  scopes:   z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+});
 
-  const keys = await prisma.apiKey.findMany({
-    where: { tenantId: ctx.auth.tenantId },
-    select: { id: true, name: true, scopes: true, expiresAt: true, lastUsedAt: true, isActive: true },
-    orderBy: { id: 'desc' },
+// ── PATCH /api/settings/api-keys/[id] ────────────────────────────────────────
+async function patchHandler(ctx: any) {
+  const id       = Number(ctx.params?.id);
+  const prisma   = ctx.prisma as any;
+  const tenantId = ctx.auth.tenantId;
+
+  if (!id || isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+
+  const body   = await ctx.req.json().catch(() => ({}));
+  const parsed = UpdateApiKeySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid body', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
+
+  const existing = await prisma.apiKey?.findFirst({ where: { id, tenantId } });
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  const updated = await prisma.apiKey.update({
+    where: { id },
+    data: {
+      ...(parsed.data.name     !== undefined && { name: parsed.data.name }),
+      ...(parsed.data.scopes   !== undefined && { scopes: JSON.stringify(parsed.data.scopes) }),
+      ...(parsed.data.isActive !== undefined && { isActive: parsed.data.isActive }),
+    },
+    select: { id: true, name: true, isActive: true, createdAt: true, expiresAt: true },
   });
 
-  return NextResponse.json(keys);
+  return NextResponse.json(updated);
 }
 
-async function deleteHandler(ctx: any, { params }: any) {
-  const { id } = await params;
-  const keyId = parseInt(id);
-  if (isNaN(keyId)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+// ── DELETE /api/settings/api-keys/[id] ───────────────────────────────────────
+async function deleteHandler(ctx: any) {
+  const id       = Number(ctx.params?.id);
+  const prisma   = ctx.prisma as any;
+  const tenantId = ctx.auth.tenantId;
 
-  const prisma = ctx.prisma as any;
+  if (!id || isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
-  const key = await prisma.apiKey.findFirst({
-    where: { id: keyId, tenantId: ctx.auth.tenantId },
-  });
-  if (!key) return NextResponse.json({ error: 'API key not found' }, { status: 404 });
+  const existing = await prisma.apiKey?.findFirst({ where: { id, tenantId } });
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  // Soft-revoke: set isActive=false (preserve audit trail)
   await prisma.apiKey.update({
-    where: { id: keyId },
-    data: { isActive: false },
+    where: { id },
+    data: { isActive: false, revokedAt: new Date() },
   });
 
-  // Invalidate all cached entries (safe: will refetch from DB)
-  invalidateApiKeyCache();
-
-  return NextResponse.json({ success: true, message: 'API key revoked successfully' });
+  return NextResponse.json({ success: true, message: 'API key revoked' });
 }
 
-export const GET    = withRoute(getHandler,    { rateLimit: 'DEFAULT' });
+export const PATCH  = withRoute(patchHandler,  { rateLimit: 'DEFAULT' });
 export const DELETE = withRoute(deleteHandler, { rateLimit: 'DEFAULT' });
