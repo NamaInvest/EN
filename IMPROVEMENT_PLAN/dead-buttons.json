@@ -1,0 +1,1754 @@
+{
+  "generatedAt": "2026-05-10T01:02:07.340Z",
+  "total": 145,
+  "byType": {
+    "missing_api": [
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/customer-statements/bulk/page.tsx",
+        "line": 63,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/customer-statements/bulk/preview?segment=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/deferred/page.tsx",
+        "line": 16,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/deferred?view=pending\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/financial-close/page.tsx",
+        "line": 13,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/financial-close?period=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/financial-close/page.tsx",
+        "line": 14,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/financial-close?period=:id&view=progress\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/fixed-assets/page.tsx",
+        "line": 16,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/fixed-assets\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/page.tsx",
+        "line": 94,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/ledger?accountId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/trial-balance/page.tsx",
+        "line": 28,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/trial-balance?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/ap/capture/page.tsx",
+        "line": 22,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ap/capture?status=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+        "line": 84,
+        "type": "missing_api",
+        "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+        "line": 103,
+        "type": "missing_api",
+        "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+        "line": 117,
+        "type": "missing_api",
+        "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/branches/page.tsx",
+        "line": 83,
+        "type": "missing_api",
+        "content": "fetch(\"/api/branches?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/clinic/appointments/page.tsx",
+        "line": 31,
+        "type": "missing_api",
+        "content": "fetch(\"/api/clinic/appointments?date=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/contracts/page.tsx",
+        "line": 13,
+        "type": "missing_api",
+        "content": "fetch(\"/api/contracts?view=summary\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/contracts/templates/page.tsx",
+        "line": 44,
+        "type": "missing_api",
+        "content": "fetch(\"/api/contracts/templates?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/campaigns/page.tsx",
+        "line": 86,
+        "type": "missing_api",
+        "content": "fetch(\"/api/crm/campaigns?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/customer360/page.tsx",
+        "line": 15,
+        "type": "missing_api",
+        "content": "fetch(\"/api/crm/customer360?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/kanban/page.tsx",
+        "line": 15,
+        "type": "missing_api",
+        "content": "fetch(\"/api/system/kanban?preset=crm_leads\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/tickets/page.tsx",
+        "line": 49,
+        "type": "missing_api",
+        "content": "fetch(\"/api/crm/tickets:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/customers/page.tsx",
+        "line": 75,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/dashboard/page.tsx",
+        "line": 60,
+        "type": "missing_api",
+        "content": "fetch(\"/api/dashboard\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/docs/[slug]/page.tsx",
+        "line": 18,
+        "type": "missing_api",
+        "content": "fetch(\"/api/docs/:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/ecommerce/dashboard/page.tsx",
+        "line": 25,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ecommerce/orders:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/employees/page.tsx",
+        "line": 57,
+        "type": "missing_api",
+        "content": "fetch(\"/api/employees:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/legal/page.tsx",
+        "line": 32,
+        "type": "missing_api",
+        "content": "fetch(\"/api/enterprise/legal?type=:id&search=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/mrp/page.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/stock\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/projects/advanced?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+        "line": 35,
+        "type": "missing_api",
+        "content": "fetch(\"/api/projects/phases?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+        "line": 36,
+        "type": "missing_api",
+        "content": "fetch(\"/api/projects/milestones?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+        "line": 37,
+        "type": "missing_api",
+        "content": "fetch(\"/api/projects/risks?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+        "line": 38,
+        "type": "missing_api",
+        "content": "fetch(\"/api/projects/resources?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/page.tsx",
+        "line": 36,
+        "type": "missing_api",
+        "content": "fetch(\"/api/enterprise/projects/tasks?projectId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/page.tsx",
+        "line": 35,
+        "type": "missing_api",
+        "content": "fetch(\"/api/enterprise/projects?search=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/page.tsx",
+        "line": 88,
+        "type": "missing_api",
+        "content": "fetch(\"/api/enterprise/projects?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+        "line": 53,
+        "type": "missing_api",
+        "content": "fetch(\"/api/expenses?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+        "line": 127,
+        "type": "missing_api",
+        "content": "fetch(\"/api/expenses?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+        "line": 137,
+        "type": "missing_api",
+        "content": "fetch(\"/api/expenses?all=true\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/balance-sheet/page.tsx",
+        "line": 20,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/balance-sheet?asOfDate=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/bank-recon/rules/page.tsx",
+        "line": 106,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/bank-recon/rules?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/budget-control/page.tsx",
+        "line": 23,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/budget-control?year=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/budget-scenarios/page.tsx",
+        "line": 73,
+        "type": "missing_api",
+        "content": "fetch(\"/api/budgets/scenarios?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/cash-flow/forecast/page.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/cash-flow/forecast?weeks=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/cash-flow/page.tsx",
+        "line": 21,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/cash-flow?action=latest\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/consolidation/page.tsx",
+        "line": 41,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/consolidation?action=summary&runId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/copa/page.tsx",
+        "line": 94,
+        "type": "missing_api",
+        "content": "fetch(\"/api/copa?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/payment-run/page.tsx",
+        "line": 66,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/payment-run/:id/:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/period-close/page.tsx",
+        "line": 20,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/period-close?periodId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/fleet/page.tsx",
+        "line": 12,
+        "type": "missing_api",
+        "content": "fetch(\"/api/fleet/advanced?view=dashboard\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/fng/petty-cash-funds/page.tsx",
+        "line": 88,
+        "type": "missing_api",
+        "content": "fetch(\"/api/fng/petty-cash-funds?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/gosi/page.tsx",
+        "line": 19,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/gosi?year=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/leaves/page.tsx",
+        "line": 44,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/leaves?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/org-chart/page.tsx",
+        "line": 12,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/employees?limit=200\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/payroll/run/page.tsx",
+        "line": 28,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/payroll/run?month=:id&year=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/recruitment/page.tsx",
+        "line": 18,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/recruitment?jobId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/timesheet/page.tsx",
+        "line": 14,
+        "type": "missing_api",
+        "content": "fetch(\"/api/hr/timesheet?employeeId=1&weekStart=${weekStart.toISOString().split(\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/abc-analysis/page.tsx",
+        "line": 33,
+        "type": "missing_api",
+        "content": "fetch(\"/api/inventory/abc-analysis?period=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/reorder-rules/page.tsx",
+        "line": 15,
+        "type": "missing_api",
+        "content": "fetch(\"/api/inventory/reorder-rules?view=alerts\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/stocktake/cycle/page.tsx",
+        "line": 26,
+        "type": "missing_api",
+        "content": "fetch(\"/api/inventory/stocktake\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/page.tsx",
+        "line": 16,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/stats\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/quality/page.tsx",
+        "line": 12,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/quality?view=dashboard\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/standard-cost/page.tsx",
+        "line": 21,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/standard-cost\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/standard-cost/page.tsx",
+        "line": 33,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/standard-cost\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+        "line": 22,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+        "line": 54,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+        "line": 70,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/price-quotes/page.tsx",
+        "line": 226,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/me\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/price-quotes/page.tsx",
+        "line": 257,
+        "type": "missing_api",
+        "content": "fetch(\"/api/price-quotes?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+        "line": 89,
+        "type": "missing_api",
+        "content": "fetch(\"/api/products?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+        "line": 232,
+        "type": "missing_api",
+        "content": "fetch(\"/api/products?action=delete_all\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+        "line": 243,
+        "type": "missing_api",
+        "content": "fetch(\"/api/categories?action=delete_all\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+        "line": 31,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/:idfa/setup\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+        "line": 46,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/:idfa/verify\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+        "line": 67,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/:idfa/setup\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+        "line": 90,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/:idfa/backup-codes\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchase-orders/[id]/landed-costs/page.tsx",
+        "line": 80,
+        "type": "missing_api",
+        "content": "fetch(\"/api/purchase-orders/:id/landed-costs/:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchase-orders/page.tsx",
+        "line": 82,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=1\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/grn/page.tsx",
+        "line": 67,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=1\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/letters-of-credit/page.tsx",
+        "line": 71,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=1\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/rfq/page.tsx",
+        "line": 60,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=1\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/quality/page.tsx",
+        "line": 16,
+        "type": "missing_api",
+        "content": "fetch(\"/api/quality/stats\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/reports/cashflow/page.tsx",
+        "line": 14,
+        "type": "missing_api",
+        "content": "fetch(\"/api/accounting/cashflow/forecast?days=30\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales-returns/page.tsx",
+        "line": 89,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/commissions/page.tsx",
+        "line": 32,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales/commissions?month=:id&year=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/debit-notes/page.tsx",
+        "line": 81,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/delivery-notes/page.tsx",
+        "line": 59,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=0\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/forecast/page.tsx",
+        "line": 19,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales/forecast?period=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/history/page.tsx",
+        "line": 45,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/history/page.tsx",
+        "line": 107,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/orders/create/page.tsx",
+        "line": 61,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=0\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/orders/page.tsx",
+        "line": 62,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=0\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+        "line": 182,
+        "type": "missing_api",
+        "content": "fetch(\"/api/pos/bnpl/status?provider=:id&sessionId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+        "line": 475,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?type=0\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+        "line": 1024,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/targets/page.tsx",
+        "line": 58,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales/targets?year=:id&month=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/company/page.tsx",
+        "line": 107,
+        "type": "missing_api",
+        "content": "fetch(\"/api/zatca?type=status\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/dashboard-builder/page.tsx",
+        "line": 15,
+        "type": "missing_api",
+        "content": "fetch(\"/api/system/dashboard-builder?view=defaults\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+        "line": 370,
+        "type": "missing_api",
+        "content": "fetch(\"/api/users?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+        "line": 395,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?action=delete_all\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+        "line": 700,
+        "type": "missing_api",
+        "content": "fetch(\"/api/telegram/webhook?action=set\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/print-templates/page.tsx",
+        "line": 15,
+        "type": "missing_api",
+        "content": "fetch(\"/api/system/print-templates?model=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/shifts/page.tsx",
+        "line": 110,
+        "type": "missing_api",
+        "content": "fetch(\"/api/shifts?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/shipping/page.tsx",
+        "line": 19,
+        "type": "missing_api",
+        "content": "fetch(\"/api/shipping?view=shipments\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/shopfloor/page.tsx",
+        "line": 25,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/shopfloor?action=active\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/shopfloor/page.tsx",
+        "line": 26,
+        "type": "missing_api",
+        "content": "fetch(\"/api/manufacturing/shopfloor?action=andon\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/smart-transfers/page.tsx",
+        "line": 61,
+        "type": "missing_api",
+        "content": "fetch(\"/api/products?limit=5000\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/treasury/checks/page.tsx",
+        "line": 66,
+        "type": "missing_api",
+        "content": "fetch(\"/api/finance/checks?type=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/treasury/page.tsx",
+        "line": 18,
+        "type": "missing_api",
+        "content": "fetch(\"/api/treasury/dashboard\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/warehouses/options/page.tsx",
+        "line": 53,
+        "type": "missing_api",
+        "content": "fetch(\"/api/units?id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+        "line": 23,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ai/demand-forecast?productId=:id&days=30\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/auth/routing/page.tsx",
+        "line": 27,
+        "type": "missing_api",
+        "content": "fetch(\"/api/tenant/status?email=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/company-info/page.tsx",
+        "line": 102,
+        "type": "missing_api",
+        "content": "fetch(\"/api/tenant/check-status?userId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ice/desktop-licenses/page.tsx",
+        "line": 519,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/backup/list?license_key=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ice/desktop-licenses/page.tsx",
+        "line": 581,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/desktop-licenses?action=get_flags&id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ice/page.tsx",
+        "line": 238,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/tenant-features?tenantAccountId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ice/page.tsx",
+        "line": 338,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/desktop-licenses?tenant_id=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/login/page.tsx",
+        "line": 179,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/:idfa/login\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/menu/[tableId]/page.tsx",
+        "line": 29,
+        "type": "missing_api",
+        "content": "fetch(\"/api/public/table?tableId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+        "line": 24,
+        "type": "missing_api",
+        "content": "fetch(\"/api/pharmacy/drugs?q=:id&lowStock=false\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+        "line": 33,
+        "type": "missing_api",
+        "content": "fetch(\"/api/pharmacy/drugs?lowStock=true\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/pharmacy/drugs?expiringSoon=true\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/portal/vendor/rfq/[id]/page.tsx",
+        "line": 64,
+        "type": "missing_api",
+        "content": "fetch(\"/api/portal/vendor/rfq/:id/bid?token=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/pos/page.tsx",
+        "line": 100,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?limit=15\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/pos/page.tsx",
+        "line": 158,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?search=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/procurement/supplier-contracts/page.tsx",
+        "line": 18,
+        "type": "missing_api",
+        "content": "fetch(\"/api/procurement/supplier-contracts?:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/restaurant-pos/page.tsx",
+        "line": 292,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?limit=15\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/restaurant-pos/page.tsx",
+        "line": 349,
+        "type": "missing_api",
+        "content": "fetch(\"/api/customers?search=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/DesktopBanner.tsx",
+        "line": 117,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/license/verify?key=\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/DocumentUploader.tsx",
+        "line": 27,
+        "type": "missing_api",
+        "content": "fetch(\"/api/documents?documentType=:id&documentId=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/GlobalSearch.tsx",
+        "line": 39,
+        "type": "missing_api",
+        "content": "fetch(\"/api/system/search?q=:id&lang=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/InvoiceReceipt.tsx",
+        "line": 77,
+        "type": "missing_api",
+        "content": "fetch(\"/api/auth/me\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/pos/SalesReturnModal.tsx",
+        "line": 30,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/components/PosReturnsModal.tsx",
+        "line": 61,
+        "type": "missing_api",
+        "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/hooks/useFeatureFlag.tsx",
+        "line": 34,
+        "type": "missing_api",
+        "content": "fetch(\"/api/ice/tenant-features?tenantAccountId=:id\") — route not found"
+      }
+    ],
+    "coming_soon": [
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/batches/page.tsx",
+        "line": 96,
+        "type": "coming_soon",
+        "content": "if (diffDays <= 30) return { label: `ينتهي قريباً (${diffDays} يوم)`, cls: 'badge-warning', color: '#f59e0b' };"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/fleet/maintenance/page.tsx",
+        "line": 60,
+        "type": "coming_soon",
+        "content": "{alert.status === 'OVERDUE' ? 'متأخر' : 'مستحق قريباً'}"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/rem/page.tsx",
+        "line": 91,
+        "type": "coming_soon",
+        "content": "<p className=\"text-sm font-medium text-slate-500 dark:text-slate-400 mb-1\">عقود تنتهي قريباً</p>"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/(dashboard)/rem/page.tsx",
+        "line": 152,
+        "type": "coming_soon",
+        "content": "<span className=\"px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-xs font-medium\">ينتهي قريباً</span>"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+        "line": 31,
+        "type": "coming_soon",
+        "content": "soon: { label: '⚠️ قريباً', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+        "line": 89,
+        "type": "coming_soon",
+        "content": "{ label: 'تحتاج طلباً قريباً', value: (results.forecasts || []).filter((f: any) => f.urgency === 'soon').length, icon: '⚠️', color: 'amber' },"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/b2b/shop/page.tsx",
+        "line": 84,
+        "type": "coming_soon",
+        "content": "setSuccessMessage(`✅ تم اعتماد طلبية رقم #${data.order.orderNo} بنجاح! سيتم تجهيزها قريباً.`);"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/crm/key-accounts/page.tsx",
+        "line": 49,
+        "type": "coming_soon",
+        "content": "{ label: 'عقود تنتهي قريباً', value: KAM_ACCOUNTS.filter(a => (new Date(a.contractEnd).getTime()-Date.now())/86400000 < 60).length, icon: '📅', color: 'amber' },"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/fleet/tracking/page.tsx",
+        "line": 141,
+        "type": "coming_soon",
+        "content": "⛽ تنبيه: مستوى الوقود منخفض — يُنصح بالتزود قريباً"
+      },
+      {
+        "file": "D:/namasoft9-3-main/src/app/procurement/supplier-contracts/page.tsx",
+        "line": 67,
+        "type": "coming_soon",
+        "content": "{ key: 'expiring', label: '⏳ تنتهي قريباً' },"
+      }
+    ],
+    "alert": [
+      {
+        "file": "D:/namasoft9-3-main/src/app/login/page.tsx",
+        "line": 443,
+        "type": "alert",
+        "content": "onClick={() => alert(\"Google Login is currently disabled\")}"
+      }
+    ]
+  },
+  "issues": [
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/customer-statements/bulk/page.tsx",
+      "line": 63,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/customer-statements/bulk/preview?segment=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/deferred/page.tsx",
+      "line": 16,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/deferred?view=pending\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/financial-close/page.tsx",
+      "line": 13,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/financial-close?period=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/financial-close/page.tsx",
+      "line": 14,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/financial-close?period=:id&view=progress\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/fixed-assets/page.tsx",
+      "line": 16,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/fixed-assets\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/page.tsx",
+      "line": 94,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/ledger?accountId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/accounting/trial-balance/page.tsx",
+      "line": 28,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/trial-balance?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/ap/capture/page.tsx",
+      "line": 22,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ap/capture?status=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+      "line": 84,
+      "type": "missing_api",
+      "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+      "line": 103,
+      "type": "missing_api",
+      "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/audit/field-trail/page.tsx",
+      "line": 117,
+      "type": "missing_api",
+      "content": "fetch(\"/api/audit/field-trail?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/batches/page.tsx",
+      "line": 96,
+      "type": "coming_soon",
+      "content": "if (diffDays <= 30) return { label: `ينتهي قريباً (${diffDays} يوم)`, cls: 'badge-warning', color: '#f59e0b' };"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/branches/page.tsx",
+      "line": 83,
+      "type": "missing_api",
+      "content": "fetch(\"/api/branches?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/clinic/appointments/page.tsx",
+      "line": 31,
+      "type": "missing_api",
+      "content": "fetch(\"/api/clinic/appointments?date=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/contracts/page.tsx",
+      "line": 13,
+      "type": "missing_api",
+      "content": "fetch(\"/api/contracts?view=summary\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/contracts/templates/page.tsx",
+      "line": 44,
+      "type": "missing_api",
+      "content": "fetch(\"/api/contracts/templates?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/campaigns/page.tsx",
+      "line": 86,
+      "type": "missing_api",
+      "content": "fetch(\"/api/crm/campaigns?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/customer360/page.tsx",
+      "line": 15,
+      "type": "missing_api",
+      "content": "fetch(\"/api/crm/customer360?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/kanban/page.tsx",
+      "line": 15,
+      "type": "missing_api",
+      "content": "fetch(\"/api/system/kanban?preset=crm_leads\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/crm/tickets/page.tsx",
+      "line": 49,
+      "type": "missing_api",
+      "content": "fetch(\"/api/crm/tickets:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/customers/page.tsx",
+      "line": 75,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/dashboard/page.tsx",
+      "line": 60,
+      "type": "missing_api",
+      "content": "fetch(\"/api/dashboard\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/docs/[slug]/page.tsx",
+      "line": 18,
+      "type": "missing_api",
+      "content": "fetch(\"/api/docs/:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/ecommerce/dashboard/page.tsx",
+      "line": 25,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ecommerce/orders:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/employees/page.tsx",
+      "line": 57,
+      "type": "missing_api",
+      "content": "fetch(\"/api/employees:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/legal/page.tsx",
+      "line": 32,
+      "type": "missing_api",
+      "content": "fetch(\"/api/enterprise/legal?type=:id&search=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/mrp/page.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/stock\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/projects/advanced?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+      "line": 35,
+      "type": "missing_api",
+      "content": "fetch(\"/api/projects/phases?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+      "line": 36,
+      "type": "missing_api",
+      "content": "fetch(\"/api/projects/milestones?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+      "line": 37,
+      "type": "missing_api",
+      "content": "fetch(\"/api/projects/risks?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/gantt/page.tsx",
+      "line": 38,
+      "type": "missing_api",
+      "content": "fetch(\"/api/projects/resources?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/[id]/page.tsx",
+      "line": 36,
+      "type": "missing_api",
+      "content": "fetch(\"/api/enterprise/projects/tasks?projectId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/page.tsx",
+      "line": 35,
+      "type": "missing_api",
+      "content": "fetch(\"/api/enterprise/projects?search=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/enterprise/projects/page.tsx",
+      "line": 88,
+      "type": "missing_api",
+      "content": "fetch(\"/api/enterprise/projects?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+      "line": 53,
+      "type": "missing_api",
+      "content": "fetch(\"/api/expenses?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+      "line": 127,
+      "type": "missing_api",
+      "content": "fetch(\"/api/expenses?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/expenses/page.tsx",
+      "line": 137,
+      "type": "missing_api",
+      "content": "fetch(\"/api/expenses?all=true\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/balance-sheet/page.tsx",
+      "line": 20,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/balance-sheet?asOfDate=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/bank-recon/rules/page.tsx",
+      "line": 106,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/bank-recon/rules?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/budget-control/page.tsx",
+      "line": 23,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/budget-control?year=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/budget-scenarios/page.tsx",
+      "line": 73,
+      "type": "missing_api",
+      "content": "fetch(\"/api/budgets/scenarios?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/cash-flow/forecast/page.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/cash-flow/forecast?weeks=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/cash-flow/page.tsx",
+      "line": 21,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/cash-flow?action=latest\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/consolidation/page.tsx",
+      "line": 41,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/consolidation?action=summary&runId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/copa/page.tsx",
+      "line": 94,
+      "type": "missing_api",
+      "content": "fetch(\"/api/copa?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/payment-run/page.tsx",
+      "line": 66,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/payment-run/:id/:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/finance/period-close/page.tsx",
+      "line": 20,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/period-close?periodId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/fleet/maintenance/page.tsx",
+      "line": 60,
+      "type": "coming_soon",
+      "content": "{alert.status === 'OVERDUE' ? 'متأخر' : 'مستحق قريباً'}"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/fleet/page.tsx",
+      "line": 12,
+      "type": "missing_api",
+      "content": "fetch(\"/api/fleet/advanced?view=dashboard\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/fng/petty-cash-funds/page.tsx",
+      "line": 88,
+      "type": "missing_api",
+      "content": "fetch(\"/api/fng/petty-cash-funds?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/gosi/page.tsx",
+      "line": 19,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/gosi?year=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/leaves/page.tsx",
+      "line": 44,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/leaves?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/org-chart/page.tsx",
+      "line": 12,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/employees?limit=200\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/payroll/run/page.tsx",
+      "line": 28,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/payroll/run?month=:id&year=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/recruitment/page.tsx",
+      "line": 18,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/recruitment?jobId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/hr/timesheet/page.tsx",
+      "line": 14,
+      "type": "missing_api",
+      "content": "fetch(\"/api/hr/timesheet?employeeId=1&weekStart=${weekStart.toISOString().split(\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/abc-analysis/page.tsx",
+      "line": 33,
+      "type": "missing_api",
+      "content": "fetch(\"/api/inventory/abc-analysis?period=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/reorder-rules/page.tsx",
+      "line": 15,
+      "type": "missing_api",
+      "content": "fetch(\"/api/inventory/reorder-rules?view=alerts\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/inventory/stocktake/cycle/page.tsx",
+      "line": 26,
+      "type": "missing_api",
+      "content": "fetch(\"/api/inventory/stocktake\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/page.tsx",
+      "line": 16,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/stats\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/quality/page.tsx",
+      "line": 12,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/quality?view=dashboard\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/standard-cost/page.tsx",
+      "line": 21,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/standard-cost\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/standard-cost/page.tsx",
+      "line": 33,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/standard-cost\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+      "line": 22,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+      "line": 54,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/manufacturing/subcontracting/page.tsx",
+      "line": 70,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/subcontracting\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/price-quotes/page.tsx",
+      "line": 226,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/me\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/price-quotes/page.tsx",
+      "line": 257,
+      "type": "missing_api",
+      "content": "fetch(\"/api/price-quotes?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+      "line": 89,
+      "type": "missing_api",
+      "content": "fetch(\"/api/products?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+      "line": 232,
+      "type": "missing_api",
+      "content": "fetch(\"/api/products?action=delete_all\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/products/page.tsx",
+      "line": 243,
+      "type": "missing_api",
+      "content": "fetch(\"/api/categories?action=delete_all\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+      "line": 31,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/:idfa/setup\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+      "line": 46,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/:idfa/verify\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+      "line": 67,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/:idfa/setup\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/profile/security/page.tsx",
+      "line": 90,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/:idfa/backup-codes\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchase-orders/[id]/landed-costs/page.tsx",
+      "line": 80,
+      "type": "missing_api",
+      "content": "fetch(\"/api/purchase-orders/:id/landed-costs/:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchase-orders/page.tsx",
+      "line": 82,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=1\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/grn/page.tsx",
+      "line": 67,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=1\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/letters-of-credit/page.tsx",
+      "line": 71,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=1\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/purchases/rfq/page.tsx",
+      "line": 60,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=1\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/quality/page.tsx",
+      "line": 16,
+      "type": "missing_api",
+      "content": "fetch(\"/api/quality/stats\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/rem/page.tsx",
+      "line": 91,
+      "type": "coming_soon",
+      "content": "<p className=\"text-sm font-medium text-slate-500 dark:text-slate-400 mb-1\">عقود تنتهي قريباً</p>"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/rem/page.tsx",
+      "line": 152,
+      "type": "coming_soon",
+      "content": "<span className=\"px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-xs font-medium\">ينتهي قريباً</span>"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/reports/cashflow/page.tsx",
+      "line": 14,
+      "type": "missing_api",
+      "content": "fetch(\"/api/accounting/cashflow/forecast?days=30\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales-returns/page.tsx",
+      "line": 89,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/commissions/page.tsx",
+      "line": 32,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales/commissions?month=:id&year=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/debit-notes/page.tsx",
+      "line": 81,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/delivery-notes/page.tsx",
+      "line": 59,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=0\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/forecast/page.tsx",
+      "line": 19,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales/forecast?period=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/history/page.tsx",
+      "line": 45,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/history/page.tsx",
+      "line": 107,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/orders/create/page.tsx",
+      "line": 61,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=0\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/orders/page.tsx",
+      "line": 62,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=0\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+      "line": 182,
+      "type": "missing_api",
+      "content": "fetch(\"/api/pos/bnpl/status?provider=:id&sessionId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+      "line": 475,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?type=0\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/page.tsx",
+      "line": 1024,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/sales/targets/page.tsx",
+      "line": 58,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales/targets?year=:id&month=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/company/page.tsx",
+      "line": 107,
+      "type": "missing_api",
+      "content": "fetch(\"/api/zatca?type=status\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/dashboard-builder/page.tsx",
+      "line": 15,
+      "type": "missing_api",
+      "content": "fetch(\"/api/system/dashboard-builder?view=defaults\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+      "line": 370,
+      "type": "missing_api",
+      "content": "fetch(\"/api/users?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+      "line": 395,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?action=delete_all\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/page.tsx",
+      "line": 700,
+      "type": "missing_api",
+      "content": "fetch(\"/api/telegram/webhook?action=set\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/settings/print-templates/page.tsx",
+      "line": 15,
+      "type": "missing_api",
+      "content": "fetch(\"/api/system/print-templates?model=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/shifts/page.tsx",
+      "line": 110,
+      "type": "missing_api",
+      "content": "fetch(\"/api/shifts?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/shipping/page.tsx",
+      "line": 19,
+      "type": "missing_api",
+      "content": "fetch(\"/api/shipping?view=shipments\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/shopfloor/page.tsx",
+      "line": 25,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/shopfloor?action=active\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/shopfloor/page.tsx",
+      "line": 26,
+      "type": "missing_api",
+      "content": "fetch(\"/api/manufacturing/shopfloor?action=andon\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/smart-transfers/page.tsx",
+      "line": 61,
+      "type": "missing_api",
+      "content": "fetch(\"/api/products?limit=5000\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/treasury/checks/page.tsx",
+      "line": 66,
+      "type": "missing_api",
+      "content": "fetch(\"/api/finance/checks?type=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/treasury/page.tsx",
+      "line": 18,
+      "type": "missing_api",
+      "content": "fetch(\"/api/treasury/dashboard\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/(dashboard)/warehouses/options/page.tsx",
+      "line": 53,
+      "type": "missing_api",
+      "content": "fetch(\"/api/units?id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+      "line": 23,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ai/demand-forecast?productId=:id&days=30\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+      "line": 31,
+      "type": "coming_soon",
+      "content": "soon: { label: '⚠️ قريباً', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ai/demand-forecast/page.tsx",
+      "line": 89,
+      "type": "coming_soon",
+      "content": "{ label: 'تحتاج طلباً قريباً', value: (results.forecasts || []).filter((f: any) => f.urgency === 'soon').length, icon: '⚠️', color: 'amber' },"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/auth/routing/page.tsx",
+      "line": 27,
+      "type": "missing_api",
+      "content": "fetch(\"/api/tenant/status?email=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/b2b/shop/page.tsx",
+      "line": 84,
+      "type": "coming_soon",
+      "content": "setSuccessMessage(`✅ تم اعتماد طلبية رقم #${data.order.orderNo} بنجاح! سيتم تجهيزها قريباً.`);"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/company-info/page.tsx",
+      "line": 102,
+      "type": "missing_api",
+      "content": "fetch(\"/api/tenant/check-status?userId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/crm/key-accounts/page.tsx",
+      "line": 49,
+      "type": "coming_soon",
+      "content": "{ label: 'عقود تنتهي قريباً', value: KAM_ACCOUNTS.filter(a => (new Date(a.contractEnd).getTime()-Date.now())/86400000 < 60).length, icon: '📅', color: 'amber' },"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/fleet/tracking/page.tsx",
+      "line": 141,
+      "type": "coming_soon",
+      "content": "⛽ تنبيه: مستوى الوقود منخفض — يُنصح بالتزود قريباً"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ice/desktop-licenses/page.tsx",
+      "line": 519,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/backup/list?license_key=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ice/desktop-licenses/page.tsx",
+      "line": 581,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/desktop-licenses?action=get_flags&id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ice/page.tsx",
+      "line": 238,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/tenant-features?tenantAccountId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/ice/page.tsx",
+      "line": 338,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/desktop-licenses?tenant_id=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/login/page.tsx",
+      "line": 179,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/:idfa/login\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/login/page.tsx",
+      "line": 443,
+      "type": "alert",
+      "content": "onClick={() => alert(\"Google Login is currently disabled\")}"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/menu/[tableId]/page.tsx",
+      "line": 29,
+      "type": "missing_api",
+      "content": "fetch(\"/api/public/table?tableId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+      "line": 24,
+      "type": "missing_api",
+      "content": "fetch(\"/api/pharmacy/drugs?q=:id&lowStock=false\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+      "line": 33,
+      "type": "missing_api",
+      "content": "fetch(\"/api/pharmacy/drugs?lowStock=true\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/pharmacy/page.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/pharmacy/drugs?expiringSoon=true\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/portal/vendor/rfq/[id]/page.tsx",
+      "line": 64,
+      "type": "missing_api",
+      "content": "fetch(\"/api/portal/vendor/rfq/:id/bid?token=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/pos/page.tsx",
+      "line": 100,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?limit=15\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/pos/page.tsx",
+      "line": 158,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?search=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/procurement/supplier-contracts/page.tsx",
+      "line": 18,
+      "type": "missing_api",
+      "content": "fetch(\"/api/procurement/supplier-contracts?:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/procurement/supplier-contracts/page.tsx",
+      "line": 67,
+      "type": "coming_soon",
+      "content": "{ key: 'expiring', label: '⏳ تنتهي قريباً' },"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/restaurant-pos/page.tsx",
+      "line": 292,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?limit=15\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/app/restaurant-pos/page.tsx",
+      "line": 349,
+      "type": "missing_api",
+      "content": "fetch(\"/api/customers?search=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/DesktopBanner.tsx",
+      "line": 117,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/license/verify?key=\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/DocumentUploader.tsx",
+      "line": 27,
+      "type": "missing_api",
+      "content": "fetch(\"/api/documents?documentType=:id&documentId=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/GlobalSearch.tsx",
+      "line": 39,
+      "type": "missing_api",
+      "content": "fetch(\"/api/system/search?q=:id&lang=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/InvoiceReceipt.tsx",
+      "line": 77,
+      "type": "missing_api",
+      "content": "fetch(\"/api/auth/me\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/pos/SalesReturnModal.tsx",
+      "line": 30,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/components/PosReturnsModal.tsx",
+      "line": 61,
+      "type": "missing_api",
+      "content": "fetch(\"/api/sales?invoiceNo=:id\") — route not found"
+    },
+    {
+      "file": "D:/namasoft9-3-main/src/hooks/useFeatureFlag.tsx",
+      "line": 34,
+      "type": "missing_api",
+      "content": "fetch(\"/api/ice/tenant-features?tenantAccountId=:id\") — route not found"
+    }
+  ]
+}

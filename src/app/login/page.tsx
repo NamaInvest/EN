@@ -440,7 +440,7 @@ function LoginForm() {
           ) : (
             <button
               type="button"
-              onClick={() => alert("Google Login is currently disabled")}
+              onClick={() => setError("تسجيل الدخول بـ Google غير متاح حالياً. استخدم اسم المستخدم وكلمة المرور.")}
               style={{
                 width: "100%",
                 padding: "14px",
@@ -518,8 +518,8 @@ function LoginForm() {
               </div>
             </div>
             <button onClick={() => {
-                alert("جاري دمج مكتبة face-api.js للتعرف على وجه الكاشير. يتطلب تحميل ملفات النماذج (Models).");
                 setShowFaceLogin(false);
+                setError("ميزة التعرف على الوجه ستُتاح في الإصدار القادم. استخدم اسم المستخدم وكلمة المرور.");
             }} style={{
               marginTop: '24px', background: '#6366f1', color: 'white', border: 'none',
               padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
