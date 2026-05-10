@@ -1,92 +1,96 @@
-import { NextResponse } from 'next/server';
-import { withRoute } from '@/lib/api/with-route';
-
 /**
  * Health Check Endpoint
  * GET /api/health
  *
- * Returns system health status for load balancers, PM2, and monitoring.
- * This route is explicitly PUBLIC (whitelisted in middleware.ts).
+ * يستخدمها:
+ * - Load balancer (PM2 + Nginx) للـ health gate
+ * - CI/CD rollback decision (curl -f /api/health)
+ * - Uptime monitoring (Better Uptime, etc.)
  *
- * Security: Does NOT expose sensitive environment details in production.
+ * ملاحظة: هذا route PUBLIC — لا يحتاج tenant DB
+ * يستخدم DB الافتراضية فقط للـ connectivity check
  */
+import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
+import os from 'os';
+
+const VERSION = process.env.npm_package_version || '2.4.6';
+const REQUIRED_ENVS = ['JWT_SECRET', 'DATABASE_URL'];
+const START_TIME = Date.now();
+
 async function _GET() {
     const startTime = Date.now();
 
-    const checks: Record<string, 'ok' | 'error' | 'warn'> = {
+    const checks: Record<string, 'ok' | 'warn' | 'error'> = {
         api: 'ok',
     };
 
-    // Check DB connectivity
+    // ── Database Ping ─────────────────────────────────────────────────────────
     try {
-        const { getPrisma } = await import('@/lib/prisma');
-        const prisma = getPrisma();
-        // Simple ping — fast, no data read
-        await (prisma as any).$queryRaw`SELECT 1`;
+        const { PrismaClient } = await import('@prisma/client');
+        const dbUrl = process.env.DATABASE_URL_DEFAULT || process.env.DATABASE_URL;
+        const prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
+        await prisma.$queryRaw`SELECT 1`;
+        await prisma.$disconnect();
         checks.database = 'ok';
     } catch {
         checks.database = 'error';
     }
 
-    // Check critical environment secrets (names only, never values)
-    const requiredEnvs = ['JWT_SECRET', 'ENCRYPTION_KEY', 'DATABASE_URL'];
-    const missingEnvs = requiredEnvs.filter(k => !process.env[k]);
+    // ── Environment Secrets ───────────────────────────────────────────────────
+    const missingEnvs = REQUIRED_ENVS.filter(k => !process.env[k]);
     checks.environment = missingEnvs.length === 0 ? 'ok' : 'error';
 
-    // Check Redis connectivity
-    try {
-        const { redisConnection } = await import('@/lib/queue');
-        if (redisConnection && redisConnection.status === 'ready') {
-            checks.redis = 'ok';
-        } else {
-            const ping = await redisConnection.ping();
-            checks.redis = ping === 'PONG' ? 'ok' : 'error';
-        }
-    } catch {
-        checks.redis = 'error';
-    }
+    // ── Memory ────────────────────────────────────────────────────────────────
+    const mem = process.memoryUsage();
+    const heapMb = Math.round(mem.heapUsed / 1024 / 1024);
+    const rssM  = Math.round(mem.rss       / 1024 / 1024);
+    checks.memory = heapMb > 1500 ? 'warn' : 'ok';
 
-    // Check ZATCA simulation ping (optional, just to see if network egress works)
+    // ── ZATCA (optional, non-blocking) ────────────────────────────────────────
     if (process.env.ZATCA_ENV) {
         try {
-            const zatcaUrl = process.env.ZATCA_ENV === 'production' 
-              ? 'https://fatoora.zatca.gov.sa/developer-portal'
-              : 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
-            
-            const res = await fetch(zatcaUrl, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+            const zatcaUrl = process.env.ZATCA_ENV === 'production'
+                ? 'https://fatoora.zatca.gov.sa/developer-portal'
+                : 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';
+            const res = await fetch(zatcaUrl, { method: 'HEAD', signal: AbortSignal.timeout(2000) });
             checks.zatca = res.ok ? 'ok' : 'warn';
         } catch {
-            checks.zatca = 'warn'; // Just warn because ZATCA could be down, shouldn't mark app as 503
+            checks.zatca = 'warn'; // ZATCA can be down — don't mark app as 503
         }
     }
 
-    // Memory usage
-    const mem = process.memoryUsage();
-    const memoryMb = Math.round(mem.heapUsed / 1024 / 1024);
-    checks.memory = memoryMb > 1024 ? 'warn' : 'ok';
+    // ── Build Result ──────────────────────────────────────────────────────────
+    const hasErrors   = Object.values(checks).some(v => v === 'error');
+    const latencyMs   = Date.now() - startTime;
+    const uptimeSec   = Math.round(process.uptime());
+    const processUpMs = Date.now() - START_TIME;
 
-    const allOk = Object.values(checks).every(v => v === 'ok');
-    const latency = Date.now() - startTime;
-
-    const response: Record<string, unknown> = {
-        status: allOk ? 'healthy' : 'degraded',
+    const body: Record<string, unknown> = {
+        status:    hasErrors ? 'degraded' : 'healthy',
+        version:   VERSION,
         timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '2.4.6',
-        uptime: Math.round(process.uptime()),
-        latencyMs: latency,
-        memoryMb,
+        uptime:    uptimeSec,
+        latencyMs,
+        heapMb,
+        rssMb:     rssM,
         checks,
     };
 
-    // Only expose missing env names in development (never in production)
-    if (process.env.NODE_ENV === 'development' && missingEnvs.length > 0) {
-        response.missingEnvs = missingEnvs;
+    // Non-sensitive diagnostics in development
+    if (process.env.NODE_ENV !== 'production') {
+        body.platform = os.platform();
+        body.nodeVersion = process.version;
+        if (missingEnvs.length > 0) body.missingEnvs = missingEnvs;
     }
 
-    return NextResponse.json(response, {
-        status: allOk ? 200 : 503,
-        headers: { 'Cache-Control': 'no-store' },
+    return NextResponse.json(body, {
+        status: hasErrors ? 503 : 200,
+        headers: { 'Cache-Control': 'no-store, no-cache' },
     });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async () => _GET(), {
+    rateLimit: 'DEFAULT',
+    requireAuth: false,
+} as any);
