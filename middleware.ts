@@ -1,24 +1,21 @@
 /**
- * Next.js Edge Middleware — Centralized Auth Guard
+ * Next.js Edge Middleware — Centralized Auth Guard (v3)
+ * ════════════════════════════════════════════════════════
  *
- * Protects all /api/* routes except explicitly listed public ones.
- * Runs on Edge Runtime (before any route handler).
- *
- * Auth flow:
- *   1. Check for cron routes → validate x-cron-secret header
- *   2. Check Authorization header for Bearer token
- *   3. Check `token` cookie as fallback
- *   4. Verify JWT signature
- *   5. If invalid → 401 Unauthorized
- *   6. If valid → inject x-user-id, x-tenant-id headers → allow
- *
- * Reference: IMPROVEMENT_PLAN/KICKOFF.md — اليوم الثالث
+ * Auth flow (in order):
+ *  1. API Versioning rewrite  /api/v1/* → /api/*
+ *  2. Disabled routes         → 410 Gone
+ *  3. Cron routes             → validate x-cron-secret
+ *  4. Public routes           → pass through
+ *  5. API Key auth            → Bearer nma_xxx (SHA-256 verified in withRoute)
+ *  6. JWT auth                → Bearer <jwt> or cookie
+ *  7. Unknown                 → 401 Unauthorized
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-// ─── Public Routes (no auth required) ──────────────────────────
+// ── Public Routes (no auth required) ──────────────────────────────────────────
 const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/register',
@@ -31,58 +28,53 @@ const PUBLIC_ROUTES = [
   '/api/b2b/auth/register',
   '/api/zatca/callback',
   '/api/webhook',
-  '/api/webhooks',
+  '/api/webhooks/events', // read-only events catalog
   '/api/public',
-  '/api/pos/session/open',    // POS initial login
-  '/api/docs',                // OpenAPI documentation
+  '/api/pos/session/open',
+  '/api/docs',
+  '/api/metrics',        // Prometheus scraper (secured by network, not JWT)
 ];
 
-// ─── Permanently Disabled Routes (HTTP 410 Gone) ───────────────
+// ── Permanently Disabled Routes (HTTP 410 Gone) ───────────────────────────────
 const DISABLED_ROUTES = [
   '/api/system/reset',
   '/api/check-env',
 ];
 
-// ─── Cron Routes (require x-cron-secret) ───────────────────────
+// ── Cron Routes (require x-cron-secret) ──────────────────────────────────────
 const CRON_ROUTES_PATTERN = /^\/api\/cron\//;
 
-// Routes outside /api/ that are always public (pages, assets)
-const ALWAYS_PUBLIC_PREFIXES = [
-  '/_next/',
-  '/favicon',
-  '/robots',
-  '/sitemap',
-];
+// ── API Key prefix (nma_ + 40 hex chars) ─────────────────────────────────────
+const API_KEY_PATTERN = /^nma_[0-9a-f]{40}$/;
 
 function isPublicRoute(pathname: string): boolean {
-  // Non-API routes are always public (handled by page-level auth)
   if (!pathname.startsWith('/api/')) return true;
-
-  // Static assets
-  if (ALWAYS_PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return true;
-
-  // Exact public API routes (prefix match)
-  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) return true;
-
+  if (PUBLIC_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'))) return true;
   return false;
 }
 
 function isDisabledRoute(pathname: string): boolean {
-  return DISABLED_ROUTES.some(route => pathname.startsWith(route));
+  return DISABLED_ROUTES.some(r => pathname.startsWith(r));
+}
+
+function json401(message: string) {
+  return new NextResponse(
+    JSON.stringify({ error: 'Unauthorized', message }),
+    { status: 401, headers: { 'Content-Type': 'application/json' } }
+  );
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ─── API Versioning Rewrite (Phase 9.2) ─────────────────────────
-  // Allow external API consumers to use /api/v1/* while routing to internal /api/*
+  // ── 1. API Versioning Rewrite (/api/v1/* → /api/*) ──────────────────────────
   if (pathname.startsWith('/api/v1/')) {
-      const newUrl = new URL(request.url);
-      newUrl.pathname = pathname.replace('/api/v1/', '/api/');
-      return NextResponse.rewrite(newUrl);
+    const newUrl = new URL(request.url);
+    newUrl.pathname = pathname.replace('/api/v1/', '/api/');
+    return NextResponse.rewrite(newUrl);
   }
 
-  // ─── Disabled routes: always return 410 Gone ──────────────────
+  // ── 2. Disabled routes ────────────────────────────────────────────────────────
   if (isDisabledRoute(pathname)) {
     return new NextResponse(
       JSON.stringify({ error: 'DISABLED', message: 'This endpoint has been permanently removed.' }),
@@ -90,44 +82,41 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // ─── Cron routes: validate shared secret ──────────────────────
+  // ── 3. Cron routes ─────────────────────────────────────────────────────────────
   if (CRON_ROUTES_PATTERN.test(pathname)) {
-    const cronSecret = request.headers.get('x-cron-secret');
+    const cronSecret   = request.headers.get('x-cron-secret');
     const expectedSecret = process.env.CRON_SECRET;
-
     if (!expectedSecret || cronSecret !== expectedSecret) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Unauthorized', message: 'Invalid cron secret' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return json401('Invalid cron secret');
     }
-    // Cron authenticated → allow through
     return NextResponse.next();
   }
 
-  // ─── Public routes: pass through ──────────────────────────────
+  // ── 4. Public routes ──────────────────────────────────────────────────────────
   if (isPublicRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // ─── JWT Authentication ───────────────────────────────────────
+  // ── 5 + 6. Authenticate: API Key or JWT ─────────────────────────────────────
   const authHeader = request.headers.get('authorization');
-  let token: string | undefined;
+  const rawToken   = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+  const cookieToken = request.cookies.get('token')?.value;
 
-  if (authHeader?.startsWith('Bearer ')) {
-    token = authHeader.slice(7);
-  } else {
-    token = request.cookies.get('token')?.value;
+  // ── 5. API Key (Bearer nma_xxxx) ─────────────────────────────────────────────
+  if (rawToken && API_KEY_PATTERN.test(rawToken)) {
+    // The actual SHA-256 DB lookup happens in withRoute/api-key-auth.
+    // Middleware just confirms format and forwards the key for downstream verification.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-api-key', rawToken);
+    requestHeaders.set('x-auth-type', 'api-key');
+    // tenantId will be resolved from the DB record in the route handler.
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  if (!token) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+  // ── 6. JWT (Bearer <jwt> or cookie) ──────────────────────────────────────────
+  const token = rawToken ?? cookieToken;
+  if (!token) return json401('Authentication required');
 
-  // Verify JWT
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
     console.error('CRITICAL: JWT_SECRET not set in environment');
@@ -138,28 +127,23 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const secret = new TextEncoder().encode(jwtSecret);
-    const { payload } = await jwtVerify(token, secret);
-
-    // Forward user context to route handlers via headers
+    const secret        = new TextEncoder().encode(jwtSecret);
+    const { payload }   = await jwtVerify(token, secret);
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', String(payload.userId ?? ''));
-    requestHeaders.set('x-user-role', String(payload.role ?? ''));
+
+    requestHeaders.set('x-user-id',   String(payload.userId   ?? ''));
+    requestHeaders.set('x-user-role', String(payload.role     ?? ''));
     requestHeaders.set('x-tenant-id', String(payload.tenantId ?? ''));
-    requestHeaders.set('x-username', String(payload.username ?? ''));
+    requestHeaders.set('x-username',  String(payload.username ?? ''));
+    requestHeaders.set('x-auth-type', 'jwt');
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
-    return new NextResponse(
-      JSON.stringify({ error: 'Unauthorized', message: 'Invalid or expired token' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    );
+    return json401('Invalid or expired token');
   }
 }
 
-// Only run middleware on API routes to avoid overhead on pages
+// Run on all API routes (pages are public by default)
 export const config = {
-  matcher: [
-    '/api/:path*',
-  ],
+  matcher: ['/api/:path*'],
 };
