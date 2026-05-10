@@ -5,6 +5,9 @@ import { BudgetControlEngine } from '@/lib/budget-control';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'budgeting.encumbrance' });
 
 const _POSTSchema = z.object({
   action: z.any().optional(),
@@ -48,7 +51,7 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }

@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { OrdersClient } from './components/OrdersClient';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function ManufacturingOrdersPage() {
     const orders = await prisma.manufacturingOrder.findMany({
         take: 50,

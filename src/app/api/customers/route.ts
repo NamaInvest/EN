@@ -4,6 +4,9 @@ import { getPrisma } from "@/lib/prisma";
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers' });
 async function _GET(request: Request) {
   const prisma = getPrisma(request);
   try {
@@ -29,7 +32,7 @@ async function _GET(request: Request) {
     });
     return NextResponse.json(customers);
   } catch (error: any) {
-    console.error("Customers GET error:", error);
+    log.error("Customers GET error:", error);
     return NextResponse.json([], { status: 500 });
   }
 }
@@ -86,7 +89,7 @@ async function _POST(request: Request) {
     });
     return NextResponse.json(customer, { status: 201 });
   } catch (error: any) {
-    console.error("Customer create error:", error);
+    log.error("Customer create error:", error);
     return NextResponse.json({ error: "فشل في الإنشاء" }, { status: 500 });
   }
 }
@@ -103,7 +106,7 @@ async function _DELETE(request: Request) {
     await prisma.customer.deleteMany();
     return NextResponse.json({ message: "تم حذف الكل" });
   } catch (error: any) {
-    console.error("Customers delete all error:", error);
+    log.error("Customers delete all error:", error);
     return NextResponse.json({ error: "فشل" }, { status: 500 });
   }
 }

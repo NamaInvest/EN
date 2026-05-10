@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Phone, ShoppingBag, ArrowRight, Award, BellRing, Barcode, Scale, Tag, Layers, LayoutDashboard } from 'lucide-react';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.retail' });
 
 export const metadata: Metadata = {
   title: 'نظام إدارة التموينات والحلويات | نما إنفست – Grocery & Retail ERP',

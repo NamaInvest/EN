@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'subscription-status' });
 const prisma = new PrismaClient();
 
 async function _GET(request: NextRequest) {
@@ -45,7 +48,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json({ active: true });
     } catch (error: any) {
-        console.error('Subscription Status Error:', error);
+        log.error('Subscription Status Error:', error);
         return NextResponse.json({ active: true }); // Fail-open to avoid locking legitimately paying users during database DB drops
     }
 }

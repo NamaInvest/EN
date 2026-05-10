@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'public.menu' });
 
 // Public API - no auth required
 async function _GET(req: NextRequest) {
@@ -39,7 +42,7 @@ async function _GET(req: NextRequest) {
             categories: categories.map(c => ({ id: c.id, name: c.name }))
         });
     } catch (e: any) {
-        console.error('Public menu error:', e.message);
+        log.error('Public menu error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }

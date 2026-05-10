@@ -12,6 +12,9 @@
  *   <h1>{_t('وصفات التصنيع', 'Bill of Materials')}</h1>
  */
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.server-t.ts' });
 
 export async function getServerLang(): Promise<'ar' | 'en'> {
     try {

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { SubscriptionEngine } from '@/lib/subscription-engine';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'subscriptions.process-renewals' });
 
 async function _POST(req: NextRequest) {
   const guard = requireCronSecret(req as any);

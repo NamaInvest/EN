@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pharmacy.insurance.journal' });
 
 
 const _POSTSchema = z.object({
@@ -77,7 +80,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, message: 'تم تسجيل القيد المحاسبي بنجاح' });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في تسجيل القيد' }, { status: 500 });
     }
 }

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MPSEngine } from '@/lib/mps-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.mps.generate' });
 
 
 const _POSTSchema = z.object({

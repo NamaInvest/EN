@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.exchange-rates' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -17,7 +20,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(rates);
     } catch (error: any) {
-        console.error("GET exchange rates error:", error);
+        log.error("GET exchange rates error:", error);
         return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
     }
 }
@@ -61,7 +64,7 @@ async function _POST(request: NextRequest) {
         
         return NextResponse.json(newRate);
     } catch (error: any) {
-        console.error("POST exchange rate error:", error);
+        log.error("POST exchange rate error:", error);
         return NextResponse.json({ error: 'حدث خطأ أثناء الإضافة' }, { status: 500 });
     }
 }

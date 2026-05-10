@@ -14,6 +14,9 @@ import { getUserFromRequest }        from '@/lib/auth';
 import { validateRequest, validateQuery, PaginationSchema, DateRangeSchema } from '@/lib/api/validate-request';
 import { buildPurchaseOrderSaga, buildGRNSaga } from '@/lib/workflow/saga/purchase-sagas';
 import { Decimal }                   from '@prisma/client/runtime/library';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchase-orders' });
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 

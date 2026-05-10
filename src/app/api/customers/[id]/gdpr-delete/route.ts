@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers.id.gdpr-delete' });
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

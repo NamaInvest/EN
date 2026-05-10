@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { DocumentExpiryEngine } from '@/lib/document-expiry';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.documents.expiry' });
 
 async function _GET(req: Request) {
     const user = getUserFromRequest(req as any);
@@ -17,7 +20,7 @@ async function _GET(req: Request) {
         const dashboard = await DocumentExpiryEngine.getDashboard();
         return NextResponse.json(dashboard);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
@@ -42,7 +45,7 @@ async function _POST(req: Request) {
         const result = await DocumentExpiryEngine.scanAndAlert(channels);
         return NextResponse.json({ success: true, ...result });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

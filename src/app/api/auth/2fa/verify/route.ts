@@ -5,6 +5,9 @@ import { MfaEngine } from '@/lib/mfa-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.2fa.verify' });
 /**
  * POST /api/auth/2fa/verify — Verify a TOTP code.
  * Used both during setup (to confirm enrollment) and during login.
@@ -63,7 +66,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ ok: true, verified: true });
     } catch (e: any) {
-        console.error('[2FA Verify]', e);
+        log.error('[2FA Verify]', e);
         return NextResponse.json({ error: 'فشل التحقق' }, { status: 500 });
     }
 }

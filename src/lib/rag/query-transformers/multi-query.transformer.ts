@@ -1,4 +1,7 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.rag.query-tr' });
 
 export class MultiQueryTransformer {
   constructor(private llm: ChatGoogleGenerativeAI) {}
@@ -14,7 +17,7 @@ export class MultiQueryTransformer {
 `;
 
     // Stub generation
-    console.log(`[MultiQuery] Generating ${count} variations for: ${query}`);
+    log.info(`[MultiQuery] Generating ${count} variations for: ${query}`);
     return [`Variation 1 of ${query}`, `Variation 2 of ${query}`];
   }
 }

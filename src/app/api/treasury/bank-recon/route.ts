@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.bank-recon' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -70,7 +73,7 @@ async function _GET(request: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error('Bank Recon GET error:', error);
+        log.error('Bank Recon GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات المطابقة البنكية' }, { status: 500 });
     }
 }
@@ -119,7 +122,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json({ error: 'إجراء غير صالح' }, { status: 400 });
     } catch (error: any) {
-        console.error('Bank Recon PUT error:', error);
+        log.error('Bank Recon PUT error:', error);
         return NextResponse.json({ error: 'فشل تحديث حالة المطابقة' }, { status: 500 });
     }
 }

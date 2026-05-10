@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { allocateFEFO } from '@/lib/picking-fefo';
 import { n } from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'inventory.picking.id' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 

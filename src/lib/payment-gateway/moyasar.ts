@@ -1,4 +1,7 @@
 import { prisma } from '../prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.payment-gate' });
 
 const MOYASAR_API_URL = 'https://api.moyasar.com/v1';
 

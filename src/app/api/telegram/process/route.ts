@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { processMessage } from '@/lib/telegram-bot';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'telegram.process' });
 
 const POSTSchema = z.object({
   text: z.string().min(1, 'النص مطلوب').max(4096),
@@ -18,7 +21,7 @@ async function _POST(req: NextRequest) {
         const response = await processMessage(text);
         return NextResponse.json({ response });
     } catch (error: any) {
-        console.error('Telegram process error:', error);
+        log.error('Telegram process error:', error);
         return NextResponse.json({ response: '❌ خطأ في معالجة الطلب' });
     }
 }

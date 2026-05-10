@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bnpl.tamara' });
 
 const JWT_SECRET = (process.env.JWT_SECRET as string);
 
@@ -89,7 +92,7 @@ async function _POST(req: NextRequest) {
         const data = await res.json();
 
         if (!res.ok || data.errors) {
-            console.error('Tamara Rejection:', data);
+            log.error('Tamara Rejection:', data);
             return NextResponse.json({ error: data.message || 'عذراً، رفضت تمارا الجلسة. تأكد من الإعدادات.' }, { status: 400 });
         }
 
@@ -100,7 +103,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (err: any) {
-        console.error('Tamara Error:', err);
+        log.error('Tamara Error:', err);
         return NextResponse.json({ error: 'خلل داخلي في خوادم تمارا.' }, { status: 500 });
     }
 }

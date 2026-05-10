@@ -1,5 +1,8 @@
 import { getPrisma } from '@/lib/prisma';
 import type { VectorStore, VectorDocument, SearchQuery, SearchResult, VectorFilter } from './vector-store.interface';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vector.store' });
 
 /**
  * pgvector Adapter — P3.6 Production Implementation

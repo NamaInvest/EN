@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { PayrollPostingService } from '@/services/payroll/payroll-posting.service';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.runs.id.post' });
 
 async function _POST(request: NextRequest, { params }: { params: { id: string } }) {
   const user = getUserFromRequest(request);

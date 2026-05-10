@@ -2,6 +2,9 @@
  * Deferred Revenue/Expense Engine
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.deferral-eng' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class DeferralEngine {

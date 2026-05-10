@@ -8,6 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { fulfillAccess, eraseSubject } from '@/lib/pdpl-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pdpl.dsr.id.fulfill' });
 
 async function _POST(
     req: NextRequest,

@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.employees' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -19,7 +22,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(employees);
     } catch (error: any) {
-        console.error('hr/employees GET error:', error);
+        log.error('hr/employees GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -66,7 +69,7 @@ async function _POST(request: Request) {
         });
         return NextResponse.json(employee, { status: 201 });
     } catch (error: any) {
-        console.error('hr/employees POST error:', error);
+        log.error('hr/employees POST error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الموظف' }, { status: 500 });
     }
 }

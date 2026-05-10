@@ -2,6 +2,9 @@
  * Expense Report Engine
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.expense-repo' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class ExpenseReportEngine {

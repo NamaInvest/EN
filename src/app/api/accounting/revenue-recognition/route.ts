@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.revenue-recognition' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -63,7 +66,7 @@ async function _GET(request: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error('Revenue Recog GET error:', error);
+        log.error('Revenue Recog GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات الاعتراف بالإيراد' }, { status: 500 });
     }
 }
@@ -101,7 +104,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, recognizedCount });
     } catch (error: any) {
-        console.error('Revenue Recog POST error:', error);
+        log.error('Revenue Recog POST error:', error);
         return NextResponse.json({ error: error.message || 'فشل تشغيل الاعتراف الشهري' }, { status: 500 });
     }
 }

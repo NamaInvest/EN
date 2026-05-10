@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { WmsEngine } from '@/lib/wms-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'inventory.picking.id.confirm' });
 
 
 const _POSTSchema = z.object({

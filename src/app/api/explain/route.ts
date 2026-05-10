@@ -5,6 +5,9 @@
  */
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'explain' });
 
 const POSTSchema = z.object({
   sectionName: z.string().min(1, 'اسم القسم مطلوب').max(200, 'اسم القسم طويل جداً'),
@@ -30,7 +33,7 @@ async function _POST(req: Request) {
     });
     return Response.json({ explanation: response.message.content });
   } catch (err: any) {
-    console.error('Ollama explain error:', err);
+    log.error('Ollama explain error:', err);
     return Response.json({ error: 'فشل الاتصال بـ Ollama — تأكد أن الخدمة تعمل محلياً' }, { status: 503 });
   }
 }

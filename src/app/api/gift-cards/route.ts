@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'gift-cards' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(cards);
     } catch (error: any) {
-        console.error('Error fetching gift cards:', error);
+        log.error('Error fetching gift cards:', error);
         return NextResponse.json({ error: 'Failed to fetch gift cards' }, { status: 500 });
     }
 }
@@ -60,7 +63,7 @@ async function _POST(request: Request) {
         
         return NextResponse.json(card, { status: 201 });
     } catch (error: any) {
-        console.error('Error creating gift card:', error);
+        log.error('Error creating gift card:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'gift-cards' });
     }
 }

@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 // GET - الميزانية العمومية (Assets = Liabilities + Equity)
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.balance-sheet' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -104,7 +107,7 @@ async function _GET(request: Request) {
             isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
         });
     } catch (error: any) {
-        console.error('Balance sheet error:', error);
+        log.error('Balance sheet error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الميزانية العمومية' }, { status: 500 });
     }
 }

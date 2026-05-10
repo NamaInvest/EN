@@ -1,6 +1,9 @@
 // @ts-nocheck
 import { prisma } from "./prisma";
 import crypto from "crypto";
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.year-end-eng' });
 
 export class YearEndCloseEngine {
   /**

@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'rem.installments' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {

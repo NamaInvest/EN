@@ -11,12 +11,15 @@
  *   Authorization: Bearer nm_<key>
  *
  * Key generation (one-time, on creation):
- *   node -e "console.log('nm_' + require('crypto').randomBytes(24).toString('hex'))"
+ *   node -e "log.info('nm_' + require('crypto').randomBytes(24).toString('hex'))"
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getPrisma } from '../prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.api-key-' });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

@@ -9,6 +9,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { queryRAG } from '@/lib/vector-store';
 import { invokeChain } from '@/lib/langchain-orchestrator';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.chat' });
 
 const ChatSchema = z.object({
   message: z.string().min(1).max(4000),

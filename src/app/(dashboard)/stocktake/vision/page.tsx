@@ -19,7 +19,6 @@ interface VisionResult {
 export default function VisionInventoryPage() {
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
-
  const { t } = useTranslation();
  const [imagePreview, setImagePreview] = useState<string | null>(null);
  const [imageFile, setImageFile] = useState<File | null>(null);

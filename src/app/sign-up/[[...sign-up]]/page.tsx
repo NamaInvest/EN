@@ -1,4 +1,7 @@
 import { SignUp } from "@clerk/nextjs";
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.sign-up....s' });
 
 export default function Page() {
   return (

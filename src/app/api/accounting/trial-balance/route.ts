@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.trial-balance' });
 
 /**
  * GET /api/accounting/trial-balance

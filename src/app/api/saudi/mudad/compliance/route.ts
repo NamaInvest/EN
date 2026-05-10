@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { checkMudadCompliance, getUnprotectedEmployees, generateMudadReport } from '@/lib/mudad-compliance';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'saudi.mudad.compliance' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

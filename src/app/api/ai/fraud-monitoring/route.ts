@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.fraud-monitoring' });
 
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -106,7 +109,7 @@ async function _GET(req: NextRequest) {
         return NextResponse.json({ success: true, insights: parsedInsights });
 
     } catch (error: any) {
-        console.error('Fraud AI Error:', error);
+        log.error('Fraud AI Error:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

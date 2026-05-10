@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.letters-of-credit' });
 
 async function _GET(request: NextRequest) {
 
@@ -23,7 +26,7 @@ async function _GET(request: NextRequest) {
         
         return NextResponse.json(lcs);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل في جلب الاعتمادات المستندية' }, { status: 500 });
     }
 }
@@ -83,7 +86,7 @@ async function _POST(request: Request) {
         
         return NextResponse.json(lc, { status: 201 });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل في إنشاء الاعتماد المستندي' }, { status: 500 });
     }
 }

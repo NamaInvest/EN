@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { runAllocation } from '@/lib/copa-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'copa.allocations' });
 
 
 const _POSTSchema = z.object({

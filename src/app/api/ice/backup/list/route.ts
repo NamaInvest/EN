@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.backup.list' });
 
 const prisma = new PrismaClient();
 
@@ -50,7 +53,7 @@ async function _GET(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error('Backup list error:', err);
+    log.error('Backup list error:', err);
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }

@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.recipes.id' });
 
 const _PUTSchema = z.object({
   ingredients: z.any().optional(),
@@ -60,7 +63,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         });
         return NextResponse.json(recipe);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/recipes/[id]' });
     }
 }
@@ -83,7 +86,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         await prisma.recipe.delete({ where: { id: recipeId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/recipes/[id]' });
     }
 }

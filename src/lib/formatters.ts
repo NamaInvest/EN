@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.formatters.t' });
+
 /**
  * Formats a Date object or ISO string into a localized date string.
  * Example: 26/04/2026

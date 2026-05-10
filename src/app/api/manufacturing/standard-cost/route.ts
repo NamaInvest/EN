@@ -5,6 +5,9 @@
  */
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.standard-cost' });
 
 async function handler(ctx: any) {
   const prisma   = ctx.prisma;

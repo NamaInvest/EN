@@ -1,4 +1,7 @@
 import { EmbeddingCache } from './cache';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vector.embed' });
 
 export class GeminiEmbedder {
   constructor(

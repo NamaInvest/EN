@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.leaves.accrual' });
 
 
 const _POSTSchema = z.object({
@@ -29,7 +32,7 @@ async function _POST(req: Request) {
         const result = await LeaveEngine.runMonthlyAccrual(accrualDate, user.userId);
         return NextResponse.json({ success: true, ...result });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'خطأ في التجميع الشهري' }, { status: 500 });
     }
 }

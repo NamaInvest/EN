@@ -9,6 +9,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { NumberingEngine } from '@/lib/numbering-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.number-sequences' });
 
 const db = (p: any) => p as any;
 

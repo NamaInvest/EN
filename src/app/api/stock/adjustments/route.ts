@@ -6,6 +6,9 @@ import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { getUserFromRequest } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stock.adjustments' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -31,7 +34,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json(adjustments);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error', details: e.message }, { status: 500 });
     }
 }
@@ -108,7 +111,7 @@ async function _POST(req: Request) {
                         userId: decoded.userId
                     });
                 } catch (je: unknown) {
-                    console.error("Auto Journal Error (Inventory Adj):", je);
+                    log.error("Auto Journal Error (Inventory Adj):", je);
                 }
             }
 
@@ -117,7 +120,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json(adjustment);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 400 });
     }
 }

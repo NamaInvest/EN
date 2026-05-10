@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { headers } from 'next/headers';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant.trial-status' });
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +76,7 @@ async function _GET(request: NextRequest) {
             trialEndsAt: trialEnd?.toISOString() ?? null,
         });
     } catch (error: any) {
-        console.error('[trial-status]', error);
+        log.error('[trial-status]', error);
         return NextResponse.json({ isTrialActive: false });
     }
 }

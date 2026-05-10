@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MudadEngine } from '@/lib/saudi-gov/mudad';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.mudad.wps.submit.batchId' });
 
 async function _POST(
     req: NextRequest, 

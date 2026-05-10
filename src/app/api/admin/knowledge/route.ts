@@ -5,6 +5,9 @@ import { addDocumentToVectorMine } from '@/lib/vector-store';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.knowledge' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -23,7 +26,7 @@ async function _GET(request: Request) {
         
         return NextResponse.json(docs);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -58,7 +61,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, docId });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

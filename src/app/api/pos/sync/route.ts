@@ -43,6 +43,9 @@ const POSTSchema = z.object({
 // ── POST — رفع المبيعات الأوفلاين ─────────────────────────────────────────
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.sync' });
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {

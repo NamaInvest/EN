@@ -14,6 +14,9 @@ import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { YearEndCloseEngine } from '@/lib/year-end-close';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.year-end-close' });
 
 const CLOSE_ROLES = ['admin', 'owner', 'cfo', 'finance'];
 

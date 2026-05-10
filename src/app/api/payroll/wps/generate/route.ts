@@ -6,6 +6,9 @@ import { WPSGenerator } from '@/lib/wps-generator';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.wps.generate' });
 
 const _POSTSchema = z.object({
   payrollRunId: z.union([z.string(), z.number()]).optional(),

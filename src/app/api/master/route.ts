@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { exec } from 'child_process';
 import util from 'util';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'master' });
 
 const execAsync = util.promisify(exec);
 

@@ -5,6 +5,9 @@ import { invokeChain } from '@/lib/langchain-orchestrator';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.copilot.chat' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -33,7 +36,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json(conversations);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -102,7 +105,7 @@ async function _POST(request: Request) {
             answer,
         });
     } catch (e: any) {
-        console.error('Copilot error:', e);
+        log.error('Copilot error:', e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }

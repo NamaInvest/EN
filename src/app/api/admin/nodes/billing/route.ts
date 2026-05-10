@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from "@prisma/client";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.nodes.billing' });
 
 const prisma = new PrismaClient();
 
@@ -38,7 +41,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, data: updated });
     } catch (e: any) {
-        console.error("[ADMIN_BILLING_API]", e);
+        log.error("[ADMIN_BILLING_API]", e);
         return NextResponse.json({ error: "Failed to update tenant billing." }, { status: 500 });
     }
 }

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.capa' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -19,7 +22,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(ncrs);
     } catch (error: any) {
-        console.error("CAPA GET error:", error);
+        log.error("CAPA GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch NCRs' }, { status: 500 });
     }
 }
@@ -83,7 +86,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ error: 'Invalid actionType' }, { status: 400 });
     } catch (error: any) {
-        console.error("CAPA POST error:", error);
+        log.error("CAPA POST error:", error);
         return NextResponse.json({ error: 'Failed to create record' }, { status: 500 });
     }
 }

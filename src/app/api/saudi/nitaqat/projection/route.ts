@@ -8,6 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { computeSaudizationPct, projectImpact } from '@/lib/qiwa-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'saudi.nitaqat.projection' });
 
 
 const _POSTSchema = z.object({

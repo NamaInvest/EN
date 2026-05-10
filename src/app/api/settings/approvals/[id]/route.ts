@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.approvals.id' });
 
 const _PUTSchema = z.object({
   documentType: z.any().optional(),
@@ -44,7 +47,7 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         
         return NextResponse.json(updated);
     } catch (error: any) {
-        console.error("PUT approval error:", error);
+        log.error("PUT approval error:", error);
         return NextResponse.json({ error: 'حدث خطأ أثناء التحديث' }, { status: 500 });
     }
 }
@@ -60,7 +63,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
         
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("DELETE approval error:", error);
+        log.error("DELETE approval error:", error);
         return NextResponse.json({ error: 'حدث خطأ. لا يمكن حذف القاعدة المرتبطة بعمليات.' }, { status: 500 });
     }
 }

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { QuoteEngine } from '@/lib/quote-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.quotes.id.convert-to-so' });
 
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 

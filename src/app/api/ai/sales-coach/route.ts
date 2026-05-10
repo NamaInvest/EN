@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.sales-coach' });
 
 
 const _POSTSchema = z.object({
@@ -87,7 +90,7 @@ async function _POST(req: Request) {
             score: Math.min(100, Math.round((invoices.length * 3) + (totalSales / 1000))),
         });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في تحليل الأداء' }, { status: 500 });
     }
 }

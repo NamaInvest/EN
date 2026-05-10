@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.boms.versions.versionId.ac' });
 
 async function _POST(req: Request, { params }: { params: Promise<{ versionId: string }> }) {
 

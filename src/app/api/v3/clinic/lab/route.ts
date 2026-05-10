@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'v3.clinic.lab' });
 
 async function _GET(req: Request) {
 

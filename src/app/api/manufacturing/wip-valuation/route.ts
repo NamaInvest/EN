@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.wip-valuation' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -42,7 +45,7 @@ async function _GET(request: Request) {
             details: valuationDetails
         });
     } catch (error: any) {
-        console.error("WIP Valuation error:", error);
+        log.error("WIP Valuation error:", error);
         return NextResponse.json({ error: 'Failed to generate WIP valuation' }, { status: 500 });
     }
 }

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant.check-status' });
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -63,7 +66,7 @@ async function _GET(req: Request) {
         return NextResponse.json({ provisioned: false });
 
     } catch (error: any) {
-        console.error('[check-status] DB error:', error);
+        log.error('[check-status] DB error:', error);
         return NextResponse.json({ provisioned: false, error: 'db_error' });
     } finally {
         await pool.end().catch(() => { });

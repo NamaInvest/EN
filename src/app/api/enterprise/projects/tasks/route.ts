@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.projects.tasks' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -29,7 +32,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json({ tasks, project });
     } catch (error: any) {
-        console.error('Fetch Project Tasks Error:', error);
+        log.error('Fetch Project Tasks Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }
@@ -73,7 +76,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم إضافة مهمة المشروع بنجاح', task });
     } catch (error: any) {
-        console.error('Create Project Task Error:', error);
+        log.error('Create Project Task Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }
@@ -104,7 +107,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم تحديث حالة/تكلفة المهمة', task: updatedTask });
     } catch (error: any) {
-        console.error('Update Project Task Error:', error);
+        log.error('Update Project Task Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects/tasks' });
     }
 }

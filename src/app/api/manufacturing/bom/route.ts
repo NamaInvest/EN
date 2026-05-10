@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.bom' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -26,7 +29,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json(recipes);
     } catch (error: any) {
-        console.error("BOM GET error:", error);
+        log.error("BOM GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch BOMs' }, { status: 500 });
     }
 }
@@ -123,7 +126,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ message: 'تم إنشاء تركيبة المنتج (BOM) بنجاح', data: recipe });
     } catch (error: any) {
-        console.error("BOM POST error:", error);
+        log.error("BOM POST error:", error);
         return NextResponse.json({ error: 'Failed to create BOM' }, { status: 500 });
     }
 }

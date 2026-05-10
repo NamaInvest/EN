@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { WHTEngine } from '@/lib/wht-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'wht.form14.generate' });
 
 
 const _POSTSchema = z.object({

@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'batches.expiry' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
@@ -34,7 +37,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json(batches);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

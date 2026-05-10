@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'public.order' });
 
 // Public API - customer can place order from QR menu
 
@@ -93,7 +96,7 @@ async function _POST(req: NextRequest) {
             message: 'تم استلام طلبك بنجاح! سيتم تجهيزه قريباً.'
         });
     } catch (e: any) {
-        console.error('Public order error:', e.message);
+        log.error('Public order error:', e.message);
         return NextResponse.json({ success: false, error: 'حدث خطأ في إرسال الطلب' }, { status: 500 });
     }
 }

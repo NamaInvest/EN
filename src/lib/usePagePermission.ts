@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.usePagePermi' });
 
 /**
  * Hook موحد للتحقق من صلاحية الوصول لصفحة معينة.

@@ -7,6 +7,9 @@
  * - يُميّز الأخطاء المعروفة (validation) عن الأخطاء التقنية
  */
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api-error.ts' });
 
 // رموز أخطاء Prisma الشائعة → رسائل عربية ودية
 const PRISMA_ERRORS: Record<string, string> = {
@@ -36,7 +39,7 @@ export function apiError(
 ): NextResponse {
     // ── التسجيل التفصيلي للمطور ──
     const ctx = opts.context ? `[${opts.context}]` : '[API]';
-    console.error(`${ctx} Error:`, error);
+    log.error(`${ctx} Error:`, error);
 
     // ── تحديد نوع الخطأ ──
     const err = error as any;

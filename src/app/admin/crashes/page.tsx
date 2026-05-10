@@ -1,4 +1,7 @@
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.admin.crashe' });
 
 export default async function DesktopCrashesPage() {
   const crashes = await prisma.desktopCrashReport.findMany({

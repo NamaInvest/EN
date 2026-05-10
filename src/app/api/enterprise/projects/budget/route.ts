@@ -9,6 +9,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.projects.budget' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);

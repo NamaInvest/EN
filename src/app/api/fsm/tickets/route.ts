@@ -4,6 +4,9 @@ import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fsm.tickets' });
 async function _GET(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);

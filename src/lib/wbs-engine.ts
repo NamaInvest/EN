@@ -7,6 +7,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.wbs-engine.t' });
 
 const db = (p: any) => p as any;
 

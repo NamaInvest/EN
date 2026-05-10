@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.prompts' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -19,7 +22,7 @@ async function _GET(request: Request) {
         
         return NextResponse.json(prompts);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -70,7 +73,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(newPrompt);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

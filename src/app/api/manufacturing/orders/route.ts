@@ -7,6 +7,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.orders' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -80,7 +83,7 @@ async function _POST(request: NextRequest) {
         try {
             mrpResult = await runMRP(newOrder.id);
         } catch (mrpErr: unknown) {
-            console.warn('MRP check failed (non-blocking):', mrpErr);
+            log.warn('MRP check failed (non-blocking):', mrpErr);
         }
 
         return NextResponse.json({ ...newOrder, mrp: mrpResult }, { status: 201 });
@@ -225,7 +228,7 @@ async function _PUT(request: NextRequest) {
             return NextResponse.json(updated);
         }
     } catch (error: any) {
-        console.error("Manufacturing Validation Error:", error);
+        log.error("Manufacturing Validation Error:", error);
         return apiError(error, 'Error altering order matrix', { context: 'manufacturing/orders' });
     }
 }

@@ -335,9 +335,6 @@ export default function SalesOptionsPage() {
  </div>
  </div>
 
-
-
-
  {/* Enable/Disable Coupons */}
  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
  <div style={{ flex: 1 }}>

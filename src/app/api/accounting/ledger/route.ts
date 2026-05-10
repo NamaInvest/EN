@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 // GET - دفتر الأستاذ لحساب معين
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.ledger' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -71,7 +74,7 @@ async function _GET(request: Request) {
             closingBalance: Math.round(runningBalance * 100) / 100,
         });
     } catch (error: any) {
-        console.error('Ledger GET error:', error);
+        log.error('Ledger GET error:', error);
         return NextResponse.json({ error: 'فشل في جلب دفتر الأستاذ' }, { status: 500 });
     }
 }

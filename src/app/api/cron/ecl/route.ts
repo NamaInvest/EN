@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.ecl' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -50,7 +53,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ success: true, message: 'Monthly ECL cron executed successfully.', totalECL });
     } catch (error: any) {
-        console.error('CRON ECL ERROR:', error);
+        log.error('CRON ECL ERROR:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

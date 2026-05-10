@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchase-orders.id.landed-costs' });
 
 async function _GET(
     request: NextRequest,
@@ -24,7 +27,7 @@ async function _GET(
         
         return NextResponse.json(costs);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل جلب تكاليف الشحن' }, { status: 500 });
     }
 }
@@ -87,7 +90,7 @@ async function _POST(
         
         return NextResponse.json(cost, { status: 201 });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل في إضافة التكلفة الموزعة' }, { status: 500 });
     }
 }

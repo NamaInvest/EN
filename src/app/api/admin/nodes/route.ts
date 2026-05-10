@@ -4,6 +4,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { PrismaClient } from "@prisma/client";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.nodes' });
 
 const execAsync = promisify(exec);
 const prisma = new PrismaClient();
@@ -47,7 +50,7 @@ async function _GET() {
     return NextResponse.json({ nodes: enrichedNodes });
 
   } catch (error: any) {
-    console.error("[ADMIN_NODES_API]", error);
+    log.error("[ADMIN_NODES_API]", error);
     return NextResponse.json({ error: "Failed to read Hetzner PM2 Grid" }, { status: 500 });
   }
 }
@@ -74,14 +77,14 @@ async function _POST(req: Request) {
         }
         
         // Execute the physical PM2 command on the server
-        console.log(`[ADMIN_RPC] Executing: pm2 ${action} ${processName}`);
+        log.info(`[ADMIN_RPC] Executing: pm2 ${action} ${processName}`);
         await execAsync(`pm2 ${action} ${processName}`);
         await execAsync("pm2 save");
 
         return NextResponse.json({ success: true, message: `Node ${subdomain} ${action}ed successfully.` });
 
     } catch (error: any) {
-        console.error("[ADMIN_RPC_ERROR]", error);
+        log.error("[ADMIN_RPC_ERROR]", error);
         return NextResponse.json({ error: "PM2 execution failed." }, { status: 500 });
     }
 }

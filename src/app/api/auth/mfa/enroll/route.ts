@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MfaEngine } from '@/lib/mfa-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.mfa.enroll' });
 
 
 const _POSTSchema = z.object({

@@ -1,5 +1,8 @@
 // @ts-ignore
 import qz from 'qz-tray';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.qz.ts' });
 
 export interface QZPrinterConfig {
     name: string;
@@ -19,7 +22,7 @@ export async function connectQZ() {
         }
         return true;
     } catch (e: any) {
-        console.error("QZ Tray connection failed:", e);
+        log.error("QZ Tray connection failed:", e);
         return false;
     }
 }

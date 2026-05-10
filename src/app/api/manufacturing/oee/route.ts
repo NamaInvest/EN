@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { MESEngine } from '@/lib/mes-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.oee' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

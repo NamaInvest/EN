@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.predictive-po' });
 
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
@@ -72,13 +75,13 @@ async function _POST(req: Request) {
         }
       });
 
-      console.log(`[Auto-Replenish] Draft PO Generated #${newPO.orderNo} for ${productsInfo.length} items`);
+      log.info(`[Auto-Replenish] Draft PO Generated #${newPO.orderNo} for ${productsInfo.length} items`);
       return NextResponse.json({ message: 'Predictive PO Generated', orderNo: newPO.orderNo, itemsCount: productsInfo.length });
     }
 
     return NextResponse.json({ message: 'Completed without ordering' });
   } catch (error: any) {
-    console.error('Predictive Procurement Error:', error);
+    log.error('Predictive Procurement Error:', error);
     return NextResponse.json({ error: 'Failed to run predictive procurement' }, { status: 500 });
   }
 }

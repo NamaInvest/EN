@@ -4,6 +4,9 @@ import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fiscal-periods' });
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

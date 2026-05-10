@@ -6,6 +6,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.ocr' });
 
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
@@ -55,7 +58,7 @@ async function _POST(req: NextRequest) {
         try {
             parsedData = JSON.parse(extractedText.replace(/```json/g, '').replace(/```/g, '').trim());
         } catch (e: any) {
-            console.error('Failed to parse Gemini JSON:', extractedText);
+            log.error('Failed to parse Gemini JSON:', extractedText);
             return NextResponse.json({ error: 'عذراً، فشل في فهم نتيجة الذكاء الاصطناعي' }, { status: 500 });
         }
 
@@ -68,7 +71,7 @@ async function _POST(req: NextRequest) {
         });
     } catch (error: any) {
         const errMsg = error?.message || String(error);
-        console.error('OCR Error:', errMsg);
+        log.error('OCR Error:', errMsg);
         
         let msg = 'فشل في قراءة الفاتورة';
 

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zatca' });
 
 // ZATCA Sandbox endpoints
 const ZATCA_API_BASE = 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal';

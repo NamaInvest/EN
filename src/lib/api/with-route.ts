@@ -24,6 +24,9 @@ import { getPrisma, resolveTenant, currentRequestStore } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { httpRequestsTotal, httpRequestDuration } from '@/lib/instrumentation/metrics';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.with-rou' });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -189,7 +192,7 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
       httpRequestDuration.observe({ method, route: pathname }, durationSec);
 
       const isDev = process.env.NODE_ENV === 'development';
-      console.error(`[withRoute] ${method} ${pathname} [${requestId}]:`, err.message);
+      log.error(`[withRoute] ${method} ${pathname} [${requestId}]:`, err.message);
 
       return NextResponse.json(
         {

@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai-cfo.report' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -108,12 +111,12 @@ async function _GET(req: NextRequest) {
             const parsedData = JSON.parse(text);
             return NextResponse.json({ success: true, report: parsedData, raw: financialData });
         } catch (e: any) {
-            console.error("AI JSON Parse Error:", text);
+            log.error("AI JSON Parse Error:", text);
             return NextResponse.json({ error: 'تعذر فهم صيغة الجواب من الذكاء الاصطناعي.' }, { status: 500 });
         }
 
     } catch (error: any) {
-        console.error('AI CFO Report Error:', error.message || error);
+        log.error('AI CFO Report Error:', error.message || error);
         
         let msg = 'فشل في الاتصال بمزود الخدمة لمعالجة التقرير الذكي.';
         if (error?.message?.includes('Too Many Requests') || error?.message?.includes('quota')) {

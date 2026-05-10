@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'clinic.appointments' });
 
 const prisma = new PrismaClient();
 
@@ -112,7 +115,7 @@ async function _POST(req: Request) {
         });
 
         // SMS / WhatsApp reminder placeholder logic
-        console.log(`[Clinic] Scheduled Appointment for Patient #${appointment.patientId} at ${appointment.startTime}. Reminder scheduled.`);
+        log.info(`[Clinic] Scheduled Appointment for Patient #${appointment.patientId} at ${appointment.startTime}. Reminder scheduled.`);
 
         return NextResponse.json({
             success: true,

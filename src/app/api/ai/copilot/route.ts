@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.copilot' });
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -68,7 +71,7 @@ async function _POST(req: NextRequest) {
         return NextResponse.json(parsed);
 
     } catch (e: any) {
-        console.error('AI Error:', e);
+        log.error('AI Error:', e);
         return NextResponse.json({ error: e.message || 'خطأ داخلي في الخادم الذكي' }, { status: 500 });
     }
 }

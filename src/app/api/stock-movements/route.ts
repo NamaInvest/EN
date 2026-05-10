@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stock-movements' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -15,7 +18,7 @@ async function _GET(request: Request) {
         if (stockId) where.stockId = parseInt(stockId);
         const movements = await prisma.stockMovement.findMany({ where, include: { product: true, stock: true }, orderBy: { date: 'desc' }, take: 100 });
         return NextResponse.json(movements);
-    } catch (error: any) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
 
@@ -49,7 +52,7 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(movement, { status: 201 });
-    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

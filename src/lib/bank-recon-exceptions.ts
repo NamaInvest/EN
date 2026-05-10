@@ -10,6 +10,9 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-recon-e' });
 
 export type ExceptionStatus = 'OPEN' | 'ESCALATED' | 'CRITICAL' | 'RESOLVED' | 'DISMISSED';
 export type ResolutionType  = 'MANUAL_MATCH' | 'TIMING_DIFFERENCE' | 'BANK_ERROR' | 'BOOK_ADJUSTMENT' | 'WRITEOFF';

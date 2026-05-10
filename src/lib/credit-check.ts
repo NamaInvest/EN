@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { n } from './decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.credit-check' });
 
 export interface CreditCheckResult {
     passed: boolean;
@@ -86,7 +89,7 @@ export async function checkCredit(
             reason = `Credit limit exceeded. Limit: ${creditLimit}, Exposure: ${totalExposure}`;
         } else {
             // Bypass granted, maybe log this event somewhere.
-            console.log(`Credit limit bypassed for Customer ${customerId} by authorized user.`);
+            log.info(`Credit limit bypassed for Customer ${customerId} by authorized user.`);
         }
     }
 

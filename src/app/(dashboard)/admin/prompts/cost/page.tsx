@@ -2,6 +2,9 @@ import React from 'react';
 import { getPrisma } from '@/lib/prisma';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 
 export const metadata = {
     title: 'تكلفة الذكاء الاصطناعي (AI Cost)',

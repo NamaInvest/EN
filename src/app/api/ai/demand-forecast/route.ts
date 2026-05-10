@@ -9,6 +9,9 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.demand-forecast' });
 
 // Simple moving average + trend forecasting
 function movingAverage(data: number[], window: number): number {
@@ -91,7 +94,7 @@ async function _GET(req: Request) {
             weeklyHistory: weeklyDemand.slice(-8),
         });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في التنبؤ' }, { status: 500 });
     }
 }
@@ -141,7 +144,7 @@ async function _POST(req: Request) {
             forecasts: forecasts.sort((a: any, b: any) => a.stockWillLastDays - b.stockWillLastDays),
         });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في التنبؤ الجماعي' }, { status: 500 });
     }
 }

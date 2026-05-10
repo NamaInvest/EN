@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { CreditCheckEngine } from '@/lib/credit-check-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'credit-check' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

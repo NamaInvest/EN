@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'loyalty.customerId.transactions' });
 async function _GET(request: Request, { params }: { params: Promise<{ customerId: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ customerId
         });
         return NextResponse.json(transactions);
     } catch (error: any) {
-        console.error('Error fetching loyalty transactions:', error);
+        log.error('Error fetching loyalty transactions:', error);
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
     }
 }

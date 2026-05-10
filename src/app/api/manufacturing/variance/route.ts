@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.variance' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -16,7 +19,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(variances);
     } catch (error: any) {
-        console.error("Variance GET error:", error);
+        log.error("Variance GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch variances' }, { status: 500 });
     }
 }

@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'approvals' });
 async function _GET(request: Request) {
     const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
@@ -28,7 +31,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json(steps);
     } catch (error: any) {
-        console.error('Approvals GET error:', error);
+        log.error('Approvals GET error:', error);
         return NextResponse.json({ error: error.message || 'فشل في جلب الموافقات' }, { status: 500 });
     }
 }

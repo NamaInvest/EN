@@ -5,6 +5,9 @@ import { ZakatEngine } from '@/lib/zakat-engine';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zakat.assessments.id' });
 async function _GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

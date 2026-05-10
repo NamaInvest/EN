@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'banks.id.transactions' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -20,7 +23,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
         
         return NextResponse.json(transactions);
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 }); 
     }
 }
@@ -104,7 +107,7 @@ async function _POST(request: Request, { params }: { params: Promise<{ id: strin
 
         return NextResponse.json(result);
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks/[id]/transactions' }); 
     }
 }

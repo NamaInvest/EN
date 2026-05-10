@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.bi-export' });
 /**
  * GET /api/reports/bi-export?entity=sales|purchases|inventory|customers
  * Returns JSON data optimized for BI tools (Power BI, Tableau, Looker)
@@ -118,7 +121,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json({ entity, count: data.length, data });
     } catch (e: any) {
-        console.error('[BI Export]', e);
+        log.error('[BI Export]', e);
         return NextResponse.json({ error: 'فشل التصدير' }, { status: 500 });
     }
 }

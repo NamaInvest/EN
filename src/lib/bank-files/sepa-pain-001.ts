@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-files.s' });
+
 export class SEPAFileGenerator {
     static generate(paymentRun: any, companyBankDetails: any, format = 'pain.001.001.09') {
         // Simplified ISO 20022 XML structure

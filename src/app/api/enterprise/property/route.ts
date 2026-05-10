@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.property' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -79,7 +82,7 @@ async function _POST(request: NextRequest) {
 
     return NextResponse.json(createdProperty);
   } catch (error: any) {
-    console.error("Property Creation Error:", error);
+    log.error("Property Creation Error:", error);
     return NextResponse.json({ error: 'Failed to create property' }, { status: 500 });
   }
 }

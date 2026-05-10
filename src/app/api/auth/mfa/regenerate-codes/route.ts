@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.mfa.regenerate-codes' });
 
 
 const _POSTSchema = z.object({

@@ -11,6 +11,9 @@
 import { z } from "zod";
 import { getPrisma } from '@/lib/prisma';
 import { getPrompt, logPromptUsage } from './prompts/registry';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.langchain-or' });
 
 // Lazy-loaded LangChain modules
 let _lcModules: any = null;
@@ -33,7 +36,7 @@ async function getLcModules() {
                 tool: tools.tool,
             };
         } catch {
-            console.warn('⚠️ LangChain not available — using stub orchestrator');
+            log.warn('⚠️ LangChain not available — using stub orchestrator');
             _lcModules = null;
             return null;
         }

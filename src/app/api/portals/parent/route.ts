@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'portals.parent' });
 
 async function _POST(req: Request) {
 
@@ -24,7 +27,7 @@ async function _POST(req: Request) {
 
     return NextResponse.json({ guardianPhone: phone, students });
   } catch (error: any) {
-    console.error('Parent Portal Auth Error:', error);
+    log.error('Parent Portal Auth Error:', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

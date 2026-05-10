@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.blockchain-trace' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     const { searchParams } = new URL(request.url);
@@ -53,7 +56,7 @@ async function _GET(request: Request) {
         });
 
     } catch (error: any) {
-        console.error("Blockchain error:", error);
+        log.error("Blockchain error:", error);
         return NextResponse.json({ error: 'Failed to fetch ledger' }, { status: 500 });
     }
 }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { CRMEngine } from '@/lib/crm-engine';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'crm.forecast' });
 
 async function _GET(req: NextRequest) {
 

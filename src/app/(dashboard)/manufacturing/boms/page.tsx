@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { BomsClient } from './components/BomsClient';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function BomsPage() {
     const recipes = await prisma.recipe.findMany({
             take: 100,

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.wps' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -31,7 +34,7 @@ async function _GET(request: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error('WPS GET error:', error);
+        log.error('WPS GET error:', error);
         return NextResponse.json({ error: 'فشل جلب ملفات حماية الأجور' }, { status: 500 });
     }
 }
@@ -89,7 +92,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, batch });
     } catch (error: any) {
-        console.error('WPS POST error:', error);
+        log.error('WPS POST error:', error);
         return NextResponse.json({ error: error.message || 'فشل توليد ملف SIF' }, { status: 500 });
     }
 }

@@ -5,6 +5,9 @@ import { EmailTemplateEngine } from '@/lib/email-template-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.email-templates' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

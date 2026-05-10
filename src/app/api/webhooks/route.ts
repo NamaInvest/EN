@@ -8,6 +8,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { WebhookEngine, WEBHOOK_EVENTS } from '@/lib/webhook-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'webhooks' });
 
 const CreateWebhookSchema = z.object({
   url:         z.string().url('عنوان URL غير صالح'),

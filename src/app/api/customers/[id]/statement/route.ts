@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
 import { emailQueue } from '@/lib/queue';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers.id.statement' });
 
 
 const _POSTSchema = z.object({

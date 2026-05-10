@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'portals.tenant' });
 
 async function _POST(req: Request) {
 
@@ -27,7 +30,7 @@ async function _POST(req: Request) {
 
     return NextResponse.json({ tenant, leases });
   } catch (error: any) {
-    console.error('Portal Auth Error:', error);
+    log.error('Portal Auth Error:', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

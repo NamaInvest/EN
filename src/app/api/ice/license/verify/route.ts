@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.license.verify' });
 
 // ──────────────────────────────────────────────────────────────────────────────
 // License Verify — Public endpoint called by desktop app

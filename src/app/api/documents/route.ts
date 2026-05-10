@@ -7,6 +7,9 @@ import { existsSync } from 'fs';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'documents' });
 async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -55,7 +58,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json(record, { status: 201 });
     } catch (e: any) {
-        console.error('File upload error:', e);
+        log.error('File upload error:', e);
         return NextResponse.json({ error: 'فشل في رفع الملف' }, { status: 500 });
     }
 }
@@ -87,7 +90,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(docs);
     } catch (e: any) {
-        console.error('Fetch docs error:', e);
+        log.error('Fetch docs error:', e);
         return NextResponse.json({ error: 'فشل جلب المستندات' }, { status: 500 });
     }
 }

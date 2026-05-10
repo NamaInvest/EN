@@ -10,6 +10,9 @@ import { getPrisma }             from '@/lib/prisma';
 import { z }                     from 'zod';
 import { postSalesReturn }       from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales-returns' });
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -164,7 +167,7 @@ async function _POST(req: NextRequest, auth: any) {
     userId:   auth?.userId,
     branchId: body.branchId,
     date:     today,
-  }).catch(err => console.error('[sales-return-journal]', err.message));
+  }).catch(err => log.error('[sales-return-journal]', err.message));
 
   return NextResponse.json({
     success:  true,

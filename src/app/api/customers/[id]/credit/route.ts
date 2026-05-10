@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers.id.credit' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -16,7 +19,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
 
         return NextResponse.json(creditDetails);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

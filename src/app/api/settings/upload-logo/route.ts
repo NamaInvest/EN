@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.upload-logo' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -38,7 +41,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, logo: base64 });
     } catch (error: any) {
-        console.error('Logo upload error:', error);
+        log.error('Logo upload error:', error);
         return NextResponse.json({ error: 'فشل في رفع الشعار' }, { status: 500 });
     }
 }

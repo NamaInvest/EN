@@ -7,6 +7,9 @@ import { canTransition, DocumentType } from '@/lib/document-state-machine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.work-orders' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -24,7 +27,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json(orders);
     } catch (error: any) {
-        console.error("WO GET error:", error);
+        log.error("WO GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
     }
 }
@@ -71,7 +74,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ message: 'تم إنشاء أمر التشغيل بنجاح', data: order });
     } catch (error: any) {
-        console.error("WO POST error:", error);
+        log.error("WO POST error:", error);
         return NextResponse.json({ error: 'Failed to create work order' }, { status: 500 });
     }
 }
@@ -232,7 +235,7 @@ async function _PUT(request: Request) {
 
         return NextResponse.json({ message: 'تم تحديث حالة الأمر بنجاح' });
     } catch (error: any) {
-        console.error("WO PUT error:", error);
+        log.error("WO PUT error:", error);
         return NextResponse.json({ error: 'Failed to update work order status' }, { status: 500 });
     }
 }

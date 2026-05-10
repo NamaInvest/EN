@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.rfq.id.comparison' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -76,7 +79,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
         });
 
     } catch (e: any) {
-        console.error('RFQ Comparison Error:', e);
+        log.error('RFQ Comparison Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

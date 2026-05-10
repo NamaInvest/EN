@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.labor-efficiency' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -46,7 +49,7 @@ async function _GET(request: Request) {
             data: efficiencyReport
         });
     } catch (error: any) {
-        console.error("Efficiency error:", error);
+        log.error("Efficiency error:", error);
         return NextResponse.json({ error: 'Failed to generate efficiency report' }, { status: 500 });
     }
 }

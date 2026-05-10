@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.email.ts' });
 
 const transporter = nodemailer.createTransport({
     host: process.env.ZEPTOMAIL_HOST || 'smtp.zeptomail.sa',
@@ -34,7 +37,7 @@ export async function sendEmail(opts: EmailOptions): Promise<boolean> {
         await transporter.sendMail({ from: FROM, ...opts });
         return true;
     } catch (err: any) {
-        console.error('[Email] Failed to send:', err);
+        log.error('[Email] Failed to send:', err);
         return false;
     }
 }

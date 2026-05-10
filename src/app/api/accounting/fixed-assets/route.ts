@@ -4,6 +4,9 @@
  */
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.fixed-assets' });
 
 async function handler(ctx: any) {
   const sp  = ctx.req.nextUrl.searchParams.toString();

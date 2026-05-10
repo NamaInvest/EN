@@ -6,6 +6,9 @@ import { GOSIEngine } from '@/lib/gosi-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.gosi.calculate' });
 
 const _POSTSchema = z.object({
   payrollRunId: z.union([z.string(), z.number()]).optional(),

@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'smart-transfers' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -143,7 +146,7 @@ async function _POST(req: NextRequest) {
                 userId: (user as any).id || 1,
             });
         } catch (je: unknown) {
-            console.error('Auto Journal Transit Out Error', je);
+            log.error('Auto Journal Transit Out Error', je);
         }
 
         return NextResponse.json({ success: true, message: 'تم إرسال الإرسالية بنجاح، البضاعة الآن في الطريق.', dispatchCheck: movementId });
@@ -233,7 +236,7 @@ async function _PUT(req: NextRequest) {
                 userId: (user as any).id || 1,
             });
         } catch (je: unknown) {
-            console.error('Auto Journal Transit In Error', je);
+            log.error('Auto Journal Transit In Error', je);
         }
 
         return NextResponse.json({ success: true, message: 'تم ادخال البضاعة بنجاح إلى المستودع الهدف!' });

@@ -2,6 +2,9 @@
  * Chatter/Comments Engine — Odoo-style comments on any record
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chatter-engi' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class ChatterEngine {

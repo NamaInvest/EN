@@ -5,6 +5,9 @@ import { encrypt, decrypt, maskSensitive } from "@/lib/encryption";
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'employees' });
 async function _GET(request: Request) {
   // Auth guard
   const { getUserFromRequest: _getAuth } = require("@/lib/auth");
@@ -32,7 +35,7 @@ async function _GET(request: Request) {
     }));
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error(error);
+    log.error(error);
     return NextResponse.json([], { status: 500 });
   }
 }
@@ -96,7 +99,7 @@ async function _POST(request: Request) {
     });
     return NextResponse.json(employee, { status: 201 });
   } catch (error: any) {
-    console.error(error);
+    log.error(error);
     return NextResponse.json({ error: "فشل" }, { status: 500 });
   }
 }
@@ -133,7 +136,7 @@ async function _PUT(request: Request) {
 
     return NextResponse.json(updated);
   } catch (error: any) {
-    console.error("Face registration error:", error);
+    log.error("Face registration error:", error);
     return NextResponse.json(
       { error: "Failed to save biometric data" },
       { status: 500 },

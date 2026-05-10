@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'subscriptions' });
 const prisma = new PrismaClient();
 
 
@@ -67,7 +70,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
     } catch (error: any) {
-        console.error('Subscription API Error:', error);
+        log.error('Subscription API Error:', error);
         return NextResponse.json({ error: 'حدث خطأ داخلي' }, { status: 500 });
     }
 }

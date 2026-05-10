@@ -4,6 +4,9 @@ import { PrismaClient } from "@prisma/client";
 import { currentUser } from "@clerk/nextjs/server";
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant.create' });
 
 const prisma = new PrismaClient();
 
@@ -54,7 +57,7 @@ async function _POST(req: Request) {
     return NextResponse.json({ success: true, tenant });
 
   } catch (error: any) {
-    console.error("[TENANT_CREATE_API]", error);
+    log.error("[TENANT_CREATE_API]", error);
     return NextResponse.json({ error: "Failed to allocate tenant instance." }, { status: 500 });
   }
 }

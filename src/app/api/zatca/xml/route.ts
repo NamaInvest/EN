@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zatca.xml' });
 
 const GETQuerySchema = z.object({
   invoiceId: z.string().regex(/^\d+$/, 'invoiceId must be a positive integer'),
@@ -45,7 +48,7 @@ async function _GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('ZATCA XML download error:', error);
+    log.error('ZATCA XML download error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

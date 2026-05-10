@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.payroll.generate' });
 
 const GeneratePayrollSchema = z.object({
   month: z.union([z.string(), z.number()]).transform(v => parseInt(String(v))).refine(v => v >= 1 && v <= 12, 'الشهر 1-12'),
@@ -167,7 +170,7 @@ async function _POST(request: Request) {
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error("Payroll Error:", error);
+        log.error("Payroll Error:", error);
         return apiError(error, 'فشل توليد مسير الرواتب', { context: 'hr/payroll/generate' });
     }
 }

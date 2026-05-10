@@ -4,6 +4,9 @@ import { getPrisma, resolveTenant } from '@/lib/prisma';
 import { searchDocuments } from '@/lib/document-embeddings';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'search.semantic' });
 /**
  * AI-17 — Semantic Search API
  * Searches across all indexed documents using vector similarity.
@@ -33,7 +36,7 @@ async function _GET(request: Request) {
             })),
         });
     } catch (e: any) {
-        console.error('Semantic search error:', e);
+        log.error('Semantic search error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

@@ -5,6 +5,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function MfaAuditPage() {
     const logs = await prisma.mfaAttempt.findMany({
         orderBy: { attemptedAt: 'desc' },

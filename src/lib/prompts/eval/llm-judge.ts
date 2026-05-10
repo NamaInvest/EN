@@ -1,4 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.eval' });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -51,7 +54,7 @@ AI Output: ${aiOutput}
             reasoning: parsed.reasoning || 'No reasoning provided.'
         };
     } catch (e) {
-        console.error('[EvalSuite] Failed to evaluate prompt output:', e);
+        log.error('[EvalSuite] Failed to evaluate prompt output:', e);
         return { score: 0, reasoning: 'Evaluation failed due to error.' };
     }
 }

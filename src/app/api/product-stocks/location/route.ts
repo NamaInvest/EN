@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'product-stocks.location' });
 
 const _POSTSchema = z.object({
   productStockId: z.union([z.string(), z.number()]).optional(),
@@ -32,7 +35,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(updated, { status: 200 });
     } catch (error: any) {
-        console.error('Location Update Error:', error);
+        log.error('Location Update Error:', error);
         return NextResponse.json({ error: 'Failed to update location' }, { status: 500 });
     }
 }

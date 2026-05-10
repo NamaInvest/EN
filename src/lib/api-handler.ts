@@ -19,6 +19,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodSchema, ZodError } from 'zod';
 import { logger } from './logger';
+
+const log = logger.child({ service: "api-handler" });
 import { rateLimit } from './rate-limit';
 
 // ── Prisma error codes → user-friendly Arabic messages ──
@@ -72,8 +74,6 @@ export function withApiHandler(handler: RouteHandler, options: HandlerOptions = 
     const requestId = crypto.randomUUID().slice(0, 8);
     const pathname = new URL(req.url).pathname;
     const tenantId = req.headers.get('x-tenant-id') || 'default';
-
-    const log = logger.child({ requestId, route: pathname, tenantId });
 
     try {
       // ── Rate Limiting ──
@@ -197,4 +197,4 @@ export function handleApiError(error: unknown): NextResponse {
   const msg = error instanceof Error ? error.message : 'حدث خطأ داخلي في الخادم.';
   return NextResponse.json({ error: msg }, { status: 500 });
 }
-
+

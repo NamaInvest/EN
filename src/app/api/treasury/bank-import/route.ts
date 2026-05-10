@@ -11,6 +11,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { BankStatementImporter } from '@/lib/bank-statement-importer';
 import { checkRateLimit, getClientIp } from '@/lib/api/rate-limit';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.bank-import' });
 
 const TREASURY_ROLES = ['admin', 'owner', 'finance', 'treasury', 'accountant'];
 

@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { recordBreach, getActiveBreaches } from '@/lib/pdpl-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pdpl.breach' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

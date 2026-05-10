@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cdn-manager.' });
+
 /**
  * CDN Manager
  * ──────────────────────────────────────────────────────────

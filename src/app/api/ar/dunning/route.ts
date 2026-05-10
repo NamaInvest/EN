@@ -8,6 +8,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
 import { DunningEngine } from '@/lib/dunning-engine';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ar.dunning' });
 
 const RunDunningSchema = z.object({
   asOf: z.string().datetime().optional(),

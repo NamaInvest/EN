@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.po.id' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 

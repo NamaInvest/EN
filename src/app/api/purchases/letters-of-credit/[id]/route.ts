@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.letters-of-credit.id' });
 
 
 const _PUTSchema = z.object({
@@ -62,7 +65,7 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
 
         return NextResponse.json(lc);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل في تحديث الاعتماد المستندي' }, { status: 500 });
     }
 }
@@ -82,7 +85,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
 
         return NextResponse.json({ success: true });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل في حذف الاعتماد. قد يكون مرتبطاً بمشتريات.' }, { status: 500 });
     }
 }

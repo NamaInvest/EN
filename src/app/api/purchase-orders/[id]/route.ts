@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchase-orders.id' });
 async function _GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -122,7 +125,7 @@ async function _PUT(
                             create: { productId: detail.productId, stockId: currentOrder.stockId, quantity: detail.quantity }
                         });
                     } catch (e: any) {
-                         console.error('Failed stock upsert:', e);
+                         log.error('Failed stock upsert:', e);
                     }
                 }
                 
@@ -150,13 +153,13 @@ async function _PUT(
                     hasGRN: true, // [EG-02] PO completion always has stock received → clear GRNI
                 });
             } catch (err: any) {
-                console.error('Failed to post PO auto-journal', err);
+                log.error('Failed to post PO auto-journal', err);
             }
         }
 
         return NextResponse.json(updatedOrder);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل بتحديث الحالة' }, { status: 500 });
     }
 }

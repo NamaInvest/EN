@@ -1,3 +1,4 @@
+
 /**
  * Unit Tests — Year-End Close Engine
  * Tests: readiness validation rules, P&L balancing, period immutability

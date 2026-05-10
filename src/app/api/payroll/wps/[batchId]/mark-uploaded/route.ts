@@ -5,6 +5,9 @@ import { WPSGenerator } from '@/lib/wps-generator';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.wps.batchId.mark-uploaded' });
 async function _POST(
     request: Request,
     context: { params: Promise<{ batchId: string }> }

@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'warehouses.analytics' });
 export const dynamic = 'force-dynamic';
 
 async function _GET(request: Request) {
@@ -57,7 +60,7 @@ async function _GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Analytics Error:', error);
+    log.error('Analytics Error:', error);
     return apiError(error, 'حدث خطأ في المعالجة', { context: 'warehouses/analytics' });
   }
 }

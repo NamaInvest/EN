@@ -9,6 +9,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.checkout' });
 
 const _POSTSchema = z.object({
   cart: z.any().optional(),
@@ -184,7 +187,7 @@ async function _POST(req: NextRequest) {
                 date: new Date().toISOString().split('T')[0],
             });
         } catch (journalErr: unknown) {
-            console.warn('Auto-journal for POS sale skipped/failed:', journalErr);
+            log.warn('Auto-journal for POS sale skipped/failed:', journalErr);
         }
 
         // Generate ZATCA Barcode for Receipt
@@ -213,7 +216,7 @@ async function _POST(req: NextRequest) {
                 });
             }
         } catch (qrErr: unknown) {
-            console.warn('Zatca QR generation failed in POS:', qrErr);
+            log.warn('Zatca QR generation failed in POS:', qrErr);
         }
 
         // Return a Stringified invoice number and the QR for the frontend
@@ -227,7 +230,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error("POS Checkout error:", error);
+        log.error("POS Checkout error:", error);
         return NextResponse.json({ success: false, error: 'حدث خطأ أثناء معالجة الدفع: ' + error.message }, { status: 500 });
     }
 }

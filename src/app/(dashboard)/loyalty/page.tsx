@@ -25,7 +25,6 @@ export default function LoyaltyPage() {
  const [redeemRate, setRedeemRate] = useState('100'); // X Points = 1 SAR Discount
  const [savingSettings, setSavingSettings] = useState(false);
 
-
  const token = () => localStorage.getItem('token') || '';
  const headers = () => ({ Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' });
 

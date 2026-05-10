@@ -10,6 +10,9 @@ import { getPrisma } from '@/lib/prisma';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.sync' });
 
 const MAIN_SITE_HOSTS = new Set([
   'namainvist.com',
@@ -60,7 +63,7 @@ async function _POST(req: NextRequest) {
     return NextResponse.json({ success: true, user: { id: dbUser.id, username: dbUser.username, role: dbUser.role } });
 
   } catch (error: any) {
-    console.error('Sync user error:', error);
+    log.error('Sync user error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'portal.vendor.rfq.id.bid' });
 
 
 const _POSTSchema = z.object({
@@ -85,7 +88,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         return NextResponse.json({ success: true, bidId: bid.id });
 
     } catch (e: any) {
-        console.error('Vendor Bid Submission Error:', e);
+        log.error('Vendor Bid Submission Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

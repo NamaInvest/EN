@@ -9,6 +9,9 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { LeaveEngine } from '@/lib/leave-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.leaves' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -38,7 +41,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ requests, year });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في جلب طلبات الإجازات' }, { status: 500 });
     }
 }
@@ -81,7 +84,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, ...result });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'خطأ في إنشاء طلب الإجازة' }, { status: 400 });
     }
 }

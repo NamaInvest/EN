@@ -4,6 +4,9 @@ import { getBnplKeys, getTabbyPaymentStatus, getTamaraOrderStatus } from '@/lib/
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.bnpl.status' });
 async function _GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
@@ -44,7 +47,7 @@ async function _GET(request: NextRequest) {
             provider
         });
     } catch (error: any) {
-        console.error('BNPL Status Error:', error);
+        log.error('BNPL Status Error:', error);
         return apiError(error, 'فشل في استرداد حالة الدفع', { context: 'pos/bnpl/status' });
     }
 }

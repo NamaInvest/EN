@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getStateMachineFor, BaseState } from '@/lib/state-machine';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'documents.transition' });
 
 
 const _POSTSchema = z.object({
@@ -84,7 +87,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, message: 'Status updated' });
     } catch (e: any) {
-        console.error('State transition error:', e);
+        log.error('State transition error:', e);
         return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 });
     }
 }

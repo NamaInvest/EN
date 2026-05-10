@@ -9,6 +9,9 @@
  * Compliant with IAS 7 Statement of Cash Flows
  */
 import { prisma } from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cash-flow-fo' });
 
 const db = prisma as any;
 

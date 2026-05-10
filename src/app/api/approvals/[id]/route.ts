@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { ApprovalEngine } from '@/lib/approval-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'approvals.id' });
 
 const Schema = z.object({
   action: z.enum(['APPROVED', 'REJECTED']),

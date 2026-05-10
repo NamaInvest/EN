@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'clinic.erx' });
 
 const prisma = new PrismaClient();
 
@@ -94,7 +97,7 @@ async function _POST(req: Request) {
         });
 
         // NPHIES & Wasfaty integration placeholder logic
-        console.log(`[Clinic e-Rx] Prescription #${prescription.id} generated and synced with Wasfaty/NPHIES.`);
+        log.info(`[Clinic e-Rx] Prescription #${prescription.id} generated and synced with Wasfaty/NPHIES.`);
 
         return NextResponse.json({
             success: true,

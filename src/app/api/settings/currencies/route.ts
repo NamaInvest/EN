@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.currencies' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -36,7 +39,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(currencies);
     } catch (error: any) {
-        console.error("GET currencies error:", error);
+        log.error("GET currencies error:", error);
         return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
     }
 }
@@ -87,7 +90,7 @@ async function _POST(request: NextRequest) {
         
         return NextResponse.json(newCurrency);
     } catch (error: any) {
-        console.error("POST currency error:", error);
+        log.error("POST currency error:", error);
         return NextResponse.json({ error: 'حدث خطأ أثناء الإضافة' }, { status: 500 });
     }
 }

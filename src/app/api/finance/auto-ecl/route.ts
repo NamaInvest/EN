@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.auto-ecl' });
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
@@ -61,7 +64,7 @@ async function _POST(req: NextRequest) {
         }, { status: 201 });
 
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

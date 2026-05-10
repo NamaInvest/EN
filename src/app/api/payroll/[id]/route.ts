@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.id' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -22,7 +25,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
 
         return NextResponse.json(invoice);
     } catch (error: any) {
-        console.error("Payslip GET error:", error);
+        log.error("Payslip GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch payslip' }, { status: 500 });
     }
 }

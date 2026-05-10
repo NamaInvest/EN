@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { CustomerStatementEngine } from '@/lib/customer-statement';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.customers.id.statement' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 

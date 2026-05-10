@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { calculateVendorScore } from '@/lib/vendor-scoring';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.vendors.scorecard' });
 
 async function _GET(req: Request) {
 
@@ -34,7 +37,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ success: true, data: scorecards });
     } catch (e: any) {
-        console.error('Scorecard Fetch Error:', e);
+        log.error('Scorecard Fetch Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

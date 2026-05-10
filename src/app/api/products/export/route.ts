@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import * as xlsx from 'xlsx';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'products.export' });
 
 async function _GET(request: NextRequest) {
 
@@ -71,7 +74,7 @@ async function _GET(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Products EXPORT error:', error);
+        log.error('Products EXPORT error:', error);
         return NextResponse.json({ error: 'فشل في تصدير المنتجات' }, { status: 500 });
     }
 }

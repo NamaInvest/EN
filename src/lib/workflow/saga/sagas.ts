@@ -5,6 +5,9 @@
 import { Saga } from './coordinator';
 import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.workflow.sag' });
 
 // ─── Context Types ──────────────────────────────────────────────────────────
 

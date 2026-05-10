@@ -11,6 +11,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.import-expor' });
 
 // Supported models and their required/optional fields
 const MODEL_SCHEMAS: Record<string, { required: string[]; optional: string[]; model: string }> = {

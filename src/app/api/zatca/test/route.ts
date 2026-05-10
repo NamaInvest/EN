@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { execSync } from 'child_process';
 import fs from 'fs';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zatca.test' });
 
 async function _GET(req: NextRequest) {
 

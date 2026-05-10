@@ -26,7 +26,6 @@ export default function RestaurantPOS() {
     const [showReturnsModal, setShowReturnsModal] = useState(false);
     const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
 
-    
     // Coupons Engine State
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -42,8 +41,6 @@ export default function RestaurantPOS() {
     const [showSplitModal, setShowSplitModal] = useState(false);
     const [splitCash, setSplitCash] = useState('');
     const [splitCard, setSplitCard] = useState('');
-
-    
 
     // Hold & History State
     const [heldOrders, setHeldOrders] = useState<any[]>([]);
@@ -299,7 +296,6 @@ export default function RestaurantPOS() {
         }
     };
 
-    
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState(t('sys.str_4068'));
@@ -406,8 +402,6 @@ export default function RestaurantPOS() {
             return i;
         }).filter(Boolean));
     };
-
-
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [showMadaModal, setShowMadaModal] = useState(false);
@@ -570,7 +564,6 @@ export default function RestaurantPOS() {
     return (
         <div className="restaurant-pos" dir="rtl">
             
-
             {!isMounted ? (
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>{t("sys.str_168")}...</div>
             ) : (<>

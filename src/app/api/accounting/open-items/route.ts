@@ -14,6 +14,9 @@ import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { OpenItemsEngine, DisputeResolution } from '@/lib/open-items-engine';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.open-items' });
 
 const FINANCE_ROLES = ['admin', 'owner', 'cfo', 'finance', 'accountant'];
 

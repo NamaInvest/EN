@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'banks.id' });
 
 const _PUTSchema = z.object({
   branchId: z.union([z.string(), z.number()]).optional(),
@@ -48,7 +51,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 
         return NextResponse.json(bank);
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks/[id]' }); 
     }
 }
@@ -85,7 +88,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         return NextResponse.json({ success: true });
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks/[id]' }); 
     }
 }

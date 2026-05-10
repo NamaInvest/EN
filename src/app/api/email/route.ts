@@ -4,6 +4,9 @@ import { sendEmail, welcomeEmailTemplate, passwordResetTemplate } from '@/lib/em
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'email' });
 
 
 const _POSTSchema = z.object({
@@ -46,7 +49,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: `✅ تمت إضافة البريد إلى الطابور للإرسال إلى ${to}` });
     } catch (err: any) {
-        console.error('[API Email]', err);
+        log.error('[API Email]', err);
         return NextResponse.json({ error: err.message || 'حدث خطأ' }, { status: 500 });
     }
 }

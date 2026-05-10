@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'coupons.validate' });
 
 const _POSTSchema = z.object({
   code: z.any().optional(),
@@ -76,7 +79,7 @@ async function _POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error('Error validating coupon:', error);
+        log.error('Error validating coupon:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'coupons/validate' });
     }
 }

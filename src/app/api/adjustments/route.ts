@@ -13,6 +13,9 @@ import { getPrisma }             from '@/lib/prisma';
 import { z }                     from 'zod';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'adjustments' });
 
 // ── Schemas ───────────────────────────────────────────────────────────────────
 
@@ -139,7 +142,7 @@ async function _POST(req: NextRequest, auth: any) {
           userId:    auth?.userId,
           branchId,
           date:      date || new Date().toISOString().split('T')[0],
-        }).catch(err => console.error('[adj-journal]', err.message));
+        }).catch(err => log.error('[adj-journal]', err.message));
       }
 
       results.push({ productId: item.productId, diff, diffCost });
@@ -193,7 +196,7 @@ async function _POST(req: NextRequest, auth: any) {
       userId:    auth?.userId,
       branchId,
       date:      date || new Date().toISOString().split('T')[0],
-    }).catch(err => console.error('[adj-journal]', err.message));
+    }).catch(err => log.error('[adj-journal]', err.message));
   }
 
   return NextResponse.json({

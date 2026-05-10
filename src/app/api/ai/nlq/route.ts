@@ -5,6 +5,9 @@ import { NLQEngine } from '@/lib/nlq-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.nlq' });
 
 const _POSTSchema = z.object({
   question: z.any().optional(),

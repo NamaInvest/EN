@@ -4,6 +4,9 @@ import { getPrisma, resolveTenant } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.budget' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {

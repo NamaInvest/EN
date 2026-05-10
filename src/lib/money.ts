@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.money.ts' });
+
 /**
  * Money utility — Saudi Riyal precision (halala = 2 decimals)
  * Use this for ALL financial calculations to prevent floating point errors

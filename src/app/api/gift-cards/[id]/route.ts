@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'gift-cards.id' });
 
 const _PUTSchema = z.object({
   isActive: z.boolean().optional(),
@@ -32,7 +35,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         });
         return NextResponse.json(card);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'gift-cards/[id]' });
     }
 }
@@ -56,7 +59,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         await prisma.giftCard.delete({ where: { id: cardId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'gift-cards/[id]' });
     }
 }

@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import { OpenItemsEngine } from "@/lib/open-items";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.open-items.promise-to-pay' });
 
 async function _POST(req: Request) {
 

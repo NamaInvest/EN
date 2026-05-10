@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { PrismaClient, CashApplicationBatch, OpenItem } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cash-applica' });
 
 const prisma = new PrismaClient();
 

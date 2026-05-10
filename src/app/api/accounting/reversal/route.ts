@@ -7,6 +7,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.reversal' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request as any);
     const user = getUserFromRequest(request as any);
@@ -77,7 +80,7 @@ async function _POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error('Reversal Engine Error:', error);
+        log.error('Reversal Engine Error:', error);
         return NextResponse.json({ error: error.message || 'فشل إنشاء القيد العكسي' }, { status: 500 });
     }
 }

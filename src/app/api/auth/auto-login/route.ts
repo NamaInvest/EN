@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.auto-login' });
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
 
 async function _GET(request: Request) {

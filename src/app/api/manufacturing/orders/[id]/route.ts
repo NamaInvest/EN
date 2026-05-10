@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.orders.id' });
 
 const _PUTSchema = z.object({
   status: z.any().optional(),
@@ -37,7 +40,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         });
         return NextResponse.json(order);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/orders/[id]' });
     }
 }
@@ -59,7 +62,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         await prisma.manufacturingOrder.delete({ where: { id: orderId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'manufacturing/orders/[id]' });
     }
 }

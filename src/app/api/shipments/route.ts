@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'shipments' });
 /**
  * POST /api/shipments — Create a shipment tracking record
  * GET  /api/shipments — List all shipments with status
@@ -49,7 +52,7 @@ async function _POST(request: NextRequest) {
         });
         return NextResponse.json(shipment, { status: 201 });
     } catch (e: any) {
-        console.error('[Shipments]', e);
+        log.error('[Shipments]', e);
         return NextResponse.json({ error: 'فشل إنشاء الشحنة' }, { status: 500 });
     }
 }

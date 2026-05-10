@@ -2,6 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import { getPrisma } from '@/lib/prisma';
 import Image from 'next/image';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.shop' });
 
 export default async function ShopHomePage() {
   const prisma = getPrisma();

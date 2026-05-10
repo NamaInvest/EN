@@ -14,6 +14,9 @@ import { getPrisma }               from '@/lib/prisma';
 import { z }                       from 'zod';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 import { n }                       from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing' });
 
 // ── Schemas ───────────────────────────────────────────────────────────────────
 
@@ -171,7 +174,7 @@ async function _PUT(req: NextRequest, auth: any) {
       materialCost,
       userId:       auth?.userId,
       date:         new Date().toISOString().split('T')[0],
-    }).catch(err => console.error('[mfg-journal] issue-materials:', err.message));
+    }).catch(err => log.error('[mfg-journal] issue-materials:', err.message));
 
     return NextResponse.json({ success: true, message: `تم إصدار المواد الخام بتكلفة ${materialCost} لأمر التصنيع`, materialCost });
   }
@@ -201,7 +204,7 @@ async function _PUT(req: NextRequest, auth: any) {
       productName:  (order.recipe as any)?.name || 'منتج',
       userId:       auth?.userId,
       date:         new Date().toISOString().split('T')[0],
-    }).catch(err => console.error('[mfg-journal] complete:', err.message));
+    }).catch(err => log.error('[mfg-journal] complete:', err.message));
 
     return NextResponse.json({
       success: true,

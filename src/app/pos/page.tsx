@@ -107,9 +107,6 @@ export default function POSPage() {
         }
     };
 
-
-
-    
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState(t('sys.str_522'));
@@ -287,10 +284,7 @@ export default function POSPage() {
     const displaySubtotal = isTaxInclusive ? (total - baseTax) : total;
     const displayDiscount = isTaxInclusive ? (finalDiscountValue - (finalDiscountValue - (finalDiscountValue / (1 + (taxRate / 100))))) : finalDiscountValue;
 
-
     const [isProcessing, setIsProcessing] = useState(false);
-
-
 
     const [showMadaModal, setShowMadaModal] = useState(false);
     const [madaStatus, setMadaStatus] = useState<'WAITING'|'APPROVED'|'REJECTED'>('WAITING');
@@ -394,7 +388,6 @@ export default function POSPage() {
     return (
         <div className="pos-container" dir={isRTL ? 'rtl' : 'ltr'}>
             
-
             {!isMounted ? (
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>{t("sys.str_168")}...</div>
             ) : (<>
@@ -687,8 +680,6 @@ export default function POSPage() {
                     </div>
                 </div>
             )}
-
-
 
             {/* Held Orders Modal */}
             {showHeldOrdersModal && (

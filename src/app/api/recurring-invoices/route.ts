@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'recurring-invoices' });
 
 // Add a new Recurring Contract
 
@@ -88,7 +91,7 @@ async function _POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, contract: newContract });
   } catch (e: any) {
-    console.error("Recurring Creation Error:", e);
+    log.error("Recurring Creation Error:", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
@@ -138,7 +141,7 @@ async function _GET(req: NextRequest) {
 
     return NextResponse.json(formatted);
   } catch (e: any) {
-    console.error("Get Recurring Error:", e);
+    log.error("Get Recurring Error:", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

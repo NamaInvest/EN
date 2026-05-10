@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.backup.upload' });
 
 const MAX_BACKUPS_PER_LICENSE = 3;
 const BACKUP_DIR = process.env.BACKUP_STORAGE_PATH || '/tmp/nama-backups';
@@ -109,7 +112,7 @@ async function _POST(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error('Backup upload error:', err);
+    log.error('Backup upload error:', err);
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }

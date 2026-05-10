@@ -1,5 +1,8 @@
 import { getPrompt } from '../prompts/registry';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.conv' });
 
 export interface Message {
     role: 'user' | 'assistant' | 'system';
@@ -28,7 +31,7 @@ export class ConversationMemory {
                 orderBy: { createdAt: 'desc' },
             }) || [];
         } catch (e) {
-            console.warn('[ConversationMemory] CopilotMessage table not found or query failed. Returning empty history.');
+            log.warn('[ConversationMemory] CopilotMessage table not found or query failed. Returning empty history.');
             return [];
         }
 

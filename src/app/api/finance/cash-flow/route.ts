@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { CashFlowForecastingEngine } from '@/lib/cash-flow-forecasting';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.cash-flow' });
 
 async function _GET(req: NextRequest) {
     try {

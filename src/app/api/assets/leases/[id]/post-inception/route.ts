@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'assets.leases.id.post-inception' });
 
 // POST /api/assets/leases/[id]/post-inception
 async function _POST(request: NextRequest, { params }: { params: { id: string } }) {

@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.predictive-scm' });
 const prisma = new PrismaClient();
 
 async function _POST(request: NextRequest) {
@@ -89,7 +92,7 @@ async function _POST(request: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('predictive scm error:', e);
+        log.error('predictive scm error:', e);
         return NextResponse.json({ error: 'فشل توليد أمر الشراء الذكي' }, { status: 500 });
     }
 }

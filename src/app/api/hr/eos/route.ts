@@ -9,6 +9,9 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { SaudiEOSEngine, EOSReason } from '@/lib/saudi-eos-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.eos' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -33,7 +36,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ calculations });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في جلب تسويات نهاية الخدمة' }, { status: 500 });
     }
 }
@@ -72,7 +75,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ success: true, calculation: result, draftId: draft.id });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'خطأ في حساب نهاية الخدمة' }, { status: 400 });
     }
 }

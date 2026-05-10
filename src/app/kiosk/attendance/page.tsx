@@ -142,7 +142,6 @@ export default function AICameraAttendanceKiosk() {
     }, 500); // Analyze every 500ms
   };
 
-
   const executeAttendance = async (employeeId: number, distance: number) => {
     const emp = employees.find(e => e.id === employeeId);
     if (!emp) return;

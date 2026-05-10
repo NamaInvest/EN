@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { BankStatementEngine } from '@/lib/bank-statement-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.bank-statements.upload' });
 
 
 const _POSTSchema = z.object({

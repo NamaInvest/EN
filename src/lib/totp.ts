@@ -3,6 +3,9 @@
  * Lightweight implementation using Node.js crypto (no external deps)
  */
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.totp.ts' });
 
 const DIGITS = 6;
 const PERIOD = 30; // seconds

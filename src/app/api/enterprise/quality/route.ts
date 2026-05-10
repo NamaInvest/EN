@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.quality' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -26,7 +29,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(formatted);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'Failed to fetch inspections' }, { status: 500 });
     }
 }
@@ -60,7 +63,7 @@ async function _POST(request: NextRequest) {
         });
         return NextResponse.json(inspection);
     } catch (error: any) {
-        console.error('QC Creation Error:', error);
+        log.error('QC Creation Error:', error);
         return NextResponse.json({ error: 'Failed to create QC record' }, { status: 500 });
     }
 }

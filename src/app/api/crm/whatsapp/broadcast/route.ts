@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'crm.whatsapp.broadcast' });
 
 const _POSTSchema = z.object({
   message: z.any().optional(),
@@ -105,7 +108,7 @@ async function _POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error('WhatsApp Broadcast Error:', error);
+        log.error('WhatsApp Broadcast Error:', error);
         return NextResponse.json({ error: 'فشل في تهيئة حملة البث التسويقي' }, { status: 500 });
     }
 }

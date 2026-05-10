@@ -7,6 +7,9 @@
  * Compliant with IFRS 10 / IAS 27 / IAS 21
  */
 import { prisma } from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.consolidatio' });
 
 const db = prisma as any;
 

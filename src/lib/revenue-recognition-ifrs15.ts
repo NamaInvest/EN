@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.revenue-reco' });
+
 /**
  * P0-07 — Revenue Recognition Engine (IFRS 15)
  * Five-step model: Identify contract → Identify obligations → Determine price → Allocate → Recognize

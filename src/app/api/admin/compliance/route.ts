@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.compliance' });
 async function _GET(req: NextRequest) {
     try {
         const user = await getUserFromRequest(req as any);

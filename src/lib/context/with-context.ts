@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildBusinessContext, BusinessContext } from './business-context';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.with' });
 
 export function withContext<T>(
   handler: (ctx: BusinessContext, req: NextRequest) => Promise<T>,
@@ -19,7 +22,7 @@ export function withContext<T>(
 
       return await handler(ctx, req);
     } catch (error) {
-      console.error('[ContextMiddleware] Build failed:', error);
+      log.error('[ContextMiddleware] Build failed:', error);
       return NextResponse.json({ error: 'Context error' }, { status: 500 });
     }
   };

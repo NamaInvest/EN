@@ -6,6 +6,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.kanban-engin' });
 
 export type KanbanColumn = {
     id: string;

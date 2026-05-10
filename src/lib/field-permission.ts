@@ -1,4 +1,7 @@
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.field-permis' });
 
 /**
  * Strips hidden fields and marks read-only fields based on RoleFieldPermission definitions.
@@ -52,7 +55,7 @@ export async function applyFieldPermissions(role: string, entityName: string, da
             return filterObject(data);
         }
     } catch (error: any) {
-        console.error('Field permission error:', error);
+        log.error('Field permission error:', error);
         // Fail-safe: if permission engine fails, return data as is, or maybe strip everything.
         return data;
     }

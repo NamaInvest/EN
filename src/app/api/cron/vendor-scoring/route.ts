@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { calculateVendorScore } from '@/lib/vendor-scoring';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.vendor-scoring' });
 
 async function _GET(req: Request) {
 
@@ -23,7 +26,7 @@ async function _GET(req: Request) {
             results.push({ supplierId: dr.supplierId, newScore: score.compositeScore });
 
             if (score.compositeScore < 60) {
-                console.log(`[CRON] ALERT: Vendor ${dr.supplierId} fell below 60% threshold. Blocking or sending warning...`);
+                log.info(`[CRON] ALERT: Vendor ${dr.supplierId} fell below 60% threshold. Blocking or sending warning...`);
                 // e.g. update Vendor status to BLOCKED
             }
         }

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'categories.id' });
 
 const _PUTSchema = z.object({
   name: z.any().optional(),
@@ -33,7 +36,7 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         });
         return NextResponse.json(category);
     } catch (error: any) {
-        console.error('Category update error:', error);
+        log.error('Category update error:', error);
         return NextResponse.json({ error: 'فشل التحديث' }, { status: 500 });
     }
 }
@@ -59,7 +62,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
 
         return NextResponse.json({ message: 'تم الحذف بنجاح' });
     } catch (error: any) {
-        console.error('Category delete error:', error);
+        log.error('Category delete error:', error);
         return NextResponse.json({ error: 'فشل الحذف' }, { status: 500 });
     }
 }

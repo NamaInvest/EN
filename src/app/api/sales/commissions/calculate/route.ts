@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.commissions.calculate' });
 
 async function _POST(req: Request) {
 
@@ -82,7 +85,7 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        console.error('Commission Calculate Error:', e);
+        log.error('Commission Calculate Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

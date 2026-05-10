@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.cfo' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     

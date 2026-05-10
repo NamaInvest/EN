@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.mrp-run' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     
@@ -93,7 +96,7 @@ async function _GET(request: Request) {
         });
 
     } catch (error: any) {
-        console.error("MRP Engine error:", error);
+        log.error("MRP Engine error:", error);
         return NextResponse.json({ error: 'Failed to run MRP calculations' }, { status: 500 });
     }
 }

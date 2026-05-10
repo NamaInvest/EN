@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.token-budget' });
+
 /**
  * AI-05 — Token Budget Manager
  * Prevents context window overflow and enforces per-tenant monthly quotas.

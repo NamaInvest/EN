@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fixed-assets.id' });
 async function _GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const prisma = getPrisma(request);
@@ -15,7 +18,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ id: st
         if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
         return NextResponse.json(asset);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'فشل جلب الأصل', { context: 'fixed-assets/[id]' });
     }
 }
@@ -60,7 +63,7 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         });
         return NextResponse.json(asset);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
     }
 }
@@ -81,7 +84,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
         await prisma.fixedAsset.delete({ where: { id: parseInt(id, 10) } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets/[id]' });
     }
 }

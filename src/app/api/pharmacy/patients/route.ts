@@ -6,6 +6,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pharmacy.patients' });
 
 const UpsertPatientSchema = z.object({
   nationalId:       z.string().min(10, 'الهوية الوطنية مطلوبة').max(15),

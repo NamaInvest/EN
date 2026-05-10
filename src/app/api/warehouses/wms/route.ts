@@ -12,6 +12,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'warehouses.wms' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -62,7 +65,7 @@ async function _GET(req: Request) {
             },
         });
     } catch (e: any) {
-        console.error('WMS GET error:', e);
+        log.error('WMS GET error:', e);
         return NextResponse.json({ error: 'خطأ في تحميل بيانات المستودع' }, { status: 500 });
     }
 }
@@ -124,7 +127,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ error: 'action غير معروف. استخدم: create_zone | create_rack | create_bin' }, { status: 400 });
     } catch (e: any) {
-        console.error('WMS POST error:', e);
+        log.error('WMS POST error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء عنصر المستودع' }, { status: 500 });
     }
 }

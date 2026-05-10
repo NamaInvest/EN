@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.id.receive' });
 async function _PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -41,7 +44,7 @@ async function _PUT(
                     create: { productId: detail.productId, stockId: invoice.stockId, quantity: qty },
                 });
             } catch (e: any) {
-                 console.error('Failed to update productStock for purchase receipt:', e);
+                 log.error('Failed to update productStock for purchase receipt:', e);
             }
         }
 
@@ -54,7 +57,7 @@ async function _PUT(
         return NextResponse.json(updated);
 
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'فشل بتحديث حالة الاستلام' }, { status: 500 });
     }
 }

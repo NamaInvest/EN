@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'knowledge.categories' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {

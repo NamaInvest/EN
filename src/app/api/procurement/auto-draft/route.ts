@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.auto-draft' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -63,7 +66,7 @@ async function _POST(request: Request) {
         return NextResponse.json(draftOrder, { status: 201 });
 
     } catch (e: any) {
-        console.error("Auto-Draft PO Error:", e);
+        log.error("Auto-Draft PO Error:", e);
         return NextResponse.json({ error: e.message || 'فشل توليد أمر الشراء الآلي' }, { status: 500 });
     }
 }

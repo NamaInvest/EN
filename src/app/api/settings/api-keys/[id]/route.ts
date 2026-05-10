@@ -5,6 +5,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.api-keys.id' });
 
 const UpdateApiKeySchema = z.object({
   name:     z.string().min(3).max(100).optional(),

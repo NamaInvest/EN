@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.few-shot-exa' });
+
 /**
  * AI-04 — Few-shot Examples Registry
  * Provides structured few-shot examples for each AI prompt template.

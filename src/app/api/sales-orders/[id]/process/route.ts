@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales-orders.id.process' });
 async function _PUT(
     request: NextRequest,
     context: { params: Promise<{ id: string }> }

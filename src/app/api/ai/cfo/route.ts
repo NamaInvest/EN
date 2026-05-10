@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { callLLM } from '@/lib/llm-client';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.cfo' });
 async function _POST(req: Request) {
     const prisma = getPrisma(req);
   try {
@@ -65,7 +68,7 @@ async function _POST(req: Request) {
         metrics: { salesCount, todaySales: todaySales._sum?.total || 0, activeLeases, expiredLeases, activeTrips, totalEmployees, totalStudents } 
     });
   } catch (error: any) {
-    console.error('AI CFO Error:', error);
+    log.error('AI CFO Error:', error);
     return NextResponse.json({ error: 'Failed to communicate with AI Engine' }, { status: 500 });
   }
 }

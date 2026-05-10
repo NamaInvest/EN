@@ -5,6 +5,9 @@ import { Prisma } from '@prisma/client';
 import { comparePassword, generateToken } from '@/lib/auth';
 import { rateLimitOrReject } from '@/lib/rate-limit';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.login' });
 
 
 const _POSTSchema = z.object({
@@ -104,7 +107,7 @@ async function _POST(request: Request) {
 
         return response;
     } catch (error: any) {
-        console.error('[Login] Error:', error?.message);
+        log.error('[Login] Error:', error?.message);
         return NextResponse.json(
             { error: 'حدث خطأ في الخادم' },
             { status: 500 }

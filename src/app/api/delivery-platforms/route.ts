@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'delivery-platforms' });
 
 const _POSTSchema = z.object({
   order_id: z.union([z.string(), z.number()]).optional(),
@@ -21,7 +24,7 @@ async function _POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const orderId = body.order_id || body.orderId || body.id || '';
-        console.log(`[Delivery] Order from ${platform}: ${orderId}`);
+        log.info(`[Delivery] Order from ${platform}: ${orderId}`);
         return NextResponse.json({ ok: true, platform, orderId });
     } catch (e: any) {
         return NextResponse.json({ error: 'فشل' }, { status: 500 });

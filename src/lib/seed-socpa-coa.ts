@@ -10,6 +10,9 @@
  */
 
 import coaData from '../../prisma/seeds/socpa-coa.json';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.seed-socpa-c' });
 
 const CONTROL_ACCOUNTS_MAP = {
   AR_CONTROL:           '1210',

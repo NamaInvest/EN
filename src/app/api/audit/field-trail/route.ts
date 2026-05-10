@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'audit.field-trail' });
 /**
  * GET /api/audit/field-trail
  * 

@@ -5,6 +5,9 @@ import { fifoCost, lifoCost, averageCost, calculateCost, CostBatch } from '@/lib
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'inventory.costing' });
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { generateApiKey } from '@/lib/api/api-key-auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.api-keys' });
 
 const CreateApiKeySchema = z.object({
   name:   z.string().min(3).max(100),

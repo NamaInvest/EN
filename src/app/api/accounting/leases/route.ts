@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.leases' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -73,7 +76,7 @@ async function _GET(request: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error('Leases GET error:', error);
+        log.error('Leases GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات عقود الإيجار' }, { status: 500 });
     }
 }
@@ -86,7 +89,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'Monthly amortization run successfully.' });
     } catch (error: any) {
-        console.error('Leases POST error:', error);
+        log.error('Leases POST error:', error);
         return NextResponse.json({ error: 'فشل تشغيل إطفاء الإيجارات' }, { status: 500 });
     }
 }

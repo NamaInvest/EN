@@ -122,7 +122,6 @@ export default function CompanyInfoPage() {
  fetchData();
  }, []);
 
-
  const handleSave = async () => {
  setSaving(true);
  const token = localStorage.getItem('token');

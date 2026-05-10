@@ -1,4 +1,7 @@
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.audit.ts' });
 
 export async function logAuditAction(params: {
     userId: number;
@@ -18,6 +21,6 @@ export async function logAuditAction(params: {
             }
         });
     } catch (e: any) {
-        console.error("Audit log failed to save:", e);
+        log.error("Audit log failed to save:", e);
     }
 }

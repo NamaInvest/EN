@@ -51,7 +51,6 @@ const ALL_SECTIONS = [
       subs: [{ key: 'Settings.Branches', label: 'الفروع' }, { key: 'Settings.Currencies', label: 'العملات' }, { key: 'Settings.Approvals', label: 'الموافقات' }, { key: 'Settings.WhatsApp', label: 'تكامل واتساب' }] },
 ];
 
-
 // ── Plan Configurations ──
 const PLAN_CONFIGS: Record<string, {
     label: string; labelEn: string; price: string; priceYearly: string; color: string; colorBg: string;
@@ -1158,7 +1157,6 @@ export default function IcePage() {
                                     </div>
                                 </div>
 
-
                             </div>
                         </div>
                     )}
@@ -1167,4 +1165,4 @@ export default function IcePage() {
         </div>
     );
 }
-
+

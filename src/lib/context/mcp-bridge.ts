@@ -1,7 +1,11 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.mcp-' });
+
 // Dummy MCP Bridge to fulfill the plan requirements
 export class MCPBridge {
     async connect() {
-        console.log('[MCPBridge] Connected.');
+        log.info('[MCPBridge] Connected.');
     }
 
     async callTool(name: string, args: any) {

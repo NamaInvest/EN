@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { PrismaClient, DeferredRevenueSchedule, RevenueRecognitionLine, AssetImpairment, AssetRevaluation } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.ifrs-engines' });
 
 const prisma = new PrismaClient();
 

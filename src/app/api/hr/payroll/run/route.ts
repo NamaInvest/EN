@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.payroll.run' });
 
 async function _GET(req: Request) {
 

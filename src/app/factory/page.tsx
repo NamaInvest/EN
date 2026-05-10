@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Phone, Factory, ArrowRight, BookOpen, Cpu, DollarSign, Layers, Activity, Package, GitMerge, BarChart3 } from 'lucide-react';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.factory' });
 
 export const metadata: Metadata = {
   title: 'نظام إدارة المصانع والتصنيع | نما إنفست – Manufacturing ERP System',

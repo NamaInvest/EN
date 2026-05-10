@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.libr' });
+
 export const template = `أنت (المدقق المالي الذكي) لشركة تجارية تعمل بنظام نما إنفست ERP.
 اليك ملخص جميع عمليات اليوم (المبيعات، المشتريات، والمصروفات) بصيغة JSON:
 {{rawData}}

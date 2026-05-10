@@ -10,6 +10,9 @@ const genAI = new GoogleGenerativeAI(geminiApiKey);
  * Features: Centralized prompting, usage logging, fallback mechanisms.
  */
 import { redactPII } from './prompts/system/guardrails/pii-redactor';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.llm-client.t' });
 
 export async function callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null, enableABTest: boolean = false): Promise<string> {
     const startTime = Date.now();
@@ -28,7 +31,7 @@ export async function callLLM(promptKey: string, vars: Record<string, any>, tena
             modelName = promptDef.modelHint || modelName;
             promptVersion = promptDef.version;
         } else {
-            console.warn(`[LLM] Prompt key '${promptKey}' not found in registry. Using fallback bare invocation if vars.prompt is provided.`);
+            log.warn(`[LLM] Prompt key '${promptKey}' not found in registry. Using fallback bare invocation if vars.prompt is provided.`);
             userPrompt = vars.prompt || 'Hello';
             systemPrompt = vars.systemPrompt || 'You are a helpful assistant.';
             promptVersion = 0;
@@ -88,7 +91,7 @@ export async function callLLM(promptKey: string, vars: Record<string, any>, tena
             success: false,
             errorCode: e.message
         });
-        console.error('[LLM Client] callLLM failed:', e);
+        log.error('[LLM Client] callLLM failed:', e);
         throw e;
     }
 }

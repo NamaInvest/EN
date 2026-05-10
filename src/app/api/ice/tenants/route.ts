@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.tenants' });
 
 const ICE_SECRET = process.env.ICE_SECRET;
 // BUILD SAFETY: if (!ICE_SECRET) throw new Error('CRITICAL: ICE_SECRET is not set in environment variables!');

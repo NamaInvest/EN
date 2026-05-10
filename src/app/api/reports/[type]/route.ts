@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.type' });
 async function _GET(request: NextRequest, { params }: { params: Promise<{ type: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -265,7 +268,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 return NextResponse.json({ summary: {}, data: [] });
         }
     } catch (error: any) {
-        console.error('Report error:', error);
+        log.error('Report error:', error);
         return NextResponse.json({ summary: {}, data: [] }, { status: 500 });
     }
 }

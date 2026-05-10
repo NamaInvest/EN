@@ -4,6 +4,9 @@ import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.what-if' });
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

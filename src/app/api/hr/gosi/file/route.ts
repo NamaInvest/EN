@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 import { GOSIEngine } from '@/lib/gosi-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.gosi.file' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request as any);
     const { searchParams } = new URL(request.url);

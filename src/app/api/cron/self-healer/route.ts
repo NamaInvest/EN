@@ -7,6 +7,9 @@ import crypto from 'crypto';
 // Automatically detects and fixes stuck ZATCA invoices, orphan records, and background sync failures
 import { getUserFromRequest } from '@/lib/auth';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.self-healer' });
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
   if (guard) return guard;
@@ -29,7 +32,7 @@ async function _POST(req: Request) {
     });
 
     for (const inv of stuckInvoices) {
-      console.log(`[Self-Healer] Repairing stuck ZATCA invoice #${inv.invoiceNo}...`);
+      log.info(`[Self-Healer] Repairing stuck ZATCA invoice #${inv.invoiceNo}...`);
       
       // Simulate generating a valid cryptographic hash for ZATCA Phase 2
       const rawString = `${inv.invoiceNo}|${inv.date.toISOString()}|${inv.total}`;
@@ -52,7 +55,7 @@ async function _POST(req: Request) {
     // Remove expired holds on products that didn't complete PO/Sales within 48 hours
     // (Simulating a cleanup process)
 
-    console.log(`[Self-Healer] Sweep complete. ${healedCount} anomalies rectified.`);
+    log.info(`[Self-Healer] Sweep complete. ${healedCount} anomalies rectified.`);
 
     return NextResponse.json({ 
       success: true, 
@@ -61,7 +64,7 @@ async function _POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Self-Healer CRON Error:', error);
+    log.error('Self-Healer CRON Error:', error);
     return NextResponse.json({ error: 'Failed to run self-healing protocol' }, { status: 500 });
   }
 }

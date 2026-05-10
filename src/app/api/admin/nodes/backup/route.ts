@@ -4,6 +4,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'admin.nodes.backup' });
 
 const execAsync = promisify(exec);
 
@@ -30,13 +33,13 @@ async function _POST(req: Request) {
         
         // Compress the environment variable, database, and src
         // Excluding heavy logs and node_modules
-        console.log(`[ADMIN_BACKUP] Initiating archival of ${targetDir}...`);
+        log.info(`[ADMIN_BACKUP] Initiating archival of ${targetDir}...`);
         
         await execAsync(`tar -czvf ${backupTarget} --exclude="node_modules" --exclude=".next" --exclude="*.log" ${targetDir}`);
         
         return NextResponse.json({ success: true, message: `Backup created at ${backupTarget}` });
     } catch (error: any) {
-        console.error("[ADMIN_BACKUP_ERROR]", error);
+        log.error("[ADMIN_BACKUP_ERROR]", error);
         return NextResponse.json({ error: error.message || "Failed to create physical backup archive." }, { status: 500 });
     }
 }

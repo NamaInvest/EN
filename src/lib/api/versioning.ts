@@ -14,6 +14,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.versioni' });
 
 const CURRENT_VERSION = 1;
 const SUPPORTED_VERSIONS = [1];

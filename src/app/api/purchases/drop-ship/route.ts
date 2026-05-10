@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.drop-ship' });
 async function _POST(req: Request) {
     const prisma = getPrisma(req);
     try {
@@ -125,7 +128,7 @@ async function _POST(req: Request) {
         });
 
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'Failed to confirm drop ship' }, { status: 500 });
     }
 }

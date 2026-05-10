@@ -14,6 +14,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.document-sta' });
 
 // ─── Status enum ─────────────────────────────────────────────────────
 export const DocumentStatus = {
@@ -229,7 +232,7 @@ export async function transition<T>(
             },
         });
     } catch (e: any) {
-        console.error('[document-state-machine] audit log failed:', e);
+        log.error('[document-state-machine] audit log failed:', e);
     }
 
     return result;

@@ -4,6 +4,9 @@ import crypto from 'crypto';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bnpl.create-session' });
 
 const _POSTSchema = z.object({
   amount: z.number().optional(),

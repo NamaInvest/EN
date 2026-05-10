@@ -6,6 +6,9 @@ import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function WarehouseZonesPage() {
     const zones = await prisma.warehouseZone.findMany({
             take: 100,

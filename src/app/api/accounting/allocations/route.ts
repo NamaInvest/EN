@@ -11,6 +11,9 @@ import { AllocationService, AllocationRule } from '@/services/accounting/allocat
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.allocations' });
 
 function buildCtx(req: NextRequest): BusinessContext {
   const tenantId = req.headers.get('x-tenant-id') ?? 'default';

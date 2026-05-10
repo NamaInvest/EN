@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'assets.depreciate' });
 async function _POST(_request: NextRequest) {
     try {
         // Delegate to engine: handles all asset types, methods, salvage caps, JE + log
@@ -15,7 +18,7 @@ async function _POST(_request: NextRequest) {
             message: `تم حساب وتطبيق الإهلاك بنجاح على ${depreciatedCount} أصل.`,
         });
     } catch (error: any) {
-        console.error('Depreciation Error:', error);
+        log.error('Depreciation Error:', error);
         return apiError(error, 'فشل إجراء دورة الإهلاك الشهرية.', { context: 'assets/depreciate' });
     }
 }

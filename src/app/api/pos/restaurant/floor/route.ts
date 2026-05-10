@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.restaurant.floor' });
 async function _GET(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
@@ -49,7 +52,7 @@ async function _GET(req: NextRequest) {
         }
         return NextResponse.json({ success: true, zones });
     } catch (e: any) {
-        console.error('Floor GET error:', e.message);
+        log.error('Floor GET error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
@@ -150,7 +153,7 @@ async function _POST(req: NextRequest) {
         
         return NextResponse.json({ success: false, error: 'Invalid action' });
     } catch (e: any) {
-        console.error('Floor POST error:', e.message);
+        log.error('Floor POST error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }

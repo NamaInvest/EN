@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bnpl.tabby' });
 
 const JWT_SECRET = (process.env.JWT_SECRET as string);
 
@@ -91,7 +94,7 @@ async function _POST(req: NextRequest) {
         const data = await tabbyRes.json();
 
         if (!tabbyRes.ok || data.warning || data.error) {
-            console.error('Tabby Rejection:', data);
+            log.error('Tabby Rejection:', data);
             return NextResponse.json({ error: data.error || 'عذراً، تابي رفضت الجلسة. تأكد من صحة البيانات والمفاتيح.' }, { status: 400 });
         }
 
@@ -105,7 +108,7 @@ async function _POST(req: NextRequest) {
         return NextResponse.json({ success: true, paymentId, checkoutUrl });
 
     } catch (err: any) {
-        console.error('Tabby Error:', err);
+        log.error('Tabby Error:', err);
         return NextResponse.json({ error: 'خلل داخلي أثناء الاتصال بخوادم تابي.' }, { status: 500 });
     }
 }

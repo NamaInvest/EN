@@ -4,6 +4,9 @@
  * Loads spec from /api/docs/openapi.json
  */
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'docs' });
 
 const HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">

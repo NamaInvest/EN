@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+
 const PATTERNS = {
   IBAN_SA: /SA\d{22}/g,
   NATIONAL_ID: /[12]\d{9}/g,

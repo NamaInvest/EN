@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.exchange-rates.id' });
 async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -15,7 +18,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
         
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("DELETE exchange rate error:", error);
+        log.error("DELETE exchange rate error:", error);
         return NextResponse.json({ error: 'حدث خطأ.' }, { status: 500 });
     }
 }

@@ -11,6 +11,9 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.open-items-e' });
 
 export type PartyType = 'CUSTOMER' | 'SUPPLIER';
 export type DisputeResolution = 'CUSTOMER_PAYS' | 'WRITEOFF' | 'CREDIT_NOTE';

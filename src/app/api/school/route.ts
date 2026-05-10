@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'school' });
 
 async function _POST(req: NextRequest) {
 
@@ -67,7 +70,7 @@ async function _POST(req: NextRequest) {
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error("School API Error:", error);
+        log.error("School API Error:", error);
         return NextResponse.json({
             success: false,
             error: "Failed to process school invoice",

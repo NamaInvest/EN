@@ -7,6 +7,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { SalesForecastEngine } from '@/lib/sales-forecast';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.forecast' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

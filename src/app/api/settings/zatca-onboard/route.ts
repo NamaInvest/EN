@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.zatca-onboard' });
 
 const _POSTSchema = z.object({
   orgName: z.any().optional(),
@@ -65,7 +68,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('ZATCA Save Settings Error:', e);
+        log.error('ZATCA Save Settings Error:', e);
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
 }

@@ -6,6 +6,9 @@ import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { postStockTransfer } from '@/lib/auto-journal';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stock-transfers' });
 
 const StockTransferItemSchema = z.object({
     productId:   z.union([z.string(), z.number()]).transform(v => parseInt(String(v))),
@@ -128,12 +131,12 @@ async function _POST(request: NextRequest) {
                 productName: firstName,
                 userId:      auth.userId,
                 date:        new Date().toISOString().split('T')[0],
-            }).catch(err => console.error('[auto-journal] stock-transfer:', err.message));
+            }).catch(err => log.error('[auto-journal] stock-transfer:', err.message));
         }
 
         return NextResponse.json(transfer, { status: 201 });
     } catch (e: any) {
-        console.error('Transfer Error:', e);
+        log.error('Transfer Error:', e);
         return NextResponse.json({ error: e.message || 'فشل إنشاء التحويل' }, { status: 500 });
     }
 }

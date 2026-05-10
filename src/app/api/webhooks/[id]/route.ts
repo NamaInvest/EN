@@ -4,6 +4,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'webhooks.id' });
 
 const UpdateWebhookSchema = z.object({
   url:       z.string().url().optional(),

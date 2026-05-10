@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { ProvisionsService } from '@/services/payroll/provisions.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.provisions.run' });
 
 // POST /api/payroll/provisions/run
 // Body: { period: '2025-01' }  →  يُشغَّل آخر يوم من الشهر

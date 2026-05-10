@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.liquidity.forecast' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -27,7 +30,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json({ forecasts, scenario });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

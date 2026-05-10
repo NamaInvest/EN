@@ -1,5 +1,8 @@
 import { BASE_PERSONA } from './personas/base.persona';
 import { CFO_PERSONA } from './personas/cfo.persona';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
 
 export type PersonaType = 'cfo' | 'auditor' | 'copilot' | 'nlq' | 'fraud' | 'ocr' | 'procurement' | 'hr';
 

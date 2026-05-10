@@ -5,6 +5,9 @@ import { redactPII, maskEntityNames } from '@/lib/privacy-filter';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai-cfo' });
 
 const _POSTSchema = z.object({
   metrics: z.any().optional(),
@@ -73,7 +76,7 @@ async function _POST(req: NextRequest) {
         });
 
         if (!aiRes.ok) {
-            console.error('Gemini API Error:', await aiRes.text());
+            log.error('Gemini API Error:', await aiRes.text());
             return NextResponse.json({ error: 'Failed to fetch AI insights' }, { status: 500 });
         }
 
@@ -87,13 +90,13 @@ async function _POST(req: NextRequest) {
             const parsed = JSON.parse(text);
             return NextResponse.json(parsed);
         } catch (parseError: unknown) {
-            console.error('Failed to parse Gemini JSON:', text);
+            log.error('Failed to parse Gemini JSON:', text);
             return NextResponse.json({ 
                 alerts: [{ type: 'info', title: 'ملاحظة', message: 'لم يتمكن الذكاء الاصطناعي من توليد نصائح بالصيغة المطلوبة.' }] 
             });
         }
     } catch (err: any) {
-        console.error('AI CFO Route Error:', err);
+        log.error('AI CFO Route Error:', err);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

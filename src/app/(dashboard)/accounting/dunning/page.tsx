@@ -7,6 +7,9 @@ import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function DunningDashboard() {
     // 1. Total Overdue
     const todayDate = new Date();

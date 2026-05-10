@@ -7,6 +7,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { SaudiEOSEngine } from '@/lib/saudi-eos-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.eos.id' });
 
 
 const _POSTSchema = z.object({
@@ -39,7 +42,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
             return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
         }
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message }, { status: 400 });
     }
 }

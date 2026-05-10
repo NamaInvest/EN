@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zatca.qr' });
 
 // A simple Phase 1 TLV generator. In a real system, Phase 2 uses ECDSA signatures and hashes.
 function getTLV(tag: number, value: string): Buffer {

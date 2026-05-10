@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.letters-of-credit.landed-costs' });
 
 // Smart Landed Costs (LC) Distribution Engine
 // Automatically allocates Shipping, Customs, and Insurance costs to imported products
@@ -128,10 +131,10 @@ async function _POST(req: Request) {
           }
         }
       });
-      console.log(`[Landed Cost Engine] Created Retroactive COGS Journal for ${totalAdjustment} SAR`);
+      log.info(`[Landed Cost Engine] Created Retroactive COGS Journal for ${totalAdjustment} SAR`);
     }
 
-    console.log(`[Landed Cost Engine] Fully distributed ${totalAdditionalCost} SAR across ${order.details.length} SKUs for PO #${order.orderNo}`);
+    log.info(`[Landed Cost Engine] Fully distributed ${totalAdditionalCost} SAR across ${order.details.length} SKUs for PO #${order.orderNo}`);
 
     return NextResponse.json({ 
       message: 'Smart Landed Costs Successfully Distributed',
@@ -140,7 +143,7 @@ async function _POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Landed Cost API Error:', error);
+    log.error('Landed Cost API Error:', error);
     return NextResponse.json({ error: 'Failed to calculate landed costs' }, { status: 500 });
   }
 }

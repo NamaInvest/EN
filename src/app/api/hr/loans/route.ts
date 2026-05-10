@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.loans' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(loans);
     } catch (error: any) {
-        console.error("Loans GET error:", error);
+        log.error("Loans GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch loans' }, { status: 500 });
     }
 }
@@ -56,7 +59,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(loan, { status: 201 });
     } catch (error: any) {
-        console.error("Loans POST error:", error);
+        log.error("Loans POST error:", error);
         return NextResponse.json({ error: 'Failed to create loan' }, { status: 500 });
     }
 }

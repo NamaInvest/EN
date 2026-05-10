@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.accounts.init' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -55,7 +58,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, message: `تم تهيئة ${createdCount} حساب جديد بنجاح` });
     } catch (error: any) {
-        console.error('Account init error:', error);
+        log.error('Account init error:', error);
         return NextResponse.json({ error: 'فشل في تهيئة الحسابات' }, { status: 500 });
     }
 }

@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.observabilit' });
+
 /**
  * AI-14 — Observability Metrics Collector
  * Lightweight OpenTelemetry-compatible metrics for API, DB, and LLM monitoring.

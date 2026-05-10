@@ -122,35 +122,6 @@ export default function SalesPage() {
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const [selectedVoucherData, setSelectedVoucherData] = useState<any>(null);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  const [lastInvoiceData, setLastInvoiceData] = useState<{
  invoiceId: number; invoiceNumber: string; date: string; customerName: string;
  customerTaxNo?: string | null; customerCrNo?: string | null; customerAddress?: string | null;
@@ -551,7 +522,6 @@ export default function SalesPage() {
  setSearch('');
  searchRef.current?.focus();
  };
-
 
  const updateCartItem = (idx: number, field: string, value: number) => {
  if (!allowNegativeStock && field === 'quantity') {
@@ -1299,7 +1269,6 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  </tbody>
  </table>
  </div>
-
 
  {/* Totals & Actions */}
  <div className="pos-invoice-footer">

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'public.call-waiter' });
 
 // Public API - customer can call waiter from QR menu
 async function _POST(req: NextRequest) {
@@ -30,7 +33,7 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم استدعاء النادل' });
     } catch (e: any) {
-        console.error('Call waiter error:', e.message);
+        log.error('Call waiter error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }

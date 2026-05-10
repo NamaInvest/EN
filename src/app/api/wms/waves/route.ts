@@ -5,6 +5,9 @@ import { WavePickingEngine } from '@/lib/wave-picking';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'wms.waves' });
 
 const _POSTSchema = z.object({
   action: z.any().optional(),

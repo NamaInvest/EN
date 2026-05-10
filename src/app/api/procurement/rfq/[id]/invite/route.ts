@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.rfq.id.invite' });
 
 
 const _POSTSchema = z.object({
@@ -50,7 +53,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
 
             createdTokens.push(token);
             // MOCK EMAIL SENDING:
-            console.log(`Sending email to Vendor ID ${vId}: Your RFQ link is https://your-domain/portal/vendor/rfq/${id}?token=${tokenStr}`);
+            log.info(`Sending email to Vendor ID ${vId}: Your RFQ link is https://your-domain/portal/vendor/rfq/${id}?token=${tokenStr}`);
         }
 
         // Update RFQ status to 'sent'
@@ -62,7 +65,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         return NextResponse.json({ success: true, tokens: createdTokens.length });
 
     } catch (e: any) {
-        console.error('Invite Vendor Error:', e);
+        log.error('Invite Vendor Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

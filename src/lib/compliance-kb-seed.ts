@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.compliance-k' });
+
 /**
  * AI-18 — ZATCA / SOCPA / Saudi Labor Law Knowledge Base Seed
  * Pre-built knowledge chunks for Saudi compliance questions.

@@ -91,7 +91,6 @@ export default function SettingsPage() {
  const [webhookLoading, setWebhookLoading] = useState(false);
  const [fatooraStep, setFatooraStep] = useState(0);
 
-
  // Permission guard - redirect if no access
  // If user has permissions defined → use those (role ignored)
  // If user has NO permissions AND role is admin → legacy admin, full access
@@ -424,7 +423,6 @@ export default function SettingsPage() {
  if (map['company_logo']) setLogoPreview(map['company_logo']);
  }
 
- 
  } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
  finally { setLoading(false); }
  };
@@ -558,8 +556,6 @@ export default function SettingsPage() {
  } catch (err) { console.error(err); showToast(t('sys.str_4533')); }
  finally { setGeneratingKeys(false); }
  };
-
- 
 
  if (loading) return <><div className="page-header"><h1 className="page-title">{t('sys.str_4338')}</h1></div><div className="page-content"><div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>{t('sys.str_4107')}</div></div></>;
 
@@ -905,9 +901,6 @@ export default function SettingsPage() {
  )}
  </div>
  )}
-
-
-
 
  {/* Danger Zone */}
  {(canDeleteAllSales || canClearZatca) && !hiddenModules.includes('btn_danger_zone') && (

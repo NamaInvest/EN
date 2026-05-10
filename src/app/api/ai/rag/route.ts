@@ -6,6 +6,9 @@ import { invokeChain } from '@/lib/langchain-orchestrator';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.rag' });
 async function _POST(req: Request) {
     try {
         const auth = getUserFromRequest(req as any);
@@ -31,7 +34,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json({ answer, contextUsed: contextStr });
     } catch (e: any) {
-        console.error('RAG Error:', e);
+        log.error('RAG Error:', e);
         return NextResponse.json({ error: 'Failed to process RAG pipeline' }, { status: 500 });
     }
 }

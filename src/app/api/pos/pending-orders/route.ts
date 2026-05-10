@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 // Get pending orders from digital menu
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.pending-orders' });
 async function _GET(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
@@ -21,7 +24,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json({ success: true, orders: pendingOrders });
     } catch (e: any) {
-        console.error('Pending orders error:', e.message);
+        log.error('Pending orders error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
@@ -74,7 +77,7 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ success: false, error: 'Invalid action' });
     } catch (e: any) {
-        console.error('Order action error:', e.message);
+        log.error('Order action error:', e.message);
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }

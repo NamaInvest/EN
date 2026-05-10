@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.privacy-filt' });
+
 /**
  * Privacy Filter for AI integrations.
  * Prevents Personally Identifiable Information (PIH/PII) from leaking to external LLM providers.

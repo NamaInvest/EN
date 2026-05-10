@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos.bnpl' });
 
 const _POSTSchema = z.object({
   provider: z.any().optional(),
@@ -51,7 +54,7 @@ async function _POST(request: NextRequest) {
             referenceId: orderId
         });
     } catch (error: any) {
-        console.error('BNPL Init Error:', error);
+        log.error('BNPL Init Error:', error);
         return apiError(error, 'فشل في إنشاء جلسة التقسيط', { context: 'pos/bnpl' });
     }
 }

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getOpenAPISpec } from '@/lib/openapi';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'docs.openapi.json' });
 
 /**
  * GET /api/docs/openapi.json

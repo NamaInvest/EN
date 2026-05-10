@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.scheduler' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -55,7 +58,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json(schedulerData);
     } catch (error: any) {
-        console.error("Scheduler fetch error:", error);
+        log.error("Scheduler fetch error:", error);
         return NextResponse.json({ error: 'Failed to fetch scheduler data' }, { status: 500 });
     }
 }

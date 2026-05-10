@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 // GET all units
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'units' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -12,7 +15,7 @@ async function _GET(request: NextRequest) {
             take: 100, orderBy: { name: 'asc' } });
         return NextResponse.json(units);
     } catch (error: any) {
-        console.error('Units GET error:', error);
+        log.error('Units GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -36,7 +39,7 @@ async function _POST(request: NextRequest) {
         const unit = await prisma.unit.create({ data: { name: body.name.trim() } });
         return NextResponse.json(unit, { status: 201 });
     } catch (error: any) {
-        console.error('Unit POST error:', error);
+        log.error('Unit POST error:', error);
         return NextResponse.json({ error: 'فشل في الإضافة' }, { status: 500 });
     }
 }
@@ -55,7 +58,7 @@ async function _DELETE(request: NextRequest) {
         await prisma.unit.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Unit DELETE error:', error);
+        log.error('Unit DELETE error:', error);
         return NextResponse.json({ error: 'فشل في الحذف' }, { status: 500 });
     }
 }

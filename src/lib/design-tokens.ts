@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.design-token' });
+
 /**
  * NamaSoft ERP — Unified Design Tokens
  * Source of truth for all colors, spacing, typography, and shadows.

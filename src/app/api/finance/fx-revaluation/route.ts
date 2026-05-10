@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.fx-revaluation' });
 
 async function _GET(req: NextRequest) {
     try {

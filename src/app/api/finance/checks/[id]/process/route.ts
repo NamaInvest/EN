@@ -5,6 +5,9 @@ import { createJournalEntry } from '@/lib/auto-journal';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.checks.id.process' });
 
 
 const _PUTSchema = z.object({
@@ -112,7 +115,7 @@ async function _PUT(
                     ]
                 });
             } else {
-                console.warn('Treasury auto-journal missing standard codes (1220/2120)');
+                log.warn('Treasury auto-journal missing standard codes (1220/2120)');
             }
         }
 

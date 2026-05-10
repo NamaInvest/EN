@@ -17,6 +17,9 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.validate' });
 
 // ─── Core validate helper ─────────────────────────────────────────────────────
 

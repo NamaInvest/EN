@@ -9,6 +9,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchase-returns' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -75,7 +78,7 @@ async function _POST(request: Request) {
                 branchId: branchId || undefined,
             });
         } catch (je: unknown) {
-            console.warn('Auto Journal skipped (Purchase Return):', je);
+            log.warn('Auto Journal skipped (Purchase Return):', je);
         }
 
         return NextResponse.json(ret, { status: 201 });

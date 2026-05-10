@@ -7,6 +7,9 @@
 
 import { prisma, resolveTenant, withTenant } from './prisma';
 import { getNextNumber } from './numbering';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.auto-journal' });
 
 // أكواد الحسابات الافتراضية
 const ACCOUNTS = {
@@ -193,7 +196,7 @@ async function createJournalEntry(params: {
 
         return { success: true, entryId: entry.id };
     } catch (error: any) {
-        console.error('Auto-journal error:', error);
+        log.error('Auto-journal error:', error);
         return { success: false, error: String(error) };
     }
     });

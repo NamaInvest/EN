@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'public.table' });
 
 // Public API - get table info by ID (no auth needed)
 async function _GET(req: NextRequest) {

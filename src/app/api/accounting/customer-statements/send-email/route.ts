@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.customer-statements.send-emai' });
 
 
 const _POSTSchema = z.object({
@@ -28,7 +31,7 @@ async function _POST(req: NextRequest) {
         }
 
         // Mock SendGrid dispatch
-        console.log(`Sending email to ${to} with subject: ${subject}`);
+        log.info(`Sending email to ${to} with subject: ${subject}`);
 
         // Mock log entry update
         return NextResponse.json({

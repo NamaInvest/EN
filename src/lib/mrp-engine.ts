@@ -5,6 +5,9 @@
 
 import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.mrp-engine.t' });
 
 interface MaterialRequirement {
   productId: number;
@@ -126,7 +129,7 @@ export async function runMRP(manufacturingOrderId: number): Promise<MRPResult> {
       generatedPRs.push(pr.id);
     } catch (e: any) {
       // إذا فشل إنشاء PR — لا نوقف العملية
-      console.error('MRP: فشل إنشاء طلب الشراء التلقائي:', e);
+      log.error('MRP: فشل إنشاء طلب الشراء التلقائي:', e);
     }
   }
 

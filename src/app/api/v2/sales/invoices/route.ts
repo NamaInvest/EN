@@ -5,6 +5,9 @@ import { SalesInvoiceService, CreateInvoiceInput } from '@/services/sales/invoic
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'v2.sales.invoices' });
 
 /**
  * Helper to build the BusinessContext from the incoming request headers and auth
@@ -77,7 +80,7 @@ async function _POST(req: NextRequest) {
     }, { status: 201 });
 
   } catch (error: any) {
-    console.error('[v2] Sales POST error:', error);
+    log.error('[v2] Sales POST error:', error);
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

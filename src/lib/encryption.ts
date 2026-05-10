@@ -4,6 +4,9 @@
  */
 
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.encryption.t' });
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32;

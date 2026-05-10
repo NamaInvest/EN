@@ -13,6 +13,9 @@ import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { MultiBookEngineV2 } from '@/lib/multi-book-engine-v2';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.books' });
 
 const BOOK_ROLES = ['admin', 'owner', 'cfo', 'finance'];
 

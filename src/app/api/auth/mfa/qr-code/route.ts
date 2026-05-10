@@ -4,6 +4,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.mfa.qr-code' });
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-32-byte-encryption-key!!!';
 const ALGORITHM = 'aes-256-gcm';

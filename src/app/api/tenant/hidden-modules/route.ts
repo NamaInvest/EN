@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant.hidden-modules' });
 async function _GET(request: NextRequest) {
     try {
         const tenant = request.headers.get('x-tenant');

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'inventory.quality-control' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
@@ -26,7 +29,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json({ pending, completed });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }
@@ -64,12 +67,12 @@ async function _POST(req: NextRequest) {
         // Depending on status, trigger CAPA/NCR or move stock
         if (status === 'FAILED') {
             // Log logic for NCR (Non-Conformance Report)
-            console.log('NCR Triggered for', inspection.referenceNumber);
+            log.info('NCR Triggered for', inspection.referenceNumber);
         }
 
         return NextResponse.json({ message: 'Inspection updated', inspection });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }

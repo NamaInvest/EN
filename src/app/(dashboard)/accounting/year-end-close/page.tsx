@@ -5,6 +5,9 @@ import { Lock, FileOutput, ShieldAlert, CheckSquare } from 'lucide-react';
 
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function YearEndCloseDashboard() {
     // Fetch live data from Prisma
     const unpostedJEsCount = await prisma.journalEntry.count({

@@ -4,13 +4,16 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.key' });
 async function _GET(request: Request, { params }: { params: Promise<{ key: string }> }) {
     const prisma = getPrisma(request);
     try {
         const { key } = await params;
         const setting = await prisma.setting.findUnique({ where: { key } });
         return NextResponse.json(setting || { key, value: '' });
-    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'خطأ' }, { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json({ error: 'خطأ' }, { status: 500 }); }
 }
 
 
@@ -39,7 +42,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ key: strin
             create: { key, value: body.value },
         });
         return NextResponse.json(setting);
-    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });

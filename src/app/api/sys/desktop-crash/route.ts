@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma'; // Assuming standard location
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sys.desktop-crash' });
 
 
 const _POSTSchema = z.object({
@@ -38,7 +41,7 @@ async function _POST(req: Request) {
 
     return NextResponse.json({ success: true, id: report.id });
   } catch (error: any) {
-    console.error('Failed to log desktop crash:', error);
+    log.error('Failed to log desktop crash:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to process crash report' },
       { status: 500 }

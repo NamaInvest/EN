@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.hijri.ts' });
+
 /**
  * Hijri Date Converter — التاريخ الهجري
  * تحويل التاريخ الميلادي إلى هجري باستخدام خوارزمية Kuwaiti

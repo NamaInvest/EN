@@ -1,5 +1,4 @@
 
-
 describe('State Machine Enforcer', () => {
   describe('SalesInvoice transitions', () => {
     it('allows DRAFT -> POSTED', async () => {

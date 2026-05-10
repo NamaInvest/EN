@@ -247,8 +247,6 @@ export default function Design1() {
           </div>
         </section>
 
-        
-        
         {/* Value Proposition Floating Bar */}
         <section className="relative z-30 -mt-16 lg:-mt-24 mb-20 px-6 max-w-[100rem] mx-auto reveal-hidden">
           <div className="bg-white rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] p-8 lg:p-12 border border-slate-100">

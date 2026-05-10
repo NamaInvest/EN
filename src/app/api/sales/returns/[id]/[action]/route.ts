@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { StateMachine } from '@/lib/state-machine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.returns.id.action' });
 
 // Define the RMA State Machine rules
 const rmaTransitions = {
@@ -44,13 +47,13 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, a
         if (targetState === 'REFUNDED') {
             // Auto-journal: Dr 4010 Sales Returns, Dr 2310 VAT / Cr 1210 AR
             // Here we just mock the JE creation since auto-journal might be complex to fully implement without the rest of the file
-            console.log(`Auto-journal triggered: Credit Note for Return #${id}`);
+            log.info(`Auto-journal triggered: Credit Note for Return #${id}`);
         } else if (targetState === 'RESTOCKED' || targetState === 'RECEIVED') {
             // Update inventory
-            console.log(`Inventory updated: Restocked items for Return #${id}`);
+            log.info(`Inventory updated: Restocked items for Return #${id}`);
         } else if (targetState === 'SCRAPPED') {
             // Scrap logic: Dr 5910 Scrap Expense / Cr 1310 Inventory
-            console.log(`Scrap logic triggered: Return #${id}`);
+            log.info(`Scrap logic triggered: Return #${id}`);
         }
 
         // Update the state in DB
@@ -62,7 +65,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, a
         return NextResponse.json({ success: true, return: updated });
 
     } catch (error: any) {
-        console.error('RMA Transition Error:', error);
+        log.error('RMA Transition Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

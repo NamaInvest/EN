@@ -8,6 +8,9 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cloud-storag' });
 
 interface UploadResult {
     url: string;
@@ -95,7 +98,7 @@ async function uploadToS3(buffer: Buffer, key: string): Promise<UploadResult> {
 
 async function deleteFromS3(key: string): Promise<boolean> {
     // Simplified — in production use proper AWS SDK
-    console.log(`[S3] Delete: ${key}`);
+    log.info(`[S3] Delete: ${key}`);
     return true;
 }
 

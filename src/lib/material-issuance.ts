@@ -1,4 +1,7 @@
 import { PrismaClient, ManufacturingOrder, StockMovement, ProductStock } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.material-iss' });
 
 const prisma = new PrismaClient();
 

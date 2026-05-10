@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fx' });
 
 const db = (p: any) => p as any;
 

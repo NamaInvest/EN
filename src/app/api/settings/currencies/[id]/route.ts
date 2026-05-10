@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.currencies.id' });
 
 const _PUTSchema = z.object({
   isDefault: z.boolean().optional(),
@@ -52,7 +55,7 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         
         return NextResponse.json(updated);
     } catch (error: any) {
-        console.error("PUT currency error:", error);
+        log.error("PUT currency error:", error);
         return NextResponse.json({ error: 'حدث خطأ أثناء التحديث' }, { status: 500 });
     }
 }
@@ -68,7 +71,7 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
         
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("DELETE currency error:", error);
+        log.error("DELETE currency error:", error);
         return NextResponse.json({ error: 'حدث خطأ. لا يمكن حذف عملة مرتبطة بعمليات.' }, { status: 500 });
     }
 }

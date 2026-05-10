@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ecommerce.sync' });
 
 // ── Zod Schemas ──────────────────────────────────────────────────────────────
 
@@ -60,7 +63,7 @@ async function _POST(req: Request) {
         where:  { active: true, sellPrice: { gt: 0 } },
         select: { id: true, name: true, nameEn: true, barcode: true, currentStock: true, sellPrice: true, taxRate: true, description: true },
       });
-      console.log(`[Omnichannel] Syncing ${products.length} products to Salla E-Commerce...`);
+      log.info(`[Omnichannel] Syncing ${products.length} products to Salla E-Commerce...`);
       return NextResponse.json({ message: 'Products successfully synced to Cloud Store', count: products.length });
     }
 
@@ -95,14 +98,14 @@ async function _POST(req: Request) {
         },
       });
 
-      console.log(`[Omnichannel] E-Commerce Order → ERP Invoice #${invoice.invoiceNo}`);
+      log.info(`[Omnichannel] E-Commerce Order → ERP Invoice #${invoice.invoiceNo}`);
       return NextResponse.json({ message: 'Order processed to ERP', invoiceId: invoice.id });
     }
 
     return NextResponse.json({ error: 'Unhandled action' }, { status: 400 });
 
   } catch (error: any) {
-    console.error('Omnichannel Engine Error:', error);
+    log.error('Omnichannel Engine Error:', error);
     return NextResponse.json({ error: 'Failed to sync ecommerce channel' }, { status: 500 });
   }
 }

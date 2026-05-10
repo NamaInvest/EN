@@ -11,6 +11,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { ragPipeline } from '@/lib/rag-pipeline';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.ingest' });
 
 const IngestSchema = z.object({
   id:       z.string().min(1).max(255).optional(),

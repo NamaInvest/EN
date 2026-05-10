@@ -1,6 +1,9 @@
 import { prisma } from './prisma';
 import puppeteer from 'puppeteer';
 import Handlebars from 'handlebars';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.customer-sta' });
 
 export class CustomerStatementPdfEngine {
     /**

@@ -5,13 +5,16 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bookings' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const bookings = await prisma.booking.findMany({
             take: 100, orderBy: { id: 'desc' }, include: { customer: { select: { name: true } } } });
         return NextResponse.json(bookings);
-    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 
@@ -55,7 +58,7 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(booking, { status: 201 });
-    } catch (e: any) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 
@@ -71,7 +74,7 @@ async function _PUT(request: Request) {
         const body = await request.json();
         const booking = await prisma.booking.update({ where: { id: body.id }, data: { status: body.status, notes: body.notes } });
         return NextResponse.json(booking);
-    } catch (e: any) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

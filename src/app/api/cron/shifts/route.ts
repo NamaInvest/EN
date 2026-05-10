@@ -4,13 +4,16 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.shifts' });
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
   if (guard) return guard;
 
     const prisma = getPrisma(req);
     try {
-        console.log(">> CRON EXECUTION: Running EOD Shift Closures...");
+        log.info(">> CRON EXECUTION: Running EOD Shift Closures...");
 
         // Find shifts that have been OPEN for more than 16 hours
         const sixteenHoursAgo = new Date(Date.now() - 16 * 60 * 60 * 1000);
@@ -70,7 +73,7 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        console.error("CRON Shifts Automation Error:", e);
+        log.error("CRON Shifts Automation Error:", e);
         return NextResponse.json({ error: e.message || 'فشل تشغيل إغلاقات الورديات الآلية' }, { status: 500 });
     }
 }

@@ -7,6 +7,9 @@ import path from 'path';
 // إرسال رسالة واتساب مع خيار إرفاق الفاتورة أو التذكير
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'crm.whatsapp' });
 
 const _POSTSchema = z.object({
   phone: z.string().optional(),
@@ -60,7 +63,7 @@ async function _POST(request: Request) {
             // const pdfPath = await generateInvoicePDF(invoiceId);
             // mediaId = await uploadMediaToWhatsApp(pdfPath, token);
             // لغرض التجربة حالياً، سنستخدم رابط الفاتورة المباشر إذا كان التوليد الديناميكي متاحاً
-            console.log(`Preparing invoice ${invoiceId} for ${formattedPhone}`);
+            log.info(`Preparing invoice ${invoiceId} for ${formattedPhone}`);
         }
 
         // 3. بناء هيكل الرسالة (WhatsApp Cloud API)
@@ -106,14 +109,14 @@ async function _POST(request: Request) {
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('WhatsApp API Error:', result);
+            log.error('WhatsApp API Error:', result);
             return NextResponse.json({ error: 'فشل في إرسال رسالة الواتساب عبر Meta', details: result }, { status: response.status });
         }
 
         return NextResponse.json({ success: true, messageId: result.messages?.[0]?.id });
 
     } catch (error: any) {
-        console.error('WhatsApp Send Error:', error);
+        log.error('WhatsApp Send Error:', error);
         return NextResponse.json({ error: 'فشل الاتصال بخادم الواتساب المدمج' }, { status: 500 });
     }
 }

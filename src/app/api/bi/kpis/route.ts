@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bi.kpis' });
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request as any);
   try {

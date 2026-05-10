@@ -12,6 +12,9 @@
 
 import type { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.webhook-engi' });
 
 const db = (p: any) => p as any;
 

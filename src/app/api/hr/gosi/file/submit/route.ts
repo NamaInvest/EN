@@ -6,6 +6,9 @@ import { GOSIEngine } from '@/lib/gosi-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.gosi.file.submit' });
 
 const _POSTSchema = z.object({
   fileId: z.union([z.string(), z.number()]).optional(),

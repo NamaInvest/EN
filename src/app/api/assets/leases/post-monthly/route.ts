@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { LeaseAccountingService } from '@/services/accounting/lease-accounting.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'assets.leases.post-monthly' });
 
 // POST /api/assets/leases/post-monthly
 // Body: { targetMonth: '2025-01-01' }

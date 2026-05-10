@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pos' });
 
 
 const _POSTSchema = z.object({
@@ -152,7 +155,7 @@ async function _POST(req: NextRequest) {
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error("POS API Error:", error);
+        log.error("POS API Error:", error);
         return NextResponse.json({
             success: false,
             error: "Failed to process POS transaction",

@@ -11,6 +11,9 @@ import { getPrisma } from '@/lib/prisma';
 import { CreditManagementService } from '@/services/ar/credit-management.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ar.credit' });
 
 function buildCtx(req: NextRequest): BusinessContext {
   const tenantId = req.headers.get('x-tenant-id') ?? 'default';

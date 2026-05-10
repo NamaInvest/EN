@@ -5,6 +5,9 @@ import { MfaEngine } from '@/lib/mfa-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.2fa.setup' });
 /**
  * POST /api/auth/2fa/setup — Begin 2FA enrollment for the current user.
  * Returns the TOTP secret + QR image (otpauth URI baked in).
@@ -22,7 +25,7 @@ async function _POST(request: NextRequest) {
         const { qrCodeImage, secret } = await MfaEngine.enroll(user.userId, 'TOTP');
         return NextResponse.json({ secret, qrCodeImage });
     } catch (e: any) {
-        console.error('[2FA Setup]', e);
+        log.error('[2FA Setup]', e);
         return NextResponse.json({ error: 'فشل إعداد التحقق الثنائي' }, { status: 500 });
     }
 }
@@ -54,7 +57,7 @@ async function _DELETE(request: NextRequest) {
         await MfaEngine.disable(user.userId);
         return NextResponse.json({ ok: true });
     } catch (e: any) {
-        console.error('[2FA Disable]', e);
+        log.error('[2FA Disable]', e);
         return NextResponse.json({ error: 'فشل إلغاء التحقق الثنائي' }, { status: 500 });
     }
 }

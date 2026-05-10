@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import * as xlsx from 'xlsx';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'products.import' });
 
 async function _POST(request: NextRequest) {
 
@@ -137,7 +140,7 @@ async function _POST(request: NextRequest) {
                     added++;
                 }
             } catch (e: any) {
-                console.error('Row import failed:', e);
+                log.error('Row import failed:', e);
                 failed++;
                 if (!firstError) firstError = (e && e.message) ? e.message : String(e);
             }
@@ -154,7 +157,7 @@ async function _POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Products IMPORT error:', error);
+        log.error('Products IMPORT error:', error);
         return NextResponse.json({ error: 'فشل في استيراد المنتجات' }, { status: 500 });
     }
 }

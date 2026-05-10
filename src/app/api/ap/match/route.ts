@@ -13,6 +13,9 @@ import { ThreeWayMatchService } from '@/services/ap/three-way-match.service';
 import { PaymentRunService } from '@/services/ap/payment-run.service';
 import { BusinessContext } from '@/services/shared/event-bus.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ap.match' });
 
 function buildCtx(req: NextRequest): BusinessContext {
   return {

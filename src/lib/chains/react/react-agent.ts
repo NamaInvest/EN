@@ -1,5 +1,8 @@
 import { BusinessContext } from '../../context/business-context';
 import { ToolDefinition, toolRegistry } from '../../orchestrator/tool-registry';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.react' });
 
 interface ReActStep {
   thought?: string;

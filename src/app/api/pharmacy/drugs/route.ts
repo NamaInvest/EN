@@ -6,6 +6,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'pharmacy.drugs' });
 
 const CreateDrugSchema = z.object({
   name:            z.string().min(1, 'اسم الدواء مطلوب'),

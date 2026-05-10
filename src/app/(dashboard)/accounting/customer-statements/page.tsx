@@ -3,6 +3,9 @@ import { Send, CheckCircle, AlertTriangle, Clock, Play, Paintbrush, Layers } fro
 import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 // Revalidate every 60 seconds or make it dynamic
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +37,7 @@ export default async function CustomerStatementsOverview() {
             include: { customer: true }
         }).catch(() => []);
     } catch (e) {
-        console.error('Error fetching dashboard data:', e);
+        log.error('Error fetching dashboard data:', e);
     }
 
     const openRate = thisMonthSent > 0 ? Math.floor(((thisMonthSent - deliveryIssues) / thisMonthSent) * 100) : 0;

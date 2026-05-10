@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stocktake' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: NextRequest) {
             orderBy: { id: 'desc' },
         });
         return NextResponse.json(stocktakes);
-    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 
@@ -76,7 +79,7 @@ async function _POST(request: Request) {
         }
 
         return NextResponse.json(stocktake, { status: 201 });
-    } catch (e: any) { console.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
+    } catch (e: any) { log.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.busi' });
 
 export interface BusinessContext {
   tenant: any;

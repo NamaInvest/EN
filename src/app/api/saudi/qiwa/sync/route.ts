@@ -8,6 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncWorkforce } from '@/lib/qiwa-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'saudi.qiwa.sync' });
 
 
 const _POSTSchema = z.object({

@@ -1,4 +1,7 @@
 import { getPrisma } from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vendor-scori' });
 
 export async function calculateVendorScore(supplierId: number, prisma: any) {
     // Quality Score (1-5): Average quality rating from Goods Receipts

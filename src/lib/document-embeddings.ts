@@ -3,6 +3,9 @@
  * Auto-indexes invoices, POs, contracts into vector store for semantic search.
  */
 import { addDocumentToVectorMine, searchVectorMine } from './vector-store';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.document-emb' });
 
 interface DocumentSource {
     type: 'INVOICE' | 'PO' | 'CONTRACT' | 'PRODUCT' | 'POLICY';

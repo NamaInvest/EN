@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.requisitions' });
 
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
@@ -29,7 +32,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json(prs);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -85,7 +88,7 @@ async function _POST(req: NextRequest) {
         // Optional: Could trigger a notification to the manager here
         return NextResponse.json(pr);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

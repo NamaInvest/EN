@@ -8,7 +8,7 @@
 import { erpTools, getTool, listTools } from './erp-tools';
 import { logger } from './logger';
 
-const log = logger.child({ route: 'MCPBridge' });
+const log = logger.child({ service: "mcp-bridge" });
 
 export interface MCPRequest {
   jsonrpc: '2.0';

@@ -13,6 +13,9 @@ import { z } from 'zod';
 import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { BankReconExceptionEngine, ExceptionStatus, ResolutionType } from '@/lib/bank-recon-exceptions';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.recon-exceptions' });
 
 const TREASURY_ROLES = ['admin', 'owner', 'cfo', 'finance', 'accountant', 'treasurer'];
 

@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll.calculate' });
 
 const _POSTSchema = z.object({
   employeeId: z.union([z.string(), z.number()]).optional(),
@@ -93,7 +96,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ additions, deductions });
     } catch (error: any) {
-        console.error('Payroll calc error:', error);
+        log.error('Payroll calc error:', error);
         return NextResponse.json({ error: 'Failed to calculate payroll' }, { status: 500 });
     }
 }

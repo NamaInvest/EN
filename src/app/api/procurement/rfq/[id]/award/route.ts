@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.rfq.id.award' });
 
 
 const _POSTSchema = z.object({
@@ -79,7 +82,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         return NextResponse.json({ success: true, message: 'PO created', poId: po.id });
 
     } catch (e: any) {
-        console.error('RFQ Award Error:', e);
+        log.error('RFQ Award Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

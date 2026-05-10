@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'contracts.alerts' });
 /**
  * POST /api/contracts/alerts — Check all contracts and generate alerts for expiring ones
  * GET  /api/contracts/alerts — Get active contract expiry alerts
@@ -48,7 +51,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ ok: true, expiringContracts: expiringLeases.length, alertsCreated });
     } catch (e: any) {
-        console.error('[Contract Alerts]', e);
+        log.error('[Contract Alerts]', e);
         return NextResponse.json({ error: 'فشل فحص العقود' }, { status: 500 });
     }
 }

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.qc' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     const { searchParams } = new URL(request.url);
@@ -85,7 +88,7 @@ async function _POST(request: Request) {
         
         return NextResponse.json({ error: 'Invalid action type' }, { status: 400 });
     } catch (error: any) {
-        console.error("QC POST error:", error);
+        log.error("QC POST error:", error);
         return NextResponse.json({ error: 'Operation failed' }, { status: 500 });
     }
 }

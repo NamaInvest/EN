@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { processMessage, sendMessage, getBotToken, processPhoto, processVoice } from '@/lib/telegram-bot';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'telegram.webhook' });
 
 // Telegram Update schema (lenient — Telegram adds fields regularly)
 const TelegramUpdateSchema = z.object({
@@ -58,7 +61,7 @@ async function _POST(req: NextRequest) {
         if (message.voice || message.audio) {
             const fileId = message.voice?.file_id || message.audio?.file_id;
             if (fileId) {
-                processVoice(fileId, chatId).catch((e: any) => console.error('Background Voice Failed:', e));
+                processVoice(fileId, chatId).catch((e: any) => log.error('Background Voice Failed:', e));
             }
             return NextResponse.json({ ok: true });
         }
@@ -74,12 +77,12 @@ async function _POST(req: NextRequest) {
             const largestPhoto = message.photo[message.photo.length - 1];
             const fileId = largestPhoto.file_id;
             // Process OCR in the background so we don't return an error to Telegram
-            processPhoto(fileId, chatId).catch((e: any) => console.error('Background OCR Failed:', e));
+            processPhoto(fileId, chatId).catch((e: any) => log.error('Background OCR Failed:', e));
         }
 
         return NextResponse.json({ ok: true });
     } catch (error: any) {
-        console.error('Telegram webhook error:', error);
+        log.error('Telegram webhook error:', error);
         return NextResponse.json({ ok: true });
     }
 }

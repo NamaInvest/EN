@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { PrismaClient, BpmInstance } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bpm-engine.t' });
 
 const prisma = new PrismaClient();
 

@@ -8,6 +8,9 @@
  *   const result = await saudiCompliance(prisma, tenantId).gosi.calculateForEmployee(...);
  */
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.saudi-compli' });
 
 // ─── Audit helper shared by all modules ────────────────────────────────────
 

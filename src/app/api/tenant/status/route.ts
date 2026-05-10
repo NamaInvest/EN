@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from "@prisma/client";
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant.status' });
 
 const prisma = new PrismaClient();
 
@@ -27,7 +30,7 @@ async function _GET(req: Request) {
       subdomain: tenant.subdomain,
     });
   } catch (error: any) {
-    console.error("[TENANT_STATUS_API]", error);
+    log.error("[TENANT_STATUS_API]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

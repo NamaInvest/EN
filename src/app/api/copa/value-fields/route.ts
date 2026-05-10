@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'copa.value-fields' });
 
 // COPA Value Fields — الحقول الكمية لنظام المحاسبة الربحية
 async function _GET() {

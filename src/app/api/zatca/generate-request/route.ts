@@ -6,6 +6,9 @@ import * as path from 'path';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zatca.generate-request' });
 
 const _POSTSchema = z.object({
   signedXml: z.any().optional(),
@@ -43,7 +46,7 @@ async function _POST(req: NextRequest) {
         try {
             execSync(`fatoora -invoiceRequest -invoice ${invoicePath} -apiRequest ${requestJsonPath}`);
         } catch (fatooraErr: any) {
-            console.error("Fatoora Invoice Request Error:", fatooraErr?.output?.toString());
+            log.error("Fatoora Invoice Request Error:", fatooraErr?.output?.toString());
             throw new Error("فشل في استخراج JSON الطلب من الفاتورة عبر أداة ZATCA.");
         }
 
@@ -60,7 +63,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('API Request Generation Error:', e.message);
+        log.error('API Request Generation Error:', e.message);
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     } finally {
         if (tmpDir) {

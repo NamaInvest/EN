@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.roles' });
 async function _GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
@@ -19,7 +22,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(users);
     } catch (error: any) {
-        console.error('Failed to fetch users and permissions', error);
+        log.error('Failed to fetch users and permissions', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -56,7 +59,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Failed to update permissions', error);
+        log.error('Failed to update permissions', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

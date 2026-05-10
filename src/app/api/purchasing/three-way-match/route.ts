@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchasing.three-way-match' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

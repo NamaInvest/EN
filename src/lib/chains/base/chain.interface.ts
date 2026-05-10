@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { BusinessContext } from '../../context/business-context';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.base.' });
 
 export interface Chain<TInput = any, TOutput = any> {
   name: string;
@@ -21,11 +24,11 @@ export class ChainRunner {
       const validatedOutput = chain.outputSchema.parse(output);
 
       // log execution stub
-      console.log(`[ChainRunner] Successfully ran ${chain.name} in ${Date.now() - start}ms`);
+      log.info(`[ChainRunner] Successfully ran ${chain.name} in ${Date.now() - start}ms`);
 
       return validatedOutput;
     } catch (error: any) {
-      console.error(`[ChainRunner] Failed to run ${chain.name}`, error.message);
+      log.error(`[ChainRunner] Failed to run ${chain.name}`, error.message);
       throw error;
     }
   }

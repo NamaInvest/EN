@@ -3,6 +3,9 @@
  * Full implementation using ApprovalWorkflow + ApprovalWorkflowStep + ApprovalRequest + ApprovalStep models
  */
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.workflow.app' });
 
 export interface SubmitApprovalInput {
   tenantId: string;

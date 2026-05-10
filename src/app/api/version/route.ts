@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import packageJson from '../../../../package.json';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'version' });
 
 async function _GET() {
 

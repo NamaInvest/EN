@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.generate-keys' });
 
 async function _POST(req: NextRequest) {
 

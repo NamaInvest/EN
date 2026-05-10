@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'master-panel-data' });
 const prisma = new PrismaClient();
 
 async function _GET(request: NextRequest) {
@@ -24,7 +27,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json({ companies });
     } catch (error: any) {
-        console.error('Master Panel fetch error:', error);
+        log.error('Master Panel fetch error:', error);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

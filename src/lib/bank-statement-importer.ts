@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-stateme' });
+
 /**
  * Bank Statement Importer — OFX & CAMT.053 (ISO 20022) Parser
  *

@@ -3,6 +3,9 @@ import SecuritySettingsClient from './SecuritySettingsClient';
 
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function SecuritySettingsPage() {
     // We assume tenant/user is 1 for now (mock user until auth is fully integrated in layout)
     // Normally we would get user ID from session/JWT

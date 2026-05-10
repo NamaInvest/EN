@@ -29,7 +29,6 @@ export default function CRMLeadsPage() {
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
 
-
     useEffect(() => {
         fetchLeads();
     }, []);

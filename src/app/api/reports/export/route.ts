@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.export' });
 /**
  * GET /api/reports/export?type=trial-balance|income-statement|balance-sheet&format=csv&from=&to=
  * Export financial reports in CSV format (Excel-compatible with Arabic support)
@@ -133,7 +136,7 @@ async function _GET(request: NextRequest) {
             },
         });
     } catch (e: any) {
-        console.error('[Report Export]', e);
+        log.error('[Report Export]', e);
         return NextResponse.json({ error: 'فشل تصدير التقرير' }, { status: 500 });
     }
 }

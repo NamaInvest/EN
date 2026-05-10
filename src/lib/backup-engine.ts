@@ -3,6 +3,9 @@ import util from 'util';
 import path from 'path';
 import fs from 'fs';
 import { getPrisma } from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.backup-engin' });
 
 const execAsync = util.promisify(exec);
 
@@ -59,7 +62,7 @@ export class BackupEngine {
                     errorMessage: error.message
                 }
             });
-            console.error('[Backup Engine] Error:', error);
+            log.error('[Backup Engine] Error:', error);
             return { success: false, error: error.message };
         }
     }

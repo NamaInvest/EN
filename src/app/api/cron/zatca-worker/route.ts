@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { reportInvoice } from '@/lib/zatca-fatoora';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.zatca-worker' });
 async function _GET(request: Request) {
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -71,7 +74,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json({ processed: results.length, results });
     } catch (error: any) {
-        console.error('ZATCA Cron Error:', error);
+        log.error('ZATCA Cron Error:', error);
         return NextResponse.json({ error: 'Failed to process ZATCA records' }, { status: 500 });
     }
 }

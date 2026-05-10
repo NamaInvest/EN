@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { getVatCategories, seedVatCategories, buildVatReturn } from '@/lib/vat-classifier';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'vat.categories' });
 
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);

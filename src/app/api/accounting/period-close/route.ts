@@ -14,6 +14,9 @@ import { getPrisma }                 from '@/lib/prisma';
 import { getUserFromRequest }        from '@/lib/auth';
 import { validateRequest }           from '@/lib/api/validate-request';
 import { closeApi }                  from '@/lib/close';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.period-close' });
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 

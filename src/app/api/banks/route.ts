@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'banks' });
 async function _GET(request: Request) {
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
     if (!_getAuth(request)) return NextResponse.json({ error: 'UnauthorizedUnauthorizedUnauthorized UnauthorizedUnauthorizedUnauthorizedUnauthorized' }, { status: 401 });
@@ -17,7 +20,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(banks);
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return NextResponse.json({ error: 'Failed to fetch banks' }, { status: 500 }); 
     }
 }
@@ -76,7 +79,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(bank);
     } catch (error: any) { 
-        console.error(error); 
+        log.error(error); 
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks' }); 
     }
 }

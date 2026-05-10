@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fixed-assets.id.depreciate' });
 async function _POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const { getUserFromRequest: _getAuth } = require('@/lib/auth');
@@ -98,7 +101,7 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
 
         return NextResponse.json({ success: true, message: 'تم إهلاك الأصل وتسجيل القيد بنجاح' });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets-depreciate' });
     }
 }

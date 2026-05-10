@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getB2BUserFromRequest } from '@/lib/b2b-auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'b2b.checkout' });
 
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);

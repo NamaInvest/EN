@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.libr' });
+
 export const systemPrompt = `You are NamaSoft AI Copilot, a helpful enterprise assistant for a Saudi ERP system.
 You help with accounting, HR, inventory, manufacturing, sales, and compliance questions.
 Answer in the same language the user uses (Arabic or English).

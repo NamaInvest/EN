@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'coupons' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -15,7 +18,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(coupons);
     } catch (error: any) {
-        console.error('Error fetching coupons:', error);
+        log.error('Error fetching coupons:', error);
         return NextResponse.json({ error: 'Failed to fetch coupons' }, { status: 500 });
     }
 }
@@ -64,7 +67,7 @@ async function _POST(request: Request) {
         
         return NextResponse.json(coupon, { status: 201 });
     } catch (error: any) {
-        console.error('Error creating coupon:', error);
+        log.error('Error creating coupon:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'coupons' });
     }
 }

@@ -3,6 +3,9 @@
  * Route: /api-docs
  */
 import type { Metadata } from 'next';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.api-docs' });
 
 export const metadata: Metadata = {
   title:       'NamaSoft ERP — API Documentation',

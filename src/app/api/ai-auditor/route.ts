@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { sendMessage, getBotToken, getGeminiKey } from '@/lib/telegram-bot';
 import { getPrompt, renderPrompt } from '@/lib/prompts/registry';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai-auditor' });
 
 async function _GET(req: NextRequest) {
 
@@ -79,7 +82,7 @@ async function _GET(req: NextRequest) {
 
         if (!masterChatId) {
             // If we don't know the master chat ID, just return the AI audit as JSON
-            console.log('Master Chat ID not set. Skipping Telegram notification.');
+            log.info('Master Chat ID not set. Skipping Telegram notification.');
         }
 
         const promptTemplate = await getPrompt('audit.daily_audit', null); // Cron job, no specific tenant, or global
@@ -111,7 +114,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json({ success: true, ai_report: report });
     } catch (e: any) {
-        console.error('AI Auditor Cron Error:', e);
+        log.error('AI Auditor Cron Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

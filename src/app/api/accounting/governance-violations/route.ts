@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.governance-violations' });
 async function _GET(request: NextRequest) {
     const auth = getUserFromRequest(request as any);
     if (!auth || auth.role !== 'admin') {
@@ -24,7 +27,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(violations);
     } catch (error: any) {
-        console.error('Violations fetch error:', error);
+        log.error('Violations fetch error:', error);
         return NextResponse.json({ error: 'فشل في جلب المخالفات الرقابية' }, { status: 500 });
     }
 }

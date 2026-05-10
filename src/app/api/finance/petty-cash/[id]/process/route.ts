@@ -5,6 +5,9 @@ import { createJournalEntry } from '@/lib/auto-journal';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.petty-cash.id.process' });
 
 
 const _PUTSchema = z.object({

@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { VendorStatementEngine } from '@/lib/vendor-statement';
 import { emailQueue } from '@/lib/queue';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'vendors.id.statement' });
 
 
 const _POSTSchema = z.object({

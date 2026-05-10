@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { BudgetControlEngine } from '@/lib/budget-control';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'budgeting.variance' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
@@ -35,7 +38,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json(results);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }

@@ -2,6 +2,9 @@
 // Compliant with MHRSD / SAMA / Mudad / Qiwa / GOSI regulations
 // @ts-nocheck
 import { PrismaClient, Employee } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.wps-generato' });
 
 const prisma = new PrismaClient();
 

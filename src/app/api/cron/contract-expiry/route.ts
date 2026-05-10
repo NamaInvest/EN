@@ -7,6 +7,9 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.contract-expiry' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -77,7 +80,7 @@ async function _GET(req: Request) {
             ...results,
         });
     } catch (e: any) {
-        console.error('Contract expiry cron error:', e);
+        log.error('Contract expiry cron error:', e);
         return NextResponse.json({ error: 'Cron error' }, { status: 500 });
     }
 }

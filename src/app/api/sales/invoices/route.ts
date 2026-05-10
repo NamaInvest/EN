@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { checkCredit } from '@/lib/credit-check';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.invoices' });
 
 
 const _POSTSchema = z.object({
@@ -68,7 +71,7 @@ async function _POST(req: Request) {
         return NextResponse.json(invoice, { status: 201 });
 
     } catch (e: any) {
-        console.error('Invoice Creation Error:', e);
+        log.error('Invoice Creation Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

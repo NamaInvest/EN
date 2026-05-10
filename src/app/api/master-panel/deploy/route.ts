@@ -4,6 +4,9 @@ import { exec } from "child_process";
 import { getUserFromRequest } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'master-panel.deploy' });
 
 
 const _POSTSchema = z.object({
@@ -48,7 +51,7 @@ async function _POST(req: NextRequest) {
                 }
                 
                 if (error) {
-                    console.error("Deploy Script Error:", error);
+                    log.error("Deploy Script Error:", error);
                     resolve(NextResponse.json({ error: error.message, logs }, { status: 500 }));
                 } else {
                     resolve(NextResponse.json({ success: true, logs }));
@@ -57,7 +60,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (err: any) {
-        console.error("Master Panel Error:", err);
+        log.error("Master Panel Error:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { format } from 'date-fns';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.numbering.ts' });
 
 export async function getNextNumber(
   tx: any, 

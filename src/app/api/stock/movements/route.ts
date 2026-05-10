@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stock.movements' });
 
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
@@ -32,7 +35,7 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json(movements);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error', details: e.message }, { status: 500 });
     }
 }

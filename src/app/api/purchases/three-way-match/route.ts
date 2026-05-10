@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases.three-way-match' });
 
 async function _GET(request: NextRequest) {
 
@@ -22,7 +25,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(matches);
     } catch (error: any) {
-        console.error('ThreeWayMatch GET error:', error);
+        log.error('ThreeWayMatch GET error:', error);
         return NextResponse.json({ error: 'فشل جلب بيانات المطابقة' }, { status: 500 });
     }
 }
@@ -60,7 +63,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json({ success: true, match });
     } catch (error: any) {
-        console.error('ThreeWayMatch PUT error:', error);
+        log.error('ThreeWayMatch PUT error:', error);
         return NextResponse.json({ error: 'فشل تحديث حالة المطابقة' }, { status: 500 });
     }
 }

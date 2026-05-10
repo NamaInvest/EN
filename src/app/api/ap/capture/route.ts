@@ -5,6 +5,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ap.capture' });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 async function _GET(request: Request) {
@@ -36,7 +39,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json({ captures, counts });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -88,7 +91,7 @@ ${ocrText}`;
                     confidence = filled / fields.length;
                 }
             } catch (aiErr: unknown) {
-                console.error('AI extraction error:', aiErr);
+                log.error('AI extraction error:', aiErr);
                 confidence = 0;
             }
         }
@@ -146,7 +149,7 @@ ${ocrText}`;
                      matchStatus === 'EXCEPTION' ? 'يحتاج مراجعة يدوية' : 'تم الاستلام - بانتظار المطابقة'
         });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

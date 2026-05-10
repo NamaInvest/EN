@@ -2,6 +2,9 @@
  * Bank Feed Engine — import CSV/OFX bank statements and auto-match
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-feed-en' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class BankFeedEngine {

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.generate-barcode' });
 async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -21,7 +24,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ barcode: String(nextBarcode) });
     } catch (error: any) {
-        console.error('Barcode generation error:', error);
+        log.error('Barcode generation error:', error);
         return NextResponse.json({ error: 'خطأ في توليد الباركود' }, { status: 500 });
     }
 }

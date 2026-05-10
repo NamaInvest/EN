@@ -8,6 +8,9 @@ import { getMainBranchId } from '@/lib/getDefaults';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'expenses' });
 
 async function _GET(request: NextRequest) {
 
@@ -105,7 +108,7 @@ async function _POST(request: Request) {
                 date: new Date().toISOString().split('T')[0],
             });
         } catch (journalErr: unknown) {
-            console.warn('Auto-journal for expense skipped:', journalErr);
+            log.warn('Auto-journal for expense skipped:', journalErr);
         }
 
         return NextResponse.json(expense, { status: 201 });

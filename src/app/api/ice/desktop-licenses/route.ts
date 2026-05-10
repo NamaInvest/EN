@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.desktop-licenses' });
 
 const MASTER_DB_URL = process.env.DATABASE_URL || '';
 
@@ -135,7 +138,7 @@ async function _GET(req: NextRequest) {
               );
               features = flagsRes.rows.map(r => r.module_name);
           } catch (e: any) {
-              console.error('Error fetching feature flags:', e);
+              log.error('Error fetching feature flags:', e);
           }
       }
 
@@ -180,7 +183,7 @@ async function _GET(req: NextRequest) {
 
     return NextResponse.json({ licenses: result.rows });
   } catch (err: any) {
-    console.error('License API error:', err.message);
+    log.error('License API error:', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   } finally {
     await pool.end();
@@ -347,7 +350,7 @@ async function _POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (err: any) {
-    console.error('License POST error:', err.message);
+    log.error('License POST error:', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   } finally {
     await pool.end();

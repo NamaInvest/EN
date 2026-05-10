@@ -4,6 +4,9 @@ import { MfaEngine } from '@/lib/mfa-engine';
 import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.mfa.verify' });
 
 
 const _POSTSchema = z.object({
@@ -69,7 +72,7 @@ async function _POST(req: NextRequest) {
 
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
-            console.error('CRITICAL: JWT_SECRET not set');
+            log.error('CRITICAL: JWT_SECRET not set');
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
         }
 
@@ -98,7 +101,7 @@ async function _POST(req: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('[MFA verify] error:', e);
+        log.error('[MFA verify] error:', e);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

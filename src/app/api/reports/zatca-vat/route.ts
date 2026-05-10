@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.zatca-vat' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -54,7 +57,7 @@ async function _GET(request: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error('ZATCA VAT Report error:', error);
+        log.error('ZATCA VAT Report error:', error);
         return NextResponse.json({ error: 'فشل جلب التقرير الضريبي' }, { status: 500 });
     }
 }

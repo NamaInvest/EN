@@ -40,6 +40,9 @@ import {
   executeHardClose,
 } from '../period-close-engine';
 import { YearEndCloseEngine } from '../year-end-engine';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.close.index.' });
 
 export function closeApi(prisma: PrismaClient) {
   return {

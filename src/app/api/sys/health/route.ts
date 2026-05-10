@@ -5,6 +5,9 @@ import os from 'os';
 import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sys.health' });
 const prisma = new PrismaClient();
 
 async function _GET(request: NextRequest) {
@@ -51,7 +54,7 @@ async function _GET(request: NextRequest) {
         nodes: pm2Status
     });
   } catch (error: any) {
-    console.error('System Health API Error:', error);
+    log.error('System Health API Error:', error);
     return NextResponse.json({ error: 'Failed to retrieve system health' }, { status: 500 });
   }
 }

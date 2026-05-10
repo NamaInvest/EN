@@ -15,6 +15,9 @@ import { PayrollService }       from '@/services/hr/payroll.service';
 import { saudiCompliance }      from '@/lib/saudi-compliance';
 import { validateRequest }      from '@/lib/api/validate-request';
 import { BusinessContext }       from '@/services/shared/event-bus.service';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payroll' });
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 

@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.pii-mask.ts' });
+
 /**
  * PII Masking Engine (AI-06)
  * Scans text for sensitive Saudi data patterns and masks them before sending to AI providers.

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.attendance' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -16,7 +19,7 @@ async function _GET(request: Request) {
         });
         return NextResponse.json(records);
     } catch (error: any) {
-        console.error("Attendance GET error:", error);
+        log.error("Attendance GET error:", error);
         return NextResponse.json({ error: 'Failed to fetch attendance' }, { status: 500 });
     }
 }
@@ -82,7 +85,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(record, { status: 201 });
     } catch (error: any) {
-        console.error("Attendance POST error:", error);
+        log.error("Attendance POST error:", error);
         return NextResponse.json({ error: 'Failed to save attendance' }, { status: 500 });
     }
 }

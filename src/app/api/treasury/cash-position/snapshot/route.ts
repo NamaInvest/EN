@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.cash-position.snapshot' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -52,7 +55,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, snapshot });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

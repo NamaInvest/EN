@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import QRCode from 'qrcode'; // if missing we will just use dummy or skip phase 1 qr generation text
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.trigger-invoices' });
 
 // This endpoint is meant to be called daily (e.g. at 00:01 AM) by a Cron Job
 async function _GET(req: NextRequest) {
@@ -29,7 +32,7 @@ async function _GET(req: NextRequest) {
             
             // If the billing cycle has arrived or passed!
             if (nextDate <= today) {
-                console.log(`[CRON] Generating invoice for Contract #${contract.id} - ${contract.customer?.name}`);
+                log.info(`[CRON] Generating invoice for Contract #${contract.id} - ${contract.customer?.name}`);
                 
                 // 1. Get max invoice number
                 const maxInv = await prisma.salesInvoice.aggregate({ _max: { invoiceNo: true } });
@@ -94,7 +97,7 @@ async function _GET(req: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('CRON Error:', e);
+        log.error('CRON Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

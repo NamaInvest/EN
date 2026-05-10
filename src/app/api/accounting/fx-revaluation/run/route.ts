@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { FxRevaluationEngine } from '@/lib/fx-revaluation';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.fx-revaluation.run' });
 
 
 const _POSTSchema = z.object({

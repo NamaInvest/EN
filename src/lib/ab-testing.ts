@@ -7,7 +7,7 @@
 
 import { logger } from './logger';
 
-const log = logger.child({ route: 'ABTesting' });
+const log = logger.child({ service: "ab-testing" });
 
 interface Experiment {
   id: string;

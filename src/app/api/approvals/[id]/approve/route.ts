@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { ApprovalEngine } from '@/lib/approval-engine';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'approvals.id.approve' });
 
 const ApproveSchema = z.object({
   notes: z.string().max(1000).optional(),

@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.wms' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -59,7 +62,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(enrichedWMS);
     } catch (error: any) {
-        console.error('WMS Fetch Error:', error);
+        log.error('WMS Fetch Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/wms' });
     }
 }
@@ -109,7 +112,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ error: 'Invalid type specificed' }, { status: 400 });
     } catch (error: any) {
-        console.error('Create WMS Entity Error:', error);
+        log.error('Create WMS Entity Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/wms' });
     }
 }

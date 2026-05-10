@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.streaming.ts' });
+
 /**
  * AI-03 — Streaming Response Utilities
  * Wraps LLM responses as Server-Sent Events (SSE) for typewriter effect.

@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.rag.sources.' });
+
 export const KNOWLEDGE_SOURCES = [
   {
     type: 'zatca-docs',

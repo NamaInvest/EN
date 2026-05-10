@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.returns' });
 
 async function _GET(req: Request) {
 
@@ -83,7 +86,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json(rma, { status: 201 });
     } catch (e: any) {
-        console.error('RMA Create Error:', e);
+        log.error('RMA Create Error:', e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

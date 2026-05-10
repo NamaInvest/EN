@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import prisma from "@/lib/prisma";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'v3.school.sis' });
 
 async function _GET(req: NextRequest) {
 

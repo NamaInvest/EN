@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.pricing.calculate' });
 
 function safeEvalFormula(formula: string, context: Record<string, number>): number {
     // Only allow specific tokens (cost, list, qty, weight) and basic math operators
@@ -26,7 +29,7 @@ function safeEvalFormula(formula: string, context: Record<string, number>): numb
         const result = new Function('return ' + safeFormula)();
         return isNaN(result) ? 0 : Number(result);
     } catch (e: any) {
-        console.error('Formula evaluation error:', e);
+        log.error('Formula evaluation error:', e);
         return 0;
     }
 }
@@ -174,7 +177,7 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        console.error('Pricing calculation error:', e);
+        log.error('Pricing calculation error:', e);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'system.reset' });
 
 /**
  * 🚨 PERMANENTLY DISABLED — Security remediation (KICKOFF Day 1, Task #3)

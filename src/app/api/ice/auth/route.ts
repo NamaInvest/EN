@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.auth' });
 
 // بيانات دخول ICE - يمكن نقلها لـ env لاحقاً
 const ICE_USERNAME = process.env.ICE_USERNAME || 'admin';

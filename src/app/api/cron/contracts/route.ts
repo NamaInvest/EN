@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.contracts' });
 
 async function _GET(req: Request) {
 
@@ -30,7 +33,7 @@ async function _GET(req: Request) {
                 });
 
                 // Simulate sending email to procurement lead
-                console.log(`[ALERT] Contract ${contract.contractNo} expires in ${daysRemaining} days.`);
+                log.info(`[ALERT] Contract ${contract.contractNo} expires in ${daysRemaining} days.`);
             } else if (daysRemaining <= 0) {
                 if (contract.autoRenew) {
                     // Auto renew for another year

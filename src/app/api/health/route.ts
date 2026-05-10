@@ -12,6 +12,9 @@
  */
 import { NextResponse } from 'next/server';
 import os from 'os';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'health' });
 
 const VERSION    = process.env.npm_package_version || '2.4.6';
 const REQUIRED_ENVS = ['JWT_SECRET', 'DATABASE_URL'];

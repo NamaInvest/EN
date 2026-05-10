@@ -5,13 +5,16 @@ import { getPrisma } from '@/lib/prisma';
 // This is an automation endpoint expected to be called by a CRON daemon
 import { getUserFromRequest } from '@/lib/auth';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.debts' });
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
   if (guard) return guard;
 
     const prisma = getPrisma(req);
     try {
-        console.log(">> CRON EXECUTION: Running Financial Debt Automation...");
+        log.info(">> CRON EXECUTION: Running Financial Debt Automation...");
         
         const today = new Date().toISOString().split('T')[0];
 
@@ -82,7 +85,7 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        console.error("CRON Debt Automation Error:", e);
+        log.error("CRON Debt Automation Error:", e);
         return NextResponse.json({ error: e.message || 'فشل تشغيل فحص الديون التلقائي' }, { status: 500 });
     }
 }

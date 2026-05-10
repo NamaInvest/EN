@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.costing.ts' });
+
 /**
  * Inventory Costing Methods — طرق تسعير المخزون
  * يدعم: المتوسط المرجح (Weighted Average) | FIFO | LIFO

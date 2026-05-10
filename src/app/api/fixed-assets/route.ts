@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'fixed-assets' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(assets);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 });
     }
 }
@@ -70,7 +73,7 @@ async function _POST(request: Request) {
         });
         return NextResponse.json(asset, { status: 201 });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets' });
     }
 }

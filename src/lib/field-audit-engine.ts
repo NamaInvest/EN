@@ -6,6 +6,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.field-audit-' });
 
 // Helper: Prisma generated types may lag in IDE — cast for new models
 const db = (p: PrismaClient) => p as any;

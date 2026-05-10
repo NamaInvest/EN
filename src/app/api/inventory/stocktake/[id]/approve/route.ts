@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'inventory.stocktake.id.approve' });
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -82,7 +85,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         // If significant value diff, we'd create a Journal Entry (Simulation here)
         // Dr/Cr 1310 Inventory <-> 5910 Inventory Adjustment
         if (totalValueDiff !== 0) {
-            console.log(`[FINANCE] Journal Entry Created for Stocktake #${stocktake.id}. Net Value Adjustment: ${totalValueDiff} SAR`);
+            log.info(`[FINANCE] Journal Entry Created for Stocktake #${stocktake.id}. Net Value Adjustment: ${totalValueDiff} SAR`);
         }
 
         await prisma.$transaction(updatePromises);

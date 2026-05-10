@@ -12,6 +12,9 @@ import {
     ZATCAPaymentMethods,
 } from 'zatca-xml-js';
 import type { EGSUnitInfo } from 'zatca-xml-js';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.zatca-signer' });
 
 // ========== Types ==========
 export interface ZatcaSettings {

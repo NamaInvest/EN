@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.storage.wate' });
+
 export class WatermarkService {
   async addWatermark(
     imageBuffer: Buffer,
@@ -8,7 +12,7 @@ export class WatermarkService {
       opacity?: number;
     }
   ): Promise<Buffer> {
-    console.log(`[Watermark] Adding watermark to image: text=${options.text}, position=${options.position}`);
+    log.info(`[Watermark] Adding watermark to image: text=${options.text}, position=${options.position}`);
     // Stub Sharp composite logic
     return Buffer.concat([imageBuffer, Buffer.from('_watermarked')]);
   }

@@ -2,6 +2,9 @@
  * Activity Scheduler Engine — tasks, calls, meetings linked to CRM records
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.activity-eng' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class ActivityEngine {

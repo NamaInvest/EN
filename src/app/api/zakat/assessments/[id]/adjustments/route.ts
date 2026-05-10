@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zakat.assessments.id.adjustments' });
 
 const _POSTSchema = z.object({
   category: z.any().optional(),

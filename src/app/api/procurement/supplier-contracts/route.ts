@@ -9,6 +9,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'procurement.supplier-contracts' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -107,7 +110,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json(contract, { status: 201 });
     } catch (e: any) {
-        console.error('Supplier contract create error:', e);
+        log.error('Supplier contract create error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء العقد' }, { status: 500 });
     }
 }

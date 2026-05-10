@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'bookings.invoice' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -99,13 +102,13 @@ async function _POST(request: Request) {
                 branchId: 1
             });
         } catch (je: unknown) {
-            console.error("Auto Journal Error (Bookings - Invoice Conversion):", je);
+            log.error("Auto Journal Error (Bookings - Invoice Conversion):", je);
         }
 
         return NextResponse.json(newInvoice, { status: 201 });
 
     } catch (e: any) {
-        console.error("Invoice Conversion Error:", e);
+        log.error("Invoice Conversion Error:", e);
         return NextResponse.json({ error: e.message || 'فشل توليد الفاتورة' }, { status: 500 });
     }
 }

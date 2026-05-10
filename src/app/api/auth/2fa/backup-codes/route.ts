@@ -4,6 +4,9 @@ import { MfaEngine } from '@/lib/mfa-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.2fa.backup-codes' });
 /**
  * POST /api/auth/2fa/backup-codes — Regenerate backup codes (invalidates old set)
  */
@@ -36,7 +39,7 @@ async function _POST(request: NextRequest) {
         const codes = await MfaEngine.regenerateBackupCodes(user.userId);
         return NextResponse.json({ codes });
     } catch (e: any) {
-        console.error('[2FA Backup Codes]', e);
+        log.error('[2FA Backup Codes]', e);
         return NextResponse.json({ error: 'فشل إنشاء رموز الاحتياط' }, { status: 500 });
     }
 }

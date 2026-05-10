@@ -5,6 +5,9 @@ import { PeriodCloseEngine } from '@/lib/period-close';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.fiscal-periods' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request as any);
     const user = getUserFromRequest(request as any);
@@ -25,7 +28,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json({ periods });
     } catch (error: any) {
-        console.error("Fiscal Periods API Error:", error);
+        log.error("Fiscal Periods API Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -63,7 +66,7 @@ async function _POST(request: Request) {
                 return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
         }
     } catch (error: any) {
-        console.error("Period Action Error:", error);
+        log.error("Period Action Error:", error);
         return NextResponse.json({ error: error.message || 'فشل تنفيذ الإجراء' }, { status: 400 });
     }
 }

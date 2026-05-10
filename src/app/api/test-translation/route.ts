@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { translate } from '@/lib/translations';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'test-translation' });
 
 async function _GET() {
 

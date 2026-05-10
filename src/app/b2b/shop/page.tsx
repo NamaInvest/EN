@@ -213,4 +213,4 @@ export default function B2BShopPage() {
         </div>
     );
 }
-
+

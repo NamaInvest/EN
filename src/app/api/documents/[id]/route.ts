@@ -6,6 +6,9 @@ import { join } from 'path';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'documents.id' });
 async function _DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -33,12 +36,12 @@ async function _DELETE(
                 await unlink(filepath);
             }
         } catch (err: any) {
-            console.warn('Could not delete physical file for doc archive:', doc.id, err);
+            log.warn('Could not delete physical file for doc archive:', { detail: doc.id, extra: err });
         }
 
         return NextResponse.json({ success: true });
     } catch (e: any) {
-        console.error('Delete document err:', e);
+        log.error('Delete document err:', e);
         return NextResponse.json({ error: 'فشل الحذف' }, { status: 500 });
     }
 }

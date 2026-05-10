@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ai.bank-reconciliation' });
 const prisma = new PrismaClient();
 
 async function _POST(request: NextRequest) {
@@ -77,7 +80,7 @@ async function _POST(request: NextRequest) {
         });
 
     } catch (e: any) {
-        console.error('Bank Reconciliation AI Error:', e);
+        log.error('Bank Reconciliation AI Error:', e);
         return NextResponse.json({ error: 'حدث خطأ داخلي أثناء عملية المطابقة الذكية.' }, { status: 500 });
     }
 }

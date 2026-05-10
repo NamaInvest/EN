@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 // GET - قائمة الدخل (Revenue - Expenses = Net Profit)
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.income-statement' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -74,7 +77,7 @@ async function _GET(request: Request) {
             isProfitable: netProfit >= 0,
         });
     } catch (error: any) {
-        console.error('Income statement error:', error);
+        log.error('Income statement error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء قائمة الدخل' }, { status: 500 });
     }
 }

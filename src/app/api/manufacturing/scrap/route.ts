@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.scrap' });
 
 async function _GET(req: Request) {
 
@@ -96,7 +99,7 @@ async function _POST(req: Request) {
             // Cr 1310 WIP Inventory
         ]);
 
-        console.log(`[FINANCE] Auto-Journal created for Scrap. Dr 5910 / Cr 1310: ${wastedCost} SAR`);
+        log.info(`[FINANCE] Auto-Journal created for Scrap. Dr 5910 / Cr 1310: ${wastedCost} SAR`);
 
         return NextResponse.json({ success: true, data: wastage });
     } catch (e: any) {

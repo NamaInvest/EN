@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers.id.hold' });
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
@@ -35,7 +38,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
 
         return NextResponse.json({ success: true, status: customer.status });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 // GET all warehouses (Stocks)
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'warehouses' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -26,7 +29,7 @@ async function _GET(request: NextRequest) {
     });
     return NextResponse.json(warehouses);
   } catch (error: any) {
-    console.error('Error fetching warehouses:', error);
+    log.error('Error fetching warehouses:', error);
     return NextResponse.json({ error: 'Failed to fetch warehouses' }, { status: 500 });
   }
 }
@@ -66,7 +69,7 @@ async function _POST(request: NextRequest) {
 
     return NextResponse.json(warehouse, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating warehouse:', error);
+    log.error('Error creating warehouse:', error);
     return NextResponse.json({ error: 'Failed to create warehouse', details: error.message }, { status: 500 });
   }
 }

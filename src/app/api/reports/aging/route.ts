@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { AgingEngine } from '@/lib/aging-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.aging' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

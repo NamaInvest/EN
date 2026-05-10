@@ -1,4 +1,7 @@
 import { prisma } from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.revenue-reco' });
 
 export class RevenueRecognitionEngine {
     static async generateSchedule(obligationId: number) {

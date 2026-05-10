@@ -5,13 +5,16 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.hr' });
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
   if (guard) return guard;
 
     const prisma = getPrisma(req);
     try {
-        console.log(">> CRON EXECUTION: Running HR Attendance Automation...");
+        log.info(">> CRON EXECUTION: Running HR Attendance Automation...");
         
         // Find employees who did NOT clock in today
         const today = new Date().toISOString().split('T')[0];
@@ -110,7 +113,7 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        console.error("CRON HR Automation Error:", e);
+        log.error("CRON HR Automation Error:", e);
         return NextResponse.json({ error: e.message || 'فشل تشغيل محرك شؤون الموظفين' }, { status: 500 });
     }
 }

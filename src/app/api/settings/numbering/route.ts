@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.numbering' });
 
 const prisma = new PrismaClient();
 
@@ -20,7 +23,7 @@ async function _GET() {
 
     return NextResponse.json({ sequences: serializedSequences });
   } catch (error: any) {
-    console.error('Error fetching numbering sequences:', error);
+    log.error('Error fetching numbering sequences:', error);
     return NextResponse.json({ error: 'Failed to fetch numbering sequences' }, { status: 500 });
   }
 }

@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'zakat.assessments.id.file' });
 
 const _POSTSchema = z.object({
   zatcaTransactionId: z.union([z.string(), z.number()]).optional(),

@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise.legal' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -44,7 +47,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(responseData);
     } catch (error: any) {
-        console.error('Legal Fetch Error:', error);
+        log.error('Legal Fetch Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/legal' });
     }
 }
@@ -110,7 +113,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ error: 'Invalid entityType' }, { status: 400 });
     } catch (error: any) {
-        console.error('Create Legal Entity Error:', error);
+        log.error('Create Legal Entity Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/legal' });
     }
 }
@@ -155,7 +158,7 @@ async function _PUT(request: NextRequest) {
         
         return NextResponse.json({ error: 'Unsupported entity' }, { status: 400 });
     } catch (error: any) {
-        console.error('Update Legal Entity Error:', error);
+        log.error('Update Legal Entity Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/legal' });
     }
 }

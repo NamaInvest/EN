@@ -4,13 +4,16 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'installments' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const installments = await prisma.installment.findMany({
             take: 100, include: { customer: { select: { id: true, name: true, phone: true,  } }, payments: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(installments);
-    } catch (e: any) { console.error(e); return NextResponse.json([], { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }
 
 
@@ -50,7 +53,7 @@ async function _POST(request: Request) {
             include: { payments: true, customer: { select: { id: true, name: true, phone: true,  } } },
         });
         return NextResponse.json(installment, { status: 201 });
-    } catch (e: any) { console.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (e: any) { log.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });

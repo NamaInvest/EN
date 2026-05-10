@@ -5,6 +5,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.backup' });
 
 async function _GET(req: Request) {
     const authHeader = req.headers.get('authorization');
@@ -53,7 +56,7 @@ async function _GET(req: Request) {
             },
         }).catch(() => {}); // Don't fail if auditLog schema differs
 
-        console.log(`✅ Backup manifest created: ${timestamp}`, manifest);
+        log.info(`✅ Backup manifest created: ${timestamp}`, manifest);
 
         // Send Telegram notification if configured
         const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -69,7 +72,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ success: true, backup: manifest });
     } catch (e: any) {
-        console.error('Backup error:', e);
+        log.error('Backup error:', e);
         return NextResponse.json({ error: 'فشل في عملية الاحتياطي' }, { status: 500 });
     }
 }

@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.login-by-email' });
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,7 +58,7 @@ async function _POST(req: Request) {
 
             if (registeredSubdomain !== currentSubdomain) {
                 //    subdomain 
-                console.warn(`[login-by-email] BLOCKED: email=${email} belongs to ${registeredSubdomain}, tried to access ${currentSubdomain}`);
+                log.warn(`[login-by-email] BLOCKED: email=${email} belongs to ${registeredSubdomain}, tried to access ${currentSubdomain}`);
                 return NextResponse.json(
                     { 
                         error: '      ',
@@ -108,7 +111,7 @@ async function _POST(req: Request) {
         });
 
     } catch (err: any) {
-        console.error('[login-by-email]', err.message);
+        log.error('[login-by-email]', err.message);
         return NextResponse.json({ error: '  ' }, { status: 500 });
     }
 }

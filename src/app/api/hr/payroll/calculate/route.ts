@@ -14,6 +14,9 @@ import { getPrisma } from '@/lib/prisma';
 import { postSalary } from '@/lib/auto-journal';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.payroll.calculate' });
 
 interface PayrollResult {
     employeeId: number;
@@ -118,7 +121,7 @@ async function _GET(req: Request) {
             breakdown: results,
         });
     } catch (e: any) {
-        console.error('Payroll GET error:', e);
+        log.error('Payroll GET error:', e);
         return NextResponse.json({ error: 'خطأ في احتساب الرواتب' }, { status: 500 });
     }
 }
@@ -205,7 +208,7 @@ async function _POST(req: Request) {
                     });
                 }
             } catch (je: unknown) {
-                console.error('Salary journal error:', je);
+                log.error('Salary journal error:', je);
             }
 
             committed.push({ ...r, salaryId: salary.id });
@@ -219,7 +222,7 @@ async function _POST(req: Request) {
             salaries: committed,
         });
     } catch (e: any) {
-        console.error('Payroll POST error:', e);
+        log.error('Payroll POST error:', e);
         return NextResponse.json({ error: 'خطأ في تثبيت الرواتب' }, { status: 500 });
     }
 }

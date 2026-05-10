@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron.scheduled-reports' });
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

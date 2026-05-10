@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'reports.financial-statements.generate' });
 
 /**
  * POST /api/reports/financial-statements/generate

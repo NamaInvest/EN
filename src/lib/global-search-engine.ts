@@ -3,6 +3,9 @@
  * Searches across all major entities: customers, products, invoices, employees, orders
  */
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.global-searc' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export interface SearchResult {

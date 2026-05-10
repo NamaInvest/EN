@@ -5,6 +5,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'stocktake.vision' });
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
@@ -71,7 +74,7 @@ async function _POST(req: NextRequest) {
         });
 
         if (!aiRes.ok) {
-            console.error('Gemini Vision Error:', await aiRes.text());
+            log.error('Gemini Vision Error:', await aiRes.text());
             return NextResponse.json({ error: 'Failed to process image with Vision AI' }, { status: 500 });
         }
 
@@ -84,7 +87,7 @@ async function _POST(req: NextRequest) {
         try {
             detectedItems = JSON.parse(text);
         } catch (e: any) {
-            console.error('JSON Parse error from Vision AI:', text);
+            log.error('JSON Parse error from Vision AI:', text);
             return NextResponse.json({ error: 'Vision AI returned invalid data formatting' }, { status: 500 });
         }
 
@@ -139,7 +142,7 @@ async function _POST(req: NextRequest) {
         return NextResponse.json({ results: enrichedResults });
 
     } catch (err: any) {
-        console.error('Vision API Error:', err);
+        log.error('Vision API Error:', err);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

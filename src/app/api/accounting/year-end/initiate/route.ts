@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 import { withRoute } from '@/lib/api/with-route';
 import { YearEndCloseEngine } from "@/lib/year-end-engine";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.year-end.initiate' });
 
 async function _POST(req: Request) {
 

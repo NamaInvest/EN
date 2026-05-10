@@ -13,6 +13,9 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'manufacturing.mrp' });
 
 interface MRPItem {
     productId: number;
@@ -99,7 +102,7 @@ async function _GET(req: Request) {
             criticalOnly: criticalItems,
         });
     } catch (e: any) {
-        console.error('MRP GET error:', e);
+        log.error('MRP GET error:', e);
         return NextResponse.json({ error: 'خطأ في تشغيل MRP' }, { status: 500 });
     }
 }
@@ -146,7 +149,7 @@ async function _POST(req: Request) {
             itemsCreated: validItems.length,
         }, { status: 201 });
     } catch (e: any) {
-        console.error('MRP POST error:', e);
+        log.error('MRP POST error:', e);
         return NextResponse.json({ error: 'خطأ في إنشاء طلبات الشراء' }, { status: 500 });
     }
 }

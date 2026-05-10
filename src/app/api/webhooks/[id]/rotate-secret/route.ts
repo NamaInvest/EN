@@ -6,6 +6,9 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'webhooks.id.rotate-secret' });
 
 async function handler(ctx: any) {
   const id       = Number(ctx.params?.id);

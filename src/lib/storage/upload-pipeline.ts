@@ -1,4 +1,7 @@
 import { R2Storage } from './r2';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.storage.uplo' });
 
 export interface UploadedAsset {
   id: string;
@@ -18,7 +21,7 @@ export class AssetUploadPipeline {
     }
   ): Promise<UploadedAsset> {
     // Stub Sharp logic
-    console.log(`[AssetUploadPipeline] Optimizing image with maxWidth ${options.maxWidth}`);
+    log.info(`[AssetUploadPipeline] Optimizing image with maxWidth ${options.maxWidth}`);
     const optimizedBuffer = Buffer.from('stub_image_data');
     
     const baseKey = `${options.tenantId}/${options.category}/${Math.random().toString(36).substring(7)}`;

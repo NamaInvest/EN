@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { ConsolidationEngine } from '@/lib/consolidation-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.consolidation' });
 
 const db = prisma as any;
 

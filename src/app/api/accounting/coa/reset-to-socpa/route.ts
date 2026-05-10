@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { seedSocpaCoA } from '@/lib/seed-socpa-coa';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.coa.reset-to-socpa' });
 
 async function _POST(request: NextRequest) {
   const user = getUserFromRequest(request);

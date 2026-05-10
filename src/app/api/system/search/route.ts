@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { GlobalSearchEngine } from '@/lib/global-search-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'system.search' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

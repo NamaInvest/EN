@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'categories' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -13,7 +16,7 @@ async function _GET(request: NextRequest) {
             take: 100, orderBy: { id: 'asc' } });
         return NextResponse.json(categories);
     } catch (error: any) {
-        console.error('Categories GET error:', error);
+        log.error('Categories GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -41,7 +44,7 @@ async function _POST(request: NextRequest) {
         });
         return NextResponse.json(category, { status: 201 });
     } catch (error: any) {
-        console.error('Category create error:', error);
+        log.error('Category create error:', error);
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }
 }
@@ -73,7 +76,7 @@ async function _DELETE(request: NextRequest) {
         if (error?.code === 'P2003') {
              return NextResponse.json({ error: 'لا يمكن حذف التصنيفات لوجود منتجات مرتبطة بها. قم بحذف المنتجات أولاً.' }, { status: 400 });
         }
-        console.error('Delete Categories Error:', error);
+        log.error('Delete Categories Error:', error);
         return NextResponse.json({ error: 'فشل حذف التصنيفات' }, { status: 500 });
     }
 }

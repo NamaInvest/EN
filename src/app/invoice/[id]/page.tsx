@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.invoice.id' });
 
 // Convert integer to hex byte string padding with 0 if necessary
 function toHex(val: number, length: number = 2) {

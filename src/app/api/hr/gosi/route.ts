@@ -9,6 +9,9 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'hr.gosi' });
 
 // معدلات GOSI السعودية 2024
 const GOSI_RATES = {
@@ -70,7 +73,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ month, year, employees: summary, totals });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في احتساب GOSI' }, { status: 500 });
     }
 }
@@ -166,7 +169,7 @@ async function _POST(req: Request) {
             month, year,
         });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'خطأ في تسجيل GOSI' }, { status: 500 });
     }
 }

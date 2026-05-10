@@ -5,6 +5,9 @@ import { handleApiError } from '@/lib/api-handler';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'treasury.balance' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {

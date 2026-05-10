@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Phone, UtensilsCrossed, ArrowRight, LayoutDashboard, Monitor, FileText, Layers, Clock, RefreshCcw, MessageCircle, BarChart3 } from 'lucide-react';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.restaurant' });
 
 export const metadata: Metadata = {
   title: 'نظام إدارة المطاعم والكافيهات | نما إنفست – Restaurant POS System',

@@ -5,6 +5,9 @@ import { VarianceEngine } from '@/lib/variance-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'finance.variance' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as any);
     try {
@@ -16,7 +19,7 @@ async function _GET(req: NextRequest) {
         
         return NextResponse.json(variances);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }
@@ -48,7 +51,7 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });
     }
 }

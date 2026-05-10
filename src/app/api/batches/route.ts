@@ -5,6 +5,9 @@ import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'batches' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -15,7 +18,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(batches);
     } catch (error: any) {
-        console.error('Error fetching batches:', error);
+        log.error('Error fetching batches:', error);
         return NextResponse.json({ error: 'Failed to fetch batches' }, { status: 500 });
     }
 }
@@ -79,7 +82,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(batch, { status: 201 });
     } catch (error: any) {
-        console.error('Error creating batch:', error);
+        log.error('Error creating batch:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'batches' });
     }
 }

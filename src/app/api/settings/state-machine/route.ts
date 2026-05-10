@@ -8,6 +8,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { transition, getAvailableActions, seedDefaultTransitions } from '@/lib/state-machine-engine';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings.state-machine' });
 
 const db = (p: any) => p as any;
 

@@ -5,6 +5,9 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'upload' });
 
 async function _POST(req: NextRequest) {
     try {
@@ -50,7 +53,7 @@ async function _POST(req: NextRequest) {
         const url = `/uploads/${filename}`;
         return NextResponse.json({ success: true, url, filename });
     } catch (err: any) {
-        console.error('Upload error:', err);
+        log.error('Upload error:', err);
         return NextResponse.json({ error: err.message || 'فشل رفع الملف' }, { status: 500 });
     }
 }

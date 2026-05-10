@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.find-tenant-by-email' });
 /**
  * POST /api/auth/find-tenant-by-email
  * Searches all tenant databases to find which subdomain has a user with the given email.
@@ -58,7 +61,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ found: false });
     } catch (error: any) {
-        console.error('[find-tenant-by-email] Error:', error);
+        log.error('[find-tenant-by-email] Error:', error);
         return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }

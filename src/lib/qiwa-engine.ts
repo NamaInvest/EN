@@ -9,6 +9,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.qiwa-engine.' });
 
 // Helper: Prisma generated types may lag in IDE — cast for new models
 const db = (p: any) => p as any;

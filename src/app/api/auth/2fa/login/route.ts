@@ -6,6 +6,9 @@ import { MfaEngine } from '@/lib/mfa-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'auth.2fa.login' });
 /**
  * POST /api/auth/2fa/login â€” Complete login after 2FA verification
  * Called after user passes password check and receives requires2FA=true
@@ -85,7 +88,7 @@ async function _POST(request: NextRequest) {
 
         return response;
     } catch (e: any) {
-        console.error('[2FA Login]', e);
+        log.error('[2FA Login]', e);
         return NextResponse.json({ error: 'ظپط´ظ„ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„' }, { status: 500 });
     }
 }

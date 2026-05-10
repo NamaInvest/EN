@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { CommissionService } from '@/services/sales/commission.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'sales.commissions.run' });
 
 // POST /api/sales/commissions/run
 // Body: { from: '2025-01-01', to: '2025-01-31' }

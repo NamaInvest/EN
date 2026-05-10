@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { toolRegistry } from '../tool-registry';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.orchestrator' });
 
 const DUMMY_TOOLS = [
   'create_journal_entry', 'forecast_cash_flow', 'compute_aging_report', 'budget_vs_actual', 'fx_revaluation_simulator',

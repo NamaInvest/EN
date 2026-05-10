@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting.closing' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request as any);
     const user = getUserFromRequest(request as any);
@@ -52,7 +55,7 @@ async function _POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error("Closing Engine Error:", error);
+        log.error("Closing Engine Error:", error);
         return NextResponse.json({ error: error.message || 'فشل إغلاق الفترة المالية' }, { status: 500 });
     }
 }

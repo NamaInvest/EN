@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ice.desktop-register' });
 
 const prisma = new PrismaClient();
 
@@ -296,7 +299,7 @@ async function _POST(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error('Desktop register error:', err);
+    log.error('Desktop register error:', err);
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }
