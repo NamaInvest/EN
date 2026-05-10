@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'SagaCoordinator' });
+
 export interface SagaStep<T = any> {
   name: string;
   execute: (ctx: T) => Promise<T>;
@@ -19,18 +23,18 @@ export class Saga<T> {
 
     try {
       for (const step of this.steps) {
-        console.log(`Saga step: ${step.name}`);
+        log.info(`Saga step: ${step.name}`);
         ctx = await step.execute(ctx);
         this.executed.push(step);
       }
       return ctx;
     } catch (error) {
-      console.error(`Saga failed at step. Compensating...`, { error });
+      log.error(`Saga failed at step. Compensating...`, { error });
       for (const step of this.executed.reverse()) {
         try {
           await step.compensate(ctx);
         } catch (compErr) {
-          console.error(`Compensation failed: ${step.name}`, { compErr });
+          log.error(`Compensation failed: ${step.name}`, { compErr });
         }
       }
       throw error;

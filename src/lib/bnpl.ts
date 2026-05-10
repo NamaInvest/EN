@@ -1,5 +1,8 @@
 // src/lib/bnpl.ts
 import prisma from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'BNPL' });
 
 export async function getBnplKeys() {
     const settings = await prisma.setting.findMany({
@@ -72,7 +75,7 @@ export async function createTabbySession({ amount, orderId, phone, items, custom
 
     const data = await res.json();
     if (!res.ok) {
-        console.error("Tabby Create Error:", data);
+        log.error("Tabby Create Error:", data);
         throw new Error(data.error || "خطأ في إنشاء جلسة تابي");
     }
 
@@ -144,7 +147,7 @@ export async function createTamaraSession({ amount, orderId, phone, items, custo
 
     const data = await res.json();
     if (!res.ok) {
-        console.error("Tamara Create Error:", data);
+        log.error("Tamara Create Error:", data);
         throw new Error(data.message || "خطأ في إنشاء جلسة تمارا");
     }
 

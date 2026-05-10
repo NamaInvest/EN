@@ -7,6 +7,9 @@ import { GeminiEmbedder } from '../vector/embedding/gemini.embedder';
 import { HyDETransformer } from './query-transformers/hyde.transformer';
 import { MultiQueryTransformer } from './query-transformers/multi-query.transformer';
 import { CitationTracker, type Citation } from './citations/tracker';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'RAGPipeline' });
 
 export interface RAGRequest {
   query: string;

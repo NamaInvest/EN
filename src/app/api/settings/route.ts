@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'settings' });
 
 async function _GET(request: NextRequest) {
 
@@ -16,7 +19,7 @@ async function _GET(request: NextRequest) {
         const sensitiveKeys = ['zatca_private_key', 'zatca_certificate', 'zatca_compliance_token', 'zatca_compliance_secret', 'zatca_production_token', 'zatca_production_secret'];
         const filtered = settings.map(s => sensitiveKeys.includes(s.key) ? { ...s, value: '***' } : s);
         return NextResponse.json(filtered);
-    } catch (error: any) { console.error(error); return NextResponse.json([], { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json([], { status: 500 }); }
 }
 
 // Clear ZATCA integration data
@@ -44,10 +47,10 @@ async function _DELETE(request: NextRequest) {
                  zatca_compliance_token=NULL, zatca_compliance_secret=NULL, zatca_compliance_request_id=NULL,
                  zatca_production_token=NULL, zatca_production_secret=NULL`
             );
-        } catch (e: any) { console.error('Reset zatca_settings table:', e); }
+        } catch (e: any) { log.error('Reset zatca_settings table:', e); }
         return NextResponse.json({ success: true, message: `تم حذف ${result.count} من بيانات ربط الزكاة والدخل` });
     } catch (error: any) {
-        console.error('Settings DELETE (ZATCA clear) error:', error);
+        log.error('Settings DELETE (ZATCA clear) error:', error);
         return NextResponse.json({ error: 'فشل في حذف بيانات الزكاة' }, { status: 500 });
     }
 }
@@ -87,7 +90,7 @@ async function _POST(request: NextRequest) {
         await prisma.$transaction(updatePromises);
         return NextResponse.json({ success: true, message: 'تم حفظ الإعدادات' });
     } catch (error: any) {
-        console.error('Settings POST error:', error?.message || error);
+        log.error('Settings POST error:', error?.message || error);
         return NextResponse.json({ error: error?.message || 'فشل في حفظ الإعدادات' }, { status: 500 });
     }
 }

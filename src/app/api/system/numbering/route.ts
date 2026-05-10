@@ -8,6 +8,9 @@ import { peekNextNumber, resetSequence, NUMBERING_DEFAULTS } from '@/lib/numberi
 // GET /api/system/numbering?peek=WO — معاينة الرقم التالي بدون استهلاك
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'system/numbering' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
@@ -42,7 +45,7 @@ async function _GET(request: Request) {
             availableDefaults: NUMBERING_DEFAULTS,
         });
     } catch (error: any) {
-        console.error('Numbering GET error:', error);
+        log.error('Numbering GET error:', error);
         return NextResponse.json({ error: error.message || 'فشل جلب التكوينات' }, { status: 500 });
     }
 }
@@ -105,7 +108,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, sequence: { ...result, current: result.current.toString() } });
     } catch (error: any) {
-        console.error('Numbering POST error:', error);
+        log.error('Numbering POST error:', error);
         return NextResponse.json({ error: error.message || 'فشل حفظ التكوين' }, { status: 500 });
     }
 }
@@ -129,7 +132,7 @@ async function _DELETE(request: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Numbering DELETE error:', error);
+        log.error('Numbering DELETE error:', error);
         return NextResponse.json({ error: error.message || 'فشل التعطيل' }, { status: 500 });
     }
 }
@@ -156,7 +159,7 @@ async function _PATCH(request: Request) {
         await resetSequence(prisma, code, branchId, fiscalYear, fiscalMonth);
         return NextResponse.json({ success: true, message: `تم إعادة تعيين سلسلة ${code}` });
     } catch (error: any) {
-        console.error('Numbering PATCH error:', error);
+        log.error('Numbering PATCH error:', error);
         return NextResponse.json({ error: error.message || 'فشل التنفيذ' }, { status: 500 });
     }
 }

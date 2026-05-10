@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { PaymentRunEngine } from '@/lib/payment-run-engine';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'payment-runs/approve' });
 
 
 const _POSTSchema = z.object({

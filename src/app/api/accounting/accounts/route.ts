@@ -5,6 +5,9 @@ import { getPrisma } from '@/lib/prisma';
 // GET - شجرة الحسابات
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting/accounts' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(accounts);
     } catch (error: any) {
-        console.error('Accounts GET error:', error);
+        log.error('Accounts GET error:', error);
         return NextResponse.json({ error: 'فشل في جلب الحسابات' }, { status: 500 });
     }
 }
@@ -71,7 +74,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(account, { status: 201 });
     } catch (error: any) {
-        console.error('Account create error:', error);
+        log.error('Account create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الحساب' }, { status: 500 });
     }
 }
@@ -104,7 +107,7 @@ async function _PUT(request: Request) {
 
         return NextResponse.json(account);
     } catch (error: any) {
-        console.error('Account update error:', error);
+        log.error('Account update error:', error);
         return NextResponse.json({ error: 'فشل في تحديث الحساب' }, { status: 500 });
     }
 }
@@ -132,7 +135,7 @@ async function _DELETE(request: Request) {
         await prisma.account.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Account delete error:', error);
+        log.error('Account delete error:', error);
         return NextResponse.json({ error: 'فشل في حذف الحساب' }, { status: 500 });
     }
 }

@@ -1,6 +1,9 @@
 import { getPrisma } from '@/lib/prisma';
 import { BusinessContext } from '../../context/business-context';
 import { RecursiveCharacterSplitter } from '../chunking/recursive-splitter';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'VectorIngestion' });
 
 export interface KnowledgeSource {
   type: string;
@@ -17,7 +20,7 @@ export interface IngestResult {
 export class IngestionPipeline {
   async ingest(source: KnowledgeSource, ctx: BusinessContext): Promise<IngestResult> {
     const prisma = getPrisma();
-    console.log(`[IngestionPipeline] Starting ingestion for source ${source.type}, tenant ${ctx.tenant.id}`);
+    log.info(`[IngestionPipeline] Starting ingestion for source ${source.type}, tenant ${ctx.tenant.id}`);
 
     // 1. Extract
     const rawDocs = await source.extract();
@@ -38,11 +41,11 @@ export class IngestionPipeline {
     );
 
     // 4. Embed Stub
-    console.log(`[IngestionPipeline] Mock embedding ${chunks.length} chunks`);
+    log.info(`[IngestionPipeline] Mock embedding ${chunks.length} chunks`);
     const embedded = chunks.map(() => [0.1, 0.2, 0.3]); // Dummy vector
 
     // 5. Store Stub (can't upsert vector easily without proper prisma extensions, so just mock)
-    console.log(`[IngestionPipeline] Mock storing ${chunks.length} chunks into knowledgeDocument table`);
+    log.info(`[IngestionPipeline] Mock storing ${chunks.length} chunks into knowledgeDocument table`);
 
     return {
       documentsProcessed: rawDocs.length,

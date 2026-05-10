@@ -23,6 +23,9 @@
 
 import type { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'FieldAudit' });
 
 // ─── Sensitive entities (only these get audited) ─────────────────────
 export const SENSITIVE_ENTITIES = new Set([
@@ -154,7 +157,7 @@ export async function logFieldChanges(
         }
     } catch (e: any) {
         // Audit failure must never block the business action
-        console.error('[field-audit] failed to log changes:', e);
+        log.error('[field-audit] failed to log changes:', e);
     }
     return rows.length;
 }
@@ -204,14 +207,14 @@ export async function withAuditedUpdate(
     const db = prisma as any;
     const model = db[modelName];
     if (!model) {
-        console.error(`[field-audit] Model "${modelName}" not found in Prisma client`);
+        log.error(`[field-audit] Model "${modelName}" not found in Prisma client`);
         return null;
     }
 
     // 1. Read current state
     const before = await model.findUnique({ where: { id: entityId } });
     if (!before) {
-        console.error(`[field-audit] Entity ${modelName}#${entityId} not found`);
+        log.error(`[field-audit] Entity ${modelName}#${entityId} not found`);
         return null;
     }
 

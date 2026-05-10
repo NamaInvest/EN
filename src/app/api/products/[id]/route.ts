@@ -7,6 +7,9 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'products/id' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -20,7 +23,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
         }
         return NextResponse.json(product);
     } catch (error: any) {
-        console.error('Product GET error:', error);
+        log.error('Product GET error:', error);
         return NextResponse.json({ error: 'خطأ' }, { status: 500 });
     }
 }
@@ -108,7 +111,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
                 });
             }
         } catch (e: any) {
-            console.error('Failed to sync product stock:', e);
+            log.error('Failed to sync product stock:', e);
         }
 
         // Output to Salla Network
@@ -117,11 +120,11 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         // Audit trail — log field changes
         try {
             await logFieldChanges(prisma, 'Product', productId, before, product, auditContextFromRequest(request, auth ?? undefined));
-        } catch (e: any) { console.error('[audit] Product update audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Product update audit failed:', e); }
 
         return NextResponse.json(product);
     } catch (error: any) {
-        console.error('Product update error:', error);
+        log.error('Product update error:', error);
         return NextResponse.json({ error: 'فشل في التحديث' }, { status: 500 });
     }
 }
@@ -150,7 +153,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
             });
             try {
                 await logFieldChanges(prisma, 'Product', productId, beforeProduct, { ...beforeProduct, active: false } as any, auditContextFromRequest(request, auth));
-            } catch (e: any) { console.error('[audit] Product archive audit failed:', e); }
+            } catch (e: any) { log.error('[audit] Product archive audit failed:', e); }
             return NextResponse.json({ message: 'تم أرشفة المنتج وإيقاف تفعيله (لوجود حركات مالية مرتبطة)' });
         }
 
@@ -158,7 +161,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         const beforeDel = await prisma.product.findUnique({ where: { id: productId } });
         try {
             if (beforeDel) await logDelete(prisma, 'Product', productId, beforeDel as any, auditContextFromRequest(request, auth));
-        } catch (e: any) { console.error('[audit] Product delete audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Product delete audit failed:', e); }
 
         await prisma.$transaction(async (tx) => {
             await tx.productStock.deleteMany({ where: { productId } });
@@ -167,7 +170,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         return NextResponse.json({ message: 'تم حذف المنتج نهائياً لعدم وجود حركات مرتبطة به' });
     } catch (error: any) {
-        console.error('Product delete error:', error);
+        log.error('Product delete error:', error);
         return NextResponse.json({ error: 'فشل في عملية الحذف/الأرشفة' }, { status: 500 });
     }
 }

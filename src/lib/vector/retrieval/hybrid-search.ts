@@ -1,5 +1,8 @@
 import { getPrisma } from '@/lib/prisma';
 import { BusinessContext } from '../../context/business-context';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'HybridSearch' });
 
 export interface SearchOptions {
   topK?: number;
@@ -52,13 +55,13 @@ export class HybridSearcher {
 
   private async vectorSearch(query: string, ctx: BusinessContext, topK: number, filters: any): Promise<SearchResult[]> {
     // Stub implementation to avoid raw query parsing errors with pgvector if extension not actually present
-    console.log(`[HybridSearcher] Running Vector Search for: ${query}`);
+    log.info(`[HybridSearcher] Running Vector Search for: ${query}`);
     return [];
   }
 
   private async bm25Search(query: string, ctx: BusinessContext, topK: number, filters: any): Promise<SearchResult[]> {
     // Stub implementation
-    console.log(`[HybridSearcher] Running BM25 Search for: ${query}`);
+    log.info(`[HybridSearcher] Running BM25 Search for: ${query}`);
     return [];
   }
 }

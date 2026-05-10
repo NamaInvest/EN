@@ -1,5 +1,8 @@
 import { getPrisma } from '@/lib/prisma';
 import { resolvePromptVersion } from './ab-testing/traffic-splitter';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'PromptRegistry' });
 
 export async function getPrompt(key: string, tenantId: string | null = null, enableABTest: boolean = false) {
     const prisma = getPrisma();
@@ -14,7 +17,7 @@ export async function getPrompt(key: string, tenantId: string | null = null, ena
             prompt = await resolvePromptVersion(null, key, enableABTest);
         }
     } catch (e) {
-        console.error(`[PromptRegistry] Error resolving prompt via traffic splitter for ${key}`, e);
+        log.error(`[PromptRegistry] Error resolving prompt via traffic splitter for ${key}`, e);
     }
 
     if (!prompt) {
@@ -37,7 +40,7 @@ export async function getPrompt(key: string, tenantId: string | null = null, ena
                 };
             }
         } catch (e) {
-            console.error(`[PromptRegistry] Failed to load local prompt for key ${key}`);
+            log.error(`[PromptRegistry] Failed to load local prompt for key ${key}`);
         }
     }
 
@@ -71,6 +74,6 @@ export async function logPromptUsage(data: {
             data
         });
     } catch (e: any) {
-        console.error('[PromptRegistry] Failed to log usage:', e);
+        log.error('[PromptRegistry] Failed to log usage:', e);
     }
 }

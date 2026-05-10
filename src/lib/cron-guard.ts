@@ -12,11 +12,14 @@
  *   CRON_SECRET=your-random-256-bit-hex-string
  *
  * توليد قيمة آمنة:
- *   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ *   node -e "log.info(require('crypto').randomBytes(32).toString('hex'))"
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual, createHmac } from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'CronGuard' });
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -31,7 +34,7 @@ export function guardCron(req: NextRequest): NextResponse | null {
     const firstIp = ip.split(',')[0].trim();
     const isLocal = firstIp === '127.0.0.1' || firstIp === '::1' || firstIp.startsWith('10.') || firstIp.startsWith('172.');
     if (!isLocal) {
-      console.warn('[CRON GUARD] CRON_SECRET not set — blocking non-local request from', firstIp);
+      log.warn('[CRON GUARD] CRON_SECRET not set — blocking non-local request from', firstIp);
       return NextResponse.json(
         { error: 'CRON_SECRET not configured. Set it in .env to enable remote cron execution.' },
         { status: 503 }

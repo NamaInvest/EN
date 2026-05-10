@@ -5,6 +5,9 @@ import { getNextNumber } from '@/lib/numbering';
 import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'purchases/grn' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
@@ -27,7 +30,7 @@ async function _GET(req: Request) {
         });
         return NextResponse.json(grns);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -165,7 +168,7 @@ async function _POST(req: Request) {
                         userId: decoded.userId,
                     });
                 } catch (je: unknown) {
-                    console.error('Auto Journal Error (GRN):', je);
+                    log.error('Auto Journal Error (GRN):', je);
                 }
             }
 
@@ -185,7 +188,7 @@ async function _POST(req: Request) {
 
         return NextResponse.json(grn);
     } catch (e: any) {
-        console.error(e);
+        log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

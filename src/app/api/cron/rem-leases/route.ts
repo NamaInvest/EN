@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { requireCronSecret } from '@/lib/cron-guard';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'cron/rem-leases' });
 async function _POST(req: Request) {
   const guard = requireCronSecret(req as any);
   if (guard) return guard;
@@ -45,10 +48,10 @@ async function _POST(req: Request) {
         try {
           // Attempting generic whatsapp send logic, or simply logging it to DB for daemon to pick up
           // Mocking the call:
-          console.log(`[Auto-Lease] Sending WhatsApp to: ${inst.contract.tenant.phone} - Msg: ${message}`);
+          log.info(`[Auto-Lease] Sending WhatsApp to: ${inst.contract.tenant.phone} - Msg: ${message}`);
           sentCount++;
         } catch (e: any) {
-          console.error(`Failed to send WA to ${inst.contract.tenant.phone}`, e);
+          log.error(`Failed to send WA to ${inst.contract.tenant.phone}`, e);
         }
       }
     }
@@ -69,13 +72,13 @@ async function _POST(req: Request) {
     });
 
     for (const contract of expiringContracts) {
-      console.log(`[Auto-Lease-Renewal] Reminding tenant ${contract.tenant.name} about contract expiring on ${contract.endDate.toLocaleDateString('en-GB')}`);
+      log.info(`[Auto-Lease-Renewal] Reminding tenant ${contract.tenant.name} about contract expiring on ${contract.endDate.toLocaleDateString('en-GB')}`);
       // Also can auto-generate a Draft Contract for next year!
     }
 
     return NextResponse.json({ message: 'Lease Automation Executed Successfully', notificationsSent: sentCount, renewalsFound: expiringContracts.length });
   } catch (error: any) {
-    console.error('Lease Automation Error:', error);
+    log.error('Lease Automation Error:', error);
     return NextResponse.json({ error: 'Failed to run lease automation' }, { status: 500 });
   }
 }

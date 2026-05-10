@@ -1,6 +1,9 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { RetrievedChunk, RAGResponse } from '../pipeline';
 import { GeminiEmbedder } from '../../vector/embedding/gemini.embedder';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'RAGASEval' });
 
 export interface GoldenTestCase {
   query: string;

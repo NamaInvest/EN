@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'shifts' });
 const parseAmount = (val: any) => {
     if (val === undefined || val === null || val === '') return 0;
     const str = String(val)
@@ -38,7 +41,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(shifts);
     } catch (error: any) {
-        console.error('Error fetching shifts:', error);
+        log.error('Error fetching shifts:', error);
         return NextResponse.json({ error: 'Failed to fetch shifts' }, { status: 500 });
     }
 }
@@ -101,7 +104,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json(shift, { status: 201 });
     } catch (error: any) {
-        console.error('Error creating shift:', error);
+        log.error('Error creating shift:', error);
         return NextResponse.json({ error: 'Failed to create shift' }, { status: 500 });
     }
 }
@@ -148,7 +151,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json(shift);
     } catch (error: any) {
-        console.error('Error updating shift:', error);
+        log.error('Error updating shift:', error);
         return NextResponse.json({ error: 'Failed to update shift' }, { status: 500 });
     }
 }
@@ -173,7 +176,7 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'Shift deleted successfully' });
     } catch (error: any) {
-        console.error('Error deleting shift:', error);
+        log.error('Error deleting shift:', error);
         return NextResponse.json({ error: 'Failed to delete shift' }, { status: 500 });
     }
 }

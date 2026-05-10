@@ -6,6 +6,9 @@
  * Replaces plain-text DB storage of API keys.
  */
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'Env' });
 
 const envSchema = z.object({
     // Database
@@ -45,9 +48,9 @@ export function getEnv(): EnvConfig {
 
     if (!result.success) {
         const errors = result.error.flatten().fieldErrors;
-        console.error('❌ Environment validation failed:');
+        log.error('❌ Environment validation failed:');
         Object.entries(errors).forEach(([key, msgs]) => {
-            console.error(`  ${key}: ${(msgs as string[]).join(', ')}`);
+            log.error(`  ${key}: ${(msgs as string[]).join(', ')}`);
         });
 
         // In production, fail hard. In dev, warn but continue.

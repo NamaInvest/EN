@@ -16,6 +16,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'WithCron' });
 
 const CRON_SECRET    = process.env.CRON_SECRET ?? '';
 const REPLAY_WINDOW  = 5 * 60; // 5 minutes tolerance for timestamp drift
@@ -27,7 +30,7 @@ function verifyCronRequest(req: NextRequest): { valid: boolean; reason?: string 
   }
 
   if (!CRON_SECRET || CRON_SECRET.length < 16) {
-    console.error('[CRON] CRON_SECRET not configured or too short');
+    log.error('[CRON] CRON_SECRET not configured or too short');
     return { valid: false, reason: 'Server misconfiguration' };
   }
 
@@ -69,17 +72,17 @@ export function withCron(handler: CronHandler): (req: NextRequest) => Promise<Ne
 
     const { valid, reason } = verifyCronRequest(req);
     if (!valid) {
-      console.warn(`[CRON] Unauthorized request to ${req.nextUrl.pathname}: ${reason}`);
+      log.warn(`[CRON] Unauthorized request to ${req.nextUrl.pathname}: ${reason}`);
       return NextResponse.json({ error: 'Unauthorized', reason }, { status: 401 });
     }
 
     try {
       const result = await handler(req);
       const ms = Date.now() - start;
-      console.log(`[CRON] ${req.nextUrl.pathname} completed in ${ms}ms`);
+      log.info(`[CRON] ${req.nextUrl.pathname} completed in ${ms}ms`);
       return result;
     } catch (err: any) {
-      console.error(`[CRON] ${req.nextUrl.pathname} failed:`, err);
+      log.error(`[CRON] ${req.nextUrl.pathname} failed:`, err);
       return NextResponse.json({ error: err.message ?? 'Cron job failed' }, { status: 500 });
     }
   };

@@ -1,5 +1,8 @@
 import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import { writeFileSync } from 'fs';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'OpenAPIGen' });
 
 export const registry = new OpenAPIRegistry();
 
@@ -14,8 +17,8 @@ export function generateOpenAPI() {
 
   try {
     writeFileSync('public/openapi.json', JSON.stringify(document, null, 2));
-    console.log('[OpenAPI] Successfully generated openapi.json');
+    log.info('[OpenAPI] Successfully generated openapi.json');
   } catch (err) {
-    console.error('[OpenAPI] Failed to write openapi.json', err);
+    log.error('[OpenAPI] Failed to write openapi.json', err);
   }
 }

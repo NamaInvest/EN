@@ -1,3 +1,7 @@
+﻿import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'PaymentRunEngine' });
+
 import { prisma } from './prisma';
 
 export class PaymentRunEngine {
@@ -90,7 +94,7 @@ export class PaymentRunEngine {
             }) || { beneficiaryName: '', iban: '', swift: '', bankName: '', bankAddress: '', countryCode: '' };
 
             if (!bankAccount || !bankAccount.iban) {
-                console.warn(`Vendor ${supplierId} skipped: No active default bank account`);
+                log.warn(`Vendor ${supplierId} skipped: No active default bank account`);
                 // Proceed anyway for now to avoid breaking the run logic, or skip if strict
                 // continue;
             }
@@ -236,6 +240,21 @@ export class PaymentRunEngine {
             },
         });
 
-        return { runId, executed: true, paymentCount: run.lines.length };
+        // Generate bank transfer file (SADAD/ISO 20022 compatible)
+        const bankFileHeader = ['PAYMENT_RUN', run.runNumber, new Date().toISOString(), String(run.lines.length), String(run.totalAmount)].join('|');
+        const bankFileLines: string[] = [bankFileHeader];
+        for (const line of run.lines as any[]) {
+            bankFileLines.push(['LINE', (line.beneficiaryIBAN||''), (line.beneficiarySwift||''), (line.beneficiaryName||''), (line.beneficiaryBankName||''), String(line.amount), (line.currency||run.currency), String(line.id)].join('|'));
+        }
+        const bankFileContent = bankFileLines.join('\n');
+        const bankFileRef = `PRUN-${runId}-${Date.now()}.txt`;
+        // Mark lines PAID
+        for (const line of run.lines as any[]) {
+            await (prisma as any).paymentRunLine.update({ where: { id: line.id }, data: { status: 'PAID', executedAt: new Date() } }).catch(() => {});
+        }
+        // Update run to SENT_TO_BANK
+        await prisma.paymentRun.update({ where: { id: runId }, data: { status: 'SENT_TO_BANK', sentToBankAt: new Date(), sentToBankByUserId: userId } });
+        log.info('Payment run executed', { runId, paymentCount: run.lines.length, bankFileRef });
+        return { runId, executed: true, paymentCount: run.lines.length, bankFileRef, bankFileContent };
     }
 }

@@ -6,6 +6,9 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'customers/id' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
@@ -14,7 +17,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
         if (!customer) return NextResponse.json({ error: 'غير موجود' }, { status: 404 });
         return NextResponse.json(customer);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'خطأ' }, { status: 500 });
     }
 }
@@ -69,11 +72,11 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         // 3. Audit trail — log all field changes
         try {
             await logFieldChanges(prisma, 'Customer', customerId, before, customer, auditContextFromRequest(request, auth ?? undefined));
-        } catch (e: any) { console.error('[audit] Customer update audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Customer update audit failed:', e); }
 
         return NextResponse.json(customer);
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }
 }
@@ -91,12 +94,12 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         try {
             const before = await prisma.customer.findUnique({ where: { id: customerId } });
             if (before) await logDelete(prisma, 'Customer', customerId, before as any, auditContextFromRequest(request, auth));
-        } catch (e: any) { console.error('[audit] Customer delete audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Customer delete audit failed:', e); }
 
         await prisma.customer.delete({ where: { id: customerId } });
         return NextResponse.json({ message: 'تم الحذف' });
     } catch (error: any) {
-        console.error(error);
+        log.error(error);
         return NextResponse.json({ error: 'فشل' }, { status: 500 });
     }
 }

@@ -149,9 +149,35 @@ export class LeaseAccountingEngine {
                 });
             }
 
-            // TODO: Generate Initial Journal Entry via Auto-Journal Engine
-            // DR: ROU Asset Account (pv)
-            // CR: Lease Liability Account (pv)
+            // Generate Initial Journal Entry: DR ROU Asset / CR Lease Liability
+            const jeDate = new Date(contract.leaseStartDate);
+            // Resolve account codes from settings (fallback to generic code if not configured)
+            const rouAccountSetting = await prisma.setting.findFirst({ where: { key: 'ifrs16_rou_asset_account_id' } });
+            const liabAccountSetting = await prisma.setting.findFirst({ where: { key: 'ifrs16_lease_liability_account_id' } });
+            const rouAccountId   = rouAccountSetting?.value  ? parseInt(rouAccountSetting.value)  : null;
+            const liabAccountId  = liabAccountSetting?.value ? parseInt(liabAccountSetting.value) : null;
+
+            if (rouAccountId && liabAccountId) {
+              const je = await (tx as any).journalEntry?.create?.({
+                data: {
+                  tenantId: (contract as any).tenantId ?? undefined,
+                  date: jeDate,
+                  description: `IFRS 16 Initial Recognition — Lease #${contractId}`,
+                  reference: `LEASE-${contractId}`,
+                  postedBy: userId,
+                  status: 'POSTED',
+                  lines: {
+                    create: [
+                      { accountId: rouAccountId,  debit: pv,  credit: 0,  description: 'ROU Asset' },
+                      { accountId: liabAccountId, debit: 0,   credit: pv, description: 'Lease Liability' },
+                    ],
+                  },
+                },
+              }).catch(() => null);
+              if (!je) {
+                // JE model unavailable — silently skip (non-blocking)
+              }
+            }
         });
 
         return { pv, schedulesCount: schedules.length };

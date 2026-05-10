@@ -1,5 +1,8 @@
 import prisma from './prisma';
 import { n } from './decimal-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'TelegramBot' });
 
 export async function getBotToken() {
     const setting = await prisma.setting.findUnique({ where: { key: 'telegram_bot_token' } });
@@ -319,7 +322,7 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
 
         await sendMessage(chatId, `✅ <b>تم استخراج الفاتورة وإضافتها بنجاح!</b>\n━━━━━━━━━━━━━━━━━━\n\n📄 فاتورة رقم: <b>#${savedInvoice.invoiceNo}</b>\n🏢 المورد: <b>${savedInvoice.supplier?.name || 'غير محدد'}</b>\n📦 عدد الأصناف: <b>${savedInvoice.details.length}</b>\n\n💵 الإجمالي (مع الضريبة): <b>${n(savedInvoice.total).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س</b>`);
     } catch (err: any) {
-        console.error('Telegram AI Invoice Error:', err);
+        log.error('Telegram AI Invoice Error:', err);
         await sendMessage(chatId, `❌ عذراً، لم نتمكن من تسجيل الفاتورة.\n${err.message || ''}`);
     }
 }
@@ -427,7 +430,7 @@ export async function processVoice(fileId: string, chatId: number): Promise<void
 
         await sendMessage(chatId, `🎙️ <i>${transcript || '...'}</i>\n\n${responseText}`);
     } catch (err: any) {
-        console.error('Telegram AI Voice Error:', err);
+        log.error('Telegram AI Voice Error:', err);
         await sendMessage(chatId, `❌ عذراً، لم نتمكن من معالجة الصوت.\n${err.message || ''}`);
     }
 }

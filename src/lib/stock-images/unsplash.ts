@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'Unsplash' });
+
 export interface StockImage {
   id: string;
   url: string;
@@ -13,7 +17,7 @@ export class UnsplashService {
   private apiKey = process.env.UNSPLASH_ACCESS_KEY || 'dummy_key';
 
   async search(query: string, options: { perPage?: number } = {}): Promise<StockImage[]> {
-    console.log(`[Unsplash] Searching for ${query}`);
+    log.info(`[Unsplash] Searching for ${query}`);
     // Stub Unsplash API call
     return [
       {
@@ -30,7 +34,7 @@ export class UnsplashService {
   }
 
   async download(imageId: string): Promise<Buffer> {
-    console.log(`[Unsplash] Downloading image ${imageId}`);
+    log.info(`[Unsplash] Downloading image ${imageId}`);
     return Buffer.from('stub_downloaded_image_data');
   }
 }

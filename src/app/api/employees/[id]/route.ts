@@ -6,6 +6,9 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'employees' });
 
 const _PUTSchema = z.object({
   salary: z.number().optional(),
@@ -55,10 +58,10 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         // Audit trail — log changes
         try {
             await logFieldChanges(prisma, 'Employee', employeeId, before, employee, auditContextFromRequest(request, auth ?? undefined));
-        } catch (e: any) { console.error('[audit] Employee update audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Employee update audit failed:', e); }
 
         return NextResponse.json(employee);
-    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -74,11 +77,11 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         try {
             const before = await prisma.employee.findUnique({ where: { id: employeeId } });
             if (before) await logDelete(prisma, 'Employee', employeeId, before as any, auditContextFromRequest(request, auth));
-        } catch (e: any) { console.error('[audit] Employee delete audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Employee delete audit failed:', e); }
 
         await prisma.employee.delete({ where: { id: employeeId } });
         return NextResponse.json({ message: 'تم الحذف' });
-    } catch (error: any) { console.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
+    } catch (error: any) { log.error(error); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }
 }
 
 export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'DEFAULT' });

@@ -1,6 +1,9 @@
 import { evaluatePromptOutput } from './llm-judge';
 import { getPrompt, renderPrompt } from '../registry';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'RAGASRunner' });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -28,7 +31,7 @@ const CFO_GOLDEN_DATASET: GoldenTestCase[] = [
 ];
 
 export async function runEvalSuite(promptKey: string) {
-    console.log(`[EvalSuite] Starting eval for ${promptKey}...`);
+    log.info(`[EvalSuite] Starting eval for ${promptKey}...`);
     
     // 1. Fetch Prompt
     const promptDef = await getPrompt(promptKey, null);
@@ -47,7 +50,7 @@ export async function runEvalSuite(promptKey: string) {
     const dataset = promptKey === 'cfo.daily_summary' ? CFO_GOLDEN_DATASET : [];
     
     if (dataset.length === 0) {
-        console.log(`[EvalSuite] No golden dataset found for ${promptKey}`);
+        log.info(`[EvalSuite] No golden dataset found for ${promptKey}`);
         return { averageScore: 0, testsRun: 0 };
     }
 
@@ -65,12 +68,12 @@ export async function runEvalSuite(promptKey: string) {
             aiOutput
         );
 
-        console.log(`Score: ${evalResult.score} | Reasoning: ${evalResult.reasoning}`);
+        log.info(`Score: ${evalResult.score} | Reasoning: ${evalResult.reasoning}`);
         totalScore += evalResult.score;
     }
 
     const averageScore = totalScore / dataset.length;
-    console.log(`[EvalSuite] Eval finished. Average Score: ${averageScore.toFixed(2)}`);
+    log.info(`[EvalSuite] Eval finished. Average Score: ${averageScore.toFixed(2)}`);
     
     return {
         averageScore,

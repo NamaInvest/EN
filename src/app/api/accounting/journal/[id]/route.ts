@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting/journal' });
 async function checkFiscalPeriodOpen(prisma: any, dateString: string) {
     const [year, month] = dateString.split('-').map(Number);
     if (year && month) {
@@ -96,7 +99,7 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
                         details: JSON.stringify({ reason: 'Attempted to manually update control account', attemptedLines: lines })
                     }
                 });
-            } catch (e: any) { console.error(e); }
+            } catch (e: any) { log.error(e); }
              return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون).' }, { status: 403 });
         }
 
@@ -136,13 +139,13 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
             const afterEntry = await prisma.journalEntry.findUnique({ where: { id } });
             await logFieldChanges(prisma, 'JournalEntry', id, beforeEntry, afterEntry, auditContextFromRequest(request, auth));
         } catch (auditErr: unknown) {
-            console.error('Audit Log failed:', auditErr);
+            log.error('Audit Log failed:', auditErr);
         }
 
         return NextResponse.json({ success: true }, { status: 200 });
 
     } catch (error: any) {
-        console.error('Journal update error:', error);
+        log.error('Journal update error:', error);
         return NextResponse.json({ error: error.message || 'فشل في تحديث القيد' }, { status: 500 });
     }
 }
@@ -215,7 +218,7 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
         return NextResponse.json({ success: true, status });
 
     } catch (error: any) {
-        console.error('Journal status transition error:', error);
+        log.error('Journal status transition error:', error);
         return NextResponse.json({ error: error.message || 'فشل في تغيير الحالة' }, { status: 400 });
     }
 }

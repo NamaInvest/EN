@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'QuotaGuard' });
 
 // نوع نتيجة فحص الـ Quota
 export interface QuotaResult {
@@ -21,7 +24,7 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
         // جلب بيانات الاشتراك من Master DB
         const { Pool } = require('pg');
         if (!process.env.MASTER_DB_URL) {
-            console.warn('MASTER_DB_URL not set; skipping quota check');
+            log.warn('MASTER_DB_URL not set; skipping quota check');
             return { allowed: true, reason: 'ok' };
         }
         const masterPool = new Pool({
@@ -121,7 +124,7 @@ export async function checkQuota(tenant: string, resource: 'invoice' | 'product'
         return { allowed: true, reason: 'ok', plan, limit, current };
 
     } catch (error: any) {
-        console.error('[quotaGuard] Error:', error);
+        log.error('[quotaGuard] Error:', error);
         return { allowed: true, reason: 'ok' }; // عند فشل الفحص → اسمح (لا نريد حجب المستخدمين)
     }
 }

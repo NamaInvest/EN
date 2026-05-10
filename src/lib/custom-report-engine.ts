@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { PrismaClient, CustomReport } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'CustomReport' });
 
 const prisma = new PrismaClient();
 
@@ -110,7 +113,7 @@ export class CustomReportEngine {
                 return flattened;
             });
         } catch (error: any) {
-            console.error("Custom Report Engine Error:", error);
+            log.error("Custom Report Engine Error:", error);
             throw new Error(`Failed to execute report: ${error.message}`);
         }
     }
@@ -164,7 +167,7 @@ export class CustomReportEngine {
 
                 processed++;
             } catch (err: any) {
-                console.error(`Failed to process schedule ${schedule.id}:`, err);
+                log.error(`Failed to process schedule ${schedule.id}:`, err);
             }
         }
 

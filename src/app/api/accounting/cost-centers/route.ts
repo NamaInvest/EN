@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'accounting/cost-centers' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -21,7 +24,7 @@ async function _GET(request: NextRequest) {
 
     return NextResponse.json(costCenters);
   } catch (error: any) {
-    console.error('Error fetching Cost Centers:', error);
+    log.error('Error fetching Cost Centers:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -74,7 +77,7 @@ async function _POST(request: NextRequest) {
 
     return NextResponse.json(newCostCenter, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating Cost Center:', error);
+    log.error('Error creating Cost Center:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -113,7 +116,7 @@ async function _PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error: any) {
-    console.error('Error updating Cost Center:', error);
+    log.error('Error updating Cost Center:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -136,7 +139,7 @@ async function _DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     // Usually fails if it has related records (foreign key constraint)
-    console.error('Error deleting Cost Center:', error);
+    log.error('Error deleting Cost Center:', error);
     return NextResponse.json({ error: 'Cannot delete: Record is in use' }, { status: 400 });
   }
 }

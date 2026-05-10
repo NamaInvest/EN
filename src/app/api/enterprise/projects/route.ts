@@ -6,6 +6,9 @@ import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'enterprise/projects' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -45,7 +48,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(enrichedProjects);
     } catch (error: any) {
-        console.error('Projects Fetch Error:', error);
+        log.error('Projects Fetch Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects' });
     }
 }
@@ -96,7 +99,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم إنشاء المشروع بنجاح', project: newProject });
     } catch (error: any) {
-        console.error('Create Project Error:', error);
+        log.error('Create Project Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects' });
     }
 }
@@ -121,7 +124,7 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم حذف المشروع بنجاح' });
     } catch (error: any) {
-        console.error('Delete Project Error:', error);
+        log.error('Delete Project Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects' });
     }
 }
@@ -156,7 +159,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'تم تحديث المشروع بنجاح', project: updatedProject });
     } catch (error: any) {
-        console.error('Update Project Error:', error);
+        log.error('Update Project Error:', error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'enterprise/projects' });
     }
 }

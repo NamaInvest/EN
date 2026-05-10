@@ -1,4 +1,7 @@
 import prisma from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'Salla' });
 
 /**
  * Fetches Salla configuration from the database.
@@ -55,7 +58,7 @@ export async function syncProductToSalla(product: any) {
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(sallaPayload)
                 });
-                console.log(`✅ Salla Sync: Updated product ${product.name}`);
+                log.info(`✅ Salla Sync: Updated product ${product.name}`);
                 return;
             }
         }
@@ -68,13 +71,13 @@ export async function syncProductToSalla(product: any) {
         });
         
         if (createRes.ok) {
-            console.log(`✅ Salla Sync: Created product ${product.name}`);
+            log.info(`✅ Salla Sync: Created product ${product.name}`);
         } else {
-            console.error('❌ Salla Sync Error:', await createRes.text());
+            log.error('❌ Salla Sync Error:', await createRes.text());
         }
 
     } catch (e: any) {
-        console.error('Salla Sync Exception:', e);
+        log.error('Salla Sync Exception:', e);
     }
 }
 
@@ -106,10 +109,10 @@ export async function syncStockToSalla(sku: string, newQuantity: number) {
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quantity: newQuantity })
                 });
-                console.log(`✅ Salla Sync: Updated stock for SKU ${sku} to ${newQuantity}`);
+                log.info(`✅ Salla Sync: Updated stock for SKU ${sku} to ${newQuantity}`);
             }
         }
     } catch (e: any) {
-        console.error('Salla Stock Sync Exception:', e);
+        log.error('Salla Stock Sync Exception:', e);
     }
 }

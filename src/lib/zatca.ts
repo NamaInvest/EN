@@ -9,6 +9,9 @@
  */
 
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'ZATCA' });
 
 // ============ Data Models ============
 
@@ -343,7 +346,7 @@ export function generateECDSASignature(data: string, privateKeyBase64: string): 
     });
     return signature.toString('base64');
   } catch (error: any) {
-    console.error('ECDSA signing error:', error);
+    log.error('ECDSA signing error:', error);
     // Fallback: return empty signature if no valid key
     return '';
   }
@@ -380,7 +383,7 @@ export function extractPublicKeyFromCertificate(certBase64: string): { publicKey
       signature: sigBytes.toString('base64'),
     };
   } catch (error: any) {
-    console.error('Certificate parsing error:', error);
+    log.error('Certificate parsing error:', error);
     return { publicKey: '', signature: '' };
   }
 }

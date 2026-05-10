@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'tenant/provision' });
 
 // Force Node.js runtime (ssh2 uses native crypto — not compatible with Edge)
 export const runtime = 'nodejs';
@@ -19,7 +22,7 @@ const SSH_HOST = process.env.PROVISION_SSH_HOST;
 const SSH_USER = process.env.PROVISION_SSH_USER;
 const SSH_PASS = process.env.PROVISION_SSH_PASS;
 if (!SSH_HOST || !SSH_USER || !SSH_PASS) {
-    console.warn('[provision] PROVISION_SSH_* env vars missing — provisioning disabled');
+    log.warn('[provision] PROVISION_SSH_* env vars missing — provisioning disabled');
 }
 const BASE_URL  = process.env.NEXT_PUBLIC_API_URL || 'https://namainvist.com';
 const SSO_SECRET = process.env.SSO_SECRET || 'namainvest-sso-2024';
@@ -387,7 +390,7 @@ async function _POST(req: Request) {
         const { ok: dbOk, log: dbLog } = await runDbSetupViaSsh(subdomain);
 
         if (!dbOk) {
-            console.error('[provision] DB setup failed:', dbLog);
+            log.error('[provision] DB setup failed:', dbLog);
             return NextResponse.json(
                 { success: false, message: 'فشل إعداد قاعدة البيانات. يرجى المحاولة مرة أخرى.', debug: dbLog },
                 { status: 500 }
@@ -415,7 +418,7 @@ async function _POST(req: Request) {
         });
 
         if (!seedResult.ok) {
-            console.error('[provision] Seed failed:', seedResult.error);
+            log.error('[provision] Seed failed:', seedResult.error);
             // لا نوقف العملية — النظام شغال، البيانات يمكن تعبئتها لاحقاً
         }
 
@@ -447,7 +450,7 @@ async function _POST(req: Request) {
                 },
             });
         } catch (e: any) {
-            console.error('[provision] TenantAccount upsert failed:', e);
+            log.error('[provision] TenantAccount upsert failed:', e);
         } finally {
             if (masterPrisma) await masterPrisma.$disconnect();
         }
