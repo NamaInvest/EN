@@ -9,7 +9,8 @@ export default function PublicMenuPage({ params }: { params: Promise<{ tableId: 
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState('الكل');
-    const [cart, setCart] = useState<any[]>([]);
+    const [errorMsg, setErrorMsg] = useState("");
+  const [cart, setCart] = useState<any[]>([]);
     const [showCart, setShowCart] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -107,10 +108,10 @@ export default function PublicMenuPage({ params }: { params: Promise<{ tableId: 
                 setCart([]);
                 setShowConfirm(false);
             } else {
-                alert(data.error || 'حدث خطأ');
+                setErrorMsg(data.error || 'حدث خطأ'); setTimeout(() => setErrorMsg(''), 5000);
             }
         } catch {
-            alert('حدث خطأ في الاتصال');
+            setErrorMsg('حدث خطأ في الاتصال'); setTimeout(() => setErrorMsg(''), 5000);
         } finally {
             setSending(false);
         }

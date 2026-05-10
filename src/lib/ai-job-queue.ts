@@ -1,3 +1,6 @@
+﻿import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'AIJobQueue' });
 /**
  * AI-09 — Background AI Job Queue
  * Simple in-process job queue for AI tasks (upgrade to BullMQ + Redis for production).
@@ -115,15 +118,15 @@ export function getQueueStats(): Record<string, { pending: number; running: numb
 // === Pre-register AI workers ===
 registerWorker('daily-audit', async (payload) => {
     // Placeholder: will call /api/ai/auditor logic
-    console.log('[AI Queue] Running daily audit for tenant:', payload.tenantId);
+    log.info('Running daily audit for tenant', { tenantId: payload.tenantId });
 });
 
 registerWorker('embed-knowledge', async (payload) => {
     // Placeholder: will call vector-store ingestion
-    console.log('[AI Queue] Embedding document:', payload.documentId);
+    log.info('Embedding document', { documentId: payload.documentId });
 });
 
 registerWorker('ocr-batch', async (payload) => {
     // Placeholder: will process batch OCR
-    console.log('[AI Queue] Processing OCR batch:', payload.batchId);
+    log.info('Processing OCR batch', { batchId: payload.batchId });
 });

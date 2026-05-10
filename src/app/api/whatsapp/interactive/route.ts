@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'whatsapp/interactive' });
 
 // This Webhook receives messages sent back by employees/managers to the Official WhatsApp Number
 // It allows for interactive DB mutations via text (e.g., "1" = approve, "2" = reject)
@@ -53,7 +56,7 @@ async function _POST(req: Request) {
 
     if (!pendingStep) {
         // Just log generic chatter
-        console.log(`[WhatsApp Agent] Unhandled chat from ${user.fullName}: ${textBody}`);
+        log.info(`[WhatsApp Agent] Unhandled chat from ${user.fullName}: ${textBody}`);
         return NextResponse.json({ message: 'No pending approvals for this user.' });
     }
 
@@ -71,7 +74,7 @@ async function _POST(req: Request) {
             data: { status: 'approved' }
         });
 
-        console.log(`[WhatsApp Agent] ${user.fullName} approved request #${pendingStep.requestId} via WhatsApp.`);
+        log.info(`[WhatsApp Agent] ${user.fullName} approved request #${pendingStep.requestId} via WhatsApp.`);
 
         // In a real app we'd dispatch a WhatsApp reply back saying: "✅ تمت الموافقة بنجاح!"
         // sendWhatsAppText(incomingPhone, "✅ تمت الموافقة بنجاح على الطلب وتم اعتماده في النظام المالي.");
@@ -88,17 +91,17 @@ async function _POST(req: Request) {
             data: { status: 'rejected' }
         });
 
-        console.log(`[WhatsApp Agent] ${user.fullName} REJECTED request #${pendingStep.requestId} via WhatsApp.`);
+        log.info(`[WhatsApp Agent] ${user.fullName} REJECTED request #${pendingStep.requestId} via WhatsApp.`);
     } else if (textBody === '3' || textBody.toLowerCase() === 'تفاصيل') {
-        console.log(`[WhatsApp Agent] Replying with details for request #${pendingStep.requestId}`);
+        log.info(`[WhatsApp Agent] Replying with details for request #${pendingStep.requestId}`);
         // In a real app we'd reply with more detail.
     } else {
-        console.log(`[WhatsApp Agent] Unrecognized command '${textBody}' from ${user.fullName}. Reminding them of the format.`);
+        log.info(`[WhatsApp Agent] Unrecognized command '${textBody}' from ${user.fullName}. Reminding them of the format.`);
     }
 
     return NextResponse.json({ message: 'Webhook Processed' });
   } catch (error: any) {
-    console.error('WhatsApp Webhook Error:', error);
+    log.error('WhatsApp Webhook Error:', error);
     return NextResponse.json({ error: 'Failed to process WhatsApp Webhook' }, { status: 500 });
   }
 }

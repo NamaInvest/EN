@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'whatsapp/webhook' });
 
 // Meta Webhook Verification
 async function _GET(req: NextRequest) {
@@ -17,7 +20,7 @@ async function _GET(req: NextRequest) {
 
         if (mode && token) {
             if (mode === 'subscribe' && token === systemToken) {
-                console.log('WhatsApp Webhook Verified!');
+                log.info('WhatsApp Webhook Verified!');
                 return new NextResponse(challenge, { status: 200 }); // Meta requires raw plaintext challenge returned
             } else {
                 return new NextResponse('Forbidden', { status: 403 });
@@ -76,7 +79,7 @@ async function _POST(req: NextRequest) {
 
         if (!incomingText) return NextResponse.json({ status: 'unsupported_type' });
 
-        console.log(`[WhatsApp Incoming] from ${senderPhone}: ${incomingText}`);
+        log.info(`[WhatsApp Incoming] from ${senderPhone}: ${incomingText}`);
 
         // 2. Fetch Keys and Products context
         const allSettings = await prisma.setting.findMany();
@@ -88,7 +91,7 @@ async function _POST(req: NextRequest) {
         const phoneId = sMap['whatsapp_phone_id'];
 
         if (!geminiKey || !waToken || !phoneId) {
-            console.error('Missing API keys for WhatsApp AI');
+            log.error('Missing API keys for WhatsApp AI');
             return NextResponse.json({ error: 'Missing Integration Keys' });
         }
 
@@ -152,7 +155,7 @@ ${catalogContext}
         });
 
         if (!geminiRes.ok) {
-            console.error('Gemini API Error:', await geminiRes.text());
+            log.error('Gemini API Error:', await geminiRes.text());
             return NextResponse.json({ error: 'Gemini Failure' });
         }
 
@@ -173,7 +176,7 @@ ${catalogContext}
             
             replyText = replyText.replace(/<CHCKOUT>.*?<\/CHCKOUT>/g, `\n\n💳 *رابط الدفع الآمن لتأكيد طلبك:* \n${paymentLink}\n\nملاحظة: سيتم البدء بالتجهيز فور اكتمال الدفع.`);
             
-            console.log(`[AI AGENT] Autonomous Invoice ${invoiceRef} created via WhatsApp.`);
+            log.info(`[AI AGENT] Autonomous Invoice ${invoiceRef} created via WhatsApp.`);
         }
 
         // 5. Send Reply via WhatsApp Graph API
@@ -194,7 +197,7 @@ ${catalogContext}
         });
 
         if (!waRes.ok) {
-            console.error('WhatsApp Graph API Error:', await waRes.text());
+            log.error('WhatsApp Graph API Error:', await waRes.text());
             return NextResponse.json({ error: 'WhatsApp Graph Failure' });
         }
 
@@ -215,7 +218,7 @@ ${catalogContext}
         return NextResponse.json({ status: 'replied', text: replyText });
 
     } catch (e: any) {
-        console.error('WhatsApp Webhook Fatal Error:', e);
+        log.error('WhatsApp Webhook Fatal Error:', e);
         return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
 }

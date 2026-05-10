@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'attendance/face-id' });
 
 // Advanced AI Vision Middleware for Facial Recognition
 // Mocks connecting to AWS Rekognition or local Python OpenCV Daemon
@@ -17,7 +20,7 @@ async function _POST(req: Request) {
     }
 
     // 1. Send Base64 to Vision AI Model
-    // console.log("Sending photo to AI for vector matching against Employee DB...");
+    // log.info("Sending photo to AI for vector matching against Employee DB...");
     
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -53,7 +56,7 @@ async function _POST(req: Request) {
           notes: 'AI Face Recognition Login'
         }
       });
-      console.log(`[Face ID] ${matchedEmployee.name} CHECKED IN at ${nowTimeStr}`);
+      log.info(`[Face ID] ${matchedEmployee.name} CHECKED IN at ${nowTimeStr}`);
     } else if (!attendanceRecord.checkOut) {
       // Create CHECK OUT
       action = 'check_out';
@@ -61,11 +64,11 @@ async function _POST(req: Request) {
         where: { id: attendanceRecord.id },
         data: { checkOut: nowTimeStr, notes: 'AI Face Recognition Logout' }
       });
-      console.log(`[Face ID] ${matchedEmployee.name} CHECKED OUT at ${nowTimeStr}`);
+      log.info(`[Face ID] ${matchedEmployee.name} CHECKED OUT at ${nowTimeStr}`);
     } else {
       // Already checked out, maybe working overtime, just log it.
       action = 'overtime_log';
-      console.log(`[Face ID] ${matchedEmployee.name} logged face after checking out.`);
+      log.info(`[Face ID] ${matchedEmployee.name} logged face after checking out.`);
     }
 
     return NextResponse.json({ 
@@ -80,7 +83,7 @@ async function _POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Face ID API Error:', error);
+    log.error('Face ID API Error:', error);
     return NextResponse.json({ error: 'Vision AI matching failed' }, { status: 500 });
   }
 }

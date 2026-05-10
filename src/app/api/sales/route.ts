@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+﻿import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { round2, validateMoney } from '@/lib/money';
@@ -10,6 +10,9 @@ import { resolveStockAndBranch } from '@/lib/getDefaults';
 import { z } from 'zod';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { logDelete, auditContextFromRequest } from '@/lib/field-audit';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'sales' });
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 
@@ -83,7 +86,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(invoices);
     } catch (error: any) {
-        console.error('Sales GET error:', error);
+        log.error('Sales GET error', { err: error?.message });
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -100,7 +103,7 @@ async function _POST(request: Request) {
         }
         const body = parsed.data;
 
-        console.log('Received sales payload:', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
+        log.debug('Received sales payload', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
 
         // --- Quota Guard (Trial + Invoice Limit) ---
         const tenant = (request as any).headers?.get?.('x-tenant') ||
@@ -312,7 +315,7 @@ async function _POST(request: Request) {
                             notes: `فاتورة مبيعات #${invoiceNo}`
                         }
                     });
-                } catch (e: any) { console.error('ProductStock update failed:', e); }
+                } catch (e: any) { log.error('ProductStock update failed', { err: e?.message }); }
 
                 try {
                     const activeRecipe = await tx.recipe.findFirst({
@@ -337,7 +340,7 @@ async function _POST(request: Request) {
                         }
                     }
                 } catch (recipeErr: unknown) {
-                    console.error('Failed to auto-deduct recipe ingredients:', recipeErr);
+                    log.error('Failed to auto-deduct recipe ingredients', { err: (recipeErr as any)?.message });
                 }
             }
 
@@ -353,7 +356,7 @@ async function _POST(request: Request) {
                     },
                 });
             } catch (e: any) {
-                console.error('[document-state-machine] POS audit log failed:', e);
+                log.error('[document-state-machine] POS audit log failed', { err: e?.message });
             }
 
             if (paid > 0) {
@@ -597,7 +600,7 @@ async function _POST(request: Request) {
                     }
                 }
             } catch (zatcaErr: unknown) {
-                console.warn('ZATCA process skipped/failed within transaction:', zatcaErr);
+                log.warn('ZATCA process skipped/failed within transaction', { err: (zatcaErr as any)?.message });
             }
 
             return { createdInvoice, totalCost, zatcaSignOutput, invoiceDataObjForZatca, zatcaSettingsObjForZatca, isStandardInvoice, invoiceUuidStr, zatcaQRStr, finalSettings };
@@ -620,7 +623,7 @@ async function _POST(request: Request) {
                 date: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().split('T')[0],
             });
         } catch (journalErr: unknown) {
-            console.warn('Auto-journal for sale skipped:', journalErr);
+            log.warn('Auto-journal for sale skipped', { err: (journalErr as any)?.message });
         }
 
         // ZATCA Reporting (Network Call) Deferred out of Transaction
@@ -651,7 +654,7 @@ async function _POST(request: Request) {
         return NextResponse.json({ success: true, ...invoice.createdInvoice, zatcaQR: invoice.zatcaQRStr }, { status: 201 });
 
     } catch (error: any) {
-        console.error('Sales create error:', error);
+        log.error('Sales create error', { err: error?.message });
         return NextResponse.json({ error: 'فشل في إنشاء الفاتورة' }, { status: 500 });
     }
 }
@@ -731,7 +734,7 @@ async function _DELETE(request: NextRequest) {
                         create: { productId: detail.productId, stockId: invoice.stockId, quantity: detail.quantity },
                     });
                 } catch (e: any) {
-                     console.error('Failed to reverse productStock for sales delete inside tx:', e);
+                     log.error('Failed to reverse productStock for sales delete inside tx', { err: e?.message });
                 }
             }
 
@@ -760,11 +763,11 @@ async function _DELETE(request: NextRequest) {
         // Field-level audit trail (post-transaction)
         try {
             await logDelete(prisma, 'SalesInvoice', id, invoice as any, auditContextFromRequest(request, auth));
-        } catch (e: any) { console.error('[audit] Sales delete field-audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Sales delete field-audit failed', { err: e?.message }); }
 
         return NextResponse.json({ success: true, message: 'تم حذف الفاتورة بنجاح' });
     } catch (error: any) {
-        console.error('Sales DELETE error:', error);
+        log.error('Sales DELETE error', { err: error?.message });
         return NextResponse.json({ error: 'فشل في حذف الفاتورة' }, { status: 500 });
     }
 }

@@ -9,6 +9,9 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
 
@@ -172,7 +175,7 @@ async function _POST(request: Request) {
                             }
                         });
                     } catch (e: any) {
-                         console.error('Failed to update productStock for purchase inside tx:', e);
+                         log.error('Failed to update productStock for purchase inside tx:', e);
                     }
                 }
             }
@@ -229,7 +232,7 @@ async function _POST(request: Request) {
                     },
                 });
             } catch (e: any) {
-                console.error('[document-state-machine] POS audit log failed:', e);
+                log.error('[document-state-machine] POS audit log failed:', e);
             }
 
             return createdInvoice;
@@ -250,7 +253,7 @@ async function _POST(request: Request) {
                 hasGRN: receiptStatus === 'received', // [EG-02] GRN already posted → clear GRNI
             });
         } catch (journalErr: unknown) {
-            console.warn('Auto-journal for purchase skipped:', journalErr);
+            log.warn('Auto-journal for purchase skipped:', journalErr);
         }
 
         return NextResponse.json(invoice, { status: 201 });
@@ -304,7 +307,7 @@ async function _PUT(request: Request) {
         // Audit trail — log payment changes
         try {
             await logFieldChanges(prisma, 'PurchaseInvoice', Number(invoiceId), invoice, updated, auditContextFromRequest(request, { userId: userId ? Number(userId) : undefined }));
-        } catch (e: any) { console.error('[audit] Purchase payment audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Purchase payment audit failed:', e); }
 
         return NextResponse.json(updated);
     } catch (error: any) { return handleApiError(error); }
@@ -342,7 +345,7 @@ async function _DELETE(request: NextRequest) {
                             create: { productId: detail.productId, stockId: invoice.stockId, quantity: -detail.quantity },
                         });
                     } catch (e: any) {
-                         console.error('Failed to reverse productStock for purchase delete inside tx:', e);
+                         log.error('Failed to reverse productStock for purchase delete inside tx:', e);
                     }
                 }
             }
@@ -357,7 +360,7 @@ async function _DELETE(request: NextRequest) {
         // Audit trail — log deletion (after transaction succeeds)
         try {
             await logDelete(prisma, 'PurchaseInvoice', id, invoice as any, auditContextFromRequest(request, auth));
-        } catch (e: any) { console.error('[audit] Purchase delete audit failed:', e); }
+        } catch (e: any) { log.error('[audit] Purchase delete audit failed:', e); }
 
         return NextResponse.json({ success: true, message: 'تم حذف فاتورة المشتريات بنجاح' });
     } catch (error: any) {

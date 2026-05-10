@@ -5,6 +5,8 @@ import { promisify } from "util";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+const log = logger.child({ route: 'admin/nodes/sync' });
 
 const execAsync = promisify(exec);
 const prismaMaster = new PrismaClient();
@@ -13,7 +15,7 @@ const BASE_DOMAIN = "namainvist.com";
 async function _POST(req: Request) {
 
     try {
-        console.log("[SYNC_ENGINE] Starting Reverse Database ETL...");
+        log.info("[SYNC_ENGINE] Starting Reverse Database ETL...");
 
         const { stdout: lsOutput } = await execAsync("ls /www/wwwroot");
         const dirs = lsOutput.split("\n").filter(d => d.startsWith("n") && d.endsWith("." + BASE_DOMAIN));
@@ -41,15 +43,15 @@ async function _POST(req: Request) {
                     }
                 }
             } catch (e: any) {
-                console.warn("[SYNC_ENGINE] Failed to read .env for " + subdomain);
+                log.warn("[SYNC_ENGINE] Failed to read .env for " + subdomain);
             }
 
             if (!isPostgres && !fs.existsSync(dbPath)) {
-                console.log("[SYNC_ENGINE] Skipping " + subdomain + " - Missing SQLite data.db and no Postgres URL");
+                log.info("[SYNC_ENGINE] Skipping " + subdomain + " - Missing SQLite data.db and no Postgres URL");
                 continue;
             }
 
-            console.log("[SYNC_ENGINE] Extracting Payload from " + subdomain + " (" + (isPostgres ? 'Postgres' : 'SQLite') + ")...");
+            log.info("[SYNC_ENGINE] Extracting Payload from " + subdomain + " (" + (isPostgres ? 'Postgres' : 'SQLite') + ")...");
             
             try {
                 const queryName = "SELECT value FROM settings WHERE key='company_name' LIMIT 1;";
@@ -79,7 +81,7 @@ async function _POST(req: Request) {
                     adminEmail = userOut.trim();
                 }
             } catch (dbErr: unknown) {
-                console.warn("[SYNC_ENGINE] Database Parsing Error on " + subdomain + ":", dbErr);
+                log.warn("[SYNC_ENGINE] Database Parsing Error on " + subdomain + ":", dbErr);
             }
 
             await prismaMaster.tenantAccount.upsert({
@@ -101,11 +103,11 @@ async function _POST(req: Request) {
             syncedCount++;
         }
 
-        console.log("[SYNC_ENGINE] Reverse ETL Successful. Resynced " + syncedCount + " nodes.");
+        log.info("[SYNC_ENGINE] Reverse ETL Successful. Resynced " + syncedCount + " nodes.");
         return NextResponse.json({ success: true, count: syncedCount });
 
     } catch (error: any) {
-        console.error("[SYNC_ENGINE_ERROR]", error);
+        log.error("[SYNC_ENGINE_ERROR]", error);
         return NextResponse.json({ error: "Failed to run Reverse Database Sync." }, { status: 500 });
     }
 }

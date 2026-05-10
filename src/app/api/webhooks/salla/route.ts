@@ -4,6 +4,9 @@ import crypto from 'crypto';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'webhooks/salla' });
 
 import { getUserFromRequest } from '@/lib/auth';
 
@@ -56,18 +59,18 @@ async function _POST(request: NextRequest) {
         }
         const { event, event_id, data } = parsedPayload.data;
         
-        console.log(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
+        log.info(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
 
         if (event === 'order.created') {
             await handleSallaOrderCreated(data, prisma);
         } else if (event === 'app.store.authorize') {
             // Store authorized our app
-            console.log('✅ Salla App Authorized:', data);
+            log.info('✅ Salla App Authorized:', data);
         }
 
         return NextResponse.json({ success: true, message: 'Webhook Processed' });
     } catch (error: any) {
-        console.error('Salla Webhook Error:', error);
+        log.error('Salla Webhook Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -172,7 +175,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
                             create: { productId: localProd.id, stockId, quantity: -qty },
                         });
                     } catch (e: any) {
-                        console.error('Failed to update productStock for Salla webhook inside tx:', e);
+                        log.error('Failed to update productStock for Salla webhook inside tx:', e);
                     }
                 }
             }
@@ -202,7 +205,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
             date: new Date().toISOString().split('T')[0],
         });
     } catch (jErr: unknown) {
-        console.error('Auto-journal for Salla webhook failed:', jErr);
+        log.error('Auto-journal for Salla webhook failed:', jErr);
     }
 }
 

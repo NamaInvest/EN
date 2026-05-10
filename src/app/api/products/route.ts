@@ -6,6 +6,8 @@ import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+const log = logger.child({ route: 'products' });
 async function hasPermission(prisma: any, userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
     if (!user) return false;
@@ -66,7 +68,7 @@ async function _GET(request: NextRequest) {
 
         return NextResponse.json(products);
     } catch (error: any) {
-        console.error('Products GET error:', error);
+        log.error('Products GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -197,7 +199,7 @@ async function _POST(request: Request) {
                 });
             }
         } catch (e: any) {
-            console.error('Failed to initialize product stock:', e);
+            log.error('Failed to initialize product stock:', e);
         }
 
         // Push to Salla if configured
@@ -205,7 +207,7 @@ async function _POST(request: Request) {
 
         return NextResponse.json(product, { status: 201 });
     } catch (error: any) {
-        console.error('Product create error:', error);
+        log.error('Product create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء المنتج' }, { status: 500 });
     }
 }
@@ -242,7 +244,7 @@ async function _DELETE(request: NextRequest) {
         const result = await prisma.product.updateMany({ data: { currentStock: 0 } });
         return NextResponse.json({ success: true, message: `تم تصفير مخزون ${result.count} منتج` });
     } catch (error: any) {
-        console.error('Products stock reset error:', error);
+        log.error('Products stock reset error:', error);
         return NextResponse.json({ error: 'فشل في تصفير المخزون' }, { status: 500 });
     }
 }

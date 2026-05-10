@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'branches' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request as any);
 
@@ -34,7 +37,7 @@ async function _GET(request: NextRequest) {
         }));
         return NextResponse.json(mapped);
     } catch (error: any) {
-        console.error('Error fetching branches:', error);
+        log.error('Error fetching branches:', error);
         return NextResponse.json({ error: 'Failed to fetch branches' }, { status: 500 });
     }
 }
@@ -92,7 +95,7 @@ async function _POST(request: NextRequest) {
                     return NextResponse.json({ error: 'إضافة فرع جديد تتطلب الباقة الاحترافية (Professional) أو أعلى.' }, { status: 403 });
                 }
             } catch (e: any) {
-                console.error('[Branches] Plan check error:', e);
+                log.error('[Branches] Plan check error:', e);
             }
         }
 
@@ -124,7 +127,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json(branch, { status: 201 });
     } catch (error: any) {
-        console.error('Error creating branch:', error);
+        log.error('Error creating branch:', error);
         return NextResponse.json({ error: error?.message || 'Failed to create branch' }, { status: 500 });
     }
 }
@@ -159,7 +162,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json(branch);
     } catch (error: any) {
-        console.error('Error updating branch:', error);
+        log.error('Error updating branch:', error);
         return NextResponse.json({ error: error?.message || 'Failed to update branch' }, { status: 500 });
     }
 }
@@ -206,7 +209,7 @@ async function _DELETE(request: NextRequest) {
 
         return NextResponse.json({ message: 'Branch deleted successfully' });
     } catch (error: any) {
-        console.error('Error deleting branch:', error);
+        log.error('Error deleting branch:', error);
         return NextResponse.json({ error: 'Failed to delete branch' }, { status: 500 });
     }
 }

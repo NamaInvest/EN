@@ -3,6 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'webhooks/zid' });
 import crypto from 'crypto';
 
 // زد ويب هوك - استقبال الطلبات الجديدة
@@ -45,7 +48,7 @@ async function _POST(request: NextRequest) {
         // 2. التحقق من التوقيع بطريقة آمنة زمنياً (timing-safe)
         if (clientSecret) {
             if (!authHeader || !verifyZidToken(authHeader, clientSecret)) {
-                console.error('Zid Webhook: Invalid Signature/Token');
+                log.error('Zid Webhook: Invalid Signature/Token');
                 return NextResponse.json({ error: 'توقيع غير صالح' }, { status: 401 });
             }
         }
@@ -68,7 +71,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم الاستلام بنجاح' });
     } catch (error: any) {
-        console.error('Zid Webhook Error:', error);
+        log.error('Zid Webhook Error:', error);
         return NextResponse.json({ error: 'فشل في معالجة الطلب' }, { status: 500 });
     }
 }
@@ -81,7 +84,7 @@ async function processOrder(order: Record<string, any>, prisma: any) {
     });
 
     if (existingInvoice) {
-        console.log(`Zid Order ${order.id} already processed.`);
+        log.info(`Zid Order ${order.id} already processed.`);
         return;
     }
 
@@ -130,7 +133,7 @@ async function processOrder(order: Record<string, any>, prisma: any) {
     }
 
     if (invoiceItems.length === 0) {
-        console.warn(`لم يتم العثور على أي منتجات مطابقة لطلب زد رقم ${order.id}`);
+        log.warn(`لم يتم العثور على أي منتجات مطابقة لطلب زد رقم ${order.id}`);
         return; // لا نستطيع إنشاء الفاتورة بدون منتجات معروفة
     }
 
@@ -199,10 +202,10 @@ async function processOrder(order: Record<string, any>, prisma: any) {
             date: new Date().toISOString().split('T')[0],
         });
     } catch (journalErr: unknown) {
-        console.warn('Auto-journal for Zid order skipped:', journalErr);
+        log.warn('Auto-journal for Zid order skipped:', journalErr);
     }
 
-    console.log(`تم استيراد طلب زد رقم ${order.id} بنجاح كفاتورة #${invoice.invoiceNo}`);
+    log.info(`تم استيراد طلب زد رقم ${order.id} بنجاح كفاتورة #${invoice.invoiceNo}`);
 }
 
 export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

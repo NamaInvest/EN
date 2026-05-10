@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+const log = logger.child({ route: 'ice/toggle' });
 
 const ICE_SECRET = process.env.ICE_SECRET;
 // BUILD SAFETY: if (!ICE_SECRET) throw new Error('CRITICAL: ICE_SECRET is not set in environment variables!');
@@ -112,7 +114,7 @@ async function _POST(req: Request) {
                 `, [tenantId, moduleName, enabled]);
             }
         } catch (masterErr: any) {
-            console.error('[ICE Toggle] Master DB Sync Error:', masterErr.message);
+            log.error('[ICE Toggle] Master DB Sync Error:', masterErr.message);
         }
 
         return NextResponse.json({ success: true, hiddenModules: hidden });
@@ -279,7 +281,7 @@ async function _PATCH(req: Request) {
                         }
                     }
                 } catch (masterErr: any) {
-                    console.error('[ICE Apply Plan] Master DB Sync Error:', masterErr.message);
+                    log.error('[ICE Apply Plan] Master DB Sync Error:', masterErr.message);
                 }
             }
 
@@ -329,9 +331,9 @@ async function _DELETE(req: Request) {
                 AND pid <> pg_backend_pid()
             `);
             await superPool.query(`DROP DATABASE IF EXISTS "${dbName}"`);
-            console.log(`[ICE DELETE] Dropped database: ${dbName}`);
+            log.info(`[ICE DELETE] Dropped database: ${dbName}`);
         } catch (dbErr: any) {
-            console.error(`[ICE DELETE] DB drop error: ${dbErr.message}`);
+            log.error(`[ICE DELETE] DB drop error: ${dbErr.message}`);
         } finally {
             await superPool.end().catch(() => {});
         }
@@ -343,19 +345,19 @@ async function _DELETE(req: Request) {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
                 });
-                console.log(`[ICE DELETE] Clerk user ${tenant.clerk_user_id} deleted: ${clerkRes.status}`);
+                log.info(`[ICE DELETE] Clerk user ${tenant.clerk_user_id} deleted: ${clerkRes.status}`);
             } catch (clerkErr: any) {
-                console.error(`[ICE DELETE] Clerk delete error: ${clerkErr.message}`);
+                log.error(`[ICE DELETE] Clerk delete error: ${clerkErr.message}`);
             }
         }
 
         // 4. حذف سجل المستأجر من الجدول
         await masterPool.query(`DELETE FROM tenant_accounts WHERE subdomain = $1`, [subdomain]);
-        console.log(`[ICE DELETE] Tenant record deleted: ${subdomain}`);
+        log.info(`[ICE DELETE] Tenant record deleted: ${subdomain}`);
 
         return NextResponse.json({ success: true, action: 'delete', subdomain });
     } catch (err: any) {
-        console.error(`[ICE DELETE] Error:`, err);
+        log.error(`[ICE DELETE] Error:`, err);
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

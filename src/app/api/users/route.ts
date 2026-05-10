@@ -4,6 +4,9 @@ import { getPrisma } from '@/lib/prisma';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { getUserFromRequest, hasPermission, hashPassword } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'users' });
 
 async function _GET(request: NextRequest) {
 
@@ -22,7 +25,7 @@ async function _GET(request: NextRequest) {
         });
         return NextResponse.json(users);
     } catch (error: any) {
-        console.error('Users GET error:', error);
+        log.error('Users GET error:', error);
         return NextResponse.json([], { status: 500 });
     }
 }
@@ -148,7 +151,7 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json(user, { status: 201 });
     } catch (error: any) {
-        console.error('Users POST error:', error);
+        log.error('Users POST error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء المستخدم' }, { status: 500 });
     }
 }
@@ -224,7 +227,7 @@ async function _PUT(request: NextRequest) {
 
         return NextResponse.json(user);
     } catch (error: any) {
-        console.error('Users PUT error:', error);
+        log.error('Users PUT error:', error);
         return NextResponse.json({ error: 'فشل في تحديث المستخدم' }, { status: 500 });
     }
 }
@@ -252,7 +255,7 @@ async function _PATCH(request: NextRequest) {
 
         return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
     } catch (error: any) {
-        console.error('Users PATCH error:', error);
+        log.error('Users PATCH error:', error);
         return NextResponse.json({ error: 'فشل في العملية' }, { status: 500 });
     }
 }
@@ -275,7 +278,7 @@ async function _DELETE(request: NextRequest) {
         await prisma.user.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Users DELETE error:', error);
+        log.error('Users DELETE error:', error);
         return NextResponse.json({ error: 'فشل في حذف المستخدم' }, { status: 500 });
     }
 }

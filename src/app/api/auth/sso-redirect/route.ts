@@ -1,3 +1,7 @@
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ route: 'auth/sso-redirect' });
+
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
@@ -42,9 +46,9 @@ async function _GET(req: Request) {
         const primaryEmailId = user.primaryEmailAddressId;
         const primaryEmail = user.emailAddresses.find((e: any) => e.id === primaryEmailId);
         email = primaryEmail?.emailAddress || user.emailAddresses[0]?.emailAddress || '';
-        console.log(`[sso-redirect] userId=${userId}, email=${email}`);
+        log.info(`[sso-redirect] userId=${userId}, email=${email}`);
     } catch (e: any) {
-        console.error('[sso-redirect] Failed to get Clerk user:', e.message);
+        log.error('[sso-redirect] Failed to get Clerk user:', e.message);
         return NextResponse.redirect(new URL('/login?error=clerk-failed', req.url));
     }
 
@@ -64,7 +68,7 @@ async function _GET(req: Request) {
         
         if (!tenant?.subdomain) {
             // إيميل جديد → صفحة إنشاء شركة
-            console.log(`[sso-redirect] No tenant for email=${email}, redirecting to company-info`);
+            log.info(`[sso-redirect] No tenant for email=${email}, redirecting to company-info`);
             return NextResponse.redirect(new URL('/company-info', req.url));
         }
 
@@ -83,11 +87,11 @@ async function _GET(req: Request) {
 
         // خطوة 4: التحويل للـ subdomain الصحيح
         const targetUrl = `https://${tenant.subdomain}.namainvist.com/auto-login?token=${encodeURIComponent(ssoToken)}`;
-        console.log(`[sso-redirect] email=${email} → ${tenant.subdomain}`);
+        log.info(`[sso-redirect] email=${email} → ${tenant.subdomain}`);
         return NextResponse.redirect(targetUrl);
 
     } catch (error: any) {
-        console.error('[sso-redirect] DB Error:', error);
+        log.error('[sso-redirect] DB Error:', error);
         return NextResponse.redirect(new URL('/login?error=db-error', req.url));
     } finally {
         await pool.end().catch(() => {});

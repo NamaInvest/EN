@@ -10,7 +10,8 @@ export default async function VendorRFQPortalPage() {
     const token = searchParams.get('token');
 
     const [rfq, setRfq] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
+    const [errMsg, setErrMsg] = useState("");
+  const [loading, setLoading] = useState(false);
     const [bids, setBids] = useState<{ [key: number]: { unitPrice: string, deliveryDays: string } }>({});
     
     useEffect(() => {
@@ -51,7 +52,7 @@ export default async function VendorRFQPortalPage() {
     };
 
     const handleSubmit = async () => {
-        if (!token) return alert('Token is missing');
+        if (!token) { setErrMsg('Token is missing'); return; }
 
         const items = Object.entries(bids).map(([rfqDetailId, data]) => ({
             rfqDetailId: parseInt(rfqDetailId),
@@ -68,9 +69,9 @@ export default async function VendorRFQPortalPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert('تم تقديم عرض السعر بنجاح!');
+                setErrMsg('✅ تم تقديم عرض السعر بنجاح!'); setTimeout(() => setErrMsg(''), 5000);
             } else {
-                alert(`خطأ: ${data.error}`);
+                setErrMsg(`خطأ: ${data.error}`); setTimeout(() => setErrMsg(""), 5000);
             }
         } catch (e) {
             console.error(e);
