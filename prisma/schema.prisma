@@ -79,6 +79,7 @@ model User {
   controlledLogs   ControlledDrugLog[]  @relation("ControlledDrugPharmacist")
   posSessions      PosSession[]
   DocumentStateLog DocumentStateLog[]
+  deletedAt        DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("users")
 }
@@ -90,7 +91,7 @@ model UserBackupCode {
   userId           Int
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   codeHash         String // bcrypt
-  codeHint         String // first 2 chars in plain (for display "AB••-••CD")
+  codeHint         String // first 2 chars in plain (for display "ABâ€¢â€¢-â€¢â€¢CD")
   usedAt           DateTime?
   ipUsedFrom       String?
   userAgentUsed    String?
@@ -310,6 +311,7 @@ model Product {
   @@index([tenantId, categoryId])
   @@index([tenantId, barcode])
   @@map("products")
+  @@index([deletedAt, name], map: "idx_prod_name")
 }
 
 // ==================== 5.1 Product Units ====================
@@ -475,6 +477,7 @@ model Customer {
   @@index([name])
   @@index([tenantId, name])
   @@map("customers")
+  @@index([deletedAt, createdAt], map: "idx_cust_del_created")
 }
 
 // ==================== 7. Stocks (Warehouses) ====================
@@ -594,6 +597,8 @@ model SalesInvoice {
   @@index([tenantId, zatcaIcv])
   @@index([tenantId, cleared, date])
   @@map("sales_invoices")
+  @@index([date, deletedAt], map: "idx_sales_date_del")
+  @@index([status, deletedAt], map: "idx_sales_status_del")
 }
 
 // ==================== 9. SalesInvoiceDetails ====================
@@ -612,13 +617,15 @@ model SalesInvoiceDetail {
   taxValue      Decimal @default(0) @map("tax_value")
   total         Decimal @default(0)
 
-  invoice SalesInvoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id])
-  variant ProductVariant? @relation(fields: [variantId], references: [id])
-  batch   ProductBatch?   @relation(fields: [batchId], references: [id])
-  batchId Int?            @map("batch_id")
+  invoice   SalesInvoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  batch     ProductBatch?   @relation(fields: [batchId], references: [id])
+  batchId   Int?            @map("batch_id")
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("sales_invoice_details")
+  @@index([invoiceId, deletedAt], map: "idx_sales_det_inv")
 }
 
 // ==================== 10. SalesReturns ====================
@@ -709,8 +716,11 @@ model PurchaseOrder {
   landedCosts    LandedCost[]
   goodsReceipts  GoodsReceiptNote[]
   ThreeWayMatch  ThreeWayMatch[]
+  deletedAt      DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("purchase_orders")
+  @@index([status, deletedAt], map: "idx_po_status")
+  @@index([date, deletedAt], map: "idx_po_date")
 }
 
 model PurchaseOrderDetail {
@@ -727,8 +737,9 @@ model PurchaseOrderDetail {
   taxValue      Decimal @default(0) @map("tax_value")
   total         Decimal @default(0)
 
-  order   PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product       @relation(fields: [productId], references: [id])
+  order     PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product       @relation(fields: [productId], references: [id])
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("purchase_order_details")
 }
@@ -780,6 +791,7 @@ model PurchaseInvoice {
   @@index([supplierId])
   @@index([tenantId, supplierId, date])
   @@map("purchase_invoices")
+  @@index([date, deletedAt], map: "idx_pi_date")
 }
 
 // ==================== 12. PurchaseInvoiceDetails ====================
@@ -797,8 +809,9 @@ model PurchaseInvoiceDetail {
   taxValue      Decimal @default(0) @map("tax_value")
   total         Decimal @default(0)
 
-  invoice PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id])
+  invoice   PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("purchase_invoice_details")
 }
@@ -919,14 +932,16 @@ model Treasury {
   referenceId   Int?     @map("reference_id")
   userId        Int?     @map("user_id")
 
-  user     User?   @relation(fields: [userId], references: [id])
-  branch   Branch? @relation(fields: [branchId], references: [id])
-  branchId Int?    @map("branch_id")
+  user      User?     @relation(fields: [userId], references: [id])
+  branch    Branch?   @relation(fields: [branchId], references: [id])
+  branchId  Int?      @map("branch_id")
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([date])
   @@index([branchId])
   @@index([userId])
   @@map("treasury")
+  @@index([deletedAt, type], map: "idx_treas_type")
 }
 
 // ==================== 17. Settings ====================
@@ -945,7 +960,7 @@ model AuditLog {
   id        String   @id @default(cuid())
   tenantId  String   @default("default") @map("tenant_id")
   userId    Int?     @map("user_id")
-  action    String // kept as String for backward compat — see AuditAction enum for valid values
+  action    String // kept as String for backward compat â€” see AuditAction enum for valid values
   tableName String?  @map("table_name")
   recordId  String?  @map("record_id")
   details   String?
@@ -1037,6 +1052,7 @@ model Employee {
   deletedBy String?   @map("deleted_by")
 
   @@map("employees")
+  @@index([active, deletedAt], map: "idx_emp_active")
 }
 
 // ==================== 20. Attendance ====================
@@ -1232,7 +1248,7 @@ model Account {
   isActive Boolean @default(true) @map("is_active")
   balance  Decimal @default(0)
 
-  // Zakat classification — used by zakat-engine to compute zakatable base
+  // Zakat classification â€” used by zakat-engine to compute zakatable base
   // Values: NONE | EQUITY | LT_LIAB | LT_INV | FIXED_ASSET | NET_PROFIT | ADJ_ADD | ADJ_DEDUCT
   zakatCategory String? @map("zakat_category")
 
@@ -1300,6 +1316,8 @@ model JournalEntry {
   @@index([tenantId, bookId, entryDate])
   @@index([tenantId, entryDate])
   @@map("journal_entries")
+  @@index([entryDate, deletedAt], map: "idx_je_entry_date")
+  @@index([status, deletedAt], map: "idx_je_status")
 }
 
 // ==================== 31. JournalLines ====================
@@ -1317,7 +1335,7 @@ model JournalLine {
   isReconciled     Boolean @default(false) @map("is_reconciled")
   reconciliationId Int?    @map("reconciliation_id")
 
-  // ── Universal Journal Dimensions (SAP S/4HANA pattern) ──
+  // â”€â”€ Universal Journal Dimensions (SAP S/4HANA pattern) â”€â”€
   profitCenterId Int?     @map("profit_center_id")
   projectId      Int?     @map("project_id")
   segmentId      Int?     @map("segment_id")
@@ -1337,6 +1355,7 @@ model JournalLine {
   bankRecon    BankReconciliation? @relation(fields: [reconciliationId], references: [id])
   profitCenter ProfitCenter?       @relation(fields: [profitCenterId], references: [id])
   segment      Segment?            @relation(fields: [segmentId], references: [id])
+  deletedAt    DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([profitCenterId, accountId])
   @@index([projectId, accountId])
@@ -1596,6 +1615,7 @@ model InstallmentPayment {
   paidDate      String? @map("paid_date")
 
   installment Installment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  deletedAt   DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("installment_payments")
 }
@@ -2243,7 +2263,8 @@ model EmployeeLoan {
   status           String   @default("active") // active, paid, suspended
   createdAt        DateTime @default(now()) @map("created_at")
 
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee  Employee  @relation(fields: [employeeId], references: [id])
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("employee_loans")
 }
@@ -2849,7 +2870,8 @@ model PurchaseRequisition {
   requester User? @relation("PRRequester", fields: [requestedBy], references: [id])
   approver  User? @relation("PRApprover", fields: [approvedBy], references: [id])
 
-  details PurchaseRequisitionDetail[]
+  details   PurchaseRequisitionDetail[]
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("purchase_requisitions")
 }
@@ -3862,8 +3884,9 @@ model RentInvoice {
   tenantAccountId Int?     @map("tenant_account_id")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  customer Customer?           @relation(fields: [customerId], references: [id])
-  details  RentInvoiceDetail[]
+  customer  Customer?           @relation(fields: [customerId], references: [id])
+  details   RentInvoiceDetail[]
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([tenantAccountId])
   @@map("rent_invoices")
@@ -3878,7 +3901,8 @@ model RentInvoiceDetail {
   unitPrice   Decimal @default(0) @db.Decimal(20, 4)
   total       Decimal @default(0)
 
-  invoice RentInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice   RentInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("rent_invoice_details")
 }
@@ -3924,8 +3948,9 @@ model PayrollInvoice {
   tenantAccountId Int?     @map("tenant_account_id")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  employee Employee?              @relation(fields: [employeeId], references: [id])
-  details  PayrollInvoiceDetail[]
+  employee  Employee?              @relation(fields: [employeeId], references: [id])
+  details   PayrollInvoiceDetail[]
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([tenantAccountId])
   @@map("payroll_invoices")
@@ -3939,7 +3964,8 @@ model PayrollInvoiceDetail {
   amount      Decimal @default(0)
   type        String  @default("addition") // addition, deduction
 
-  invoice PayrollInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice   PayrollInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("payroll_invoice_details")
 }
@@ -5398,8 +5424,8 @@ model EndOfServiceCalculation {
   lastFullSalary   Decimal  @map("last_full_salary") @db.Decimal(15, 2)
 
   // EOS components
-  firstFiveYearsAmount Decimal @map("first_five_years_amount") @db.Decimal(15, 2) // ��� ��� ��� ���
-  remainingYearsAmount Decimal @map("remaining_years_amount") @db.Decimal(15, 2) // ��� ���� ��� ��� ��� 5
+  firstFiveYearsAmount Decimal @map("first_five_years_amount") @db.Decimal(15, 2) // ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½
+  remainingYearsAmount Decimal @map("remaining_years_amount") @db.Decimal(15, 2) // ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ ï؟½ï؟½ï؟½ 5
   resignationFactor    Decimal @map("resignation_factor") @db.Decimal(5, 4) // 0.33 / 0.67 / 1.00
 
   unpaidVacationAmount  Decimal @map("unpaid_vacation_amount") @db.Decimal(15, 2)
@@ -5465,7 +5491,7 @@ model WPSBatchItem {
   batch            WPSBatch @relation(fields: [batchId], references: [id])
   employeeId       Int      @map("employee_id")
   employee         Employee @relation(fields: [employeeId], references: [id])
-  iban             String // IBAN �������
+  iban             String // IBAN ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½ï؟½
   basicSalary      Decimal  @map("basic_salary") @db.Decimal(15, 2)
   housingAllowance Decimal  @map("housing_allowance") @db.Decimal(15, 2)
   otherAllowance   Decimal  @map("other_allowance") @db.Decimal(15, 2)
@@ -5935,7 +5961,7 @@ model IfrsVariableLeasePayment {
 
   periodDate       DateTime
   amount           Decimal  @db.Decimal(20, 4)
-  basisDescription String // "5 SAR per km × 2,000 km"
+  basisDescription String // "5 SAR per km أ— 2,000 km"
   indexValue       Decimal? @db.Decimal(20, 8) // if INDEX-based
 
   expenseJournalId Int?
@@ -6617,7 +6643,8 @@ model PaymentRun {
   bankFiles PaymentRunBankFile[]
   approvals PaymentRunApproval[]
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([status, createdAt])
   @@index([currency, dueDateUntil])
@@ -6677,8 +6704,9 @@ model PaymentRunLine {
   excludedReason   String?
   excludedByUserId String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@index([runId, status])
   @@index([supplierId])
@@ -7451,8 +7479,9 @@ model PaymentTransaction {
   capturedAt            DateTime? @map("captured_at")
   refundedAt            DateTime? @map("refunded_at")
 
-  gateway PaymentGateway @relation(fields: [gatewayId], references: [id])
-  invoice SalesInvoice   @relation(fields: [invoiceId], references: [id])
+  gateway   PaymentGateway @relation(fields: [gatewayId], references: [id])
+  invoice   SalesInvoice   @relation(fields: [invoiceId], references: [id])
+  deletedAt DateTime? // P1.2 soft-delete â€” do not use hard DELETE
 
   @@map("payment_transactions")
 }
@@ -7790,7 +7819,7 @@ model StatementTemplate {
   footerHtml String? @db.Text
 
   // Email template
-  emailSubject  String // "كشف حساب {{customerName}} - {{period}}"
+  emailSubject  String // "ظƒط´ظپ ط­ط³ط§ط¨ {{customerName}} - {{period}}"
   emailBodyHtml String @db.Text
   emailBodyText String @db.Text
 
@@ -8433,8 +8462,8 @@ model LabResult {
 }
 
 // ==================== Zakat (Saudi Mandatory) ====================
-// Computes the zakat base = (Equity + LT Liabilities) − (Fixed Assets NBV + LT Investments) + Net Profit ± Adjustments
-// Then zakatDue = base × 2.5%
+// Computes the zakat base = (Equity + LT Liabilities) âˆ’ (Fixed Assets NBV + LT Investments) + Net Profit آ± Adjustments
+// Then zakatDue = base أ— 2.5%
 
 model ZakatAssessment {
   id             Int      @id @default(autoincrement())
@@ -8648,9 +8677,9 @@ model WebhookDeliveryLog {
   @@map("webhook_delivery_logs")
 }
 
-// ═══════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // G-Series Gap Build Models
-// ═══════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 
 model WorkflowDefinition {
   id          Int      @id @default(autoincrement())
@@ -10043,9 +10072,9 @@ model TenantQuota {
 
 // ==================== H-04: Missing Audit-Spec Models ====================
 
-// AI-02 — provider-side prompt cache record (Gemini Context Cache, Anthropic ephemeral, etc.)
+// AI-02 â€” provider-side prompt cache record (Gemini Context Cache, Anthropic ephemeral, etc.)
 // Lets all instances share a single createCachedContent() call instead of paying full prompt
-// tokens on every request. Only an ID + expiry is stored — never the prompt body.
+// tokens on every request. Only an ID + expiry is stored â€” never the prompt body.
 model LlmContextCache {
   id              String   @id @default(cuid())
   tenantId        String   @map("tenant_id")
@@ -10062,7 +10091,7 @@ model LlmContextCache {
   @@map("llm_context_cache")
 }
 
-// AI-07 — registry of LLM-callable tools.
+// AI-07 â€” registry of LLM-callable tools.
 // Lets us add/remove tools per tenant via DB rather than redeploying code.
 // `parameters` is a JSON-Schema object passed to the model's tool-calling API.
 model AiToolDefinition {
@@ -10080,7 +10109,7 @@ model AiToolDefinition {
   @@map("ai_tool_definition")
 }
 
-// AI-07 — audit log of every tool invocation by the LLM. Required for SOX/ICFR
+// AI-07 â€” audit log of every tool invocation by the LLM. Required for SOX/ICFR
 // when tools can mutate accounting data (DB_QUERY is read-only; MUTATION is not).
 model AiToolCallLog {
   id             String   @id @default(cuid())
@@ -10100,7 +10129,7 @@ model AiToolCallLog {
   @@map("ai_tool_call_log")
 }
 
-// AI-15 — chunked text + pgvector embedding for RAG.
+// AI-15 â€” chunked text + pgvector embedding for RAG.
 // embedding column is migrated to vector(768) via 20260508_pgvector_hnsw migration.
 // Float[] kept as fallback during migration window.
 model KnowledgeChunk {
@@ -10109,7 +10138,7 @@ model KnowledgeChunk {
   documentId       String   @map("document_id")
   chunkIndex       Int      @map("chunk_index")
   content          String   @db.Text
-  embedding        Float[] // migrated to vector(768) via raw SQL — see migration
+  embedding        Float[] // migrated to vector(768) via raw SQL â€” see migration
   tokenCount       Int      @map("token_count")
   embeddingVersion String   @default("text-embedding-004") @map("embedding_version")
   metadata         Json? // { page, section, title, ... }
@@ -10124,7 +10153,7 @@ model KnowledgeChunk {
   @@map("knowledge_chunks")
 }
 
-// xP&A — driver master. A driver is a measurable input (Sales Volume, Headcount,
+// xP&A â€” driver master. A driver is a measurable input (Sales Volume, Headcount,
 // FX Rate) that budget formulas reference via {{driver}} placeholders.
 model BudgetDriver {
   id         String   @id @default(cuid())
@@ -10139,7 +10168,7 @@ model BudgetDriver {
   @@map("budget_driver")
 }
 
-// P0-02 — IFRS Consolidation: ownership of each member entity inside a group.
+// P0-02 â€” IFRS Consolidation: ownership of each member entity inside a group.
 // Method drives elimination behavior (FULL = full consolidation + minority interest,
 // PROPORTIONAL = pro-rata, EQUITY = single-line equity pickup).
 //
@@ -10161,7 +10190,7 @@ model ConsolidationMember {
   @@map("consolidation_member")
 }
 
-// P0-02 — IFRS Consolidation: rule-driven eliminations (intercompany AR/AP,
+// P0-02 â€” IFRS Consolidation: rule-driven eliminations (intercompany AR/AP,
 // intercompany revenue/COGS, investment vs. equity, unrealized profit).
 // `formula` is evaluated by the consolidation engine against the staged TB.
 model EliminationRule {
@@ -10201,3 +10230,4 @@ enum AuditAction {
   LOGIN
   LOGOUT
 }
+

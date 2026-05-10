@@ -10,14 +10,22 @@
 import { Prisma } from '@prisma/client';
 
 // Models that support soft delete
+// P1.2 — expanded to cover all financial + operational models
 const SOFT_DELETE_MODELS = new Set([
+  // Pre-existing
   'SalesInvoice', 'PurchaseInvoice', 'JournalEntry',
   'Customer', 'Employee', 'Product', 'ProductUnit',
   'Asset', 'Salary', 'SalesReturn', 'PurchaseReturn',
-  'PriceQuote', 'BankAccount', 'Booking',
-  'Subscription', 'StockMovement',
-  'Company', 'Branch', 'CostCenter',
-  'Account', 'Contact',
+  'PriceQuote', 'Booking', 'StockMovement',
+  'Branch', 'Account',
+  // Added P1.2 (2026-05-10)
+  'User', 'JournalLine', 'Treasury',
+  'PurchaseOrder', 'PurchaseOrderDetail',
+  'PurchaseInvoiceDetail', 'SalesInvoiceDetail',
+  'InstallmentPayment', 'EmployeeLoan',
+  'PayrollInvoice', 'PayrollInvoiceDetail',
+  'PurchaseRequisition', 'RentInvoice', 'RentInvoiceDetail',
+  'PaymentRun', 'PaymentRunLine', 'PaymentTransaction',
 ]);
 
 /**
@@ -66,11 +74,9 @@ export function applySoftDeleteMiddleware(prisma: any) {
 
     if (params.action === 'deleteMany') {
       params.action = 'updateMany';
-      if (params.args.data) {
-        params.args.data.deletedAt = new Date();
-      } else {
-        params.args.data = { deletedAt: new Date() };
-      }
+      // Only soft-delete records that haven't been deleted yet
+      params.args.where = { ...params.args.where, deletedAt: null };
+      params.args.data = { deletedAt: new Date() };
     }
 
     return next(params);
@@ -78,9 +84,34 @@ export function applySoftDeleteMiddleware(prisma: any) {
 }
 
 /**
+ * Restore a soft-deleted record
+ * Usage: await restoreRecord(prisma, 'User', { id: '...' })
+ */
+export async function restoreRecord(
+  prisma: any,
+  model: string,
+  where: Record<string, any>
+): Promise<any> {
+  const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
+  return (prisma[modelKey] as any).updateMany({
+    where: { ...where, deletedAt: { not: null } },
+    data:  { deletedAt: null },
+  });
+}
+
+/**
  * Hard delete — bypasses soft delete middleware
- * Use when you actually need to remove data permanently
+ * ADMIN ONLY — must be logged in AuditLog before calling
  */
 export async function hardDelete(prisma: any, model: string, where: any) {
-  return prisma[model].delete({ where });
+  // Use $executeRawUnsafe to bypass Prisma middleware
+  const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
+  // First find the record (including deleted)
+  const record = await (prisma[modelKey] as any).findFirst({ where });
+  if (!record) throw new Error(`Record not found in ${model}`);
+  // Then hard delete via raw SQL
+  return prisma.$executeRawUnsafe(
+    `DELETE FROM "${model}" WHERE id = $1`,
+    record.id
+  );
 }
