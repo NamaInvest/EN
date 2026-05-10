@@ -1,0 +1,111 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run nightly at 2 AM UTC (5 AM AST)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E (25 paths)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      DATABASE_URL:    ${{ secrets.E2E_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/namasoft_e2e' }}
+      JWT_SECRET:      ${{ secrets.JWT_SECRET || 'test-secret-min-32-chars-for-ci-only' }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-nextauth-secret-ci' }}
+      NEXTAUTH_URL:    http://localhost:3000
+      NODE_ENV:        test
+      E2E_BASE_URL:    http://localhost:3000
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB:       namasoft_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Prisma DB
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Seed test user
+        run: |
+          node -e "
+          const { PrismaClient } = require('@prisma/client');
+          const bcrypt = require('bcryptjs');
+          const p = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+          p.user.upsert({
+            where:  { username: 'admin' },
+            create: { username: 'admin', name: 'Test Admin', role: 'admin',
+                      password: bcrypt.hashSync('password', 10), active: true },
+            update: {},
+          }).then(() => p.\$disconnect());
+          "
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+          SKIP_ENV_VALIDATION: '1'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npx playwright test --project=chromium --reporter=list,junit
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+      - name: Upload JUnit XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-junit-${{ github.sha }}
+          path: test-results.xml
+          retention-days: 14

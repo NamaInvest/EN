@@ -1,13 +1,16 @@
 /**
- * withRoute — Unified API Route Higher-Order Function
- * ════════════════════════════════════════════════════
+ * withRoute — Unified API Route Higher-Order Function (P-Hardened)
+ * ════════════════════════════════════════════════════════════════════
  *
  * يُغلّف كل API route بـ:
- * 1. Authentication (JWT verification + user extraction)
- * 2. Rate limiting (Redis-based per tenant/IP)
- * 3. Tenant isolation (via AsyncLocalStorage)
- * 4. Error handling (structured JSON errors)
- * 5. Prisma injection (tenant-aware client)
+ *  1. Authentication  (JWT verification + user extraction)
+ *  2. Rate limiting   (in-memory sliding window per tenant/IP)
+ *  3. Role guard      (optional roles[] check)
+ *  4. Tenant isolation (via AsyncLocalStorage)
+ *  5. Prisma injection (tenant-aware client)
+ *  6. Error handling  (structured JSON errors)
+ *  7. Prometheus metrics (http_requests_total + http_request_duration_seconds)
+ *  8. Request ID header (X-Request-Id for tracing)
  *
  * Usage:
  *   export const GET = withRoute(async ({ req, prisma, auth }) => {
@@ -19,8 +22,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma, resolveTenant, currentRequestStore } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { httpRequestsTotal, httpRequestDuration } from '@/lib/instrumentation/metrics';
+import crypto from 'crypto';
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface RouteAuth {
   userId:   number;
@@ -30,10 +35,11 @@ export interface RouteAuth {
 }
 
 export interface RouteContext {
-  req:    NextRequest;
-  prisma: ReturnType<typeof getPrisma>;
-  auth:   RouteAuth;
-  tenant: string;
+  req:       NextRequest;
+  prisma:    ReturnType<typeof getPrisma>;
+  auth:      RouteAuth;
+  tenant:    string;
+  requestId: string;
 }
 
 export type RouteHandler = (ctx: RouteContext, context?: any) => Promise<Response | NextResponse>;
@@ -54,7 +60,7 @@ export interface WithRouteOptions {
   roles?:       string[];    // restrict to specific roles
 }
 
-// ── Rate limit configs ─────────────────────────────────────────────────────
+// ── Rate limit configs ────────────────────────────────────────────────────────
 
 const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
   DEFAULT:   { max: 100,  windowMs: 60_000 },
@@ -67,7 +73,7 @@ const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
   PUBLIC:    { max: 200,  windowMs: 60_000 },
 };
 
-// In-memory rate limiter (Redis integration placeholder)
+// In-memory rate limiter (replace with Redis in multi-replica setup)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(key: string, tier: RateLimitTier): boolean {
@@ -77,31 +83,46 @@ function checkRateLimit(key: string, tier: RateLimitTier): boolean {
 
   if (!entry || entry.resetAt < now) {
     rateLimitStore.set(key, { count: 1, resetAt: now + config.windowMs });
-    return true; // allowed
+    return true;
   }
 
   entry.count++;
-  if (entry.count > config.max) return false; // blocked
-  return true;
+  return entry.count <= config.max;
 }
 
-// ── Main HOF ───────────────────────────────────────────────────────────────
+// Cleanup stale rate-limit entries every 10 minutes
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of rateLimitStore.entries()) {
+      if (v.resetAt < now) rateLimitStore.delete(k);
+    }
+  }, 600_000).unref?.();
+}
+
+// ── Main HOF ──────────────────────────────────────────────────────────────────
 
 export function withRoute(handler: RouteHandler, options: WithRouteOptions = {}) {
   const { rateLimit = 'DEFAULT', requireAuth = true, roles } = options;
 
   return async function routeWrapper(req: NextRequest, context?: any): Promise<Response> {
+    const startMs  = Date.now();
+    const method   = req.method;
+    const pathname = new URL(req.url).pathname;
+    const requestId = crypto.randomUUID();
+
     try {
-      // 1. Resolve tenant (pass headers wrapper to satisfy resolveTenant signature)
+      // 1. Resolve tenant
       const reqForTenant = { headers: { get: (k: string) => req.headers.get(k) } };
       const tenant = resolveTenant(reqForTenant);
 
       // 2. Rate limiting
-      const rateLimitKey = `${tenant}:${req.method}:${new URL(req.url).pathname}`;
+      const rateLimitKey = `${tenant}:${method}:${pathname}`;
       if (!checkRateLimit(rateLimitKey, rateLimit)) {
+        httpRequestsTotal.inc({ method, status: '429', route: pathname });
         return NextResponse.json(
           { error: 'Too Many Requests', retryAfter: 60 },
-          { status: 429, headers: { 'Retry-After': '60' } }
+          { status: 429, headers: { 'Retry-After': '60', 'X-Request-Id': requestId } }
         );
       }
 
@@ -111,17 +132,19 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
       if (requireAuth) {
         const user = getUserFromRequest(req as any);
         if (!user) {
+          httpRequestsTotal.inc({ method, status: '401', route: pathname });
           return NextResponse.json(
             { error: 'Unauthorized', message: 'يجب تسجيل الدخول أولاً' },
-            { status: 401 }
+            { status: 401, headers: { 'X-Request-Id': requestId } }
           );
         }
 
         // 4. Role check (optional)
-        if (roles && roles.length > 0 && !roles.includes(user.role)) {
+        if (roles && roles.length > 0 && !roles.includes((user as any).role)) {
+          httpRequestsTotal.inc({ method, status: '403', route: pathname });
           return NextResponse.json(
             { error: 'Forbidden', message: 'صلاحيات غير كافية' },
-            { status: 403 }
+            { status: 403, headers: { 'X-Request-Id': requestId } }
           );
         }
 
@@ -133,35 +156,49 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
           username: u.username ?? u.email ?? '',
         };
       } else {
-        // Public route — minimal auth object
-        auth = {
-          userId:   0,
-          role:     'guest',
-          tenantId: tenant,
-          username: 'anonymous',
-        };
+        auth = { userId: 0, role: 'guest', tenantId: tenant, username: 'anonymous' };
       }
 
       // 5. Get tenant-aware Prisma client
       const prisma = getPrisma(req as any);
 
       // 6. Run handler within tenant context
-      return await currentRequestStore.run(tenant, () =>
-        handler({ req, prisma: prisma as any, auth, tenant }, context)
+      const response = await currentRequestStore.run(tenant, () =>
+        handler({ req, prisma: prisma as any, auth, tenant, requestId }, context)
       );
 
+      // 7. Track metrics
+      const durationSec = (Date.now() - startMs) / 1000;
+      const status = String((response as any).status ?? 200);
+      httpRequestsTotal.inc({ method, status, route: pathname });
+      httpRequestDuration.observe({ method, route: pathname }, durationSec);
+
+      // 8. Inject tracing header
+      const headers = new Headers((response as Response).headers);
+      headers.set('X-Request-Id', requestId);
+      headers.set('X-Response-Time', `${Date.now() - startMs}ms`);
+
+      return new Response((response as Response).body, {
+        status:  (response as Response).status,
+        headers,
+      });
+
     } catch (err: any) {
-      // Structured error response
+      const durationSec = (Date.now() - startMs) / 1000;
+      httpRequestsTotal.inc({ method, status: '500', route: pathname });
+      httpRequestDuration.observe({ method, route: pathname }, durationSec);
+
       const isDev = process.env.NODE_ENV === 'development';
-      console.error(`[withRoute] ${req.method} ${req.url}:`, err);
+      console.error(`[withRoute] ${method} ${pathname} [${requestId}]:`, err.message);
 
       return NextResponse.json(
         {
-          error:   'Internal Server Error',
-          message: isDev ? err.message : 'حدث خطأ في المعالجة',
+          error:     'Internal Server Error',
+          message:   isDev ? err.message : 'حدث خطأ في المعالجة',
+          requestId,
           ...(isDev && { stack: err.stack }),
         },
-        { status: 500 }
+        { status: 500, headers: { 'X-Request-Id': requestId } }
       );
     }
   };
