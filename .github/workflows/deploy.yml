@@ -30,7 +30,6 @@ jobs:
 
       # ── Deploy via SSH ────────────────────────────────────────────────────────
       - name: Deploy via SSH
-        if: ${{ secrets.DEPLOY_HOST != '' && secrets.DEPLOY_SSH_KEY != '' }}
         uses: appleboy/ssh-action@v1.2.5
         with:
           host:     ${{ secrets.DEPLOY_HOST }}
@@ -95,7 +94,6 @@ jobs:
 
       # ── Smoke Tests ───────────────────────────────────────────────────────────
       - name: Run Smoke Tests
-        if: ${{ secrets.DEPLOY_HOST != '' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
