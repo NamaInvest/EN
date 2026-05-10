@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client';
 import { PeriodCloseEngine } from './period-close';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.period-close' });
+const log = logger.child({ service: 'period-close-engine' });
 
 // ─── SOCPA 14-Step Standard Checklist ─────────────────────────────────────────
 export const SOCPA_CLOSE_STEPS = [

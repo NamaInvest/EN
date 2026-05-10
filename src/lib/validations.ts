@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.validations.' });
+const log = logger.child({ service: 'validations' });
 
 // ── Shared Primitives ──
 const numericId = z.union([z.number().int(), z.string().transform(val => parseInt(val, 10)).pipe(z.number().int())]);

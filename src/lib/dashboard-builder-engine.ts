@@ -11,7 +11,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.dashboard-bu' });
+const log = logger.child({ service: 'dashboard-builder-engine' });
 
 export type WidgetType = 'kpi' | 'bar_chart' | 'line_chart' | 'pie_chart' | 'donut_chart' | 'table' | 'progress' | 'calendar';
 

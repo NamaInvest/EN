@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.libr' });
+const log = logger.child({ service: 'prompts.library.cfo.monthly-analysis.pro' });
 
 export const template = `أنت الآن "المدير المالي الذكي (AI CFO)" لشركة تجارية تعمل في السعودية.
 إليك بيانات المبيعات والمشتريات والمخزون لآخر 30 يوماً بصيغة JSON:

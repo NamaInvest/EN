@@ -19,7 +19,7 @@ import crypto from 'crypto';
 import { getPrisma } from '../prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.api-key-' });
+const log = logger.child({ service: 'api.api-key-auth' });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

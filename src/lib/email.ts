@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.email.ts' });
+const log = logger.child({ service: 'email' });
 
 const transporter = nodemailer.createTransport({
     host: process.env.ZEPTOMAIL_HOST || 'smtp.zeptomail.sa',

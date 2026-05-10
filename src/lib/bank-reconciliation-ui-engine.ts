@@ -10,7 +10,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-reconci' });
+const log = logger.child({ service: 'bank-reconciliation-ui-engine' });
 const db = (p: any) => p as any;
 
 export type MatchResult = {

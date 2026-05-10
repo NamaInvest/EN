@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { syncQueue } from '../queue';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.webhooks.man' });
+const log = logger.child({ service: 'webhooks.manager' });
 
 export class WebhookManager {
   /**

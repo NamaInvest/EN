@@ -2,7 +2,7 @@ import { Chain } from '../base/chain.interface';
 import { BusinessContext } from '../../context/business-context';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.refle' });
+const log = logger.child({ service: 'chains.reflexion.self-corrector' });
 
 export async function selfCorrect<T>(
   chain: Chain<any, T>,

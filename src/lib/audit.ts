@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.audit.ts' });
+const log = logger.child({ service: 'audit' });
 
 export async function logAuditAction(params: {
     userId: number;

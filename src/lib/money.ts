@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.money.ts' });
+const log = logger.child({ service: 'money' });
 
 /**
  * Money utility — Saudi Riyal precision (halala = 2 decimals)

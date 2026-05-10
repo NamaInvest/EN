@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.subscription' });
+const log = logger.child({ service: 'subscription-engine' });
 
 export class SubscriptionEngine {
     

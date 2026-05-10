@@ -10,7 +10,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.saudi-compli' });
+const log = logger.child({ service: 'saudi-compliance.index' });
 
 // ─── Audit helper shared by all modules ────────────────────────────────────
 

@@ -2,7 +2,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.product-vari' });
+const log = logger.child({ service: 'product-variant-engine' });
 
 export class ProductVariantEngine {
 

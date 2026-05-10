@@ -11,7 +11,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vat-classifi' });
+const log = logger.child({ service: 'vat-classifier' });
 
 const db = (p: any) => p as any;
 

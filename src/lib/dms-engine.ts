@@ -7,7 +7,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.dms-engine.t' });
+const log = logger.child({ service: 'dms-engine' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class DMSEngine {

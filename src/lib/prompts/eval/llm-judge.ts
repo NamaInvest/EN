@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.eval' });
+const log = logger.child({ service: 'prompts.eval.llm-judge' });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.saudi-gov.mu' });
+const log = logger.child({ service: 'saudi-gov.mudad' });
 
 export class MudadEngine {
     static async authenticate() {

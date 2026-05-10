@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cashflow-eng' });
+const log = logger.child({ service: 'cashflow-engine' });
 
 export class CashFlowEngine {
     

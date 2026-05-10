@@ -2,7 +2,7 @@ import ar from '../locales/ar.json';
 import en from '../locales/en.json';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.translations' });
+const log = logger.child({ service: 'translations' });
 
 export type Language = 'ar' | 'en';
 

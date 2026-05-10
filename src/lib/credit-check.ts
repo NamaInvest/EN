@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.credit-check' });
+const log = logger.child({ service: 'credit-check' });
 
 export interface CreditCheckResult {
     passed: boolean;

@@ -16,7 +16,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.document-sta' });
+const log = logger.child({ service: 'document-state-machine' });
 
 // ─── Status enum ─────────────────────────────────────────────────────
 export const DocumentStatus = {

@@ -14,7 +14,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.dunning-engi' });
+const log = logger.child({ service: 'dunning-engine-v2' });
 
 interface DunningRunResult {
   processed:      number;

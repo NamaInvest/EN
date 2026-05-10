@@ -11,7 +11,7 @@
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.decimal-util' });
+const log = logger.child({ service: 'decimal-utils' });
 
 /**
  * Converts a Prisma Decimal (or null/undefined) to a JavaScript number.

@@ -9,7 +9,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vendor-score' });
+const log = logger.child({ service: 'vendor-scorecard' });
 
 export type VendorScore = {
     supplierId: number;

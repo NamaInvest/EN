@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.privacy-filt' });
+const log = logger.child({ service: 'privacy-filter' });
 
 /**
  * Privacy Filter for AI integrations.

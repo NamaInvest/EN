@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.few-shot-exa' });
+const log = logger.child({ service: 'few-shot-examples' });
 
 /**
  * AI-04 — Few-shot Examples Registry

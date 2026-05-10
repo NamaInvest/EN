@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.observabilit' });
+const log = logger.child({ service: 'observability' });
 
 /**
  * AI-14 — Observability Metrics Collector

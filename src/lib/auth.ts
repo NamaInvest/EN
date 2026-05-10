@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.auth.ts' });
+const log = logger.child({ service: 'auth' });
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'default-jwt-secret-CHANGE-IN-PRODUCTION-2024';
 

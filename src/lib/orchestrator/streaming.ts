@@ -2,7 +2,7 @@ import { toolRegistry } from './tool-registry';
 import { BusinessContext } from '../context/business-context';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.orchestrator' });
+const log = logger.child({ service: 'orchestrator.streaming' });
 
 export async function streamChain(
   chainName: string,

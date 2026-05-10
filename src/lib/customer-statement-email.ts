@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import nodemailer from 'nodemailer'; // Assuming nodemailer is used, as it's standard. Could be sendgrid as well.
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.customer-sta' });
+const log = logger.child({ service: 'customer-statement-email' });
 
 export class CustomerStatementEmailEngine {
     

@@ -7,7 +7,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.timesheet-en' });
+const log = logger.child({ service: 'timesheet-engine' });
 const db = (p: any) => p as any;
 
 export class TimesheetEngine {

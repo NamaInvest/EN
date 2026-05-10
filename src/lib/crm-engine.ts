@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.crm-engine.t' });
+const log = logger.child({ service: 'crm-engine' });
 
 export class CRMEngine {
     

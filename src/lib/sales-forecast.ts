@@ -10,7 +10,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.sales-foreca' });
+const log = logger.child({ service: 'sales-forecast' });
 
 export type ForecastPeriod = {
     period: string;         // YYYY-MM

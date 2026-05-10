@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Chain } from '../base/chain.interface';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.route' });
+const log = logger.child({ service: 'chains.router.intent-router.chain' });
 
 export const intentRouterChain: Chain<any, any> = {
   name: 'router.intent',

@@ -1,7 +1,7 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.rag.query-tr' });
+const log = logger.child({ service: 'rag.query-transformers.hyde.transformer' });
 
 export class HyDETransformer {
   constructor(private llm: ChatGoogleGenerativeAI) {}

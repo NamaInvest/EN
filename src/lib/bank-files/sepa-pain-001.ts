@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-files.s' });
+const log = logger.child({ service: 'bank-files.sepa-pain-001' });
 
 export class SEPAFileGenerator {
     static generate(paymentRun: any, companyBankDetails: any, format = 'pain.001.001.09') {

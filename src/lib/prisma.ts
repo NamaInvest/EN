@@ -20,7 +20,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 import { applySoftDeleteMiddleware } from './prisma-soft-delete';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prisma.ts' });
+const log = logger.child({ service: 'prisma' });
 
 // ── Tenant context store ─────────────────────────────────────────
 // يخزّن اسم الـ tenant الحالي عبر Stack الطلب

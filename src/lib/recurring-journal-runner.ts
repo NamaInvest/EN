@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.recurring-jo' });
+const log = logger.child({ service: 'recurring-journal-runner' });
 
 export class RecurringJournalRunner {
     static async runDueTemplates(targetDate: Date = new Date()) {

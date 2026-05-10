@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.workflow.ind' });
+const log = logger.child({ service: 'workflow.index' });
 
 /**
  * Workflow Module — Unified exports

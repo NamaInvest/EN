@@ -2,7 +2,7 @@
 import { PrismaClient, Employee, GOSIContribution } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.gosi-engine.' });
+const log = logger.child({ service: 'gosi-engine' });
 
 const prisma = new PrismaClient();
 

@@ -19,7 +19,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.wht-engine.t' });
+const log = logger.child({ service: 'wht-engine' });
 
 const db = (p: any) => p as any;
 

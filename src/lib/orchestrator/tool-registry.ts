@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { BusinessContext } from '../context/business-context';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.orchestrator' });
+const log = logger.child({ service: 'orchestrator.tool-registry' });
 
 export interface ToolDefinition<T = any, R = any> {
   name: string;

@@ -10,7 +10,7 @@ import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.workflow.sag' });
+const log = logger.child({ service: 'workflow.saga.purchase-sagas' });
 
 export interface PurchaseOrderSagaCtx {
   tenantId: string;

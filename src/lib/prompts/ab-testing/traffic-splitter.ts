@@ -2,7 +2,7 @@ import { getPrisma } from '@/lib/prisma';
 import { PromptTemplate } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.ab-t' });
+const log = logger.child({ service: 'prompts.ab-testing.traffic-splitter' });
 
 /**
  * Traffic Splitter for A/B Testing Prompts

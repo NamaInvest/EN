@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.streaming.ts' });
+const log = logger.child({ service: 'streaming' });
 
 /**
  * AI-03 — Streaming Response Utilities

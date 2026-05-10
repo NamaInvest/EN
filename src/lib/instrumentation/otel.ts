@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.instrumentat' });
+const log = logger.child({ service: 'instrumentation.otel' });
 
 // Stub for OpenTelemetry instrumentation
 export function initOtel() {

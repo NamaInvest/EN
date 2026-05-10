@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vector.embed' });
+const log = logger.child({ service: 'vector.embedding.cache' });
 
 export class EmbeddingCache {
   async get(text: string, model: string): Promise<number[] | null> {

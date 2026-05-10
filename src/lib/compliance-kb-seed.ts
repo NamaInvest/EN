@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.compliance-k' });
+const log = logger.child({ service: 'compliance-kb-seed' });
 
 /**
  * AI-18 — ZATCA / SOCPA / Saudi Labor Law Knowledge Base Seed

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * withRoute — Unified API Route Higher-Order Function (P-Hardened)
  * ════════════════════════════════════════════════════════════════════
  *
@@ -26,7 +26,7 @@ import { httpRequestsTotal, httpRequestDuration } from '@/lib/instrumentation/me
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.with-rou' });
+const log = logger.child({ service: 'with-route' });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

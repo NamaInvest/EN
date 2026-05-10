@@ -14,7 +14,7 @@ import {
 import type { EGSUnitInfo } from 'zatca-xml-js';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.zatca-signer' });
+const log = logger.child({ service: 'zatca-signer' });
 
 // ========== Types ==========
 export interface ZatcaSettings {

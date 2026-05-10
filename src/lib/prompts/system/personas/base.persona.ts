@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+const log = logger.child({ service: 'prompts.system.personas.base.persona' });
 
 export const BASE_PERSONA = `
 أنت مساعد ذكاء اصطناعي متخصص في نظام Namasoft ERP السعودي.

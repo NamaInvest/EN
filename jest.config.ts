@@ -12,13 +12,14 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  // Test patterns
+  // Test patterns — includes src/ AND tests/ directories
   testMatch: [
     '**/__tests__/**/*.test.ts',
     '**/__tests__/**/*.test.tsx',
     '**/*.test.ts',
     '**/*.test.tsx',
     '!**/__tests__/api/financial-integration.test.ts', // Needs live server — run with npm run test:e2e
+    '!**/tests/e2e/**',  // E2E runs via Playwright, not Jest
   ],
   // Coverage configuration
   collectCoverageFrom: [
@@ -30,13 +31,13 @@ const config: Config = {
   ],
   coverageThreshold: {
     global: {
-      branches:   50,
-      functions:  50,
-      lines:      50,
-      statements: 50,
+      branches:   60,   // raised from 50
+      functions:  60,   // raised from 50
+      lines:      60,   // raised from 50
+      statements: 60,   // raised from 50
     },
   },
-  // Separate project for integration tests
+  // Separate projects for different test categories
   projects: [
     {
       displayName:    'unit',
@@ -50,7 +51,28 @@ const config: Config = {
       testEnvironment: 'jsdom',
       testMatch:      ['<rootDir>/src/**/*.test.tsx'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+      setupFilesAfterEach: ['<rootDir>/jest.setup.ts'],
+    },
+    {
+      // Domain tests: /tests/*.test.ts (budget, cash-flow, GOSI, etc.)
+      displayName:    'domain',
+      testEnvironment: 'node',
+      testMatch: [
+        '<rootDir>/tests/*.test.ts',
+        '<rootDir>/tests/unit/**/*.test.ts',
+        '<rootDir>/tests/a11y/**/*.test.ts',
+      ],
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+    },
+    {
+      // Integration tests: /tests/integration/*.test.ts
+      displayName:    'integration',
+      testEnvironment: 'node',
+      testMatch:      ['<rootDir>/tests/integration/**/*.test.ts'],
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+      testTimeout:    30_000,  // Integration tests may take longer
     },
   ],
 }

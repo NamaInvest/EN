@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vector.chunk' });
+const log = logger.child({ service: 'vector.chunking.recursive-splitter' });
 
 export interface Chunk {
   text: string;

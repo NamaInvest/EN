@@ -1,6 +1,6 @@
-import { logger } from '@/lib/logger';
+﻿import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.rate-limit.t' });
+const log = logger.child({ service: 'rate-limit' });
 
 /**
  * Rate Limiter Utility

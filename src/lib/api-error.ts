@@ -9,7 +9,7 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api-error.ts' });
+const log = logger.child({ service: 'api-error' });
 
 // رموز أخطاء Prisma الشائعة → رسائل عربية ودية
 const PRISMA_ERRORS: Record<string, string> = {

@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.services.ind' });
+const log = logger.child({ service: 'services.index' });
 
 /**
  * Service Layer — Barrel Export

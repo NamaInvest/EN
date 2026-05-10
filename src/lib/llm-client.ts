@@ -12,7 +12,7 @@ const genAI = new GoogleGenerativeAI(geminiApiKey);
 import { redactPII } from './prompts/system/guardrails/pii-redactor';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.llm-client.t' });
+const log = logger.child({ service: 'llm-client' });
 
 export async function callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null, enableABTest: boolean = false): Promise<string> {
     const startTime = Date.now();

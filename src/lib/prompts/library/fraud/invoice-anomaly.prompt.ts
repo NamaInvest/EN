@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.libr' });
+const log = logger.child({ service: 'prompts.library.fraud.invoice-anomaly.pr' });
 
 export const template = `أنت محقق احتيال ذكي (AI Fraud Detector) في نظام نما إنفست.
 مهمتك تحليل العمليات والمؤشرات لاكتشاف أي سلوك مريب أو احتيالي أو أخطاء موظفين.

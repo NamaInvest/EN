@@ -6,7 +6,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.workflow.eng' });
+const log = logger.child({ service: 'workflow.engine.state-machine' });
 
 export interface TransitionResult {
   success: boolean;

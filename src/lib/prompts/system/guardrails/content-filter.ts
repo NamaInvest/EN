@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+const log = logger.child({ service: 'prompts.system.guardrails.content-filter' });
 
 export const CONTENT_FILTER = {
     profanityEnabled: true,

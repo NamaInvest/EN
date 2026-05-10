@@ -1,7 +1,7 @@
 import { getPrisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.field-permis' });
+const log = logger.child({ service: 'field-permission' });
 
 /**
  * Strips hidden fields and marks read-only fields based on RoleFieldPermission definitions.

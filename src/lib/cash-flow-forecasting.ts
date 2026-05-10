@@ -11,7 +11,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cash-flow-fo' });
+const log = logger.child({ service: 'cash-flow-forecasting' });
 
 const db = prisma as any;
 

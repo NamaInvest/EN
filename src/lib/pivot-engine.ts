@@ -5,7 +5,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.pivot-engine' });
+const log = logger.child({ service: 'pivot-engine' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class PivotEngine {

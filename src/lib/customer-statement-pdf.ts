@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import Handlebars from 'handlebars';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.customer-sta' });
+const log = logger.child({ service: 'customer-statement-pdf' });
 
 export class CustomerStatementPdfEngine {
     /**

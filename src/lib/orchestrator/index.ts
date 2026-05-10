@@ -2,7 +2,7 @@ import { toolRegistry } from './tool-registry';
 import { registerAllTools } from './tools';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.orchestrator' });
+const log = logger.child({ service: 'orchestrator.index' });
 
 // Register all available ERP tools
 registerAllTools();

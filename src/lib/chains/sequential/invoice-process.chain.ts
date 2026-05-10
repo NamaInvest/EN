@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Chain } from '../base/chain.interface';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.seque' });
+const log = logger.child({ service: 'chains.sequential.invoice-process.chain' });
 
 // Stubs to avoid large missing files
 async function invokeChain(name: string, args: any, ctx: any) { return { valid: true, issues: [], success: true, id: '123' }; }

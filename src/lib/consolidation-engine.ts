@@ -9,7 +9,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.consolidatio' });
+const log = logger.child({ service: 'consolidation-engine' });
 
 const db = prisma as any;
 

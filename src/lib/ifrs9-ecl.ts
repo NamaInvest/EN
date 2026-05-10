@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.ifrs9-ecl.ts' });
+const log = logger.child({ service: 'ifrs9-ecl' });
 
 export class IFRS9Engine {
     

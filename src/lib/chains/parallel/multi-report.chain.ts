@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Chain } from '../base/chain.interface';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.chains.paral' });
+const log = logger.child({ service: 'chains.parallel.multi-report.chain' });
 
 export const multiReportChain: Chain<any, any> = {
   name: 'parallel.multi_report',

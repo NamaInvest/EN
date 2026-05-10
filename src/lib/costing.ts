@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.costing.ts' });
+const log = logger.child({ service: 'costing' });
 
 /**
  * Inventory Costing Methods — طرق تسعير المخزون

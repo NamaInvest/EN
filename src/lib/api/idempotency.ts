@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { RouteContext } from '@/lib/api/with-route';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.idempote' });
+const log = logger.child({ service: 'api.idempotency' });
 
 const IDEMPOTENCY_TTL = 24 * 60 * 60; // 24 hours (kept for compat)
 

@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-stateme' });
+const log = logger.child({ service: 'bank-statement-engine' });
 
 export class BankStatementEngine {
     

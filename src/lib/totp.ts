@@ -5,7 +5,7 @@
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.totp.ts' });
+const log = logger.child({ service: 'totp' });
 
 const DIGITS = 6;
 const PERIOD = 30; // seconds

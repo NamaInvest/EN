@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.libr' });
+const log = logger.child({ service: 'prompts.library.cfo.daily-summary.prompt' });
 
 export const template = `أنت المالي الذكي (AI CFO) لشركة تجارية تعمل بنظام نما إنفست.
 مهمتك هي تحليل البيانات المالية الحالية للمبيعات والمشتريات وإصدار 3 تنبيهات أو نصائح مختصرة ومفيدة للمدير.

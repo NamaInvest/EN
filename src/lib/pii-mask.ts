@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.pii-mask.ts' });
+const log = logger.child({ service: 'pii-mask' });
 
 /**
  * PII Masking Engine (AI-06)

@@ -11,7 +11,7 @@ import type { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.sso-engine.t' });
+const log = logger.child({ service: 'sso-engine' });
 const db = (p: any) => p as any;
 
 export type SSOConfig = {

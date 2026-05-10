@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.vector.store' });
+const log = logger.child({ service: 'vector.store.vector-store.interface' });
 
 export interface VectorFilter {
   tenantId: string;

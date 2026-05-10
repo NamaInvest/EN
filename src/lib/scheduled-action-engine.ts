@@ -4,7 +4,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.scheduled-ac' });
+const log = logger.child({ service: 'scheduled-action-engine' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class ScheduledActionEngine {

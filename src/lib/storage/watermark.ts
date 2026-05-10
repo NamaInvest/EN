@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.storage.wate' });
+const log = logger.child({ service: 'storage.watermark' });
 
 export class WatermarkService {
   async addWatermark(

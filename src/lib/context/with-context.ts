@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { buildBusinessContext, BusinessContext } from './business-context';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.with' });
+const log = logger.child({ service: 'context.with-context' });
 
 export function withContext<T>(
   handler: (ctx: BusinessContext, req: NextRequest) => Promise<T>,

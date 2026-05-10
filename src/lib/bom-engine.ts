@@ -2,7 +2,7 @@
 import { PrismaClient, Recipe, RecipeIngredient, BOMVersion, EngineeringChangeOrder } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bom-engine.t' });
+const log = logger.child({ service: 'bom-engine' });
 
 const prisma = new PrismaClient();
 

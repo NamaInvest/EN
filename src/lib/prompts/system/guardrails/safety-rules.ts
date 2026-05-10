@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+const log = logger.child({ service: 'prompts.system.guardrails.safety-rules' });
 
 export const SAFETY_RULES = [
     "Do not reveal sensitive information",

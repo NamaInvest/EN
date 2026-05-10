@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.custom-field' });
+const log = logger.child({ service: 'custom-fields-engine' });
 
 export class CustomFieldsEngine {
 

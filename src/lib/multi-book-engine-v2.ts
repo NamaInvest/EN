@@ -14,7 +14,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.multi-book-e' });
+const log = logger.child({ service: 'multi-book-engine-v2' });
 
 export type GaapStandard = 'IFRS' | 'SOCPA' | 'US_GAAP' | 'ZAKAT' | 'MANAGEMENT' | 'CUSTOM';
 

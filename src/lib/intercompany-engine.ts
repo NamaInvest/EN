@@ -4,7 +4,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.intercompany' });
+const log = logger.child({ service: 'intercompany-engine' });
 const p = (prisma: PrismaClient) => prisma as any;
 
 export class IntercompanyEngine {

@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.lot-engine.t' });
+const log = logger.child({ service: 'lot-engine' });
 
 export class LotEngine {
 

@@ -5,7 +5,7 @@
 import { addDocumentToVectorMine, searchVectorMine } from './vector-store';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.document-emb' });
+const log = logger.child({ service: 'document-embeddings' });
 
 interface DocumentSource {
     type: 'INVOICE' | 'PO' | 'CONTRACT' | 'PRODUCT' | 'POLICY';

@@ -10,7 +10,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bi-cube-engi' });
+const log = logger.child({ service: 'bi-cube-engine' });
 
 export type CubeDimension = 'TIME' | 'PRODUCT' | 'CUSTOMER' | 'CATEGORY' | 'WAREHOUSE' | 'SALESPERSON';
 export type CubeMeasure = 'REVENUE' | 'QUANTITY' | 'MARGIN' | 'COUNT' | 'AVG_ORDER';

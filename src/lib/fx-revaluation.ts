@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.fx-revaluati' });
+const log = logger.child({ service: 'fx-revaluation' });
 
 export class FxRevaluationEngine {
     /**

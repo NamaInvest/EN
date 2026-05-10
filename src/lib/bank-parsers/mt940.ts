@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.bank-parsers' });
+const log = logger.child({ service: 'bank-parsers.mt940' });
 
 export interface ParsedBankLine {
     transactionDate: Date;

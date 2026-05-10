@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.mrp-engine.t' });
+const log = logger.child({ service: 'mrp-engine' });
 
 interface MaterialRequirement {
   productId: number;

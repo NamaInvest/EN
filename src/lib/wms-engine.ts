@@ -2,7 +2,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.wms-engine.t' });
+const log = logger.child({ service: 'wms-engine' });
 
 export class WmsEngine {
 

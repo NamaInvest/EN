@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api.rate-lim' });
+const log = logger.child({ service: 'api.rate-limit' });
 
 /**
  * Rate Limiter — In-process sliding window (Edge + Node.js compatible)

@@ -13,7 +13,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getPrompt, logPromptUsage } from './prompts/registry';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.langchain-or' });
+const log = logger.child({ service: 'langchain-orchestrator' });
 
 // Lazy-loaded LangChain modules
 let _lcModules: any = null;

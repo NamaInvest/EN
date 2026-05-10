@@ -1,7 +1,7 @@
 import { BASE_PERSONA } from './base.persona';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+const log = logger.child({ service: 'prompts.system.personas.auditor.persona' });
 
 export const AUDITOR_PERSONA = `
 ${BASE_PERSONA}

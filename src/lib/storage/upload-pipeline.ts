@@ -1,7 +1,7 @@
 import { R2Storage } from './r2';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.storage.uplo' });
+const log = logger.child({ service: 'storage.upload-pipeline' });
 
 export interface UploadedAsset {
   id: string;

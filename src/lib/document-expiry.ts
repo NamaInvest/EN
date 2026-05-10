@@ -10,7 +10,7 @@
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.document-exp' });
+const log = logger.child({ service: 'document-expiry' });
 
 // ===================== Types =====================
 export type DocumentType = 

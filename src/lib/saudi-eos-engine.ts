@@ -3,7 +3,7 @@ import { createJournalEntry, ACCOUNTS } from './auto-journal';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.saudi-eos-en' });
+const log = logger.child({ service: 'saudi-eos-engine' });
 
 export type EOSReason = 'RESIGNATION' | 'TERMINATION' | 'TERMINATION_FOR_CAUSE' | 'RETIREMENT' | 'DEATH' | 'FORCE_MAJEURE';
 

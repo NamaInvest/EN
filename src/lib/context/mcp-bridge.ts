@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.mcp-' });
+const log = logger.child({ service: 'context.mcp-bridge' });
 
 // Dummy MCP Bridge to fulfill the plan requirements
 export class MCPBridge {

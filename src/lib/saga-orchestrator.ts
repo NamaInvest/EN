@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.saga-orchest' });
+const log = logger.child({ service: 'saga-orchestrator' });
 
 export class SagaOrchestrator {
   static async startSaga(journeyType: string, initialContext: Record<string, any>) {

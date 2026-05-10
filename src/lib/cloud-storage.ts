@@ -10,7 +10,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.cloud-storag' });
+const log = logger.child({ service: 'cloud-storage' });
 
 interface UploadResult {
     url: string;

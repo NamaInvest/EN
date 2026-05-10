@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.token-budget' });
+const log = logger.child({ service: 'token-budget' });
 
 /**
  * AI-05 — Token Budget Manager

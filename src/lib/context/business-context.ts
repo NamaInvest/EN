@@ -3,7 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.context.busi' });
+const log = logger.child({ service: 'context.business-context' });
 
 export interface BusinessContext {
   tenant: any;

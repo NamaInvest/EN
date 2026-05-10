@@ -3,7 +3,7 @@ import { prisma } from './prisma';
 import { NumberingSystem } from './numbering';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.rma-engine.t' });
+const log = logger.child({ service: 'rma-engine' });
 
 export class RmaEngine {
 

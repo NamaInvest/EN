@@ -22,7 +22,7 @@ import { prisma } from './prisma';
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.zakat-engine' });
+const log = logger.child({ service: 'zakat-engine' });
 
 const ZAKAT_RATE = new Prisma.Decimal('0.025');
 

@@ -4,7 +4,7 @@
 import { PrismaClient, Employee } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.wps-generato' });
+const log = logger.child({ service: 'wps-generator' });
 
 const prisma = new PrismaClient();
 

@@ -10,7 +10,7 @@
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prisma-soft-' });
+const log = logger.child({ service: 'prisma-soft-delete' });
 
 // Models that support soft delete
 // P1.2 — expanded to cover all financial + operational models

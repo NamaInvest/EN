@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.hijri.ts' });
+const log = logger.child({ service: 'hijri' });
 
 /**
  * Hijri Date Converter — التاريخ الهجري

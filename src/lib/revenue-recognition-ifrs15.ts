@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.revenue-reco' });
+const log = logger.child({ service: 'revenue-recognition-ifrs15' });
 
 /**
  * P0-07 — Revenue Recognition Engine (IFRS 15)

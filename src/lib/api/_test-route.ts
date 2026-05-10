@@ -2,7 +2,7 @@
 import { withRoute } from './with-route';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.api._test-ro' });
+const log = logger.child({ service: 'api._test-route' });
 
 // Test: withRoute with options
 export const GET = withRoute(async (ctx) => {

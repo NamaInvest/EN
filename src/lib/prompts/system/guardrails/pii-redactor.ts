@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.prompts.syst' });
+const log = logger.child({ service: 'prompts.system.guardrails.pii-redactor' });
 
 const PATTERNS = {
   IBAN_SA: /SA\d{22}/g,

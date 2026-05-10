@@ -2,7 +2,7 @@
 import qz from 'qz-tray';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.qz.ts' });
+const log = logger.child({ service: 'qz' });
 
 export interface QZPrinterConfig {
     name: string;

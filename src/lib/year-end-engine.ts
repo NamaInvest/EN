@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import crypto from "crypto";
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'D:.namasoft9-3-main.src.lib.year-end-eng' });
+const log = logger.child({ service: 'year-end-engine' });
 
 export class YearEndCloseEngine {
   /**
