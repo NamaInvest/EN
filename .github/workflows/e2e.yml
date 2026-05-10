@@ -13,7 +13,7 @@ on:
       smoke_only:
         description: 'Run smoke tests only (faster)'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 concurrency:
@@ -32,9 +32,11 @@ jobs:
         shard: [1, 2]  # Run in 2 parallel shards for speed
 
     env:
-      DATABASE_URL:    ${{ secrets.E2E_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/namasoft_e2e' }}
-      JWT_SECRET:      ${{ secrets.JWT_SECRET || 'test-secret-min-32-chars-for-ci-only' }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-nextauth-secret-ci' }}
+      # Required secrets — set these in GitHub Repository Settings → Secrets
+      # Falls back to safe CI-only defaults if not configured
+      DATABASE_URL:    ${{ secrets.E2E_DATABASE_URL != '' && secrets.E2E_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/namasoft_e2e' }}
+      JWT_SECRET:      ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'test-secret-min-32-chars-for-ci-only' }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET != '' && secrets.NEXTAUTH_SECRET || 'test-nextauth-secret-ci' }}
       NEXTAUTH_URL:    http://localhost:3000
       NODE_ENV:        test
       E2E_BASE_URL:    http://localhost:3000
