@@ -1,4 +1,7 @@
-import prisma from './prisma';
+﻿import prisma from './prisma';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'SMS' });
 
 /**
  * Normalizes phone numbers to standard international format (e.g., exactly '9665XXXXXXXX')
@@ -56,10 +59,10 @@ export async function sendSMS(phone: string, message: string): Promise<{ success
             });
             const data = await res.json();
             if (res.ok) {
-                console.log('✅ SMS Sent via Taqnyat');
+                log.info('SMS sent', { provider: 'taqnyat', phone: normalizedPhone });
                 return { success: true, data };
             } else {
-                console.error('❌ Taqnyat API Error:', data);
+                log.error('Taqnyat API Error', { provider: 'taqnyat', data });
                 return { success: false, error: JSON.stringify(data) };
             }
         } 
@@ -80,10 +83,10 @@ export async function sendSMS(phone: string, message: string): Promise<{ success
             });
             const data = await res.json();
             if (res.ok) {
-                console.log('✅ SMS Sent via Unifonic');
+                log.info('SMS sent', { provider: 'unifonic', phone: normalizedPhone });
                 return { success: true, data };
             } else {
-                console.error('❌ Unifonic API Error:', data);
+                log.error('Unifonic API Error', { provider: 'unifonic', data });
                 return { success: false, error: JSON.stringify(data) };
             }
         }
@@ -91,7 +94,8 @@ export async function sendSMS(phone: string, message: string): Promise<{ success
         return { success: false, error: 'Unknown SMS provider configured.' };
 
     } catch (error: any) {
-        console.error('SMS Dispatcher Exception:', error);
+        log.error('SMS Dispatcher Exception', { err: error.message });
         return { success: false, error: error.message };
     }
 }
+

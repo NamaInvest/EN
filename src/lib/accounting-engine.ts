@@ -1,5 +1,8 @@
-import prisma from '@/lib/prisma';
+﻿import prisma from '@/lib/prisma';
 import { EventPayload } from './event-bus';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'AccountingEngine' });
 
 export class AccountingEngine {
     /**
@@ -81,7 +84,7 @@ export class AccountingEngine {
                 });
 
             default:
-                console.log(`No cross-module JE rule defined for event: ${eventType}`);
+                log.warn('No cross-module JE rule defined for event', { eventType });
                 return null;
         }
     }
@@ -89,7 +92,8 @@ export class AccountingEngine {
     private static async createJournalEntry(data: { description: string, entries: { accountId: number, debit: number, credit: number }[] }) {
         // Here we would interact with the actual JournalEntry Prisma model
         // Assuming JournalEntry and JournalEntryLine models exist from v1
-        console.log("V2 Accounting Engine: Creating JE", data);
+        log.info('V2 Accounting Engine: Creating JE', { description: data.description });
         return { success: true, description: data.description };
     }
 }
+

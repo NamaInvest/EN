@@ -1,7 +1,10 @@
-import { prisma } from './prisma';
+﻿import { prisma } from './prisma';
 import { CustomerStatementPdfEngine } from './customer-statement-pdf';
 import { CustomerStatementEmailEngine } from './customer-statement-email';
 import { uploadFile } from './cloud-storage';
+import { logger } from '@/lib/logger';
+
+const log = logger.child({ service: 'CustomerStatementScheduler' });
 
 export class CustomerStatementScheduler {
     
@@ -24,7 +27,7 @@ export class CustomerStatementScheduler {
         });
 
         if (customers.length === 0) {
-            console.log(`No customers found for frequency ${frequency}`);
+            log.info('No customers found for frequency â€” skipping batch', { frequency });
             return;
         }
 
@@ -96,7 +99,7 @@ export class CustomerStatementScheduler {
                 }
 
             } catch (error: any) {
-                console.error(`Error processing customer ${customer.id}:`, error);
+                log.error('Error processing customer statement', { customerId: customer.id, err: error.message });
                 failedCount++;
                 
                 await prisma.statementDispatchLog.create({
@@ -131,6 +134,7 @@ export class CustomerStatementScheduler {
             }
         });
 
-        console.log(`Batch ${batchNumber} completed. Success: ${successCount}, Failed: ${failedCount}`);
+        log.info('Batch completed', { batchNumber, successCount, failedCount, total: customers.length });
     }
 }
+

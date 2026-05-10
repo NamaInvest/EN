@@ -1,9 +1,11 @@
-import { exec } from 'child_process';
+﻿import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
 import os from 'os';
+import { logger } from '@/lib/logger';
 
+const log = logger.child({ service: 'ZATCA-Java' });
 const execAsync = promisify(exec);
 
 export class ZatcaJavaAdapter {
@@ -21,12 +23,12 @@ export class ZatcaJavaAdapter {
             this.sdkPath = require('fs').existsSync(bundledSdk) ? bundledSdk : desktopSdk;
             this.javaHome = 'C:\\Users\\1\\Desktop\\Java\\jdk-21.0.6+7';
         } else {
-            // Hetzner Production Cluster (Ubuntu 24.04) — SDK R4.0.0
+            // Hetzner Production Cluster (Ubuntu 24.04) â€” SDK R4.0.0
             this.sdkPath = '/opt/zatca-einvoicing-sdk-238-R4.0.0/Apps/fatoora';
             this.javaHome = '/opt/amazon-corretto-21.0.11.10.1-linux-x64';
         }
         
-        // SDK root = parent of Apps/ — required for config.json resolution
+        // SDK root = parent of Apps/ â€” required for config.json resolution
         this.sdkRoot = path.resolve(path.dirname(this.sdkPath), '..');
         this.workspace = path.join(os.tmpdir(), 'zatca-workspace');
     }
@@ -153,8 +155,8 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
             // Generate Hash First
             const hashCmd = `${exeName} -generateHash -invoice "${invoicePath}"`;
             const hashResult = await execAsync(hashCmd, { env, cwd });
-            console.log('[ZATCA-SDK] Hash stdout:', hashResult.stdout.substring(0, 200));
-            if (hashResult.stderr) console.error('[ZATCA-SDK] Hash stderr:', hashResult.stderr.substring(0, 300));
+            log.debug('[ZATCA-SDK] Hash stdout', { stdout: hashResult.stdout.substring(0, 200) });
+            if (hashResult.stderr) log.warn('[ZATCA-SDK] Hash stderr', { stderr: hashResult.stderr.substring(0, 300) });
             
             // Extract Hash from CLI stdout
             const hashMatch = hashResult.stdout.match(/([a-zA-Z0-9+/=]{43,45})/);
@@ -163,8 +165,8 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
             // Sign XML
             const signCmd = `${exeName} -sign -invoice "${invoicePath}"`;
             const signResult = await execAsync(signCmd, { env, cwd });
-            console.log('[ZATCA-SDK] Sign stdout:', signResult.stdout.substring(0, 300));
-            if (signResult.stderr) console.error('[ZATCA-SDK] Sign stderr:', signResult.stderr.substring(0, 300));
+            log.debug('[ZATCA-SDK] Sign stdout', { stdout: signResult.stdout.substring(0, 300) });
+            if (signResult.stderr) log.warn('[ZATCA-SDK] Sign stderr', { stderr: signResult.stderr.substring(0, 300) });
 
             // Fatoora creates signed file at invoice_signed.xml typically in same directory
             const signedInvoicePath = invoicePath.replace('.xml', '_signed.xml');
@@ -213,3 +215,4 @@ csr.industry.business.category=${config.businessCategory || 'IT'}
         }
     }
 }
+
