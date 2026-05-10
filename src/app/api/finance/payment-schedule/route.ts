@@ -1,12 +1,7 @@
 /**
  * Payment Due Schedule API (C.2)
  * ══════════════════════════════════════════════════════
- * GET /api/finance/payment-schedule?type=ar|ap&customerId=|vendorId=&daysAhead=30
- *
- * يعرض جدول استحقاق المدفوعات القادمة لـ:
- *   - AR: الفواتير المستحقة من العملاء
- *   - AP: الفواتير المستحقة للموردين
- * مع تفصيل كامل بتواريخ الاستحقاق والمبالغ
+ * GET /api/finance/payment-schedule?type=ar|ap&customerId=|vendorId=&daysAhead=90
  */
 
 import { NextResponse, NextRequest } from 'next/server';
@@ -24,51 +19,55 @@ async function _GET(request: NextRequest) {
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
-    const type       = searchParams.get('type') || 'ar';  // ar | ap
+    const type       = searchParams.get('type') || 'ar';
     const daysAhead  = parseInt(searchParams.get('daysAhead') || '90');
     const customerId = searchParams.get('customerId') ? parseInt(searchParams.get('customerId')!) : null;
-    const vendorId   = searchParams.get('vendorId') ? parseInt(searchParams.get('vendorId')!) : null;
+    const supplierId = searchParams.get('supplierId') ? parseInt(searchParams.get('supplierId')!) : null;
 
     const now = new Date();
-    const future = new Date();
-    future.setDate(future.getDate() + daysAhead);
+    // Use date range: invoices from last 6 months with remaining balance
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 6);
 
     if (type === 'ar') {
-      // Accounts Receivable — amounts due from customers
       const invoices = await prisma.salesInvoice.findMany({
         where: {
-          remainingAmount: { gt: 0 },
+          remaining: { gt: 0 },
+          deletedAt: null,
           ...(customerId ? { customerId } : {}),
-          dueDate: { lte: future },
+          date: { gte: cutoff },
         },
         select: {
           id: true,
-          invoiceNumber: true,
+          invoiceNo: true,
           date: true,
-          dueDate: true,
-          totalAmount: true,
-          remainingAmount: true,
+          total: true,
+          remaining: true,
           customerId: true,
           customer: { select: { name: true, phone: true } },
+          paymentType: true,
         },
-        orderBy: { dueDate: 'asc' },
+        orderBy: { date: 'asc' },
         take: 200,
-      }).catch(() => []);
+      }).catch(() => [] as any[]);
 
       const schedule = (invoices as any[]).map(inv => {
-        const dueDate = inv.dueDate ? new Date(inv.dueDate) : null;
-        const daysOverdue = dueDate
-          ? Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
-          : 0;
+        // Estimate due date: invoice date + 30 days (standard credit term)
+        const invoiceDate = new Date(inv.date);
+        const dueDate = new Date(invoiceDate);
+        dueDate.setDate(dueDate.getDate() + 30);
+
+        const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+
         return {
           invoiceId: inv.id,
-          invoiceNumber: inv.invoiceNumber || `INV-${inv.id}`,
+          invoiceNo: inv.invoiceNo,
           invoiceDate: inv.date,
-          dueDate: inv.dueDate,
+          estimatedDueDate: dueDate.toISOString().split('T')[0],
           customerName: inv.customer?.name || 'غير محدد',
           customerPhone: inv.customer?.phone,
-          invoiceTotal: Math.round(Number(inv.totalAmount || 0) * 100) / 100,
-          amountDue: Math.round(Number(inv.remainingAmount || 0) * 100) / 100,
+          invoiceTotal: Math.round(Number(inv.total || 0) * 100) / 100,
+          amountDue: Math.round(Number(inv.remaining || 0) * 100) / 100,
           daysOverdue: Math.max(0, daysOverdue),
           status: daysOverdue > 0 ? 'OVERDUE' : daysOverdue > -7 ? 'DUE_SOON' : 'FUTURE',
         };
@@ -80,54 +79,56 @@ async function _GET(request: NextRequest) {
 
       return NextResponse.json({
         type: 'AR',
-        period: { from: now.toISOString().split('T')[0], daysAhead },
+        period: { from: cutoff.toISOString().split('T')[0], daysAhead },
         summary: {
-          totalDue:           schedule.reduce((s, i) => s + i.amountDue, 0),
-          overdueAmount:      overdue.reduce((s, i) => s + i.amountDue, 0),
-          dueSoonAmount:      dueSoon.reduce((s, i) => s + i.amountDue, 0),
-          overdueCount:       overdue.length,
-          dueSoonCount:       dueSoon.length,
-          upcomingCount:      upcoming.length,
+          totalDue:      Math.round(schedule.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
+          overdueAmount: Math.round(overdue.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
+          dueSoonAmount: Math.round(dueSoon.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
+          overdueCount:  overdue.length,
+          dueSoonCount:  dueSoon.length,
+          upcomingCount: upcoming.length,
         },
         schedule: { overdue, dueSoon, upcoming },
       });
     }
 
-    // AP — Amounts due to vendors
+    // AP — Amounts due to suppliers
     const purchases = await prisma.purchaseInvoice.findMany({
       where: {
-        remainingAmount: { gt: 0 },
-        ...(vendorId ? { vendorId } : {}),
-        dueDate: { lte: future },
+        remaining: { gt: 0 },
+        deletedAt: null,
+        ...(supplierId ? { supplierId } : {}),
+        date: { gte: cutoff },
       },
       select: {
         id: true,
-        invoiceNumber: true,
+        invoiceNo: true,
         date: true,
-        dueDate: true,
-        totalAmount: true,
-        remainingAmount: true,
-        vendorId: true,
-        vendor: { select: { name: true, phone: true } },
+        total: true,
+        remaining: true,
+        supplierId: true,
+        supplier: { select: { name: true, phone: true } },
+        paymentType: true,
       },
-      orderBy: { dueDate: 'asc' },
+      orderBy: { date: 'asc' },
       take: 200,
-    }).catch(() => []);
+    }).catch(() => [] as any[]);
 
     const schedule = (purchases as any[]).map(inv => {
-      const dueDate = inv.dueDate ? new Date(inv.dueDate) : null;
-      const daysOverdue = dueDate
-        ? Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
-        : 0;
+      const invoiceDate = new Date(inv.date);
+      const dueDate = new Date(invoiceDate);
+      dueDate.setDate(dueDate.getDate() + 30);
+      const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+
       return {
         invoiceId: inv.id,
-        invoiceNumber: inv.invoiceNumber || `PO-${inv.id}`,
+        invoiceNo: inv.invoiceNo,
         invoiceDate: inv.date,
-        dueDate: inv.dueDate,
-        vendorName: inv.vendor?.name || 'غير محدد',
-        vendorPhone: inv.vendor?.phone,
-        invoiceTotal: Math.round(Number(inv.totalAmount || 0) * 100) / 100,
-        amountDue: Math.round(Number(inv.remainingAmount || 0) * 100) / 100,
+        estimatedDueDate: dueDate.toISOString().split('T')[0],
+        supplierName: inv.supplier?.name || 'غير محدد',
+        supplierPhone: inv.supplier?.phone,
+        invoiceTotal: Math.round(Number(inv.total || 0) * 100) / 100,
+        amountDue: Math.round(Number(inv.remaining || 0) * 100) / 100,
         daysOverdue: Math.max(0, daysOverdue),
         status: daysOverdue > 0 ? 'OVERDUE' : daysOverdue > -7 ? 'DUE_SOON' : 'FUTURE',
       };
@@ -139,11 +140,11 @@ async function _GET(request: NextRequest) {
 
     return NextResponse.json({
       type: 'AP',
-      period: { from: now.toISOString().split('T')[0], daysAhead },
+      period: { from: cutoff.toISOString().split('T')[0], daysAhead },
       summary: {
-        totalDue:      schedule.reduce((s, i) => s + i.amountDue, 0),
-        overdueAmount: overdue.reduce((s, i) => s + i.amountDue, 0),
-        dueSoonAmount: dueSoon.reduce((s, i) => s + i.amountDue, 0),
+        totalDue:      Math.round(schedule.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
+        overdueAmount: Math.round(overdue.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
+        dueSoonAmount: Math.round(dueSoon.reduce((s, i) => s + i.amountDue, 0) * 100) / 100,
         overdueCount:  overdue.length,
         dueSoonCount:  dueSoon.length,
         upcomingCount: upcoming.length,

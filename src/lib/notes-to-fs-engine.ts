@@ -1,20 +1,12 @@
 /**
  * Notes to Financial Statements — Auto-Generator (E.16)
- * ═══════════════════════════════════════════════════════
- *
- * يولّد تلقائياً الإيضاحات المالية المطلوبة وفق IFRS/SOCPA:
- *   Note 1  — Basis of Preparation (أساس الإعداد)
- *   Note 2  — Significant Accounting Policies (السياسات المحاسبية الجوهرية)
- *   Note 3  — Revenue Breakdown (تفصيل الإيرادات)
- *   Note 4  — Operating Expenses (المصروفات التشغيلية)
- *   Note 5  — Property, Plant & Equipment (الأصول الثابتة)
- *   Note 6  — Trade Receivables & Aging (المدينون التجاريون)
- *   Note 7  — Inventories (المخزون)
- *   Note 8  — Trade Payables (الدائنون التجاريون)
- *   Note 9  — Borrowings (القروض والتمويل)
- *   Note 10 — Related Party Transactions (معاملات الأطراف المرتبطة)
- *   Note 11 — Commitments & Contingencies (الالتزامات والطوارئ)
- *   Note 12 — ZATCA VAT Disclosure (الإفصاح الضريبي)
+ * Fixed field names per actual Prisma schema:
+ *   SalesInvoice: total, remaining, invoiceNo (no remainingAmount, no dueDate, no type)
+ *   PurchaseInvoice: total, remaining (no remainingAmount)
+ *   Product: currentStock, buyPrice (no quantity, no sku, no costPrice)
+ *   FixedAsset: acquisitionCost, accumulatedDepreciation, categoryId (no purchasePrice, no category)
+ *   JournalLine: debit, credit (prisma.journalLine not journalEntryLine)
+ *   JournalEntry: entryDate (String), status
  */
 
 import { prisma } from './prisma';
@@ -39,9 +31,10 @@ export class NotesToFinancialStatements {
   }): Promise<FinancialNote[]> {
 
     const { startDate, endDate, currency = 'SAR' } = params;
-    const dateFilter = { date: { gte: startDate, lte: endDate } };
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr   = endDate.toISOString().split('T')[0];
 
-    log.info('Generating Notes to Financial Statements', { startDate, endDate });
+    log.info('Generating Notes to Financial Statements', { startStr, endStr });
 
     const notes: FinancialNote[] = [];
 
@@ -51,12 +44,11 @@ export class NotesToFinancialStatements {
       title: 'Basis of Preparation',
       titleAr: 'أساس الإعداد',
       content: {
-        text: `تم إعداد هذه القوائم المالية وفقاً للمعايير الدولية للتقرير المالي (IFRS) الصادرة عن مجلس معايير المحاسبة الدولية، وبما يتوافق مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) والهيئة السعودية للمحاسبين القانونيين (SOCPA).`,
-        basisOfMeasurement: 'Historical Cost — التكلفة التاريخية',
+        text: 'تم إعداد هذه القوائم المالية وفقاً للمعايير الدولية للتقرير المالي (IFRS) وبما يتوافق مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) والهيئة السعودية للمحاسبين القانونيين (SOCPA).',
+        basisOfMeasurement: 'التكلفة التاريخية — Historical Cost',
         reportingCurrency: currency,
-        functionalCurrency: currency,
-        periodStart: startDate.toISOString().split('T')[0],
-        periodEnd: endDate.toISOString().split('T')[0],
+        periodStart: startStr,
+        periodEnd: endStr,
         goingConcern: 'إدارة الشركة مقتنعة بأن الشركة قادرة على الاستمرار في أعمالها في المستقبل المنظور.',
       },
       standard: 'IAS 1.117',
@@ -68,62 +60,75 @@ export class NotesToFinancialStatements {
       title: 'Significant Accounting Policies',
       titleAr: 'السياسات المحاسبية الجوهرية',
       content: {
-        revenue: 'يُثبَّت الإيراد وفقاً لـ IFRS 15 عبر نموذج الخطوات الخمس عند نقل السيطرة للعميل.',
-        inventory: 'تُقاس المخزونات بالتكلفة أو صافي القيمة القابلة للتحقق أيهما أقل وفق IAS 2. طريقة التكلفة: FIFO أو المتوسط المرجح.',
-        ppAndE: 'تُقاس الأصول الثابتة بالتكلفة مطروحاً منها الإهلاك المتراكم وفق IAS 16.',
-        leases: 'تُطبَّق المعالجة المحاسبية للإيجارات وفق IFRS 16 (حق الاستخدام والالتزام).',
-        financialInstruments: 'تصنَّف الأدوات المالية وفق IFRS 9.',
-        provisioning: 'تُحسَب الخسائر الائتمانية المتوقعة وفق النموذج المبسَّط (IFRS 9.5.5.15).',
-        foreignCurrency: 'تُترجَم المعاملات بالعملات الأجنبية بسعر الصرف السائد وفق IAS 21.',
-        zakat: 'تُحسَب الزكاة وفق أنظمة هيئة الزكاة والضريبة والجمارك (ZATCA).',
+        revenue:            'IFRS 15 — الإيراد عند نقل السيطرة للعميل.',
+        inventory:          'IAS 2 — التكلفة أو صافي القيمة القابلة للتحقق أيهما أقل. طريقة المتوسط المرجح.',
+        ppAndE:             'IAS 16 — التكلفة ناقص الإهلاك المتراكم.',
+        leases:             'IFRS 16 — حق الاستخدام والالتزام.',
+        financialInstruments: 'IFRS 9 — تصنيف وقياس الأدوات المالية.',
+        provisioning:       'IFRS 9.5.5 — نموذج الخسائر الائتمانية المتوقعة المبسَّط.',
+        foreignCurrency:    'IAS 21 — ترجمة المعاملات بسعر الصرف السائد.',
+        zakat:              'أنظمة هيئة الزكاة والضريبة والجمارك (ZATCA).',
       },
       standard: 'IAS 1.119',
     });
 
-    // ── Note 3: Revenue Breakdown ──────────────────────────────
-    const revenueByType = await prisma.salesInvoice.groupBy({
-      by: ['type'],
-      _sum: { totalAmount: true },
-      where: dateFilter,
-    }).catch(() => []);
+    // ── Note 3: Revenue ────────────────────────────────────────
+    // SalesInvoice: use total field (no totalAmount), aggregate only
+    const revenueAgg = await prisma.salesInvoice.aggregate({
+      _sum: { total: true, taxValue: true },
+      where: {
+        date: { gte: startDate, lte: endDate },
+        deletedAt: null,
+      },
+    }).catch(() => ({ _sum: { total: 0, taxValue: 0 } }));
 
-    const totalRevenue = (revenueByType as any[]).reduce((s, r) => s + Number(r._sum?.totalAmount || 0), 0);
+    const grossRevenue = Number(revenueAgg._sum?.total || 0);
+    const revVAT       = Number(revenueAgg._sum?.taxValue || 0);
+    const netRevenue   = grossRevenue - revVAT;
 
     notes.push({
       noteNumber: 3,
       title: 'Revenue',
       titleAr: 'الإيرادات',
       content: {
-        byType: (revenueByType as any[]).map(r => ({
-          type: r.type || 'SALES',
-          amount: Math.round(Number(r._sum?.totalAmount || 0) * 100) / 100,
-        })),
-        totalRevenue: Math.round(totalRevenue * 100) / 100,
-        currency,
+        grossRevenue:  Math.round(grossRevenue * 100) / 100,
+        vatCollected:  Math.round(revVAT * 100) / 100,
+        netRevenue:    Math.round(netRevenue * 100) / 100,
         note: 'تُثبَّت الإيرادات عند الوفاء بالتزامات الأداء وفق IFRS 15.',
+        currency,
       },
       standard: 'IFRS 15.113',
     });
 
     // ── Note 4: Operating Expenses ─────────────────────────────
-    const expenses = await prisma.journalEntryLine.groupBy({
-      by: ['accountCode'],
+    // Use JournalLine (correct model name)
+    const expenseLines = await prisma.journalLine.groupBy({
+      by: ['accountId'],
       _sum: { debit: true, credit: true },
       where: {
-        entry: { ...dateFilter, status: 'POSTED' },
-        accountCode: { startsWith: '5' },
+        entry: {
+          entryDate: { gte: startStr, lte: endStr },
+          status: 'posted',
+          deletedAt: null,
+        },
+        account: { code: { startsWith: '5' } },
+        deletedAt: null,
       },
       orderBy: { _sum: { debit: 'desc' } },
       take: 10,
-    }).catch(() => []);
+    }).catch(() => [] as any[]);
+
+    const totalExpenses = (expenseLines as any[]).reduce((s, e) =>
+      s + (Number(e._sum?.debit || 0) - Number(e._sum?.credit || 0)), 0);
 
     notes.push({
       noteNumber: 4,
       title: 'Operating Expenses',
       titleAr: 'المصروفات التشغيلية',
       content: {
-        breakdown: (expenses as any[]).map(e => ({
-          accountCode: e.accountCode,
+        totalExpenses: Math.round(totalExpenses * 100) / 100,
+        topAccounts:   (expenseLines as any[]).slice(0, 5).map(e => ({
+          accountId: e.accountId,
           amount: Math.round((Number(e._sum?.debit || 0) - Number(e._sum?.credit || 0)) * 100) / 100,
         })),
         currency,
@@ -132,119 +137,117 @@ export class NotesToFinancialStatements {
     });
 
     // ── Note 5: PP&E ───────────────────────────────────────────
-    const assets = await prisma.fixedAsset.aggregate({
-      _sum: { purchasePrice: true, accumulatedDepreciation: true },
+    // FixedAsset: acquisitionCost (not purchasePrice), accumulatedDepreciation, categoryId
+    const assetsAgg = await prisma.fixedAsset.aggregate({
+      _sum: { acquisitionCost: true, accumulatedDepreciation: true },
       _count: { id: true },
-    }).catch(() => ({ _sum: { purchasePrice: 0, accumulatedDepreciation: 0 }, _count: { id: 0 } }));
+    }).catch(() => ({ _sum: { acquisitionCost: 0, accumulatedDepreciation: 0 }, _count: { id: 0 } }));
 
+    // Group by categoryId instead of category (which doesn't exist as String field)
     const assetsByCategory = await prisma.fixedAsset.groupBy({
-      by: ['category'],
-      _sum: { purchasePrice: true, accumulatedDepreciation: true },
-    }).catch(() => []);
+      by: ['categoryId'],
+      _sum: { acquisitionCost: true, accumulatedDepreciation: true },
+      _count: { id: true },
+    }).catch(() => [] as any[]);
+
+    const totalCost    = Number(assetsAgg._sum?.acquisitionCost || 0);
+    const totalAccDep  = Number(assetsAgg._sum?.accumulatedDepreciation || 0);
 
     notes.push({
       noteNumber: 5,
       title: 'Property, Plant and Equipment',
       titleAr: 'الممتلكات والمنشآت والمعدات',
       content: {
-        totalCost: Math.round(Number(assets._sum?.purchasePrice || 0) * 100) / 100,
-        totalAccumulatedDepreciation: Math.round(Number(assets._sum?.accumulatedDepreciation || 0) * 100) / 100,
-        netBookValue: Math.round((Number(assets._sum?.purchasePrice || 0) - Number(assets._sum?.accumulatedDepreciation || 0)) * 100) / 100,
-        assetCount: assets._count?.id || 0,
+        totalCost:                 Math.round(totalCost * 100) / 100,
+        totalAccumulatedDepreciation: Math.round(totalAccDep * 100) / 100,
+        netBookValue:              Math.round((totalCost - totalAccDep) * 100) / 100,
+        assetCount:                assetsAgg._count?.id || 0,
         byCategory: (assetsByCategory as any[]).map(a => ({
-          category: a.category || 'OTHER',
-          cost: Math.round(Number(a._sum?.purchasePrice || 0) * 100) / 100,
+          categoryId:    a.categoryId || 0,
+          cost:          Math.round(Number(a._sum?.acquisitionCost || 0) * 100) / 100,
           accDepreciation: Math.round(Number(a._sum?.accumulatedDepreciation || 0) * 100) / 100,
-          nbv: Math.round((Number(a._sum?.purchasePrice || 0) - Number(a._sum?.accumulatedDepreciation || 0)) * 100) / 100,
+          nbv:           Math.round((Number(a._sum?.acquisitionCost || 0) - Number(a._sum?.accumulatedDepreciation || 0)) * 100) / 100,
+          count:         a._count?.id || 0,
         })),
-        currency,
         depreciationMethod: 'القسط الثابت (Straight-Line)',
+        currency,
       },
       standard: 'IAS 16.73',
     });
 
     // ── Note 6: Trade Receivables ──────────────────────────────
-    const receivables = await prisma.salesInvoice.aggregate({
-      _sum: { remainingAmount: true },
-      where: { remainingAmount: { gt: 0 } },
-    }).catch(() => ({ _sum: { remainingAmount: 0 } }));
+    // SalesInvoice: remaining (not remainingAmount)
+    const receivablesAgg = await prisma.salesInvoice.aggregate({
+      _sum: { remaining: true },
+      where: { remaining: { gt: 0 }, deletedAt: null },
+    }).catch(() => ({ _sum: { remaining: 0 } }));
 
+    const now = new Date();
     const agingBuckets = [
-      { label: 'جارية (أقل من 30 يوم)', min: 0, max: 30 },
-      { label: '30-60 يوم', min: 30, max: 60 },
-      { label: '60-90 يوم', min: 60, max: 90 },
-      { label: 'أكثر من 90 يوم', min: 90, max: 9999 },
+      { label: 'جارية (أقل من 30 يوم)', fromDays: 0, toDays: 30 },
+      { label: '30–60 يوم', fromDays: 30, toDays: 60 },
+      { label: '60–90 يوم', fromDays: 60, toDays: 90 },
+      { label: 'أكثر من 90 يوم', fromDays: 90, toDays: 9999 },
     ];
 
-    const aging = await Promise.all(
-      agingBuckets.map(async (bucket) => {
-        const cutoff = new Date();
-        const fromDate = new Date(cutoff);
-        fromDate.setDate(fromDate.getDate() - bucket.max);
-        const toDate = new Date(cutoff);
-        toDate.setDate(toDate.getDate() - bucket.min);
-
-        const agg = await prisma.salesInvoice.aggregate({
-          _sum: { remainingAmount: true },
-          where: {
-            remainingAmount: { gt: 0 },
-            date: { gte: fromDate, lt: toDate },
-          },
-        }).catch(() => ({ _sum: { remainingAmount: 0 } }));
-
-        return {
-          label: bucket.label,
-          amount: Math.round(Number(agg._sum?.remainingAmount || 0) * 100) / 100,
-        };
-      })
-    );
+    const aging = await Promise.all(agingBuckets.map(async (b) => {
+      const fromDate = new Date(now); fromDate.setDate(fromDate.getDate() - b.toDays);
+      const toDate   = new Date(now); toDate.setDate(toDate.getDate() - b.fromDays);
+      const agg = await prisma.salesInvoice.aggregate({
+        _sum: { remaining: true },
+        where: { remaining: { gt: 0 }, deletedAt: null, date: { gte: fromDate, lt: toDate } },
+      }).catch(() => ({ _sum: { remaining: 0 } }));
+      return { label: b.label, amount: Math.round(Number(agg._sum?.remaining || 0) * 100) / 100 };
+    }));
 
     notes.push({
       noteNumber: 6,
       title: 'Trade Receivables',
       titleAr: 'المدينون التجاريون',
       content: {
-        grossReceivables: Math.round(Number(receivables._sum?.remainingAmount || 0) * 100) / 100,
+        grossReceivables: Math.round(Number(receivablesAgg._sum?.remaining || 0) * 100) / 100,
         agingAnalysis: aging,
-        note: 'تُحسَب مخصصات خسائر الائتمان المتوقعة وفق نموذج IFRS 9 المبسط.',
+        note: 'تُحسَب مخصصات خسائر الائتمان المتوقعة وفق IFRS 9.',
         currency,
       },
-      standard: 'IFRS 7.35H, IFRS 9.5.5.15',
+      standard: 'IFRS 7.35H',
     });
 
     // ── Note 7: Inventories ────────────────────────────────────
-    const inventoryValue = await prisma.product.aggregate({
-      _sum: { quantity: true },
+    // Product: currentStock (not quantity)
+    const inventoryAgg = await prisma.product.aggregate({
+      _sum: { currentStock: true },
       _count: { id: true },
-      where: { quantity: { gt: 0 }, active: true },
-    }).catch(() => ({ _sum: { quantity: 0 }, _count: { id: 0 } }));
+      where: { currentStock: { gt: 0 }, active: true },
+    }).catch(() => ({ _sum: { currentStock: 0 }, _count: { id: 0 } }));
 
     notes.push({
       noteNumber: 7,
       title: 'Inventories',
       titleAr: 'المخزون',
       content: {
-        totalQtyUnits: Math.round(Number(inventoryValue._sum?.quantity || 0) * 10) / 10,
-        totalProductCount: inventoryValue._count?.id || 0,
-        costFormula: 'المتوسط المرجح / FIFO',
-        nrvNote: 'يُقيَّم المخزون بالتكلفة أو صافي القيمة القابلة للتحقق أيهما أقل وفق IAS 2.',
+        totalQtyUnits:  Math.round(Number(inventoryAgg._sum?.currentStock || 0) * 10) / 10,
+        totalProductCount: inventoryAgg._count?.id || 0,
+        costFormula:    'المتوسط المرجح / FIFO',
+        nrvNote:        'يُقيَّم المخزون بالتكلفة أو صافي القيمة القابلة للتحقق أيهما أقل وفق IAS 2.',
         currency,
       },
       standard: 'IAS 2.36',
     });
 
     // ── Note 8: Trade Payables ─────────────────────────────────
-    const payables = await prisma.purchaseInvoice.aggregate({
-      _sum: { remainingAmount: true },
-      where: { remainingAmount: { gt: 0 } },
-    }).catch(() => ({ _sum: { remainingAmount: 0 } }));
+    // PurchaseInvoice: remaining (not remainingAmount)
+    const payablesAgg = await prisma.purchaseInvoice.aggregate({
+      _sum: { remaining: true },
+      where: { remaining: { gt: 0 }, deletedAt: null },
+    }).catch(() => ({ _sum: { remaining: 0 } }));
 
     notes.push({
       noteNumber: 8,
       title: 'Trade Payables',
       titleAr: 'الدائنون التجاريون',
       content: {
-        totalPayables: Math.round(Number(payables._sum?.remainingAmount || 0) * 100) / 100,
+        totalPayables: Math.round(Number(payablesAgg._sum?.remaining || 0) * 100) / 100,
         note: 'تُصنَّف جميع أرصدة الدائنين ضمن الالتزامات المتداولة — أجل أقل من سنة.',
         currency,
       },
@@ -252,18 +255,19 @@ export class NotesToFinancialStatements {
     });
 
     // ── Note 12: ZATCA VAT ─────────────────────────────────────
-    const vatData = await prisma.salesInvoice.aggregate({
-      _sum: { taxValue: true },
-      where: dateFilter,
-    }).catch(() => ({ _sum: { taxValue: 0 } }));
+    const [salesVATAgg, purVATAgg] = await Promise.all([
+      prisma.salesInvoice.aggregate({
+        _sum: { taxValue: true },
+        where: { date: { gte: startDate, lte: endDate }, deletedAt: null },
+      }).catch(() => ({ _sum: { taxValue: 0 } })),
+      prisma.purchaseInvoice.aggregate({
+        _sum: { taxValue: true },
+        where: { date: { gte: startDate, lte: endDate }, deletedAt: null },
+      }).catch(() => ({ _sum: { taxValue: 0 } })),
+    ]);
 
-    const vatInput = await prisma.purchaseInvoice.aggregate({
-      _sum: { taxValue: true },
-      where: dateFilter,
-    }).catch(() => ({ _sum: { taxValue: 0 } }));
-
-    const outputVAT = Number(vatData._sum?.taxValue || 0);
-    const inputVAT  = Number(vatInput._sum?.taxValue || 0);
+    const outputVAT = Number(salesVATAgg._sum?.taxValue || 0);
+    const inputVAT  = Number(purVATAgg._sum?.taxValue || 0);
 
     notes.push({
       noteNumber: 12,
@@ -271,17 +275,17 @@ export class NotesToFinancialStatements {
       titleAr: 'الزكاة وضريبة القيمة المضافة',
       content: {
         vatOutputForPeriod: Math.round(outputVAT * 100) / 100,
-        vatInputForPeriod: Math.round(inputVAT * 100) / 100,
-        netVATPayable: Math.round((outputVAT - inputVAT) * 100) / 100,
-        vatRate: '15%',
-        registrationNote: 'الشركة مسجلة لضريبة القيمة المضافة لدى هيئة الزكاة والضريبة والجمارك (ZATCA).',
-        zatcaCompliance: 'Phase 2 — فوترة إلكترونية متكاملة',
+        vatInputForPeriod:  Math.round(inputVAT * 100) / 100,
+        netVATPayable:      Math.round((outputVAT - inputVAT) * 100) / 100,
+        vatRate:            '15%',
+        registrationNote:   'الشركة مسجلة لضريبة القيمة المضافة لدى ZATCA.',
+        zatcaCompliance:    'Phase 2 — فوترة إلكترونية متكاملة',
         currency,
       },
       standard: 'ZATCA VAT Regulations',
     });
 
-    log.info(`Generated ${notes.length} financial statement notes`);
+    log.info(`Generated ${notes.length} financial notes`);
     return notes;
   }
 }
