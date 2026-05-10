@@ -1,194 +1,195 @@
-# 📊 METRICS — مؤشرات الأداء قبل/بعد
+﻿# ًں“ٹ METRICS â€” ظ…ط¤ط´ط±ط§طھ ط§ظ„ط£ط¯ط§ط، ظ‚ط¨ظ„/ط¨ط¹ط¯
 
-> لوحة المؤشرات الموحّدة لمتابعة تقدّم المشروع.
-> يُحدّث أسبوعياً.
+> ظ„ظˆط­ط© ط§ظ„ظ…ط¤ط´ط±ط§طھ ط§ظ„ظ…ظˆط­ظ‘ط¯ط© ظ„ظ…طھط§ط¨ط¹ط© طھظ‚ط¯ظ‘ظ… ط§ظ„ظ…ط´ط±ظˆط¹.
+> ظٹظڈط­ط¯ظ‘ط« ط£ط³ط¨ظˆط¹ظٹط§ظ‹.
 
 ---
 
-## 🔐 الأمن (Security)
+## ًں”گ ط§ظ„ط£ظ…ظ† (Security)
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| Routes بدون auth | 297 | 0 | — | 🔴 |
-| Routes بدون Zod validation | 650 | 0 | — | 🔴 |
-| `.env` في Git history | محتمل | لا | — | 🔴 |
-| Secrets في docker-compose | hardcoded | في Vault | — | 🔴 |
-| Ghost PostgreSQL | يعمل | متوقّف | — | 🔴 |
-| Dependabot alerts | غير متابع | < 5 | — | — |
-| CodeQL findings | غير متابع | 0 critical | — | — |
-| Snyk vulnerabilities | غير متابع | 0 high | — | — |
-| Pen-test findings | لم يُجرى | 0 critical | — | — |
+| Routes ط¨ط¯ظˆظ† auth | 297 | 0 | â€” | ًں”´ |
+| Routes ط¨ط¯ظˆظ† Zod validation | 650 | 0 | â€” | ًں”´ |
+| `.env` ظپظٹ Git history | ظ…ط­طھظ…ظ„ | ظ„ط§ | â€” | ًں”´ |
+| Secrets ظپظٹ docker-compose | hardcoded | ظپظٹ Vault | â€” | ًں”´ |
+| Ghost PostgreSQL | ظٹط¹ظ…ظ„ | ظ…طھظˆظ‚ظ‘ظپ | â€” | ًں”´ |
+| Dependabot alerts | ط؛ظٹط± ظ…طھط§ط¨ط¹ | < 5 | â€” | â€” |
+| CodeQL findings | ط؛ظٹط± ظ…طھط§ط¨ط¹ | 0 critical | â€” | â€” |
+| Snyk vulnerabilities | ط؛ظٹط± ظ…طھط§ط¨ط¹ | 0 high | â€” | â€” |
+| Pen-test findings | ظ„ظ… ظٹظڈط¬ط±ظ‰ | 0 critical | â€” | â€” |
 
 ---
 
-## 💰 السلامة المالية (Financial Integrity)
+## ًں’° ط§ظ„ط³ظ„ط§ظ…ط© ط§ظ„ظ…ط§ظ„ظٹط© (Financial Integrity)
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| حقول Float لمبالغ مالية | 251 | 0 | — | 🔴 |
-| auto-journal coverage | 3.8% | 100% | — | 🔴 |
-| Migrations في DB | 2 | 30+ | — | 🔴 |
-| Soft deletes | 0 model | 30 model | — | 🔴 |
-| Compound indexes | ~50 | 150+ | — | 🟠 |
-| Audit log models | 2 (متضاربين) | 1 موحّد | — | 🟠 |
-| ZATCA Phase 2 fields | 5/11 | 11/11 | — | 🔴 |
-| Balance sheet auto-reconcile | غير محدد | يومياً | — | — |
-| FX revaluation | يدوي | شهري تلقائي | — | — |
+| ط­ظ‚ظˆظ„ Float ظ„ظ…ط¨ط§ظ„ط؛ ظ…ط§ظ„ظٹط© | 251 | 0 | â€” | ًں”´ |
+| auto-journal coverage | 3.8% | 100% | â€” | ًں”´ |
+| Migrations ظپظٹ DB | 2 | 30+ | â€” | ًں”´ |
+| Soft deletes | 0 model | 30 model | â€” | ًں”´ |
+| Compound indexes | ~50 | 150+ | â€” | ًںں  |
+| Audit log models | 2 (ظ…طھط¶ط§ط±ط¨ظٹظ†) | 1 ظ…ظˆط­ظ‘ط¯ | â€” | ًںں  |
+| ZATCA Phase 2 fields | 5/11 | 11/11 | â€” | ًں”´ |
+| Balance sheet auto-reconcile | ط؛ظٹط± ظ…ط­ط¯ط¯ | ظٹظˆظ…ظٹط§ظ‹ | â€” | â€” |
+| FX revaluation | ظٹط¯ظˆظٹ | ط´ظ‡ط±ظٹ طھظ„ظ‚ط§ط¦ظٹ | â€” | â€” |
 
 ---
 
-## 🤖 الذكاء الاصطناعي (AI)
+## ًں¤– ط§ظ„ط°ظƒط§ط، ط§ظ„ط§طµط·ظ†ط§ط¹ظٹ (AI)
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| Hardcoded prompts | 6+ | 0 | — | 🟠 |
-| Personas موحّدة | 0 | 6 | — | 🔴 |
-| Few-shot examples | 0 | 140+ | — | 🔴 |
-| LangChain tools | 8 | 25 | — | 🟠 |
-| Routes تستخدم Orchestrator | 1/8 | 7/8 | — | 🟠 |
-| RAG faithfulness (RAGAS) | غير معلوم | > 0.85 | — | — |
-| RAG context precision | غير معلوم | > 0.80 | — | — |
-| Vector search latency p95 | ~2000ms | < 100ms | — | 🔴 |
-| pgvector HNSW active | لا | نعم | — | 🔴 |
-| LLM cost per tenant | غير معلوم | tracked | — | 🟠 |
-| Prompt A/B tests | 0 | 5+ | — | 🟡 |
-| Token budget enforcement | جزئي | 100% | — | 🟠 |
+| Hardcoded prompts | 6+ | 0 | â€” | ًںں  |
+| Personas ظ…ظˆط­ظ‘ط¯ط© | 0 | 6 | â€” | ًں”´ |
+| Few-shot examples | 0 | 140+ | â€” | ًں”´ |
+| LangChain tools | 8 | 25 | â€” | ًںں  |
+| Routes طھط³طھط®ط¯ظ… Orchestrator | 1/8 | 7/8 | â€” | ًںں  |
+| RAG faithfulness (RAGAS) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 0.85 | â€” | â€” |
+| RAG context precision | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 0.80 | â€” | â€” |
+| Vector search latency p95 | ~2000ms | < 100ms | â€” | ًں”´ |
+| pgvector HNSW active | ظ„ط§ | ظ†ط¹ظ… | â€” | ًں”´ |
+| LLM cost per tenant | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | tracked | â€” | ًںں  |
+| Prompt A/B tests | 0 | 5+ | â€” | ًںں، |
+| Token budget enforcement | ط¬ط²ط¦ظٹ | 100% | â€” | ًںں  |
 
 ---
 
-## 🔄 الـ Workflow
+## ًں”„ ط§ظ„ظ€ Workflow
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| State Machine enforcement | 0 model | 10+ model | — | 🔴 |
-| Active Approval Workflows | 0 | 8 | — | 🔴 |
-| Saga implementations | 0 | 4 | — | 🔴 |
-| AI Workers active | 0 | 5 | — | 🔴 |
-| BullMQ queues | 4 | 9 (4+5) | — | 🟠 |
-| Failed jobs retry rate | غير محدد | > 95% | — | — |
-| Compensation success rate | غير محدد | > 99% | — | — |
+| State Machine enforcement | 0 model | 10+ model | â€” | ًں”´ |
+| Active Approval Workflows | 0 | 8 | â€” | ًں”´ |
+| Saga implementations | 0 | 4 | â€” | ًں”´ |
+| AI Workers active | 0 | 5 | â€” | ًں”´ |
+| BullMQ queues | 4 | 9 (4+5) | â€” | ًںں  |
+| Failed jobs retry rate | ط؛ظٹط± ظ…ط­ط¯ط¯ | > 95% | â€” | â€” |
+| Compensation success rate | ط؛ظٹط± ظ…ط­ط¯ط¯ | > 99% | â€” | â€” |
 
 ---
 
-## 🌐 الـ API
+## ًںŒگ ط§ظ„ظ€ API
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| API endpoints | 661 | 661 (organized) | — | — |
-| OpenAPI documentation | 0% | 100% | — | 🔴 |
-| API versioning | لا | v1 | — | 🔴 |
-| Idempotency keys | 0 routes | 5 critical | — | 🔴 |
-| ApiKey runtime | لا | فعّال | — | 🔴 |
-| Webhook deliveries success | غير معلوم | > 99% | — | — |
-| Rate limit per key | لا | فعّال | — | 🟠 |
-| API Keys provisioned | 0 | per tenant | — | 🟠 |
+| API endpoints | 661 | 661 (organized) | â€” | â€” |
+| OpenAPI documentation | 0% | 100% | â€” | ًں”´ |
+| API versioning | ظ„ط§ | v1 | â€” | ًں”´ |
+| Idempotency keys | 0 routes | 5 critical | â€” | ًں”´ |
+| ApiKey runtime | ظ„ط§ | ظپط¹ظ‘ط§ظ„ | â€” | ًں”´ |
+| Webhook deliveries success | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 99% | â€” | â€” |
+| Rate limit per key | ظ„ط§ | ظپط¹ظ‘ط§ظ„ | â€” | ًںں  |
+| API Keys provisioned | 0 | per tenant | â€” | ًںں  |
 
 ---
 
-## 🎨 الـ Frontend / UX
+## ًںژ¨ ط§ظ„ظ€ Frontend / UX
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| Pages | 441 | 441 (cleaner) | — | — |
-| Dead buttons | 109 | 0 | — | 🔴 |
-| react-hook-form adoption | 0% | 100% | — | 🔴 |
-| tanstack/react-table adoption | 0% | 100% | — | 🔴 |
-| Dark mode | معطّل | فعّال | — | 🟠 |
-| Accessibility (axe-core) | < 5% | WCAG 2.1 AA | — | 🔴 |
-| Mobile responsive | < 50% | 100% | — | 🟠 |
-| i18n completeness | ~70% | 100% | — | 🟠 |
-| Lighthouse Performance | غير معلوم | > 85 | — | — |
-| Lighthouse Accessibility | غير معلوم | > 95 | — | — |
-| Storybook stories | 0 | 50+ | — | 🟡 |
+| Pages | 441 | 441 (cleaner) | â€” | â€” |
+| Dead buttons | 109 | 0 | â€” | ًں”´ |
+| react-hook-form adoption | 0% | 100% | â€” | ًں”´ |
+| tanstack/react-table adoption | 0% | 100% | â€” | ًں”´ |
+| Dark mode | ظ…ط¹ط·ظ‘ظ„ | ظپط¹ظ‘ط§ظ„ | â€” | ًںں  |
+| Accessibility (axe-core) | < 5% | WCAG 2.1 AA | â€” | ًں”´ |
+| Mobile responsive | < 50% | 100% | â€” | ًںں  |
+| i18n completeness | ~70% | 100% | â€” | ًںں  |
+| Lighthouse Performance | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 85 | â€” | â€” |
+| Lighthouse Accessibility | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 95 | â€” | â€” |
+| Storybook stories | 0 | 50+ | â€” | ًںں، |
 
 ---
 
-## 🚀 الـ Infrastructure / DevOps
+## ًںڑ€ ط§ظ„ظ€ Infrastructure / DevOps
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| `ignoreBuildErrors` | true | false | — | 🔴 |
-| TypeScript errors | 91 | 0 | — | 🔴 |
-| Sentry sampling (prod) | 100% | 10% | — | 🔴 |
-| Health checks | بدائية | 6 services | — | 🟠 |
-| Distributed tracing | لا | OpenTelemetry | — | 🟡 |
-| Metrics (Prometheus) | لا | فعّال | — | 🟡 |
-| `console.log` instances | 20+ | 0 | — | 🟠 |
-| Bundle size | غير معلوم | optimized | — | — |
-| Backup frequency | يدوي | يومي + saved offsite | — | 🔴 |
-| MTTR (incident recovery) | غير معلوم | < 30min | — | — |
-| Deployment frequency | manual | per PR | — | 🟠 |
+| `ignoreBuildErrors` | true | false | â€” | ًں”´ |
+| TypeScript errors | 91 | 0 | â€” | ًں”´ |
+| Sentry sampling (prod) | 100% | 10% | â€” | ًں”´ |
+| Health checks | ط¨ط¯ط§ط¦ظٹط© | 6 services | â€” | ًںں  |
+| Distributed tracing | ظ„ط§ | OpenTelemetry | â€” | ًںں، |
+| Metrics (Prometheus) | ظ„ط§ | ظپط¹ظ‘ط§ظ„ | â€” | ًںں، |
+| `console.log` instances | 20+ | 0 | â€” | ًںں  |
+| Bundle size | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | optimized | â€” | â€” |
+| Backup frequency | ظٹط¯ظˆظٹ | ظٹظˆظ…ظٹ + saved offsite | â€” | ًں”´ |
+| MTTR (incident recovery) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | < 30min | â€” | â€” |
+| Deployment frequency | manual | per PR | â€” | ًںں  |
 
 ---
 
-## ✅ الاختبار / Quality
+## âœ… ط§ظ„ط§ط®طھط¨ط§ط± / Quality
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| Test files | 571 | 800+ | — | 🟢 |
-| Coverage measurement | لا | enforced | — | 🔴 |
-| Coverage % | غير معلوم | > 80% | — | 🔴 |
-| auto-journal coverage % | جزئي | > 95% | — | 🟠 |
-| E2E tests | 0 | 25+ | — | 🔴 |
-| Multi-tenant isolation tests | لا | شامل | — | 🔴 |
-| ZATCA full flow test | لا | passing | — | 🔴 |
-| Payroll full flow test | لا | passing | — | 🔴 |
-| Mutation score (critical) | غير معلوم | > 80% | — | 🟡 |
-| Load test (req/s sustained) | غير معلوم | > 100 | — | — |
-| Lighthouse mobile score | غير معلوم | > 90 | — | — |
+| Test files | 571 | 800+ | â€” | ًںں¢ |
+| Coverage measurement | ظ„ط§ | enforced | â€” | ًں”´ |
+| Coverage % | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 80% | â€” | ًں”´ |
+| auto-journal coverage % | ط¬ط²ط¦ظٹ | > 95% | â€” | ًںں  |
+| E2E tests | 0 | 25+ | â€” | ًں”´ |
+| Multi-tenant isolation tests | ظ„ط§ | ط´ط§ظ…ظ„ | â€” | ًں”´ |
+| ZATCA full flow test | ظ„ط§ | passing | â€” | ًں”´ |
+| Payroll full flow test | ظ„ط§ | passing | â€” | ًں”´ |
+| Mutation score (critical) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 80% | â€” | ًںں، |
+| Load test (req/s sustained) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 100 | â€” | â€” |
+| Lighthouse mobile score | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 90 | â€” | â€” |
 
 ---
 
-## 💼 الأعمال (Business)
+## ًں’¼ ط§ظ„ط£ط¹ظ…ط§ظ„ (Business)
 
 | KPI | Before | Target | Current | Status |
 |-----|--------|--------|---------|--------|
-| ZATCA submission success rate | غير معلوم | > 99% | — | — |
-| Avg invoice processing time | غير معلوم | < 2s | — | — |
-| Payroll run time (1000 employees) | غير معلوم | < 5min | — | — |
-| Period close time | غير معلوم | < 1 day | — | — |
-| Bank reconciliation match rate | غير معلوم | > 95% | — | — |
-| User satisfaction (NPS) | غير معلوم | > 50 | — | — |
-| Active tenants | غير معلوم | growing | — | — |
-| Avg tenant MAU | غير معلوم | > 5 | — | — |
+| ZATCA submission success rate | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 99% | â€” | â€” |
+| Avg invoice processing time | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | < 2s | â€” | â€” |
+| Payroll run time (1000 employees) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | < 5min | â€” | â€” |
+| Period close time | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | < 1 day | â€” | â€” |
+| Bank reconciliation match rate | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 95% | â€” | â€” |
+| User satisfaction (NPS) | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 50 | â€” | â€” |
+| Active tenants | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | growing | â€” | â€” |
+| Avg tenant MAU | ط؛ظٹط± ظ…ط¹ظ„ظˆظ… | > 5 | â€” | â€” |
 
 ---
 
-## 📊 الوضع الإجمالي
+## ًں“ٹ ط§ظ„ظˆط¶ط¹ ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ
 
 ```
-الأمان:        ░░░░░░░░░░ 0% → 🎯 100%
-المالية:        ░░░░░░░░░░ 5% → 🎯 100%
-الذكاء:         ██░░░░░░░░ 30% → 🎯 100%
-الـ Workflow:   █░░░░░░░░░ 15% → 🎯 100%
-الـ API:        ███░░░░░░░ 35% → 🎯 100%
-الـ Frontend:   █████░░░░░ 50% → 🎯 100%
-الـ Infra:      ████░░░░░░ 45% → 🎯 100%
-الاختبار:       ███░░░░░░░ 35% → 🎯 100%
-                ────────────
-الإجمالي:       ███░░░░░░░ 27%
+ط§ظ„ط£ظ…ط§ظ†:        â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ 0% â†’ ًںژ¯ 100%
+ط§ظ„ظ…ط§ظ„ظٹط©:        â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ 5% â†’ ًںژ¯ 100%
+ط§ظ„ط°ظƒط§ط،:         â–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ 30% â†’ ًںژ¯ 100%
+ط§ظ„ظ€ Workflow:   â–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ 15% â†’ ًںژ¯ 100%
+ط§ظ„ظ€ API:        â–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘ 35% â†’ ًںژ¯ 100%
+ط§ظ„ظ€ Frontend:   â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘ 50% â†’ ًںژ¯ 100%
+ط§ظ„ظ€ Infra:      â–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘ 45% â†’ ًںژ¯ 100%
+ط§ظ„ط§ط®طھط¨ط§ط±:       â–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘ 35% â†’ ًںژ¯ 100%
+                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ:       â–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘ 27%
 ```
 
 ---
 
-## 🔄 آلية التحديث
+## ًں”„ ط¢ظ„ظٹط© ط§ظ„طھط­ط¯ظٹط«
 
-- **يومياً:** Standup sync (مهام مكتملة)
-- **أسبوعياً:** تحديث KPIs في هذا الملف
-- **شهرياً:** Retrospective + إعادة تقييم الأهداف
-- **بعد كل milestone:** Review + رفع التقدّم لـ Stakeholders
+- **ظٹظˆظ…ظٹط§ظ‹:** Standup sync (ظ…ظ‡ط§ظ… ظ…ظƒطھظ…ظ„ط©)
+- **ط£ط³ط¨ظˆط¹ظٹط§ظ‹:** طھط­ط¯ظٹط« KPIs ظپظٹ ظ‡ط°ط§ ط§ظ„ظ…ظ„ظپ
+- **ط´ظ‡ط±ظٹط§ظ‹:** Retrospective + ط¥ط¹ط§ط¯ط© طھظ‚ظٹظٹظ… ط§ظ„ط£ظ‡ط¯ط§ظپ
+- **ط¨ط¹ط¯ ظƒظ„ milestone:** Review + ط±ظپط¹ ط§ظ„طھظ‚ط¯ظ‘ظ… ظ„ظ€ Stakeholders
 
 ---
 
-## 🎯 توصيات للقياس
+## ًںژ¯ طھظˆطµظٹط§طھ ظ„ظ„ظ‚ظٹط§ط³
 
-1. **استخدم Datadog/Grafana** لـ real-time metrics
-2. **PostHog** لـ Product Analytics
-3. **Codecov** لـ Coverage Tracking
-4. **LangSmith** لـ AI Metrics
-5. **GitHub Insights** لـ DevOps Metrics
+1. **ط§ط³طھط®ط¯ظ… Datadog/Grafana** ظ„ظ€ real-time metrics
+2. **PostHog** ظ„ظ€ Product Analytics
+3. **Codecov** ظ„ظ€ Coverage Tracking
+4. **LangSmith** ظ„ظ€ AI Metrics
+5. **GitHub Insights** ظ„ظ€ DevOps Metrics
 
-كل KPI يجب أن يكون:
-- **قابل للقياس** (Measurable)
-- **محدد بالوقت** (Time-bound)
-- **مع threshold واضح** (Threshold)
+ظƒظ„ KPI ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ†:
+- **ظ‚ط§ط¨ظ„ ظ„ظ„ظ‚ظٹط§ط³** (Measurable)
+- **ظ…ط­ط¯ط¯ ط¨ط§ظ„ظˆظ‚طھ** (Time-bound)
+- **ظ…ط¹ threshold ظˆط§ط¶ط­** (Threshold)
+
