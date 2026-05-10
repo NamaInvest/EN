@@ -1,86 +1,53 @@
-import { getUserFromRequest } from '@/lib/auth';
-import { withRoute } from '@/lib/api/with-route';
 /**
- * Webhook Subscriptions API
- * GET  /api/webhooks — List subscriptions
- * POST /api/webhooks — Create subscription or trigger test
+ * Webhook Subscriptions API — P2.9
+ * GET  /api/webhooks           → list subscriptions
+ * POST /api/webhooks           → create subscription
+ * GET  /api/webhooks?view=events → list supported events
  */
-import { NextRequest, NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { WebhookEngine, WEBHOOK_EVENTS } from '@/lib/webhook-engine';
 import { z } from 'zod';
 
-async function _GET(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+const CreateWebhookSchema = z.object({
+  url:         z.string().url('عنوان URL غير صالح'),
+  events:      z.array(z.string()).min(1, 'يجب تحديد حدث واحد على الأقل'),
+  description: z.string().max(200).optional(),
+});
 
-    const prisma = getPrisma(req);
-    try {
-        const view = req.nextUrl.searchParams.get('view');
-        if (view === 'events') {
-            return NextResponse.json(WEBHOOK_EVENTS);
-        }
+async function getHandler(ctx: any) {
+  const view = ctx.req.nextUrl.searchParams.get('view');
 
-        const subs = await WebhookEngine.list(prisma);
-        return NextResponse.json(subs);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+  if (view === 'events') {
+    return NextResponse.json(WEBHOOK_EVENTS);
+  }
+
+  const subs = await WebhookEngine.list(ctx.prisma, ctx.auth.tenantId);
+  return NextResponse.json(subs);
 }
 
+async function postHandler(ctx: any) {
+  const body = await ctx.req.json().catch(() => ({}));
 
-const _POSTSchema = z.object({
-  action: z.any().optional(),
-  id: z.union([z.string(), z.number()]).optional(),
-}).passthrough();
+  // Test action
+  if (body.action === 'test' && body.id) {
+    const result = await WebhookEngine.sendTest(ctx.prisma, Number(body.id), ctx.auth.tenantId);
+    return NextResponse.json(result);
+  }
 
-async function _POST(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+  // Validate create
+  const parsed = CreateWebhookSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'بيانات غير صحيحة', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
 
-    const prisma = getPrisma(req);
-    try {
-        const body = await req.json();
+  const sub = await WebhookEngine.subscribe(ctx.prisma, {
+    ...parsed.data,
+    tenantId: ctx.auth.tenantId,
+  });
 
-        const _parsed = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-
-        // Test trigger
-        if (body.action === 'test') {
-            const result = await WebhookEngine.trigger(prisma, 'invoice.created', {
-                test: true,
-                message: 'هذا اختبار webhook',
-                timestamp: new Date().toISOString(),
-            });
-            return NextResponse.json(result);
-        }
-
-        // Toggle subscription
-        if (body.action === 'toggle' && body.id) {
-            const sub = await WebhookEngine.toggle(prisma, body.id);
-            return NextResponse.json(sub);
-        }
-
-        // Delete subscription
-        if (body.action === 'delete' && body.id) {
-            await WebhookEngine.unsubscribe(prisma, body.id);
-            return NextResponse.json({ ok: true });
-        }
-
-        // Create subscription
-        if (!body.url || !body.events?.length) {
-            return NextResponse.json({ error: 'مطلوب: url, events[]' }, { status: 400 });
-        }
-
-        const sub = await WebhookEngine.subscribe(prisma, body);
-        return NextResponse.json(sub, { status: 201 });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+  return NextResponse.json(sub, { status: 201 });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
-
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const GET  = withRoute(getHandler,  { rateLimit: 'DEFAULT' });
+export const POST = withRoute(postHandler, { rateLimit: 'DEFAULT' });

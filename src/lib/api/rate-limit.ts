@@ -99,6 +99,79 @@ export const RATE_LIMITS = {
 
 export type RateLimitPreset = keyof typeof RATE_LIMITS;
 
+// ── Per-API-Key Rate Limiting (P2.10) ─────────────────────────────────────────
+// Each API key gets its own quota (default: 100 req/min)
+// Keys can have a custom rateLimit field in DB
+
+export interface ApiKeyQuota {
+  keyId:     number;
+  tenantId:  string;
+  rateLimit: number; // requests per minute
+}
+
+/**
+ * Check rate limit for a specific API key.
+ * Returns 429 Response if exceeded, null if OK.
+ */
+export function checkApiKeyRateLimit(
+  quota: ApiKeyQuota,
+  req?: { nextUrl?: { pathname: string } }
+): Response | null {
+  const path    = req?.nextUrl?.pathname ?? 'api';
+  const key     = `apikey:${quota.tenantId}:${quota.keyId}:${path}`;
+  const options = { limit: quota.rateLimit, windowMs: 60_000 }; // per minute
+  const result  = rateLimit(key, options);
+
+  if (!result.success) {
+    return new Response(
+      JSON.stringify({
+        error:      'API_KEY_RATE_LIMIT_EXCEEDED',
+        message:    `هذا المفتاح يسمح بـ ${quota.rateLimit} طلب / دقيقة`,
+        retryAfter: result.retryAfter,
+        limit:      result.limit,
+        remaining:  0,
+      }),
+      {
+        status:  429,
+        headers: {
+          'Content-Type':          'application/json',
+          'Retry-After':           String(result.retryAfter),
+          'X-RateLimit-Limit':     String(result.limit),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset':     String(Math.floor(Date.now() / 1000) + result.retryAfter),
+        },
+      },
+    );
+  }
+
+  return null;
+}
+
+/**
+ * Get current quota stats for an API key.
+ */
+export function getApiKeyQuotaStats(quota: ApiKeyQuota, path = 'api'): {
+  used: number;
+  remaining: number;
+  limit: number;
+  resetInSeconds: number;
+} {
+  const key     = `apikey:${quota.tenantId}:${quota.keyId}:${path}`;
+  const entry   = store.get(key);
+  const now     = Date.now();
+
+  if (!entry || now - entry.windowStart >= 60_000) {
+    return { used: 0, remaining: quota.rateLimit, limit: quota.rateLimit, resetInSeconds: 60 };
+  }
+
+  const used      = entry.count;
+  const remaining = Math.max(0, quota.rateLimit - used);
+  const resetAt   = entry.windowStart + 60_000;
+  const resetIn   = Math.ceil((resetAt - now) / 1000);
+
+  return { used, remaining, limit: quota.rateLimit, resetInSeconds: Math.max(0, resetIn) };
+}
+
 /**
  * Quick helper — returns 429 Response or null (no block)
  * Usage: const block = checkRateLimit(req, 'AUTH'); if (block) return block;
