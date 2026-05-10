@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Authentication & Authorization utilities
+ *
+ * Central auth library for NamaInvest ERP covering:
+ * - JWT token lifecycle (sign / verify / extract)
+ * - Password hashing (bcrypt, cost 10)
+ * - Permission resolution (role → explicit permissions)
+ * - `withGuard` HOF for route-level authentication
+ *
+ * @module auth
+ */
+
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -9,26 +21,53 @@ const log = logger.child({ service: 'auth' });
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'default-jwt-secret-CHANGE-IN-PRODUCTION-2024';
 
+/**
+ * JWT payload structure embedded in every authenticated request token.
+ * Carries identity + tenant context for multi-tenant isolation.
+ */
 export interface JWTPayload {
     userId: number;
     username: string;
     role: string;
+    /** Database name for tenant isolation (e.g. 'n11_db', 'n1_db') */
     tenantId?: string;
+    /** Session token for logout invalidation */
     sessionToken?: string;
 }
 
+/**
+ * Hashes a plaintext password using bcrypt (cost factor 10).
+ * @param password - Plaintext password to hash
+ * @returns bcrypt hash string
+ */
 export function hashPassword(password: string): string {
     return bcrypt.hashSync(password, 10);
 }
 
+/**
+ * Compares a plaintext password against a bcrypt hash.
+ * @param password - Plaintext password to verify
+ * @param hash - bcrypt hash to compare against
+ * @returns `true` if password matches the hash
+ */
 export function comparePassword(password: string, hash: string): boolean {
     return bcrypt.compareSync(password, hash);
 }
 
+/**
+ * Signs a JWT token with the application secret. Expires in 24h.
+ * @param payload - User identity and tenant context to embed
+ * @returns Signed JWT string
+ */
 export function generateToken(payload: JWTPayload): string {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 }
 
+/**
+ * Verifies and decodes a JWT token.
+ * @param token - JWT string to verify
+ * @returns Decoded `JWTPayload` or `null` if invalid/expired
+ */
 export function verifyToken(token: string): JWTPayload | null {
     try {
         return jwt.verify(token, JWT_SECRET) as JWTPayload;
@@ -37,6 +76,12 @@ export function verifyToken(token: string): JWTPayload | null {
     }
 }
 
+/**
+ * Extracts the Bearer token from an HTTP request.
+ * Checks `Authorization` header first, then `token` cookie.
+ * @param request - Incoming Next.js request
+ * @returns Raw JWT string, or `null` if not present
+ */
 export function getTokenFromRequest(request: NextRequest): string | null {
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
@@ -46,20 +91,40 @@ export function getTokenFromRequest(request: NextRequest): string | null {
     return cookie?.value || null;
 }
 
+/**
+ * Extracts and verifies the authenticated user from a request.
+ * Convenience wrapper around `getTokenFromRequest` + `verifyToken`.
+ * @param request - Incoming Next.js request
+ * @returns Decoded `JWTPayload` or `null` if unauthenticated/expired
+ */
 export function getUserFromRequest(request: NextRequest): JWTPayload | null {
     const token = getTokenFromRequest(request);
     if (!token) return null;
     return verifyToken(token);
 }
 
+/**
+ * Generates a cryptographically random session token (UUID v4).
+ * Used for logout invalidation and concurrent session tracking.
+ * @returns UUID string
+ */
 export function generateSessionToken(): string {
     return crypto.randomUUID();
 }
 
-// Centralized permission check — used by ALL API routes
-// Logic: if user role is admin → grant full access
-//        if user has explicit permission records → use those
-//        otherwise → deny
+/**
+ * Checks if a user has permission to access a specific module.
+ *
+ * Permission resolution order:
+ * 1. `admin` / `owner` roles → always granted
+ * 2. Explicit `Permission` records → module must match
+ * 3. No records → denied
+ *
+ * @param userId - User ID to check
+ * @param module - Module name (e.g. 'hr', 'sales', 'accounting')
+ * @param prismaClient - Optional Prisma client (defaults to shared instance)
+ * @returns `true` if access is granted
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function hasPermission(userId: number, module: string, prismaClient?: any): Promise<boolean> {
     const db = prismaClient || prisma;
@@ -86,7 +151,16 @@ export async function hasPermission(userId: number, module: string, prismaClient
     }
 }
 
-// Check if user is a legacy admin (admin role with zero permission records)
+/**
+ * Returns `true` if the user is a "legacy admin" — has the `admin` role
+ * but zero explicit Permission records configured.
+ *
+ * Used to detect accounts that pre-date the granular permissions system
+ * and need to be migrated.
+ *
+ * @param userId - User ID to check
+ * @param prismaClient - Optional Prisma client (defaults to shared instance)
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function isLegacyAdmin(userId: number, prismaClient?: any): Promise<boolean> {
     const db = prismaClient || prisma;
@@ -102,6 +176,24 @@ export async function isLegacyAdmin(userId: number, prismaClient?: any): Promise
     }
 }
 
+/**
+ * Higher-Order Function that wraps an API route handler with authentication.
+ *
+ * Provides out-of-the-box:
+ * - JWT verification → 401 if invalid/missing
+ * - Structured request logging (tenantId, userId, requestId, latency)
+ * - Unhandled exception guard → 500 with structured error
+ *
+ * @example
+ * ```ts
+ * export const GET = withGuard(async (req, params, user) => {
+ *   // user.tenantId, user.userId, user.role available here
+ *   const data = await prisma.customer.findMany({ where: { tenantId: user.tenantId } });
+ *   return NextResponse.json(data);
+ * });
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withGuard(handler: (request: NextRequest, params: any, user: JWTPayload) => Promise<any> | any) {
     return async (request: NextRequest, params: any) => {
         const start  = Date.now();
@@ -139,4 +231,3 @@ export function withGuard(handler: (request: NextRequest, params: any, user: JWT
         }
     };
 }
-
