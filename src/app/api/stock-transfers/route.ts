@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+﻿import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -122,16 +122,20 @@ async function _POST(request: NextRequest) {
         // ── Auto-Journal: قيد تحويل مخزون ───────────────────────────────────
         if (fromStockId && toStockId && items.length > 0) {
             const firstName = items[0]?.productName || 'بضاعة محولة';
-            const totalQty  = items.reduce((s: number, i: any) => s + (i.quantity || 0), 0);
+            const totalQty  = (items as any[]).reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
+            const totalCost = (items as any[]).reduce((s: number, i: any) => {
+                const unitCost = Number(i.unitCost || i.avgCost || i.costPrice || 0);
+                return s + (unitCost * Number(i.quantity || 0));
+            }, 0);
             postStockTransfer({
                 movementId:  transfer.id,
                 reference:   `STK-${transferNo}`,
                 type:        'transit_out',
-                totalCost:   totalQty, // TODO: multiply by avg cost once cost field is available
+                totalCost:   totalCost > 0 ? totalCost : totalQty,
                 productName: firstName,
                 userId:      auth.userId,
                 date:        new Date().toISOString().split('T')[0],
-            }).catch(err => log.error('[auto-journal] stock-transfer:', err.message));
+            }).catch(err => log.error('auto-journal stock-transfer', { msg: err.message }));
         }
 
         return NextResponse.json(transfer, { status: 201 });

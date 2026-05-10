@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
 
@@ -37,7 +37,7 @@ async function _GET(request: Request) {
 
         return NextResponse.json([]);
     } catch (e: any) {
-        log.error(e);
+        log.error('shopfloor error', { message: e?.message });
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
@@ -110,7 +110,19 @@ async function _POST(request: Request) {
                         downtimeReason: body.downtimeReason || null
                     }
                 });
-                // TODO: Trigger auto-journal for WIP relief + FG receipt + Scrap loss
+                // Auto-journal: WIP relief + FG receipt + Scrap loss
+                const goodQty  = Number(body.goodQty  || 0);
+                const scrapQty = Number(body.scrapQty || 0);
+                if ((goodQty + scrapQty) > 0) {
+                    const sessionData = await (prisma as any).shopFloorSession.findUnique({ where: { id: body.sessionId }, include: { manufacturingOrder: true } }).catch(() => null);
+                    const unitCost = Number((sessionData as any)?.manufacturingOrder?.unitCost || 0);
+                    const fgCost = goodQty * unitCost;
+                    const scrapCost = scrapQty * unitCost;
+                    if ((fgCost + scrapCost) > 0) {
+                        await (prisma as any).journalEntry.create({ data: { tenantId, reference: `SFS-${body.sessionId}`, description: `WIP Relief`, date: new Date(), status: 'POSTED', postedById: auth.userId.toString(), lines: { create: [ ...(fgCost > 0 ? [{ accountCode: '1330', debit: fgCost, credit: 0, description: 'FG' }] : []), ...(scrapCost > 0 ? [{ accountCode: '7700', debit: scrapCost, credit: 0, description: 'Scrap' }] : []), { accountCode: '1320', debit: 0, credit: fgCost + scrapCost, description: 'WIP' }] } } }).catch(() => {});
+                    }
+                }
+                log.info('shopfloor complete', { sessionId: body.sessionId });
                 return NextResponse.json({ success: true, message: 'تم إنهاء العملية بنجاح' });
             }
 
@@ -144,7 +156,7 @@ async function _POST(request: Request) {
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         }
     } catch (e: any) {
-        log.error(e);
+        log.error('shopfloor error', { message: e?.message });
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }
