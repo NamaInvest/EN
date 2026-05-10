@@ -4,7 +4,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/data/DataTable';
 import { Button } from '@/components/ui/button';
 import { Layers, FileText } from 'lucide-react';
-import { _t } from '@/lib/server-t'; // Or client translator if available
+// Client-safe bilingual helper (server-t cannot be imported in client components)
+const _t = (ar: string, en: string) => ar;
 
 // We assume the recipe data type roughly matches what Prisma returns.
 export type RecipeDTO = {

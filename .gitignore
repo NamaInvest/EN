@@ -58,3 +58,7 @@ next-env.d.ts
 
 dist-electron/
 .next-electron/
+
+# Graphify analysis cache (not needed in production)
+graphify-out/
+

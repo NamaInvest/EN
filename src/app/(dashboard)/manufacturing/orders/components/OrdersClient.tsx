@@ -5,7 +5,8 @@ import { DataTable } from '@/components/data/DataTable';
 import { Button } from '@/components/ui/button';
 import { PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { _t } from '@/lib/server-t';
+// Client-safe bilingual helper (server-t cannot be imported in client components)
+const _t = (ar: string, en: string) => ar;
 
 export type ManufacturingOrderDTO = {
   id: number;

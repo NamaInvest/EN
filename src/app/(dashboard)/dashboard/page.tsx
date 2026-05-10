@@ -60,9 +60,22 @@ export default function DashboardPage() {
  const res = await fetch('/api/dashboard', {
  headers: { Authorization: `Bearer ${token}` },
  });
- if (res.ok) {
- setData(await res.json());
- }
+     if (res.ok) {
+      const raw = await res.json();
+      setData({
+        todaySales:      Number(raw.todaySales      ?? raw.revenue   ?? 0),
+        todayPurchases:  Number(raw.todayPurchases  ?? raw.expenses  ?? 0),
+        todayProfit:     Number(raw.todayProfit     ?? raw.profit    ?? 0),
+        todayExpenses:   Number(raw.todayExpenses   ?? raw.expenses  ?? 0),
+        totalProducts:   Number(raw.totalProducts   ?? 0),
+        lowStockCount:   Number(raw.lowStockCount   ?? 0),
+        treasuryBalance: Number(raw.treasuryBalance ?? 0),
+        totalCustomers:  Number(raw.totalCustomers  ?? 0),
+        salesChart:      Array.isArray(raw.salesChart)     ? raw.salesChart     : [],
+        topProducts:     Array.isArray(raw.topProducts)    ? raw.topProducts    : [],
+        recentInvoices:  Array.isArray(raw.recentInvoices) ? raw.recentInvoices : [],
+      });
+    }
  } catch (err: any) { toastError(err?.message || 'حدث خطأ'); } finally {
  setLoading(false);
  setRefreshing(false);

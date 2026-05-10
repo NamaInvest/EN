@@ -89,8 +89,8 @@ async function _GET() {
     return NextResponse.json({ authenticated: true, user: ICE_USERNAME });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'AUTH' });
+export const GET = withRoute(async ({ req }) => _GET(), { rateLimit: 'AUTH', requireAuth: false });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH', requireAuth: false });
 
-export const DELETE = withRoute(async ({ req }) => _DELETE(), { rateLimit: 'AUTH' });
+export const DELETE = withRoute(async ({ req }) => _DELETE(), { rateLimit: 'AUTH', requireAuth: false });
