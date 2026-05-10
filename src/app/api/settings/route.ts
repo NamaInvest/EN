@@ -5,6 +5,7 @@ import { apiError } from '@/lib/api-error';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'settings' });
 

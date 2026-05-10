@@ -11,6 +11,7 @@ import { z }                     from 'zod';
 import { postSalesReturn }       from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'sales-returns' });
 

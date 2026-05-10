@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'pos' });
 

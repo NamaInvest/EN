@@ -7,6 +7,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { postStockTransfer } from '@/lib/auto-journal';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'stock-transfers' });
 

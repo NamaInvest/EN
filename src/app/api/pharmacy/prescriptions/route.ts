@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'pharmacy.prescriptions' });
 

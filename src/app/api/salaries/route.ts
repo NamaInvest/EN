@@ -8,6 +8,7 @@ import { handleApiError } from '@/lib/api-handler';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'salaries' });
 async function _GET(request: Request) {

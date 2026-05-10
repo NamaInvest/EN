@@ -1,9 +1,30 @@
-// src/lib/bnpl.ts
+/**
+ * @fileoverview Buy Now Pay Later (BNPL) integration utilities
+ *
+ * Integrates with two Saudi BNPL providers:
+ * - **Tabby**: Pay in 4 installments (tabby.ai)
+ * - **Tamara**: Pay in 3 installments (tamara.co)
+ *
+ * API keys are stored in the `Setting` table (not env vars) to allow
+ * per-tenant configuration through the ERP settings UI.
+ *
+ * @module lib/bnpl
+ */
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'BNPL' });
 
+/**
+ * Retrieves BNPL API credentials from the `Setting` table.
+ *
+ * Keys loaded:
+ * - `tabby_api_key` — Tabby Secret Key (Bearer token)
+ * - `tabby_merchant_code` — Tabby Merchant Code
+ * - `tamara_bearer_token` — Tamara Bearer Token
+ *
+ * @returns Object containing all BNPL credentials (empty string if not set)
+ */
 export async function getBnplKeys() {
     const settings = await prisma.setting.findMany({
             take: 100,
@@ -18,6 +39,21 @@ export async function getBnplKeys() {
     };
 }
 
+/**
+ * Creates a Tabby checkout session for installment payment.
+ *
+ * Formats the phone number to E.164 (+966) as required by Tabby.
+ * Returns a `webUrl` that should be displayed as a QR code or redirect.
+ *
+ * @param params.amount - Total amount in SAR
+ * @param params.orderId - POS order reference ID
+ * @param params.phone - Customer phone (05xxxxxxxx format)
+ * @param params.items - Cart items `[{ name, quantity, price }]`
+ * @param params.customerName - Customer display name (Arabic OK)
+ * @param keys - BNPL keys from `getBnplKeys()`
+ * @returns `{ sessionId, webUrl }` — webUrl is the Tabby payment URL
+ * @throws Error if Tabby keys are missing or API returns an error
+ */
 export async function createTabbySession({ amount, orderId, phone, items, customerName }: any, keys: any) {
     if (!keys.tabbyKey || !keys.tabbyMerchant) throw new Error("مفاتيح تابي غير مدخلة في الإعدادات");
 
@@ -89,6 +125,13 @@ export async function createTabbySession({ amount, orderId, phone, items, custom
     };
 }
 
+/**
+ * Fetches the current status of a Tabby payment by its ID.
+ *
+ * @param paymentId - Tabby payment ID (returned from `createTabbySession`)
+ * @param keys - BNPL keys from `getBnplKeys()`
+ * @returns Tabby status string: `'CREATED' | 'AUTHORIZED' | 'CLOSED' | 'REJECTED'`
+ */
 export async function getTabbyPaymentStatus(paymentId: string, keys: any) {
     const res = await fetch(`https://api.tabby.ai/api/v2/payments/${paymentId}`, {
         method: 'GET',
@@ -101,6 +144,20 @@ export async function getTabbyPaymentStatus(paymentId: string, keys: any) {
     return data.status; // 'CREATED', 'AUTHORIZED', 'CLOSED', 'REJECTED'
 }
 
+/**
+ * Creates a Tamara checkout session for installment payment (pay in 3).
+ *
+ * Formats phone to Tamara's expected format (966xxxxxxxxx without +).
+ *
+ * @param params.amount - Total amount in SAR
+ * @param params.orderId - POS order reference ID
+ * @param params.phone - Customer phone (05xxxxxxxx format)
+ * @param params.items - Cart items `[{ id, name, quantity, price }]`
+ * @param params.customerName - Customer display name
+ * @param keys - BNPL keys from `getBnplKeys()`
+ * @returns `{ sessionId, webUrl }` — webUrl is the Tamara checkout URL
+ * @throws Error if Tamara token is missing or API returns an error
+ */
 export async function createTamaraSession({ amount, orderId, phone, items, customerName }: any, keys: any) {
     if (!keys.tamaraToken) throw new Error("مفتاح تمارا غير مدخل في الإعدادات");
 
@@ -157,6 +214,13 @@ export async function createTamaraSession({ amount, orderId, phone, items, custo
     };
 }
 
+/**
+ * Fetches the current status of a Tamara order by its ID.
+ *
+ * @param orderId - Tamara order ID (returned from `createTamaraSession`)
+ * @param keys - BNPL keys from `getBnplKeys()`
+ * @returns Tamara status: `'NEW' | 'APPROVED' | 'DECLINED' | 'CANCELED' | 'AUTHORISED'`
+ */
 export async function getTamaraOrderStatus(orderId: string, keys: any) {
     const res = await fetch(`https://api.tamara.co/orders/${orderId}`, {
         method: 'GET',

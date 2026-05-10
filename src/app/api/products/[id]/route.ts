@@ -8,6 +8,7 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'products/id' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -8,6 +8,7 @@ import { canTransition, DocumentType } from '@/lib/document-state-machine';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'manufacturing.work-orders' });
 async function _GET(request: Request) {

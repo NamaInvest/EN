@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ route: 'sales' });
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
+import { withTransaction } from '@/lib/db/transaction';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),

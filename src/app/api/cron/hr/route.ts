@@ -6,6 +6,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { requireCronSecret } from '@/lib/cron-guard';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'cron.hr' });
 async function _POST(req: Request) {

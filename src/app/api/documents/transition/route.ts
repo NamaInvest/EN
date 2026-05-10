@@ -5,6 +5,7 @@ import { getStateMachineFor, BaseState } from '@/lib/state-machine';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'documents.transition' });
 

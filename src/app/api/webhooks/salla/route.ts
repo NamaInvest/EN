@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ route: 'webhooks/salla' });
 
 import { getUserFromRequest } from '@/lib/auth';
+import { withTransaction } from '@/lib/db/transaction';
 
 /** Timing-safe HMAC comparison */
 function verifySallaSignature(bodyStr: string, secret: string, signature: string): boolean {

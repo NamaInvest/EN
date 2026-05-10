@@ -5,6 +5,7 @@ import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'hr.payroll.generate' });
 

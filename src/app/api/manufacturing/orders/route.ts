@@ -8,6 +8,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'manufacturing.orders' });
 async function _GET(request: NextRequest) {

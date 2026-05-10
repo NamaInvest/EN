@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Telegram Bot integration for NamaInvest ERP
+ *
+ * Arabic bot for managers: query sales/treasury/inventory, add invoices/expenses,
+ * extract purchase invoices from photos (Gemini Vision), process voice commands.
+ * 
+ * @module lib/telegram-bot
+ */
 import prisma from './prisma';
 import { n } from './decimal-utils';
 import { logger } from '@/lib/logger';
@@ -9,6 +17,12 @@ export async function getBotToken() {
     return setting?.value || process.env.TELEGRAM_BOT_TOKEN || '';
 }
 
+/**
+ * Retrieves the Google Gemini API key from the `Setting` table.
+ * Falls back to `GEMINI_API_KEY` env var if not in DB.
+ * Used for AI invoice extraction and voice command processing.
+ * @returns Gemini API key string (empty string if not configured)
+ */
 export async function getGeminiKey() {
     const setting = await prisma.setting.findUnique({ where: { key: 'gemini_api_key' } });
     return setting?.value || process.env.GEMINI_API_KEY || '';

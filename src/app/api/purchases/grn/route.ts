@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases/grn' });
 

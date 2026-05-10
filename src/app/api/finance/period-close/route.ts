@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withTransaction } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'finance.period-close' });
 
