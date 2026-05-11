@@ -42,10 +42,12 @@ async function _POST(request: NextRequest) {
         let updated = 0;
         let failed = 0;
         let firstError = '';
+        let fallbackCounter = 0;
 
         // Removed $transaction to prevent 30-second timeouts on 10,000+ rows
         for (const row of data) {
             try {
+                fallbackCounter++;
                 let id, name, nameEn, barcode, buyPrice, sellPrice, taxRate, currentStock, minQuantity, categoryId, categoryName, description, activeVal, imagePath, brandAr, brandEn, sizeInfo;
                 
                 // Dynamic resilient key mapping
@@ -111,7 +113,7 @@ async function _POST(request: NextRequest) {
                     brandEn,
                     sizeInfo,
                     imagePath,
-                    barcode: barcode ? barcode : `SYS-${crypto.randomUUID()}`,
+                    barcode: barcode ? barcode : `SYS-${Date.now()}-${fallbackCounter}`,
                     buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
                     sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
                     taxRate: isNaN(taxRate) ? 15 : taxRate,
@@ -156,10 +158,9 @@ async function _POST(request: NextRequest) {
                             added++;
                         } catch (createErr: any) {
                             if (createErr.code === 'P2002') {
-                                // Global unique constraint violation (likely from another tenant or soft-deleted record)
-                                // Retry with a fresh UUID
-                                // @ts-ignore
-                                productData.barcode = `SYS-${crypto.randomUUID()}`;
+                                // Global unique constraint violation
+                                // Retry with an infallible timestamp + counter
+                                productData.barcode = `SYS-${Date.now()}-${fallbackCounter}`;
                                 await prisma.product.create({ data: productData });
                                 added++;
                             } else {
