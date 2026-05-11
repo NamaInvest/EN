@@ -77,7 +77,9 @@ async function _POST(request: NextRequest) {
                     continue; 
                 }
 
-                barcode = (barcode || '').toString();
+                let parsedBarcode: string | undefined = (barcode || '').toString().trim();
+                if (parsedBarcode === '-' || parsedBarcode === '') parsedBarcode = undefined;
+                barcode = parsedBarcode;
                 nameEn = (nameEn || '').toString();
                 buyPrice = parseFloat(buyPrice || 0);
                 sellPrice = parseFloat(sellPrice || 0);
@@ -126,18 +128,22 @@ async function _POST(request: NextRequest) {
                         data: productData
                     });
                     updated++;
-                } else if (barcode) {
-                    const existing = await prisma.product.findUnique({ where: { barcode } });
+                } else {
+                    let existing = null;
+                    if (barcode) {
+                        existing = await prisma.product.findUnique({ where: { barcode } });
+                    }
+                    if (!existing) {
+                        existing = await prisma.product.findFirst({ where: { name } });
+                    }
+
                     if (existing) {
-                        await prisma.product.update({ where: { barcode }, data: productData });
+                        await prisma.product.update({ where: { id: existing.id }, data: productData });
                         updated++;
                     } else {
                         await prisma.product.create({ data: productData });
                         added++;
                     }
-                } else {
-                    await prisma.product.create({ data: productData });
-                    added++;
                 }
             } catch (e: any) {
                 log.error('Row import failed:', e);
