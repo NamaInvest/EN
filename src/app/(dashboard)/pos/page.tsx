@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, User, ScanBarcode, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useSettings } from '@/lib/SettingsContext';
 import { useToast } from '@/components/Toast';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
@@ -35,6 +36,15 @@ export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('الكل');
   const [loading, setLoading] = useState(true);
+
+  const { getSetting, loading: settingsLoading } = useSettings();
+  const taxEnabled = getSetting('POS_TAX_ENABLED', 'true') === 'true';
+  const taxRateStr = getSetting('tax_rate', '15');
+  const taxRate = parseFloat(taxRateStr) || 0;
+  const taxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
+  const allowAddProduct = getSetting('POS_ALLOW_ADD_PRODUCT', 'true') === 'true';
+  const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
+  const couponsEnabled = getSetting('POS_COUPONS_ENABLED', 'true') === 'true';
 
   useEffect(() => {
     // Attempt to load from API, fallback to mock data
@@ -104,8 +114,18 @@ export default function POSPage() {
   }, [products, searchQuery, selectedCategory]);
 
   const subtotal = cart.reduce((sum, item) => sum + ((item.product.price || 0) * item.quantity), 0);
-  const tax = subtotal * 0.15; // 15% VAT
-  const total = subtotal + tax;
+  
+  let tax = 0;
+  let total = subtotal;
+
+  if (taxEnabled) {
+    if (taxInclusive) {
+      tax = subtotal - (subtotal / (1 + (taxRate / 100)));
+    } else {
+      tax = subtotal * (taxRate / 100);
+      total = subtotal + tax;
+    }
+  }
 
   return (
     <div className="h-[calc(100vh-5rem)] bg-slate-100 dark:bg-[#020617] transition-colors duration-300 overflow-hidden" style={{ fontFamily: "'Fira Sans', sans-serif" }} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -132,6 +152,11 @@ export default function POSPage() {
               <button className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-200 dark:border-indigo-800/50 shrink-0">
                 <ScanBarcode className="w-5 h-5" /> مسح الباركود
               </button>
+              {allowAddProduct && (
+                <button className="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors border border-emerald-200 dark:border-emerald-800/50 shrink-0">
+                  <Plus className="w-5 h-5" /> منتج جديد
+                </button>
+              )}
             </div>
             
             <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
@@ -188,8 +213,8 @@ export default function POSPage() {
               <ShoppingCart className="w-6 h-6 text-indigo-600 dark:text-indigo-400" /> الطلب الحالي
             </h2>
             <div className="flex gap-2">
-              <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">
-                <User className="w-5 h-5" />
+              <button className="flex items-center gap-2 px-3 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 rounded-lg transition-colors font-bold text-sm border border-indigo-200 dark:border-indigo-800/50">
+                <User className="w-4 h-4" /> اختيار/إضافة عميل
               </button>
               <button onClick={clearCart} disabled={cart.length === 0} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-30">
                 <Trash2 className="w-5 h-5" />
@@ -237,25 +262,48 @@ export default function POSPage() {
           <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] p-5 shrink-0">
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-bold">المجموع الفرعي</span>
-                <span className="text-slate-900 dark:text-white font-[Fira_Code] font-bold">{subtotal.toLocaleString()} SAR</span>
+                <span className="text-slate-500 dark:text-slate-400 font-bold">المجموع الفرعي {taxEnabled && taxInclusive ? '(شامل الضريبة)' : ''}</span>
+                <span className="text-slate-900 dark:text-white font-[Fira_Code] font-bold">{subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-bold">ضريبة القيمة المضافة (15%)</span>
-                <span className="text-slate-900 dark:text-white font-[Fira_Code] font-bold">{tax.toLocaleString()} SAR</span>
-              </div>
+              {taxEnabled && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">ضريبة القيمة المضافة ({taxRate}%) {taxInclusive ? '(مشمولة)' : ''}</span>
+                  <span className="text-slate-900 dark:text-white font-[Fira_Code] font-bold">{tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</span>
+                </div>
+              )}
+              {discountEnabled && (
+                <div className="flex justify-between text-sm items-center mt-2">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">الخصم المباشر</span>
+                  <input type="number" placeholder="0.00" className="w-24 text-center border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-[Fira_Code] px-2 py-1" />
+                </div>
+              )}
+              {couponsEnabled && (
+                <div className="flex justify-between text-sm items-center mt-2">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">كوبون الخصم</span>
+                  <div className="flex shadow-sm rounded">
+                    <input type="text" placeholder="أدخل الرمز" className="w-24 text-center border border-slate-200 dark:border-slate-700 rounded-r bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-[Fira_Code] px-2 py-1 text-xs focus:outline-none focus:border-indigo-500" />
+                    <button className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 border-r-0 px-3 rounded-l font-bold text-xs hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors">تطبيق</button>
+                  </div>
+                </div>
+              )}
               <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center mt-3">
                 <span className="text-lg font-bold text-slate-900 dark:text-white">الإجمالي</span>
-                <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 font-[Fira_Code]">{total.toLocaleString()} SAR</span>
+                <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 font-[Fira_Code]">{total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} SAR</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <button disabled={cart.length === 0} className="py-3 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 rounded-xl font-bold flex items-center justify-center gap-2 border border-emerald-200 dark:border-emerald-800/30 transition-colors disabled:opacity-50">
-                <Banknote className="w-5 h-5" /> نقداً
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <button disabled={cart.length === 0} className="py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 rounded-xl font-bold flex flex-col items-center justify-center gap-1 border border-emerald-200 dark:border-emerald-800/30 transition-colors disabled:opacity-50 group">
+                <Banknote className="w-5 h-5 group-hover:scale-110 transition-transform" /> <span className="text-xs">نقداً</span>
               </button>
-              <button disabled={cart.length === 0} className="py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-xl font-bold flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800/30 transition-colors disabled:opacity-50">
-                <CreditCard className="w-5 h-5" /> شبكة
+              <button disabled={cart.length === 0} className="py-2 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-400 dark:hover:bg-cyan-900/40 rounded-xl font-bold flex flex-col items-center justify-center gap-1 border border-cyan-200 dark:border-cyan-800/30 transition-colors disabled:opacity-50 group">
+                <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" /> <span className="text-xs">مدى Mada</span>
+              </button>
+              <button disabled={cart.length === 0} className="py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-xl font-bold flex flex-col items-center justify-center gap-1 border border-blue-200 dark:border-blue-800/30 transition-colors disabled:opacity-50 group">
+                <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" /> <span className="text-xs">فيزا/ماستر</span>
+              </button>
+              <button disabled={cart.length === 0} className="py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/40 rounded-xl font-bold flex flex-col items-center justify-center gap-1 border border-purple-200 dark:border-purple-800/30 transition-colors disabled:opacity-50 group">
+                <Banknote className="w-5 h-5 group-hover:scale-110 transition-transform" /> <span className="text-xs">تحويل</span>
               </button>
             </div>
             
