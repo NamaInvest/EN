@@ -22,19 +22,25 @@ const PUBLIC_ROUTES = [
   '/api/auth/refresh',
   '/api/auth/logout',
   '/api/auth/mfa/verify',
+  '/api/auth/sso-redirect',        // Clerk SSO flow — no JWT needed
+  '/api/auth/sso',                 // Clerk SSO handler
+  '/api/auth/auto-login',          // token-based auto-login after provisioning
+  '/api/auth/find-tenant-by-email',// used during onboarding lookup
+  '/api/auth/login-by-email',      // email-based login (no JWT yet)
+  '/api/auth/sync',                // Clerk → local user sync
   '/api/health',
   '/api/sys/health',
   '/api/b2b/auth/login',
   '/api/b2b/auth/register',
   '/api/zatca/callback',
   '/api/webhook',
-  '/api/webhooks/events', // read-only events catalog
+  '/api/webhooks/events',
   '/api/public',
   '/api/pos/session/open',
   '/api/docs',
-  '/api/metrics',        // Prometheus scraper (secured by network, not JWT)
-  '/api/tenant/provision',     // handles its own auth (Clerk userId or clerkEmail)
-  '/api/tenant/check-status',  // read-only — checks if user has provisioned tenant
+  '/api/metrics',
+  '/api/tenant/provision',         // handles its own auth (Clerk userId or clerkEmail)
+  '/api/tenant/check-status',      // read-only — checks if user has provisioned tenant
 ];
 
 // ── Permanently Disabled Routes (HTTP 410 Gone) ───────────────────────────────
