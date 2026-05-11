@@ -13,14 +13,18 @@ import PrintButton from '@/components/PrintButton';
 import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
 import { ToastProvider } from '@/components/Toast';
+import { _t } from '@/lib/server-t';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
  children,
 }: {
  children: React.ReactNode;
 }) {
+ const title = await _t('نظام نما إنفست', 'Nama Invest System');
+ const mobileTitle = await _t('نما إنفست', 'Nama Invest');
 
  return (
  <I18nProvider>
@@ -33,46 +37,35 @@ export default function DashboardLayout({
  <SubscriptionGuard />
  <AICopilotButton />
  <Sidebar />
- <main className="main-content flex flex-col">
- {/* Top bar with theme and language switchers */}
- <div className="top-bar" style={{
- background: 'var(--bg-darker)',
- borderBottom: '1px solid var(--border)',
- padding: '12px 28px',
- display: 'flex',
- alignItems: 'center',
- justifyContent: 'flex-end',
- position: 'sticky',
- top: 0,
- zIndex: 40
- }}>
- <div style={{
- position: 'absolute',
- left: '50%',
- transform: 'translateX(-50%)',
- fontSize: '32px',
- fontWeight: '900',
- background: 'var(--gradient-primary)',
- WebkitBackgroundClip: 'text',
- WebkitTextFillColor: 'transparent',
- fontFamily: "'Noto Sans Arabic', sans-serif",
- letterSpacing: '-0.5px'
- }}>
- نظام نما إنفست
+ <main className="main-content flex flex-col h-screen overflow-hidden">
+ {/* Top Header Semantic UI */}
+ <header className="bg-[var(--bg-darker)] border-b border-[var(--border)] px-4 md:px-7 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm w-full">
+ 
+ {/* Left area / Mobile Title */}
+ <div className="flex-1 flex justify-start">
+ <h1 className="text-xl md:text-3xl font-black bg-clip-text text-transparent bg-[var(--gradient-primary)] font-['Noto_Sans_Arabic',sans-serif] tracking-tight truncate max-w-full">
+ <span className="hidden sm:inline">{title}</span>
+ <span className="sm:hidden">{mobileTitle}</span>
+ </h1>
  </div>
- <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+ {/* Right area - Toolbars */}
+ <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+ <div className="hidden md:block">
  <HijriDate />
+ </div>
  <PrintButton />
  <StockNotificationBell />
  <LanguageSwitcher />
  <ThemeSwitcher />
  </div>
- </div>
+ </header>
  
  {/* Trial Tracking UI */}
  <TrialBanner />
  
- <div className="flex-1 overflow-auto">
+ {/* Content Area */}
+ <div className="flex-1 overflow-auto bg-[var(--bg-base)]">
  {children}
  </div>
  </main>
