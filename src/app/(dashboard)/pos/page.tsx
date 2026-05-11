@@ -44,7 +44,11 @@ export default function POSPage() {
 
   // Customer Modal State
   const [showAddCustomer, setShowAddCustomer] = useState(false);
-  const [newCust, setNewCust] = useState({ name: '', phone: '', taxNumber: '', type: '0' });
+  const [newCust, setNewCust] = useState({ 
+    name: '', phone: '', mobile: '', city: '', district: '', 
+    street: '', buildingNumber: '', postalCode: '', taxNumber: '', 
+    crNo: '', creditLimit: '', notes: '', type: '0' 
+  });
   const [savingCust, setSavingCust] = useState(false);
 
   const { getSetting, loading: settingsLoading } = useSettings();
@@ -375,8 +379,8 @@ export default function POSPage() {
                 ✕
               </button>
             </div>
-            <div className="p-5 flex flex-col gap-4">
-              <div>
+            <div className="p-4 grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <div className="col-span-2">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">اسم العميل <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
@@ -387,13 +391,76 @@ export default function POSPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الجوال</label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الهاتف</label>
                 <input 
                   type="text" 
                   value={newCust.phone} 
                   onChange={e => setNewCust({...newCust, phone: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="رقم الهاتف"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">رقم الجوال</label>
+                <input 
+                  type="text" 
+                  value={newCust.mobile} 
+                  onChange={e => setNewCust({...newCust, mobile: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
                   placeholder="05xxxxxxxx"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">المدينة</label>
+                <input 
+                  type="text" 
+                  value={newCust.city} 
+                  onChange={e => setNewCust({...newCust, city: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="المدينة"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الحي</label>
+                <input 
+                  type="text" 
+                  value={newCust.district} 
+                  onChange={e => setNewCust({...newCust, district: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="الحي"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الشارع</label>
+                <input 
+                  type="text" 
+                  value={newCust.street} 
+                  onChange={e => setNewCust({...newCust, street: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="الشارع"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">رقم المبنى</label>
+                <input 
+                  type="text" 
+                  value={newCust.buildingNumber} 
+                  onChange={e => setNewCust({...newCust, buildingNumber: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="رقم المبنى"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">الرمز البريدي</label>
+                <input 
+                  type="text" 
+                  value={newCust.postalCode} 
+                  onChange={e => setNewCust({...newCust, postalCode: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="الرمز البريدي"
                   dir="ltr"
                 />
               </div>
@@ -404,8 +471,40 @@ export default function POSPage() {
                   value={newCust.taxNumber} 
                   onChange={e => setNewCust({...newCust, taxNumber: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
-                  placeholder="الرقم الضريبي (إن وجد)"
+                  placeholder="الرقم الضريبي"
                   dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">السجل التجاري</label>
+                <input 
+                  type="text" 
+                  value={newCust.crNo} 
+                  onChange={e => setNewCust({...newCust, crNo: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="السجل التجاري"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">حد الائتمان</label>
+                <input 
+                  type="number" 
+                  value={newCust.creditLimit} 
+                  onChange={e => setNewCust({...newCust, creditLimit: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="0.00"
+                  dir="ltr"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">ملاحظات</label>
+                <input 
+                  type="text" 
+                  value={newCust.notes} 
+                  onChange={e => setNewCust({...newCust, notes: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 dark:text-white outline-none transition-all"
+                  placeholder="أي ملاحظات إضافية..."
                 />
               </div>
             </div>
@@ -425,12 +524,26 @@ export default function POSPage() {
                     const res = await fetch('/api/customers', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify(newCust),
+                      body: JSON.stringify({
+                        name: newCust.name,
+                        phone: newCust.mobile || newCust.phone, // Send mobile to phone or fallback
+                        address: newCust.phone && newCust.mobile ? newCust.phone : '', // If both exist, put phone in address
+                        city: newCust.city,
+                        district: newCust.district,
+                        street: newCust.street,
+                        buildingNumber: newCust.buildingNumber,
+                        postalCode: newCust.postalCode,
+                        taxNumber: newCust.taxNumber,
+                        crNo: newCust.crNo,
+                        creditLimit: newCust.creditLimit,
+                        notes: newCust.notes,
+                        type: newCust.type
+                      }),
                     });
                     if (res.ok) {
                       toastSuccess('تم إضافة العميل بنجاح');
                       setShowAddCustomer(false);
-                      setNewCust({ name: '', phone: '', taxNumber: '', type: '0' });
+                      setNewCust({ name: '', phone: '', mobile: '', city: '', district: '', street: '', buildingNumber: '', postalCode: '', taxNumber: '', crNo: '', creditLimit: '', notes: '', type: '0' });
                     } else {
                       toastError('فشل في إضافة العميل');
                     }

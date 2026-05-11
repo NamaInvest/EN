@@ -111,7 +111,7 @@ async function _POST(request: NextRequest) {
                     brandEn,
                     sizeInfo,
                     imagePath,
-                    barcode: barcode ? barcode : undefined,
+                    barcode: barcode ? barcode : `SYS-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
                     buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
                     sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
                     taxRate: isNaN(taxRate) ? 15 : taxRate,
@@ -123,9 +123,14 @@ async function _POST(request: NextRequest) {
                 };
 
                 if (id) {
+                    const updateData = { ...productData };
+                    if (!barcode) {
+                        // @ts-ignore
+                        updateData.barcode = undefined;
+                    }
                     await prisma.product.update({
                         where: { id: parseInt(id) },
-                        data: productData
+                        data: updateData
                     });
                     updated++;
                 } else {
@@ -138,7 +143,12 @@ async function _POST(request: NextRequest) {
                     }
 
                     if (existing) {
-                        await prisma.product.update({ where: { id: existing.id }, data: productData });
+                        const updateData = { ...productData };
+                        if (!barcode) {
+                            // @ts-ignore
+                            updateData.barcode = undefined;
+                        }
+                        await prisma.product.update({ where: { id: existing.id }, data: updateData });
                         updated++;
                     } else {
                         await prisma.product.create({ data: productData });
@@ -154,7 +164,7 @@ async function _POST(request: NextRequest) {
 
         let rMsg = `تم المعالجة: تمت إضافة ${added}، وتم تحديث ${updated}، وفشل ${failed} صف.`;
         if (failed > 0 && firstError) {
-            rMsg += ` (الخطأ الشائع: ${firstError.substring(0, 80)}...)`;
+            rMsg += ` (الخطأ الشائع: ${firstError})`;
         }
 
         return NextResponse.json({ 
