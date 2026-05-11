@@ -659,6 +659,633 @@ const SPEC = {
         responses: { '200': { description: 'Document chunked and embedded into pgvector' } },
       },
     },
+
+    // ── NEW: Financial Statements ─────────────────────────────────────────────
+    '/api/accounting/financial-statements': {
+      get: {
+        tags: ['Accounting', 'Reports'], summary: 'On-demand Financial Statements (P&L, BS, CF, TB)', operationId: 'getFinancialStatementsGL',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true,  schema: { type: 'string' } },
+          { name: 'type',     in: 'query', schema: { type: 'string', enum: ['INCOME_STATEMENT','BALANCE_SHEET','CASH_FLOW','TRIAL_BALANCE','ALL'], default: 'ALL' } },
+          { name: 'from',     in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'to',       in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'compare',  in: 'query', schema: { type: 'boolean', default: true } },
+        ],
+        responses: { '200': { description: 'P&L + BS + CF + Trial Balance from posted GL' } },
+      },
+    },
+
+    // ── NEW: AR/AP Aging ──────────────────────────────────────────────────────
+    '/api/accounting/aging': {
+      get: {
+        tags: ['Accounting', 'Reports'], summary: 'AR/AP Aging Report (SOCPA 6-bucket)', operationId: 'getAgingReport',
+        parameters: [
+          { name: 'type',     in: 'query', schema: { type: 'string', enum: ['AR','AP'], default: 'AR' } },
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'asOf',     in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'top',      in: 'query', schema: { type: 'integer', default: 0 }, description: '0 = all entities' },
+        ],
+        responses: {
+          '200': {
+            description: 'Aging by entity: current, 1-30, 31-60, 61-90, 91-120, >120 days + risk summary',
+          },
+        },
+      },
+    },
+
+    // ── NEW: Treasury ─────────────────────────────────────────────────────────
+    '/api/finance/treasury': {
+      get: {
+        tags: ['Treasury'], summary: 'Cash Position + Forecast + Realized FX', operationId: 'getTreasury',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'view',     in: 'query', schema: { type: 'string', enum: ['position','forecast','realized-fx'], default: 'position' } },
+        ],
+        responses: { '200': { description: 'Cash position, 30/60/90-day forecast, or realized FX G/L' } },
+      },
+    },
+
+    // ── NEW: Fixed Assets Depreciation ────────────────────────────────────────
+    '/api/accounting/depreciation': {
+      get: {
+        tags: ['Accounting'], summary: 'NBV Report or Depreciation Schedule (IAS 16)', operationId: 'getDepreciation',
+        parameters: [
+          { name: 'view',     in: 'query', schema: { type: 'string', enum: ['nbv','schedule'], default: 'nbv' } },
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'assetId',  in: 'query', schema: { type: 'integer' }, description: 'Required for schedule view' },
+          { name: 'asOf',     in: 'query', schema: { type: 'string', format: 'date' } },
+        ],
+        responses: { '200': { description: 'Net book value per asset or full depreciation schedule' } },
+      },
+      post: {
+        tags: ['Accounting'], summary: 'Run Monthly Depreciation', operationId: 'runMonthlyDepreciation',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object', required: ['action','tenantId','period','fiscalYearId'],
+            properties: {
+              action:       { type: 'string', enum: ['run-monthly'] },
+              tenantId:     { type: 'string' },
+              period:       { type: 'string', pattern: '^\\d{4}-\\d{2}$', example: '2025-03' },
+              fiscalYearId: { type: 'integer' },
+              userId:       { type: 'string' },
+              dryRun:       { type: 'boolean', default: false },
+            },
+          }}},
+        },
+        responses: { '200': { description: 'Depreciation run result' }, '422': { description: 'No assets or posting failed' } },
+      },
+    },
+
+    // ── NEW: Deferred Tax ─────────────────────────────────────────────────────
+    '/api/accounting/deferred-tax': {
+      get: {
+        tags: ['Accounting'], summary: 'Deferred Tax Analysis (IAS 12)', operationId: 'getDeferredTax',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'view',     in: 'query', schema: { type: 'string', enum: ['current','rollforward'], default: 'current' } },
+          { name: 'taxRate',  in: 'query', schema: { type: 'number', default: 0.20 } },
+          { name: 'asOf',     in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'year',     in: 'query', schema: { type: 'integer' } },
+        ],
+        responses: { '200': { description: 'Temp differences, DTA, DTL, net position' } },
+      },
+    },
+
+    // ── NEW: Opening Balances ─────────────────────────────────────────────────
+    '/api/accounting/opening-balances': {
+      get: {
+        tags: ['Accounting'], summary: 'Get Imported Opening Balances', operationId: 'getOpeningBalances',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'OB journal entries' } },
+      },
+      post: {
+        tags: ['Accounting'], summary: 'Import Opening Balances (with dry-run)', operationId: 'importOpeningBalances',
+        description: 'Validates Dr=Cr balance, then posts single consolidated OB journal. Use dryRun=true to preview.',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object', required: ['tenantId','fiscalYearId','asOfDate','userId','lines'],
+            properties: {
+              tenantId:     { type: 'string' },
+              fiscalYearId: { type: 'integer' },
+              asOfDate:     { type: 'string', format: 'date' },
+              userId:       { type: 'integer' },
+              dryRun:       { type: 'boolean', default: false },
+              lines: {
+                type: 'array', maxItems: 5000,
+                items: { type: 'object', required: ['accountCode'],
+                  properties: { accountCode: { type: 'string' }, debit: { type: 'number' }, credit: { type: 'number' } },
+                },
+              },
+            },
+          }}},
+        },
+        responses: {
+          '201': { description: 'Opening balances posted' },
+          '422': { description: 'Unbalanced or missing accounts' },
+        },
+      },
+    },
+
+    // ── NEW: Year-End Reports ─────────────────────────────────────────────────
+    '/api/accounting/year-end/{runId}/reports': {
+      get: {
+        tags: ['Accounting', 'Reports'], summary: 'Year-End Financial Reports', operationId: 'getYearEndReports',
+        parameters: [
+          { name: 'runId',    in: 'path',  required: true, schema: { type: 'integer' } },
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'type',     in: 'query', schema: { type: 'string', enum: ['P&L','BS','CF','EQUITY','AUDIT','ZAKAT','ALL'], default: 'ALL' } },
+        ],
+        responses: { '200': { description: 'Annual P&L, BS, CF, Equity, Audit summary + Zakat provision' }, '404': { description: 'Run not found' } },
+      },
+    },
+
+    // ── NEW: Budget Variance ──────────────────────────────────────────────────
+    '/api/bi/budget-variance': {
+      get: {
+        tags: ['Reports'], summary: 'Budget Variance Analysis', operationId: 'getBudgetVariance',
+        parameters: [
+          { name: 'tenantId',   in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'period',     in: 'query', schema: { type: 'string', example: '2025-03' } },
+          { name: 'fiscalYear', in: 'query', schema: { type: 'integer' } },
+        ],
+        responses: { '200': { description: 'Actual vs Budget with variance %, status (ON_TRACK/WATCH/OVER), run-rate forecast' } },
+      },
+    },
+
+    // ── NEW: Month-End Close ──────────────────────────────────────────────────
+    '/api/accounting/month-end-close': {
+      get:  { tags: ['Accounting'], summary: 'Month-End Close Status (14-step)', operationId: 'getMonthEndCloseStatus', responses: { '200': { description: '14-step checklist with progress %' } } },
+      post: { tags: ['Accounting'], summary: 'Trigger Month-End Close Task', operationId: 'triggerMonthEndTask',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['taskCode','tenantId'],
+          properties: { taskCode: { type: 'string' }, tenantId: { type: 'string' } },
+        }}}},
+        responses: { '200': { description: 'Task executed' } },
+      },
+    },
+
+    // ── NEW: ZATCA Batch Cron ─────────────────────────────────────────────────
+    '/api/cron/zatca-batch-submit': {
+      post: {
+        tags: ['ZATCA'], summary: 'ZATCA Auto-Batch Submission (every 15 min)', operationId: 'zatcaBatchSubmit',
+        parameters: [
+          { name: 'tenantId', in: 'query', schema: { type: 'string' } },
+          { name: 'dryRun',   in: 'query', schema: { type: 'boolean', default: false } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'All submitted' }, '207': { description: 'Partial success' }, '401': { description: 'Missing CRON_SECRET' } },
+      },
+    },
+
+    // ── Account Statement ──────────────────────────────────────────────────────
+    '/api/accounting/statement': {
+      get: {
+        tags: ['Accounting'], summary: 'Customer/Supplier Account Statement with Running Balance', operationId: 'getAccountStatement',
+        parameters: [
+          { name: 'type',     in: 'query', schema: { type: 'string', enum: ['customer','supplier'], default: 'customer' } },
+          { name: 'entityId', in: 'query', required: true, schema: { type: 'integer' } },
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'from',     in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'to',       in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'currency', in: 'query', schema: { type: 'string', default: 'SAR' } },
+        ],
+        responses: { '200': { description: 'Statement lines with opening/closing balance, aging summary' }, '404': { description: 'Entity not found' } },
+      },
+    },
+
+    // ── Budget Upload ──────────────────────────────────────────────────────────
+    '/api/finance/budget-upload': {
+      get: {
+        tags: ['Reports'], summary: 'Get Annual Budget by Account', operationId: 'getBudget',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }, { name: 'fiscalYear', in: 'query', schema: { type: 'integer' } }],
+        responses: { '200': { description: 'All budget lines with monthly breakdown and grand total' } },
+      },
+      post: {
+        tags: ['Reports'], summary: 'Upload Annual Budget (bulk upsert)', operationId: 'uploadBudget',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['tenantId','fiscalYear','userId','lines'],
+          properties: { tenantId: { type: 'string' }, fiscalYear: { type: 'integer' }, dryRun: { type: 'boolean' }, lines: { type: 'array', maxItems: 2000, items: { type: 'object', properties: { accountCode: { type: 'string' }, annualTotal: { type: 'number' } } } } },
+        }}}},
+        responses: { '201': { description: 'Budget saved' }, '400': { description: 'Validation error' } },
+      },
+    },
+
+    // ── Audit Export ───────────────────────────────────────────────────────────
+    '/api/accounting/audit-export': {
+      get: {
+        tags: ['Accounting'], summary: 'Audit Trail Export (CSV/JSON for external auditors)', operationId: 'exportAuditTrail',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'from',     in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'to',       in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'table',    in: 'query', schema: { type: 'string' } },
+          { name: 'action',   in: 'query', schema: { type: 'string', enum: ['CREATE','UPDATE','DELETE','PERIOD_LOCK','PERIOD_UNLOCK'] } },
+          { name: 'format',   in: 'query', schema: { type: 'string', enum: ['json','csv'], default: 'json' } },
+          { name: 'limit',    in: 'query', schema: { type: 'integer', default: 1000, maximum: 5000 } },
+        ],
+        responses: { '200': { description: 'Audit log entries in JSON or CSV format (with Content-Disposition for download)' } },
+      },
+    },
+
+    // ── Period Lock ─────────────────────────────────────────────────────────────
+    '/api/accounting/period-lock': {
+      get: {
+        tags: ['Accounting'], summary: 'List Period Lock Status (12 months per fiscal year)', operationId: 'getPeriodLocks',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }, { name: 'fiscalYear', in: 'query', schema: { type: 'integer' } }, { name: 'period', in: 'query', schema: { type: 'string', pattern: '^\\d{4}-\\d{2}$' } }],
+        responses: { '200': { description: '12-month period status: OPEN | LOCKED | TEMP_UNLOCKED + summary' } },
+      },
+      post: {
+        tags: ['Accounting'], summary: 'Lock / Unlock Accounting Period (CFO/Admin only)', operationId: 'managePeriodLock',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['action','tenantId'],
+          properties: { action: { type: 'string', enum: ['lock','unlock','temp-unlock','can-post','status'] }, tenantId: { type: 'string' }, period: { type: 'string', pattern: '^\\d{4}-\\d{2}$' }, reason: { type: 'string' }, skipChecklist: { type: 'boolean' } },
+        }}}},
+        responses: { '200': { description: 'Period status updated' }, '409': { description: 'Cannot post to locked period' }, '422': { description: 'Month-end checklist incomplete' } },
+      },
+    },
+
+    // ── Financial Health Dashboard ─────────────────────────────────────────────
+    '/api/finance/financial-health': {
+      get: {
+        tags: ['Reports'], summary: 'Financial Health Dashboard (KPIs, Ratios, Altman Z-Score)', operationId: 'getFinancialHealth',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }, { name: 'period', in: 'query', schema: { type: 'string', pattern: '^\\d{4}-\\d{2}$', example: '2025-03' } }],
+        responses: { '200': { description: 'Liquidity, profitability, efficiency, leverage ratios + Altman Z + recommendations' } },
+      },
+    },
+
+    // ── Chart of Accounts Import ───────────────────────────────────────────────
+    '/api/accounting/chart-of-accounts-import': {
+      get: {
+        tags: ['Accounting'], summary: 'Get Chart of Accounts', operationId: 'getChartOfAccounts',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }, { name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'type', in: 'query', schema: { type: 'string', enum: ['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE'] } }],
+        responses: { '200': { description: 'Accounts list with count by type' } },
+      },
+      post: {
+        tags: ['Accounting'], summary: 'Bulk Import Chart of Accounts (up to 5000 accounts)', operationId: 'importChartOfAccounts',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['tenantId','userId','accounts'],
+          properties: { tenantId: { type: 'string' }, dryRun: { type: 'boolean' }, overwrite: { type: 'boolean' }, accounts: { type: 'array', maxItems: 5000 } },
+        }}}},
+        responses: { '201': { description: 'Accounts created/updated' }, '400': { description: 'Duplicate codes or invalid types' } },
+      },
+    },
+
+    // ── Cost Center Report ─────────────────────────────────────────────────────
+    '/api/accounting/cost-center-report': {
+      get: {
+        tags: ['Accounting', 'Reports'], summary: 'Cost Center P&L vs Budget Report', operationId: 'getCostCenterReport',
+        parameters: [
+          { name: 'tenantId',     in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'costCenterId', in: 'query', schema: { type: 'integer' }, description: 'omit for all centers' },
+          { name: 'from',         in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'to',           in: 'query', schema: { type: 'string', format: 'date' } },
+        ],
+        responses: { '200': { description: 'Revenue/Expense/Net per center + variance % + ON_TRACK|WATCH|OVER status' } },
+      },
+    },
+
+    // ── Payroll GL Auto-Post ───────────────────────────────────────────────────
+    '/api/accounting/payroll-gl': {
+      get: {
+        tags: ['Accounting','HR'], summary: 'Check Payroll GL Posting History', operationId: 'getPayrollGLHistory',
+        parameters: [{ name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } }, { name: 'period', in: 'query', schema: { type: 'string' } }],
+        responses: { '200': { description: 'List of PAYROLL-* journal entries' } },
+      },
+      post: {
+        tags: ['Accounting','HR'], summary: 'Post Payroll to GL (Dr Salary / Cr Payable)', operationId: 'postPayrollGL',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['tenantId','period','fiscalYearId','userId'],
+          properties: { tenantId: { type: 'string' }, period: { type: 'string', pattern: '^\\d{4}-\\d{2}$' }, fiscalYearId: { type: 'integer' }, dryRun: { type: 'boolean' } },
+        }}}},
+        responses: { '201': { description: 'Journal posted' }, '409': { description: 'Already posted for this period' }, '422': { description: 'No approved payroll or unbalanced' } },
+      },
+    },
+
+    // ── Bank Reconciliation ────────────────────────────────────────────────────
+    '/api/accounting/bank-recon': {
+      get: {
+        tags: ['Accounting'], summary: 'Bank Reconciliation: GL vs Bank Statement', operationId: 'getBankRecon',
+        parameters: [
+          { name: 'tenantId',      in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'bankAccountId', in: 'query', required: true, schema: { type: 'integer' } },
+          { name: 'from',          in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'to',            in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'format',        in: 'query', schema: { type: 'string', enum: ['json','csv'] } },
+        ],
+        responses: { '200': { description: 'MATCHED|GL_ONLY|BANK_ONLY|DIFFERENCE per transaction + isReconciled flag' } },
+      },
+    },
+
+    // ── Payroll Monthly Cron ───────────────────────────────────────────────────
+    '/api/cron/payroll-monthly': {
+      post: {
+        tags: ['HR'], summary: 'Payroll GL Monthly Auto-Post Cron (day 28)', operationId: 'cronPayrollMonthly',
+        parameters: [{ name: 'dryRun', in: 'query', schema: { type: 'boolean', default: false } }, { name: 'period', in: 'query', schema: { type: 'string' } }],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Payroll GL posted for all tenants' }, '401': { description: 'Missing CRON_SECRET' } },
+      },
+    },
+
+    // ── Profit & Loss Statement ───────────────────────────────────────────────
+    '/api/accounting/profit-loss': {
+      get: {
+        tags: ['Accounting'],
+        summary: 'قائمة الدخل (IFRS/SOCPA)',
+        description: 'قائمة الدخل الشاملة بالإيرادات، تكلفة المبيعات، EBIT، صافي الربح، هوامش الربح، ومقارنة اختيارية بفترة سابقة',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'from', in: 'query', required: true, schema: { type: 'string', format: 'date' }, description: 'YYYY-MM-DD' },
+          { name: 'to', in: 'query', required: true, schema: { type: 'string', format: 'date' }, description: 'YYYY-MM-DD' },
+          { name: 'compareFrom', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'compareTo', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'], default: 'json' } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Profit & Loss Statement',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    summary: {
+                      type: 'object',
+                      properties: {
+                        totalRevenue:  { type: 'number' },
+                        grossProfit:   { type: 'number' },
+                        grossMargin:   { type: 'string', example: '40.0%' },
+                        ebit:          { type: 'number' },
+                        netIncome:     { type: 'number' },
+                        netMargin:     { type: 'string', example: '18.0%' },
+                      },
+                    },
+                    sections: { type: 'array', items: { type: 'object' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ── VAT Return ────────────────────────────────────────────────────────────
+    '/api/accounting/vat-return': {
+      get: {
+        tags: ['Accounting', 'ZATCA'],
+        summary: 'إقرار ضريبة القيمة المضافة (Box 1-12)',
+        description: 'إقرار ضريبي شهري بتنسيق ZATCA — Box 1-12 مع ضريبة الاستيراد العكسية، صافي مستحق الدفع/الاسترداد، وتصدير CSV',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'period', in: 'query', required: true, schema: { type: 'string', pattern: '^\\d{4}-\\d{2}$' }, example: '2025-03' },
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'], default: 'json' } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'VAT Return',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    period:    { type: 'string' },
+                    boxes:     { type: 'array', items: { type: 'object', properties: { box: { type: 'integer' }, taxableValue: { type: 'number' }, taxAmount: { type: 'number' } } } },
+                    summary:   { type: 'object', properties: { vatDue: { type: 'number' }, vatDeductible: { type: 'number' }, netVAT: { type: 'number' }, position: { type: 'string', enum: ['PAYABLE', 'REFUND'] } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Accounting', 'ZATCA'],
+        summary: 'إقفال / تقديم إقرار ضريبي',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['action', 'tenantId', 'period'],
+                properties: {
+                  action:   { type: 'string', enum: ['preview', 'finalize', 'submit'] },
+                  tenantId: { type: 'string' },
+                  period:   { type: 'string', pattern: '^\\d{4}-\\d{2}$' },
+                },
+              },
+            },
+          },
+        },
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'VAT return action executed' } },
+      },
+    },
+
+    // ── Prepayments ───────────────────────────────────────────────────────────
+    '/api/accounting/prepayments': {
+      get: {
+        tags: ['Accounting'],
+        summary: 'قائمة المدفوعات المقدمة النشطة',
+        description: 'جميع المدفوعات المقدمة النشطة مع الرصيد المتبقي وجدول الاستهلاك الشهري',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'period', in: 'query', schema: { type: 'string', pattern: '^\\d{4}-\\d{2}$' } },
+          { name: 'status', in: 'query', schema: { type: 'string', enum: ['ACTIVE', 'COMPLETED', 'CANCELLED', 'ALL'], default: 'ACTIVE' } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Prepayments list with amortization schedule' } },
+      },
+      post: {
+        tags: ['Accounting'],
+        summary: 'تسجيل مدفوعات مقدمة جديدة',
+        description: 'تسجيل مدفوع مقدم مع قيد حجز (Dr Prepaid / Cr Cash) وأول قيد استهلاك (Dr Expense / Cr Prepaid) وجدول الاستهلاك الكامل',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['tenantId', 'period', 'fiscalYearId', 'userId', 'prepayments'],
+                properties: {
+                  tenantId:     { type: 'string' },
+                  period:       { type: 'string', pattern: '^\\d{4}-\\d{2}$' },
+                  fiscalYearId: { type: 'integer' },
+                  userId:       { type: 'integer' },
+                  dryRun:       { type: 'boolean', default: false },
+                  prepayments:  {
+                    type: 'array', minItems: 1, maxItems: 200,
+                    items: {
+                      type: 'object',
+                      required: ['description', 'totalAmount', 'months', 'prepaidAccountId', 'expenseAccountId'],
+                      properties: {
+                        description:      { type: 'string' },
+                        totalAmount:      { type: 'number', minimum: 0.01 },
+                        months:           { type: 'integer', minimum: 1, maximum: 120 },
+                        prepaidAccountId: { type: 'integer' },
+                        expenseAccountId: { type: 'integer' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        security: [{ bearerAuth: [] }],
+        responses: { '201': { description: 'Prepayments registered and amortization started' } },
+      },
+    },
+
+    // ── Collection Workflow ───────────────────────────────────────────────────
+    '/api/accounting/collection-workflow': {
+      get: {
+        tags: ['Accounting', 'AR'],
+        summary: 'لوحة تحصيل الذمم المدينة',
+        description: 'ملخص حالات التحصيل (NEW/PROMISED/ESCALATED/LEGAL/COLLECTED) والفواتير العاجلة مرتبة بالمبلغ',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'invoiceId', in: 'query', schema: { type: 'integer' }, description: 'تصفية لفاتورة محددة' },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Collection workflow summary and urgent invoices' } },
+      },
+      post: {
+        tags: ['Accounting', 'AR'],
+        summary: 'تسجيل نشاط تحصيل / وعد دفع',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['action', 'tenantId'],
+                properties: {
+                  action:      { type: 'string', enum: ['CALL','EMAIL','VISIT','LEGAL_NOTICE','WRITE_OFF','PROMISE','PAYMENT_RECEIVED','ESCALATE_BROKEN'] },
+                  tenantId:    { type: 'string' },
+                  invoiceId:   { type: 'integer' },
+                  amount:      { type: 'number' },
+                  promiseDate: { type: 'string', format: 'date' },
+                  notes:       { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Collection activity recorded' } },
+      },
+    },
+
+    // ── Inter-Company Transactions ────────────────────────────────────────────
+    '/api/accounting/inter-company': {
+      get: {
+        tags: ['Accounting'],
+        summary: 'أرصدة المعاملات البينية',
+        description: 'ملخص أرصدة IC بين كيانات المجموعة (مستحق / مطلوب / صافي) مع تفاصيل دورات المقاصة',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'view', in: 'query', schema: { type: 'string', enum: ['summary', 'detail'], default: 'summary' } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Inter-company balance summary' } },
+      },
+      post: {
+        tags: ['Accounting'],
+        summary: 'ترحيل معاملة بينية / مقاصة',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['action', 'fromTenantId', 'toTenantId'],
+                properties: {
+                  action:       { type: 'string', enum: ['post', 'preview', 'net'] },
+                  fromTenantId: { type: 'string' },
+                  toTenantId:   { type: 'string' },
+                  amount:       { type: 'number' },
+                  type:         { type: 'string', enum: ['LOAN','SERVICE','GOODS','DIVIDEND','CAPITAL','NETTING'] },
+                  currency:     { type: 'string', default: 'SAR' },
+                  exchangeRate: { type: 'number', default: 1 },
+                },
+              },
+            },
+          },
+        },
+        security: [{ bearerAuth: [] }],
+        responses: { '201': { description: 'IC transaction posted with mirror journals' } },
+      },
+    },
+
+    // ── Inventory Valuation Snapshot ──────────────────────────────────────────
+    '/api/accounting/inventory-valuation-snapshot': {
+      get: {
+        tags: ['Accounting', 'Inventory'],
+        summary: 'لقطة تقييم المخزون (WACC/FIFO)',
+        description: 'تقييم المخزون بمتوسط التكلفة المرجح مقارنةً برصيد GL — يكشف الفروقات ويدعم تصدير CSV',
+        parameters: [
+          { name: 'tenantId', in: 'query', required: true, schema: { type: 'string' } },
+          { name: 'asOf', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'method', in: 'query', schema: { type: 'string', enum: ['WACC', 'FIFO'], default: 'WACC' } },
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'], default: 'json' } },
+        ],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Inventory valuation snapshot',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    summary: { type: 'object', properties: { grandTotalValue: { type: 'number' }, grandVariance: { type: 'number' }, isClean: { type: 'boolean' } } },
+                    lines:   { type: 'array', items: { type: 'object', properties: { productCode: { type: 'string' }, qty: { type: 'number' }, avgCost: { type: 'number' }, variance: { type: 'number' }, status: { type: 'string', enum: ['OK','VARIANCE','NEGATIVE_QTY'] } } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ── Crons ─────────────────────────────────────────────────────────────────
+    '/api/cron/vat-return-reminder': {
+      post: {
+        tags: ['Cron'],
+        summary: 'تذكير إقرار الضريبة الشهري (يوم 20)',
+        description: 'يُرسل Telegram + Notification بالموعد النهائي والضريبة المقدرة',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'VAT reminder sent' }, '401': { description: 'Missing CRON_SECRET' } },
+      },
+    },
+
+    '/api/cron/prepayments-amortization': {
+      post: {
+        tags: ['Cron'],
+        summary: 'استهلاك المدفوعات المقدمة الشهري (يوم 1)',
+        description: 'يُرحِّل قيود Dr Expense / Cr Prepaid لكل مدفوع مقدم نشط، يُنقِّص remainingMonths، يُغلق عند الصفر',
+        parameters: [{ name: 'dryRun', in: 'query', schema: { type: 'boolean', default: false } }],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'Prepayments amortized' }, '401': { description: 'Missing CRON_SECRET' } },
+      },
+    },
+
+    '/api/cron/ar-collection-dunning': {
+      post: {
+        tags: ['Cron'],
+        summary: 'تصعيد تحصيل الذمم الأسبوعي (كل أحد)',
+        description: '4 مستويات دانينج (1-30 / 31-60 / 61-90 / +90 يوم)، credit hold على المستوى 2+، تقرير Telegram',
+        parameters: [{ name: 'dryRun', in: 'query', schema: { type: 'boolean', default: false } }],
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'AR dunning escalation report' }, '401': { description: 'Missing CRON_SECRET' } },
+      },
+    },
   },
 } as const;
 

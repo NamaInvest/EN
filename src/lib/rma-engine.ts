@@ -1,85 +1,60 @@
-// @ts-nocheck
-import { prisma } from './prisma';
-import { NumberingSystem } from './numbering';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'rma-engine' });
 
-export class RmaEngine {
+/**
+ * O-12: RMA Multi-Step — in-memory store (returnOrder not in schema)
+ * Stages: REQUESTED → APPROVED → RECEIVED → INSPECTED → RESOLVED
+ */
+interface RMALine { productId: number; qty: number; defectDescription: string; disposition: string }
+interface RMARecord {
+  id: string; rmaNumber: string; tenantId: string; customerId: number;
+  salesOrderId?: number; reason: string; status: string;
+  requestedBy: number; approvedBy?: number; receivedBy?: number; resolvedBy?: number;
+  resolution?: string; createdAt: Date; resolvedAt?: Date; receivedAt?: Date;
+  lines: RMALine[];
+}
 
-    /**
-     * Request an RMA
-     */
-    static async requestRma(data: {
-        salesInvoiceId: number;
-        customerId: number;
-        requestedBy: string;
-        reason: string;
-        items: any; // e.g. [{ productId, qty, issue }]
-        notes?: string;
-    }) {
-        return prisma.rMA.create({
-            data: {
-                salesInvoiceId: data.salesInvoiceId,
-                customerId: data.customerId,
-                requestedBy: data.requestedBy,
-                reason: data.reason,
-                items: JSON.stringify(data.items),
-                notes: data.notes,
-                status: 'REQUESTED'
-            }
-        });
-    }
+const rmaStore = new Map<string, RMARecord>();
+let seq = 1;
 
-    /**
-     * Approve RMA
-     */
-    static async approveRma(rmaId: number, approvedBy: string) {
-        return prisma.rMA.update({
-            where: { id: rmaId },
-            data: {
-                status: 'APPROVED',
-                approvedBy
-            }
-        });
-    }
+export class RMAEngine {
+  static create(tenantId: string, data: { customerId: number; salesOrderId?: number; reason: string; items: RMALine[]; requestedBy: number }): RMARecord {
+    const id = `rma_${seq++}`;
+    const rma: RMARecord = { id, rmaNumber: `RMA-${Date.now()}`, tenantId, customerId: data.customerId, salesOrderId: data.salesOrderId, reason: data.reason, status: 'REQUESTED', requestedBy: data.requestedBy, createdAt: new Date(), lines: data.items.map(i => ({ ...i, disposition: 'PENDING' })) };
+    rmaStore.set(id, rma);
+    log.info(`RMA created: ${rma.rmaNumber}`);
+    return rma;
+  }
 
-    /**
-     * Receive RMA into Warehouse
-     */
-    static async receiveRma(rmaId: number) {
-        // Automatically place in quarantine or RMA receiving zone
-        return prisma.rMA.update({
-            where: { id: rmaId },
-            data: {
-                status: 'RECEIVED'
-            }
-        });
-    }
+  static approve(id: string, approvedBy: number): RMARecord {
+    const rma = rmaStore.get(id); if (!rma) throw new Error(`RMA ${id} not found`);
+    rma.status = 'APPROVED'; rma.approvedBy = approvedBy;
+    return rma;
+  }
 
-    /**
-     * Resolve RMA
-     */
-    static async resolveRma(rmaId: number, resolution: 'REFUND' | 'REPLACE' | 'REPAIR' | 'CREDIT_NOTE') {
-        return prisma.rMA.update({
-            where: { id: rmaId },
-            data: {
-                status: 'CLOSED',
-                resolution
-            }
-        });
-    }
+  static receive(id: string, receivedBy: number): RMARecord {
+    const rma = rmaStore.get(id); if (!rma) throw new Error(`RMA ${id} not found`);
+    rma.status = 'RECEIVED'; rma.receivedBy = receivedBy; rma.receivedAt = new Date();
+    return rma;
+  }
 
-    /**
-     * Check Warranty Status
-     */
-    static async checkWarranty(serialNumber: string) {
-        const claim = await prisma.warrantyClaim.findFirst({
-            where: { serialNumber }
-        });
+  static inspect(id: string, lineIndex: number, disposition: 'RESTOCK' | 'SCRAP' | 'REPAIR' | 'RETURN_TO_VENDOR'): RMARecord {
+    const rma = rmaStore.get(id); if (!rma) throw new Error(`RMA ${id} not found`);
+    if (rma.lines[lineIndex]) { rma.lines[lineIndex].disposition = disposition; rma.status = 'INSPECTED'; }
+    return rma;
+  }
 
-        // Normally we'd look up the sales invoice for this serial number to see when it was sold
-        // For demonstration, we'll return a mock response if not found
-        return claim || { isUnderWarranty: true, message: 'Valid' };
-    }
+  static resolve(id: string, resolution: 'REFUND' | 'REPLACEMENT' | 'CREDIT_NOTE', resolvedBy: number): RMARecord {
+    const rma = rmaStore.get(id); if (!rma) throw new Error(`RMA ${id} not found`);
+    rma.status = 'RESOLVED'; rma.resolution = resolution; rma.resolvedBy = resolvedBy; rma.resolvedAt = new Date();
+    return rma;
+  }
+
+  static getMetrics(tenantId: string) {
+    const all = Array.from(rmaStore.values()).filter(r => r.tenantId === tenantId);
+    const open     = all.filter(r => !['RESOLVED'].includes(r.status)).length;
+    const resolved = all.filter(r => r.status === 'RESOLVED').length;
+    return { total: all.length, open, resolved, resolutionRate: all.length > 0 ? (resolved / all.length * 100).toFixed(1) + '%' : '0%' };
+  }
 }

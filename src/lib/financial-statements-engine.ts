@@ -92,6 +92,43 @@ export interface CashFlowResult {
   generatedAt: Date;
 }
 
+export interface IndirectCFLine {
+  label:       string;
+  section:     'OPERATING' | 'INVESTING' | 'FINANCING';
+  amount:      Decimal;
+  accountCode?: string;   // for drill-down
+  sign:        1 | -1;
+  note?:       string;
+}
+
+export interface IndirectCashFlowResult {
+  /** صافي الدخل (نقطة البداية) */
+  netIncome:          Decimal;
+  /** تعديلات البنود غير النقدية */
+  nonCashAdjustments: Decimal;
+  /** تغيّرات رأس المال العامل */
+  workingCapital:     Decimal;
+  /** إجمالي التدفق التشغيلي */
+  operatingCF:        Decimal;
+  /** التدفق الاستثماري */
+  investingCF:        Decimal;
+  /** التدفق التمويلي */
+  financingCF:        Decimal;
+  /** صافي التغيير في النقدية */
+  netChange:          Decimal;
+  /** النقدية الافتتاحية */
+  openingCash:        Decimal;
+  /** النقدية الختامية */
+  closingCash:        Decimal;
+  /** فرق التحقق (يجب أن يكون < 0.01) */
+  reconciliationDiff: Decimal;
+  /** هل يتوافق مع الميزانية؟ */
+  isReconciled:       boolean;
+  /** تفصيل السطور */
+  lines:              IndirectCFLine[];
+  generatedAt:        Date;
+}
+
 // ─── Engine ───────────────────────────────────────────────────────────────────
 
 export class FinancialStatementsEngine {
@@ -275,6 +312,237 @@ export class FinancialStatementsEngine {
     ];
 
     return { operatingCF, investingCF, financingCF, netChange, openingCash, closingCash, lines, generatedAt: new Date() };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // التدفقات النقدية — الطريقة غير المباشرة (Indirect Method) — G1
+  // IAS 7.18(b): Start from net profit, adjust for non-cash & working capital
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async generateIndirectCashFlow(
+    tenantId: string,
+    from: Date,
+    to: Date,
+  ): Promise<IndirectCashFlowResult> {
+    // ── Fetch income statement & balance data ─────────────────────────────
+    const periodStart = new Date(from.getFullYear(), 0, 1);  // beginning of year
+    const [is, openingBal, closingBal] = await Promise.all([
+      this.generateIncomeStatement(tenantId, from, to),
+      this._getBalances(tenantId, periodStart, from),
+      this._getBalances(tenantId, from, to),
+    ]);
+
+    const netIncome = is.netProfit;
+    const lines: IndirectCFLine[] = [];
+
+    // ── Step 1: Net Income ───────────────────────────────────────────────
+    lines.push({
+      label:       'صافي الدخل / الربح',
+      section:     'OPERATING',
+      amount:      netIncome,
+      sign:        1,
+      accountCode: '3900',
+    });
+
+    // ── Step 2: Non-cash adjustments ─────────────────────────────────────
+    // Depreciation & Amortization
+    const depreciation = this._sumRange(closingBal, '5220', '5229', 1);
+    lines.push({
+      label:       'الاستهلاك والإطفاء',
+      section:     'OPERATING',
+      amount:      depreciation,
+      accountCode: '5220',
+      sign:        1,
+      note:        'يُضاف لأنه غير نقدي',
+    });
+
+    // Provisions changes (e.g., bad debt, warranty)
+    const provisions = this._sumRange(closingBal, '2400', '2499', 1)
+      .sub(this._sumRange(openingBal, '2400', '2499', 1));
+    lines.push({
+      label:       'تغيّر في المخصصات',
+      section:     'OPERATING',
+      amount:      provisions,
+      accountCode: '2400',
+      sign:        1,
+      note:        'زيادة المخصص = مصدر نقدي',
+    });
+
+    // Unrealized FX Losses (add back) / Gains (subtract)
+    const fxDiff = this._sumRange(closingBal, '5410', '5419', 1)
+      .sub(this._sumRange(closingBal, '4910', '4919', 1));
+    if (!fxDiff.isZero()) {
+      lines.push({
+        label:   'فروق العملة غير المحققة (صافي)',
+        section: 'OPERATING',
+        amount:  fxDiff,
+        sign:    1,
+        note:    'الخسائر تُضاف / الأرباح تُطرح',
+      });
+    }
+
+    const nonCashTotal = depreciation.add(provisions).add(fxDiff);
+
+    // ── Step 3: Working Capital Changes ──────────────────────────────────
+    // Δ Receivables: increase = cash used (negative)
+    const deltaAR = this._sumRange(closingBal, '1200', '1299', 1)
+      .sub(this._sumRange(openingBal, '1200', '1299', 1)).neg();
+    lines.push({
+      label:       'تغيّر في الذمم المدينة',
+      section:     'OPERATING',
+      amount:      deltaAR,
+      accountCode: '1200',
+      sign:        -1,
+      note:        'زيادة AR = استخدام نقد',
+    });
+
+    // Δ Inventory: increase = cash used (negative)
+    const deltaInv = this._sumRange(closingBal, '1300', '1329', 1)
+      .sub(this._sumRange(openingBal, '1300', '1329', 1)).neg();
+    lines.push({
+      label:       'تغيّر في المخزون',
+      section:     'OPERATING',
+      amount:      deltaInv,
+      accountCode: '1300',
+      sign:        -1,
+      note:        'زيادة المخزون = استخدام نقد',
+    });
+
+    // Δ Prepaid / Other Current Assets
+    const deltaPrepaid = this._sumRange(closingBal, '1340', '1399', 1)
+      .sub(this._sumRange(openingBal, '1340', '1399', 1)).neg();
+    if (!deltaPrepaid.isZero()) {
+      lines.push({
+        label:       'تغيّر في المدفوعات المقدمة وأصول أخرى',
+        section:     'OPERATING',
+        amount:      deltaPrepaid,
+        accountCode: '1340',
+        sign:        -1,
+      });
+    }
+
+    // Δ Payables (AP): increase = cash source (positive)
+    const deltaAP = this._sumRange(closingBal, '2100', '2199', 1)
+      .sub(this._sumRange(openingBal, '2100', '2199', 1));
+    lines.push({
+      label:       'تغيّر في الذمم الدائنة',
+      section:     'OPERATING',
+      amount:      deltaAP,
+      accountCode: '2100',
+      sign:        1,
+      note:        'زيادة AP = مصدر نقد',
+    });
+
+    // Δ Accruals / Other Current Liabilities
+    const deltaAccruals = this._sumRange(closingBal, '2300', '2399', 1)
+      .sub(this._sumRange(openingBal, '2300', '2399', 1));
+    if (!deltaAccruals.isZero()) {
+      lines.push({
+        label:       'تغيّر في المستحقات الأخرى',
+        section:     'OPERATING',
+        amount:      deltaAccruals,
+        accountCode: '2300',
+        sign:        1,
+      });
+    }
+
+    const workingCapitalTotal = deltaAR.add(deltaInv).add(deltaPrepaid).add(deltaAP).add(deltaAccruals);
+    const operatingCF = netIncome.add(nonCashTotal).add(workingCapitalTotal);
+
+    // ── Step 4: Investing Activities ──────────────────────────────────────
+    // Asset acquisitions (CAPEX)
+    const capex = this._sumRange(closingBal, '1400', '1499', 1)
+      .sub(this._sumRange(openingBal, '1400', '1499', 1)).neg();
+    lines.push({
+      label:       'شراء / التخلص من الأصول الثابتة (CAPEX)',
+      section:     'INVESTING',
+      amount:      capex,
+      accountCode: '1400',
+      sign:        -1,
+    });
+
+    // ROU Assets from IFRS 16 (if any)
+    const rouAssets = this._sumRange(closingBal, '1450', '1459', 1)
+      .sub(this._sumRange(openingBal, '1450', '1459', 1)).neg();
+    if (!rouAssets.isZero()) {
+      lines.push({
+        label:       'أصول حق الاستخدام (IFRS 16)',
+        section:     'INVESTING',
+        amount:      rouAssets,
+        accountCode: '1450',
+        sign:        -1,
+      });
+    }
+
+    const investingCF = capex.add(rouAssets);
+
+    // ── Step 5: Financing Activities ─────────────────────────────────────
+    // Long-term debt changes
+    const deltaLTD = this._sumRange(closingBal, '2500', '2699', 1)
+      .sub(this._sumRange(openingBal, '2500', '2699', 1));
+    lines.push({
+      label:       'تغيّر في القروض طويلة الأجل',
+      section:     'FINANCING',
+      amount:      deltaLTD,
+      accountCode: '2500',
+      sign:        1,
+    });
+
+    // Lease liability payments (IFRS 16 principal portion)
+    const leasePrincipal = this._sumRange(closingBal, '2610', '2619', 1)
+      .sub(this._sumRange(openingBal, '2610', '2619', 1)).neg();
+    if (!leasePrincipal.isZero()) {
+      lines.push({
+        label:       'سداد أصل التزامات الإيجار (IFRS 16)',
+        section:     'FINANCING',
+        amount:      leasePrincipal,
+        accountCode: '2610',
+        sign:        -1,
+      });
+    }
+
+    // Equity injections / Dividends
+    const equityChange = this._sumRange(closingBal, '3000', '3799', 1)
+      .sub(this._sumRange(openingBal, '3000', '3799', 1));
+    if (!equityChange.isZero()) {
+      lines.push({
+        label:       'تغيّر في حقوق الملكية (رأس مال / أرباح موزعة)',
+        section:     'FINANCING',
+        amount:      equityChange,
+        accountCode: '3000',
+        sign:        1,
+      });
+    }
+
+    const financingCF = deltaLTD.add(leasePrincipal).add(equityChange);
+
+    // ── Step 6: Reconciliation ────────────────────────────────────────────
+    const netChange  = operatingCF.add(investingCF).add(financingCF);
+    const openingCash = this._sumRange(openingBal, '1110', '1119', 1);
+    const closingCashCalc = openingCash.add(netChange);
+    const closingCashBS   = this._sumRange(closingBal, '1110', '1119', 1);
+    const reconciliationDiff = closingCashCalc.sub(closingCashBS).abs();
+    const isReconciled = reconciliationDiff.lte(new Decimal('0.01'));
+
+    if (!isReconciled) {
+      log.warn('Indirect CF reconciliation mismatch — check account mappings', { tenantId, diff: reconciliationDiff.toNumber() });
+    }
+
+    return {
+      netIncome,
+      nonCashAdjustments: nonCashTotal,
+      workingCapital:     workingCapitalTotal,
+      operatingCF,
+      investingCF,
+      financingCF,
+      netChange,
+      openingCash,
+      closingCash:        closingCashCalc,
+      reconciliationDiff,
+      isReconciled,
+      lines,
+      generatedAt:        new Date(),
+    };
   }
 
   // ──────────────────────────────────────────────────────────────────────────

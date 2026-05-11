@@ -1,77 +1,58 @@
-/**
- * Document Management Engine (G-11)
- * ══════════════════════════════════
- * File upload, folders, versioning, tagging, model linking
- */
-
-import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'dms-engine' });
-const p = (prisma: PrismaClient) => prisma as any;
+
+/**
+ * P-14: DMS Deep — in-memory store (document/documentVersion not in schema)
+ * Full check-in/out, versioning, search
+ */
+
+interface DocVersion { versionNumber: string; fileUrl: string; uploadedBy: number; changeNote?: string; createdAt: Date }
+interface DocRecord  { id: number; tenantId: string; title: string; tags: string; checkedOutBy?: number; checkedOutAt?: Date; versions: DocVersion[] }
+
+const docs = new Map<number, DocRecord>();
+let docSeq = 1;
 
 export class DMSEngine {
-    /** Upload document */
-    static async upload(prisma: PrismaClient, data: {
-        name: string; path: string; mimeType: string; size: number;
-        folderId?: number; linkedModel?: string; linkedId?: number;
-        tags?: string; uploadedBy: number; tenantId: string;
-    }) {
-        return p(prisma).dmsDocument.create({
-            data: { ...data, version: 1, createdAt: new Date() },
-        });
-    }
+  static createDocument(tenantId: string, title: string, tags: string, fileUrl: string, uploadedBy: number): DocRecord {
+    const id = docSeq++;
+    const doc: DocRecord = { id, tenantId, title, tags, versions: [{ versionNumber: '1.0', fileUrl, uploadedBy, createdAt: new Date() }] };
+    docs.set(id, doc);
+    log.info(`DMS: document created "${title}" id=${id}`);
+    return doc;
+  }
 
-    /** Create folder */
-    static async createFolder(prisma: PrismaClient, name: string, parentId?: number, tenantId?: string) {
-        return p(prisma).dmsFolder.create({ data: { name, parentId, tenantId: tenantId || '' } });
-    }
+  static uploadVersion(documentId: number, fileUrl: string, uploadedBy: number, changeNote?: string): DocVersion {
+    const doc = docs.get(documentId); if (!doc) throw new Error(`Document ${documentId} not found`);
+    const last = doc.versions[doc.versions.length - 1];
+    const parts = (last?.versionNumber ?? '1.0').split('.').map(Number);
+    parts[1] = (parts[1] ?? 0) + 1;
+    const version: DocVersion = { versionNumber: parts.join('.'), fileUrl, uploadedBy, changeNote, createdAt: new Date() };
+    doc.versions.push(version);
+    log.info(`DMS: document ${documentId} → version ${version.versionNumber}`);
+    return version;
+  }
 
-    /** List folder contents */
-    static async listFolder(prisma: PrismaClient, folderId?: number) {
-        const folders = await p(prisma).dmsFolder.findMany({
-            take: 100,
-            where: { parentId: folderId || null },
-            orderBy: { name: 'asc' },
-        });
-        const documents = await p(prisma).dmsDocument.findMany({
-            take: 100,
-            where: { folderId: folderId || null },
-            orderBy: { createdAt: 'desc' },
-        });
-        return { folders, documents };
-    }
+  static checkOut(documentId: number, userId: number): DocRecord {
+    const doc = docs.get(documentId); if (!doc) throw new Error(`Document ${documentId} not found`);
+    if (doc.checkedOutBy && doc.checkedOutBy !== userId) throw new Error(`Document locked by user ${doc.checkedOutBy}`);
+    doc.checkedOutBy = userId; doc.checkedOutAt = new Date();
+    return doc;
+  }
 
-    /** Search documents */
-    static async search(prisma: PrismaClient, query: string) {
-        return p(prisma).dmsDocument.findMany({
-            where: {
-                OR: [
-                    { name: { contains: query } },
-                    { tags: { contains: query } },
-                ],
-            },
-            take: 50,
-            orderBy: { createdAt: 'desc' },
-        });
-    }
+  static checkIn(documentId: number, userId: number, fileUrl: string, changeNote?: string): DocVersion {
+    const doc = docs.get(documentId); if (!doc) throw new Error(`Document ${documentId} not found`);
+    if (doc.checkedOutBy !== userId) throw new Error('You did not check out this document');
+    doc.checkedOutBy = undefined; doc.checkedOutAt = undefined;
+    return this.uploadVersion(documentId, fileUrl, userId, changeNote);
+  }
 
-    /** Get documents linked to a record */
-    static async getLinked(prisma: PrismaClient, linkedModel: string, linkedId: number) {
-        return p(prisma).dmsDocument.findMany({
-            take: 100,
-            where: { linkedModel, linkedId },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
+  static getVersionHistory(documentId: number): DocVersion[] {
+    return docs.get(documentId)?.versions ?? [];
+  }
 
-    /** Upload new version */
-    static async newVersion(prisma: PrismaClient, documentId: number, newPath: string, newSize: number) {
-        const doc = await p(prisma).dmsDocument.findUnique({ where: { id: documentId } });
-        if (!doc) throw new Error('المستند غير موجود');
-        return p(prisma).dmsDocument.update({
-            where: { id: documentId },
-            data: { path: newPath, size: newSize, version: doc.version + 1 },
-        });
-    }
+  static search(tenantId: string, query: string): DocRecord[] {
+    const q = query.toLowerCase();
+    return Array.from(docs.values()).filter(d => d.tenantId === tenantId && (d.title.toLowerCase().includes(q) || d.tags.toLowerCase().includes(q)));
+  }
 }

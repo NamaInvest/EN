@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRoute } from '@/lib/api/with-route';
-import { getPrisma } from '@/lib/prisma';
-import { MESEngine } from '@/lib/mes-engine';
+import { OEEEngine } from '@/lib/oee-engine';
 
-import { getUserFromRequest } from '@/lib/auth';
-import { logger } from '@/lib/logger';
-
-const log = logger.child({ service: 'manufacturing.oee' });
-async function _GET(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const prisma = getPrisma(req);
-    const wcId = req.nextUrl.searchParams.get('workCenterId');
-    try {
-        if (wcId) {
-            const oee = await MESEngine.calculateOEE(prisma, parseInt(wcId));
-            return NextResponse.json(oee);
-        }
-        const plant = await MESEngine.plantOEE(prisma);
-        return NextResponse.json(plant);
-    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const { tenantId, machineId, shiftId, plannedTime, runTime, idealCycleTime, totalCount, rejectCount } = body;
+  const record = await OEEEngine.record(tenantId, machineId, shiftId, plannedTime, runTime, idealCycleTime, totalCount, rejectCount);
+  return NextResponse.json({ record }, { status: 201 });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const tenantId = searchParams.get('tenantId') ?? '1';
+  const from = new Date(searchParams.get('from') ?? new Date(Date.now() - 7 * 86400000));
+  const to   = new Date(searchParams.get('to') ?? new Date());
+  const data = await OEEEngine.getDashboard(tenantId, from, to);
+  return NextResponse.json({ data });
+}

@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRoute } from '@/lib/api/with-route';
-import { CRMEngine } from '@/lib/crm-engine';
-import { logger } from '@/lib/logger';
+import { SalesForecastEngine } from '@/lib/sales-forecast-engine';
 
-const log = logger.child({ service: 'crm.forecast' });
-
-async function _GET(req: NextRequest) {
-
-    try {
-        const { searchParams } = new URL(req.url);
-        const ownerId = searchParams.get('ownerId') ? parseInt(searchParams.get('ownerId') as string, 10) : undefined;
-        
-        const forecast = await CRMEngine.forecastPipeline(ownerId);
-        return NextResponse.json(forecast);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  if (body.type === 'commit') {
+    const commit = await SalesForecastEngine.submitForecast(body.tenantId, body.userId, body.period, body.commitAmount, body.bestCaseAmount);
+    return NextResponse.json({ commit }, { status: 201 });
+  }
+  if (body.type === 'actual') {
+    await SalesForecastEngine.updateActual(body.tenantId, body.userId, body.period, body.actualAmount);
+    return NextResponse.json({ success: true });
+  }
+  return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const tenantId = searchParams.get('tenantId') ?? '1';
+  const period   = searchParams.get('period') ?? new Date().toISOString().slice(0, 7);
+  const rollup = await SalesForecastEngine.rollup(tenantId, period);
+  return NextResponse.json({ rollup });
+}

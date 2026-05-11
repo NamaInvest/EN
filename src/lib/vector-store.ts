@@ -95,7 +95,7 @@ export async function searchVectorMine(
             ORDER BY c.embedding_vec <=> ${vectorLiteral}::vector
             LIMIT ${topK}
         `;
-        logger.info({ tenantId }, 'vector-store: pgvector search', { hits: rows.length });
+        logger.info({ tenantId, hits: rows.length }, 'vector-store: pgvector search');
         return rows.map(r => ({ ...r, score: parseFloat(r.score) }));
     } catch {
         // Extension not enabled — fall through to JS fallback
@@ -133,3 +133,86 @@ export async function queryRAG(tenantId: string, userQuery: string): Promise<str
     return ctx;
 }
 
+/**
+ * G11: pgvector chunk-level semantic search.
+ * Uses the KnowledgeChunk table with vector column from add_pgvector migration.
+ * Falls back gracefully if pgvector extension is not enabled.
+ */
+export async function searchChunksPgVector(
+    tenantId: string,
+    query: string,
+    topK = 10,
+    similarityThreshold = 0.7,
+): Promise<Array<{ id: string; documentId: string; chunkText: string; metadata: any; similarity: number }>> {
+    const emb         = await getEmbeddings();
+    const queryVector = await emb.embedQuery(query);
+    const prisma      = getPrisma();
+
+    try {
+        const vectorStr = `[${queryVector.join(',')}]`;
+        const rows: any[] = await (prisma as any).$queryRawUnsafe(`
+            SELECT id, "documentId", "chunkText", metadata,
+                   1 - (embedding <=> '${vectorStr}'::vector) AS similarity
+            FROM "KnowledgeChunk"
+            WHERE "tenantId" = $1
+              AND embedding IS NOT NULL
+              AND 1 - (embedding <=> '${vectorStr}'::vector) >= $2
+            ORDER BY embedding <=> '${vectorStr}'::vector
+            LIMIT $3
+        `, tenantId, similarityThreshold, topK);
+        return rows.map((r: any) => ({ ...r, similarity: parseFloat(r.similarity) }));
+    } catch {
+        logger.warn({}, 'searchChunksPgVector: pgvector unavailable, returning empty');
+        return [];
+    }
+}
+
+/**
+ * G11: Ingest a document into pgvector-backed chunk store.
+ * Chunks text by ~500 tokens with 50-token overlap.
+ * Stores embedding per chunk for fast ANN retrieval.
+ */
+export async function ingestDocumentChunks(
+    tenantId: string,
+    documentId: string,
+    text: string,
+): Promise<number> {
+    const CHUNK_SIZE   = 2000;   // ~500 tokens in chars (4 chars/token avg)
+    const OVERLAP      = 200;    // ~50 tokens overlap
+    const emb          = await getEmbeddings();
+    const prisma       = getPrisma();
+
+    const chunks: string[] = [];
+    for (let i = 0; i < text.length; i += CHUNK_SIZE - OVERLAP) {
+        chunks.push(text.slice(i, i + CHUNK_SIZE));
+        if (i + CHUNK_SIZE >= text.length) break;
+    }
+
+    let inserted = 0;
+    for (const [idx, chunk] of chunks.entries()) {
+        const vector = await emb.embedQuery(chunk);
+        const vectorStr = `[${vector.join(',')}]`;
+
+        try {
+            await (prisma as any).$executeRawUnsafe(`
+                INSERT INTO "KnowledgeChunk" (id, "tenantId", "documentId", "chunkText", "chunkIndex", metadata, embedding, "createdAt")
+                VALUES (
+                    gen_random_uuid()::text, $1, $2, $3, $4,
+                    '{}'::jsonb,
+                    '${vectorStr}'::vector,
+                    NOW()
+                )
+                ON CONFLICT DO NOTHING
+            `, tenantId, documentId, chunk, idx);
+        } catch {
+            // pgvector not available — store without embedding (JS fallback still works)
+            await (prisma as any).knowledgeChunk?.create?.({
+                data: { tenantId, documentId, chunkText: chunk, chunkIndex: idx, metadata: {} },
+            }).catch(() => null);
+        }
+        inserted++;
+    }
+
+    logger.info({ tenantId, documentId, chunks: inserted }, 'ingestDocumentChunks: indexed');
+    return inserted;
+}

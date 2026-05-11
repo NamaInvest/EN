@@ -1,0 +1,19 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { ECOEngine } from '@/lib/eco-engine';
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  if (body.type === 'create') {
+    const eco = await ECOEngine.create(body.tenantId, body);
+    return NextResponse.json({ eco }, { status: 201 });
+  }
+  if (body.type === 'approve') {
+    const eco = await ECOEngine.approve(body.id, body.approvedBy);
+    return NextResponse.json({ eco });
+  }
+  if (body.type === 'implement') {
+    const eco = await ECOEngine.implement(body.id);
+    return NextResponse.json({ eco });
+  }
+  return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+}

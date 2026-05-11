@@ -1,28 +1,23 @@
-import { getUserFromRequest } from '@/lib/auth';
-import { withRoute } from '@/lib/api/with-route';
-/**
- * APS Scheduling API
- * GET /api/manufacturing/aps — Run finite capacity scheduling
- */
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
-import { APSScheduler } from '@/lib/aps-scheduler';
-import { logger } from '@/lib/logger';
+import { APSEngine } from '@/lib/aps-engine';
 
-const log = logger.child({ service: 'manufacturing.aps' });
-
-async function _GET(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-
-    const prisma = getPrisma(req);
-    try {
-        const horizon = parseInt(req.nextUrl.searchParams.get('days') || '14');
-        const result = await APSScheduler.schedule(prisma, horizon);
-        return NextResponse.json(result);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  if (body.type === 'run') {
+    const run = await APSEngine.runSchedule(body.tenantId, body.horizonDays ?? 30);
+    return NextResponse.json({ run }, { status: 201 });
+  }
+  if (body.type === 'schedule_op') {
+    const op = await APSEngine.scheduleOperation(body.manufacturingOrderId, body.operationId, body.workCenterId, new Date(body.plannedStart), new Date(body.plannedEnd), body.tenantId, body.sequence);
+    return NextResponse.json({ op }, { status: 201 });
+  }
+  return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const tenantId = searchParams.get('tenantId') ?? '1';
+  const workCenterId = Number(searchParams.get('workCenterId') ?? 0);
+  const conflicts = await APSEngine.detectConflicts(tenantId, workCenterId);
+  return NextResponse.json({ conflicts });
+}

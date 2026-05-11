@@ -155,8 +155,6 @@ export class NumberingEngine {
         return seeded;
     }
 
-    // ── Private Helpers ─────────────────────────────────────────
-
     private static format(seq: any, number: number, date: Date): string {
         const padded = String(number).padStart(seq.padLength || 6, '0');
         let prefix = seq.prefix || '';
@@ -175,12 +173,32 @@ export class NumberingEngine {
         return `${prefix}${padded}${suffix}`;
     }
 
+    /**
+     * Determines if the sequence should reset based on resetPeriod:
+     *   NEVER   → never resets
+     *   YEARLY  → resets when year changes from lastResetAt
+     *   MONTHLY → resets when month changes from lastResetAt
+     *   FISCAL  → resets when fiscalYearId changes (caller must pass new fiscalYearId)
+     */
     private static shouldReset(seq: any, now: Date): boolean {
-        if (seq.resetPeriod === 'NEVER') return false;
+        if (seq.resetPeriod === 'NEVER' || seq.resetPeriod == null) return false;
 
-        // For YEARLY reset, we'd need to track the last reset date.
-        // Using fiscalYearId as proxy — if it changed, reset.
-        // For now, we return false; real implementation would check against createdAt or a resetAt field.
+        const lastReset = seq.lastResetAt ? new Date(seq.lastResetAt) : new Date(seq.createdAt ?? now);
+
+        if (seq.resetPeriod === 'YEARLY') {
+            return now.getFullYear() > lastReset.getFullYear();
+        }
+
+        if (seq.resetPeriod === 'MONTHLY') {
+            return now.getFullYear() > lastReset.getFullYear() ||
+                   now.getMonth() > lastReset.getMonth();
+        }
+
+        if (seq.resetPeriod === 'FISCAL') {
+            // Caller provides fiscalYearId — if it differs from seq.fiscalYearId, reset
+            return false; // handled in getNext by passing opts.fiscalYearId
+        }
+
         return false;
     }
 }

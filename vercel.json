@@ -1,0 +1,69 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/ifrs16-monthly",
+      "schedule": "0 0 1 * *",
+      "description": "IFRS 16 monthly journal: depreciation + interest + principal for all active leases"
+    },
+    {
+      "path": "/api/cron/recurring-billing",
+      "schedule": "0 2 1 * *",
+      "description": "Recurring billing: generate due invoices with pro-rating"
+    },
+    {
+      "path": "/api/cron/fx-revaluation",
+      "schedule": "0 23 28-31 * *",
+      "description": "FX Revaluation (IAS 21): unrealized G/L at month-end closing rate"
+    },
+    {
+      "path": "/api/cron/document-expiry",
+      "schedule": "0 6 * * *",
+      "description": "Document expiry: flag expired contracts, licenses, insurance policies"
+    },
+    {
+      "path": "/api/cron/daily-audit",
+      "schedule": "0 3 * * *",
+      "description": "Daily audit digest: summarize AuditLog entries for overnight review"
+    },
+    {
+      "path": "/api/cron/payment-reminders",
+      "schedule": "0 8 * * 1",
+      "description": "Weekly payment reminders: send dunning notices for overdue AR"
+    },
+    {
+      "path": "/api/cron/approval-sla",
+      "schedule": "0 * * * *",
+      "description": "Approval SLA check: escalate overdue, send reminders, auto-approve leaves"
+    },
+    {
+      "path": "/api/cron/zatca-batch-submit",
+      "schedule": "*/15 * * * *",
+      "description": "ZATCA batch: auto-submit pending B2B clearance + B2C reporting invoices every 15 min"
+    },
+    {
+      "path": "/api/cron/depreciation-monthly",
+      "schedule": "0 3 1 * *",
+      "description": "Fixed assets depreciation (IAS 16): compute + post monthly GL journal for all tenants on day 1"
+    },
+    {
+      "path": "/api/cron/payroll-monthly",
+      "schedule": "0 4 28 * *",
+      "description": "Payroll GL auto-post: after approved payroll, post Dr Salary Expense / Cr Salary Payable journal on day 28"
+    },
+    {
+      "path": "/api/cron/ar-collection-dunning",
+      "schedule": "0 7 * * 0",
+      "description": "AR Collection Dunning: weekly escalation of overdue invoices through 4 dunning levels, credit hold on L2+, Telegram report"
+    },
+    {
+      "path": "/api/cron/vat-return-reminder",
+      "schedule": "0 8 20 * *",
+      "description": "VAT Return Reminder: day 20 of each month — estimates VAT payable, sends Telegram + Notification with deadline countdown"
+    },
+    {
+      "path": "/api/cron/prepayments-amortization",
+      "schedule": "0 5 1 * *",
+      "description": "Prepayments Monthly Amortization: day 1 of each month at 5AM — auto-amortizes all active prepaid entries (Dr Expense / Cr Prepaid), decrements remainingMonths, marks COMPLETED when done"
+    }
+  ]
+}
