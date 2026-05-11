@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { GOSIService } from '@/lib/gosi-service';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -66,6 +67,12 @@ async function _POST(request: Request) {
                 branchId: body.branchId ? parseInt(body.branchId) : null,
             },
         });
+
+        // Trigger GOSI Auto-Registration (Non-blocking)
+        const tenantId = (request as any).headers?.get('x-tenant-id') || 'default';
+        GOSIService.registerEmployee(tenantId, employee, Number(employee.salary), Number(employee.housingAllowance))
+            .catch(err => log.error('GOSI async registration failed', { error: err.message }));
+
         return NextResponse.json(employee, { status: 201 });
     } catch (error: any) {
         log.error('hr/employees POST error:', error);

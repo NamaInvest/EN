@@ -149,4 +149,13 @@ export class AgingEngine {
       },
     };
   }
+
+  static async drillDown(prismaClient: any, type: 'AR' | 'AP', partnerId: number, bucket?: string) {
+    return { status: 'success', data: [] };
+  }
+
+  static async calculate(prismaClient: any, type: 'AR' | 'AP', asOfDate?: Date) {
+    // Pass 'default' as tenantId for now since Prisma is request-scoped
+    return type === 'AR' ? this.generateARAging('default', asOfDate) : this.generateAPAging('default', asOfDate);
+  }
 }

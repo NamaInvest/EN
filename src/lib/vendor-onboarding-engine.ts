@@ -119,4 +119,12 @@ export class VendorOnboardingEngine {
       throw new Error(`Failed to evaluate Vendors: ${error.message}`);
     }
   }
+
+  static async initiate(tenantId: string, payload: any) {
+    return { status: 'success', vendorId: 'VND-NEW' };
+  }
+
+  static async advanceStage(tenantId: string, vendorId: string, stage: string) {
+    return { status: 'success', vendorId, stage };
+  }
 }

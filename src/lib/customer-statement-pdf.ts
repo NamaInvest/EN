@@ -66,7 +66,7 @@ export class CustomerStatementPdfEngine {
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
         
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        await page.setContent(htmlContent, { waitUntil: 'load' });
         
         // Add watermark if configured
         if (customer.statementWatermark) {

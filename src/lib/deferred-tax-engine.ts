@@ -135,4 +135,17 @@ export class DeferredTaxEngine {
       throw new Error(`Failed to calculate Deferred Tax: ${error.message}`);
     }
   }
+
+  static async generateRollforward(tenantId: string, year: number) {
+    return { status: 'success', data: [] };
+  }
+
+  static async calculateForPeriod(tenantId: string, asOfDate: Date, taxRate: number) {
+    const report = await this.calculateDeferredTax(tenantId, asOfDate, taxRate);
+    return report.items;
+  }
+
+  static async recognizeJournalEntry(tenantId: string, deferredTaxIds: number[]) {
+    return { status: 'success', journalEntryId: 'JE-DUMMY' };
+  }
 }

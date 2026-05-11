@@ -47,30 +47,34 @@ async function _POST(request: NextRequest) {
         // Removed $transaction to prevent 30-second timeouts on 10,000+ rows
         for (const row of data) {
             try {
-                fallbackCounter++;
                 let id, name, nameEn, barcode, buyPrice, sellPrice, taxRate, currentStock, minQuantity, categoryId, categoryName, description, activeVal, imagePath, brandAr, brandEn, sizeInfo;
                 
-                // Dynamic resilient key mapping
+                // Dynamic resilient key mapping (permissive)
                 for (const key of Object.keys(row)) {
                     const k = key.trim().toLowerCase();
                     const val = row[key];
-                    if (k === 'المعرف (لا تقم بتعديله)' || k === 'id') id = val;
-                    else if (k === 'اسم المنتج' || k === 'name' || k === 'name_ar') name = val;
-                    else if (k === 'الاسم الإنجليزي' || k === 'nameen' || k === 'name_en') nameEn = val;
-                    else if (k === 'الباركود' || k === 'barcode' || k === 'barcodes') barcode = val;
-                    else if (k === 'سعر الشراء' || k === 'buyprice') buyPrice = val;
-                    else if (k === 'سعر البيع' || k === 'sellprice' || k === 'price (sar)' || k === 'price') sellPrice = val;
-                    else if (k === 'نسبة الضريبة' || k === 'taxrate') taxRate = val;
-                    else if (k === 'المخزون الحالي' || k === 'currentstock') currentStock = val;
-                    else if (k === 'الحد الأدنى' || k === 'minquantity') minQuantity = val;
-                    else if (k === 'معرف التصنيف' || k === 'categoryid') categoryId = val;
-                    else if (k === 'category1_ar' || k === 'category' || k === 'تصنيف') categoryName = val;
+                    if (k === 'id' || k.includes('المعرف')) id = val;
+                    else if (k.includes('اسم المنتج') || k === 'name' || k === 'name_ar') name = val;
+                    else if (k.includes('الاسم الإنجليزي') || k === 'nameen' || k === 'name_en') nameEn = val;
+                    else if (k.includes('باركود') || k.includes('barcode')) barcode = val;
+                    else if (k.includes('سعر الشراء') || k === 'buyprice') buyPrice = val;
+                    else if (k.includes('سعر البيع') || k.includes('sellprice') || k.includes('price')) sellPrice = val;
+                    else if (k.includes('الضريبة') || k.includes('tax')) taxRate = val;
+                    else if (k.includes('المخزون') || k.includes('stock')) currentStock = val;
+                    else if (k.includes('الحد الأدنى') || k.includes('minquantity')) minQuantity = val;
+                    else if (k.includes('معرف التصنيف') || k.includes('categoryid')) categoryId = val;
+                    else if (k.includes('اسم القسم') || k.includes('تصنيف') || k === 'category') categoryName = val;
                     else if (k === 'الوصف' || k === 'description') description = val;
-                    else if (k === 'نشط (1/0)' || k === 'active') activeVal = val;
-                    else if (k === 'صورة' || k === 'imagelink1' || k === 'imagepath') imagePath = val;
-                    else if (k === 'brand_ar') brandAr = val;
-                    else if (k === 'brand_en') brandEn = val;
-                    else if (k === 'size_ar' || k === 'الحجم') sizeInfo = val;
+                    else if (k.includes('نشط') || k === 'active') activeVal = val;
+                    else if (k.includes('صورة') || k.includes('image')) imagePath = val;
+                    else if (k.includes('الماركة عربي') || k === 'brand_ar') brandAr = val;
+                    else if (k.includes('الماركة إنجليزي') || k === 'brand_en') brandEn = val;
+                    else if (k.includes('الحجم') || k === 'size_ar' || k === 'sizeinfo') sizeInfo = val;
+                }
+
+                // Skip completely empty rows (common in Excel)
+                if (!name && !barcode && !buyPrice && !sellPrice) {
+                    continue;
                 }
 
                 if (!name) { 
@@ -107,13 +111,13 @@ async function _POST(request: NextRequest) {
                 }
 
                 const productData = {
-                    name,
-                    nameEn,
+                    name: (name || 'منتج غير معروف').toString(),
+                    nameEn: nameEn ? nameEn.toString() : '',
                     brandAr,
                     brandEn,
                     sizeInfo,
                     imagePath,
-                    barcode: barcode ? barcode : `SYS-${Date.now()}-${fallbackCounter}`,
+                    barcode: barcode ? barcode : null,
                     buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
                     sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
                     taxRate: isNaN(taxRate) ? 15 : taxRate,
@@ -130,11 +134,26 @@ async function _POST(request: NextRequest) {
                         // @ts-ignore
                         updateData.barcode = undefined;
                     }
-                    await prisma.product.update({
-                        where: { id: parseInt(id) },
-                        data: updateData
-                    });
-                    updated++;
+                    try {
+                        await prisma.product.update({
+                            where: { id: parseInt(id) },
+                            data: updateData
+                        });
+                        updated++;
+                    } catch (updateErr: any) {
+                        if (updateErr.code === 'P2002') {
+                            // Barcode is taken by a soft-deleted record or another tenant
+                            // @ts-ignore
+                            updateData.barcode = undefined;
+                            await prisma.product.update({
+                                where: { id: parseInt(id) },
+                                data: updateData
+                            });
+                            updated++;
+                        } else {
+                            throw updateErr;
+                        }
+                    }
                 } else {
                     let existing = null;
                     if (barcode) {
@@ -150,19 +169,27 @@ async function _POST(request: NextRequest) {
                             // @ts-ignore
                             updateData.barcode = undefined;
                         }
-                        await prisma.product.update({ where: { id: existing.id }, data: updateData });
-                        updated++;
+                        try {
+                            await prisma.product.update({ where: { id: existing.id }, data: updateData });
+                            updated++;
+                        } catch (updateErr: any) {
+                            if (updateErr.code === 'P2002') {
+                                // @ts-ignore
+                                updateData.barcode = undefined;
+                                await prisma.product.update({ where: { id: existing.id }, data: updateData });
+                                updated++;
+                            } else {
+                                throw updateErr;
+                            }
+                        }
                     } else {
                         try {
                             await prisma.product.create({ data: productData });
                             added++;
                         } catch (createErr: any) {
                             if (createErr.code === 'P2002') {
-                                // Global unique constraint violation
-                                // Retry with an infallible timestamp + counter
-                                productData.barcode = `SYS-${Date.now()}-${fallbackCounter}`;
-                                await prisma.product.create({ data: productData });
-                                added++;
+                                // Global unique constraint violation (exists in another tenant or soft-deleted)
+                                // Skip silently as per user request.
                             } else {
                                 throw createErr;
                             }
