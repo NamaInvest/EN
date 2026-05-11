@@ -111,7 +111,7 @@ async function _POST(request: NextRequest) {
                     brandEn,
                     sizeInfo,
                     imagePath,
-                    barcode: barcode ? barcode : `SYS-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+                    barcode: barcode ? barcode : `SYS-${crypto.randomUUID()}`,
                     buyPrice: isNaN(buyPrice) ? 0 : buyPrice,
                     sellPrice: isNaN(sellPrice) ? 0 : sellPrice,
                     taxRate: isNaN(taxRate) ? 15 : taxRate,
@@ -151,14 +151,31 @@ async function _POST(request: NextRequest) {
                         await prisma.product.update({ where: { id: existing.id }, data: updateData });
                         updated++;
                     } else {
-                        await prisma.product.create({ data: productData });
-                        added++;
+                        try {
+                            await prisma.product.create({ data: productData });
+                            added++;
+                        } catch (createErr: any) {
+                            if (createErr.code === 'P2002') {
+                                // Global unique constraint violation (likely from another tenant or soft-deleted record)
+                                // Retry with a fresh UUID
+                                // @ts-ignore
+                                productData.barcode = `SYS-${crypto.randomUUID()}`;
+                                await prisma.product.create({ data: productData });
+                                added++;
+                            } else {
+                                throw createErr;
+                            }
+                        }
                     }
                 }
-            } catch (e: any) {
+            } catch (e) {
                 log.error('Row import failed:', e);
                 failed++;
-                if (!firstError) firstError = (e && e.message) ? e.message : String(e);
+                if (!firstError) {
+                    const errStr = e instanceof Error ? e.message : String(e);
+                    const fallbackBarcode = row['الباركود'] || row['barcode'] || row['barcodes'] || 'غير موجود';
+                    firstError = `[الباركود المستهدف: ${fallbackBarcode}] ${errStr}`;
+                }
             }
         }
 
