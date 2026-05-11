@@ -98,4 +98,4 @@ async function _GET(req: Request) {
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AUTH' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'AUTH', requireAuth: false });

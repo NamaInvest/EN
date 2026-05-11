@@ -116,4 +116,4 @@ async function _POST(req: Request) {
     }
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'AUTH', requireAuth: false });
