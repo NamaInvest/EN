@@ -12,6 +12,7 @@ export default function WorkOrdersPage() {
  const [recipes, setRecipes] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [notification, setNotification] = useState<{type: 'success'|'error', message: string} | null>(null);
+ const [searchQuery, setSearchQuery] = useState('');
 
  // Form
  const [isFormOpen, setIsFormOpen] = useState(false);
@@ -286,7 +287,7 @@ export default function WorkOrdersPage() {
  </h2>
  <div className="relative">
  <Search className="w-4 h-4 absolute right-3 top-3 text-slate-400" />
- <input type="text" placeholder="بحث برقم الأمر..." className="input pl-4 pr-10 py-2 w-64" />
+ <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="بحث برقم الأمر أو المنتج..." className="input pl-4 pr-10 py-2 w-64" />
  </div>
  </div>
  
@@ -307,7 +308,11 @@ export default function WorkOrdersPage() {
  {loading && orders.length === 0 ? (
  <tr><td colSpan={7} className="text-center py-10 text-slate-500 font-medium">جاري تحميل البيانات...</td></tr>
  ) : (
- orders.map((order) => (
+ orders.filter(o => 
+   !searchQuery || 
+   o.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+   (o.recipe?.finishedProduct?.name || o.recipe?.name)?.toLowerCase().includes(searchQuery.toLowerCase())
+ ).map((order) => (
  <tr key={order.id}>
  <td className="font-mono text-blue-600 font-extrabold">{order.orderNumber}</td>
  <td className="font-bold text-slate-900">{order.recipe?.finishedProduct?.name || order.recipe?.name}</td>
