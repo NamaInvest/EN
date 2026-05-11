@@ -1,188 +1,152 @@
-/**
- * Aging Reports Engine (G-02)
- * ═════════════════════════════
- * 
- * - تقادم العملاء (AR) والموردين (AP)
- * - Buckets: حالي، 30، 60، 90، 120+
- * - Drill-down لتفاصيل الفواتير
- */
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
-import type { PrismaClient } from '@prisma/client';
-import { logger } from '@/lib/logger';
+export interface AgingBucket {
+  entityId: number;
+  entityName: string;
+  totalRemaining: number;
+  current: number;
+  days30: number; // 1-30 days
+  days60: number; // 31-60 days
+  days90: number; // 61-90 days
+  daysOver90: number; // 91+ days
+}
 
-const log = logger.child({ service: 'aging-engine' });
-
-export type AgingRow = {
-    partnerId: number;
-    partnerName: string;
+export interface AgingReportResult {
+  type: 'AR' | 'AP';
+  asOfDate: Date;
+  buckets: AgingBucket[];
+  totals: {
+    totalRemaining: number;
     current: number;
-    d1_30: number;
-    d31_60: number;
-    d61_90: number;
-    d91_120: number;
-    d120_plus: number;
-    total: number;
-};
+    days30: number;
+    days60: number;
+    days90: number;
+    daysOver90: number;
+  };
+}
 
-export type AgingDetail = {
-    invoiceId: number;
-    invoiceNumber: string;
-    invoiceDate: string;
-    dueDate: string;
-    amount: number;
-    paid: number;
-    balance: number;
-    daysOverdue: number;
-    bucket: string;
-};
-
+/**
+ * Aging Engine - Calculates Accounts Receivable (AR) and Accounts Payable (AP) aging buckets.
+ * Highly demanded for CFO dashboards and financial compliance (ZATCA / SOCPA).
+ */
 export class AgingEngine {
-    /**
-     * Calculate aging for AR or AP
-     */
-    static async calculate(
-        prisma: PrismaClient,
-        type: 'AR' | 'AP',
-        asOfDate?: Date
-    ): Promise<{ rows: AgingRow[]; totals: AgingRow }> {
-        const asOf = asOfDate || new Date();
-        const partnerMap: Record<number, AgingRow> = {};
+  /**
+   * Generates Accounts Receivable (AR) Aging from Sales Invoices
+   */
+  static async generateARAging(tenantId: string, asOfDate: Date = new Date()): Promise<AgingReportResult> {
+    const invoices = await prisma.salesInvoice.findMany({
+      where: {
+        tenantId,
+        remaining: { gt: 0 },
+        date: { lte: asOfDate },
+        deletedAt: null,
+      },
+      include: {
+        customer: true,
+      },
+    });
 
-        if (type === 'AR') {
-            const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
-                where: { status: { notIn: ['CANCELLED', 'cancelled'] } },
-                include: { customer: { select: { id: true, name: true } } },
-            });
+    return this.calculateBuckets(invoices, 'AR', asOfDate);
+  }
 
-            for (const inv of invoices) {
-                const total = Number(inv.total);
-                const paid = Number(inv.paid || 0);
-                const balance = total - paid;
-                if (balance <= 0.01) continue;
+  /**
+   * Generates Accounts Payable (AP) Aging from Purchase Invoices
+   */
+  static async generateAPAging(tenantId: string, asOfDate: Date = new Date()): Promise<AgingReportResult> {
+    const invoices = await prisma.purchaseInvoice.findMany({
+      where: {
+        tenantId,
+        remaining: { gt: 0 },
+        date: { lte: asOfDate },
+        deletedAt: null,
+      },
+      include: {
+        supplier: true,
+      },
+    });
 
-                const dueDate = new Date((inv as any).dueDate || inv.date);
-                const daysOverdue = Math.floor((asOf.getTime() - dueDate.getTime()) / 86400000);
-                const pid = inv.customerId;
-                if (!pid) continue;
+    return this.calculateBuckets(invoices, 'AP', asOfDate);
+  }
 
-                if (!partnerMap[pid]) {
-                    partnerMap[pid] = {
-                        partnerId: pid,
-                        partnerName: inv.customer?.name || `عميل ${pid}`,
-                        current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d91_120: 0, d120_plus: 0, total: 0,
-                    };
-                }
+  private static calculateBuckets(invoices: any[], type: 'AR' | 'AP', asOfDate: Date): AgingReportResult {
+    const bucketsMap = new Map<number, AgingBucket>();
 
-                const row = partnerMap[pid];
-                row.total += balance;
+    let grandTotalRemaining = 0;
+    let grandCurrent = 0;
+    let grand30 = 0;
+    let grand60 = 0;
+    let grand90 = 0;
+    let grandOver90 = 0;
 
-                if (daysOverdue <= 0) row.current += balance;
-                else if (daysOverdue <= 30) row.d1_30 += balance;
-                else if (daysOverdue <= 60) row.d31_60 += balance;
-                else if (daysOverdue <= 90) row.d61_90 += balance;
-                else if (daysOverdue <= 120) row.d91_120 += balance;
-                else row.d120_plus += balance;
-            }
-        } else {
-            const invoices = await prisma.purchaseInvoice.findMany({
-            take: 100,
-                where: { status: { notIn: ['cancelled', 'CANCELLED'] } },
-                include: { supplier: { select: { id: true, name: true } } },
-            });
+    for (const inv of invoices) {
+      // Determine the entity ID and Name based on AR or AP
+      const entityId = type === 'AR' ? inv.customerId : inv.supplierId;
+      const entity = type === 'AR' ? inv.customer : inv.supplier;
+      const entityName = entity?.name || 'Unknown Entity';
 
-            for (const inv of invoices) {
-                const total = Number(inv.total);
-                const paid = Number((inv as any).paid || 0);
-                const balance = total - paid;
-                if (balance <= 0.01) continue;
+      if (!entityId) continue;
 
-                const dueDate = new Date((inv as any).dueDate || inv.date);
-                const daysOverdue = Math.floor((asOf.getTime() - dueDate.getTime()) / 86400000);
-                const pid = inv.supplierId;
-                if (!pid) continue;
+      const remaining = Number(inv.remaining || 0);
+      if (remaining <= 0) continue;
 
-                if (!partnerMap[pid]) {
-                    partnerMap[pid] = {
-                        partnerId: pid,
-                        partnerName: inv.supplier?.name || `مورد ${pid}`,
-                        current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d91_120: 0, d120_plus: 0, total: 0,
-                    };
-                }
+      // Calculate days elapsed since invoice date
+      const invDate = new Date(inv.date);
+      const diffTime = Math.abs(asOfDate.getTime() - invDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                const row = partnerMap[pid];
-                row.total += balance;
-
-                if (daysOverdue <= 0) row.current += balance;
-                else if (daysOverdue <= 30) row.d1_30 += balance;
-                else if (daysOverdue <= 60) row.d31_60 += balance;
-                else if (daysOverdue <= 90) row.d61_90 += balance;
-                else if (daysOverdue <= 120) row.d91_120 += balance;
-                else row.d120_plus += balance;
-            }
-        }
-
-        const rows = Object.values(partnerMap)
-            .map(r => ({
-                ...r,
-                current: Math.round(r.current * 100) / 100,
-                d1_30: Math.round(r.d1_30 * 100) / 100,
-                d31_60: Math.round(r.d31_60 * 100) / 100,
-                d61_90: Math.round(r.d61_90 * 100) / 100,
-                d91_120: Math.round(r.d91_120 * 100) / 100,
-                d120_plus: Math.round(r.d120_plus * 100) / 100,
-                total: Math.round(r.total * 100) / 100,
-            }))
-            .sort((a, b) => b.total - a.total);
-
-        const totals: AgingRow = {
-            partnerId: 0, partnerName: 'الإجمالي',
-            current: rows.reduce((s: any, r: any) => s + r.current, 0),
-            d1_30: rows.reduce((s: any, r: any) => s + r.d1_30, 0),
-            d31_60: rows.reduce((s: any, r: any) => s + r.d31_60, 0),
-            d61_90: rows.reduce((s: any, r: any) => s + r.d61_90, 0),
-            d91_120: rows.reduce((s: any, r: any) => s + r.d91_120, 0),
-            d120_plus: rows.reduce((s: any, r: any) => s + r.d120_plus, 0),
-            total: rows.reduce((s: any, r: any) => s + r.total, 0),
+      // Retrieve or initialize bucket for this entity
+      let bucket = bucketsMap.get(entityId);
+      if (!bucket) {
+        bucket = {
+          entityId,
+          entityName,
+          totalRemaining: 0,
+          current: 0,
+          days30: 0,
+          days60: 0,
+          days90: 0,
+          daysOver90: 0,
         };
+        bucketsMap.set(entityId, bucket);
+      }
 
-        return { rows, totals };
+      // Assign to correct aging bucket
+      bucket.totalRemaining += remaining;
+      grandTotalRemaining += remaining;
+
+      // Assumption: standard payment term is 0 days for strict aging unless dueDate is specified.
+      // Since dueDate isn't heavily enforced, we age directly from invoice date.
+      if (diffDays <= 0) {
+        bucket.current += remaining;
+        grandCurrent += remaining;
+      } else if (diffDays <= 30) {
+        bucket.days30 += remaining;
+        grand30 += remaining;
+      } else if (diffDays <= 60) {
+        bucket.days60 += remaining;
+        grand60 += remaining;
+      } else if (diffDays <= 90) {
+        bucket.days90 += remaining;
+        grand90 += remaining;
+      } else {
+        bucket.daysOver90 += remaining;
+        grandOver90 += remaining;
+      }
     }
 
-    /**
-     * Drill-down: get individual invoices for a partner bucket
-     */
-    static async drillDown(
-        prisma: PrismaClient,
-        type: 'AR' | 'AP',
-        partnerId: number,
-        bucket?: string
-    ): Promise<AgingDetail[]> {
-        const now = new Date();
-        const results: AgingDetail[] = [];
-
-        if (type === 'AR') {
-            const invoices = await prisma.salesInvoice.findMany({
-            take: 100,
-                where: { customerId: partnerId, status: { notIn: ['CANCELLED'] } },
-            });
-            for (const inv of invoices) {
-                const total = Number(inv.total);
-                const paid = Number(inv.paid || 0);
-                const balance = total - paid;
-                if (balance <= 0.01) continue;
-                const dueDate = new Date((inv as any).dueDate || inv.date);
-                const daysOverdue = Math.max(0, Math.floor((now.getTime() - dueDate.getTime()) / 86400000));
-                const bkt = daysOverdue <= 0 ? 'current' : daysOverdue <= 30 ? '1-30' : daysOverdue <= 60 ? '31-60' : daysOverdue <= 90 ? '61-90' : daysOverdue <= 120 ? '91-120' : '120+';
-                if (bucket && bkt !== bucket) continue;
-                results.push({
-                    invoiceId: inv.id, invoiceNumber: `INV-${inv.invoiceNo}`,
-                    invoiceDate: String(inv.date).slice(0, 10), dueDate: dueDate.toISOString().slice(0, 10),
-                    amount: total, paid, balance: Math.round(balance * 100) / 100, daysOverdue, bucket: bkt,
-                });
-            }
-        }
-
-        return results.sort((a, b) => b.daysOverdue - a.daysOverdue);
-    }
+    return {
+      type,
+      asOfDate,
+      buckets: Array.from(bucketsMap.values()),
+      totals: {
+        totalRemaining: grandTotalRemaining,
+        current: grandCurrent,
+        days30: grand30,
+        days60: grand60,
+        days90: grand90,
+        daysOver90: grandOver90,
+      },
+    };
+  }
 }

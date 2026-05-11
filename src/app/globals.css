@@ -794,7 +794,8 @@ textarea.input {
   animation: fadeIn 0.2s ease;
 }
 
-.modal {
+.modal,
+.modal-content {
   background: var(--bg-darker);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -2199,7 +2200,8 @@ textarea.input {
   }
 
   .modal,
-  .modal-lg {
+  .modal-lg,
+  .modal-content {
     width: 100%;
     max-width: 100%;
     max-height: 90vh;

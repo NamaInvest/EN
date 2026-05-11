@@ -67,7 +67,7 @@ export default async function SubscriptionsDashboard() {
 
             {/* Metrics Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
+                <Card className="bg-linear-to-br from-indigo-50 to-white border-indigo-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-indigo-600">{_t('الإيرادات المتكررة (شهرياً)', 'MRR (Monthly)')}</p>

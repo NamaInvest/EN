@@ -695,6 +695,8 @@ const menuItems = [
     { icon: '⚖️', lk: 'i.budgets', href: '/fng/budgets', module: 'accounting' },
     { icon: '➗', lk: 'i.allocations', href: '/fng/allocations', module: 'accounting' },
     { icon: '🛡️', lk: 'i.tax_zatca', href: '/tax', module: 'accounting' },
+    { icon: '🧮', lk: 'i.deferred_tax', href: '/finance/deferred-tax', module: 'accounting' },
+    { icon: '📉', lk: 'i.impairment', href: '/finance/impairment', module: 'accounting' },
     { icon: '📑', lk: 'i.installments', href: '/installments', module: 'installments' },
     { icon: '📈', lk: 'i.fin_reports', href: '/reports', module: 'reports' },
     { icon: '📊', lk: 'i.budget_variance', href: '/reports/budget-variance', module: 'reports' },
@@ -732,6 +734,7 @@ const menuItems = [
     { icon: '💸', lk: 'i.collection_wf', href: '/accounting/collection-workflow', module: 'accounting' },
     { icon: '💳', lk: 'i.prepayments_ui', href: '/accounting/prepayments', module: 'accounting' },
     { icon: '🔗', lk: 'i.interco', href: '/accounting/inter-company', module: 'accounting' },
+    { icon: '📄', lk: 'i.aging_report', href: '/accounting/aging-report', module: 'accounting' },
   ]},
   { sk: 's.crm', items: [
     { icon: '👥', lk: 'i.customers', href: '/customers', module: 'customers' },
@@ -1141,7 +1144,7 @@ export default function Sidebar() {
   return (
     <>
       <button
-        className="fixed bottom-4 right-4 z-[60] bg-blue-600 text-white p-3 rounded-full shadow-lg lg:hidden"
+        className="fixed bottom-4 right-4 z-60 bg-blue-600 text-white p-3 rounded-full shadow-lg lg:hidden"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Menu"
       >
@@ -1149,12 +1152,12 @@ export default function Sidebar() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[40] lg:hidden" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsOpen(false)} />
       )}
 
       <aside className={`fixed right-0 top-0 h-screen w-[260px] bg-white border-l border-slate-200 z-50 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
         <div className="flex items-center gap-3 p-5 border-b border-slate-100 min-h-[72px]">
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm border border-blue-100 flex-shrink-0">🏢</div>
+          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-sm border border-blue-100 shrink-0">🏢</div>
           <div className="flex-1 font-bold text-lg text-slate-800 truncate">{companyName}</div>
           <button
             className="lg:hidden text-slate-400 hover:text-slate-600"
@@ -1196,7 +1199,7 @@ export default function Sidebar() {
                         }`}
                         style={{ direction: isRTL ? 'rtl' : 'ltr' }}
                       >
-                        <span className={`text-lg flex-shrink-0 ${isActive ? 'opacity-100' : 'opacity-70'}`}>{item.icon}</span>
+                        <span className={`text-lg shrink-0 ${isActive ? 'opacity-100' : 'opacity-70'}`}>{item.icon}</span>
                         <span className="leading-snug">{gl(lang, item.lk)}</span>
                       </Link>
                     );
@@ -1209,7 +1212,7 @@ export default function Sidebar() {
 
         <div className="p-4 border-t border-slate-100 bg-slate-50/50 mt-auto">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
               {(loggedUser.fullName || 'U')[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
