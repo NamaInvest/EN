@@ -33,6 +33,8 @@ const PUBLIC_ROUTES = [
   '/api/pos/session/open',
   '/api/docs',
   '/api/metrics',        // Prometheus scraper (secured by network, not JWT)
+  '/api/tenant/provision',     // handles its own auth (Clerk userId or clerkEmail)
+  '/api/tenant/check-status',  // read-only — checks if user has provisioned tenant
 ];
 
 // ── Permanently Disabled Routes (HTTP 410 Gone) ───────────────────────────────
