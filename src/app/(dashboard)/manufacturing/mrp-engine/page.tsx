@@ -71,7 +71,7 @@ export default function MRPEnginePage() {
  <TrendingDown className="w-6 h-6 ml-2 text-rose-400" /> تقرير نواقص الإنتاج (Material Shortages)
  </h2>
  <div className="bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/20 flex items-center">
- <AlertTriangle className="w-3 h-3 ml-1" />{_t('JIT Alert', 'JIT Alert')}</div>
+ <AlertTriangle className="w-3 h-3 ml-1" />{_t('تنبيه جيت', 'JIT Alert')}</div>
  </div>
  <div className="p-6">
  {data.shortages?.length === 0 ? (

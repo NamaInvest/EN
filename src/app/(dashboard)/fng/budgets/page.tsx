@@ -23,14 +23,14 @@ export default async function BudgetsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Calculator className="w-8 h-8 text-indigo-600" />{_t('Budgets & Financial Control', 'Budgets & Financial Control')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Manage corporate budgets, multi-period planning, and encumbrances.', 'Manage corporate budgets, multi-period planning, and encumbrances.')}</p>
+                        <Calculator className="w-8 h-8 text-indigo-600" />{_t('الميزانيات والرقابة المالية', 'Budgets & Financial Control')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إدارة ميزانيات الشركات والتخطيط متعدد الفترات والأعباء.', 'Manage corporate budgets, multi-period planning, and encumbrances.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
-                        <FileSpreadsheet className="w-4 h-4 mr-2" />{_t('Import Excel', 'Import Excel')}</Button>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />{_t('استيراد اكسل', 'Import Excel')}</Button>
                     <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('New Budget', 'New Budget')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('الميزانية الجديدة', 'New Budget')}</Button>
                 </div>
             </div>
 
@@ -43,17 +43,17 @@ export default async function BudgetsPage() {
                             <BarChart3 className="w-4 h-4 text-indigo-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{activeBudgets}</h3>
-                        <p className="text-xs text-indigo-500 mt-1">{_t('Current fiscal year planning', 'Current fiscal year planning')}</p>
+                        <p className="text-xs text-indigo-500 mt-1">{_t('تخطيط السنة المالية الحالية', 'Current fiscal year planning')}</p>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-amber-50 to-white border-amber-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-amber-600">{_t('Draft & Pending', 'Draft & Pending')}</p>
+                            <p className="text-sm font-medium text-amber-600">{_t('مسودة ومعلقة', 'Draft & Pending')}</p>
                             <ShieldAlert className="w-4 h-4 text-amber-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{pendingBudgets}</h3>
-                        <p className="text-xs text-amber-500 mt-1">{_t('Require board approval', 'Require board approval')}</p>
+                        <p className="text-xs text-amber-500 mt-1">{_t('تتطلب موافقة المجلس', 'Require board approval')}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -74,7 +74,7 @@ export default async function BudgetsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">{_t('Budget Name', 'Budget Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('اسم الميزانية', 'Budget Name')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('السنة المالية', 'Fiscal Year')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('النوع', 'Type')}</th>
                                 <th className="px-4 py-3 font-medium text-right">{_t('المبلغ المجمل', 'Total Amount')}</th>
@@ -106,7 +106,7 @@ export default async function BudgetsPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700">{_t('View Lines', 'View Lines')}</Button>
+                                        <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700">{_t('عرض الخطوط', 'View Lines')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -115,7 +115,7 @@ export default async function BudgetsPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Calculator className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('No Budgets Found', 'No Budgets Found')}</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لم يتم العثور على ميزانيات', 'No Budgets Found')}</p>
                                         </div>
                                     </td>
                                 </tr>

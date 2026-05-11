@@ -14,8 +14,8 @@ export default function DocsIndexPage() {
             <div className="flex items-center gap-3">
                 <BookOpen className="w-8 h-8 text-blue-600" />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{_t('System Documentation', 'System Documentation')}</h1>
-                    <p className="text-gray-500">{_t('Official technical specifications and gap analysis modules.', 'Official technical specifications and gap analysis modules.')}</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{_t('توثيق النظام', 'System Documentation')}</h1>
+                    <p className="text-gray-500">{_t('المواصفات الفنية الرسمية ووحدات تحليل الفجوات.', 'Official technical specifications and gap analysis modules.')}</p>
                 </div>
             </div>
 
@@ -30,13 +30,13 @@ export default function DocsIndexPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-gray-500">{_t('Click to view the full specification and module requirements for this section.', 'Click to view the full specification and module requirements for this section.')}</p>
+                                <p className="text-sm text-gray-500">{_t('انقر لعرض المواصفات الكاملة ومتطلبات الوحدة لهذا القسم.', 'Click to view the full specification and module requirements for this section.')}</p>
                             </CardContent>
                         </Card>
                     </Link>
                 ))}
                 {files.length === 0 && (
-                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">{_t('No documentation files found in the docs folder.', 'No documentation files found in the docs folder.')}</div>
+                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">{_t('لم يتم العثور على ملفات وثائق في مجلد المستندات.', 'No documentation files found in the docs folder.')}</div>
                 )}
             </div>
         </div>

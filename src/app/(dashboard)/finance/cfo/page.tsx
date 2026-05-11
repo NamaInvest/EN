@@ -114,7 +114,7 @@ export default function CFODashboardPage() {
  <Percent size={24} />
  </div>
  <div>
- <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13px' }}>{_t('Net Profit Margin', 'Net Profit Margin')}</p>
+ <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13px' }}>{_t('هامش صافي الربح', 'Net Profit Margin')}</p>
  <h3 style={{ margin: '5px 0 0 0', fontSize: '24px', color: '#3b82f6' }}>{kpis.netProfitMargin}%</h3>
  </div>
  </div>

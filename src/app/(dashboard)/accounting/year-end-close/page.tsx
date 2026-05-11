@@ -25,56 +25,56 @@ export default async function YearEndCloseDashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{_t('Period & Year-End Close', 'Period & Year-End Close')}</h1>
-                    <p className="text-muted-foreground">{_t('Manage financial period locking, retained earnings rollover, and audit trails', 'Manage financial period locking, retained earnings rollover, and audit trails')}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{_t('إغلاق الفترة ونهاية العام', 'Period & Year-End Close')}</h1>
+                    <p className="text-muted-foreground">{_t('إدارة قفل الفترة المالية وترحيل الأرباح المحتجزة ومسارات التدقيق', 'Manage financial period locking, retained earnings rollover, and audit trails')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline">
-                        <FileOutput className="h-4 w-4 mr-2" />{_t('Generate TB', 'Generate TB')}</Button>
+                        <FileOutput className="h-4 w-4 mr-2" />{_t('توليد السل', 'Generate TB')}</Button>
                     <Button variant="default">
-                        <Lock className="h-4 w-4 mr-2" />{_t('Execute Soft Close', 'Execute Soft Close')}</Button>
+                        <Lock className="h-4 w-4 mr-2" />{_t('تنفيذ الإغلاق الناعم', 'Execute Soft Close')}</Button>
                 </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Current Open Period', 'Current Open Period')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('الفترة المفتوحة الحالية', 'Current Open Period')}</CardTitle>
                         <Lock className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{currentMonth} {currentYear}</div>
-                        <p className="text-xs text-muted-foreground">{_t('Active operational period', 'Active operational period')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('فترة التشغيل النشطة', 'Active operational period')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Pre-close Checklist', 'Pre-close Checklist')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('قائمة مراجعة ما قبل الإغلاق', 'Pre-close Checklist')}</CardTitle>
                         <CheckSquare className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">4 / 12</div>
-                        <p className="text-xs text-muted-foreground">{_t('Tasks completed', 'Tasks completed')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('اكتملت المهام', 'Tasks completed')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Unposted JEs', 'Unposted JEs')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('JEs غير المنشورة', 'Unposted JEs')}</CardTitle>
                         <ShieldAlert className={`h-4 w-4 ${unpostedJEsCount > 0 ? 'text-orange-500' : 'text-green-500'}`} />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{unpostedJEsCount}</div>
-                        <p className="text-xs text-muted-foreground">{_t('Require posting before close', 'Require posting before close')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('يتطلب النشر قبل الإغلاق', 'Require posting before close')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Last Hard Close', 'Last Hard Close')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('آخر إغلاق صعب', 'Last Hard Close')}</CardTitle>
                         <Lock className="h-4 w-4 text-gray-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">FY {currentYear - 1}</div>
-                        <p className="text-xs text-muted-foreground">{_t('Locked by Admin', 'Locked by Admin')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('مغلق من قبل المشرف', 'Locked by Admin')}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -89,7 +89,7 @@ export default async function YearEndCloseDashboard() {
                             <thead className="bg-muted/50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('المهمة (Task)', 'Task')}</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('Owner', 'Owner')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('مالك', 'Owner')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right text-sm font-medium">{_t('✅ جميع المنتجات لديها باركود', 'Action')}</th>
                                 </tr>
@@ -97,29 +97,29 @@ export default async function YearEndCloseDashboard() {
                             <tbody className="divide-y divide-border">
                                 <tr>
                                     <td className="px-4 py-3 text-sm">Post all pending Journal Entries ({unpostedJEsCount})</td>
-                                    <td className="px-4 py-3 text-sm">{_t('Accounting Team', 'Accounting Team')}</td>
+                                    <td className="px-4 py-3 text-sm">{_t('فريق المحاسبة', 'Accounting Team')}</td>
                                     <td className="px-4 py-3 text-sm">
                                         {unpostedJEsCount > 0 ? (
-                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">{_t('PENDING', 'PENDING')}</span>
+                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">{_t('قيد الانتظار', 'PENDING')}</span>
                                         ) : (
-                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{_t('DONE', 'DONE')}</span>
+                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{_t('منتهي', 'DONE')}</span>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">{_t('Review', 'Review')}</Button></td>
+                                    <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">{_t('مراجعة', 'Review')}</Button></td>
                                 </tr>
                                 <tr>
-                                    <td className="px-4 py-3 text-sm">{_t('Complete Bank Reconciliation', 'Complete Bank Reconciliation')}</td>
-                                    <td className="px-4 py-3 text-sm">{_t('Treasury Team', 'Treasury Team')}</td>
-                                    <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{_t('DONE', 'DONE')}</span></td>
+                                    <td className="px-4 py-3 text-sm">{_t('تسوية البنك كاملة', 'Complete Bank Reconciliation')}</td>
+                                    <td className="px-4 py-3 text-sm">{_t('فريق الخزينة', 'Treasury Team')}</td>
+                                    <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">{_t('منتهي', 'DONE')}</span></td>
                                     <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">{_t('عرض', 'View')}</Button></td>
                                 </tr>
                                 <tr>
-                                    <td className="px-4 py-3 text-sm">{_t('Run Depreciation (Fixed Assets)', 'Run Depreciation (Fixed Assets)')}</td>
-                                    <td className="px-4 py-3 text-sm">{_t('Asset Manager', 'Asset Manager')}</td>
+                                    <td className="px-4 py-3 text-sm">{_t('تشغيل الإهلاك (الأصول الثابتة)', 'Run Depreciation (Fixed Assets)')}</td>
+                                    <td className="px-4 py-3 text-sm">{_t('مدير الأصول', 'Asset Manager')}</td>
                                     <td className="px-4 py-3 text-sm">
-                                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">{_t('OVERDUE', 'OVERDUE')}</span>
+                                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">{_t('متأخر', 'OVERDUE')}</span>
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">{_t('Execute', 'Execute')}</Button></td>
+                                    <td className="px-4 py-3 text-sm text-right"><Button variant="ghost" size="sm">{_t('ينفذ', 'Execute')}</Button></td>
                                 </tr>
                             </tbody>
                         </table>

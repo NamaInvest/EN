@@ -23,12 +23,12 @@ export default async function GiftCardsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <CreditCard className="w-8 h-8 text-teal-600" />{_t('Gift Cards', 'Gift Cards')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Issue, manage, and track digital and physical gift cards.', 'Issue, manage, and track digital and physical gift cards.')}</p>
+                        <CreditCard className="w-8 h-8 text-teal-600" />{_t('بطاقات الهدايا', 'Gift Cards')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إصدار وإدارة وتتبع بطاقات الهدايا الرقمية والمادية.', 'Issue, manage, and track digital and physical gift cards.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('Issue Gift Card', 'Issue Gift Card')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('إصدار بطاقة الهدايا', 'Issue Gift Card')}</Button>
                 </div>
             </div>
 
@@ -37,7 +37,7 @@ export default async function GiftCardsPage() {
                 <Card className="bg-gradient-to-br from-teal-50 to-white border-teal-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-teal-600">{_t('Active Cards', 'Active Cards')}</p>
+                            <p className="text-sm font-medium text-teal-600">{_t('البطاقات النشطة', 'Active Cards')}</p>
                             <CreditCard className="w-4 h-4 text-teal-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{activeCards.length}</h3>
@@ -46,7 +46,7 @@ export default async function GiftCardsPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">{_t('Total Liability', 'Total Liability')}</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('المسؤولية الكاملة', 'Total Liability')}</p>
                             <CreditCard className="w-4 h-4 text-gray-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{liability.toLocaleString()} <span className="text-sm font-normal text-gray-500">{_t('ر.س', 'SAR')}</span></h3>
@@ -71,9 +71,9 @@ export default async function GiftCardsPage() {
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
                                 <th className="px-4 py-3 font-medium">{_t('الكود', 'Code')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Initial Balance', 'Initial Balance')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('الرصيد الأولي', 'Initial Balance')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الرصيد الحالي', 'Current Balance')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Issued At', 'Issued At')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('صدرت في', 'Issued At')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
                                 <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
@@ -106,7 +106,7 @@ export default async function GiftCardsPage() {
                                                 <ShieldAlert className="w-4 h-4" />
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="sm" className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 ml-1">{_t('Manage', 'Manage')}</Button>
+                                        <Button variant="ghost" size="sm" className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 ml-1">{_t('يدير', 'Manage')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -115,9 +115,9 @@ export default async function GiftCardsPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <CreditCard className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('No Gift Cards Issued', 'No Gift Cards Issued')}</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لم يتم إصدار أي بطاقات هدايا', 'No Gift Cards Issued')}</p>
                                             <Button className="mt-4 bg-teal-600 hover:bg-teal-700 text-white">
-                                                <Plus className="w-4 h-4 mr-2" />{_t('Issue First Card', 'Issue First Card')}</Button>
+                                                <Plus className="w-4 h-4 mr-2" />{_t('إصدار البطاقة الأولى', 'Issue First Card')}</Button>
                                         </div>
                                     </td>
                                 </tr>

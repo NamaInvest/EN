@@ -190,7 +190,7 @@ export default function CRMLeadsPage() {
                 {/* Converted Column (Read-Only) */}
                 <div className="min-w-[320px] max-w-[320px] bg-green-50 dark:bg-green-900/10 rounded-lg shadow-sm border border-green-200 dark:border-green-800 flex flex-col h-[700px] opacity-75">
                     <div className="p-4 border-b border-green-200 dark:border-green-800 bg-green-100 dark:bg-green-900/30 rounded-t-lg flex justify-between items-center">
-                        <h2 className="font-bold text-green-700 dark:text-green-400">{_t('CONVERTED (Opportunities)', 'CONVERTED (Opportunities)')}</h2>
+                        <h2 className="font-bold text-green-700 dark:text-green-400">{_t('المحولة (الفرص)', 'CONVERTED (Opportunities)')}</h2>
                     </div>
                     <div className="p-4 space-y-4 overflow-y-auto flex-1">
                         {leads.filter(l => l.status === 'CONVERTED').map(lead => (

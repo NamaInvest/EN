@@ -240,7 +240,7 @@ export default function ElectronicPrescriptionPage() {
                                     </h3>
                                     {patientId ? (
                                         <div className="text-sm text-yellow-700 dark:text-yellow-400 space-y-2">
-                                            <p className="flex gap-2"><span>•</span> المريض لديه حساسية من: <span className="font-bold font-mono bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">{_t('Penicillin', 'Penicillin')}</span></p>
+                                            <p className="flex gap-2"><span>•</span> المريض لديه حساسية من: <span className="font-bold font-mono bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">{_t('البنسلين', 'Penicillin')}</span></p>
                                             <p className="flex gap-2 text-gray-500 dark:text-gray-400"><span>•</span> لا توجد تعارضات مع الأدوية المضافة حالياً.</p>
                                         </div>
                                     ) : (

@@ -87,7 +87,7 @@ export function OrdersClient({ data }: OrdersClientProps) {
           <div className="text-right">
             {status === 'draft' && (
                 <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-                    <PlayCircle className="w-4 h-4 mr-1" />{_t('Start', 'Start')}</Button>
+                    <PlayCircle className="w-4 h-4 mr-1" />{_t('يبدأ', 'Start')}</Button>
             )}
             {status === 'in_progress' && (
                 <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50">
@@ -104,7 +104,7 @@ export function OrdersClient({ data }: OrdersClientProps) {
       columns={columns} 
       data={data} 
       pageSize={15} 
-      emptyMessage={_t('No Work Orders', 'No Work Orders')}
+      emptyMessage={_t('لا توجد أوامر العمل', 'No Work Orders')}
     />
   );
 }

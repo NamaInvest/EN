@@ -44,7 +44,7 @@ export default function TraceabilityPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Trace Query', 'Trace Query')}</CardTitle>
+                    <CardTitle>{_t('تتبع الاستعلام', 'Trace Query')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex space-x-4">
@@ -53,9 +53,9 @@ export default function TraceabilityPage() {
                             value={searchType}
                             onChange={(e) => setSearchType(e.target.value)}
                         >
-                            <option value="serial">{_t('Serial Number', 'Serial Number')}</option>
+                            <option value="serial">{_t('رقم سري', 'Serial Number')}</option>
                             <option value="batch">{_t('رقم التشغيلة (Batch)', 'Batch Number')}</option>
-                            <option value="lot">{_t('Production Lot', 'Production Lot')}</option>
+                            <option value="lot">{_t('قطعة الإنتاج', 'Production Lot')}</option>
                             <option value="invoice">{_t('فاتورة مبيعات', 'Sales Invoice')}</option>
                         </select>
                         <Input 
@@ -69,20 +69,20 @@ export default function TraceabilityPage() {
                 </CardContent>
             </Card>
 
-            {loading && <p>{_t('Tracing components...', 'Tracing components...')}</p>}
+            {loading && <p>{_t('تتبع المكونات...', 'Tracing components...')}</p>}
 
             {result && !loading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>{_t('Item Details', 'Item Details')}</CardTitle>
+                            <CardTitle>{_t('تفاصيل السلعة', 'Item Details')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div><strong className="block text-sm text-gray-500">{_t('المنتج', 'Product')}</strong>{result.product}</div>
-                            <div><strong className="block text-sm text-gray-500">{_t('Serial Number', 'Serial Number')}</strong>{result.id}</div>
+                            <div><strong className="block text-sm text-gray-500">{_t('رقم سري', 'Serial Number')}</strong>{result.id}</div>
                             <div><strong className="block text-sm text-gray-500">{_t('رقم التشغيلة (Batch)', 'Batch Number')}</strong>{result.batch}</div>
-                            <div><strong className="block text-sm text-gray-500">{_t('Production Lot', 'Production Lot')}</strong>{result.productionLot}</div>
-                            <div><strong className="block text-sm text-gray-500">{_t('Customer', 'Customer')}</strong>{result.customer} ({result.salesInvoice})</div>
+                            <div><strong className="block text-sm text-gray-500">{_t('قطعة الإنتاج', 'Production Lot')}</strong>{result.productionLot}</div>
+                            <div><strong className="block text-sm text-gray-500">{_t('عميل', 'Customer')}</strong>{result.customer} ({result.salesInvoice})</div>
                             <div><strong className="block text-sm text-gray-500">{_t('الوضع الحالي', 'Current Status')}</strong>
                                 <span className="text-green-600 font-bold">{result.status}</span>
                             </div>
@@ -91,7 +91,7 @@ export default function TraceabilityPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>{_t('Lifecycle Timeline', 'Lifecycle Timeline')}</CardTitle>
+                            <CardTitle>{_t('الجدول الزمني لدورة الحياة', 'Lifecycle Timeline')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4 relative border-l-2 border-gray-200 dark:border-gray-700 ml-3">

@@ -149,7 +149,7 @@ export default function POSTerminal() {
  </div>
  
  <div className="flex justify-center items-center text-xs text-slate-400 font-[Fira_Code] mt-4">
- <QrCode className="w-3 h-3 ml-1" />{_t('ZATCA Phase 2 Ready', 'ZATCA Phase 2 Ready')}</div>
+ <QrCode className="w-3 h-3 ml-1" />{_t('ZATCA المرحلة الثانية جاهزة', 'ZATCA Phase 2 Ready')}</div>
  </div>
  </div>
 

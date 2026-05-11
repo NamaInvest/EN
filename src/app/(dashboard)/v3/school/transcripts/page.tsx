@@ -16,23 +16,23 @@ export default function TranscriptGeneratorPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Transcript Generator', 'Transcript Generator')}</h1>
-                <Button>{_t('Generate Bulk Transcripts', 'Generate Bulk Transcripts')}</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('مولد النص', 'Transcript Generator')}</h1>
+                <Button>{_t('إنشاء نصوص مجمعة', 'Generate Bulk Transcripts')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Students Eligible for Transcript', 'Students Eligible for Transcript')}</CardTitle>
+                    <CardTitle>{_t('الطلاب المؤهلون للحصول على نسخة', 'Students Eligible for Transcript')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('Student ID', 'Student ID')}</th>
+                                    <th className="px-4 py-3">{_t('معرف الطالب', 'Student ID')}</th>
                                     <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
-                                    <th className="px-4 py-3">{_t('Grade Level', 'Grade Level')}</th>
-                                    <th className="px-4 py-3">{_t('Cumulative GPA', 'Cumulative GPA')}</th>
+                                    <th className="px-4 py-3">{_t('مستوى الصف', 'Grade Level')}</th>
+                                    <th className="px-4 py-3">{_t('المعدل التراكمي', 'Cumulative GPA')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
@@ -46,7 +46,7 @@ export default function TranscriptGeneratorPage() {
                                         <td className="px-4 py-3 font-bold text-blue-600">{stu.gpa}</td>
                                         <td className="px-4 py-3 text-gray-600">{stu.status}</td>
                                         <td className="px-4 py-3 text-right">
-                                            <Button size="sm" variant="outline" className="text-green-600 border-green-500">{_t('Generate PDF', 'Generate PDF')}</Button>
+                                            <Button size="sm" variant="outline" className="text-green-600 border-green-500">{_t('توليد قوات الدفاع الشعبي', 'Generate PDF')}</Button>
                                         </td>
                                     </tr>
                                 ))}

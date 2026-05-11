@@ -30,8 +30,8 @@ export default function OrchestrationDashboard() {
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Network className="w-8 h-8 text-indigo-600" />{_t('V2 Orchestration & SLA Tracking', 'V2 Orchestration & SLA Tracking')}</h1>
-            <p className="text-gray-500">{_t('Cross-module Saga Tracking, Event Driven Hand-offs, and SLA Monitoring.', 'Cross-module Saga Tracking, Event Driven Hand-offs, and SLA Monitoring.')}</p>
+                <Network className="w-8 h-8 text-indigo-600" />{_t('تنسيق V2 وتتبع SLA', 'V2 Orchestration & SLA Tracking')}</h1>
+            <p className="text-gray-500">{_t('تتبع Saga عبر الوحدات، وعمليات التسليم المستندة إلى الأحداث، ومراقبة SLA.', 'Cross-module Saga Tracking, Event Driven Hand-offs, and SLA Monitoring.')}</p>
 
             <Card className="p-6">
                 <div className="flex justify-between items-center mb-4">
@@ -43,7 +43,7 @@ export default function OrchestrationDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="p-6">
-                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><Activity />{_t('Active Sagas (State Machines)', 'Active Sagas (State Machines)')}</h2>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><Activity />{_t('الملاحم النشطة (أجهزة الدولة)', 'Active Sagas (State Machines)')}</h2>
                     <div className="space-y-3">
                         {data.sagas.map((saga: any) => (
                             <div key={saga.id} className="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
@@ -63,12 +63,12 @@ export default function OrchestrationDashboard() {
                                 </div>
                             </div>
                         ))}
-                        {data.sagas.length === 0 && <p className="text-sm text-gray-500">{_t('No active sagas found.', 'No active sagas found.')}</p>}
+                        {data.sagas.length === 0 && <p className="text-sm text-gray-500">{_t('لم يتم العثور على ملاحم نشطة.', 'No active sagas found.')}</p>}
                     </div>
                 </Card>
 
                 <Card className="p-6">
-                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><ShieldAlert />{_t('Cross-Module Event Bus', 'Cross-Module Event Bus')}</h2>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><ShieldAlert />{_t('حافلة الأحداث عبر الوحدات', 'Cross-Module Event Bus')}</h2>
                     <div className="space-y-3">
 
                         {data.events.map((ev: any) => (
@@ -85,14 +85,14 @@ export default function OrchestrationDashboard() {
                                 </span>
                             </div>
                         ))}
-                        {data.events.length === 0 && <p className="text-sm text-gray-500">{_t('No events logged.', 'No events logged.')}</p>}
+                        {data.events.length === 0 && <p className="text-sm text-gray-500">{_t('لم يتم تسجيل أي أحداث.', 'No events logged.')}</p>}
                     </div>
                 </Card>
             </div>
 
             {/* SLA Monitored Journeys */}
             <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><Clock />{_t('Active SLA Tracked Journeys (End-to-End)', 'Active SLA Tracked Journeys (End-to-End)')}</h2>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><Clock />{_t('الرحلات المتعقبة لاتفاقية مستوى الخدمة (SLA) النشطة (من البداية إلى النهاية)', 'Active SLA Tracked Journeys (End-to-End)')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {data.journeys && Object.entries(data.journeys).map(([key, journeyList]: [string, any]) => {
                         if (!journeyList || journeyList.length === 0) return null;
@@ -101,9 +101,9 @@ export default function OrchestrationDashboard() {
                                 <div className="flex justify-between items-center">
                                     <p className="font-bold">{key.toUpperCase()} #{j.id}</p>
                                     {j.slaBreached ? (
-                                        <span className="flex items-center text-red-600 text-xs font-bold bg-red-100 px-2 py-1 rounded"><ShieldAlert className="w-3 h-3 mr-1" />{_t('BREACHED', 'BREACHED')}</span>
+                                        <span className="flex items-center text-red-600 text-xs font-bold bg-red-100 px-2 py-1 rounded"><ShieldAlert className="w-3 h-3 mr-1" />{_t('خرق', 'BREACHED')}</span>
                                     ) : (
-                                        <span className="text-green-600 text-xs bg-green-100 px-2 py-1 rounded">{_t('On Track', 'On Track')}</span>
+                                        <span className="text-green-600 text-xs bg-green-100 px-2 py-1 rounded">{_t('على المسار الصحيح', 'On Track')}</span>
                                     )}
                                 </div>
                                 <p className="text-sm text-gray-500">Status: {j.status}</p>
@@ -112,7 +112,7 @@ export default function OrchestrationDashboard() {
                         ));
                     })}
                     {!data.journeys && (
-                        <p className="text-gray-500 text-sm text-center col-span-full">{_t('No active SLA tracked journeys yet.', 'No active SLA tracked journeys yet.')}</p>
+                        <p className="text-gray-500 text-sm text-center col-span-full">{_t('لا توجد رحلات نشطة يتم تتبعها بموجب اتفاقية مستوى الخدمة (SLA) حتى الآن.', 'No active SLA tracked journeys yet.')}</p>
                     )}
                 </div>
             </Card>

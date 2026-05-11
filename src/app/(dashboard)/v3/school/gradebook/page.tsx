@@ -27,8 +27,8 @@ export default function GradebookPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Teacher Gradebook', 'Teacher Gradebook')}</h1>
-                <Button>{_t('Save Grades', 'Save Grades')}</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('دفتر درجات المعلم', 'Teacher Gradebook')}</h1>
+                <Button>{_t('حفظ الدرجات', 'Save Grades')}</Button>
             </div>
             
             <Card>
@@ -36,8 +36,8 @@ export default function GradebookPage() {
                     <div className="flex justify-between items-center">
                         <CardTitle>Class: Mathematics 101</CardTitle>
                         <select className="border p-2 rounded text-sm">
-                            <option>{_t('Term 1 (Fall 2026)', 'Term 1 (Fall 2026)')}</option>
-                            <option>{_t('Term 2 (Spring 2027)', 'Term 2 (Spring 2027)')}</option>
+                            <option>{_t('الفصل الدراسي الأول (خريف 2026)', 'Term 1 (Fall 2026)')}</option>
+                            <option>{_t('الفصل الدراسي الثاني (ربيع 2027)', 'Term 2 (Spring 2027)')}</option>
                         </select>
                     </div>
                 </CardHeader>
@@ -46,12 +46,12 @@ export default function GradebookPage() {
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('Student ID', 'Student ID')}</th>
+                                    <th className="px-4 py-3">{_t('معرف الطالب', 'Student ID')}</th>
                                     <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
                                     <th className="px-4 py-3">Assignment 1 (20%)</th>
                                     <th className="px-4 py-3">Mid-Term (30%)</th>
                                     <th className="px-4 py-3">Final Exam (50%)</th>
-                                    <th className="px-4 py-3 text-center">{_t('Final Grade', 'Final Grade')}</th>
+                                    <th className="px-4 py-3 text-center">{_t('الدرجة النهائية', 'Final Grade')}</th>
                                 </tr>
                             </thead>
                             <tbody>

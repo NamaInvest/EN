@@ -56,7 +56,7 @@ export default function CustomerStatementGeneratorPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">{_t('Customer Statement Generator', 'Customer Statement Generator')}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{_t('مولد بيان العملاء', 'Customer Statement Generator')}</h1>
             
             <div className="flex space-x-4 mb-4 items-center">
                 <select 
@@ -64,8 +64,8 @@ export default function CustomerStatementGeneratorPage() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 >
-                    <option value="all">{_t('All Customers', 'All Customers')}</option>
-                    <option value="overdue">{_t('Overdue Only', 'Overdue Only')}</option>
+                    <option value="all">{_t('جميع العملاء', 'All Customers')}</option>
+                    <option value="overdue">{_t('المتأخرة فقط', 'Overdue Only')}</option>
                 </select>
 
                 <select 
@@ -73,19 +73,19 @@ export default function CustomerStatementGeneratorPage() {
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
                 >
-                    <option value="standard">{_t('Standard Template', 'Standard Template')}</option>
+                    <option value="standard">{_t('القالب القياسي', 'Standard Template')}</option>
                     <option value="dunning">Dunning / Warning Template</option>
                 </select>
 
-                <Button onClick={handleGenerateBulk}>{_t('Generate Bulk', 'Generate Bulk')}</Button>
-                <Button variant="outline">{_t('Preview', 'Preview')}</Button>
-                <Button variant="outline">{_t('Send Email', 'Send Email')}</Button>
-                <Button variant="outline">{_t('Schedule', 'Schedule')}</Button>
+                <Button onClick={handleGenerateBulk}>{_t('توليد السائبة', 'Generate Bulk')}</Button>
+                <Button variant="outline">{_t('معاينة', 'Preview')}</Button>
+                <Button variant="outline">{_t('إرسال البريد الإلكتروني', 'Send Email')}</Button>
+                <Button variant="outline">{_t('جدول', 'Schedule')}</Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Target Audience', 'Target Audience')}</CardTitle>
+                    <CardTitle>{_t('الجمهور المستهدف', 'Target Audience')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
@@ -95,8 +95,8 @@ export default function CustomerStatementGeneratorPage() {
                                     <tr>
                                         <th className="px-4 py-3">{_t('اسم العميل', 'Customer Name')}</th>
                                         <th className="px-4 py-3">{_t('الرصيد', 'Balance')}</th>
-                                        <th className="px-4 py-3">{_t('Days Overdue', 'Days Overdue')}</th>
-                                        <th className="px-4 py-3">{_t('Dunning Level', 'Dunning Level')}</th>
+                                        <th className="px-4 py-3">{_t('أيام متأخرة', 'Days Overdue')}</th>
+                                        <th className="px-4 py-3">{_t('مستوى المطالبة', 'Dunning Level')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
@@ -109,14 +109,14 @@ export default function CustomerStatementGeneratorPage() {
                                                 {c.daysOverdue > 0 ? (
                                                     <span className="text-red-600 font-bold">{c.daysOverdue} days</span>
                                                 ) : (
-                                                    <span>{_t('Current', 'Current')}</span>
+                                                    <span>{_t('حاضِر', 'Current')}</span>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <Badge variant="outline">Level {c.dunningLevel}</Badge>
                                             </td>
                                             <td className="px-4 py-3 text-right">
-                                                <Button size="sm" variant="outline">{_t('Preview', 'Preview')}</Button>
+                                                <Button size="sm" variant="outline">{_t('معاينة', 'Preview')}</Button>
                                             </td>
                                         </tr>
                                     ))}

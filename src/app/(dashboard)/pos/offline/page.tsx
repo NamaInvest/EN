@@ -160,7 +160,7 @@ export default function POSOfflinePage() {
             {_t('نقطة البيع - وضع أوفلاين', 'POS - Offline Mode')}
           </h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>
-            {_t('Service Worker + IndexedDB + Background Sync', 'Service Worker + IndexedDB + Background Sync')}
+            {_t('عامل الخدمة + IndexedDB + مزامنة الخلفية', 'Service Worker + IndexedDB + Background Sync')}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -177,7 +177,7 @@ export default function POSOfflinePage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         {[
           { l: _t('حالة الاتصال', 'Connection'), v: online ? _t('متصل', 'Online') : _t('غير متصل', 'Offline'), c: online ? '#22C55E' : '#EF4444', ic: online ? <Wifi size={20} /> : <WifiOff size={20} /> },
-          { l: _t('Service Worker', 'Service Worker'), v: swStatus === 'active' ? _t('نشط', 'Active') : swStatus === 'installing' ? _t('يُثبَّت', 'Installing') : _t('غير مفعل', 'Inactive'), c: swStatus === 'active' ? '#22C55E' : '#EAB308', ic: <Database size={20} /> },
+          { l: _t('عامل الخدمة', 'Service Worker'), v: swStatus === 'active' ? _t('نشط', 'Active') : swStatus === 'installing' ? _t('يُثبَّت', 'Installing') : _t('غير مفعل', 'Inactive'), c: swStatus === 'active' ? '#22C55E' : '#EAB308', ic: <Database size={20} /> },
           { l: _t('منتجات مخزنة', 'Cached Products'), v: cachedProducts.toLocaleString(), c: '#3B82F6', ic: <Database size={20} /> },
           { l: _t('عمليات غير متزامنة', 'Unsynced Sales'), v: unsyncedSales.length, c: unsyncedSales.length > 0 ? '#F97316' : '#22C55E', ic: <CloudOff size={20} /> },
           { l: _t('في الانتظار', 'Queue Pending'), v: pendingCount, c: pendingCount > 0 ? '#EAB308' : '#22C55E', ic: <AlertTriangle size={20} /> },

@@ -27,8 +27,8 @@ export default async function MfaAuditPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('MFA Audit Log', 'MFA Audit Log')}</h1>
-                <p className="text-gray-500 mt-2">{_t('Monitor two-factor authentication attempts across the organization.', 'Monitor two-factor authentication attempts across the organization.')}</p>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('سجل تدقيق وزارة الخارجية', 'MFA Audit Log')}</h1>
+                <p className="text-gray-500 mt-2">{_t('مراقبة محاولات المصادقة الثنائية عبر المؤسسة.', 'Monitor two-factor authentication attempts across the organization.')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -36,7 +36,7 @@ export default async function MfaAuditPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">{_t('Total Attempts', 'Total Attempts')}</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('إجمالي المحاولات', 'Total Attempts')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</h3>
                             </div>
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
@@ -49,7 +49,7 @@ export default async function MfaAuditPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">{_t('Successful Logins', 'Successful Logins')}</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('تسجيلات الدخول الناجحة', 'Successful Logins')}</p>
                                 <h3 className="text-2xl font-bold text-green-600 mt-1">{stats.success}</h3>
                             </div>
                             <div className="p-3 bg-green-50 text-green-600 rounded-lg">
@@ -62,7 +62,7 @@ export default async function MfaAuditPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">{_t('Failed Attempts', 'Failed Attempts')}</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('محاولات فاشلة', 'Failed Attempts')}</p>
                                 <h3 className="text-2xl font-bold text-red-600 mt-1">{stats.failed}</h3>
                             </div>
                             <div className="p-3 bg-red-50 text-red-600 rounded-lg">
@@ -75,7 +75,7 @@ export default async function MfaAuditPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-500">{_t('Currently Locked', 'Currently Locked')}</p>
+                                <p className="text-sm font-medium text-gray-500">{_t('مغلق حاليا', 'Currently Locked')}</p>
                                 <h3 className="text-2xl font-bold text-orange-600 mt-1">{stats.locked}</h3>
                             </div>
                             <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
@@ -91,12 +91,12 @@ export default async function MfaAuditPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">{_t('Time', 'Time')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('وقت', 'Time')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('المستخدم', 'User')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Method', 'Method')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Result', 'Result')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Reason', 'Reason')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('IP Address', 'IP Address')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('طريقة', 'Method')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('نتيجة', 'Result')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('سبب', 'Reason')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('عنوان IP', 'IP Address')}</th>
                                 <th className="px-4 py-3 font-medium">Device/Agent</th>
                             </tr>
                         </thead>
@@ -118,7 +118,7 @@ export default async function MfaAuditPage() {
                                     <td className="px-4 py-3">
                                         {log.success ? (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>{_t('Success', 'Success')}</span>
+                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>{_t('نجاح', 'Success')}</span>
                                         ) : (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700 border border-red-200">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{_t('فشل', 'Failed')}</span>
@@ -139,7 +139,7 @@ export default async function MfaAuditPage() {
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">{_t('No MFA attempts recorded yet.', 'No MFA attempts recorded yet.')}</td>
+                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">{_t('لم يتم تسجيل أي محاولات MFA حتى الآن.', 'No MFA attempts recorded yet.')}</td>
                                 </tr>
                             )}
                         </tbody>

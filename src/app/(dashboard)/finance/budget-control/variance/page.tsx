@@ -30,18 +30,18 @@ export default function BudgetVarianceDashboard() {
     }, []);
 
     const renderStatusBadge = (variancePct: number) => {
-        if (variancePct < 0) return <Badge className="bg-red-100 text-red-800">{_t('OVER BUDGET', 'OVER BUDGET')}</Badge>;
+        if (variancePct < 0) return <Badge className="bg-red-100 text-red-800">{_t('أكثر من الميزانية', 'OVER BUDGET')}</Badge>;
         if (variancePct < 20) return <Badge className="bg-yellow-100 text-yellow-800">WARNING (0-20%)</Badge>;
-        return <Badge className="bg-green-100 text-green-800">{_t('UNDER BUDGET', 'UNDER BUDGET')}</Badge>;
+        return <Badge className="bg-green-100 text-green-800">{_t('تحت الميزانية', 'UNDER BUDGET')}</Badge>;
     };
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">{_t('Budget vs Actual Variance', 'Budget vs Actual Variance')}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{_t('الميزانية مقابل التباين الفعلي', 'Budget vs Actual Variance')}</h1>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Variance Report', 'Variance Report')}</CardTitle>
+                    <CardTitle>{_t('تقرير التباين', 'Variance Report')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
@@ -52,9 +52,9 @@ export default function BudgetVarianceDashboard() {
                                         <th className="px-4 py-3">{_t('حساب', 'Account')}</th>
                                         <th className="px-4 py-3 text-right">{_t('الميزانية', 'Budget')}</th>
                                         <th className="px-4 py-3 text-right">{_t('الفعلي', 'Actual')}</th>
-                                        <th className="px-4 py-3 text-right">{_t('Encumbered', 'Encumbered')}</th>
-                                        <th className="px-4 py-3 text-right">{_t('Available', 'Available')}</th>
-                                        <th className="px-4 py-3 text-right">{_t('Variance', 'Variance')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('مرهون', 'Encumbered')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('متاح', 'Available')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('التباين', 'Variance')}</th>
                                         <th className="px-4 py-3 text-right">Var %</th>
                                         <th className="px-4 py-3 text-center">{_t('الحالة', 'Status')}</th>
                                     </tr>
@@ -73,7 +73,7 @@ export default function BudgetVarianceDashboard() {
                                         </tr>
                                     ))}
                                     {varianceData.length === 0 && (
-                                        <tr><td colSpan={8} className="text-center py-6 text-gray-500">{_t('No active budget or data found.', 'No active budget or data found.')}</td></tr>
+                                        <tr><td colSpan={8} className="text-center py-6 text-gray-500">{_t('لم يتم العثور على ميزانية أو بيانات نشطة.', 'No active budget or data found.')}</td></tr>
                                     )}
                                 </tbody>
                             </table>

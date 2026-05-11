@@ -19,21 +19,21 @@ export default function PutawayRulesPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('WMS Putaway Rules', 'WMS Putaway Rules')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('قواعد WMS Putaway', 'WMS Putaway Rules')}</h1>
                 <Button>{_t('إنشاء New Rule', 'Create New Rule')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Active Routing Rules', 'Active Routing Rules')}</CardTitle>
+                    <CardTitle>{_t('قواعد التوجيه النشطة', 'Active Routing Rules')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('Rule Name', 'Rule Name')}</th>
-                                    <th className="px-4 py-3">{_t('Condition (Criteria)', 'Condition (Criteria)')}</th>
+                                    <th className="px-4 py-3">{_t('اسم القاعدة', 'Rule Name')}</th>
+                                    <th className="px-4 py-3">{_t('الحالة (المعايير)', 'Condition (Criteria)')}</th>
                                     <th className="px-4 py-3">Target Zone / Bin</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
@@ -49,7 +49,7 @@ export default function PutawayRulesPage() {
                                             {rule.active ? (
                                                 <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                             ) : (
-                                                <Badge variant="outline">{_t('Disabled', 'Disabled')}</Badge>
+                                                <Badge variant="outline">{_t('عاجز', 'Disabled')}</Badge>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">

@@ -24,15 +24,15 @@ export default async function WarehouseZonesPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Map className="w-8 h-8 text-cyan-600" />{_t('Storage Zones & Racks', 'Storage Zones & Racks')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Configure hierarchical storage layout for warehouses.', 'Configure hierarchical storage layout for warehouses.')}</p>
+                        <Map className="w-8 h-8 text-cyan-600" />{_t('مناطق التخزين والرفوف', 'Storage Zones & Racks')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('تكوين تخطيط التخزين الهرمي للمستودعات.', 'Configure hierarchical storage layout for warehouses.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/inventory/wms">
-                        <Button variant="outline" className="bg-white">{_t('Back to WMS', 'Back to WMS')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('العودة إلى WMS', 'Back to WMS')}</Button>
                     </Link>
                     <Button className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('Create Zone', 'Create Zone')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('إنشاء منطقة', 'Create Zone')}</Button>
                 </div>
             </div>
 
@@ -52,10 +52,10 @@ export default async function WarehouseZonesPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">{_t('Zone Name', 'Zone Name')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('اسم المنطقة', 'Zone Name')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('المستودع', 'Warehouse')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('النوع', 'Type')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Racks Count', 'Racks Count')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('عدد الرفوف', 'Racks Count')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الوصف', 'Description')}</th>
                                 <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
@@ -88,7 +88,7 @@ export default async function WarehouseZonesPage() {
                                         {zone.description || '-'}
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">{_t('Manage Layout', 'Manage Layout')}</Button>
+                                        <Button variant="ghost" size="sm" className="text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">{_t('إدارة التخطيط', 'Manage Layout')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -97,8 +97,8 @@ export default async function WarehouseZonesPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Archive className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('No Zones Defined', 'No Zones Defined')}</p>
-                                            <p className="text-sm mt-1">{_t('Start by creating storage zones for your warehouse.', 'Start by creating storage zones for your warehouse.')}</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لم يتم تحديد مناطق', 'No Zones Defined')}</p>
+                                            <p className="text-sm mt-1">{_t('ابدأ بإنشاء مناطق تخزين لمستودعك.', 'Start by creating storage zones for your warehouse.')}</p>
                                         </div>
                                     </td>
                                 </tr>

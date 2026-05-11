@@ -30,16 +30,16 @@ export default async function PosSessionsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Terminal className="w-8 h-8 text-violet-600" />{_t('POS Sessions (Back Office)', 'POS Sessions (Back Office)')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Manage cash drawers, terminal sessions, and end-of-day reconciliations.', 'Manage cash drawers, terminal sessions, and end-of-day reconciliations.')}</p>
+                        <Terminal className="w-8 h-8 text-violet-600" />{_t('جلسات نقاط البيع (المكتب الخلفي)', 'POS Sessions (Back Office)')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إدارة أدراج النقود والجلسات الطرفية والتسويات في نهاية اليوم.', 'Manage cash drawers, terminal sessions, and end-of-day reconciliations.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/restaurant-tables">
-                        <Button variant="outline" className="bg-white">{_t('Restaurant Setup', 'Restaurant Setup')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('إعداد المطعم', 'Restaurant Setup')}</Button>
                     </Link>
                     <Link href="/pos" target="_blank">
                         <Button className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
-                            <Monitor className="w-4 h-4 mr-2" />{_t('Launch POS Terminal', 'Launch POS Terminal')}</Button>
+                            <Monitor className="w-4 h-4 mr-2" />{_t('إطلاق محطة نقاط البيع', 'Launch POS Terminal')}</Button>
                     </Link>
                 </div>
             </div>
@@ -49,7 +49,7 @@ export default async function PosSessionsPage() {
                 <Card className="bg-gradient-to-br from-violet-50 to-white border-violet-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-violet-600">{_t('Active Terminals (OPEN)', 'Active Terminals (OPEN)')}</p>
+                            <p className="text-sm font-medium text-violet-600">{_t('المحطات النشطة (مفتوحة)', 'Active Terminals (OPEN)')}</p>
                             <Monitor className="w-4 h-4 text-violet-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{openCount}</h3>
@@ -58,7 +58,7 @@ export default async function PosSessionsPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">{_t('Closed Sessions', 'Closed Sessions')}</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('الجلسات المغلقة', 'Closed Sessions')}</p>
                             <CheckCircle className="w-4 h-4 text-green-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{closedCount}</h3>
@@ -67,7 +67,7 @@ export default async function PosSessionsPage() {
                 <Card className={totalVariance < 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className={`text-sm font-medium ${totalVariance < 0 ? 'text-red-600' : 'text-green-600'}`}>{_t('Total Cash Variance', 'Total Cash Variance')}</p>
+                            <p className={`text-sm font-medium ${totalVariance < 0 ? 'text-red-600' : 'text-green-600'}`}>{_t('إجمالي التباين النقدي', 'Total Cash Variance')}</p>
                             <FileText className={`w-4 h-4 ${totalVariance < 0 ? 'text-red-400' : 'text-green-400'}`} />
                         </div>
                         <h3 className={`text-2xl font-bold ${totalVariance < 0 ? 'text-red-900' : 'text-green-900'} mt-2`}>
@@ -93,12 +93,12 @@ export default async function PosSessionsPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">{_t('Session ID', 'Session ID')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('معرف الجلسة', 'Session ID')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('كاشير', 'Cashier')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Terminal', 'Terminal')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Opened At', 'Opened At')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Opening Float', 'Opening Float')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Variance', 'Variance')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('صالة', 'Terminal')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('افتتح في', 'Opened At')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('تعويم الافتتاح', 'Opening Float')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('التباين', 'Variance')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
                                 <th className="px-4 py-3 font-medium text-right">{_t('إجراءات', 'Actions')}</th>
                             </tr>
@@ -137,7 +137,7 @@ export default async function PosSessionsPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50">{_t('Z-Report', 'Z-Report')}</Button>
+                                        <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-50">{_t('تقرير Z', 'Z-Report')}</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -146,8 +146,8 @@ export default async function PosSessionsPage() {
                                     <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <Terminal className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('No POS Sessions', 'No POS Sessions')}</p>
-                                            <p className="text-sm mt-1">{_t('Open a terminal session to start receiving payments.', 'Open a terminal session to start receiving payments.')}</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لا توجد جلسات نقاط البيع', 'No POS Sessions')}</p>
+                                            <p className="text-sm mt-1">{_t('افتح جلسة طرفية لبدء تلقي المدفوعات.', 'Open a terminal session to start receiving payments.')}</p>
                                         </div>
                                     </td>
                                 </tr>

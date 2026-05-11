@@ -28,7 +28,7 @@ export default async function SecuritySettingsPage() {
     });
 
     if (!user) {
-        return <div>{_t('User not found', 'User not found')}</div>;
+        return <div>{_t('لم يتم العثور على المستخدم', 'User not found')}</div>;
     }
 
     // Format data for the client

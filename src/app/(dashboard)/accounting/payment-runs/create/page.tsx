@@ -73,45 +73,45 @@ export default function CreatePaymentRunPage() {
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">{_t('New Payment Run', 'New Payment Run')}</h1>
-                    <p className="text-gray-500">{_t('Generate a new proposal for vendor payments', 'Generate a new proposal for vendor payments')}</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">{_t('تشغيل الدفع الجديد', 'New Payment Run')}</h1>
+                    <p className="text-gray-500">{_t('إنشاء مقترح جديد لمدفوعات البائع', 'Generate a new proposal for vendor payments')}</p>
                 </div>
             </div>
 
             <div className="flex items-center gap-2 mb-8">
                 <div className={`flex items-center gap-2 ${step >= 1 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>1</div>
-                    <span>{_t('Parameters', 'Parameters')}</span>
+                    <span>{_t('حدود', 'Parameters')}</span>
                 </div>
                 <div className="flex-1 h-px bg-gray-200 mx-2"></div>
                 <div className={`flex items-center gap-2 ${step >= 2 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>2</div>
-                    <span>{_t('Proposal Preview', 'Proposal Preview')}</span>
+                    <span>{_t('معاينة الاقتراح', 'Proposal Preview')}</span>
                 </div>
                 <div className="flex-1 h-px bg-gray-200 mx-2"></div>
                 <div className={`flex items-center gap-2 ${step >= 3 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step >= 3 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>3</div>
-                    <span>{_t('Confirmation', 'Confirmation')}</span>
+                    <span>{_t('تأكيد', 'Confirmation')}</span>
                 </div>
             </div>
 
             {step === 1 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>{_t('Selection Criteria', 'Selection Criteria')}</CardTitle>
+                        <CardTitle>{_t('معايير الاختيار', 'Selection Criteria')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit(handlePropose)} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700">{_t('Due Date Until', 'Due Date Until')}</label>
+                                    <label className="text-sm font-medium text-gray-700">{_t('تاريخ الاستحقاق حتى', 'Due Date Until')}</label>
                                     <input 
                                         type="date" 
                                         className={`w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none ${errors.dueDateUntil ? 'border-red-500' : 'border-gray-300'}`}
                                         {...register('dueDateUntil')}
                                     />
                                     {errors.dueDateUntil && <p className="text-red-500 text-xs mt-1">{errors.dueDateUntil.message}</p>}
-                                    <p className="text-xs text-gray-500">{_t('Include all open AP items due on or before this date.', 'Include all open AP items due on or before this date.')}</p>
+                                    <p className="text-xs text-gray-500">{_t('قم بتضمين جميع عناصر AP المفتوحة المستحقة في هذا التاريخ أو قبله.', 'Include all open AP items due on or before this date.')}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">{_t('العملة', 'Currency')}</label>
@@ -119,9 +119,9 @@ export default function CreatePaymentRunPage() {
                                         className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                         {...register('currency')}
                                     >
-                                        <option value="SAR">{_t('SAR - Saudi Riyal', 'SAR - Saudi Riyal')}</option>
-                                        <option value="USD">{_t('USD - US Dollar', 'USD - US Dollar')}</option>
-                                        <option value="EUR">{_t('EUR - Euro', 'EUR - Euro')}</option>
+                                        <option value="SAR">{_t('ريال سعودي - ريال سعودي', 'SAR - Saudi Riyal')}</option>
+                                        <option value="USD">{_t('الدولار الأمريكي - الدولار الأمريكي', 'USD - US Dollar')}</option>
+                                        <option value="EUR">{_t('يورو - يورو', 'EUR - Euro')}</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
@@ -131,8 +131,8 @@ export default function CreatePaymentRunPage() {
                                         {...register('paymentMethod')}
                                     >
                                         <option value="SARIE">SARIE (Saudi Banks Excel/CSV)</option>
-                                        <option value="SEPA">{_t('SEPA XML (pain.001.001.09)', 'SEPA XML (pain.001.001.09)')}</option>
-                                        <option value="SWIFT">{_t('SWIFT MT103', 'SWIFT MT103')}</option>
+                                        <option value="SEPA">{_t('SEPA XML (الألم.001.001.09)', 'SEPA XML (pain.001.001.09)')}</option>
+                                        <option value="SWIFT">{_t('سويفت MT103', 'SWIFT MT103')}</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2 pt-8">
@@ -142,7 +142,7 @@ export default function CreatePaymentRunPage() {
                                             className="w-5 h-5 text-blue-600 rounded"
                                             {...register('includeDiscountWindow')}
                                         />
-                                        <span className="text-sm font-medium text-gray-700">{_t('Include future invoices within cash discount windows', 'Include future invoices within cash discount windows')}</span>
+                                        <span className="text-sm font-medium text-gray-700">{_t('تضمين الفواتير المستقبلية ضمن نوافذ الخصم النقدي', 'Include future invoices within cash discount windows')}</span>
                                     </label>
                                 </div>
                             </div>
@@ -169,19 +169,19 @@ export default function CreatePaymentRunPage() {
                         </Card>
                         <Card>
                             <CardContent className="p-4">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{_t('Invoices', 'Invoices')}</p>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{_t('الفواتير', 'Invoices')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.invoicesCount}</h3>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardContent className="p-4">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{_t('Vendors', 'Vendors')}</p>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{_t('الباعة', 'Vendors')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{proposalData.vendorsCount}</h3>
                             </CardContent>
                         </Card>
                         <Card className="bg-green-50 border-green-100">
                             <CardContent className="p-4">
-                                <p className="text-xs font-medium text-green-600 uppercase tracking-wider">{_t('Discount Savings', 'Discount Savings')}</p>
+                                <p className="text-xs font-medium text-green-600 uppercase tracking-wider">{_t('وفورات الخصم', 'Discount Savings')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">+{proposalData.discountSavings.toLocaleString()} <span className="text-sm font-normal text-gray-500">{formData.currency}</span></h3>
                                 <p className="text-xs text-green-700 mt-1">From {proposalData.discountOpportunitiesCount} opportunities</p>
                             </CardContent>
@@ -190,15 +190,15 @@ export default function CreatePaymentRunPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
-                            <CardTitle className="text-lg">{_t('Proposal Line Items', 'Proposal Line Items')}</CardTitle>
+                            <CardTitle className="text-lg">{_t('بنود خط الاقتراح', 'Proposal Line Items')}</CardTitle>
                             <Button variant="outline" size="sm">
-                                <FileSpreadsheet className="w-4 h-4 mr-2" />{_t('Export to Excel', 'Export to Excel')}</Button>
+                                <FileSpreadsheet className="w-4 h-4 mr-2" />{_t('تصدير إلى إكسل', 'Export to Excel')}</Button>
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="p-12 text-center text-gray-500">
                                 <Calculator className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p>{_t('Interactive data grid would appear here showing grouped vendors and invoices.', 'Interactive data grid would appear here showing grouped vendors and invoices.')}</p>
-                                <p className="text-sm mt-2 text-gray-400">{_t('Users can uncheck specific invoices to block them from this run.', 'Users can uncheck specific invoices to block them from this run.')}</p>
+                                <p>{_t('ستظهر هنا شبكة بيانات تفاعلية تعرض الموردين والفواتير المجمعة.', 'Interactive data grid would appear here showing grouped vendors and invoices.')}</p>
+                                <p className="text-sm mt-2 text-gray-400">{_t('يمكن للمستخدمين إلغاء تحديد فواتير محددة لمنعهم من هذا التشغيل.', 'Users can uncheck specific invoices to block them from this run.')}</p>
                             </div>
                         </CardContent>
                     </Card>

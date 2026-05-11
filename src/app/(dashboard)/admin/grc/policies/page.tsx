@@ -9,11 +9,11 @@ export default function PoliciesPage() {
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
-            <h1 className="text-3xl font-bold flex items-center gap-2"><ShieldAlert />{_t('GRC Policies', 'GRC Policies')}</h1>
+            <h1 className="text-3xl font-bold flex items-center gap-2"><ShieldAlert />{_t('سياسات مركز الخليج للأبحاث', 'GRC Policies')}</h1>
             <Card className="p-12 text-center text-gray-500">
                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <h3 className="text-lg font-medium text-gray-900">{_t('No active policies found', 'No active policies found')}</h3>
-                <p>{_t('Define governance policies to enforce compliance across modules.', 'Define governance policies to enforce compliance across modules.')}</p>
+                <h3 className="text-lg font-medium text-gray-900">{_t('لم يتم العثور على سياسات نشطة', 'No active policies found')}</h3>
+                <p>{_t('تحديد سياسات الحوكمة لفرض الامتثال عبر الوحدات.', 'Define governance policies to enforce compliance across modules.')}</p>
             </Card>
         </div>
     );

@@ -12,7 +12,7 @@ export default function RetailPOS() {
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [cart, setCart] = useState([{ id: 1, name: 'Wireless Headphones', price: 299, qty: 1 }]);
   return (
-    <div className="flex h-[85vh] gap-4 p-4 bg-slate-50">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">{_t('GLOBAL ENTERPRISE FEATURES', 'GLOBAL ENTERPRISE FEATURES')}</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-blue-500 text-white font-bold hover:opacity-90 shadow-lg"><RefreshCcw className="w-4 h-4 mr-2"/>{_t('Omnichannel Sync', 'Omnichannel Sync')}</Button>\n        <Button className="bg-purple-500 text-white font-bold hover:opacity-90 shadow-lg"><BrainCircuit className="w-4 h-4 mr-2"/>{_t('Clienteling AI', 'Clienteling AI')}</Button>\n        <Button className="bg-emerald-500 text-white font-bold hover:opacity-90 shadow-lg"><WifiOff className="w-4 h-4 mr-2"/>{_t('Offline Mode (Active)', 'Offline Mode (Active)')}</Button>\n        </div>\n      </div>
+    <div className="flex h-[85vh] gap-4 p-4 bg-slate-50">      {/* Global System Features Bar */} \n      <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-xl flex justify-between items-center mb-6 animate-fade-in">\n        <div className="flex items-center gap-2">\n          <span className="text-yellow-400 font-black tracking-widest text-sm border border-yellow-400/50 bg-yellow-400/10 px-2 py-1 rounded">{_t('ميزات المؤسسة العالمية', 'GLOBAL ENTERPRISE FEATURES')}</span>\n        </div>\n        <div className="flex gap-3">\n        <Button className="bg-blue-500 text-white font-bold hover:opacity-90 shadow-lg"><RefreshCcw className="w-4 h-4 mr-2"/>{_t('مزامنة القناة الشاملة', 'Omnichannel Sync')}</Button>\n        <Button className="bg-purple-500 text-white font-bold hover:opacity-90 shadow-lg"><BrainCircuit className="w-4 h-4 mr-2"/>{_t('الذكاء الاصطناعي للعملاء', 'Clienteling AI')}</Button>\n        <Button className="bg-emerald-500 text-white font-bold hover:opacity-90 shadow-lg"><WifiOff className="w-4 h-4 mr-2"/>{_t('وضع عدم الاتصال (نشط)', 'Offline Mode (Active)')}</Button>\n        </div>\n      </div>
       {/* Products Grid */}
       <div className="flex-1 flex flex-col gap-4">
         <div className="relative">
@@ -35,7 +35,7 @@ export default function RetailPOS() {
       {/* Cart Sidebar */}
       <div className="w-96 bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col">
         <div className="p-4 border-b bg-slate-900 text-white rounded-t-xl flex justify-between items-center">
-          <div className="flex items-center gap-2"><ShoppingCart className="w-5 h-5"/> <h2 className="font-bold text-lg">{_t('Current Order', 'Current Order')}</h2></div>
+          <div className="flex items-center gap-2"><ShoppingCart className="w-5 h-5"/> <h2 className="font-bold text-lg">{_t('النظام الحالي', 'Current Order')}</h2></div>
           <span className="text-sm bg-slate-800 px-2 py-1 rounded">Shift: 042</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -50,14 +50,14 @@ export default function RetailPOS() {
           ))}
         </div>
         <div className="p-4 border-t bg-slate-50 rounded-b-xl space-y-3">
-          <div className="flex justify-between text-sm text-slate-600"><span>{_t('المجموع الفرعي', 'Subtotal')}</span><span>{_t('SAR 299.00', 'SAR 299.00')}</span></div>
-          <div className="flex justify-between text-sm text-slate-600"><span>VAT (15%)</span><span>{_t('SAR 44.85', 'SAR 44.85')}</span></div>
-          <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>{_t('الإجمالي', 'Total')}</span><span>{_t('SAR 343.85', 'SAR 343.85')}</span></div>
+          <div className="flex justify-between text-sm text-slate-600"><span>{_t('المجموع الفرعي', 'Subtotal')}</span><span>{_t('299.00 ريال سعودي', 'SAR 299.00')}</span></div>
+          <div className="flex justify-between text-sm text-slate-600"><span>VAT (15%)</span><span>{_t('44.85 ريال سعودي', 'SAR 44.85')}</span></div>
+          <div className="flex justify-between text-xl font-black text-slate-800 border-t pt-2 mt-2"><span>{_t('الإجمالي', 'Total')}</span><span>{_t('343.85 ريال سعودي', 'SAR 343.85')}</span></div>
           <div className="grid grid-cols-2 gap-2 mt-4">
             <Button variant="outline" className="h-12 border-slate-300"><Printer className="w-4 h-4 mr-2"/>{_t('طباعة / Print', 'Print')}</Button>
-            <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>toastSuccess("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/>{_t('Pay Now', 'Pay Now')}</Button>
+            <Button onClick={() => { fetch("/api/v3/retail/pos", { method: "POST", body: JSON.stringify({ total: 343.85, branchId: 1 }) }).then(()=>toastSuccess("Payment Successful & Saved to DB!")); }} className="h-12 bg-indigo-600 hover:bg-indigo-700"><CreditCard className="w-4 h-4 mr-2"/>{_t('ادفع الآن', 'Pay Now')}</Button>
             <Button variant="outline" className="h-12 bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100">{_t('Layaway', 'Layaway')}</Button>
-            <Button variant="outline" className="h-12 border-slate-300 text-sm hover:bg-slate-100">{_t('Gift Receipt', 'Gift Receipt')}</Button>
+            <Button variant="outline" className="h-12 border-slate-300 text-sm hover:bg-slate-100">{_t('استلام الهدية', 'Gift Receipt')}</Button>
           </div>
         </div>
       </div>

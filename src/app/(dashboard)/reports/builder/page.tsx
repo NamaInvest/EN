@@ -18,14 +18,14 @@ export default function CustomReportBuilder() {
  <div className="p-6 h-[calc(100vh-64px)] flex flex-col">
  <div className="flex justify-between items-center border-b border-slate-200 pb-4 shrink-0">
  <div>
- <h1 className="text-3xl font-bold tracking-tight text-slate-900 ">{_t('Report Builder', 'Report Builder')}</h1>
- <p className="text-slate-500 mt-1 text-sm">{_t('Design custom BI reports with drag-and-drop dimensions & measures', 'Design custom BI reports with drag-and-drop dimensions & measures')}</p>
+ <h1 className="text-3xl font-bold tracking-tight text-slate-900 ">{_t('منشئ التقرير', 'Report Builder')}</h1>
+ <p className="text-slate-500 mt-1 text-sm">{_t('تصميم تقارير ذكاء الأعمال (BI) مخصصة بأبعاد ومقاييس السحب والإفلات', 'Design custom BI reports with drag-and-drop dimensions & measures')}</p>
  </div>
  <div className="flex gap-2">
  <button className="px-4 py-2 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 flex items-center">
- <Save className="w-4 h-4 mr-2 text-slate-500" />{_t('Save Report', 'Save Report')}</button>
+ <Save className="w-4 h-4 mr-2 text-slate-500" />{_t('حفظ التقرير', 'Save Report')}</button>
  <button className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center">
- <Play className="w-4 h-4 mr-2" />{_t('Run Report', 'Run Report')}</button>
+ <Play className="w-4 h-4 mr-2" />{_t('تشغيل التقرير', 'Run Report')}</button>
  </div>
  </div>
 
@@ -33,7 +33,7 @@ export default function CustomReportBuilder() {
  {/* Left Sidebar: Data Dictionary */}
  <div className="w-64 bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col shrink-0">
  <div className="p-4 border-b border-slate-200 ">
- <label className="block text-sm font-medium text-slate-700 mb-1">{_t('Dataset', 'Dataset')}</label>
+ <label className="block text-sm font-medium text-slate-700 mb-1">{_t('مجموعة البيانات', 'Dataset')}</label>
  <select 
  value={dataset}
  onChange={(e) => setDataset(e.target.value)}
@@ -41,14 +41,14 @@ export default function CustomReportBuilder() {
  >
  <option value="sales">{_t('فواتير المبيعات', 'Sales Invoices')}</option>
  <option value="purchases">{_t('فواتير المشتريات', 'Purchase Invoices')}</option>
- <option value="inventory">{_t('Inventory Movements', 'Inventory Movements')}</option>
- <option value="journal_entries">{_t('General Ledger (GL)', 'General Ledger (GL)')}</option>
+ <option value="inventory">{_t('حركات المخزون', 'Inventory Movements')}</option>
+ <option value="journal_entries">{_t('دفتر الأستاذ العام (GL)', 'General Ledger (GL)')}</option>
  </select>
  </div>
 
  <div className="p-4 flex-1 overflow-y-auto">
  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center">
- <Columns className="w-3 h-3 mr-1" />{_t('Dimensions (Group By)', 'Dimensions (Group By)')}</h3>
+ <Columns className="w-3 h-3 mr-1" />{_t('الأبعاد (التجميع حسب)', 'Dimensions (Group By)')}</h3>
  <div className="space-y-2 mb-6">
  {['customerId', 'salesRepId', 'status', 'issueDate', 'dueDate'].map(field => (
  <div key={field} className="p-2 bg-slate-50 border border-slate-200 rounded cursor-move text-sm flex items-center text-slate-700 hover:border-blue-400">
@@ -59,7 +59,7 @@ export default function CustomReportBuilder() {
  </div>
 
  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center">
- <BarChart2 className="w-3 h-3 mr-1" />{_t('Measures (Values)', 'Measures (Values)')}</h3>
+ <BarChart2 className="w-3 h-3 mr-1" />{_t('التدابير (القيم)', 'Measures (Values)')}</h3>
  <div className="space-y-2">
  {['totalAmount', 'taxAmount', 'discount', 'id (count)'].map(field => (
  <div key={field} className="p-2 bg-slate-50 border border-slate-200 rounded cursor-move text-sm flex items-center text-slate-700 hover:border-green-400">
@@ -90,7 +90,7 @@ export default function CustomReportBuilder() {
  </div>
  </div>
  <div>
- <h4 className="text-sm font-medium text-slate-700 mb-2">{_t('Values', 'Values')}</h4>
+ <h4 className="text-sm font-medium text-slate-700 mb-2">{_t('قيم', 'Values')}</h4>
  <div className="min-h-[60px] border-2 border-dashed border-slate-300 rounded-md p-2 flex flex-wrap gap-2 items-start bg-slate-50 ">
  {measures.map((m, i) => (
  <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -105,9 +105,9 @@ export default function CustomReportBuilder() {
  </div>
  <div className="mt-4">
  <h4 className="text-sm font-medium text-slate-700 mb-2 flex items-center">
- <Filter className="w-4 h-4 mr-1 text-slate-400" />{_t('Filters', 'Filters')}</h4>
+ <Filter className="w-4 h-4 mr-1 text-slate-400" />{_t('المرشحات', 'Filters')}</h4>
  <div className="min-h-[40px] border border-slate-200 rounded-md p-2 flex flex-wrap gap-2 items-center bg-slate-50 ">
- <span className="text-sm text-slate-400 italic">{_t('Drag fields here to filter...', 'Drag fields here to filter...')}</span>
+ <span className="text-sm text-slate-400 italic">{_t('اسحب الحقول هنا للتصفية...', 'Drag fields here to filter...')}</span>
  </div>
  </div>
  </div>
@@ -116,7 +116,7 @@ export default function CustomReportBuilder() {
  <div className="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col overflow-hidden">
  <div className="p-3 border-b border-slate-200 flex justify-between items-center bg-slate-50 ">
  <h3 className="text-sm font-medium text-slate-700 flex items-center">
- <LayoutDashboard className="w-4 h-4 mr-2" />{_t('Data Preview', 'Data Preview')}</h3>
+ <LayoutDashboard className="w-4 h-4 mr-2" />{_t('معاينة البيانات', 'Data Preview')}</h3>
  <div className="flex space-x-2">
  <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded">
  <Download className="w-4 h-4" />
@@ -130,8 +130,8 @@ export default function CustomReportBuilder() {
  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
  <thead className="bg-white sticky top-0">
  <tr>
- <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50 ">{_t('customerId', 'customerId')}</th>
- <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50 ">{_t('sum(totalAmount)', 'sum(totalAmount)')}</th>
+ <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50 ">{_t('معرف العميل', 'customerId')}</th>
+ <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50 ">{_t('المبلغ (القيمة الإجمالية)', 'sum(totalAmount)')}</th>
  </tr>
  </thead>
  <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">

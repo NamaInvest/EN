@@ -178,7 +178,7 @@ export default function CrmCampaigns() {
                   <label className="input-label">النوع</label>
                   <select className="input" {...register('type')}>
                       <option value="EMAIL">بريد</option>
-                      <option value="SMS">{_t('SMS', 'SMS')}</option>
+                      <option value="SMS">{_t('رسالة قصيرة', 'SMS')}</option>
                       <option value="WHATSAPP">واتساب</option>
                       <option value="SOCIAL">سوشل</option>
                       <option value="EVENT">فعالية</option>

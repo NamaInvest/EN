@@ -37,7 +37,7 @@ export default function ShippingPage() {
                 {tab==='shipments' && (
                     <table style={{ width:'100%', borderCollapse:'collapse' }}>
                         <thead><tr style={{background:'#E3F2FD'}}>
-                            <th style={{padding:10}}>{_t('AWB', 'AWB')}</th><th style={{padding:10}}>{isAr?'الطلب':'Order'}</th>
+                            <th style={{padding:10}}>{_t('توازن اللون الأبيض', 'AWB')}</th><th style={{padding:10}}>{isAr?'الطلب':'Order'}</th>
                             <th style={{padding:10}}>{isAr?'الحالة':'Status'}</th><th style={{padding:10}}>{isAr?'التكلفة':'Cost'}</th>
                         </tr></thead>
                         <tbody>{shipments.length>0?shipments.map(s=>(

@@ -28,15 +28,15 @@ export default async function PurchaseOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <ShoppingBag className="w-8 h-8 text-blue-600" />{_t('Purchase Orders', 'Purchase Orders')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Manage vendor POs, tracking, and approvals.', 'Manage vendor POs, tracking, and approvals.')}</p>
+                        <ShoppingBag className="w-8 h-8 text-blue-600" />{_t('طلبات الشراء', 'Purchase Orders')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إدارة أوامر الشراء الخاصة بالموردين والتتبع والموافقات.', 'Manage vendor POs, tracking, and approvals.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/purchases/requisitions">
-                        <Button variant="outline" className="bg-white">{_t('View PRs', 'View PRs')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('عرض العلاقات العامة', 'View PRs')}</Button>
                     </Link>
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('New PO', 'New PO')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('أمر الشراء الجديد', 'New PO')}</Button>
                 </div>
             </div>
 
@@ -54,7 +54,7 @@ export default async function PurchaseOrdersPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">{_t('Completed (Received)', 'Completed (Received)')}</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('مكتمل (تم الاستلام)', 'Completed (Received)')}</p>
                             <CheckCircle className="w-4 h-4 text-green-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{completedCount}</h3>
@@ -63,7 +63,7 @@ export default async function PurchaseOrdersPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-500">{_t('Total Purchase Value (Recent)', 'Total Purchase Value (Recent)')}</p>
+                            <p className="text-sm font-medium text-gray-500">{_t('إجمالي قيمة الشراء (الأخيرة)', 'Total Purchase Value (Recent)')}</p>
                             <DollarSign className="w-4 h-4 text-gray-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">
@@ -90,7 +90,7 @@ export default async function PurchaseOrdersPage() {
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Order #</th>
-                                <th className="px-4 py-3 font-medium">{_t('Vendor', 'Vendor')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('بائع', 'Vendor')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('التاريخ', 'Date')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الإجمالي', 'Total')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الحالة', 'Status')}</th>
@@ -105,7 +105,7 @@ export default async function PurchaseOrdersPage() {
                                     </td>
                                     <td className="px-4 py-3 text-gray-700 font-medium">
                                         {po.supplier?.name || 'Walk-in Vendor'}
-                                        {po.isForeign && <span className="ml-2 text-xs text-orange-500 bg-orange-50 px-1 py-0.5 rounded border border-orange-100">{_t('Import', 'Import')}</span>}
+                                        {po.isForeign && <span className="ml-2 text-xs text-orange-500 bg-orange-50 px-1 py-0.5 rounded border border-orange-100">{_t('يستورد', 'Import')}</span>}
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">
                                         {format(new Date(po.date), 'MMM dd, yyyy')}
@@ -133,9 +133,9 @@ export default async function PurchaseOrdersPage() {
                                     <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
                                             <FileText className="w-10 h-10 text-gray-300 mb-3" />
-                                            <p className="text-lg font-medium text-gray-900">{_t('No Purchase Orders', 'No Purchase Orders')}</p>
+                                            <p className="text-lg font-medium text-gray-900">{_t('لا توجد طلبات شراء', 'No Purchase Orders')}</p>
                                             <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
-                                                <Plus className="w-4 h-4 mr-2" />{_t('Create First PO', 'Create First PO')}</Button>
+                                                <Plus className="w-4 h-4 mr-2" />{_t('إنشاء أمر الشراء الأول', 'Create First PO')}</Button>
                                         </div>
                                     </td>
                                 </tr>

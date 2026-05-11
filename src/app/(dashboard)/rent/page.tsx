@@ -83,7 +83,7 @@ export default function RentDashboard() {
  <Building2 className="w-8 h-8 text-[#0F766E]" />
  </div>
  <div>
- <h1 className="text-4xl font-bold text-[#134E4A] tracking-tight" style={{ fontFamily: "'Cinzel', serif" }}>{_t('NAMA RENTALS', 'NAMA RENTALS')}</h1>
+ <h1 className="text-4xl font-bold text-[#134E4A] tracking-tight" style={{ fontFamily: "'Cinzel', serif" }}>{_t('تأجير ناما', 'NAMA RENTALS')}</h1>
  <p className="text-[#0F766E] mt-1 font-semibold text-lg">نظام إدارة الأملاك والعقارات</p>
  </div>
  </div>

@@ -56,8 +56,8 @@ export default function ReorderRulesPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead><tr style={{ background: '#E3F2FD' }}>
               <th style={{ padding: 10 }}>{isAr ? 'المنتج' : 'Product'}</th>
-              <th style={{ padding: 10 }}>{_t('Min', 'Min')}</th>
-              <th style={{ padding: 10 }}>{_t('Max', 'Max')}</th>
+              <th style={{ padding: 10 }}>{_t('دقيقة', 'Min')}</th>
+              <th style={{ padding: 10 }}>{_t('الأعلى', 'Max')}</th>
               <th style={{ padding: 10 }}>{isAr ? 'كمية الطلب' : 'Reorder Qty'}</th>
               <th style={{ padding: 10 }}>{isAr ? 'المورد' : 'Supplier'}</th>
             </tr></thead>

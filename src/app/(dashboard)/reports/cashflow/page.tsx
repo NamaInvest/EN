@@ -22,11 +22,11 @@ export default function CashFlowDashboard() {
  }, []);
 
  if (isLoading) {
- return <div className="p-8 min-h-screen bg-[#F9FAFB] flex items-center justify-center text-slate-500">{_t('Calculating Cash Flow Forecast...', 'Calculating Cash Flow Forecast...')}</div>;
+ return <div className="p-8 min-h-screen bg-[#F9FAFB] flex items-center justify-center text-slate-500">{_t('جارٍ حساب توقعات التدفق النقدي...', 'Calculating Cash Flow Forecast...')}</div>;
  }
 
  if (!data) {
- return <div className="p-8 min-h-screen bg-[#F9FAFB] flex items-center justify-center text-red-500">{_t('Failed to load forecast data.', 'Failed to load forecast data.')}</div>;
+ return <div className="p-8 min-h-screen bg-[#F9FAFB] flex items-center justify-center text-red-500">{_t('فشل تحميل بيانات التوقعات.', 'Failed to load forecast data.')}</div>;
  }
 
  const hasWarnings = data.forecast.some((day: any) => day.balance < MINIMUM_THRESHOLD);
@@ -35,7 +35,7 @@ export default function CashFlowDashboard() {
  <div className="p-8 space-y-6 bg-[#F9FAFB] min-h-screen">
  <div className="flex justify-between items-center">
  <div>
- <h1 className="text-3xl font-bold text-slate-800">{_t('Cash Flow Forecast', 'Cash Flow Forecast')}</h1>
+ <h1 className="text-3xl font-bold text-slate-800">{_t('توقعات التدفق النقدي', 'Cash Flow Forecast')}</h1>
  <p className="text-sm text-slate-500 mt-1">30-Day Liquidity Projections based on AR, AP, and Payroll</p>
  </div>
  <div className="flex gap-2">
@@ -56,17 +56,17 @@ export default function CashFlowDashboard() {
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
- <p className="text-sm font-medium text-slate-500">{_t('Opening Balance (Today)', 'Opening Balance (Today)')}</p>
+ <p className="text-sm font-medium text-slate-500">{_t('الرصيد الافتتاحي (اليوم)', 'Opening Balance (Today)')}</p>
  <p className="text-2xl font-bold text-slate-800 mt-2">${data.openingBalance.toLocaleString()}</p>
  </div>
  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
- <p className="text-sm font-medium text-slate-500">{_t('Expected 30-Day Inflows', 'Expected 30-Day Inflows')}</p>
+ <p className="text-sm font-medium text-slate-500">{_t('التدفقات الداخلة المتوقعة لمدة 30 يومًا', 'Expected 30-Day Inflows')}</p>
  <p className="text-2xl font-bold text-green-600 mt-2">
  +${data.forecast.reduce((acc: number, day: any) => acc + day.inflow, 0).toLocaleString()}
  </p>
  </div>
  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
- <p className="text-sm font-medium text-slate-500">{_t('Expected 30-Day Outflows', 'Expected 30-Day Outflows')}</p>
+ <p className="text-sm font-medium text-slate-500">{_t('التدفقات الخارجة المتوقعة لمدة 30 يومًا', 'Expected 30-Day Outflows')}</p>
  <p className="text-2xl font-bold text-rose-600 mt-2">
  -${data.forecast.reduce((acc: number, day: any) => acc + day.outflow, 0).toLocaleString()}
  </p>
@@ -74,16 +74,16 @@ export default function CashFlowDashboard() {
  </div>
 
  <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
- <h3 className="text-lg font-bold text-slate-800 mb-6">{_t('Daily Forecast Matrix', 'Daily Forecast Matrix')}</h3>
+ <h3 className="text-lg font-bold text-slate-800 mb-6">{_t('مصفوفة التوقعات اليومية', 'Daily Forecast Matrix')}</h3>
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="border-b border-slate-200 bg-slate-50">
  <th className="py-3 px-4 font-medium text-slate-500 text-sm rounded-tl-lg">{_t('التاريخ', 'Date')}</th>
- <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('Inflows', 'Inflows')}</th>
- <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('Outflows', 'Outflows')}</th>
- <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('Projected Balance', 'Projected Balance')}</th>
- <th className="py-3 px-4 font-medium text-slate-500 text-sm rounded-tr-lg">{_t('Key Drivers', 'Key Drivers')}</th>
+ <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('التدفقات', 'Inflows')}</th>
+ <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('التدفقات الخارجة', 'Outflows')}</th>
+ <th className="py-3 px-4 font-medium text-slate-500 text-sm">{_t('الرصيد المتوقع', 'Projected Balance')}</th>
+ <th className="py-3 px-4 font-medium text-slate-500 text-sm rounded-tr-lg">{_t('برامج التشغيل الرئيسية', 'Key Drivers')}</th>
  </tr>
  </thead>
  <tbody>

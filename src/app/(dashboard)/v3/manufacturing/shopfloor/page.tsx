@@ -39,8 +39,8 @@ export default function ManufacturingShopFloorPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Real-time Shop Floor', 'Real-time Shop Floor')}</h1>
-                <Button variant="outline">{_t('Refresh Data', 'Refresh Data')}</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('أرضية المتجر في الوقت الحقيقي', 'Real-time Shop Floor')}</h1>
+                <Button variant="outline">{_t('تحديث البيانات', 'Refresh Data')}</Button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -58,18 +58,18 @@ export default function ManufacturingShopFloorPage() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="block text-gray-500">{_t('Current Order', 'Current Order')}</span>
+                                    <span className="block text-gray-500">{_t('النظام الحالي', 'Current Order')}</span>
                                     <span className="font-bold">{m.currentOrder}</span>
                                 </div>
                                 <div>
-                                    <span className="block text-gray-500">{_t('Operator', 'Operator')}</span>
+                                    <span className="block text-gray-500">{_t('المشغل', 'Operator')}</span>
                                     <span className="font-medium">{m.operator}</span>
                                 </div>
                             </div>
                             
                             <div>
                                 <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-gray-500">{_t('Performance', 'Performance')}</span>
+                                    <span className="text-gray-500">{_t('أداء', 'Performance')}</span>
                                     <span className="font-bold">{m.performance}%</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -87,7 +87,7 @@ export default function ManufacturingShopFloorPage() {
                                 <Button size="sm" className="w-full" variant={m.status === 'RUNNING' ? 'outline' : 'default'}>
                                     {m.status === 'RUNNING' ? 'Pause' : 'Start'}
                                 </Button>
-                                <Button size="sm" className="w-full" variant="outline">{_t('Log Issue', 'Log Issue')}</Button>
+                                <Button size="sm" className="w-full" variant="outline">{_t('مشكلة السجل', 'Log Issue')}</Button>
                             </div>
                         </CardContent>
                     </Card>

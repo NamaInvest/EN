@@ -30,15 +30,15 @@ export default async function RestaurantTablesPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Grid className="w-8 h-8 text-orange-600" />{_t('Restaurant Tables & Zones', 'Restaurant Tables & Zones')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Manage dining areas, table status, and floor plans.', 'Manage dining areas, table status, and floor plans.')}</p>
+                        <Grid className="w-8 h-8 text-orange-600" />{_t('طاولات ومناطق المطاعم', 'Restaurant Tables & Zones')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إدارة مناطق تناول الطعام وحالة الطاولة ومخططات الطوابق.', 'Manage dining areas, table status, and floor plans.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/pos-dashboard">
-                        <Button variant="outline" className="bg-white">{_t('POS Sessions', 'POS Sessions')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('جلسات نقاط البيع', 'POS Sessions')}</Button>
                     </Link>
                     <Button className="bg-orange-600 hover:bg-orange-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('Add Table', 'Add Table')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('إضافة جدول', 'Add Table')}</Button>
                 </div>
             </div>
 
@@ -47,7 +47,7 @@ export default async function RestaurantTablesPage() {
                 <Card className="bg-gradient-to-br from-green-50 to-white border-green-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-green-600">{_t('Available Tables', 'Available Tables')}</p>
+                            <p className="text-sm font-medium text-green-600">{_t('الجداول المتاحة', 'Available Tables')}</p>
                             <CheckCircle className="w-4 h-4 text-green-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{availableCount}</h3>
@@ -56,7 +56,7 @@ export default async function RestaurantTablesPage() {
                 <Card className="bg-gradient-to-br from-orange-50 to-white border-orange-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-orange-600">{_t('Occupied Tables', 'Occupied Tables')}</p>
+                            <p className="text-sm font-medium text-orange-600">{_t('الجداول المحتلة', 'Occupied Tables')}</p>
                             <Users className="w-4 h-4 text-orange-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{occupiedCount}</h3>
@@ -65,7 +65,7 @@ export default async function RestaurantTablesPage() {
                 <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-blue-600">{_t('Reserved', 'Reserved')}</p>
+                            <p className="text-sm font-medium text-blue-600">{_t('محجوز', 'Reserved')}</p>
                             <Utensils className="w-4 h-4 text-blue-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{reservedCount}</h3>
@@ -132,10 +132,10 @@ export default async function RestaurantTablesPage() {
                 {tables.length === 0 && (
                     <div className="col-span-full p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
                         <Grid className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900">{_t('No Tables Configured', 'No Tables Configured')}</h3>
-                        <p className="mt-1">{_t('Add your first restaurant tables and configure floor zones.', 'Add your first restaurant tables and configure floor zones.')}</p>
+                        <h3 className="text-lg font-medium text-gray-900">{_t('لم يتم تكوين أي جداول', 'No Tables Configured')}</h3>
+                        <p className="mt-1">{_t('أضف طاولات مطعمك الأولى وقم بتكوين مناطق الطوابق.', 'Add your first restaurant tables and configure floor zones.')}</p>
                         <Button className="mt-4 bg-orange-600 hover:bg-orange-700 text-white">
-                            <Plus className="w-4 h-4 mr-2" />{_t('Create Table', 'Create Table')}</Button>
+                            <Plus className="w-4 h-4 mr-2" />{_t('إنشاء جدول', 'Create Table')}</Button>
                     </div>
                 )}
             </div>

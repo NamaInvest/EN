@@ -14,7 +14,7 @@ const LOCAL_BASE = process.cwd();
 const SYNC_DIRS = ['src', 'prisma', 'public'];
 const SYNC_FILES = [
   'middleware.ts', 'next.config.ts', 'package.json', 'tsconfig.json',
-  'package-lock.json', '.env', 'sentry.client.config.ts', 'sentry.server.config.ts',
+  'package-lock.json', 'sentry.client.config.ts', 'sentry.server.config.ts',
   'sentry.edge.config.ts', 'instrumentation.ts', 'instrumentation-client.ts',
 ];
 

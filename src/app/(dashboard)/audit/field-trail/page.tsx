@@ -305,7 +305,7 @@ export default function FieldAuditTrailPage() {
                       _t('القيمة الجديدة', 'New Value'),
                       _t('المستخدم', 'User'),
                       _t('التاريخ', 'Date'),
-                      _t('IP', 'IP'),
+                      _t('الملكية الفكرية', 'IP'),
                     ].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
                     ))}

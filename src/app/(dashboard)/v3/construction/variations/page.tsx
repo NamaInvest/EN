@@ -30,13 +30,13 @@ export default function ConstructionVariationsPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Construction Variation Orders (VO)', 'Construction Variation Orders (VO)')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('أوامر تغيير البناء (VO)', 'Construction Variation Orders (VO)')}</h1>
                 <Button>+ Create Variation Order</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Project Variation Orders', 'Project Variation Orders')}</CardTitle>
+                    <CardTitle>{_t('أوامر تغيير المشروع', 'Project Variation Orders')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
@@ -44,11 +44,11 @@ export default function ConstructionVariationsPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">{_t('VO Number', 'VO Number')}</th>
+                                        <th className="px-4 py-3">{_t('رقم طلب الشراء', 'VO Number')}</th>
                                         <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
                                         <th className="px-4 py-3">{_t('منتج', 'Project')}</th>
                                         <th className="px-4 py-3">{_t('الوصف', 'Description')}</th>
-                                        <th className="px-4 py-3 text-right">{_t('Amount (SAR)', 'Amount (SAR)')}</th>
+                                        <th className="px-4 py-3 text-right">{_t('المبلغ (ريال سعودي)', 'Amount (SAR)')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                     </tr>
@@ -63,15 +63,15 @@ export default function ConstructionVariationsPage() {
                                             <td className="px-4 py-3 text-right font-bold text-blue-600">${vo.amount.toLocaleString()}</td>
                                             <td className="px-4 py-3">
                                                 {vo.status === 'APPROVED' ? (
-                                                    <Badge className="bg-green-100 text-green-800">{_t('Approved', 'Approved')}</Badge>
+                                                    <Badge className="bg-green-100 text-green-800">{_t('موافقة', 'Approved')}</Badge>
                                                 ) : (
-                                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800">{_t('Pending', 'Pending')}</Badge>
+                                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800">{_t('قيد الانتظار', 'Pending')}</Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
                                                 <Button size="sm" variant="outline">{_t('عرض', 'View')}</Button>
                                                 {vo.status === 'PENDING_APPROVAL' && (
-                                                    <Button size="sm" variant="outline" className="text-green-600 border-green-500">{_t('Approve', 'Approve')}</Button>
+                                                    <Button size="sm" variant="outline" className="text-green-600 border-green-500">{_t('يعتمد', 'Approve')}</Button>
                                                 )}
                                             </td>
                                         </tr>

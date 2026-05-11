@@ -166,13 +166,13 @@ export default function FixedAssetsPage() {
  <td className="px-6 py-4 text-center font-bold text-slate-600">{asset.usefulLifeYears}</td>
  
  <td className="px-6 py-4 font-bold text-slate-700 text-left" dir="ltr">
- {asset.purchaseCost.toLocaleString()}
+ {Number(asset.purchaseCost || 0).toLocaleString()}
  </td>
  <td className="px-6 py-4 text-slate-500 text-left" dir="ltr">
- {asset.salvageValue.toLocaleString()}
+ {Number(asset.salvageValue || 0).toLocaleString()}
  </td>
  <td className="px-6 py-4 font-black text-amber-600 text-left" dir="ltr">
- {asset.currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+ {Number(asset.currentValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
  </td>
  
  <td className="px-6 py-4 text-center">

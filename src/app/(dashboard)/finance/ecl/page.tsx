@@ -93,7 +93,7 @@ export default function ECLCalculatorPage() {
               <tr>
                 <th>{_t('الفئة', 'Bucket')}</th>
                 <th>{_t('نسبة التعثر (PD)', 'PD Rate')}</th>
-                <th>{_t('ECL', 'ECL')}</th>
+                <th>{_t('الخسائر الائتمانية المتوقعة', 'ECL')}</th>
               </tr>
             </thead>
             <tbody>

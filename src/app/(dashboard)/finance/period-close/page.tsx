@@ -60,15 +60,15 @@ export default function PeriodCloseChecklistPage() {
     };
 
     const renderBadge = (status: string) => {
-        if (status === 'DONE') return <Badge className="bg-green-100 text-green-800">{_t('DONE', 'DONE')}</Badge>;
-        if (status === 'IN_PROGRESS') return <Badge className="bg-blue-100 text-blue-800">{_t('IN PROGRESS', 'IN PROGRESS')}</Badge>;
-        return <Badge className="bg-gray-100 text-gray-800">{_t('PENDING', 'PENDING')}</Badge>;
+        if (status === 'DONE') return <Badge className="bg-green-100 text-green-800">{_t('منتهي', 'DONE')}</Badge>;
+        if (status === 'IN_PROGRESS') return <Badge className="bg-blue-100 text-blue-800">{_t('في تَقَدم', 'IN PROGRESS')}</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{_t('قيد الانتظار', 'PENDING')}</Badge>;
     };
 
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Period Close Checklist', 'Period Close Checklist')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('قائمة مراجعة إغلاق الفترة', 'Period Close Checklist')}</h1>
                 <div className="space-x-2 flex">
                     <Input 
                         placeholder="Fiscal Period ID" 
@@ -76,8 +76,8 @@ export default function PeriodCloseChecklistPage() {
                         onChange={e => setPeriodId(e.target.value)}
                         className="w-32"
                     />
-                    <Button onClick={startClose}>{_t('Start Close', 'Start Close')}</Button>
-                    <Button variant="destructive">{_t('Lock Period', 'Lock Period')}</Button>
+                    <Button onClick={startClose}>{_t('ابدأ بالإغلاق', 'Start Close')}</Button>
+                    <Button variant="destructive">{_t('فترة القفل', 'Lock Period')}</Button>
                 </div>
             </div>
             
@@ -93,7 +93,7 @@ export default function PeriodCloseChecklistPage() {
                                     <tr>
                                         <th className="px-4 py-3">Step #</th>
                                         <th className="px-4 py-3">{_t('المهمة (Task)', 'Task')}</th>
-                                        <th className="px-4 py-3">{_t('Owner', 'Owner')}</th>
+                                        <th className="px-4 py-3">{_t('مالك', 'Owner')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                         <th className="px-4 py-3">{_t('ملاحظات', 'Notes')}</th>
                                         <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
@@ -109,10 +109,10 @@ export default function PeriodCloseChecklistPage() {
                                             <td className="px-4 py-3 max-w-xs truncate">{item.notes || '-'}</td>
                                             <td className="px-4 py-3 text-right space-x-2">
                                                 {item.status !== 'DONE' && (
-                                                    <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => updateStatus(item.id, 'DONE')}>{_t('Mark Done', 'Mark Done')}</Button>
+                                                    <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50" onClick={() => updateStatus(item.id, 'DONE')}>{_t('مارك تم', 'Mark Done')}</Button>
                                                 )}
                                                 {item.status === 'DONE' && (
-                                                    <Button size="sm" variant="outline" className="text-gray-600" onClick={() => updateStatus(item.id, 'PENDING')}>{_t('Reopen', 'Reopen')}</Button>
+                                                    <Button size="sm" variant="outline" className="text-gray-600" onClick={() => updateStatus(item.id, 'PENDING')}>{_t('إعادة فتح', 'Reopen')}</Button>
                                                 )}
                                             </td>
                                         </tr>

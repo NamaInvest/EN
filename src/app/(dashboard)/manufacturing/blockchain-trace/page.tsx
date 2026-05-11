@@ -68,7 +68,7 @@ export default function BlockchainTracePage() {
  <h3 className="text-xl font-bold text-white mb-1">Block #{block.blockId}</h3>
  <p className="text-emerald-400 font-mono text-xs mb-2">Timestamp: {new Date(block.timestamp).toISOString()}</p>
  </div>
- {block.isValid && <div className="flex items-center gap-1 text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full text-xs font-bold"><ShieldCheck className="w-4 h-4"/>{_t('Verified', 'Verified')}</div>}
+ {block.isValid && <div className="flex items-center gap-1 text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full text-xs font-bold"><ShieldCheck className="w-4 h-4"/>{_t('تم التحقق منه', 'Verified')}</div>}
  </div>
 
  <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
@@ -84,11 +84,11 @@ export default function BlockchainTracePage() {
 
  <div className="space-y-2 relative z-10">
  <div className="bg-black/50 p-3 rounded-lg border border-slate-800">
- <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{_t('Previous Hash', 'Previous Hash')}</p>
+ <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{_t('التجزئة السابقة', 'Previous Hash')}</p>
  <p className="font-mono text-xs text-slate-400 break-all">{block.previousHash}</p>
  </div>
  <div className="bg-emerald-900/20 p-3 rounded-lg border border-emerald-500/30">
- <p className="text-[10px] text-emerald-500/70 uppercase tracking-wider mb-1">{_t('Block Hash (SHA-256)', 'Block Hash (SHA-256)')}</p>
+ <p className="text-[10px] text-emerald-500/70 uppercase tracking-wider mb-1">{_t('كتلة التجزئة (SHA-256)', 'Block Hash (SHA-256)')}</p>
  <p className="font-mono text-xs text-emerald-400 break-all">{block.hash}</p>
  </div>
  </div>

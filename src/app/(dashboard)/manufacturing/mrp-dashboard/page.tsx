@@ -170,7 +170,7 @@ export default function MRPDashboard() {
  <p className="text-xs text-slate-400">صيانة دورية مجدولة غداً</p>
  </div>
  </div>
- <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-lg">{_t('Warning', 'Warning')}</span>
+ <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-lg">{_t('تحذير', 'Warning')}</span>
  </div>
  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700 flex justify-between items-center">
  <div className="flex items-center">
@@ -180,7 +180,7 @@ export default function MRPDashboard() {
  <p className="text-xs text-rose-400">توقف مفاجئ - نقص بالمواد</p>
  </div>
  </div>
- <span className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-lg">{_t('Stopped', 'Stopped')}</span>
+ <span className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-lg">{_t('توقف', 'Stopped')}</span>
  </div>
  </div>
  </div>

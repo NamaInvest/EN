@@ -61,19 +61,19 @@ export default async function DunningDashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{_t('Dunning Management', 'Dunning Management')}</h1>
-                    <p className="text-muted-foreground">{_t('Automated collections and overdue follow-ups', 'Automated collections and overdue follow-ups')}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{_t('إدارة المطالبات', 'Dunning Management')}</h1>
+                    <p className="text-muted-foreground">{_t('التحصيل الآلي والمتابعة المتأخرة', 'Automated collections and overdue follow-ups')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="default">
-                        <Play className="h-4 w-4 mr-2" />{_t('Run Daily Dunning', 'Run Daily Dunning')}</Button>
+                        <Play className="h-4 w-4 mr-2" />{_t('تشغيل المطالبات اليومية', 'Run Daily Dunning')}</Button>
                 </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Total Overdue', 'Total Overdue')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('إجمالي المتأخرات', 'Total Overdue')}</CardTitle>
                         <FileWarning className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -83,17 +83,17 @@ export default async function DunningDashboard() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Letters Today', 'Letters Today')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('رسائل اليوم', 'Letters Today')}</CardTitle>
                         <FileWarning className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{lettersToday}</div>
-                        <p className="text-xs text-muted-foreground">{_t('Sent automatically', 'Sent automatically')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('تم الإرسال تلقائيًا', 'Sent automatically')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Active Promises', 'Active Promises')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('الوعود النشطة', 'Active Promises')}</CardTitle>
                         <Handshake className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -103,12 +103,12 @@ export default async function DunningDashboard() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Blocked Customers', 'Blocked Customers')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('العملاء المحظورون', 'Blocked Customers')}</CardTitle>
                         <ShieldAlert className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-destructive">{blockedCustomersCount}</div>
-                        <p className="text-xs text-muted-foreground">{_t('Credit hold', 'Credit hold')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('عقد الائتمان', 'Credit hold')}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -116,9 +116,9 @@ export default async function DunningDashboard() {
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader className="flex justify-between items-center flex-row">
-                        <CardTitle>{_t('Recent Letters', 'Recent Letters')}</CardTitle>
+                        <CardTitle>{_t('الرسائل الأخيرة', 'Recent Letters')}</CardTitle>
                         <Link href="/accounting/dunning/letters">
-                            <Button variant="ghost" size="sm">{_t('View All', 'View All')}</Button>
+                            <Button variant="ghost" size="sm">{_t('عرض الكل', 'View All')}</Button>
                         </Link>
                     </CardHeader>
                     <CardContent>
@@ -126,14 +126,14 @@ export default async function DunningDashboard() {
                             <table className="min-w-full divide-y divide-border">
                                 <thead className="bg-muted/50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('Customer', 'Customer')}</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('عميل', 'Customer')}</th>
                                         <th className="px-4 py-3 text-left text-sm font-medium">{_t('المستوى', 'Level')}</th>
                                         <th className="px-4 py-3 text-left text-sm font-medium">{_t('المبلغ', 'Amount')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {recentLetters.length === 0 ? (
-                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">{_t('No recent letters.', 'No recent letters.')}</td></tr>
+                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">{_t('لا توجد رسائل حديثة.', 'No recent letters.')}</td></tr>
                                     ) : recentLetters.map((letter) => (
                                         <tr key={letter.id}>
                                             <td className="px-4 py-3 text-sm">{letter.customer?.name || `Customer ID: ${letter.customerId}`}</td>
@@ -149,9 +149,9 @@ export default async function DunningDashboard() {
 
                 <Card>
                     <CardHeader className="flex justify-between items-center flex-row">
-                        <CardTitle>{_t('Promises to Pay', 'Promises to Pay')}</CardTitle>
+                        <CardTitle>{_t('وعود بالدفع', 'Promises to Pay')}</CardTitle>
                         <Link href="/accounting/dunning/promises">
-                            <Button variant="ghost" size="sm">{_t('View All', 'View All')}</Button>
+                            <Button variant="ghost" size="sm">{_t('عرض الكل', 'View All')}</Button>
                         </Link>
                     </CardHeader>
                     <CardContent>
@@ -159,14 +159,14 @@ export default async function DunningDashboard() {
                             <table className="min-w-full divide-y divide-border">
                                 <thead className="bg-muted/50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('Customer', 'Customer')}</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('Promised Date', 'Promised Date')}</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('عميل', 'Customer')}</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium">{_t('التاريخ الموعود', 'Promised Date')}</th>
                                         <th className="px-4 py-3 text-left text-sm font-medium">{_t('الحالة', 'Status')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {promises.length === 0 ? (
-                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">{_t('No active promises.', 'No active promises.')}</td></tr>
+                                        <tr><td colSpan={3} className="text-center py-4 text-muted-foreground">{_t('لا وعود نشطة.', 'No active promises.')}</td></tr>
                                     ) : promises.map((promise) => (
                                         <tr key={promise.id}>
                                             <td className="px-4 py-3 text-sm">{promise.customer?.name || `Customer ID: ${promise.customerId}`}</td>

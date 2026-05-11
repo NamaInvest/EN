@@ -13,14 +13,14 @@ export default function VATReturnsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <FileBarChart className="w-8 h-8 text-teal-600" />{_t('VAT Returns', 'VAT Returns')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Generate and submit Value Added Tax (VAT) returns compliant with ZATCA.', 'Generate and submit Value Added Tax (VAT) returns compliant with ZATCA.')}</p>
+                        <FileBarChart className="w-8 h-8 text-teal-600" />{_t('عوائد ضريبة القيمة المضافة', 'VAT Returns')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إنشاء وتقديم إقرارات ضريبة القيمة المضافة (VAT) المتوافقة مع ZATCA.', 'Generate and submit Value Added Tax (VAT) returns compliant with ZATCA.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="bg-white">
                         <Download className="w-4 h-4 mr-2" />{_t('تصدير', 'Export')}</Button>
                     <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
-                        <Calculator className="w-4 h-4 mr-2" />{_t('Generate Return', 'Generate Return')}</Button>
+                        <Calculator className="w-4 h-4 mr-2" />{_t('توليد العائد', 'Generate Return')}</Button>
                 </div>
             </div>
 
@@ -37,7 +37,7 @@ export default function VATReturnsPage() {
                 </div>
                 <div className="p-12 text-center text-gray-500">
                     <FileBarChart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <h3 className="text-lg font-medium text-gray-900">{_t('No VAT Returns generated', 'No VAT Returns generated')}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">{_t('لم يتم إنشاء إقرارات ضريبة القيمة المضافة', 'No VAT Returns generated')}</h3>
                     <p className="mt-1">Click 'Generate Return' to calculate your VAT obligations for the current period.</p>
                 </div>
             </Card>

@@ -29,18 +29,18 @@ export default function WorkOrdersPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Active Work Orders', 'Active Work Orders')}</CardTitle>
+                    <CardTitle>{_t('أوامر العمل النشطة', 'Active Work Orders')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('WO Number', 'WO Number')}</th>
+                                    <th className="px-4 py-3">{_t('رقم طلب العمل', 'WO Number')}</th>
                                     <th className="px-4 py-3">{_t('العميل', 'Client')}</th>
-                                    <th className="px-4 py-3">{_t('Issue Description', 'Issue Description')}</th>
-                                    <th className="px-4 py-3">{_t('Assigned To', 'Assigned To')}</th>
-                                    <th className="px-4 py-3">{_t('Priority', 'Priority')}</th>
+                                    <th className="px-4 py-3">{_t('وصف المشكلة', 'Issue Description')}</th>
+                                    <th className="px-4 py-3">{_t('تم تعيينه ل', 'Assigned To')}</th>
+                                    <th className="px-4 py-3">{_t('أولوية', 'Priority')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
@@ -57,7 +57,7 @@ export default function WorkOrdersPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             {wo.status === 'IN_PROGRESS' ? (
-                                                <Badge className="bg-blue-100 text-blue-800">{_t('In Progress', 'In Progress')}</Badge>
+                                                <Badge className="bg-blue-100 text-blue-800">{_t('في تَقَدم', 'In Progress')}</Badge>
                                             ) : (
                                                 <Badge variant="outline">{_t('جديد', 'New')}</Badge>
                                             )}
@@ -65,7 +65,7 @@ export default function WorkOrdersPage() {
                                         <td className="px-4 py-3 text-right space-x-2">
                                             <Button size="sm" variant="outline">{_t('تحديث', 'Update')}</Button>
                                             {wo.status === 'NEW' && (
-                                                <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('Dispatch', 'Dispatch')}</Button>
+                                                <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('إرسال', 'Dispatch')}</Button>
                                             )}
                                         </td>
                                     </tr>

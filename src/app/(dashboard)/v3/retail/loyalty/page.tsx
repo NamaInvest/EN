@@ -18,13 +18,13 @@ export default function LoyaltyRedemptionPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Loyalty & Rewards Program', 'Loyalty & Rewards Program')}</h1>
-                <Button>{_t('Enroll Customer', 'Enroll Customer')}</Button>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('برنامج الولاء والمكافآت', 'Loyalty & Rewards Program')}</h1>
+                <Button>{_t('تسجيل العميل', 'Enroll Customer')}</Button>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Customer Loyalty Accounts', 'Customer Loyalty Accounts')}</CardTitle>
+                    <CardTitle>{_t('حسابات ولاء العملاء', 'Customer Loyalty Accounts')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex mb-4 space-x-2">
@@ -36,11 +36,11 @@ export default function LoyaltyRedemptionPage() {
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('Customer ID', 'Customer ID')}</th>
+                                    <th className="px-4 py-3">{_t('معرف العميل', 'Customer ID')}</th>
                                     <th className="px-4 py-3">{_t('الاسم', 'Name')}</th>
                                     <th className="px-4 py-3">{_t('الهاتف', 'Phone')}</th>
-                                    <th className="px-4 py-3">{_t('Tier', 'Tier')}</th>
-                                    <th className="px-4 py-3 text-right">{_t('Points Balance', 'Points Balance')}</th>
+                                    <th className="px-4 py-3">{_t('الطبقة', 'Tier')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('رصيد النقاط', 'Points Balance')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
@@ -59,8 +59,8 @@ export default function LoyaltyRedemptionPage() {
                                             <Badge className="bg-green-100 text-green-800">{_t('نشطة', 'Active')}</Badge>
                                         </td>
                                         <td className="px-4 py-3 text-right space-x-2">
-                                            <Button size="sm" variant="outline">{_t('View History', 'View History')}</Button>
-                                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('Redeem', 'Redeem')}</Button>
+                                            <Button size="sm" variant="outline">{_t('عرض التاريخ', 'View History')}</Button>
+                                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('يسترد', 'Redeem')}</Button>
                                         </td>
                                     </tr>
                                 ))}

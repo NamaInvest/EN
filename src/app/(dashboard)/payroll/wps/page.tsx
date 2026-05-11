@@ -84,17 +84,17 @@ export default function WPSPage() {
  return (
  <div className="page-content animate-fade-in" style={{ padding: '24px' }}>
  <div className="page-header">
- <h1 className="page-title">{_t('Wage Protection System (WPS)', 'Wage Protection System (WPS)')}</h1>
- <p style={{ color: 'var(--text-muted)' }}>{_t('Generate and manage SAMA compliant SIF files for salary transfer.', 'Generate and manage SAMA compliant SIF files for salary transfer.')}</p>
+ <h1 className="page-title">{_t('نظام حماية الأجور (WPS)', 'Wage Protection System (WPS)')}</h1>
+ <p style={{ color: 'var(--text-muted)' }}>{_t('إنشاء وإدارة ملفات SIF المتوافقة مع مؤسسة النقد العربي السعودي (SAMA) لتحويل الراتب.', 'Generate and manage SAMA compliant SIF files for salary transfer.')}</p>
  </div>
 
  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px', marginTop: '24px' }}>
  {/* Generator Form */}
  <div className="card">
- <h3 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: 'bold' }}>{_t('Generate New SIF', 'Generate New SIF')}</h3>
+ <h3 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: 'bold' }}>{_t('إنشاء SIF جديد', 'Generate New SIF')}</h3>
  
  <div style={{ marginBottom: '12px' }}>
- <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('Payroll Run ID', 'Payroll Run ID')}</label>
+ <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('معرف تشغيل كشوف المرتبات', 'Payroll Run ID')}</label>
  <input 
  type="number" 
  placeholder="e.g. 1" 
@@ -104,7 +104,7 @@ export default function WPSPage() {
  />
  </div>
  <div style={{ marginBottom: '12px' }}>
- <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('Company ID', 'Company ID')}</label>
+ <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('معرف الشركة', 'Company ID')}</label>
  <input 
  type="number" 
  placeholder="e.g. 1" 
@@ -114,7 +114,7 @@ export default function WPSPage() {
  />
  </div>
  <div style={{ marginBottom: '16px' }}>
- <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('Bank Code (SAMA)', 'Bank Code (SAMA)')}</label>
+ <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px' }}>{_t('رمز البنك (ساما)', 'Bank Code (SAMA)')}</label>
  <select 
  value={bankCode}
  onChange={(e) => setBankCode(e.target.value)}
@@ -122,10 +122,10 @@ export default function WPSPage() {
  >
  <option value="SAR">Saudi Awwal Bank (SABB/Alawwal)</option>
  <option value="NCB">Saudi National Bank (SNB/NCB)</option>
- <option value="RJHI">{_t('Al Rajhi Bank', 'Al Rajhi Bank')}</option>
- <option value="RIAD">{_t('Riyad Bank', 'Riyad Bank')}</option>
- <option value="ALIN">{_t('Alinma Bank', 'Alinma Bank')}</option>
- <option value="ARB">{_t('Arab National Bank (ANB)', 'Arab National Bank (ANB)')}</option>
+ <option value="RJHI">{_t('بنك الراجحي', 'Al Rajhi Bank')}</option>
+ <option value="RIAD">{_t('بنك الرياض', 'Riyad Bank')}</option>
+ <option value="ALIN">{_t('بنك الإنماء', 'Alinma Bank')}</option>
+ <option value="ARB">{_t('البنك العربي الوطني (ANB)', 'Arab National Bank (ANB)')}</option>
  </select>
  </div>
  
@@ -141,11 +141,11 @@ export default function WPSPage() {
 
  {/* History Table */}
  <div className="card">
- <h3 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: 'bold' }}>{_t('Generated Batches History', 'Generated Batches History')}</h3>
+ <h3 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: 'bold' }}>{_t('تاريخ الدفعات التي تم إنشاؤها', 'Generated Batches History')}</h3>
  
  {batches.length === 0 ? (
  <div className="empty-state">
- <div className="empty-state-text">{_t('No WPS batches generated yet.', 'No WPS batches generated yet.')}</div>
+ <div className="empty-state-text">{_t('لم يتم إنشاء دفعات WPS حتى الآن.', 'No WPS batches generated yet.')}</div>
  </div>
  ) : (
  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -153,7 +153,7 @@ export default function WPSPage() {
  <tr style={{ background: 'rgba(0,0,0,0.03)' }}>
  <th style={{ padding: '10px' }}>{_t('رقم التشغيلة (Batch)', 'Batch Number')}</th>
  <th style={{ padding: '10px' }}>{_t('البنك', 'Bank')}</th>
- <th style={{ padding: '10px' }}>{_t('Employees', 'Employees')}</th>
+ <th style={{ padding: '10px' }}>{_t('موظفين', 'Employees')}</th>
  <th style={{ padding: '10px' }}>{_t('المبلغ الإجمالي', 'Total Amount')}</th>
  <th style={{ padding: '10px' }}>{_t('الحالة', 'Status')}</th>
  <th style={{ padding: '10px', textAlign: 'right' }}>{_t('إجراءات', 'Actions')}</th>
@@ -183,13 +183,13 @@ export default function WPSPage() {
  style={{ marginRight: '8px' }}
  title="Download SIF"
  onClick={() => handleDownload(batch.id, `WPS_${batch.batchNumber}.txt`)}
- >{_t('Download', 'Download')}</button>
+ >{_t('تحميل', 'Download')}</button>
  {batch.status === 'GENERATED' && (
  <button 
  className="btn btn-primary btn-sm"
  title="Mark as Uploaded to Bank"
  onClick={() => handleMarkUploaded(batch.id)}
- >{_t('Mark Uploaded', 'Mark Uploaded')}</button>
+ >{_t('تم تحميل العلامة', 'Mark Uploaded')}</button>
  )}
  </td>
  </tr>

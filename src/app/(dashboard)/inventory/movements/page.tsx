@@ -36,12 +36,12 @@ export default async function StockMovementsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Activity className="w-8 h-8 text-indigo-600" />{_t('Stock Movements Log', 'Stock Movements Log')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Audit trail for all inventory transactions.', 'Audit trail for all inventory transactions.')}</p>
+                        <Activity className="w-8 h-8 text-indigo-600" />{_t('سجل حركات الأسهم', 'Stock Movements Log')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('مسار التدقيق لجميع معاملات المخزون.', 'Audit trail for all inventory transactions.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/inventory/wms">
-                        <Button variant="outline" className="bg-white">{_t('Back to WMS', 'Back to WMS')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('العودة إلى WMS', 'Back to WMS')}</Button>
                     </Link>
                 </div>
             </div>
@@ -59,8 +59,8 @@ export default async function StockMovementsPage() {
                     </div>
                     <div className="flex gap-2 text-sm text-gray-600">
                         <span className="flex items-center gap-1"><ArrowDownCircle className="w-4 h-4 text-green-500"/> In</span>
-                        <span className="flex items-center gap-1 ml-3"><ArrowUpCircle className="w-4 h-4 text-red-500"/>{_t('Out', 'Out')}</span>
-                        <span className="flex items-center gap-1 ml-3"><ArrowRightLeft className="w-4 h-4 text-blue-500"/>{_t('Transfer', 'Transfer')}</span>
+                        <span className="flex items-center gap-1 ml-3"><ArrowUpCircle className="w-4 h-4 text-red-500"/>{_t('خارج', 'Out')}</span>
+                        <span className="flex items-center gap-1 ml-3"><ArrowRightLeft className="w-4 h-4 text-blue-500"/>{_t('تحويل', 'Transfer')}</span>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -72,7 +72,7 @@ export default async function StockMovementsPage() {
                                 <th className="px-4 py-3 font-medium">{_t('إجراء', 'Product')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('المستودع', 'Warehouse')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الكمية', 'Quantity')}</th>
-                                <th className="px-4 py-3 font-medium">{_t('Ref Doc', 'Ref Doc')}</th>
+                                <th className="px-4 py-3 font-medium">{_t('المرجع الوثيقة', 'Ref Doc')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('المستخدم', 'User')}</th>
                             </tr>
                         </thead>

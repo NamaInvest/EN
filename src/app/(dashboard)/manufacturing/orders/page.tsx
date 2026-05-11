@@ -30,15 +30,15 @@ export default async function ManufacturingOrdersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Hammer className="w-8 h-8 text-amber-600" />{_t('Work Orders (MO)', 'Work Orders (MO)')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Track production progress and shop floor operations.', 'Track production progress and shop floor operations.')}</p>
+                        <Hammer className="w-8 h-8 text-amber-600" />{_t('أوامر العمل (مو)', 'Work Orders (MO)')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('تتبع تقدم الإنتاج وعمليات أرضية المتجر.', 'Track production progress and shop floor operations.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/manufacturing">
-                        <Button variant="outline" className="bg-white">{_t('Back to Dashboard', 'Back to Dashboard')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('العودة إلى لوحة القيادة', 'Back to Dashboard')}</Button>
                     </Link>
                     <Button className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('Create Work Order', 'Create Work Order')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('إنشاء أمر العمل', 'Create Work Order')}</Button>
                 </div>
             </div>
 

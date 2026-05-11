@@ -24,15 +24,15 @@ export default async function PettyCashPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                        <Wallet className="w-8 h-8 text-emerald-600" />{_t('Petty Cash Management', 'Petty Cash Management')}</h1>
-                    <p className="text-gray-500 mt-1">{_t('Manage imprest funds, expenses, and reimbursements.', 'Manage imprest funds, expenses, and reimbursements.')}</p>
+                        <Wallet className="w-8 h-8 text-emerald-600" />{_t('إدارة المصروفات النثرية', 'Petty Cash Management')}</h1>
+                    <p className="text-gray-500 mt-1">{_t('إدارة أموال السلف والنفقات والمبالغ المستردة.', 'Manage imprest funds, expenses, and reimbursements.')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/treasury">
-                        <Button variant="outline" className="bg-white">{_t('Back to Treasury', 'Back to Treasury')}</Button>
+                        <Button variant="outline" className="bg-white">{_t('العودة إلى الخزانة', 'Back to Treasury')}</Button>
                     </Link>
                     <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" />{_t('Create Fund', 'Create Fund')}</Button>
+                        <Plus className="w-4 h-4 mr-2" />{_t('إنشاء صندوق', 'Create Fund')}</Button>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@ export default async function PettyCashPage() {
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-gray-500 mb-1">{_t('Max Limit', 'Max Limit')}</p>
+                                            <p className="text-xs text-gray-500 mb-1">{_t('الحد الأقصى', 'Max Limit')}</p>
                                             <p className="text-sm font-medium text-gray-700">SAR {new Intl.NumberFormat('en-US').format(maxLimit)}</p>
                                         </div>
                                     </div>
@@ -82,14 +82,14 @@ export default async function PettyCashPage() {
                                             style={{ width: `${Math.min(progress, 100)}%` }}
                                         ></div>
                                     </div>
-                                    {isLow && <p className="text-xs text-red-500 font-medium">{_t('Balance running low. Top-up required.', 'Balance running low. Top-up required.')}</p>}
+                                    {isLow && <p className="text-xs text-red-500 font-medium">{_t('الرصيد ينخفض. تعبئة الرصيد مطلوبة.', 'Balance running low. Top-up required.')}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 mt-6">
                                     <Button variant="outline" size="sm" className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                                        <ReceiptText className="w-4 h-4 mr-2" />{_t('Add Expense', 'Add Expense')}</Button>
+                                        <ReceiptText className="w-4 h-4 mr-2" />{_t('أضف النفقات', 'Add Expense')}</Button>
                                     <Button variant="outline" size="sm" className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50">
-                                        <ArrowRightLeft className="w-4 h-4 mr-2" />{_t('Replenish', 'Replenish')}</Button>
+                                        <ArrowRightLeft className="w-4 h-4 mr-2" />{_t('تجديد', 'Replenish')}</Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -100,10 +100,10 @@ export default async function PettyCashPage() {
                     <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-lg border border-gray-200">
                         <div className="flex flex-col items-center">
                             <Wallet className="w-10 h-10 text-gray-300 mb-3" />
-                            <p className="text-lg font-medium text-gray-900">{_t('No Petty Cash Funds', 'No Petty Cash Funds')}</p>
-                            <p className="text-sm">{_t('Create a new fund to start managing petty cash.', 'Create a new fund to start managing petty cash.')}</p>
+                            <p className="text-lg font-medium text-gray-900">{_t('لا توجد أموال نثرية', 'No Petty Cash Funds')}</p>
+                            <p className="text-sm">{_t('إنشاء صندوق جديد للبدء في إدارة المصروفات النثرية.', 'Create a new fund to start managing petty cash.')}</p>
                             <Button className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white">
-                                <Plus className="w-4 h-4 mr-2" />{_t('Create First Fund', 'Create First Fund')}</Button>
+                                <Plus className="w-4 h-4 mr-2" />{_t('إنشاء الصندوق الأول', 'Create First Fund')}</Button>
                         </div>
                     </div>
                 )}

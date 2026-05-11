@@ -18,28 +18,28 @@ export default function ProjectTimeBillingPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">{_t('Project Time & Billing', 'Project Time & Billing')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{_t('وقت المشروع والفواتير', 'Project Time & Billing')}</h1>
                 <div className="space-x-2">
-                    <Button variant="outline">{_t('Log Time', 'Log Time')}</Button>
-                    <Button>{_t('Generate Invoices', 'Generate Invoices')}</Button>
+                    <Button variant="outline">{_t('وقت السجل', 'Log Time')}</Button>
+                    <Button>{_t('إنشاء الفواتير', 'Generate Invoices')}</Button>
                 </div>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Timesheet Entries', 'Timesheet Entries')}</CardTitle>
+                    <CardTitle>{_t('إدخالات الجدول الزمني', 'Timesheet Entries')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3">{_t('Entry ID', 'Entry ID')}</th>
+                                    <th className="px-4 py-3">{_t('معرف الدخول', 'Entry ID')}</th>
                                     <th className="px-4 py-3">{_t('الموظف', 'Employee')}</th>
                                     <th className="px-4 py-3">Project / Task</th>
-                                    <th className="px-4 py-3 text-center">{_t('Hours', 'Hours')}</th>
-                                    <th className="px-4 py-3 text-center">{_t('Billable', 'Billable')}</th>
-                                    <th className="px-4 py-3 text-right">{_t('Total (SAR)', 'Total (SAR)')}</th>
+                                    <th className="px-4 py-3 text-center">{_t('ساعات', 'Hours')}</th>
+                                    <th className="px-4 py-3 text-center">{_t('قابلة للفوترة', 'Billable')}</th>
+                                    <th className="px-4 py-3 text-right">{_t('الإجمالي (ريال سعودي)', 'Total (SAR)')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>
@@ -60,7 +60,7 @@ export default function ProjectTimeBillingPage() {
                                         <td className="px-4 py-3 text-right font-bold text-green-700">${(ts.hours * ts.rate).toLocaleString()}</td>
                                         <td className="px-4 py-3">
                                             {ts.status === 'APPROVED' ? (
-                                                <Badge className="bg-green-100 text-green-800">{_t('Approved', 'Approved')}</Badge>
+                                                <Badge className="bg-green-100 text-green-800">{_t('موافقة', 'Approved')}</Badge>
                                             ) : (
                                                 <Badge variant="outline">{_t('مسودة', 'Draft')}</Badge>
                                             )}

@@ -48,12 +48,12 @@ export default function BankStatementImportsPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{_t('Bank Statements', 'Bank Statements')}</h1>
-                    <p className="text-muted-foreground">{_t('Import and manage bank statements (MT940, CSV, CAMT.053)', 'Import and manage bank statements (MT940, CSV, CAMT.053)')}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{_t('كشوفات البنك', 'Bank Statements')}</h1>
+                    <p className="text-muted-foreground">{_t('استيراد وإدارة البيانات المصرفية (MT940، CSV، CAMT.053)', 'Import and manage bank statements (MT940, CSV, CAMT.053)')}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline">
-                        <ScanLine className="h-4 w-4 mr-2" />{_t('OCR PDF Import', 'OCR PDF Import')}</Button>
+                        <ScanLine className="h-4 w-4 mr-2" />{_t('استيراد ملفات PDF للتعرف الضوئي على الحروف', 'OCR PDF Import')}</Button>
                     <label className="cursor-pointer">
                         <span className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
                             <Upload className="h-4 w-4 mr-2" /> 
@@ -67,7 +67,7 @@ export default function BankStatementImportsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Statements This Month', 'Statements This Month')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('تصريحات هذا الشهر', 'Statements This Month')}</CardTitle>
                         <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -76,39 +76,39 @@ export default function BankStatementImportsPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Unreconciled Txns', 'Unreconciled Txns')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('Txns غير التوفيق', 'Unreconciled Txns')}</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">45</div>
-                        <p className="text-xs text-muted-foreground">{_t('Require matching', 'Require matching')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('تتطلب المطابقة', 'Require matching')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Auto-match Rate', 'Auto-match Rate')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('معدل المطابقة التلقائية', 'Auto-match Rate')}</CardTitle>
                         <CheckCircle className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-green-600">82%</div>
-                        <p className="text-xs text-muted-foreground">{_t('Based on rules', 'Based on rules')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('بناء على القواعد', 'Based on rules')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{_t('Failed Imports', 'Failed Imports')}</CardTitle>
+                        <CardTitle className="text-sm font-medium">{_t('الواردات الفاشلة', 'Failed Imports')}</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-destructive">0</div>
-                        <p className="text-xs text-muted-foreground">{_t('Format issues', 'Format issues')}</p>
+                        <p className="text-xs text-muted-foreground">{_t('قضايا التنسيق', 'Format issues')}</p>
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{_t('Recent Statement Imports', 'Recent Statement Imports')}</CardTitle>
+                    <CardTitle>{_t('واردات البيان الأخير', 'Recent Statement Imports')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -116,8 +116,8 @@ export default function BankStatementImportsPage() {
                             <thead className="bg-muted/50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('حساب', 'Account')}</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('Format', 'Format')}</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('Date Imported', 'Date Imported')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('شكل', 'Format')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">{_t('تاريخ الاستيراد', 'Date Imported')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('رصيد الإغلاق', 'Closing Balance')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right text-sm font-medium">{_t('إجراءات', 'Actions')}</th>
@@ -126,7 +126,7 @@ export default function BankStatementImportsPage() {
                             <tbody className="divide-y divide-border">
                                 {[1, 2, 3].map((i) => (
                                     <tr key={i}>
-                                        <td className="px-4 py-3 text-sm">{_t('Al Rajhi Main', 'Al Rajhi Main')}</td>
+                                        <td className="px-4 py-3 text-sm">{_t('الراجحي الرئيسي', 'Al Rajhi Main')}</td>
                                         <td className="px-4 py-3 text-sm"><span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{i === 1 ? 'CAMT.053' : 'CSV'}</span></td>
                                         <td className="px-4 py-3 text-sm">2026-05-{10+i}</td>
                                         <td className="px-4 py-3 text-sm">SAR {(150.5 * i).toFixed(2)}k</td>
@@ -135,7 +135,7 @@ export default function BankStatementImportsPage() {
                                         </td>
                                         <td className="px-4 py-3 text-sm text-right">
                                             <Link href="/accounting/banks/recon">
-                                                <Button variant="ghost" size="sm">{_t('Reconcile', 'Reconcile')}</Button>
+                                                <Button variant="ghost" size="sm">{_t('تصالح', 'Reconcile')}</Button>
                                             </Link>
                                         </td>
                                     </tr>
