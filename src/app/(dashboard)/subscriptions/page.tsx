@@ -27,8 +27,8 @@ export default async function SubscriptionsDashboard() {
 
     // Calculate approximate MRR (Monthly Recurring Revenue)
     const mrr = subscriptions
-        .filter(s => s.status === 'ACTIVE' && s.plan.billingCycle === 'MONTHLY')
-        .reduce((sum, s) => sum + Number(s.plan.price), 0);
+        .filter(s => s.status === 'ACTIVE' && s.plan?.billingCycle === 'MONTHLY')
+        .reduce((sum, s) => sum + Number(s.plan?.price || 0), 0);
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 p-6">
@@ -127,8 +127,8 @@ export default async function SubscriptionsDashboard() {
                                         {sub.customer?.name || 'Unknown'}
                                     </td>
                                     <td className="px-4 py-3 text-gray-600">
-                                        <span className="font-medium text-gray-900">{sub.plan.name}</span>
-                                        <div className="text-xs text-gray-400">{sub.plan.billingCycle}</div>
+                                        <span className="font-medium text-gray-900">{sub.plan?.name || 'No Plan'}</span>
+                                        <div className="text-xs text-gray-400">{sub.plan?.billingCycle || 'N/A'}</div>
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -142,10 +142,10 @@ export default async function SubscriptionsDashboard() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">
-                                        {format(new Date(sub.currentPeriodEnd), 'MMM dd, yyyy')}
+                                        {sub.currentPeriodEnd ? format(new Date(sub.currentPeriodEnd), 'MMM dd, yyyy') : 'N/A'}
                                     </td>
                                     <td className="px-4 py-3 font-medium text-gray-900">
-                                        {Number(sub.plan.price).toLocaleString()} SAR
+                                        {Number(sub.plan?.price || 0).toLocaleString()} SAR
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">{_t('Manage', 'Manage')}</Button>
