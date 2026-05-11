@@ -1,11 +1,11 @@
-{
+﻿{
     "name":  "namaweb",
     "version":  "2.4.6",
     "private":  true,
     "main":  "electron/main.js",
     "scripts":  {
                     "dev":  "next dev",
-                    "build":  "npx prisma@5.22.0 generate \u0026\u0026 next build --webpack",
+                    "build":  "npx prisma@5.22.0 generate \u0026\u0026 cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
                     "start":  "next start",
                     "worker":  "tsx src/scripts/start_workers.ts",
                     "start:whatsapp":  "tsx src/workers/whatsapp.ts",
