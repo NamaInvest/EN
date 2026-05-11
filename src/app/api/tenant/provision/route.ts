@@ -61,8 +61,7 @@ function toSlug(text: string): string {
 // ─── Run Prisma DB Push via SSH ───────────────────────────────────────────────
 // هذا الجزء الوحيد الذي يبقى على SSH: إنشاء الـ DB وتطبيق الـ schema
 async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: string }> {
-    const mod = 'ss' + 'h2';
-    const { Client } = require(mod);
+    const { Client } = require('ssh2');
     const dbName = `${subdomain}_db`;
     const MASTER_APP = '/www/wwwroot/n11.namainvist.com';
 
