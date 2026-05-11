@@ -348,6 +348,7 @@ model Customer {
   customerNo     String?  @unique @map("customer_no")
   name           String
   phone          String?
+  email          String?
   address        String?
   street         String?
   buildingNumber String?  @map("building_number")

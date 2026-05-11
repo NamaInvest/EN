@@ -104,7 +104,7 @@ export class ThreeWayMatchEngine {
             id: true,
             total: true,
             status: true,
-            items: {
+            details: {
               select: {
                 productId: true,
                 quantity: true,
@@ -137,14 +137,15 @@ export class ThreeWayMatchEngine {
     // 3. Load GRN (StockMovement with type='in' linked to this PO)
     const grnMovements = await prisma.stockMovement.findMany({
       where: {
-        purchaseOrderId: invoice.purchaseOrderId,
-        type: { in: ['in', 'PURCHASE', 'GRN', 'purchase'] },
+        referenceType: 'purchase_order',
+        referenceId: invoice.purchaseOrderId ?? undefined,
+        type: { in: ['in', 'purchase'] },
         deletedAt: null,
       },
       select: {
         productId: true,
         quantity: true,
-        purchaseOrderId: true,
+        referenceId: true,
       },
     }).catch(() => [] as any[]);
 
@@ -176,7 +177,7 @@ export class ThreeWayMatchEngine {
     let grnTotal = 0;
     const variances: MatchVariance[] = [];
 
-    for (const poItem of (po.items as any[])) {
+    for (const poItem of (po.details as any[])) {
       const poQty    = Number(poItem.quantity || 0);
       const poPrice  = Number(poItem.price || 0);
       const poAmt    = Number(poItem.total || poQty * poPrice);

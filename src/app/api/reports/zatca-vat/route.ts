@@ -146,17 +146,20 @@ async function _GET(request: NextRequest) {
     // Credit notes (sales returns & purchase returns)
     const [salesReturns, purReturns] = await Promise.all([
       prisma.salesReturn.aggregate({
-        _sum: { amount: true, taxValue: true },
-        where: { date: { gte: start, lte: end } },
-      }).catch(() => ({ _sum: { amount: 0, taxValue: 0 } })),
+        _sum: { subtotal: true, taxValue: true },
+        where: { date: { gte: start, lte: end }, deletedAt: null },
+      }).catch(() => ({ _sum: { subtotal: 0, taxValue: 0 } })),
       prisma.purchaseReturn.aggregate({
-        _sum: { amount: true, taxValue: true },
-        where: { date: { gte: start, lte: end } },
-      }).catch(() => ({ _sum: { amount: 0, taxValue: 0 } })),
+        _sum: { subtotal: true, taxValue: true },
+        where: { date: { gte: start, lte: end }, deletedAt: null },
+      }).catch(() => ({ _sum: { subtotal: 0, taxValue: 0 } })),
     ]);
 
-    const salesVAT = n(sales15._sum.taxValue) - n(salesReturns._sum.taxValue);
-    const purchasesVAT = n(pur15._sum.taxValue) - n(purReturns._sum.taxValue);
+    const srSum  = salesReturns._sum  ?? { subtotal: 0, taxValue: 0 };
+    const prSum  = purReturns._sum    ?? { subtotal: 0, taxValue: 0 };
+
+    const salesVAT = n(sales15._sum?.taxValue) - n(srSum.taxValue);
+    const purchasesVAT = n(pur15._sum?.taxValue) - n(prSum.taxValue);
     const netVAT = salesVAT - purchasesVAT;
 
     // Due date = last day of month following end of period
@@ -174,13 +177,13 @@ async function _GET(request: NextRequest) {
         zeroRated: { amount: n(sales0._sum.subtotal), vat: 0 },
         exports: { amount: 0, vat: 0 },
         exempt: { amount: 0, vat: 0 },
-        creditNotes: { amount: n(salesReturns._sum.amount), vat: n(salesReturns._sum.taxValue) },
+        creditNotes: { amount: n(srSum.subtotal), vat: n(srSum.taxValue) },
       },
       purchases: {
-        standard: { amount: n(pur15._sum.subtotal), vat: purchasesVAT },
-        zeroRated: { amount: n(pur0._sum.subtotal), vat: 0 },
+        standard: { amount: n(pur15._sum?.subtotal), vat: purchasesVAT },
+        zeroRated: { amount: n(pur0._sum?.subtotal), vat: 0 },
         exempt: { amount: 0, vat: 0 },
-        creditNotes: { amount: n(purReturns._sum.amount), vat: n(purReturns._sum.taxValue) },
+        creditNotes: { amount: n(prSum.subtotal), vat: n(prSum.taxValue) },
       },
       summary: {
         outputVAT: Math.round(salesVAT * 100) / 100,
@@ -194,7 +197,7 @@ async function _GET(request: NextRequest) {
 
     if (format === 'xml') {
       // Fetch company settings for VAT number
-      const settings = await prisma.settings.findFirst().catch(() => null);
+      const settings = await prisma.setting.findFirst().catch(() => null);
       const xml = generateVATReturnXML({
         period,
         vatNumber: (settings as any)?.vatNumber || '300000000000003',

@@ -190,11 +190,11 @@ export class CAMT053Parser {
         ?? xmlContent.match(/<Id><Othr><Id>([^<]+)<\/Id>/)?.[1];
 
       // Opening balance
-      const opnAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>OPBD<\/Cd>.*?<Amt[^>]*>([\d.]+)<\/Amt>/s)?.[1];
+      const opnAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>OPBD<\/Cd>[\s\S]*?<Amt[^>]*>([\d.]+)<\/Amt>/)?.[1];
       if (opnAmt) result.openingBalance = parseFloat(opnAmt);
 
       // Closing balance
-      const clsAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>CLBD<\/Cd>.*?<Amt[^>]*>([\d.]+)<\/Amt>/s)?.[1];
+      const clsAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>CLBD<\/Cd>[\s\S]*?<Amt[^>]*>([\d.]+)<\/Amt>/)?.[1];
       if (clsAmt) result.closingBalance = parseFloat(clsAmt);
 
       // Extract all <Ntry> (entry) blocks
@@ -204,15 +204,50 @@ export class CAMT053Parser {
         try {
           const amtMatch = block.match(/<Amt[^>]*>([\d.]+)<\/Amt>/);
           const cdtDbtInd = block.match(/<CdtDbtInd>([A-Z]+)<\/CdtDbtInd>/)?.[1];
-          const bookgDt = block.match(/<BookgDt>.*?<Dt>([^<]+)<\/Dt>/s)?.[1]
+          // Booking date — try structured path first, then fallback to bare <Dt>
+          const bookgDt =
+            block.match(/<BookgDt>[\.\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
+            ?? block.match(/<BookgDt>[\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
             ?? block.match(/<Dt>([^<]+)<\/Dt>/)?.[1];
-          const valDt = block.match(/<ValDt>.*?<Dt>([^<]+)<\/Dt>/s)?.[1];
-          const ref = block.match(/<EndToEndId>([^<]+)<\/EndToEndId>/)?.[1]
-            ?? block.match(/<Ref>([^<]+)<\/Ref>/)?.[1] || '';
-          const name = block.match(/<Nm>([^<]+)<\/Nm>/)?.[1] || '';
-          const iban = block.match(/<IBAN>([^<]+)<\/IBAN>/)?.[1] || '';
-          const desc = block.match(/<AddtlNtryInf>([^<]+)<\/AddtlNtryInf>/)?.[1]
-            ?? block.match(/<RmtInf>.*?<Ustrd>([^<]+)<\/Ustrd>/s)?.[1] || name;
+
+          // Value date (settlement date)
+          const valDt =
+            block.match(/<ValDt>[\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
+            ?? block.match(/<ValDt>[\s\S]*?<DtTm>([^<]+)<\/DtTm>/)?.[1];
+
+          // End-to-End reference, then fallback to Instruction ID or generic Ref
+          const ref =
+            block.match(/<EndToEndId>([^<]+)<\/EndToEndId>/)?.[1]
+            ?? block.match(/<InstrId>([^<]+)<\/InstrId>/)?.[1]
+            ?? block.match(/<Ref>([^<]+)<\/Ref>/)?.[1]
+            ?? '';
+
+          // Counterparty name (creditor or debtor depending on flow)
+          const name =
+            block.match(/<Cdtr>[\s\S]*?<Nm>([^<]+)<\/Nm>/)?.[1]
+            ?? block.match(/<Dbtr>[\s\S]*?<Nm>([^<]+)<\/Nm>/)?.[1]
+            ?? block.match(/<Nm>([^<]+)<\/Nm>/)?.[1]
+            ?? '';
+
+          // Counterparty IBAN
+          const iban =
+            block.match(/<CdtrAcct>[\s\S]*?<IBAN>([^<]+)<\/IBAN>/)?.[1]
+            ?? block.match(/<DbtrAcct>[\s\S]*?<IBAN>([^<]+)<\/IBAN>/)?.[1]
+            ?? block.match(/<IBAN>([^<]+)<\/IBAN>/)?.[1]
+            ?? '';
+
+          // Counterparty BIC
+          const bic =
+            block.match(/<CdtrAgt>[\s\S]*?<BICFi>([^<]+)<\/BICFi>/)?.[1]
+            ?? block.match(/<DbtrAgt>[\s\S]*?<BICFi>([^<]+)<\/BICFi>/)?.[1]
+            ?? '';
+
+          // Description — unstructured remittance info, then additional entry info
+          const desc =
+            block.match(/<RmtInf>[\s\S]*?<Ustrd>([^<]+)<\/Ustrd>/)?.[1]
+            ?? block.match(/<AddtlNtryInf>([^<]+)<\/AddtlNtryInf>/)?.[1]
+            ?? block.match(/<AddtlTxInf>([^<]+)<\/AddtlTxInf>/)?.[1]
+            ?? name;
 
           if (!amtMatch) continue;
           const amount = parseFloat(amtMatch[1]);
@@ -221,12 +256,14 @@ export class CAMT053Parser {
           result.transactions.push({
             date:              bookgDt ? new Date(bookgDt) : new Date(),
             valueDate:         valDt ? new Date(valDt) : undefined,
-            description:       desc,
+            description:       desc || '',
             reference:         ref,
             debit:             isCredit ? 0 : amount,
             credit:            isCredit ? amount : 0,
-            counterpartyName:  name,
-            counterpartyIban:  iban,
+            counterpartyName:  name || undefined,
+            counterpartyIban:  iban || undefined,
+            // bic stored in transactionCode slot for now
+            transactionCode:   bic || cdtDbtInd || undefined,
           });
         } catch (e) {
           result.parseErrors.push(`Entry parse error: ${(e as Error).message}`);

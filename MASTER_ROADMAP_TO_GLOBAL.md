@@ -54,8 +54,8 @@
 
 ```
 ✅ البنية التحتية
-   ├── 157 Prisma Model
-   ├── ~300 API Endpoint
+   ├── 157+ Prisma Model
+   ├── ~320 API Endpoint
    ├── ~60 Dashboard Page
    ├── Multi-tenant (Master DB + per-tenant DBs)
    └── Auth (Clerk + 2FA TOTP fields)
@@ -74,26 +74,72 @@
    ├── Revenue Recognition            [src/lib/revenue-recognition.ts]
    └── Consolidation Engine           [src/lib/consolidation-engine.ts]
 
-✅ المحاسبة الأساسية (78%)
+✅ المحاسبة الأساسية (100%)
    ├── Auto-Journal (8 سيناريوهات)    [src/lib/auto-journal.ts]
    ├── Costing FIFO/LIFO/Avg          [src/lib/costing.ts]
-   ├── Bank Reconciliation (basic)    [src/lib/bank-reconciliation.ts]
+   ├── Bank Reconciliation            [src/lib/bank-reconciliation.ts + bank-recon-engine.ts]
    ├── Cash Flow Forecasting          [src/lib/cash-flow-forecasting.ts]
    └── Open Items framework           [src/lib/open-items.ts]
 
-✅ ZATCA Phase 2 (84%)
+✅ ZATCA Phase 2 (100%)
    ├── CSR / CSID generation
    ├── ICV/PIH chain
    ├── UBL 2.1 XML
    ├── Sandbox/Production switch
-   └── Java SDK integration
+   ├── Java SDK integration
+   └── VAT Return Report              [src/app/api/reports/zatca-vat/route.ts]
 
 ✅ AI Layer
    ├── AI CFO (Gemini)
    ├── AI Auditor
    ├── OCR Invoice Capture
    └── Bank Statement Analysis
+
+✅ المرحلة A — Saudi Compliance Sprint (مكتملة 2026-05-11)
+   ├── EOS Engine (Art.84-88)         [src/lib/eos-engine.ts]
+   │   └── API                        [src/app/api/hr/eos/route.ts]
+   ├── Leave Engine                   [src/lib/leave-engine.ts]
+   │   └── API                        [src/app/api/hr/leaves/route.ts]
+   ├── WPS Generator (SIF v2)         [src/lib/wps-generator.ts]
+   │   └── API                        [src/app/api/payroll/wps/route.ts]
+   ├── GOSI Engine (9%+9%+2%)         [src/lib/gosi-engine.ts]
+   │   └── API                        [src/app/api/hr/gosi/route.ts]
+   ├── Document Expiry (Iqama/Visa)   [src/lib/document-expiry.ts]
+   │   └── API                        [src/app/api/hr/documents/expiry/route.ts]
+   ├── Mudad API Client               [src/lib/mudad-api.ts]
+   │   └── API                        [src/app/api/integrations/mudad/route.ts]
+   ├── WHT Engine (5/15/20%)          [src/lib/wht-engine.ts]
+   │   └── API                        [src/app/api/tax/wht/route.ts]
+   └── ZATCA VAT Return (fixed)       [src/app/api/reports/zatca-vat/route.ts]
+
+✅ المرحلة B — Treasury & Bank Excellence (مكتملة 2026-05-11)
+   ├── Bank Statement Parser (MT940/CAMT053/OFX/CSV)  [src/lib/bank-statement-parser.ts]
+   ├── Bank Statements Import API     [src/app/api/treasury/bank-statements/route.ts]
+   ├── Bank Recon Engine              [src/lib/bank-recon-engine.ts]
+   └── Bank Recon API                 [src/app/api/treasury/bank-recon/route.ts]
+
+✅ المرحلة C — AR/AP Mastery (مكتملة 2026-05-11)
+   ├── Three-Way Match Engine (PO↔GRN↔Invoice)  [src/lib/three-way-match-engine.ts]
+   │   └── API                        [src/app/api/ap/three-way-match/route.ts]
+   ├── Payment Run Engine             [src/lib/payment-run-engine.ts]
+   │   └── API                        [src/app/api/finance/payment-run/route.ts]
+   ├── Dunning Route                  [src/app/api/finance/dunning/route.ts]
+   └── ECL Engine (IFRS 9)            [src/lib/ecl-engine.ts]
+       └── API                        [src/app/api/finance/ecl/route.ts]
+
+✅ المرحلة D — Inventory & Reorder (مكتملة 2026-05-11)
+   ├── Reorder Engine (EOQ/ROP)       [src/lib/reorder-engine.ts]
+   └── Reorder API (+ draft PO)       [src/app/api/inventory/reorder/route.ts]
+
+✅ المرحلة E — Advanced Accounting (مكتملة 2026-05-11)
+   ├── IFRS 16 Lease Engine (ROU+Liability)  [src/lib/ifrs16-lease-engine.ts]
+   │   └── API                        [src/app/api/finance/ifrs16-lease/route.ts]
+   ├── Asset Lifecycle Engine (IAS36) [src/lib/asset-lifecycle-engine.ts]
+   │   └── API (4 depreciation methods + impairment + disposal)
+   │                                  [src/app/api/finance/asset-lifecycle/route.ts]
+   └── ECL Engine (IFRS 9 simplified approach — see Phase C above)
 ```
+
 
 ### 2.2 الفجوات الكبرى (الترتيب حسب الأولوية)
 
