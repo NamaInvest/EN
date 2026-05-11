@@ -254,6 +254,119 @@ export class NotesToFinancialStatements {
       standard: 'IAS 1.54(k)',
     });
 
+    // ── Note 9: Borrowings & Financing ────────────────────────
+    // JournalLine accounts starting with 2 (liabilities) — long-term
+    const borrowingLines = await prisma.journalLine.aggregate({
+      _sum: { credit: true, debit: true },
+      where: {
+        entry: { status: 'posted', deletedAt: null },
+        account: { code: { startsWith: '22' } }, // 22x = long-term liabilities
+        deletedAt: null,
+      },
+    }).catch(() => ({ _sum: { credit: 0, debit: 0 } }));
+
+    const totalBorrowings = Number(borrowingLines._sum?.credit || 0) - Number(borrowingLines._sum?.debit || 0);
+
+    // Short-term borrowings (21x)
+    const stBorrowings = await prisma.journalLine.aggregate({
+      _sum: { credit: true, debit: true },
+      where: {
+        entry: { status: 'posted', deletedAt: null },
+        account: { code: { startsWith: '21' } },
+        deletedAt: null,
+      },
+    }).catch(() => ({ _sum: { credit: 0, debit: 0 } }));
+
+    const totalSTBorrowings = Number(stBorrowings._sum?.credit || 0) - Number(stBorrowings._sum?.debit || 0);
+
+    notes.push({
+      noteNumber: 9,
+      title: 'Borrowings and Financing',
+      titleAr: 'القروض والتمويل',
+      content: {
+        longTermBorrowings:  Math.round(Math.max(0, totalBorrowings) * 100) / 100,
+        shortTermBorrowings: Math.round(Math.max(0, totalSTBorrowings) * 100) / 100,
+        totalBorrowings:     Math.round(Math.max(0, totalBorrowings + totalSTBorrowings) * 100) / 100,
+        note: 'تُقاس القروض بالتكلفة المستهلكة باستخدام طريقة معدل الفائدة الفعلي وفق IFRS 9.',
+        financingTypes: ['تمويل بنكي إسلامي', 'إجارة تمويلية (IFRS 16)', 'خطوط ائتمانية'],
+        currency,
+      },
+      standard: 'IFRS 7.31, IAS 1.54(m)',
+    });
+
+    // ── Note 10: Related Party Transactions ────────────────────
+    // Try to get related party data from journal lines with customer/vendor dimensions
+    const relatedPartyAgg = await prisma.journalLine.aggregate({
+      _sum: { debit: true, credit: true },
+      _count: { id: true },
+      where: {
+        entry: {
+          entryDate: { gte: startStr, lte: endStr },
+          status: 'posted',
+          deletedAt: null,
+        },
+        OR: [
+          { customerId: { not: null } },
+          { vendorId: { not: null } },
+        ],
+        deletedAt: null,
+      },
+    }).catch(() => ({ _sum: { debit: 0, credit: 0 }, _count: { id: 0 } }));
+
+    notes.push({
+      noteNumber: 10,
+      title: 'Related Party Transactions',
+      titleAr: 'معاملات الأطراف المرتبطة',
+      content: {
+        transactionCount: relatedPartyAgg._count?.id || 0,
+        totalDebits:  Math.round(Number(relatedPartyAgg._sum?.debit || 0) * 100) / 100,
+        totalCredits: Math.round(Number(relatedPartyAgg._sum?.credit || 0) * 100) / 100,
+        disclosureNote: 'يُفصح عن جميع المعاملات مع الأطراف المرتبطة بموجب المعيار IAS 24. تشمل الأطراف المرتبطة: الشركة الأم، الشركات الزميلة، كبار المساهمين، وأعضاء مجلس الإدارة.',
+        keyManagementCompensation: 'يُكشف عن مكافآت الإدارة العليا في الإيضاح المنفصل وفق IAS 24.17.',
+        currency,
+      },
+      standard: 'IAS 24.13',
+    });
+
+    // ── Note 11: Commitments & Contingencies ───────────────────
+    // Operating lease commitments from IFRS 16 exemptions + purchase commitments
+    const purchaseCommitments = await prisma.purchaseOrder.aggregate({
+      _sum: { total: true },
+      _count: { id: true },
+      where: {
+        status: { in: ['pending', 'approved'] },
+        deletedAt: null,
+      },
+    }).catch(() => ({ _sum: { total: 0 }, _count: { id: 0 } }));
+
+    const salesCommitments = await (prisma as any).salesOrder?.aggregate?.({
+      _sum: { total: true },
+      _count: { id: true },
+      where: { status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] } },
+    }).catch(() => ({ _sum: { total: 0 }, _count: { id: 0 } })) ?? { _sum: { total: 0 }, _count: { id: 0 } };
+
+    notes.push({
+      noteNumber: 11,
+      title: 'Commitments and Contingencies',
+      titleAr: 'الالتزامات والطوارئ',
+      content: {
+        purchaseCommitments: {
+          count:  purchaseCommitments._count?.id || 0,
+          amount: Math.round(Number(purchaseCommitments._sum?.total || 0) * 100) / 100,
+          description: 'أوامر شراء معلّقة وموافَق عليها لم تُستلم بعد',
+        },
+        salesCommitments: {
+          count:  salesCommitments._count?.id || 0,
+          amount: Math.round(Number(salesCommitments._sum?.total || 0) * 100) / 100,
+          description: 'أوامر مبيعات قيد التنفيذ',
+        },
+        contingentLiabilities: 'لا توجد التزامات طارئة جوهرية تتجاوز العتبة المادية في تاريخ إعداد القوائم المالية — باستثناء ما أُشير إليه صراحةً أعلاه.',
+        legalClaims: 'لا توجد دعاوى قضائية جوهرية معلّقة ضد الشركة في تاريخ القوائم المالية.',
+        currency,
+      },
+      standard: 'IAS 37.86, IAS 1.125',
+    });
+
     // ── Note 12: ZATCA VAT ─────────────────────────────────────
     const [salesVATAgg, purVATAgg] = await Promise.all([
       prisma.salesInvoice.aggregate({

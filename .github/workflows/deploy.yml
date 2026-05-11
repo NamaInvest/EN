@@ -1,0 +1,110 @@
+# Nama Invest ERP — Production Deploy Workflow
+# يُشغَّل فقط عند Push إلى main (عبر CI بعد نجاح الـ tests)
+# يدعم: rollback تلقائي + smoke tests بعد الـ deploy
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # تشغيل يدوي من GitHub UI
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false  # لا نلغي deploy جارٍ
+
+env:
+  SERVER_PATH: /www/wwwroot/namainvist.com
+  PM2_RESTART_CMD: pm2 restart all --update-env && pm2 save
+
+jobs:
+  deploy:
+    name: Deploy to Hetzner VPS
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # ── Checkout ─────────────────────────────────────────────────────────────
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ── Deploy via SSH ────────────────────────────────────────────────────────
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host:     ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key:      ${{ secrets.DEPLOY_SSH_KEY }}
+          timeout:  "5m"
+          script: |
+            set -euo pipefail
+            cd ${{ env.SERVER_PATH }}
+
+            # ── Snapshot للـ rollback ─────────────────────────────────────────
+            PREV_COMMIT=$(git rev-parse HEAD)
+            echo "📌 Previous commit: $PREV_COMMIT"
+
+            # ── Pull latest code ──────────────────────────────────────────────
+            git fetch origin main
+            git reset --hard origin/main
+            echo "✅ Code updated to $(git rev-parse --short HEAD)"
+
+            # ── Install dependencies ──────────────────────────────────────────
+            npm ci --legacy-peer-deps
+
+            # ── Generate Prisma + Schema sync (tenant DBs) ────────────────────
+            npx prisma generate
+
+            DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" \
+              npx prisma db push --skip-generate --accept-data-loss
+            DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" \
+              npx prisma db push --skip-generate --accept-data-loss
+
+            # ── Grant DB Permissions ──────────────────────────────────────────
+            sudo -u postgres psql -h localhost -p 5432 n11_db -c \
+              "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n11_db; \
+               ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO n11_db;"
+            sudo -u postgres psql -h localhost -p 5432 n1_db -c \
+              "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n1_db; \
+               ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO n1_db;"
+
+            # ── Build ─────────────────────────────────────────────────────────
+            npm run build
+
+            # ── Restart PM2 ───────────────────────────────────────────────────
+            pm2 restart all --update-env
+            pm2 save
+            echo "✅ PM2 restarted"
+
+            # ── Health Check + Auto-Rollback ──────────────────────────────────
+            sleep 8
+            HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 10 http://localhost:3000/api/health || echo "000")
+
+            if [ "$HEALTH_STATUS" != "200" ]; then
+              echo "❌ Health check FAILED (HTTP $HEALTH_STATUS) — rolling back to $PREV_COMMIT"
+              git reset --hard "$PREV_COMMIT"
+              npm ci --legacy-peer-deps
+              npx prisma generate
+              npm run build
+              pm2 restart all --update-env && pm2 save
+              exit 1
+            fi
+            echo "✅ Health check passed (HTTP $HEALTH_STATUS)"
+
+      # ── Smoke Tests ───────────────────────────────────────────────────────────
+      - name: Run Smoke Tests
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          chmod +x scripts/smoke-test.sh
+          ./scripts/smoke-test.sh "https://${DEPLOY_HOST}"
+        continue-on-error: true  # Warn but don't block (DNS might differ from IP)
+
+      # ── Notify Success ────────────────────────────────────────────────────────
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployed commit: ${{ github.sha }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "👤 By: ${{ github.actor }}"
+          echo "🕐 At: $(date -u '+%Y-%m-%d %H:%M UTC')"

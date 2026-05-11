@@ -1,0 +1,178 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run nightly at 2 AM UTC (5 AM AST)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      smoke_only:
+        description: 'Run smoke tests only (faster)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]  # Run in 2 parallel shards for speed
+
+    env:
+      DATABASE_URL:    ${{ secrets.E2E_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/namasoft_e2e' }}
+      JWT_SECRET:      ${{ secrets.JWT_SECRET || 'test-secret-min-32-chars-for-ci-only' }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-nextauth-secret-ci' }}
+      NEXTAUTH_URL:    http://localhost:3000
+      NODE_ENV:        test
+      E2E_BASE_URL:    http://localhost:3000
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB:       namasoft_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Prisma DB
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Seed test data
+        run: |
+          node -e "
+          const { PrismaClient } = require('@prisma/client');
+          const bcrypt = require('bcryptjs');
+          const p = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+          async function seed() {
+            // Seed admin user
+            await p.user.upsert({
+              where:  { username: 'admin' },
+              create: { username: 'admin', name: 'Test Admin', role: 'admin',
+                        password: bcrypt.hashSync('password', 10), active: true },
+              update: {},
+            });
+            // Seed test tenant
+            await p.tenant.upsert({
+              where:  { id: 'test-tenant' },
+              create: { id: 'test-tenant', name: 'Test Company', active: true },
+              update: {},
+            }).catch(() => {}); // skip if tenant table doesn't exist
+            await p.\$disconnect();
+            console.log('Seed complete');
+          }
+          seed().catch(e => { console.error(e.message); process.exit(0); });
+          "
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          DATABASE_URL:         postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+          SKIP_ENV_VALIDATION:  '1'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start app server
+        run: |
+          npx next start &
+          npx wait-on http://localhost:3000/api/health --timeout 30000
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Run E2E tests (shard ${{ matrix.shard }}/2)
+        run: |
+          if [ "${{ inputs.smoke_only }}" = "true" ]; then
+            npx playwright test --project=chromium --grep="@smoke" --reporter=list,junit
+          else
+            npx playwright test --project=chromium --shard=${{ matrix.shard }}/2 --reporter=list,junit
+          fi
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/namasoft_e2e
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-shard${{ matrix.shard }}-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+      - name: Upload JUnit XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-junit-shard${{ matrix.shard }}-${{ github.sha }}
+          path: test-results.xml
+          retention-days: 14
+
+  # Merge shard reports into single summary
+  e2e-report:
+    name: Merge E2E Reports
+    runs-on: ubuntu-latest
+    needs: e2e
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Download all shard results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-results-shard*
+          merge-multiple: true
+          path: all-playwright-results/
+
+      - name: Merge Playwright HTML reports
+        run: npx playwright merge-reports --reporter html all-playwright-results/
+        continue-on-error: true
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-full-report-${{ github.sha }}
+          path: playwright-report/
+          retention-days: 30

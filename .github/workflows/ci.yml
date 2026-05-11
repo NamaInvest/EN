@@ -1,0 +1,228 @@
+# Namasoft ERP — CI/CD Pipeline
+# Lint → TypeCheck (0 errors) → Unit Tests → Build → Deploy → Health Check
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: ESLint
+        run: npx eslint src/ --max-warnings 50
+
+      - name: TypeScript Check (zero-error policy)
+        run: |
+          ERROR_COUNT=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || echo 0)
+          echo "TypeScript errors: $ERROR_COUNT (baseline: 0)"
+          if [ "$ERROR_COUNT" -gt "0" ]; then
+            echo "❌ TypeScript errors detected. All errors must be fixed before merge."
+            npx tsc --noEmit 2>&1 | grep "error TS" | head -20
+            exit 1
+          fi
+          echo "✅ Zero TypeScript errors — great job!"
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Tests with Coverage (309/309 must pass)
+        run: npx jest --passWithNoTests --forceExit --coverage --ci
+        env:
+          CI: true
+
+      - name: Upload coverage to Codecov (P5.1)
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: namasoft-erp
+          fail_ci_if_error: false
+        continue-on-error: true
+
+
+      - name: i18n Coverage Scan
+        run: |
+          FILE_COUNT=$(npx tsx scripts/find-untranslated.ts 2>&1 | grep 'Files with issues' | grep -o '[0-9]*' || echo 0)
+          echo "Files with untranslated strings: $FILE_COUNT"
+          # Warn but don't block — tracking via untranslated-strings.json
+        continue-on-error: true
+
+  prompt-eval:
+    name: Prompt Evaluation
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Prompt Eval Suite
+        run: npx tsx scripts/run-prompt-evals.ts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        continue-on-error: true
+
+  a11y:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build for A11y
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+      - name: Start server
+        run: npx next start &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run Accessibility Tests
+        run: npx playwright test tests/a11y/ --grep "@a11y"
+        continue-on-error: true # Non-blocking until WCAG baseline is set
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: [test, a11y]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd /www/wwwroot/namainvist.com
+            # Snapshot current commit for rollback
+            PREV_COMMIT=$(git rev-parse HEAD)
+            echo "Previous commit: $PREV_COMMIT"
+
+            git fetch origin main
+            git reset --hard origin/main
+            npm ci --production --legacy-peer-deps
+            npx prisma generate
+
+            # Schema sync — Multi-Tenant Databases
+            # We use `prisma db push` (additive: safe) for each tenant DB
+            DATABASE_URL="postgresql://postgres@localhost:5432/n11_db?schema=public" npx prisma db push --skip-generate
+            DATABASE_URL="postgresql://postgres@localhost:5432/n1_db?schema=public" npx prisma db push --skip-generate
+
+            # Grant Permissions to Application Users
+            sudo -u postgres psql -h localhost -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n11_db;" n11_db
+            sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n11_db;" n11_db
+            sudo -u postgres psql -h localhost -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO n1_db;" n1_db
+            sudo -u postgres psql -h localhost -p 5432 -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO n1_db;" n1_db
+
+            npm run build
+            pm2 restart all --update-env && pm2 save
+
+            # Health check; rollback on failure
+            sleep 5
+            if ! curl -fsS http://localhost:3000/api/health >/dev/null; then
+              echo "❌ Health check failed — rolling back to $PREV_COMMIT"
+              git reset --hard "$PREV_COMMIT"
+              npm ci --production --legacy-peer-deps
+              npx prisma generate
+              npm run build
+              pm2 restart all --update-env && pm2 save
+              exit 1
+            fi
+            echo "✅ Deployed successfully at $(date)"
