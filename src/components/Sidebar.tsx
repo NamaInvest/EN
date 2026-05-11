@@ -804,6 +804,8 @@ const menuItems = [
     { icon: '⚖️', lk: 'i.credit', href: '/enterprise/legal', module: 'legal' },
     { icon: '🔍', lk: 'i.quality_mgmt', href: '/manufacturing/quality', module: 'manufacturing' },
     { icon: '🏪', lk: 'i.vendor_portal_page', href: '/vendor-portal', module: 'purchases' },
+    { icon: '🤝', lk: 'i.vendor_onboarding', href: '/supply-chain/vendor-onboarding', module: 'purchases' },
+    { icon: '🔨', lk: 'i.rfx_auction', href: '/supply-chain/rfx-auction', module: 'purchases' },
     { icon: '🔧', lk: 'i.fsm_dashboard', href: '/fsm', module: 'fsm' },
     { icon: '🗺️', lk: 'i.dispatch_board', href: '/fsm/dispatch', module: 'fsm' },
     { icon: '📱', lk: 'i.tech_tasks', href: '/fsm/tasks', module: 'fsm' },
