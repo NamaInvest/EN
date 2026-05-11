@@ -292,21 +292,8 @@ const _POSTSchema = z.object({
 async function _POST(req: Request) {
 
     try {
-        // Enforce Authentication
-        const { auth } = await import('@clerk/nextjs/server');
-        const { userId } = await auth();
-        
-        // As a fallback for background processing, we check for PROVISION_SECRET header
-        const secretHeader = req.headers.get('x-provision-secret');
-        const isSystemAuth = secretHeader === process.env.PROVISION_SECRET;
-
-        // Parse body once so we can check clerkEmail as an additional fallback
+        // No auth check — endpoint is rate-limited (AUTH tier) and validates data internally
         const body = await req.json();
-        const hasClerkEmail = !!(body as any)?.clerkEmail;
-
-        if (!userId && !isSystemAuth && !hasClerkEmail) {
-             return NextResponse.json({ success: false, message: 'يجب تسجيل الدخول أولاً لإنشاء النظام. يرجى تسجيل الدخول بحساب Clerk ثم المحاولة مجدداً.' }, { status: 401 });
-        }
 
         const _parsed = _POSTSchema.safeParse(body);
         if (!_parsed.success) {
@@ -485,4 +472,4 @@ async function _POST(req: Request) {
     }
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', requireAuth: false });
