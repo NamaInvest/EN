@@ -697,6 +697,7 @@ const menuItems = [
     { icon: '🛡️', lk: 'i.tax_zatca', href: '/tax', module: 'accounting' },
     { icon: '🧮', lk: 'i.deferred_tax', href: '/finance/deferred-tax', module: 'accounting' },
     { icon: '📉', lk: 'i.impairment', href: '/finance/impairment', module: 'accounting' },
+    { icon: '🔗', lk: 'i.transfer_pricing', href: '/finance/transfer-pricing', module: 'accounting' },
     { icon: '📑', lk: 'i.installments', href: '/installments', module: 'installments' },
     { icon: '📈', lk: 'i.fin_reports', href: '/reports', module: 'reports' },
     { icon: '📊', lk: 'i.budget_variance', href: '/reports/budget-variance', module: 'reports' },
