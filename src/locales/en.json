@@ -3757,5 +3757,13 @@
   "treasury.cash_title": "Cash Position",
   "treasury.liquidity_title": "13-Week Liquidity Forecast",
   "common.try_refreshing": "Try Refreshing",
-  "common.close": "Close"
+  "common.close": "Close",
+  "i.deferred_tax": "Deferred Tax",
+  "i.impairment": "Impairment of Assets",
+  "i.transfer_pricing": "Transfer Pricing",
+  "i.rfx_auction": "RFx Reverse Auction",
+  "i.vendor_onboarding": "Vendor Onboarding",
+  "i.bad_debt": "Bad Debt Provision",
+  "s.new_updates": "🚀 New Updates",
+  "i.mes_oee": "MES & Realtime OEE"
 }

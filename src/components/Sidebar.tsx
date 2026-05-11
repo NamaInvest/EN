@@ -606,6 +606,15 @@ function gl(lang: string, key: string): string {
 
 // ── Menu items ────────────────────────────────────────────────────────────────
 const menuItems = [
+  { sk: 's.new_updates', items: [
+    { icon: '🏭', lk: 'i.mes_oee', href: '/manufacturing/mes-oee', module: 'manufacturing' },
+    { icon: '🛡️', lk: 'i.bad_debt', href: '/finance/bad-debt', module: 'accounting' },
+    { icon: '🤝', lk: 'i.vendor_onboarding', href: '/supply-chain/vendor-onboarding', module: 'purchases' },
+    { icon: '🔨', lk: 'i.rfx_auction', href: '/supply-chain/rfx-auction', module: 'purchases' },
+    { icon: '🧮', lk: 'i.deferred_tax', href: '/finance/deferred-tax', module: 'accounting' },
+    { icon: '📉', lk: 'i.impairment', href: '/finance/impairment', module: 'accounting' },
+    { icon: '🔗', lk: 'i.transfer_pricing', href: '/finance/transfer-pricing', module: 'accounting' },
+  ]},
   { sk: 's.dashboard', items: [
     { icon: '📊', lk: 'i.dashboard', href: '/dashboard', module: 'dashboard' },
     { icon: '🏦', lk: 'i.ai_bank', href: '/ai-bank', module: 'ai_bank' },
@@ -736,6 +745,7 @@ const menuItems = [
     { icon: '💳', lk: 'i.prepayments_ui', href: '/accounting/prepayments', module: 'accounting' },
     { icon: '🔗', lk: 'i.interco', href: '/accounting/inter-company', module: 'accounting' },
     { icon: '📄', lk: 'i.aging_report', href: '/accounting/aging-report', module: 'accounting' },
+    { icon: '🛡️', lk: 'i.bad_debt', href: '/finance/bad-debt', module: 'accounting' },
   ]},
   { sk: 's.crm', items: [
     { icon: '👥', lk: 'i.customers', href: '/customers', module: 'customers' },

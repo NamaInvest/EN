@@ -3757,5 +3757,13 @@
   "treasury.cash_title": "مركز النقد (Cash Position)",
   "treasury.liquidity_title": "التنبؤ بالسيولة 13-Week Forecast",
   "common.try_refreshing": "حاول التحديث",
-  "common.close": "إغلاق"
+  "common.close": "إغلاق",
+  "i.deferred_tax": "الضريبة المؤجلة",
+  "i.impairment": "انخفاض قيمة الأصول",
+  "i.transfer_pricing": "التسعير التحويلي",
+  "i.rfx_auction": "المناقصات العكسية",
+  "i.vendor_onboarding": "تأهيل الموردين",
+  "i.bad_debt": "مخصص الديون المشكوك فيها",
+  "s.new_updates": "🚀 التحديثات الجديدة",
+  "i.mes_oee": "نظام تنفيذ التصنيع و OEE"
 }
