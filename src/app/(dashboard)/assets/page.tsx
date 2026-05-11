@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Truck, Car, Building, Wrench, Plus, Calculator, History } from "lucide-react";
@@ -31,7 +31,7 @@ export default function FixedAssetsPage() {
  const res = await fetch("/api/assets", { headers: { Authorization: `Bearer ${token}` } });
  if (res.ok) {
  const data = await res.json();
- setAssets(data || []);
+ setAssets(Array.isArray(data) ? data : []);
  }
  } catch (e) {
  console.error(e);

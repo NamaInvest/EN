@@ -25,7 +25,7 @@ export default function RecurringInvoicesPage() {
  try {
  const res = await fetch('/api/recurring-invoices');
  const data = await res.json();
- setContracts(data || []);
+ setContracts(Array.isArray(data) ? data : []);
  } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } finally {
  setLoading(false);
  }
