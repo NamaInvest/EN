@@ -263,6 +263,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     's.enterprise': 'Enterprise Modules',
     's.settings': 'System Settings',
     'i.company_info': 'Company Info',
+    's.new_updates': '🚀 New Updates',
     's.company_info': '🏢 Company Info',
     'i.warehouse_opts': 'Warehouse Options',
     'i.dashboard': 'Home Dashboard', 'i.copilot': 'AI Copilot', 'i.cfo': 'AI CFO',
