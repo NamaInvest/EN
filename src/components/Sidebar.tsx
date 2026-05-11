@@ -134,6 +134,7 @@ const LABELS: Record<Lang, Record<string, string>> = {
     'i.stocktake': 'عمليات الجرد المخزني',
     'i.warehouse_opts': 'خيارات المستودعات',
     'i.company_info': 'معلومات المنشأة',
+    's.new_updates': '🚀 التحديثات الجديدة',
     's.company_info': '🏢 معلومات المنشأة',
     'i.shift_monitor': 'مراقبة المناوبة لحظياً', 'i.pos_accountant': 'محاسب نقطة البيع', 'i.sales_analytics': 'تحليلات أداء المبيعات',
     'i.smart_map': 'الخريطة الذكية للمندوب',
@@ -607,6 +608,7 @@ function gl(lang: string, key: string): string {
 // ── Menu items ────────────────────────────────────────────────────────────────
 const menuItems = [
   { sk: 's.new_updates', items: [
+    { icon: '🎯', lk: 'i.succession_planning', href: '/hr/succession', module: 'hr' },
     { icon: '🏭', lk: 'i.mes_oee', href: '/manufacturing/mes-oee', module: 'manufacturing' },
     { icon: '🛡️', lk: 'i.bad_debt', href: '/finance/bad-debt', module: 'accounting' },
     { icon: '🤝', lk: 'i.vendor_onboarding', href: '/supply-chain/vendor-onboarding', module: 'purchases' },
