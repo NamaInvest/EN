@@ -31,7 +31,7 @@ export function MobileLayout({ children, sidebar, title = 'نما إنفست', a
     // Desktop layout
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-default, #f3f4f6)' }}>
-        <aside style={{ width: '260px', background: 'var(--bg-card, #fff)', borderLeft: '1px solid var(--border-color, #e5e7eb)', flexShrink: 0 }}>
+        <aside style={{ width: '260px', background: 'var(--bg-white dark:bg-slate-900, #fff)', borderLeft: '1px solid var(--border-color, #e5e7eb)', flexShrink: 0 }}>
           {sidebar}
         </aside>
         <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
@@ -51,7 +51,7 @@ export function MobileLayout({ children, sidebar, title = 'نما إنفست', a
       {/* Top Header */}
       <header style={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-        padding: '1rem', background: 'var(--bg-card, #fff)', borderBottom: '1px solid var(--border-color, #e5e7eb)',
+        padding: '1rem', background: 'var(--bg-white dark:bg-slate-900, #fff)', borderBottom: '1px solid var(--border-color, #e5e7eb)',
         position: 'sticky', top: 0, zIndex: 40
       }}>
         <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>
@@ -74,7 +74,7 @@ export function MobileLayout({ children, sidebar, title = 'نما إنفست', a
             onClick={() => setSidebarOpen(false)} 
           />
           <aside style={{ 
-            position: 'relative', width: '280px', height: '100%', background: 'var(--bg-card, #fff)',
+            position: 'relative', width: '280px', height: '100%', background: 'var(--bg-white dark:bg-slate-900, #fff)',
             transform: sidebarOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out',
             display: 'flex', flexDirection: 'column'
           }}>
@@ -92,7 +92,7 @@ export function MobileLayout({ children, sidebar, title = 'نما إنفست', a
       {/* Bottom Navigation */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
-        background: 'var(--bg-card, #fff)', borderTop: '1px solid var(--border-color, #e5e7eb)',
+        background: 'var(--bg-white dark:bg-slate-900, #fff)', borderTop: '1px solid var(--border-color, #e5e7eb)',
         display: 'flex', justifyContent: 'space-around', alignItems: 'center', zIndex: 40
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-secondary, #6b7280)' }}>

@@ -114,7 +114,7 @@ export function DataTable<T extends Record<string, any>>({
   }
 
   return (
-    <div style={{ border: '1px solid var(--border-color, #e5e7eb)', borderRadius: 'var(--border-radius, 8px)', overflow: 'hidden', background: 'var(--bg-card, #fff)' }}>
+    <div style={{ border: '1px solid var(--border-color, #e5e7eb)', borderRadius: 'var(--border-radius, 8px)', overflow: 'hidden', background: 'var(--bg-white dark:bg-slate-900, #fff)' }}>
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem', borderBottom: '1px solid var(--border-color, #e5e7eb)', alignItems: 'center', flexWrap: 'wrap' }}>
         {searchable && (

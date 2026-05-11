@@ -7,17 +7,17 @@ import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
 
 import prisma from '@/lib/prisma';
-import { _t, getLang } from '@/lib/server-t';
+import { _t, getServerLang } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 
 export default async function SubscriptionsDashboard() {
     // Determine current language for UI layout and date formatting
-    // Assuming getLang() returns 'ar' or 'en'
+    // Assuming getServerLang() returns 'ar' or 'en'
     let currentLang = 'ar';
     try {
-        currentLang = await getLang() || 'ar';
+        currentLang = await getServerLang() || 'ar';
     } catch(e) {
         // Fallback
     }

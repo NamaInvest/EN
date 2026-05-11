@@ -1,6 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@200;300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
 :root {
   /* ================= THEME ENGINE: LIGHT PROFESSIONAL (CLEAN SAAS) ================= */
   --primary: #2563EB;
@@ -31,6 +49,22 @@
   --border: #E2E8F0; /* Slate-200 */
   --border-light: #CBD5E1; /* Slate-300 */
   --border-subtle: #F1F5F9; /* Slate-100 */
+  
+  /* SHADCN UI COMPATIBILITY LAYER */
+  --background: var(--bg-dark);
+  --foreground: var(--text);
+  --card: var(--bg-card);
+  --card-foreground: var(--text);
+  --popover: var(--bg-darker);
+  --popover-foreground: var(--text);
+  --muted: var(--border-subtle);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--bg-card-hover);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --input: var(--border);
+  --ring: var(--primary);
   
   --glass: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(226, 232, 240, 0.8);
@@ -76,6 +110,22 @@
   --border-light: #475569; /* Slate-600 */
   --border-subtle: #1E293B; /* Slate-800 */
   
+  /* SHADCN UI COMPATIBILITY LAYER - DARK MODE */
+  --background: var(--bg-dark);
+  --foreground: var(--text);
+  --card: var(--bg-card);
+  --card-foreground: var(--text);
+  --popover: var(--bg-darker);
+  --popover-foreground: var(--text);
+  --muted: var(--border-subtle);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--bg-card-hover);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --input: var(--border);
+  --ring: var(--primary);
+
   --glass: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(51, 65, 85, 0.6);
   
