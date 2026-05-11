@@ -152,8 +152,11 @@ export default function SalesOptionsPage() {
  return (
  <div className="page fade-in" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', direction: 'rtl' }}>
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
- <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>⚙️ خيارات المبيعات والخصومات</h1>
+ <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>⚙️ إعدادات المبيعات الشاملة (نقاط البيع، المطاعم، والمبيعات)</h1>
  </div>
+ <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
+ ملاحظة هامة: جميع الخيارات المحددة في هذه الشاشة تُطبق تلقائياً وبشكل موحد على كافة أقسام المبيعات: (نظام نقاط البيع POS، نظام نقاط بيع المطاعم Restaurant-POS، ونظام المبيعات العامة Sales).
+ </p>
 
  <div className="card" style={{ padding: '24px', background: 'var(--bg-card)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
 

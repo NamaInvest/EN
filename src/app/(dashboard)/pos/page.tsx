@@ -103,7 +103,7 @@ export default function POSPage() {
     });
   }, [products, searchQuery, selectedCategory]);
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const subtotal = cart.reduce((sum, item) => sum + ((item.product.price || 0) * item.quantity), 0);
   const tax = subtotal * 0.15; // 15% VAT
   const total = subtotal + tax;
 
@@ -170,7 +170,7 @@ export default function POSPage() {
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1 line-clamp-2 min-h-[40px]">{p.name}</h3>
                     <p className="text-indigo-600 dark:text-indigo-400 font-bold font-[Fira_Code] text-lg">
-                      {p.price.toLocaleString()} <span className="text-xs">SAR</span>
+                      {(p.price || 0).toLocaleString()} <span className="text-xs">SAR</span>
                     </p>
                   </button>
                 ))}
@@ -211,7 +211,7 @@ export default function POSPage() {
                   <div className="flex justify-between items-start">
                     <h4 className="font-bold text-slate-900 dark:text-white text-sm pr-2">{item.product.name}</h4>
                     <p className="font-bold text-slate-900 dark:text-white font-[Fira_Code] shrink-0 text-sm">
-                      {(item.product.price * item.quantity).toLocaleString()} <span className="text-xs text-slate-500">SAR</span>
+                      {((item.product.price || 0) * item.quantity).toLocaleString()} <span className="text-xs text-slate-500">SAR</span>
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
