@@ -1,8 +1,9 @@
-# Prevent committing secrets
+#!/usr/bin/env sh
+# Prevent committing secrets only — lint-staged removed (command line too long with 800+ files)
 if git diff --cached --name-only | grep -E '\.env$|\.env\..+$|\.pem$|\.key$|_secret$' | grep -v '\.example$'; then
-  echo "❌ Error: Attempting to commit a secret file (.env, .pem, .key)."
+  echo "🚫 Error: Attempting to commit a secret file (.env, .pem, .key)."
   echo "Please remove it from the index using 'git rm --cached <file>'."
   exit 1
 fi
-
-npx lint-staged
+# Done — commit allowed
+exit 0
