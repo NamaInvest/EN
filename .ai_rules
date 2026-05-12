@@ -71,3 +71,8 @@
   - محرك `SamaOpenBankingEngine` للتكامل المالي وسحب الأرصدة وإجراء المدفوعات آلياً.
   - محرك `SaudiLaborLawEngine` لمعالجة مكافآت نهاية الخدمة (مادة 84-85) وساعات العمل الإضافية.
   - محرك `ZakatTaxEngine` و `CustomsBayanEngine` لحساب الأوعية الزكوية بدقة (2.5%) وحساب الرسوم الجمركية المعقدة والضريبة المستقطعة.
+- **مجموعة محركات التكامل الخارجي (Integrations Hub - Phases 41-47):** إطلاق محركات للربط مع الخدمات الخارجية:
+  - محرك `PaymentGatewayEngine` للمدفوعات الموحدة (HyperPay, Moyasar, Tabby).
+  - محرك `ShippingEngine` لتوليد بوالص الشحن (AWB) للشركات اللوجستية (Aramex, SMSA, SPL).
+  - محرك `EcommerceSyncEngine` لمنع البيع فوق المخزون (Overselling) والمزامنة الحية مع (Zid, Salla, Shopify).
+  - محرك `AiOcrEngine` لاستخراج البيانات المهيكلة من الفواتير والهويات عبر الذكاء الاصطناعي (AWS Textract, Google Vision).
