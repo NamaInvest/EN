@@ -13,6 +13,7 @@
  *   node deploy.js --build            → رفع + build + restart (2 دقيقة/موقع)
  *   node deploy.js --build --parallel → رفع + بناء متوازي (أسرع)
  *   node deploy.js --restart-only     → restart PM2 فقط
+ *   node deploy.js --db-push          → تشغيل Prisma db push على السيرفر
  */
 
 const { Client } = require('ssh2');
@@ -111,12 +112,7 @@ async function deployFilesOnly(conn, files) {
         }
     }
     
-    console.log(`\n🔄 Restarting all PM2 processes...`);
-    for (const [name, site] of Object.entries(SITES)) {
-        await exec(conn, `pm2 restart ${site.pm2} 2>&1`);
-        console.log(`  ✅ ${name} restarted`);
-    }
-    
+    await restartSites(conn);
     console.log(`\n⚡ Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
 }
 
@@ -162,30 +158,53 @@ async function deployWithBuild(conn, files, parallel = false) {
     }
     
     // 3. Restart
-    console.log(`\n🔄 Restarting PM2...`);
-    const pm2Names = Object.values(SITES).map(s => s.pm2).join(' ');
-    await exec(conn, `pm2 restart ${pm2Names} 2>&1`);
-    console.log('  ✅ All restarted');
+    await restartSites(conn);
     
     console.log(`\n⚡ Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
 }
 
-async function restartOnly(conn) {
+async function restartSites(conn) {
     console.log(`\n🔄 Restarting all PM2 processes...`);
-    const start = Date.now();
-    const pm2Names = Object.values(SITES).map(s => s.pm2).join(' ');
-    await exec(conn, `pm2 restart ${pm2Names} 2>&1`);
-    
-    const { stdout } = await exec(conn, 'pm2 list');
-    console.log(stdout);
-    console.log(`⚡ Done in ${((Date.now() - start) / 1000).toFixed(1)}s`);
+    for (const site of Object.values(SITES)) {
+        await exec(conn, `pm2 restart ${site.pm2}`);
+        console.log(`  ✅ ${site.pm2} restarted`);
+    }
+}
+
+async function runDbPush(conn) {
+    console.log(`\n🛠️ Running Prisma DB Push on Main Site...`);
+    const site = SITES['main-site'];
+    const cmd = `cd ${site.path} && npx prisma@5.22.0 db push --accept-data-loss`;
+    const res = await exec(conn, cmd, 120000);
+    console.log(`  ✅ DB Push Complete\nSTDOUT:\n${res.stdout}\nSTDERR:\n${res.stderr}`);
 }
 
 // ─── Main ────────────────────────────────────────────────────────
 async function main() {
     const args = process.argv.slice(2);
-    const mode = args.includes('--restart-only') ? 'restart'
-               : args.includes('--files-only')   ? 'files'
+    
+    if (args.includes('--restart-only')) {
+        const conn = new Client();
+        conn.on('ready', async () => { await restartSites(conn); conn.end(); });
+        conn.connect(SERVER);
+        return;
+    }
+
+    if (args.includes('--db-push')) {
+        const conn = new Client();
+        conn.on('ready', async () => {
+            await uploadFile(conn, 'prisma/schema.prisma', `${SITES['main-site'].path}/prisma/schema.prisma`);
+            await uploadFile(conn, 'prisma/schema.prisma', `${SITES['n1'].path}/prisma/schema.prisma`);
+            await uploadFile(conn, 'prisma/schema.prisma', `${SITES['n11'].path}/prisma/schema.prisma`);
+            await runDbPush(conn);
+            await restartSites(conn);
+            conn.end();
+        });
+        conn.connect(SERVER);
+        return;
+    }
+
+    const mode = args.includes('--files-only')   ? 'files'
                : args.includes('--build')         ? 'build'
                : 'smart';
     const parallel = args.includes('--parallel');
@@ -199,10 +218,6 @@ async function main() {
     conn.on('ready', async () => {
         try {
             switch (mode) {
-                case 'restart':
-                    await restartOnly(conn);
-                    break;
-                    
                 case 'files':
                     if (files.length === 0) {
                         console.log('❌ Specify files: node deploy.js --files-only file1.ts file2.ts');

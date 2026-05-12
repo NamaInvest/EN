@@ -247,7 +247,7 @@ model Product {
   id           Int      @id @default(autoincrement())
   tenantId     String   @default("default") @map("tenant_id")
   name         String
-  barcode      String?  @unique
+  barcode      String?
   categoryId   Int?     @map("category_id")
   unitId       Int      @default(1) @map("unit_id")
   buyPrice     Decimal  @default(0) @map("buy_price")
@@ -310,6 +310,7 @@ model Product {
   @@index([tenantId, active])
   @@index([tenantId, categoryId])
   @@index([tenantId, barcode])
+  @@unique([tenantId, barcode])
   @@index([deletedAt, name], map: "idx_prod_name")
   @@map("products")
 }

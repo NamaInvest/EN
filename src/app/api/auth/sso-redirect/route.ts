@@ -31,11 +31,30 @@ const getMasterPool = () => {
  * 3. يولّد SSO token ويحوّل المستخدم للـ subdomain الصحيح
  */
 async function _GET(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'namainvist.com';
+    // If Nginx is messing up the host and it says localhost:3500, let's fix it by extracting it from referer or falling back to namainvist.com if it contains localhost
+    const finalHost = host.includes('localhost') ? 'namainvist.com' : host;
+    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const baseUrl = `${protocol}://${finalHost}`;
+
+    let userId: string | null = null;
+    try {
+        // Next.js App Router native Clerk auth check
+        const { auth } = await import('@clerk/nextjs/server');
+        const authObj = await auth();
+        userId = authObj.userId;
+    } catch (err) {
+        log.error('[sso-redirect] Clerk auth() failed', err);
+    }
 
     if (!userId) {
-        return NextResponse.redirect(new URL('/login', req.url));
+        // Try fallback to searchParams just in case
+        const { searchParams } = new URL(req.url);
+        userId = searchParams.get('userId');
+    }
+
+    if (!userId) {
+        return NextResponse.redirect(new URL('/login?error=no-userid', baseUrl));
     }
 
     // خطوة 1: جلب الإيميل من Clerk
@@ -49,11 +68,11 @@ async function _GET(req: Request) {
         log.info(`[sso-redirect] userId=${userId}, email=${email}`);
     } catch (e: any) {
         log.error('[sso-redirect] Failed to get Clerk user:', e.message);
-        return NextResponse.redirect(new URL('/login?error=clerk-failed', req.url));
+        return NextResponse.redirect(new URL('/login?error=clerk-failed', baseUrl));
     }
 
     if (!email) {
-        return NextResponse.redirect(new URL('/login?error=no-email', req.url));
+        return NextResponse.redirect(new URL('/login?error=no-email', baseUrl));
     }
 
     // خطوة 2: البحث عن الـ tenant بالإيميل
@@ -69,7 +88,7 @@ async function _GET(req: Request) {
         if (!tenant?.subdomain) {
             // إيميل جديد → صفحة إنشاء شركة
             log.info(`[sso-redirect] No tenant for email=${email}, redirecting to company-info`);
-            return NextResponse.redirect(new URL('/company-info', req.url));
+            return NextResponse.redirect(new URL('/company-info', baseUrl));
         }
 
         // خطوة 3: توليد SSO token بصيغة HMAC
@@ -92,7 +111,7 @@ async function _GET(req: Request) {
 
     } catch (error: any) {
         log.error('[sso-redirect] DB Error:', error);
-        return NextResponse.redirect(new URL('/login?error=db-error', req.url));
+        return NextResponse.redirect(new URL('/login?error=db-error', baseUrl));
     } finally {
         await pool.end().catch(() => {});
     }
