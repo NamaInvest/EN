@@ -6,7 +6,7 @@ import { useToast } from '@/components/Toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FileText, Search, Plus, ShoppingCart, Clock, CheckCircle, AlertCircle, X, Trash2, Package } from 'lucide-react';
+import { FileText, Search, Plus, ShoppingCart, Clock, CheckCircle, AlertCircle, X, Trash2, Package, PauseCircle, History, Banknote, CreditCard, SplitSquareHorizontal } from 'lucide-react';
 
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
@@ -61,6 +61,16 @@ export default function PurchaseOrdersPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
+  // POS Additions
+  const [paymentType, setPaymentType] = useState('cash'); // 'cash' | 'card' | 'split'
+  const [splitCash, setSplitCash] = useState('');
+  const [splitCard, setSplitCard] = useState('');
+  const [posStatus, setPosStatus] = useState<'disconnected' | 'connected' | 'sending'>('disconnected');
+  const [posPort, setPosPort] = useState<any>(null);
+  const [heldInvoices, setHeldInvoices] = useState<any[]>([]);
+  const [showHeldPanel, setShowHeldPanel] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -76,6 +86,70 @@ export default function PurchaseOrdersPage() {
     load(); 
     fetchSuppliers();
   }, []);
+
+  useEffect(() => {
+    // POS Detect
+    const detectPos = async () => {
+      if (!('serial' in navigator)) return;
+      try {
+        const ports = await (navigator as any).serial.getPorts();
+        if (ports.length > 0) {
+          const port = ports[0];
+          if (!port.readable) await port.open({ baudRate: 9600 });
+          setPosPort(port);
+          setPosStatus('connected');
+        }
+      } catch (e) {}
+    };
+    detectPos();
+
+    // Hotkeys
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showModal) return;
+      if (['F2', 'F3', 'F4', 'F9', 'Escape'].includes(e.key)) e.preventDefault();
+      if (e.key === 'F2') document.getElementById('save-btn')?.click();
+      else if (e.key === 'F3') document.getElementById('hold-btn')?.click();
+      else if (e.key === 'F4') document.getElementById('recall-btn')?.click();
+      else if (e.key === 'F9') document.getElementById('history-btn')?.click();
+      else if (e.key === 'Escape') {
+        setShowHeldPanel(false);
+        setShowHistory(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
+
+  const connectPosManual = async () => {
+    if (!('serial' in navigator)) { toastError('غير مدعوم في هذا المتصفح'); return; }
+    try {
+      const port = await (navigator as any).serial.requestPort();
+      await port.open({ baudRate: 9600 });
+      setPosPort(port);
+      setPosStatus('connected');
+      toastSuccess('تم ربط جهاز مدى بنجاح');
+    } catch (e) { toastError('فشل ربط جهاز مدى'); }
+  };
+
+  const holdInvoice = () => {
+    const data = control._formValues;
+    if (!data.items || data.items.length === 0 || !data.items[0].productName) return toastError('لا يمكن تعليق فاتورة فارغة');
+    const newHeld = {
+      id: Date.now().toString(),
+      label: `فاتورة معلقة - ${new Date().toLocaleTimeString('ar-SA')}`,
+      data
+    };
+    setHeldInvoices([...heldInvoices, newHeld]);
+    reset({ supplierId: '', notes: '', items: [{ productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }] });
+    toastSuccess('تم تعليق الفاتورة بنجاح');
+  };
+
+  const recallInvoice = (held: any) => {
+    reset(held.data);
+    setHeldInvoices(heldInvoices.filter(h => h.id !== held.id));
+    setShowHeldPanel(false);
+    toastSuccess('تم استرجاع الفاتورة');
+  };
 
   async function fetchSuppliers() {
     try {
@@ -354,10 +428,23 @@ export default function PurchaseOrdersPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
             <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-                <Package className="w-6 h-6 ml-2 text-indigo-600 dark:text-indigo-400" />
-                {t('sys.str_952')}
-              </h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                  <Package className="w-6 h-6 ml-2 text-indigo-600 dark:text-indigo-400" />
+                  {t('sys.str_952')}
+                </h2>
+                <div className="flex gap-2">
+                  <button type="button" id="hold-btn" onClick={holdInvoice} className="flex items-center px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors">
+                    <PauseCircle className="w-4 h-4 ml-1" /> تعليق (F3)
+                  </button>
+                  <button type="button" id="recall-btn" onClick={() => setShowHeldPanel(true)} className="flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-sm font-bold transition-colors">
+                    <Clock className="w-4 h-4 ml-1" /> استرجاع (F4) {heldInvoices.length > 0 && <span className="mr-1 bg-indigo-600 text-white rounded-full px-1.5 text-xs">{heldInvoices.length}</span>}
+                  </button>
+                  <button type="button" id="history-btn" onClick={() => setShowHistory(true)} className="flex items-center px-3 py-1.5 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm font-bold transition-colors">
+                    <History className="w-4 h-4 ml-1" /> السابقة (F9)
+                  </button>
+                </div>
+              </div>
               <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -440,15 +527,112 @@ export default function PurchaseOrdersPage() {
                 </div>
               </div>
 
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                <h3 className="font-bold text-slate-900 dark:text-white">طريقة الدفع</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <button type="button" onClick={() => setPaymentType('cash')} className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 font-bold transition-all ${paymentType === 'cash' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-200'}`}>
+                    <Banknote className="w-6 h-6" /> كاش
+                  </button>
+                  <button type="button" onClick={() => setPaymentType('card')} className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 font-bold transition-all ${paymentType === 'card' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-indigo-200'}`}>
+                    <CreditCard className="w-6 h-6" /> بطاقة (مدى/فيزا)
+                  </button>
+                  <button type="button" onClick={() => setPaymentType('split')} className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 font-bold transition-all ${paymentType === 'split' ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-amber-200'}`}>
+                    <SplitSquareHorizontal className="w-6 h-6" /> دفع مقسم
+                  </button>
+                </div>
+
+                {paymentType === 'split' && (
+                  <div className="flex gap-4 mt-3">
+                    <div className="flex-1">
+                      <label className="text-xs font-bold text-slate-500 block mb-1">مبلغ الكاش</label>
+                      <input type="number" value={splitCash} onChange={e => setSplitCash(e.target.value)} className="w-full px-3 py-2 border dark:border-slate-700 dark:bg-slate-900 rounded-lg text-slate-900 dark:text-white" placeholder="0.00" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs font-bold text-slate-500 block mb-1">مبلغ البطاقة</label>
+                      <input type="number" value={splitCard} onChange={e => setSplitCard(e.target.value)} className="w-full px-3 py-2 border dark:border-slate-700 dark:bg-slate-900 rounded-lg text-slate-900 dark:text-white" placeholder="0.00" />
+                    </div>
+                  </div>
+                )}
+
+                {(paymentType === 'card' || paymentType === 'split') && (
+                  <div className="mt-3">
+                    <button type="button" onClick={connectPosManual} className={`w-full py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 ${posStatus === 'connected' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-400' : 'bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600'}`}>
+                      <CreditCard className="w-5 h-5" />
+                      {posStatus === 'connected' ? 'جهاز مدى متصل' : posStatus === 'sending' ? 'جاري الإرسال لمدى...' : 'ربط جهاز مدى'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-800 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2.5 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold transition-colors">
                   {t('fin.str_206')}
                 </button>
-                <button type="submit" disabled={saving} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm shadow-indigo-500/20 transition-colors disabled:opacity-50">
-                  {saving ? t('sys.str_454') : t('sys.str_964')}
+                <button type="submit" id="save-btn" disabled={saving} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm shadow-indigo-500/20 transition-colors disabled:opacity-50">
+                  {saving ? t('sys.str_454') : 'حفظ الأمر (F2)'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Hold / Recall Panel */}
+      {showHeldPanel && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="p-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><PauseCircle className="w-5 h-5 ml-2 text-amber-500"/> الفواتير المعلقة</h3>
+              <button onClick={() => setShowHeldPanel(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+              {heldInvoices.length === 0 ? <p className="text-center text-slate-500 font-bold p-5">لا يوجد فواتير معلقة</p> :
+                heldInvoices.map(h => (
+                  <div key={h.id} className="p-4 border dark:border-slate-700 rounded-xl flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">{h.label}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{h.data.items?.length || 0} أصناف</p>
+                    </div>
+                    <button onClick={() => recallInvoice(h)} className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50">استرجاع</button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Panel */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="p-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><History className="w-5 h-5 ml-2 text-indigo-500"/> الفواتير والأوامر السابقة</h3>
+              <button onClick={() => setShowHistory(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              <table className="w-full text-right text-sm">
+                 <thead className="text-slate-500 dark:text-slate-400 border-b dark:border-slate-800">
+                   <tr>
+                     <th className="pb-3 font-bold">رقم الأمر</th>
+                     <th className="pb-3 font-bold">المورد</th>
+                     <th className="pb-3 font-bold">التاريخ</th>
+                     <th className="pb-3 font-bold">الحالة</th>
+                     <th className="pb-3 font-bold">الإجمالي</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                   {orders.slice(0, 15).map(o => (
+                     <tr key={o.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                       <td className="py-3 font-bold text-slate-900 dark:text-white">#{o.orderNo}</td>
+                       <td className="py-3 text-slate-700 dark:text-slate-300">{o.supplier?.name || '--'}</td>
+                       <td className="py-3 font-[Fira_Code] text-slate-700 dark:text-slate-300">{new Date(o.date).toLocaleDateString()}</td>
+                       <td className="py-3">{getStatusBadge(o.status)}</td>
+                       <td className="py-3 font-bold text-indigo-600 dark:text-indigo-400">{fmt(o.total)}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

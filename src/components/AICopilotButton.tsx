@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Bot, X, Send } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
 
@@ -11,6 +11,11 @@ export default function AICopilotButton() {
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<{role:string, text:string}[]>([]);
     const router = useRouter();
+    const pathname = usePathname();
+
+    if (pathname?.includes('/purchase-orders') || pathname?.includes('/products') || pathname?.includes('/pos') || pathname?.includes('/sales')) {
+        return null;
+    }
 
     const askCopilot = async () => {
         if (!msg.trim()) return;
