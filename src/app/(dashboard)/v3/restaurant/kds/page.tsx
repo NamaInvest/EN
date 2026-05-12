@@ -87,20 +87,20 @@ export default function KitchenDisplaySystemPage() {
                         const isLate = (new Date().getTime() - new Date(t.timestamp).getTime()) > 15 * 60000; // 15 mins
                         
                         return (
-                        <Card key={t.id} className={\`min-w-[320px] max-w-[320px] border shrink-0 transition-all duration-500 shadow-2xl \${isLate && t.status === 'NEW' ? 'bg-red-950 border-red-800' : 'bg-gray-800 border-gray-700'}\`}>
-                            <CardHeader className={\`border-b \${isLate && t.status === 'NEW' ? 'border-red-900 bg-red-900/30' : 'border-gray-700 bg-gray-800/50'} pb-4\`}>
+                        <Card key={t.id} className={`min-w-[320px] max-w-[320px] border shrink-0 transition-all duration-500 shadow-2xl ${isLate && t.status === 'NEW' ? 'bg-red-950 border-red-800' : 'bg-gray-800 border-gray-700'}`}>
+                            <CardHeader className={`border-b ${isLate && t.status === 'NEW' ? 'border-red-900 bg-red-900/30' : 'border-gray-700 bg-gray-800/50'} pb-4`}>
                                 <div className="flex justify-between items-center mb-2">
                                     <CardTitle className="text-3xl font-black text-white">#{t.invoiceNo}</CardTitle>
-                                    <span className={\`font-mono font-bold px-3 py-1 rounded-full text-sm \${isLate ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-700 text-gray-300'}\`}>{t.time}</span>
+                                    <span className={`font-mono font-bold px-3 py-1 rounded-full text-sm ${isLate ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-700 text-gray-300'}`}>{t.time}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm mt-1">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className={\`\${t.type === 'Dine-in' ? 'border-blue-500 text-blue-400' : 'border-purple-500 text-purple-400'}\`}>
+                                        <Badge variant="outline" className={`${t.type === 'Dine-in' ? 'border-blue-500 text-blue-400' : 'border-purple-500 text-purple-400'}`}>
                                             {t.type === 'Dine-in' ? _t('محلي', 'Dine-in') : _t('سفري', 'Takeaway')}
                                         </Badge>
                                         <span className="font-bold text-gray-300">{t.table}</span>
                                     </div>
-                                    <Badge className={\`\${t.status === 'PREPARING' ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'}\`}>
+                                    <Badge className={`${t.status === 'PREPARING' ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'}`}>
                                         {t.status === 'PREPARING' ? _t('جاري التحضير', 'Preparing') : _t('جديد', 'New')}
                                     </Badge>
                                 </div>

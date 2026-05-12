@@ -115,7 +115,7 @@ const MODULE_NAMES: Record<string, string> = {
  'master-panel': 'لوحة التحكم المركزية (Master)',
  'branches': 'الفروع',
  'currencies': 'العملات',
- 'salla': 'ربط سلة'
+ 'salla': 'ربط سلة',
 
   'bank_integration': 'الربط البنكي (Open Banking)',
   'vendor_portal': 'بوابة الموردين',

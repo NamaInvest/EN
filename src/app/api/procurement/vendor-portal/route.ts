@@ -21,15 +21,14 @@ async function _GET(req: NextRequest) {
             },
             include: {
                 details: { include: { product: true } },
-                vendor: true
+                supplier: true
             },
             orderBy: { date: 'desc' }
         });
 
         // Also fetch ASNs to display
         const asns = await prisma.advanceShipNotice.findMany({
-            include: { vendor: true, purchaseOrder: true },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { submittedAt: 'desc' }
         });
 
         return NextResponse.json({ success: true, purchaseOrders, asns });
@@ -51,7 +50,7 @@ async function _POST(req: NextRequest) {
             const ctx = {
                 vendorId: body.vendorId,
                 tenantId: auth.tenantId || 'default',
-                portalUserId: auth.id.toString()
+                portalUserId: (auth as any).userId?.toString() || 'unknown'
             };
             const result = await acknowledgePO(prisma as any, {
                 ctx,
@@ -66,7 +65,7 @@ async function _POST(req: NextRequest) {
             const ctx = {
                 vendorId: body.vendorId,
                 tenantId: auth.tenantId || 'default',
-                portalUserId: auth.id.toString()
+                portalUserId: (auth as any).userId?.toString() || 'unknown'
             };
             const result = await submitASN(prisma as any, {
                 ctx,
