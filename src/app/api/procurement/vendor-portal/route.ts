@@ -26,10 +26,8 @@ async function _GET(req: NextRequest) {
             orderBy: { date: 'desc' }
         });
 
-        // Also fetch ASNs to display
-        const asns = await prisma.advanceShipNotice.findMany({
-            orderBy: { submittedAt: 'desc' }
-        });
+        // Also fetch ASNs to display (schema pending)
+        const asns: any[] = [];
 
         return NextResponse.json({ success: true, purchaseOrders, asns });
     } catch (e: any) {

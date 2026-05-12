@@ -131,7 +131,8 @@ export default function KitchenDisplaySystemPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    )})}
+                        );
+                    })}
                 </div>
             )}
         </div>

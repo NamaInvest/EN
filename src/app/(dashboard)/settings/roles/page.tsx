@@ -631,7 +631,7 @@ export default function RolesAndPermissionsPage() {
  const displayName = MODULE_NAMES[key] || key;
  return (
  <label key={key} className="flex items-center gap-3 p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-200 dark:hover:border-gray-600 w-full">
- <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors flex-shrink-0 ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 '}`}>
+ <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors shrink-0 ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 '}`}>
  {isSelected && <Check className="w-3 h-3" />}
  </div>
  <span className={`text-sm ${isSelected ? 'text-slate-900 font-medium' : 'text-slate-600 '}`}>
