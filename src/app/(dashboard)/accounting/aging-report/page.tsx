@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { Shield, RefreshCw, Download, BarChart, Calendar, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -30,6 +31,7 @@ interface AgingStats {
 }
 
 export default function AgingReportPage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -46,11 +48,11 @@ export default function AgingReportPage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to load aging data');
+        toastError(json.error || 'Failed to load aging data');
       }
     } catch (err) {
       console.error(err);
-      alert('Error fetching data');
+      toastError('خطأ في جلب البيانات');
     } finally {
       setLoading(false);
     }

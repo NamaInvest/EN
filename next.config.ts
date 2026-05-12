@@ -11,6 +11,7 @@ const cspDirectives = [
     "https://clerk.namainvist.com",
     "https://challenges.cloudflare.com",
     "https://unpkg.com",            // Swagger UI CDN
+    "https://static.cloudflareinsights.com", // Cloudflare Insights beacon
   ].join(' '),
   [
     "style-src 'self' 'unsafe-inline'",
@@ -29,6 +30,7 @@ const cspDirectives = [
     "https://generativelanguage.googleapis.com", // Gemini API
     "https://gw-fatoora.zatca.gov.sa",           // ZATCA sandbox
     "https://fatoora.zatca.gov.sa",              // ZATCA production
+    "https://cloudflareinsights.com",            // Cloudflare Web Analytics
     "wss:",
   ].join(' '),
   "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from "@/lib/i18n";
+import { useToast } from '@/components/Toast';
 
 interface DocumentUploaderProps {
     documentType: string;
@@ -19,6 +20,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
     const [docName, setDocName] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { error: toastError, success: toastSuccess } = useToast();
 
     const fetchDocs = async () => {
         setLoading(true);
@@ -40,7 +42,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!fileInputRef.current?.files?.[0]) return alert(t('sys.str_49'));
+        if (!fileInputRef.current?.files?.[0]) return toastError(t('sys.str_49') || 'يرجى اختيار ملف');
 
         setUploading(true);
         try {
@@ -65,7 +67,7 @@ export default function DocumentUploader({ documentType, documentId, title = 'ا
                 if (fileInputRef.current) fileInputRef.current.value = '';
                 fetchDocs();
             } else {
-                alert(t('sys.str_50'));
+                toastError(t('sys.str_50') || 'فشل رفع المستند');
             }
         } catch (err) {
             console.error(err);

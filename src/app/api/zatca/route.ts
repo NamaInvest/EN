@@ -95,4 +95,32 @@ async function _POST(req: NextRequest) {
     }
 }
 
+async function _GET(req: NextRequest) {
+    try {
+        const searchParams = req.nextUrl.searchParams;
+        const type = searchParams.get('type');
+        
+        if (type === 'status') {
+            const complianceToken = await prisma.setting.findUnique({ where: { key: 'zatca_compliance_token' } });
+            const productionToken = await prisma.setting.findUnique({ where: { key: 'zatca_production_token' } });
+            const csrSetting = await prisma.setting.findUnique({ where: { key: 'zatca_certificate' } });
+
+            if (productionToken?.value) {
+                return NextResponse.json({ status: 'connected', has_production_csid: true });
+            } else if (complianceToken?.value) {
+                return NextResponse.json({ status: 'compliance_passed', has_production_csid: false });
+            } else if (csrSetting?.value) {
+                return NextResponse.json({ status: 'compliance_csid', has_production_csid: false });
+            } else {
+                return NextResponse.json({ status: 'disconnected', has_production_csid: false });
+            }
+        }
+        
+        return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

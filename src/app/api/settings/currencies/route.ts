@@ -28,7 +28,14 @@ async function _GET(request: NextRequest) {
                     { code: 'BHD', nameAr: 'دينار بحريني', nameEn: 'Bahraini Dinar', symbol: 'د.ب', exchangeRate: 9.95, isDefault: false, isActive: true },
                     { code: 'QAR', nameAr: 'ريال قطري', nameEn: 'Qatari Riyal', symbol: 'ر.ق', exchangeRate: 1.03, isDefault: false, isActive: true },
                     { code: 'OMR', nameAr: 'ريال عماني', nameEn: 'Omani Rial', symbol: 'ر.ع', exchangeRate: 9.74, isDefault: false, isActive: true }
-                ]
+                ],
+                skipDuplicates: true
+            }).catch(e => {
+                if (e.code === 'P2002') {
+                    // Ignore duplicate key error if another request already inserted
+                } else {
+                    throw e;
+                }
             });
             currencies = await prisma.currency.findMany({ take: 100,
                 orderBy: { id: 'asc' }

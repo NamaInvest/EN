@@ -17,6 +17,7 @@ function LoginForm() {
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
   const [isDesktop, setIsDesktop] = useState(process.env.NEXT_PUBLIC_IS_DESKTOP === '1');
+  const [showLocalForm, setShowLocalForm] = useState(false);
   const [showFaceLogin, setShowFaceLogin] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
@@ -264,6 +265,64 @@ function LoginForm() {
           <div className="login-subtitle">{t("sys.str_4011")}</div>
         </div>
 
+        {isSubdomain && !isDesktop && !showLocalForm ? (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+            <div style={{ 
+              width: '100%', 
+              display: 'flex', 
+              justifyContent: 'center',
+              borderRadius: '12px',
+              overflow: 'hidden',
+            }}>
+              <SignIn 
+                appearance={{
+                  elements: {
+                    rootBox: { width: '100%' },
+                    card: { 
+                      boxShadow: 'none', 
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      width: '100%',
+                    },
+                    headerTitle: { display: 'none' },
+                    headerSubtitle: { display: 'none' },
+                    socialButtonsBlockButton: { 
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                    },
+                    formButtonPrimary: {
+                      background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                      borderRadius: '8px',
+                    },
+                    footer: { display: 'none' },
+                    footerAction: { display: 'none' },
+                  },
+                }}
+                routing="hash"
+                forceRedirectUrl={typeof window !== 'undefined' ? `${window.location.origin}/api/auth/sso-redirect` : "/api/auth/sso-redirect"}
+              />
+            </div>
+            
+            <div style={{ display: "flex", alignItems: "center", margin: "10px 0", width: "100%", color: "#64748b" }}>
+              <div style={{ flex: 1, height: "1px", background: "var(--border-color, #e2e8f0)" }}></div>
+              <span style={{ margin: "0 10px", fontSize: "14px", fontWeight: 600 }}>أو</span>
+              <div style={{ flex: 1, height: "1px", background: "var(--border-color, #e2e8f0)" }}></div>
+            </div>
+
+            <button 
+              onClick={() => setShowLocalForm(true)}
+              className="btn btn-secondary"
+              style={{
+                width: "100%", padding: "14px", fontSize: "16px",
+                background: "rgba(99, 102, 241, 0.1)", color: "#6366f1",
+                border: "1px solid rgba(99, 102, 241, 0.3)", borderRadius: "8px",
+                cursor: "pointer", fontWeight: "bold"
+              }}
+            >
+              دخول الموظفين (اسم المستخدم)
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleLogin}>
           <div className="input-group">
             <label className="input-label">{t("sys.str_4012")}</label>
@@ -392,7 +451,7 @@ function LoginForm() {
             ></div>
           </div>
 
-          {isDesktop ? (
+          {isDesktop && (
             <div style={{
               textAlign: 'center',
               padding: '16px',
@@ -408,44 +467,25 @@ function LoginForm() {
                 فترة تجريبية 7 أيام • ZATCA والفوترة الإلكترونية تعمل عند توفر الإنترنت
               </div>
             </div>
-          ) : isSubdomain ? (
-            <div style={{ 
-              width: '100%', 
-              display: 'flex', 
-              justifyContent: 'center',
-              borderRadius: '12px',
-              overflow: 'hidden',
-            }}>
-              <SignIn 
-                appearance={{
-                  elements: {
-                    rootBox: { width: '100%' },
-                    card: { 
-                      boxShadow: 'none', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      width: '100%',
-                    },
-                    headerTitle: { display: 'none' },
-                    headerSubtitle: { display: 'none' },
-                    socialButtonsBlockButton: { 
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                    },
-                    formButtonPrimary: {
-                      background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                      borderRadius: '8px',
-                    },
-                    footer: { display: 'none' },
-                    footerAction: { display: 'none' },
-                  },
-                }}
-                routing="hash"
-                forceRedirectUrl={typeof window !== 'undefined' ? `${window.location.origin}/api/auth/sso-redirect` : "/api/auth/sso-redirect"}
-              />
-            </div>
-          ) : null}
+          )}
+
+          {isSubdomain && !isDesktop && (
+            <button 
+              type="button"
+              onClick={() => setShowLocalForm(false)}
+              className="btn btn-secondary"
+              style={{
+                width: "100%", padding: "12px", fontSize: "14px", marginTop: "16px",
+                background: "transparent", color: "#64748b",
+                border: "1px solid #e2e8f0", borderRadius: "8px",
+                cursor: "pointer", fontWeight: "600"
+              }}
+            >
+              العودة لتسجيل دخول صاحب الحساب
+            </button>
+          )}
         </form>
+        )}
 
         <div
           style={{

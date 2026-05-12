@@ -120,7 +120,14 @@ export default function SalesOptionsPage() {
  body: JSON.stringify(payload)
  });
 
- if (!res.ok) throw new Error('فشل الحفظ');
+ if (!res.ok) {
+     let errMsg = 'فشل الحفظ';
+     try {
+         const data = await res.json();
+         if (data.error) errMsg = data.error;
+     } catch(e) {}
+     throw new Error(errMsg);
+ }
  
  await refreshSettings();
  

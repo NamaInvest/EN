@@ -22,6 +22,8 @@ const _POSTSchema = z.object({
   customerId: z.union([z.string(), z.number()]).optional(),
   paymentMethod: z.any().optional(),
   couponId: z.union([z.string(), z.number()]).optional(),
+  splitCash: z.number().optional(),
+  splitCard: z.number().optional(),
 }).passthrough();
 
 async function _POST(req: NextRequest) {
@@ -36,7 +38,7 @@ async function _POST(req: NextRequest) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const { cart, total, tax, discount, customerId, paymentMethod, couponId } = body;
+        const { cart, total, tax, discount, customerId, paymentMethod, couponId, splitCash, splitCard } = body;
 
         if (!cart || !cart.length) {
             return NextResponse.json({ success: false, error: 'السلة فارغة' }, { status: 400 });
@@ -70,6 +72,8 @@ async function _POST(req: NextRequest) {
                     paid: finalTotal, // POS is fully paid
                     remaining: 0,
                     paymentType: paymentMethod || 'cash',
+                    splitCash: paymentMethod === 'split' ? (splitCash || 0) : 0,
+                    splitCard: paymentMethod === 'split' ? (splitCard || 0) : 0,
                     status: 'completed',
                     userId: auth.userId,
                     notes: `فاتورة نقاط البيع السريعة (POS)${body.bnplOrderId ? ` - طريقة الدفع: ${paymentMethod} (${body.bnplOrderId})` : ''}`,
@@ -179,8 +183,8 @@ async function _POST(req: NextRequest) {
                 taxValue: tax,
                 total: finalTotal,
                 paymentType: paymentMethod || 'cash',
-                splitCash: 0,
-                splitCard: 0,
+                splitCash: paymentMethod === 'split' ? (splitCash || 0) : 0,
+                splitCard: paymentMethod === 'split' ? (splitCard || 0) : 0,
                 userId: auth.userId,
                 branchId: undefined, 
                 discountValue: discount || 0,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { Activity, RefreshCw, Cpu, AlertTriangle, PlayCircle, Settings, CheckCircle2 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ interface MESData {
 }
 
 export default function MesOeePage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -53,11 +55,11 @@ export default function MesOeePage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to fetch MES Data');
+        toastError(json.error || 'Failed to fetch MES Data');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error fetching MES data');
+      toastError('فشل الاتصال بالخادم، يرجى المحاولة لاحقاً');
     } finally {
       setLoading(false);
     }

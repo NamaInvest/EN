@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { Shield, RefreshCw, AlertTriangle, ArrowDownRight, ArrowUpRight, Activity } from 'lucide-react';
 
@@ -28,6 +29,7 @@ interface ImpairmentData {
 }
 
 export default function ImpairmentPage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -43,11 +45,11 @@ export default function ImpairmentPage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to fetch Impairment Data');
+        toastError(json.error || 'Failed to fetch Impairment Data');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error fetching Impairment data');
+      toastError('فشل الاتصال بالخادم، يرجى المحاولة لاحقاً');
     } finally {
       setLoading(false);
     }

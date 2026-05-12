@@ -64,7 +64,7 @@ async function _POST(request: NextRequest) {
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const prisma = getPrisma(request);
         const allowed = await hasPermission(auth.userId, 'settings', prisma);
-        if (!allowed && auth.role !== 'admin' && auth.role !== 'owner') {
+        if (!allowed && auth.role !== 'admin' && auth.role !== 'owner' && auth.role !== 'system_admin') {
             return NextResponse.json({ error: 'غير مصرح - ليس لديك صلاحية التعديل' }, { status: 403 });
         }
 

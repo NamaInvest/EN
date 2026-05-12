@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getStateMachineFor, BaseState } from '@/lib/state-machine';
+import { useToast } from '@/components/Toast';
 
 interface StateBadgeProps {
     entityType: string;
@@ -42,6 +43,7 @@ const STATE_LABELS: Record<string, string> = {
 export default function StateBadge({ entityType, entityId, currentState, onStateChange, readOnly = false }: StateBadgeProps) {
     const [loading, setLoading] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const { error: toastError, success: toastSuccess } = useToast();
 
     let allowedTransitions: BaseState[] = [];
     try {
@@ -69,14 +71,15 @@ export default function StateBadge({ entityType, entityId, currentState, onState
 
             if (!res.ok) {
                 const err = await res.json();
-                alert(`Error: ${err.error || 'Failed to transition'}`);
+                toastError(`فشل تغيير الحالة: ${err.error || 'حدث خطأ غير معروف'}`);
                 return;
             }
 
+            toastSuccess('تم تغيير الحالة بنجاح');
             if (onStateChange) onStateChange(targetState);
         } catch (error) {
             console.error(error);
-            alert('Failed to change state');
+            toastError('فشل الاتصال بالخادم لتغيير الحالة');
         } finally {
             setLoading(false);
         }

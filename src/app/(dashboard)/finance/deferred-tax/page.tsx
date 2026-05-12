@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { Shield, RefreshCw, Calculator, TrendingUp, TrendingDown, Info, DollarSign, Activity } from 'lucide-react';
 
@@ -26,6 +27,7 @@ interface DeferredTaxData {
 }
 
 export default function DeferredTaxPage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -42,11 +44,11 @@ export default function DeferredTaxPage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to fetch Deferred Tax Data');
+        toastError(json.error || 'Failed to fetch Deferred Tax Data');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error fetching Deferred Tax data');
+      toastError('فشل الاتصال بالخادم، يرجى المحاولة لاحقاً');
     } finally {
       setLoading(false);
     }

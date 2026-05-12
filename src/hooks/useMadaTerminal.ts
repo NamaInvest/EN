@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { useToast } from '@/components/Toast';
 
 export type TerminalStatus = 'DISCONNECTED' | 'CONNECTED' | 'WAITING' | 'APPROVED' | 'DECLINED' | 'ERROR';
 
@@ -8,6 +9,7 @@ export function useMadaTerminal() {
     const portRef = useRef<any>(null);
     const readerRef = useRef<any>(null);
     const keepReadingRef = useRef<boolean>(true);
+    const { error: toastError } = useToast();
 
     // Common SPAN2 / Geidea STX-ETX format helper
     const buildPacket = (amount: number) => {
@@ -36,7 +38,7 @@ export function useMadaTerminal() {
     const connect = async () => {
         try {
             if (!('serial' in navigator)) {
-                alert('عذراً، متصفحك لا يدعم ربط أجهزة POS (WebSerial API). يرجى استخدام Google Chrome أو Edge.');
+                toastError('عذراً، متصفحك لا يدعم ربط أجهزة POS (WebSerial API). يرجى استخدام Google Chrome أو Edge.');
                 return false;
             }
 

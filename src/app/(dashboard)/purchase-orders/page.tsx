@@ -76,7 +76,7 @@ export default function PurchaseOrdersPage() {
     defaultValues: {
       supplierId: '',
       notes: '',
-      items: [{ productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }]
+      items: [{ productId: '1', productName: t('pos.new_item') || 'صنف جديد', quantity: 1, price: 0 }]
     }
   });
 
@@ -121,34 +121,34 @@ export default function PurchaseOrdersPage() {
   }, [showModal]);
 
   const connectPosManual = async () => {
-    if (!('serial' in navigator)) { toastError('غير مدعوم في هذا المتصفح'); return; }
+    if (!('serial' in navigator)) { toastError(t('pos.not_supported') || 'غير مدعوم في هذا المتصفح'); return; }
     try {
       const port = await (navigator as any).serial.requestPort();
       await port.open({ baudRate: 9600 });
       setPosPort(port);
       setPosStatus('connected');
-      toastSuccess('تم ربط جهاز مدى بنجاح');
-    } catch (e) { toastError('فشل ربط جهاز مدى'); }
+      toastSuccess(t('pos.mada_success') || 'تم ربط جهاز مدى بنجاح');
+    } catch (e) { toastError(t('pos.mada_fail') || 'فشل ربط جهاز مدى'); }
   };
 
   const holdInvoice = () => {
     const data = control._formValues;
-    if (!data.items || data.items.length === 0 || !data.items[0].productName) return toastError('لا يمكن تعليق فاتورة فارغة');
+    if (!data.items || data.items.length === 0 || !data.items[0].productName) return toastError(t('pos.empty_invoice_hold') || 'لا يمكن تعليق فاتورة فارغة');
     const newHeld = {
       id: Date.now().toString(),
       label: `فاتورة معلقة - ${new Date().toLocaleTimeString('ar-SA')}`,
       data
     };
     setHeldInvoices([...heldInvoices, newHeld]);
-    reset({ supplierId: '', notes: '', items: [{ productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }] });
-    toastSuccess('تم تعليق الفاتورة بنجاح');
+    reset({ supplierId: '', notes: '', items: [{ productId: '1', productName: t('pos.new_item') || 'صنف جديد', quantity: 1, price: 0 }] });
+    toastSuccess(t('pos.hold_success') || 'تم تعليق الفاتورة بنجاح');
   };
 
   const recallInvoice = (held: any) => {
     reset(held.data);
     setHeldInvoices(heldInvoices.filter(h => h.id !== held.id));
     setShowHeldPanel(false);
-    toastSuccess('تم استرجاع الفاتورة');
+    toastSuccess(t('pos.recall_success') || 'تم استرجاع الفاتورة');
   };
 
   async function fetchSuppliers() {
@@ -166,7 +166,7 @@ export default function PurchaseOrdersPage() {
         const json = await r.json();
         setOrders(Array.isArray(json) ? json : (json.data || []));
       }
-    } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
+    } catch (e: any) { toastError(e?.message || t('pos.error_occurred') || 'حدث خطأ'); } 
     setLoading(false); 
   };
 
@@ -174,7 +174,7 @@ export default function PurchaseOrdersPage() {
   
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending': return <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold border border-amber-200">بانتظار الاعتماد</span>;
+      case 'pending': return <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold border border-amber-200">{t('pos.pending') || 'بانتظار الاعتماد'}</span>;
       case 'approved': return <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold border border-blue-200">معتمد</span>;
       case 'rejected': return <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold border border-red-200">مرفوض</span>;
       case 'completed': return <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-bold border border-emerald-200">مكتمل</span>;
@@ -191,7 +191,7 @@ export default function PurchaseOrdersPage() {
       });
       if (res.ok) {
         load();
-        toastSuccess('تم تحديث حالة الأمر بنجاح');
+        toastSuccess(t('pos.status_updated') || 'تم تحديث حالة الأمر بنجاح');
       } else {
         toastError(t('sys.str_960'));
       }
@@ -215,14 +215,14 @@ export default function PurchaseOrdersPage() {
         reset({
           supplierId: '',
           notes: '',
-          items: [{ productId: '1', productName: 'صنف جديد', quantity: 1, price: 0 }]
+          items: [{ productId: '1', productName: t('pos.new_item') || 'صنف جديد', quantity: 1, price: 0 }]
         });
-        toastSuccess('تم إنشاء أمر الشراء بنجاح');
+        toastSuccess(t('pos.po_created') || 'تم إنشاء أمر الشراء بنجاح');
         load();
       } else {
         toastError(t('sys.str_962'));
       }
-    } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
+    } catch (err: any) { toastError(err?.message || t('pos.error_occurred') || 'حدث خطأ'); }
     setSaving(false);
   };
 
@@ -249,7 +249,7 @@ export default function PurchaseOrdersPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">{t('sys.str_942')}</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">إدارة أوامر الشراء واعتمادات الموردين</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">{t('pos.po_manage') || 'إدارة أوامر الشراء واعتمادات الموردين'}</p>
             </div>
           </div>
           <button onClick={() => setShowModal(true)} className="flex items-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-bold shadow-sm shadow-indigo-500/20">
@@ -262,7 +262,7 @@ export default function PurchaseOrdersPage() {
           <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border-r-4 border-r-indigo-500 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">إجمالي الأوامر</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{t('pos.total_orders') || 'إجمالي الأوامر'}</p>
                 <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">{orders.length}</h3>
               </div>
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
@@ -274,7 +274,7 @@ export default function PurchaseOrdersPage() {
           <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border-r-4 border-r-amber-500 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">بانتظار الاعتماد</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{t('pos.pending') || 'بانتظار الاعتماد'}</p>
                 <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">
                   {orders.filter(o => o.status === 'pending').length}
                 </h3>
@@ -288,7 +288,7 @@ export default function PurchaseOrdersPage() {
           <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border-r-4 border-r-emerald-500 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">أوامر مكتملة</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{t('pos.completed_orders') || 'أوامر مكتملة'}</p>
                 <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">
                   {orders.filter(o => o.status === 'completed').length}
                 </h3>
@@ -302,7 +302,7 @@ export default function PurchaseOrdersPage() {
           <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border-r-4 border-r-blue-500 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">القيمة الإجمالية</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{t('pos.total_value') || 'القيمة الإجمالية'}</p>
                 <h3 className="text-3xl font-bold text-slate-900 dark:text-white font-[Fira_Code]">
                   {fmt(orders.reduce((acc, curr) => acc + curr.total, 0))}
                 </h3>
@@ -323,7 +323,7 @@ export default function PurchaseOrdersPage() {
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="بحث برقم الأمر أو المورد..." 
+                placeholder={t('pos.search_placeholder') || 'بحث برقم الأمر أو المورد...'} 
                 className="pl-4 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors w-full"
               />
             </div>
@@ -331,9 +331,9 @@ export default function PurchaseOrdersPage() {
 
           <div className="p-4 space-y-4">
             {loading ? (
-              <div className="p-10 text-center text-slate-500 font-bold">جاري تحميل البيانات...</div>
+              <div className="p-10 text-center text-slate-500 font-bold">{t('pos.loading') || 'جاري تحميل البيانات...'}</div>
             ) : filteredOrders.length === 0 ? (
-               <div className="p-10 text-center text-slate-500 font-bold border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">لا توجد أوامر شراء مطابقة</div>
+               <div className="p-10 text-center text-slate-500 font-bold border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">{t('pos.no_orders') || 'لا توجد أوامر شراء مطابقة'}</div>
             ) : (
               filteredOrders.map(o => (
                 <div key={o.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors cursor-pointer group" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>
@@ -350,18 +350,18 @@ export default function PurchaseOrdersPage() {
                     
                     <div className="flex items-center gap-6 flex-wrap">
                       <div className="text-left rtl:text-right">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">بواسطة</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('pos.by') || 'بواسطة'}</p>
                         <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{o.user?.fullName || '--'}</p>
                       </div>
                       <div className="text-left rtl:text-right">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">التاريخ</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('pos.date') || 'التاريخ'}</p>
                         <p className="text-sm font-bold text-slate-700 dark:text-slate-300 font-[Fira_Code]">{new Date(o.date).toLocaleDateString('en-GB')}</p>
                       </div>
                       <div>
                         {getStatusBadge(o.status)}
                       </div>
                       <div className="text-left rtl:text-right ml-4 rtl:ml-0 rtl:mr-4">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">الإجمالي</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('pos.total') || 'الإجمالي'}</p>
                         <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400 font-[Fira_Code]">{fmt(o.total)} {t('sys.str_68')}</p>
                       </div>
                     </div>
@@ -435,13 +435,13 @@ export default function PurchaseOrdersPage() {
                 </h2>
                 <div className="flex gap-2">
                   <button type="button" id="hold-btn" onClick={holdInvoice} className="flex items-center px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors">
-                    <PauseCircle className="w-4 h-4 ml-1" /> تعليق (F3)
+                    <PauseCircle className="w-4 h-4 ml-1" /> {t('pos.hold_f3') || 'تعليق (F3)'}
                   </button>
                   <button type="button" id="recall-btn" onClick={() => setShowHeldPanel(true)} className="flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-sm font-bold transition-colors">
-                    <Clock className="w-4 h-4 ml-1" /> استرجاع (F4) {heldInvoices.length > 0 && <span className="mr-1 bg-indigo-600 text-white rounded-full px-1.5 text-xs">{heldInvoices.length}</span>}
+                    <Clock className="w-4 h-4 ml-1" /> {t('pos.recall_f4') || 'استرجاع (F4)'} {heldInvoices.length > 0 && <span className="mr-1 bg-indigo-600 text-white rounded-full px-1.5 text-xs">{heldInvoices.length}</span>}
                   </button>
                   <button type="button" id="history-btn" onClick={() => setShowHistory(true)} className="flex items-center px-3 py-1.5 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm font-bold transition-colors">
-                    <History className="w-4 h-4 ml-1" /> السابقة (F9)
+                    <History className="w-4 h-4 ml-1" /> {t('pos.history_f9') || 'السابقة (F9)'}
                   </button>
                 </div>
               </div>
@@ -528,7 +528,7 @@ export default function PurchaseOrdersPage() {
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
-                <h3 className="font-bold text-slate-900 dark:text-white">طريقة الدفع</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white">{t('pos.payment_method') || 'طريقة الدفع'}</h3>
                 <div className="grid grid-cols-3 gap-3">
                   <button type="button" onClick={() => setPaymentType('cash')} className={`p-3 rounded-xl flex flex-col items-center gap-2 border-2 font-bold transition-all ${paymentType === 'cash' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-200'}`}>
                     <Banknote className="w-6 h-6" /> كاش
@@ -544,11 +544,11 @@ export default function PurchaseOrdersPage() {
                 {paymentType === 'split' && (
                   <div className="flex gap-4 mt-3">
                     <div className="flex-1">
-                      <label className="text-xs font-bold text-slate-500 block mb-1">مبلغ الكاش</label>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">{t('pos.cash_amount') || 'مبلغ الكاش'}</label>
                       <input type="number" value={splitCash} onChange={e => setSplitCash(e.target.value)} className="w-full px-3 py-2 border dark:border-slate-700 dark:bg-slate-900 rounded-lg text-slate-900 dark:text-white" placeholder="0.00" />
                     </div>
                     <div className="flex-1">
-                      <label className="text-xs font-bold text-slate-500 block mb-1">مبلغ البطاقة</label>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">{t('pos.card_amount') || 'مبلغ البطاقة'}</label>
                       <input type="number" value={splitCard} onChange={e => setSplitCard(e.target.value)} className="w-full px-3 py-2 border dark:border-slate-700 dark:bg-slate-900 rounded-lg text-slate-900 dark:text-white" placeholder="0.00" />
                     </div>
                   </div>
@@ -558,7 +558,7 @@ export default function PurchaseOrdersPage() {
                   <div className="mt-3">
                     <button type="button" onClick={connectPosManual} className={`w-full py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 ${posStatus === 'connected' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-400' : 'bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600'}`}>
                       <CreditCard className="w-5 h-5" />
-                      {posStatus === 'connected' ? 'جهاز مدى متصل' : posStatus === 'sending' ? 'جاري الإرسال لمدى...' : 'ربط جهاز مدى'}
+                      {posStatus === 'connected' ? t('pos.mada_connected') || 'جهاز مدى متصل' : posStatus === 'sending' ? t('pos.mada_sending') || 'جاري الإرسال لمدى...' : t('pos.mada_connect') || 'ربط جهاز مدى'}
                     </button>
                   </div>
                 )}
@@ -569,7 +569,7 @@ export default function PurchaseOrdersPage() {
                   {t('fin.str_206')}
                 </button>
                 <button type="submit" id="save-btn" disabled={saving} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm shadow-indigo-500/20 transition-colors disabled:opacity-50">
-                  {saving ? t('sys.str_454') : 'حفظ الأمر (F2)'}
+                  {saving ? t('sys.str_454') : t('pos.save_f2') || 'حفظ الأمر (F2)'}
                 </button>
               </div>
             </form>
@@ -582,18 +582,18 @@ export default function PurchaseOrdersPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800">
             <div className="p-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><PauseCircle className="w-5 h-5 ml-2 text-amber-500"/> الفواتير المعلقة</h3>
+              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><PauseCircle className="w-5 h-5 ml-2 text-amber-500"/> {t('pos.held_invoices') || 'الفواتير المعلقة'}</h3>
               <button onClick={() => setShowHeldPanel(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-5 h-5"/></button>
             </div>
             <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-              {heldInvoices.length === 0 ? <p className="text-center text-slate-500 font-bold p-5">لا يوجد فواتير معلقة</p> :
+              {heldInvoices.length === 0 ? <p className="text-center text-slate-500 font-bold p-5">{t('pos.no_held_invoices') || 'لا يوجد فواتير معلقة'}</p> :
                 heldInvoices.map(h => (
                   <div key={h.id} className="p-4 border dark:border-slate-700 rounded-xl flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">{h.label}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{h.data.items?.length || 0} أصناف</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{h.data.items?.length || 0} {t('pos.items') || 'أصناف'}</p>
                     </div>
-                    <button onClick={() => recallInvoice(h)} className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50">استرجاع</button>
+                    <button onClick={() => recallInvoice(h)} className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50">{t('pos.recall') || 'استرجاع'}</button>
                   </div>
                 ))}
             </div>
@@ -606,18 +606,18 @@ export default function PurchaseOrdersPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800">
             <div className="p-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><History className="w-5 h-5 ml-2 text-indigo-500"/> الفواتير والأوامر السابقة</h3>
+              <h3 className="font-bold text-lg flex items-center text-slate-900 dark:text-white"><History className="w-5 h-5 ml-2 text-indigo-500"/> {t('pos.history_invoices') || 'الفواتير والأوامر السابقة'}</h3>
               <button onClick={() => setShowHistory(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X className="w-5 h-5"/></button>
             </div>
             <div className="p-4 max-h-[70vh] overflow-y-auto">
               <table className="w-full text-right text-sm">
                  <thead className="text-slate-500 dark:text-slate-400 border-b dark:border-slate-800">
                    <tr>
-                     <th className="pb-3 font-bold">رقم الأمر</th>
-                     <th className="pb-3 font-bold">المورد</th>
-                     <th className="pb-3 font-bold">التاريخ</th>
-                     <th className="pb-3 font-bold">الحالة</th>
-                     <th className="pb-3 font-bold">الإجمالي</th>
+                     <th className="pb-3 font-bold">{t('pos.order_number') || 'رقم الأمر'}</th>
+                     <th className="pb-3 font-bold">{t('pos.supplier') || 'المورد'}</th>
+                     <th className="pb-3 font-bold">{t('pos.date') || 'التاريخ'}</th>
+                     <th className="pb-3 font-bold">{t('pos.status') || 'الحالة'}</th>
+                     <th className="pb-3 font-bold">{t('pos.total') || 'الإجمالي'}</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

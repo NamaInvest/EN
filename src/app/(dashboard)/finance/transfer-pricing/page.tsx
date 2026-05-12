@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { Network, RefreshCw, AlertCircle, TrendingUp, CheckCircle, Percent, AlertOctagon } from 'lucide-react';
 
@@ -29,6 +30,7 @@ interface TransferPricingData {
 }
 
 export default function TransferPricingPage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -46,11 +48,11 @@ export default function TransferPricingPage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to fetch Transfer Pricing Data');
+        toastError(json.error || 'Failed to fetch Transfer Pricing Data');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error fetching Transfer Pricing data');
+      toastError('فشل الاتصال بالخادم، يرجى المحاولة لاحقاً');
     } finally {
       setLoading(false);
     }

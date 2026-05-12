@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { Users, TrendingUp, AlertOctagon, RefreshCw, Award, Target, UserX } from 'lucide-react';
 
 export default function SuccessionNineBoxPage() {
+    const { error: toastError, success: toastSuccess } = useToast();
   const { lang } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
@@ -20,11 +22,11 @@ export default function SuccessionNineBoxPage() {
       if (json.success) {
         setData(json.data);
       } else {
-        alert(json.error || 'Failed to fetch 9-Box Data');
+        toastError(json.error || 'Failed to fetch 9-Box Data');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error fetching 9-Box data');
+      toastError('فشل الاتصال بالخادم، يرجى المحاولة لاحقاً');
     } finally {
       setLoading(false);
     }
