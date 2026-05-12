@@ -94,3 +94,5 @@
   - استكمال جميع المهام التقنية المعلقة في الفروع `Integrations`، `Product`، `Data`، `SRE`، `Platform`، و `Advanced AI`.
   - تم بناء الواجهات التجريدية للبنوك، التحليل المالي، إدارة التذاكر والتسويق، التخزين التنبؤي، إدارة الطباعة المباشرة، التنبيهات، والتعلم الآلي (Voice & Vision).
   - المخطط من المرحلة 30 إلى 94 مكتمل الآن 100% بنسبة أخطاء `tsc` 0%.
+-   R U L E _ M U L T I _ T E N A N T _ A U T H :   M a i n   d o m a i n   ( n a m a i n v i s t . c o m )   i s   f o r   m a r k e t i n g .   S i g n U p / S i g n I n   r e d i r e c t s   t o   / c o m p a n y - i n f o .   I f   n e w   u s e r ,   c r e a t e s   i s o l a t e d   s u b d o m a i n .   I f   e x i s t i n g   u s e r ,   a u t o - r e d i r e c t s   t o   t h e i r   p r o v i s i o n e d   s u b d o m a i n .  
+ 

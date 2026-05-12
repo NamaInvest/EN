@@ -31,6 +31,13 @@ function LoginForm() {
     const host = window.location.hostname;
     const isLocalhost = host === 'localhost' || host === '127.0.0.1';
     const isDesktopMode = isLocalhost || !!(window as any).namaDesktop;
+    
+    // Auto-redirect from /login to /sign-in on main domain
+    if (!isDesktopMode && (host === 'namainvist.com' || host === 'www.namainvist.com')) {
+      window.location.href = '/sign-in';
+      return;
+    }
+
     if (isDesktopMode) {
       setIsDesktop(true);
       setIsSubdomain(true); // Desktop uses JWT auth like subdomains
@@ -401,41 +408,32 @@ function LoginForm() {
                 فترة تجريبية 7 أيام • ZATCA والفوترة الإلكترونية تعمل عند توفر الإنترنت
               </div>
             </div>
-          ) : isSubdomain ? (
+          ) : !isSubdomain ? (
             <div style={{ 
               width: '100%', 
               display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
               justifyContent: 'center',
+              padding: '20px',
+              background: 'rgba(239, 68, 68, 0.05)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
               borderRadius: '12px',
-              overflow: 'hidden',
+              textAlign: 'center'
             }}>
-              <SignIn 
-                appearance={{
-                  elements: {
-                    rootBox: { width: '100%' },
-                    card: { 
-                      boxShadow: 'none', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      width: '100%',
-                    },
-                    headerTitle: { display: 'none' },
-                    headerSubtitle: { display: 'none' },
-                    socialButtonsBlockButton: { 
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                    },
-                    formButtonPrimary: {
-                      background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                      borderRadius: '8px',
-                    },
-                    footer: { display: 'none' },
-                    footerAction: { display: 'none' },
-                  },
+              <div style={{ fontSize: '24px', marginBottom: '10px' }}>⚠️</div>
+              <div style={{ color: '#ef4444', fontWeight: 'bold', marginBottom: '10px' }}>مسار غير صحيح</div>
+              <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>يجب تسجيل الدخول من خلال النطاق المخصص لمنشأتك أو عبر لوحة تحكم Clerk.</p>
+              <button
+                type="button"
+                onClick={() => window.location.href = '/sign-in'}
+                style={{
+                  background: '#6366f1', color: 'white', padding: '10px 20px',
+                  borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer'
                 }}
-                routing="hash"
-                forceRedirectUrl="https://namainvist.com/dashboard"
-              />
+              >
+                الانتقال لصفحة الدخول الرئيسية
+              </button>
             </div>
           ) : (
             <button
