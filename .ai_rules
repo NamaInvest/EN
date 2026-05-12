@@ -76,3 +76,6 @@
   - محرك `ShippingEngine` لتوليد بوالص الشحن (AWB) للشركات اللوجستية (Aramex, SMSA, SPL).
   - محرك `EcommerceSyncEngine` لمنع البيع فوق المخزون (Overselling) والمزامنة الحية مع (Zid, Salla, Shopify).
   - محرك `AiOcrEngine` لاستخراج البيانات المهيكلة من الفواتير والهويات عبر الذكاء الاصطناعي (AWS Textract, Google Vision).
+- **مجموعة محركات إدارة المنتج (Product SaaS - Phases 50-51):** إطلاق محركات التحكم التجاري:
+  - محرك `PricingBillingEngine` لإدارة باقات الاشتراك، حصص الاستهلاك (Quota)، والحساب التناسبي (Pro-Rata).
+  - محرك `TenantOnboardingEngine` لتوجيه العميل عبر خطوات التأسيس وقياس التقدم لتسريع الإطلاق (Time to value).
