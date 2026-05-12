@@ -68,7 +68,7 @@ export default function RestaurantPOS() {
     const [notifFlash, setNotifFlash] = useState(false);
 
     // Floor Management State
-    const [posMode, setPosMode] = useState<'MENU' | 'FLOOR'>('MENU');
+    const [posMode, setPosMode] = useState<'MENU' | 'FLOOR'>('FLOOR');
     const [zones, setZones] = useState<any[]>([]);
     const [activeZone, setActiveZone] = useState<any>(null);
     const [activeTable, setActiveTable] = useState<any>(null);
@@ -85,7 +85,11 @@ export default function RestaurantPOS() {
     };
 
     useEffect(() => {
-        if (posMode === 'FLOOR') fetchFloorPlan();
+        if (posMode === 'FLOOR') {
+            fetchFloorPlan();
+            const interval = setInterval(fetchFloorPlan, 10000);
+            return () => clearInterval(interval);
+        }
     }, [posMode]);
 
     const createZone = async () => {
@@ -121,7 +125,7 @@ export default function RestaurantPOS() {
     const printQR = (e: any, table: any) => {
         e.stopPropagation();
         const token = table.qrToken || 'NO_TOKEN';
-        const link = `${window.location.origin}/qr-menu/${token}`;
+        const link = `${window.location.origin}/customer/table/${token}`;
         const qrHtml = `
             <html dir="rtl"><head><title>QR طاولة</title>
             <style>

@@ -1,56 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
-
 import { getUserFromRequest } from '@/lib/auth';
-import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import crypto from 'crypto';
 
 const log = logger.child({ service: 'pos.restaurant.floor' });
+
 async function _GET(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
-        if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         const prisma = getPrisma(req);
 
-        // Check if restaurant tables exist in DB
-        let zones: any[] = [];
-        try {
-            zones = await prisma.restaurantZone.findMany({ take: 100,
-                include: { tables: { include: { sessions: { where: { status: 'Active' } } } } }
-            });
-        } catch (e: any) {
-            log.error('src/app/api/pos/restaurant/floor/route.ts', { error: e instanceof Error ? e.message : e });
-
-            // If tables don't exist, create them via raw SQL
-            if (e.message?.includes('does not exist') || e.code === 'P2021') {
-                await prisma.$executeRawUnsafe(`
-                    CREATE TABLE IF NOT EXISTS "RestaurantZone" (
-                        "id" SERIAL PRIMARY KEY,
-                        "name" TEXT NOT NULL,
-                        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    );
-                    CREATE TABLE IF NOT EXISTS "RestaurantTable" (
-                        "id" SERIAL PRIMARY KEY,
-                        "name" TEXT NOT NULL,
-                        "capacity" INTEGER NOT NULL DEFAULT 4,
-                        "status" TEXT NOT NULL DEFAULT 'Available',
-                        "zoneId" INTEGER NOT NULL REFERENCES "RestaurantZone"("id"),
-                        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    );
-                    CREATE TABLE IF NOT EXISTS "RestaurantSession" (
-                        "id" SERIAL PRIMARY KEY,
-                        "tableId" INTEGER NOT NULL REFERENCES "RestaurantTable"("id"),
-                        "status" TEXT NOT NULL DEFAULT 'Active',
-                        "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        "endedAt" TIMESTAMP(3)
-                    );
-                `);
-                zones = [];
-            } else {
-                throw e;
+        const zones = await prisma.restaurantZone.findMany({
+            where: { tenantId: auth.tenantId || 'default' },
+            include: { 
+                tables: { 
+                    include: { 
+                        sessions: { where: { status: 'Active' } },
+                        waiterCalls: { where: { status: 'PENDING' } }
+                    } 
+                } 
             }
-        }
+        });
+
         return NextResponse.json({ success: true, zones });
     } catch (e: any) {
         log.error('Floor GET error:', e.message);
@@ -61,46 +35,29 @@ async function _GET(req: NextRequest) {
 async function _POST(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
-        if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         const prisma = getPrisma(req);
         const { action, payload } = await req.json();
-        
-        // Auto-create tables if they don't exist
-        try {
-            await prisma.$executeRawUnsafe(`
-                CREATE TABLE IF NOT EXISTS "RestaurantZone" (
-                    "id" SERIAL PRIMARY KEY,
-                    "name" TEXT NOT NULL,
-                    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE TABLE IF NOT EXISTS "RestaurantTable" (
-                    "id" SERIAL PRIMARY KEY,
-                    "name" TEXT NOT NULL,
-                    "capacity" INTEGER NOT NULL DEFAULT 4,
-                    "status" TEXT NOT NULL DEFAULT 'Available',
-                    "zoneId" INTEGER NOT NULL REFERENCES "RestaurantZone"("id"),
-                    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE TABLE IF NOT EXISTS "RestaurantSession" (
-                    "id" SERIAL PRIMARY KEY,
-                    "tableId" INTEGER NOT NULL REFERENCES "RestaurantTable"("id"),
-                    "status" TEXT NOT NULL DEFAULT 'Active',
-                    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    "endedAt" TIMESTAMP(3)
-                );
-            `);
-        } catch (e: any) {
- log.error('src/app/api/pos/restaurant/floor/route.ts', { error: e instanceof Error ? e.message : e });
- /* tables already exist */ }
 
         if (action === 'create_zone') {
-            const zone = await prisma.restaurantZone.create({ data: { name: payload.name } });
+            const zone = await prisma.restaurantZone.create({ 
+                data: { 
+                    tenantId: auth.tenantId || 'default',
+                    name: payload.name 
+                } 
+            });
             return NextResponse.json({ success: true, zone });
         }
         
         if (action === 'create_table') {
             const table = await prisma.restaurantTable.create({
-                data: { name: payload.name, capacity: payload.capacity, zoneId: payload.zoneId }
+                data: { 
+                    tenantId: auth.tenantId || 'default',
+                    name: payload.name, 
+                    capacity: payload.capacity, 
+                    zoneId: payload.zoneId,
+                    qrToken: crypto.randomBytes(8).toString('hex')
+                }
             });
             return NextResponse.json({ success: true, table });
         }
@@ -119,7 +76,11 @@ async function _POST(req: NextRequest) {
                 data: { status: 'Occupied' }
             });
             const session = await prisma.restaurantSession.create({
-                data: { tableId: payload.tableId, status: 'Active' }
+                data: { 
+                    tenantId: auth.tenantId || 'default',
+                    tableId: payload.tableId, 
+                    status: 'Active' 
+                }
             });
             return NextResponse.json({ success: true, session });
         }
@@ -129,18 +90,18 @@ async function _POST(req: NextRequest) {
                 where: { id: payload.tableId },
                 data: { status: 'Available' }
             });
-            // End all active sessions for this table
-            await prisma.$executeRawUnsafe(
-                `UPDATE "RestaurantSession" SET "status" = 'Closed', "endedAt" = NOW() WHERE "tableId" = ${payload.tableId} AND "status" = 'Active'`
-            );
+            await prisma.restaurantSession.updateMany({
+                where: { tableId: payload.tableId, status: 'Active' },
+                data: { status: 'Closed', endedAt: new Date() }
+            });
             return NextResponse.json({ success: true });
         }
 
         if (action === 'delete_zone') {
-            // Delete all tables and sessions in this zone first
-            const tables = await prisma.restaurantTable.findMany({ take: 100, where: { zoneId: payload.zoneId } });
+            const tables = await prisma.restaurantTable.findMany({ where: { zoneId: payload.zoneId } });
             for (const table of tables) {
-                await prisma.$executeRawUnsafe(`DELETE FROM "RestaurantSession" WHERE "tableId" = ${table.id}`);
+                await prisma.restaurantSession.deleteMany({ where: { tableId: table.id } });
+                await prisma.waiterCall.deleteMany({ where: { tableId: table.id } });
             }
             await prisma.restaurantTable.deleteMany({ where: { zoneId: payload.zoneId } });
             await prisma.restaurantZone.delete({ where: { id: payload.zoneId } });
@@ -148,7 +109,8 @@ async function _POST(req: NextRequest) {
         }
 
         if (action === 'delete_table') {
-            await prisma.$executeRawUnsafe(`DELETE FROM "RestaurantSession" WHERE "tableId" = ${payload.tableId}`);
+            await prisma.restaurantSession.deleteMany({ where: { tableId: payload.tableId } });
+            await prisma.waiterCall.deleteMany({ where: { tableId: payload.tableId } });
             await prisma.restaurantTable.delete({ where: { id: payload.tableId } });
             return NextResponse.json({ success: true });
         }
@@ -161,5 +123,4 @@ async function _POST(req: NextRequest) {
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
-
 export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
