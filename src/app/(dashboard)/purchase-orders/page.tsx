@@ -88,7 +88,10 @@ export default function PurchaseOrdersPage() {
     setLoading(true); 
     try { 
       const r = await fetch('/api/purchase-orders'); 
-      if (r.ok) setOrders(await r.json()); 
+      if (r.ok) {
+        const json = await r.json();
+        setOrders(Array.isArray(json) ? json : (json.data || []));
+      }
     } catch (e: any) { toastError(e?.message || 'حدث خطأ'); } 
     setLoading(false); 
   };
@@ -150,8 +153,9 @@ export default function PurchaseOrdersPage() {
   };
 
   const filteredOrders = useMemo(() => {
+    if (!Array.isArray(orders)) return [];
     return orders.filter(o => 
-      o.orderNo.toString().includes(searchQuery) ||
+      o.orderNo?.toString().includes(searchQuery) ||
       (o.supplier?.name || '').includes(searchQuery) ||
       (o.user?.fullName || '').includes(searchQuery)
     );

@@ -172,11 +172,11 @@ async function restartSites(conn) {
 }
 
 async function runDbPush(conn) {
-    console.log(`\n🛠️ Running Prisma DB Push on Main Site...`);
     const site = SITES['main-site'];
-    const cmd = `cd ${site.path} && npx dotenv-cli -e .env -- npx prisma@5.22.0 db push --accept-data-loss`;
-    const res = await exec(conn, cmd, 120000);
-    console.log(`  ✅ DB Push Complete\nSTDOUT:\n${res.stdout}\nSTDERR:\n${res.stderr}`);
+    
+    const cmd = `PGPASSWORD=RootPassNama123 psql -U postgres -h 127.0.0.1 -d n11_db -c "\\d products"`;
+    const res = await exec(conn, cmd, 10000);
+    console.log("DB SCHEMA RESULT:\n" + res.stdout + "\n" + res.stderr);
 }
 
 // ─── Main ────────────────────────────────────────────────────────

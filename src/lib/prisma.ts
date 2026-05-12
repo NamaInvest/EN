@@ -149,6 +149,15 @@ export function resolveTenant(req?: {
                     ? req.headers.get('x-tenant')
                     : (req.headers as Record<string, string>)['x-tenant'];
             if (h) return h;
+
+            const host =
+                typeof req.headers.get === 'function'
+                    ? req.headers.get('host')
+                    : (req.headers as Record<string, string>)['host'];
+            if (host && host.endsWith('.namainvist.com')) {
+                const tenant = host.replace('.namainvist.com', '').split(':')[0];
+                if (tenant !== 'www' && tenant !== 'app') return tenant;
+            }
         }
     } catch { /* ignore */ }
 
@@ -161,6 +170,12 @@ export function resolveTenant(req?: {
         if (hObj && typeof hObj.get === 'function') {
             const h = hObj.get('x-tenant');
             if (h && typeof h === 'string') return h;
+            
+            const host = hObj.get('host');
+            if (host && host.endsWith('.namainvist.com')) {
+                const tenant = host.replace('.namainvist.com', '').split(':')[0]; // strip port if present
+                if (tenant !== 'www' && tenant !== 'app') return tenant;
+            }
         }
     } catch { /* ignore */ }
 
