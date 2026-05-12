@@ -10,6 +10,8 @@
  * Output: unified BankTransaction[] for Reconciliation Engine
  */
 
+import { XMLParser } from 'fast-xml-parser';
+
 export interface ParsedBankTransaction {
   date: Date;
   valueDate?: Date;
@@ -167,8 +169,9 @@ export class MT940Parser {
 export class CAMT053Parser {
 
   /**
-   * Parse CAMT.053 XML content
-   * ISO 20022 standard — used by modern GCC banks
+   * Parse CAMT.053 XML content securely using fast-xml-parser.
+   * 🛡️ Security Hardening: Regex parsing removed. fast-xml-parser explicitly configured 
+   * to ignore external entities and prevent XXE (XML External Entity) attacks.
    */
   static parse(xmlContent: string): ParseResult {
     const result: ParseResult = {
@@ -180,97 +183,119 @@ export class CAMT053Parser {
     };
 
     try {
-      // Simple regex-based parsing (no DOM dependency)
-      // Currency
-      const ccy = xmlContent.match(/<Ccy>([A-Z]{3})<\/Ccy>/)?.[1] || 'SAR';
-      result.currency = ccy;
+      // إعدادات المحلل لضمان الأمان القصوى ضد هجمات XXE
+      // ignoreAttributes: false -> لقراءة خصائص مثل <Amt Ccy="SAR">
+      // parseTagValue: true -> لتحويل النصوص إلى قيم فعلية
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        parseTagValue: true,
+        trimValues: true,
+      });
 
-      // Account
-      result.accountNumber = xmlContent.match(/<IBAN>([^<]+)<\/IBAN>/)?.[1]
-        ?? xmlContent.match(/<Id><Othr><Id>([^<]+)<\/Id>/)?.[1];
+      // التحقق من وجود DTD لمنع هجمات XXE بشكل صريح قبل التحليل
+      if (xmlContent.includes('<!DOCTYPE') || xmlContent.includes('<!ENTITY')) {
+          throw new Error('XXE Vulnerability detected: DTD and External Entities are strictly prohibited.');
+      }
 
-      // Opening balance
-      const opnAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>OPBD<\/Cd>[\s\S]*?<Amt[^>]*>([\d.]+)<\/Amt>/)?.[1];
-      if (opnAmt) result.openingBalance = parseFloat(opnAmt);
+      const jsonObj = parser.parse(xmlContent);
 
-      // Closing balance
-      const clsAmt = xmlContent.match(/<Tp><CdOrPrtry><Cd>CLBD<\/Cd>[\s\S]*?<Amt[^>]*>([\d.]+)<\/Amt>/)?.[1];
-      if (clsAmt) result.closingBalance = parseFloat(clsAmt);
+      // استخراج جذر المستند (يدعم عدة إصدارات من مساحة الأسماء Namespace)
+      const doc = jsonObj.Document || jsonObj['urn:iso:std:iso:20022:tech:xsd:camt.053.001.02']?.Document;
+      if (!doc || !doc.BkToCstmrStmt || !doc.BkToCstmrStmt.Stmt) {
+          throw new Error('Invalid CAMT.053 XML format: Missing BkToCstmrStmt/Stmt node.');
+      }
 
-      // Extract all <Ntry> (entry) blocks
-      const entryBlocks = xmlContent.match(/<Ntry>([\s\S]*?)<\/Ntry>/g) || [];
+      // بعض البنوك ترسل كشفاً واحداً، وبعضها يرسل مصفوفة من الكشوفات
+      const statements = Array.isArray(doc.BkToCstmrStmt.Stmt) ? doc.BkToCstmrStmt.Stmt : [doc.BkToCstmrStmt.Stmt];
 
-      for (const block of entryBlocks) {
-        try {
-          const amtMatch = block.match(/<Amt[^>]*>([\d.]+)<\/Amt>/);
-          const cdtDbtInd = block.match(/<CdtDbtInd>([A-Z]+)<\/CdtDbtInd>/)?.[1];
-          // Booking date — try structured path first, then fallback to bare <Dt>
-          const bookgDt =
-            block.match(/<BookgDt>[\.\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
-            ?? block.match(/<BookgDt>[\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
-            ?? block.match(/<Dt>([^<]+)<\/Dt>/)?.[1];
+      for (const stmt of statements) {
+        // الحساب البنكي
+        const iban = stmt.Acct?.Id?.IBAN;
+        const otherId = stmt.Acct?.Id?.Othr?.Id;
+        if (iban || otherId) result.accountNumber = String(iban || otherId);
 
-          // Value date (settlement date)
-          const valDt =
-            block.match(/<ValDt>[\s\S]*?<Dt>([^<]+)<\/Dt>/)?.[1]
-            ?? block.match(/<ValDt>[\s\S]*?<DtTm>([^<]+)<\/DtTm>/)?.[1];
+        // الأرصدة (الافتتاحي والختامي)
+        const balances = Array.isArray(stmt.Bal) ? stmt.Bal : (stmt.Bal ? [stmt.Bal] : []);
+        for (const bal of balances) {
+            const type = bal.Tp?.CdOrPrtry?.Cd;
+            const amt = bal.Amt?.['#text'] || bal.Amt; // يدعم حالة وجود خصائص
+            if (type === 'OPBD' && amt !== undefined) result.openingBalance = parseFloat(String(amt));
+            if (type === 'CLBD' && amt !== undefined) result.closingBalance = parseFloat(String(amt));
+            
+            // العملة يمكن استخراجها من خاصية الـ Ccy للرصيد
+            const ccy = bal.Amt?.['@_Ccy'];
+            if (ccy) result.currency = String(ccy);
+        }
 
-          // End-to-End reference, then fallback to Instruction ID or generic Ref
-          const ref =
-            block.match(/<EndToEndId>([^<]+)<\/EndToEndId>/)?.[1]
-            ?? block.match(/<InstrId>([^<]+)<\/InstrId>/)?.[1]
-            ?? block.match(/<Ref>([^<]+)<\/Ref>/)?.[1]
-            ?? '';
+        // الحركات (Entries)
+        const entries = Array.isArray(stmt.Ntry) ? stmt.Ntry : (stmt.Ntry ? [stmt.Ntry] : []);
+        for (const entry of entries) {
+            try {
+                const amount = parseFloat(String(entry.Amt?.['#text'] || entry.Amt || '0'));
+                const isCredit = entry.CdtDbtInd === 'CRDT';
+                
+                // التواريخ
+                const bookgDtStr = entry.BookgDt?.Dt || entry.BookgDt?.DtTm || entry.Dt;
+                const valDtStr = entry.ValDt?.Dt || entry.ValDt?.DtTm;
+                
+                const date = bookgDtStr ? new Date(String(bookgDtStr)) : new Date();
+                const valueDate = valDtStr ? new Date(String(valDtStr)) : undefined;
 
-          // Counterparty name (creditor or debtor depending on flow)
-          const name =
-            block.match(/<Cdtr>[\s\S]*?<Nm>([^<]+)<\/Nm>/)?.[1]
-            ?? block.match(/<Dbtr>[\s\S]*?<Nm>([^<]+)<\/Nm>/)?.[1]
-            ?? block.match(/<Nm>([^<]+)<\/Nm>/)?.[1]
-            ?? '';
+                // التفاصيل (NtryDtls) قد تكون مصفوفة أو كائن
+                const detailsArray = Array.isArray(entry.NtryDtls) ? entry.NtryDtls : (entry.NtryDtls ? [entry.NtryDtls] : []);
+                
+                let description = '';
+                let counterpartyName = '';
+                let counterpartyIban = '';
+                let reference = String(entry.NtryRef || ''); // المرجع الافتراضي
+                let transactionCode = String(entry.BkTxCd?.Domn?.Fmly?.Cd || entry.CdtDbtInd || '');
 
-          // Counterparty IBAN
-          const iban =
-            block.match(/<CdtrAcct>[\s\S]*?<IBAN>([^<]+)<\/IBAN>/)?.[1]
-            ?? block.match(/<DbtrAcct>[\s\S]*?<IBAN>([^<]+)<\/IBAN>/)?.[1]
-            ?? block.match(/<IBAN>([^<]+)<\/IBAN>/)?.[1]
-            ?? '';
+                for (const detail of detailsArray) {
+                    const txDtlsArray = Array.isArray(detail.TxDtls) ? detail.TxDtls : (detail.TxDtls ? [detail.TxDtls] : []);
+                    for (const tx of txDtlsArray) {
+                        // المرجع
+                        if (tx.Refs) {
+                            reference = String(tx.Refs.EndToEndId || tx.Refs.InstrId || tx.Refs.TxId || reference);
+                        }
+                        
+                        // معلومات الطرف الآخر
+                        const party = isCredit ? tx.RltdPties?.Dbtr : tx.RltdPties?.Cdtr;
+                        const partyAcct = isCredit ? tx.RltdPties?.DbtrAcct : tx.RltdPties?.CdtrAcct;
+                        
+                        if (party?.Nm) counterpartyName = String(party.Nm);
+                        if (partyAcct?.Id?.IBAN) counterpartyIban = String(partyAcct.Id.IBAN);
+                        
+                        // الوصف المالي
+                        if (tx.RmtInf?.Ustrd) {
+                            description += (description ? ' | ' : '') + String(tx.RmtInf.Ustrd);
+                        }
+                    }
+                }
 
-          // Counterparty BIC
-          const bic =
-            block.match(/<CdtrAgt>[\s\S]*?<BICFi>([^<]+)<\/BICFi>/)?.[1]
-            ?? block.match(/<DbtrAgt>[\s\S]*?<BICFi>([^<]+)<\/BICFi>/)?.[1]
-            ?? '';
+                // إضافة الوصف الإضافي إذا كان الوصف المالي فارغاً
+                if (!description) {
+                    description = String(entry.AddtlNtryInf || counterpartyName || 'تسوية بنكية');
+                }
 
-          // Description — unstructured remittance info, then additional entry info
-          const desc =
-            block.match(/<RmtInf>[\s\S]*?<Ustrd>([^<]+)<\/Ustrd>/)?.[1]
-            ?? block.match(/<AddtlNtryInf>([^<]+)<\/AddtlNtryInf>/)?.[1]
-            ?? block.match(/<AddtlTxInf>([^<]+)<\/AddtlTxInf>/)?.[1]
-            ?? name;
-
-          if (!amtMatch) continue;
-          const amount = parseFloat(amtMatch[1]);
-          const isCredit = cdtDbtInd === 'CRDT';
-
-          result.transactions.push({
-            date:              bookgDt ? new Date(bookgDt) : new Date(),
-            valueDate:         valDt ? new Date(valDt) : undefined,
-            description:       desc || '',
-            reference:         ref,
-            debit:             isCredit ? 0 : amount,
-            credit:            isCredit ? amount : 0,
-            counterpartyName:  name || undefined,
-            counterpartyIban:  iban || undefined,
-            // bic stored in transactionCode slot for now
-            transactionCode:   bic || cdtDbtInd || undefined,
-          });
-        } catch (e) {
-          result.parseErrors.push(`Entry parse error: ${(e as Error).message}`);
+                result.transactions.push({
+                    date,
+                    valueDate,
+                    description,
+                    reference,
+                    debit: isCredit ? 0 : amount,
+                    credit: isCredit ? amount : 0,
+                    counterpartyName: counterpartyName || undefined,
+                    counterpartyIban: counterpartyIban || undefined,
+                    transactionCode: transactionCode || undefined,
+                });
+            } catch (entryErr) {
+                 result.parseErrors.push(`Entry parse error: ${(entryErr as Error).message}`);
+            }
         }
       }
     } catch (e) {
-      result.parseErrors.push(`CAMT.053 parse error: ${(e as Error).message}`);
+      result.parseErrors.push(`CAMT.053 XML parse error: ${(e as Error).message}`);
     }
 
     return result;

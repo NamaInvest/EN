@@ -44,6 +44,27 @@ export function getDbUrl(tenant: string, isRead = false): string {
     if (!base) {
         throw new Error('DATABASE_URL environment variable is required (set in .env)');
     }
+
+    // 🛡️ Security & Performance Hardening:
+    // منع اختناق قاعدة البيانات عبر تحديد سقف الاتصالات (Connection Pooling & Starvation Prevention)
+    // إذا لم يكن الـ URL يحتوي بالفعل على بارامترات الاتصال، نقوم بإضافتها لتوافق PgBouncer.
+    try {
+        const urlObj = new URL(base);
+        if (!urlObj.searchParams.has('pgbouncer')) {
+            urlObj.searchParams.set('pgbouncer', 'true');
+        }
+        if (!urlObj.searchParams.has('connection_limit')) {
+            urlObj.searchParams.set('connection_limit', '5'); // 5 اتصالات لكل Tenant كحد أقصى
+        }
+        if (!urlObj.searchParams.has('pool_timeout')) {
+            urlObj.searchParams.set('pool_timeout', '10'); // مهلة 10 ثوانٍ لمنع تكدس الـ Event Loop
+        }
+        base = urlObj.toString();
+    } catch (e) {
+        // في حال كان الـ URL غير صالح (مثلاً استخدام Prisma Accelerate: prisma://) يتم تجاهل البناء
+        log.warn({ msg: 'Failed to append connection limits to DB URL', error: (e as Error).message });
+    }
+
     // Desktop mode: use DATABASE_URL directly (single local DB, no multi-tenant)
     if (process.env.DESKTOP_MODE === 'true') {
         return base;
