@@ -720,6 +720,8 @@ model PurchaseOrder {
   ThreeWayMatch  ThreeWayMatch[]
   deletedAt      DateTime? // P1.2 soft-delete ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط·آ¢ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¥ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬أ¢â‚¬ع†ط·آ¢ط¢آ¢ do not use hard DELETE
 
+  promisedDate   DateTime?
+
   @@index([status, deletedAt], map: "idx_po_status")
   @@index([date, deletedAt], map: "idx_po_date")
   @@map("purchase_orders")
@@ -787,6 +789,8 @@ model PurchaseInvoice {
 
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
+
+  hasException   Boolean @default(false)
 
   @@index([invoiceNo])
   @@index([date])
@@ -2948,6 +2952,11 @@ model GoodsReceiptNote {
 
   details GoodsReceiptNoteDetail[]
 
+  asnId               String?
+  expectedArrivalDate DateTime?
+  rejectionQty        Decimal? @db.Decimal(15, 4)
+
+  @@index([asnId])
   @@map("goods_receipt_notes")
 }
 
@@ -3417,8 +3426,10 @@ model RestaurantTable {
   name     String
   capacity Int                 @default(4)
   status   String              @default("Available") // Available, Occupied, Reserved
+  qrToken  String?             @unique @map("qr_token")
   zone     RestaurantZone      @relation(fields: [zoneId], references: [id])
   sessions RestaurantSession[]
+  waiterCalls WaiterCall[]
 
   @@map("restaurant_tables")
 }
@@ -11435,4 +11446,227 @@ enum AuditAction {
   EXPORT
   LOGIN
   LOGOUT
+}
+
+// --- GAPS 10 NEW MODELS ---
+
+model DemandForecastV2 {
+  id            String   @id @default(cuid())
+  tenantId      String
+  productId     String
+  warehouseId   String
+  forecastDate  DateTime
+  horizonDays   Int
+  p50           Decimal  @db.Decimal(15, 4)
+  p90           Decimal  @db.Decimal(15, 4)
+  p99           Decimal  @db.Decimal(15, 4)
+  lowerBound    Decimal  @db.Decimal(15, 4)
+  upperBound    Decimal  @db.Decimal(15, 4)
+  modelVersion  String
+  mape          Decimal? @db.Decimal(6, 4)
+  fittedAt      DateTime @default(now())
+  
+  @@unique([tenantId, productId, warehouseId, forecastDate])
+  @@index([tenantId, productId, warehouseId, forecastDate])
+}
+
+model EmissionLog {
+  id            String   @id @default(cuid())
+  tenantId      String
+  date          DateTime
+  scope         Int      // 1, 2, or 3
+  factorKey     String
+  qty           Decimal  @db.Decimal(15, 4)
+  unit          String
+  kgCO2e        Decimal  @db.Decimal(15, 4)
+  factorSource  String
+  branchId      String?
+  vendorId      String?
+  productId     String?
+  reference     String?
+  createdAt     DateTime @default(now())
+  
+  @@index([tenantId, date])
+  @@index([tenantId, scope, date])
+  @@index([tenantId, branchId, date])
+}
+
+model EnergyConsumption {
+  id         String   @id @default(cuid())
+  tenantId   String
+  branchId   String
+  date       DateTime
+  source     String   // GRID, SOLAR, DIESEL_GENERATOR
+  kwh        Decimal  @db.Decimal(15, 4)
+  cost       Decimal? @db.Decimal(15, 4)
+  createdAt  DateTime @default(now())
+  
+  @@unique([tenantId, branchId, date, source])
+  @@index([tenantId, branchId, date])
+}
+
+model WaterConsumption {
+  id         String   @id @default(cuid())
+  tenantId   String
+  branchId   String
+  date       DateTime
+  m3         Decimal  @db.Decimal(15, 4)
+  cost       Decimal? @db.Decimal(15, 4)
+  
+  @@unique([tenantId, branchId, date])
+}
+
+model WasteLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  branchId    String
+  date        DateTime
+  type        String   // HAZARDOUS | RECYCLABLE | GENERAL | ORGANIC
+  kg          Decimal  @db.Decimal(15, 4)
+  disposal    String?  // LANDFILL | RECYCLING | INCINERATION | COMPOSTING
+  
+  @@index([tenantId, date, type])
+}
+
+model SustainabilityGoal {
+  id            String   @id @default(cuid())
+  tenantId      String
+  kpi           String   // EMISSIONS_TOTAL | EMISSIONS_INTENSITY | ENERGY_RENEWABLE_PERCENT | ...
+  targetValue   Decimal  @db.Decimal(15, 4)
+  baselineValue Decimal  @db.Decimal(15, 4)
+  baselineDate  DateTime
+  targetDate    DateTime
+  unit          String
+  active        Boolean  @default(true)
+  
+  @@index([tenantId, active])
+}
+
+model DiversitySnapshot {
+  id              String   @id @default(cuid())
+  tenantId        String
+  date            DateTime
+  totalEmployees  Int
+  female          Int
+  male            Int
+  saudiNationals  Int
+  expats          Int
+  disability      Int
+  nationalitiesJson Json
+  
+  @@unique([tenantId, date])
+}
+
+model EVMSnapshot {
+  id           String   @id @default(cuid())
+  tenantId     String
+  projectId    String
+  asOfDate     DateTime
+  BAC          Decimal  @db.Decimal(15, 4)
+  PV           Decimal  @db.Decimal(15, 4)
+  EV           Decimal  @db.Decimal(15, 4)
+  AC           Decimal  @db.Decimal(15, 4)
+  CV           Decimal  @db.Decimal(15, 4)
+  SV           Decimal  @db.Decimal(15, 4)
+  CPI          Decimal  @db.Decimal(8, 4)
+  SPI          Decimal  @db.Decimal(8, 4)
+  EAC_classic  Decimal  @db.Decimal(15, 4)
+  ETC          Decimal  @db.Decimal(15, 4)
+  VAC          Decimal  @db.Decimal(15, 4)
+  TCPI         Decimal  @db.Decimal(8, 4)
+  percentComplete Decimal @db.Decimal(8, 4)
+  health       String   // GREEN | YELLOW | RED
+  forecastCompletionDate DateTime
+  createdAt    DateTime @default(now())
+  
+  @@unique([tenantId, projectId, asOfDate])
+  @@index([tenantId, projectId])
+}
+
+model ActivityPool {
+  id                String   @id @default(cuid())
+  tenantId          String
+  name              String
+  driver            String   // 'machine_hours', 'setups', 'inspections'
+  totalCost         Decimal  @db.Decimal(15, 4)
+  totalDriverUnits  Decimal  @db.Decimal(15, 4)
+  period            DateTime
+  active            Boolean  @default(true)
+  
+  @@unique([tenantId, name, period])
+  @@index([tenantId, period])
+}
+
+model ProductActivityConsumption {
+  id              String   @id @default(cuid())
+  tenantId        String
+  productId       String
+  activityPoolId  String
+  driverConsumed  Decimal  @db.Decimal(15, 4)
+  period          DateTime
+  
+  @@index([tenantId, period])
+  @@index([productId])
+}
+
+model PoAcknowledgment {
+  id              String   @id @default(cuid())
+  tenantId        String
+  poId            String
+  vendorId        String
+  acknowledgedAt  DateTime @default(now())
+  promisedDate    DateTime
+  ackQtyJson      Json?
+  notes           String?
+  
+  @@unique([poId])
+  @@index([tenantId, vendorId])
+}
+
+model AdvanceShipNotice {
+  id             String   @id @default(cuid())
+  tenantId       String
+  poId           String
+  vendorId       String
+  packagesJson   Json
+  containerNo    String?
+  carrier        String?
+  trackingNumber String?
+  etd            DateTime
+  eta            DateTime
+  status         String   // SHIPPED | IN_TRANSIT | ARRIVED | RECEIVED
+  submittedAt    DateTime @default(now())
+  
+  @@index([tenantId, poId])
+  @@index([tenantId, vendorId, status])
+}
+
+model VendorOnboardingStep {
+  id           String   @id @default(cuid())
+  tenantId     String
+  vendorId     String
+  step         String   // LEGAL_INFO | BANKING_DETAILS | ...
+  data         Json
+  status       String   // PENDING | COMPLETED | REJECTED
+  submittedAt  DateTime?
+  reviewedById String?
+  reviewedAt   DateTime?
+  
+  @@unique([vendorId, step])
+  @@index([tenantId, vendorId])
+}
+
+model WaiterCall {
+  id         Int             @id @default(autoincrement())
+  tenantId   String          @default("default") @map("tenant_id")
+  tableId    Int             @map("table_id")
+  status     String          @default("PENDING") // PENDING, RESPONDED
+  createdAt  DateTime        @default(now()) @map("created_at")
+  resolvedAt DateTime?       @map("resolved_at")
+
+  table      RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tableId])
+  @@map("restaurant_waiter_calls")
 }

@@ -1029,7 +1029,7 @@ export default function Sidebar() {
       const u = JSON.parse(localStorage.getItem('user') || '{}');
       if (u.fullName) setLoggedUser({ fullName: u.fullName, role: u.role || 'admin' });
       if (u.permissions && Array.isArray(u.permissions)) {
-        setUserModules(u.permissions.map((p: { module: string }) => p.module));
+        setUserModules((u.permissions || []).map((p: { module: string }) => p.module));
       }
     } catch { }
     // Fetch hidden_modules from ICE settings
@@ -1126,7 +1126,7 @@ export default function Sidebar() {
     'Settings.WhatsApp':     ['whatsapp', 'salla'],
   };
 
-  const filteredMenu = !permLoaded ? [] : menuItems.map(group => ({
+  const filteredMenu = !permLoaded ? [] : (menuItems || []).map(group => ({
     ...group,
     items: group.items.filter(item => {
       const mod = item.module || '';
@@ -1182,7 +1182,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
-          {filteredMenu.map((group, gIdx) => {
+          {(filteredMenu || []).map((group, gIdx) => {
             const isDashboard = group.sk === 's.dashboard';
             const isExpanded = expandedGroup === group.sk || (expandedGroup === null && isDashboard);
 
@@ -1201,7 +1201,7 @@ export default function Sidebar() {
                 </button>
 
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100 mt-1 mb-3' : 'max-h-0 opacity-0 m-0'}`}>
-                  {group.items.map((item) => {
+                  {(group.items || []).map((item) => {
                     const isActive = pathname === item.href;
                     return (
                       <Link

@@ -62,7 +62,7 @@ export function getDbUrl(tenant: string, isRead = false): string {
         base = urlObj.toString();
     } catch (e) {
         // في حال كان الـ URL غير صالح (مثلاً استخدام Prisma Accelerate: prisma://) يتم تجاهل البناء
-        log.warn({ msg: 'Failed to append connection limits to DB URL', error: (e as Error).message });
+        log.warn(`Failed to append connection limits to DB URL: ${(e as Error).message}`);
     }
 
     // Desktop mode: use DATABASE_URL directly (single local DB, no multi-tenant)

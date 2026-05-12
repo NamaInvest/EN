@@ -34,6 +34,20 @@ const ACCOUNTS = {
     MFG_VARIANCE: '5130',   // انحرافات تكاليف الإنتاج (Manufacturing Variance)
     PPV: '5140',            // انحراف أسعار المشتريات (Purchase Price Variance)
     SALARIES: '5200',       // الرواتب
+    WAGES_PAYABLE: '2200',      // أجور مستحقة الدفع
+    GOSI_PAYABLE: '2210',       // تأمينات اجتماعية مستحقة
+    LOAN_DEDUCTION: '1250',     // ذمم موظفين (سلف)
+    WHT_PAYABLE: '2220',        // ضريبة استقطاع مستحقة
+    EMPLOYER_GOSI_EXP: '5210',  // مصروف التأمينات (حصة صاحب العمل)
+    EOS_LIABILITY: '2230',      // مخصص مكافأة نهاية الخدمة
+    EOS_EXPENSE: '5220',        // مصروف مكافأة نهاية الخدمة
+    FIXED_ASSET: '1500',        // أصول ثابتة
+    ACCUM_DEPRECIATION: '1510', // مجمع الإهلاك
+    DEPRECIATION_EXP: '5900',   // مصروف الإهلاك
+    DISPOSAL_GAIN: '4300',      // أرباح رأسمالية (استبعاد أصول)
+    DISPOSAL_LOSS: '5910',      // خسائر رأسمالية (استبعاد أصول)
+    ACCRUED_EXPENSE: '2240',    // مصروفات مستحقة الدفع
+    PREPAID_EXPENSE: '1420',    // مصروفات مدفوعة مقدماً
 };
 
 // Get account ID by code
@@ -728,6 +742,136 @@ export async function postMaterialIssueToWIP(params: {
  */
 export { createJournalEntry, ACCOUNTS };
 
+// ============ Payroll & HR Auto-Journals ============
+
+/**
+ * قيد استحقاق الرواتب (Wage Payroll Accrual)
+ * DR  Wage Expense (Gross)
+ * CR  Wages Payable (Net)
+ * CR  GOSI Payable (Employee share)
+ * CR  Loan Deduction / Other
+ */
+export async function postWagePayrollAccrual(params: {
+    payrollId: string;
+    grossAmount: number;
+    netAmount: number;
+    gosiEmployeeShare: number;
+    loanDeductions?: number;
+    whtDeductions?: number;
+    otherDeductions?: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const lines = [];
+
+    // DR: Gross Salary Expense
+    lines.push({ accountCode: ACCOUNTS.SALARIES, debit: params.grossAmount, credit: 0, description: `استحقاق الرواتب - مسير #${params.payrollId}` });
+
+    // CR: Net Payable
+    lines.push({ accountCode: ACCOUNTS.WAGES_PAYABLE, debit: 0, credit: params.netAmount, description: `صافي الرواتب المستحقة - مسير #${params.payrollId}` });
+
+    // CR: GOSI Payable (Employee Share)
+    if (params.gosiEmployeeShare > 0) {
+        lines.push({ accountCode: ACCOUNTS.GOSI_PAYABLE, debit: 0, credit: params.gosiEmployeeShare, description: `استقطاع التأمينات (حصة الموظف) - مسير #${params.payrollId}` });
+    }
+
+    // CR: Loans Deducted
+    if (params.loanDeductions && params.loanDeductions > 0) {
+        lines.push({ accountCode: ACCOUNTS.LOAN_DEDUCTION, debit: 0, credit: params.loanDeductions, description: `استقطاع سلف الموظفين - مسير #${params.payrollId}` });
+    }
+
+    // CR: WHT
+    if (params.whtDeductions && params.whtDeductions > 0) {
+        lines.push({ accountCode: ACCOUNTS.WHT_PAYABLE, debit: 0, credit: params.whtDeductions, description: `استقطاع ضريبة - مسير #${params.payrollId}` });
+    }
+
+    return createJournalEntry({
+        description: `قيد استحقاق رواتب مسير #${params.payrollId}`,
+        reference: `PAY-${params.payrollId}`,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد استحقاق التأمينات (حصة الشركة) - Employer GOSI Accrual
+ * DR  Employer GOSI Expense
+ * CR  GOSI Payable
+ */
+export async function postEmployerGOSIAccrual(params: {
+    payrollId: string;
+    employerGosiAmount: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `استحقاق التأمينات الاجتماعية (حصة الشركة) - مسير #${params.payrollId}`,
+        reference: `GOSI-${params.payrollId}`,
+        lines: [
+            { accountCode: ACCOUNTS.EMPLOYER_GOSI_EXP, debit: params.employerGosiAmount, credit: 0, description: `مصروف التأمينات (حصة الشركة)` },
+            { accountCode: ACCOUNTS.GOSI_PAYABLE, debit: 0, credit: params.employerGosiAmount, description: `تأمينات مستحقة الدفع` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد دفع الرواتب عبر نظام حماية الأجور (WPS)
+ * DR  Wages Payable
+ * CR  Bank
+ */
+export async function postWpsPayment(params: {
+    paymentId: string;
+    totalPaid: number;
+    bankAccountCode?: string; // Default to standard BANK
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `صرف رواتب عبر حماية الأجور (WPS) - ملف #${params.paymentId}`,
+        reference: `WPS-${params.paymentId}`,
+        lines: [
+            { accountCode: ACCOUNTS.WAGES_PAYABLE, debit: params.totalPaid, credit: 0, description: `تسديد رواتب مستحقة` },
+            { accountCode: params.bankAccountCode || ACCOUNTS.BANK, debit: 0, credit: params.totalPaid, description: `تحويل بنكي WPS` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد مخصص مكافأة نهاية الخدمة (EOS Accrual)
+ * DR  EOS Expense
+ * CR  EOS Liability
+ */
+export async function postEOSAccrual(params: {
+    period: string; // e.g. "2026-05"
+    accrualAmount: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `تكوين مخصص نهاية الخدمة لشهر ${params.period}`,
+        reference: `EOS-${params.period}`,
+        lines: [
+            { accountCode: ACCOUNTS.EOS_EXPENSE, debit: params.accrualAmount, credit: 0, description: `مصروف نهاية الخدمة المكون` },
+            { accountCode: ACCOUNTS.EOS_LIABILITY, debit: 0, credit: params.accrualAmount, description: `مخصص نهاية الخدمة` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
 // ============ Universal Journal Dimension Helpers ============
 
 /** Dimension fields type for convenience */
@@ -801,3 +945,338 @@ export function validateDimensionRules(
     return missing.length > 0 ? { valid: false, missing } : { valid: true };
 }
 
+// ============ Fixed Assets & Period-End Auto-Journals ============
+
+/**
+ * قيد الاستحواذ على أصل ثابت (Asset Acquisition)
+ * DR  Fixed Asset
+ * DR  VAT Input (if recoverable)
+ * CR  Bank/AP
+ */
+export async function postAssetAcquisition(params: {
+    assetId: string;
+    assetName: string;
+    cost: number;
+    vatAmount: number;
+    paymentType: 'cash' | 'bank' | 'credit';
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const lines = [];
+
+    // DR: Fixed Asset Cost
+    lines.push({ accountCode: ACCOUNTS.FIXED_ASSET, debit: params.cost, credit: 0, description: `شراء أصل ثابت: ${params.assetName} #${params.assetId}` });
+
+    // DR: VAT Input
+    if (params.vatAmount > 0) {
+        lines.push({ accountCode: ACCOUNTS.VAT_INPUT, debit: params.vatAmount, credit: 0, description: `ضريبة قيمة مضافة - أصل #${params.assetId}` });
+    }
+
+    // CR: Payment
+    const total = params.cost + params.vatAmount;
+    const payAccount = params.paymentType === 'cash' ? ACCOUNTS.CASH : params.paymentType === 'bank' ? ACCOUNTS.BANK : ACCOUNTS.PAYABLES;
+    lines.push({ accountCode: payAccount, debit: 0, credit: total, description: `سداد قيمة أصل #${params.assetId}` });
+
+    return createJournalEntry({
+        description: `استحواذ على أصل ثابت: ${params.assetName}`,
+        reference: `FA-ACQ-${params.assetId}`,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد الإهلاك الشهري للأصول (Monthly Depreciation)
+ * DR  Depreciation Expense
+ * CR  Accumulated Depreciation
+ */
+export async function postMonthlyDepreciation(params: {
+    period: string; // e.g. "2026-05"
+    assetId: string;
+    depreciationAmount: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `إهلاك الأصل #${params.assetId} لشهر ${params.period}`,
+        reference: `FA-DEP-${params.assetId}-${params.period}`,
+        lines: [
+            { accountCode: ACCOUNTS.DEPRECIATION_EXP, debit: params.depreciationAmount, credit: 0, description: `مصروف إهلاك للأصل #${params.assetId}` },
+            { accountCode: ACCOUNTS.ACCUM_DEPRECIATION, debit: 0, credit: params.depreciationAmount, description: `مجمع إهلاك للأصل #${params.assetId}` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد استبعاد/بيع أصل ثابت (Asset Disposal Gain/Loss)
+ * DR  Bank (Proceeds)
+ * DR  Accumulated Depreciation
+ * DR  Disposal Loss (if any)
+ * CR  Fixed Asset (Original Cost)
+ * CR  Disposal Gain (if any)
+ */
+export async function postAssetDisposal(params: {
+    assetId: string;
+    originalCost: number;
+    accumulatedDepreciation: number;
+    saleProceeds: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const netBookValue = params.originalCost - params.accumulatedDepreciation;
+    const diff = params.saleProceeds - netBookValue; // Positive = Gain, Negative = Loss
+    
+    const lines = [];
+
+    // DR: Proceeds
+    if (params.saleProceeds > 0) {
+        lines.push({ accountCode: ACCOUNTS.BANK, debit: params.saleProceeds, credit: 0, description: `متحصلات بيع الأصل #${params.assetId}` });
+    }
+
+    // DR: Accum. Depreciation
+    lines.push({ accountCode: ACCOUNTS.ACCUM_DEPRECIATION, debit: params.accumulatedDepreciation, credit: 0, description: `إقفال مجمع إهلاك الأصل #${params.assetId}` });
+
+    // CR: Original Cost
+    lines.push({ accountCode: ACCOUNTS.FIXED_ASSET, debit: 0, credit: params.originalCost, description: `إقفال تكلفة الأصل #${params.assetId}` });
+
+    // Gain / Loss recognition
+    if (diff > 0) {
+        // Gain
+        lines.push({ accountCode: ACCOUNTS.DISPOSAL_GAIN, debit: 0, credit: diff, description: `أرباح رأسمالية من استبعاد الأصل #${params.assetId}` });
+    } else if (diff < 0) {
+        // Loss (diff is negative, make it positive for debit)
+        lines.push({ accountCode: ACCOUNTS.DISPOSAL_LOSS, debit: Math.abs(diff), credit: 0, description: `خسائر رأسمالية من استبعاد الأصل #${params.assetId}` });
+    }
+
+    return createJournalEntry({
+        description: `استبعاد/بيع أصل ثابت #${params.assetId}`,
+        reference: `FA-DISP-${params.assetId}`,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد المصروف المستحق (Accrual Entry)
+ * DR  Expense
+ * CR  Accrued Liability
+ */
+export async function postAccrualEntry(params: {
+    expenseAccountCode: string; // e.g. SALARIES or ELECTRICITY
+    amount: number;
+    description: string;
+    reference: string;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    return createJournalEntry({
+        description: `إثبات مصروف مستحق: ${params.description}`,
+        reference: `ACC-${params.reference}`,
+        lines: [
+            { accountCode: params.expenseAccountCode, debit: params.amount, credit: 0, description: `مصروف: ${params.description}` },
+            { accountCode: ACCOUNTS.ACCRUED_EXPENSE, debit: 0, credit: params.amount, description: `إثبات مستحق: ${params.description}` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد المصروف المدفوع مقدماً (Deferral Entry)
+ * DR  Prepaid Expense
+ * CR  Bank/Cash
+ */
+export async function postDeferralEntry(params: {
+    amount: number;
+    description: string;
+    reference: string;
+    paymentType: 'cash' | 'bank';
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const payAccount = params.paymentType === 'cash' ? ACCOUNTS.CASH : ACCOUNTS.BANK;
+    return createJournalEntry({
+        description: `إثبات مصروف مدفوع مقدماً: ${params.description}`,
+        reference: `DEF-${params.reference}`,
+        lines: [
+            { accountCode: ACCOUNTS.PREPAID_EXPENSE, debit: params.amount, credit: 0, description: `مصروف مقدم: ${params.description}` },
+            { accountCode: payAccount, debit: 0, credit: params.amount, description: `سداد مصروف مقدم: ${params.description}` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+
+// ============ Advanced Revenue, Installments & FX Auto-Journals ============
+
+/**
+ * قيد فوترة تقسيط (Installment Billing)
+ * DR  AR (Long-term)
+ * CR  Deferred Revenue
+ * CR  Deferred Interest Income
+ */
+export async function postInstallmentBilling(params: {
+    contractId: string;
+    totalAmount: number; // Principal + Interest
+    principal: number;
+    interest: number;
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const AR_LONG_TERM = '1210';
+    const DEFERRED_REVENUE = '2400';
+    const DEFERRED_INTEREST = '2410';
+
+    return createJournalEntry({
+        description: `إثبات عقد تقسيط #${params.contractId}`,
+        reference: `INST-${params.contractId}`,
+        lines: [
+            { accountCode: AR_LONG_TERM, debit: params.totalAmount, credit: 0, description: `إجمالي مستحقات تقسيط - عقد #${params.contractId}` },
+            { accountCode: DEFERRED_REVENUE, debit: 0, credit: params.principal, description: `إيرادات مؤجلة (أصل المبلغ)` },
+            { accountCode: DEFERRED_INTEREST, debit: 0, credit: params.interest, description: `فوائد تقسيط مؤجلة` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد تحصيل قسط وإثبات الإيراد (Installment Receive & Recognize)
+ * DR  Bank
+ * CR  AR (Long-term)
+ * DR  Deferred Revenue & Deferred Interest
+ * CR  Revenue & Interest Income
+ */
+export async function postInstallmentReceive(params: {
+    contractId: string;
+    installmentAmount: number;
+    principalRecognized: number;
+    interestRecognized: number;
+    paymentType: 'cash' | 'bank';
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const AR_LONG_TERM = '1210';
+    const DEFERRED_REVENUE = '2400';
+    const DEFERRED_INTEREST = '2410';
+    const INTEREST_INCOME = '4400';
+    const payAccount = params.paymentType === 'cash' ? ACCOUNTS.CASH : ACCOUNTS.BANK;
+
+    const lines = [
+        // 1. Receipt
+        { accountCode: payAccount, debit: params.installmentAmount, credit: 0, description: `تحصيل قسط - عقد #${params.contractId}` },
+        { accountCode: AR_LONG_TERM, debit: 0, credit: params.installmentAmount, description: `تخفيض مستحقات التقسيط` },
+        // 2. Recognition - Principal
+        { accountCode: DEFERRED_REVENUE, debit: params.principalRecognized, credit: 0, description: `استنفاد إيراد مؤجل (أصل)` },
+        { accountCode: ACCOUNTS.SALES, debit: 0, credit: params.principalRecognized, description: `إثبات إيراد مبيعات محقق` },
+    ];
+
+    if (params.interestRecognized > 0) {
+        lines.push({ accountCode: DEFERRED_INTEREST, debit: params.interestRecognized, credit: 0, description: `استنفاد فوائد مؤجلة` });
+        lines.push({ accountCode: INTEREST_INCOME, debit: 0, credit: params.interestRecognized, description: `إثبات إيراد فوائد تقسيط` });
+    }
+
+    return createJournalEntry({
+        description: `تحصيل قسط وإثبات الإيراد - عقد #${params.contractId}`,
+        reference: `INST-REC-${params.contractId}-${Date.now()}`,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد بيع بطاقة هدايا (Gift Card Sold)
+ * DR  Cash/Bank
+ * CR  Gift Card Liability
+ */
+export async function postGiftCardSold(params: {
+    cardId: string;
+    amount: number;
+    paymentType: 'cash' | 'bank';
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const GIFT_CARD_LIABILITY = '2500';
+    const payAccount = params.paymentType === 'cash' ? ACCOUNTS.CASH : ACCOUNTS.BANK;
+
+    return createJournalEntry({
+        description: `بيع بطاقة هدايا #${params.cardId}`,
+        reference: `GC-${params.cardId}`,
+        lines: [
+            { accountCode: payAccount, debit: params.amount, credit: 0, description: `تحصيل قيمة بطاقة هدايا` },
+            { accountCode: GIFT_CARD_LIABILITY, debit: 0, credit: params.amount, description: `التزام بطاقات هدايا غير مستخدمة` },
+        ],
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}
+
+/**
+ * قيد تقييم العملات الأجنبية (FX Revaluation - Unrealized)
+ * DR/CR Unrealized FX Gain/Loss
+ * DR/CR AR/AP Foreign
+ */
+export async function postFXRevaluation(params: {
+    period: string;
+    accountCode: string; // e.g. AP or AR
+    baseCurrencyDiff: number; // Positive = gain, Negative = loss
+    isAsset: boolean; // AR is asset, AP is liability
+    userId?: number;
+    branchId?: number | null;
+    date?: string;
+}) {
+    const FX_GAIN = '4500'; // Unrealized Gain
+    const FX_LOSS = '5920'; // Unrealized Loss
+
+    const lines = [];
+    const absDiff = Math.abs(params.baseCurrencyDiff);
+
+    if (params.baseCurrencyDiff > 0) {
+        // Gain: Increase Asset or Decrease Liability
+        if (params.isAsset) {
+            lines.push({ accountCode: params.accountCode, debit: absDiff, credit: 0, description: `تقييم عملات (زيادة أصل)` });
+        } else {
+            lines.push({ accountCode: params.accountCode, debit: absDiff, credit: 0, description: `تقييم عملات (نقص التزام)` });
+        }
+        lines.push({ accountCode: FX_GAIN, debit: 0, credit: absDiff, description: `أرباح تقييم عملات غير محققة` });
+    } else {
+        // Loss: Decrease Asset or Increase Liability
+        lines.push({ accountCode: FX_LOSS, debit: absDiff, credit: 0, description: `خسائر تقييم عملات غير محققة` });
+        if (params.isAsset) {
+            lines.push({ accountCode: params.accountCode, debit: 0, credit: absDiff, description: `تقييم عملات (نقص أصل)` });
+        } else {
+            lines.push({ accountCode: params.accountCode, debit: 0, credit: absDiff, description: `تقييم عملات (زيادة التزام)` });
+        }
+    }
+
+    return createJournalEntry({
+        description: `تقييم العملات الأجنبية نهاية الفترة ${params.period}`,
+        reference: `FX-REV-${params.period}`,
+        lines,
+        userId: params.userId,
+        branchId: params.branchId,
+        date: params.date,
+    });
+}

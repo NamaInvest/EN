@@ -1,0 +1,10 @@
+const fs = require('fs');
+const file = 'd:/namasoft9-3-main/src/components/Sidebar.tsx';
+let content = fs.readFileSync(file, 'utf8');
+content = content.replace(/if \(item.isSubHeader\)/g, 'if ((item as any).isSubHeader)');
+content = content.replace(/key={item.href}/g, 'key={(item as any).href}');
+content = content.replace(/href={item.href}/g, 'href={(item as any).href}');
+content = content.replace(/\{item.icon\}/g, '{(item as any).icon}');
+content = content.replace(/item.lk\)/g, '(item as any).lk)');
+fs.writeFileSync(file, content);
+console.log('Fixed TS errors');
