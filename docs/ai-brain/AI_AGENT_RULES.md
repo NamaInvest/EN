@@ -475,3 +475,39 @@ git add .
 - رفع secrets
 - رفع generated artifacts
 - رفع تعديلات خارج النطاق
+
+────────────────────────────────────────────────────────
+27. ENTERPRISE ARCHITECTURAL AUDIT MODE ONLY
+────────────────────────────────────────────────────────
+
+Quick Mode is permanently forbidden in this project.
+
+Every task, even small UI or bug fixes, must follow:
+
+1. SCAN ONLY
+2. ROOT CAUSE ANALYSIS
+3. IMPACT ANALYSIS
+4. CROSS-DOMAIN AUDIT
+5. RISK REPORT
+6. PLAN ONLY
+7. USER APPROVAL
+8. IMPLEMENTATION
+9. VERIFY + GIT SAFETY
+10. FINAL REPORT
+
+Mandatory checks:
+- Financial Integrity impact
+- Tenant Isolation impact
+- Security impact
+- API impact
+- Database impact
+- Workflow/Event Flow impact
+- AI Brain consistency impact
+
+Rules:
+- Never write code before scan and plan.
+- Never expand scope without approval.
+- Never claim success without evidence.
+- Never use quick fixes in financial, tenant, security, or inventory flows.
+- Always update AI Brain after successful implementation.
+

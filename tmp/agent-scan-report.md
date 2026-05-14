@@ -1,62 +1,69 @@
-# Treasury & Payments Atomicity Scan Report
+# GL ↔ Treasury Consistency Audit Report (Phase 1)
+**Date:** 2026-05-14
+**Mode:** ENTERPRISE ARCHITECTURAL AUDIT MODE (DEEP SCAN LEVEL 3)
+**Domain:** Financial Integrity (Treasury & General Ledger)
 
-## 1. Scope & Objective
-**Objective:** Perform a DEEP SCAN LEVEL 3 to identify atomicity, double-posting, and ledger mismatch vulnerabilities within the Treasury and Payments domains.
+## 1. ما فهمته (Understanding of the Task)
+المطلوب هو إجراء تدقيق شامل على مستوى معمارية النظام (Consistency Audit) للتأكد من التوافق التام بين حركات الخزينة/البنوك (Treasury) والقيود المحاسبية (Journal Entries). الهدف هو رصد أي حالات (Split-Brain) حيث يتم تسجيل حركة مالية في أحد الطرفين دون الآخر، أو وجود ثغرات في الـ Atomicity و Idempotency التي قد تؤدي إلى تكرار الحركات أو غياب المرجعية المالية.
 
-## 2. Files Scanned & Analyzed
-- `src/app/api/treasury/route.ts` (Manual Treasury Receipts/Payments)
-- `src/app/api/accounting/open-items/apply-payment/route.ts` (AR/AP Open Items Payment Application)
-- `src/lib/open-items.ts` (Open Items Core Logic)
-- `src/app/api/payments/charge/route.ts` (Payment Gateways)
-- `src/app/api/finance/treasury/route.ts` (Realized FX & Cash Position)
-- `src/app/api/finance/payment-runs/[id]/execute/route.ts` (Bulk Payment Execution)
+## 2. الملفات التي تم فحصها (Files Scanned)
+- `prisma/schema.prisma` (Architecture mapping)
+- `src/app/api/treasury/route.ts` (Manual Treasury Entries)
+- `src/app/api/sales/route.ts` (Sales Invoices & split payments)
+- `src/app/api/purchases/route.ts` (Purchase Invoices & partial payments)
+- `src/app/api/sales-returns/route.ts` (Sales Returns refunds)
+- `src/lib/auto-journal.ts` (Journal Entry engine)
+- `src/lib/payment-run-engine.ts` (Batch payments)
+- `src/lib/open-items.ts` (Atomic payment apps & FX)
 
-## 3. Related Domains Affected
-- **Treasury (Cash/Bank management)**
-- **Accounting (General Ledger & Journal Entries)**
-- **Accounts Receivable / Accounts Payable (Open Items)**
-- **Tenant Isolation Boundaries**
+## 3. الملفات المحتمل تعديلها (Potential Target Files)
+- `src/app/api/purchases/route.ts`
+- `src/app/api/sales/route.ts`
+- `src/app/api/sales-returns/route.ts`
+- `src/app/api/purchase-returns/route.ts`
+- `src/lib/idempotency.ts` (If applying missing wrappers)
 
-## 4. Root Cause & Architectural Flaws Identified
+## 4. الدومينات المتأثرة (Affected Domains)
+- **Treasury (Cash/Bank Management)**
+- **Accounting (General Ledger)**
+- **Accounts Payable (AP)**
+- **Accounts Receivable (AR)**
+- **Tenant Isolation**
 
-### A. Missing General Ledger Synchronization (Split-Brain Ledger Mismatch)
-**Location:** `src/app/api/treasury/route.ts` (POST)
-- **Issue:** The API allows users to create manual treasury records (`in`/`out`) inside a `prisma.$transaction`. However, **it NEVER calls `createJournalEntry` or `postDeposit`/`postExpense`**. 
-- **Risk:** High (Critical). A user can receive cash into the treasury (showing a higher balance in the Treasury module), but the `account.balance` in the GL remains unchanged. This will completely destroy the trial balance integrity.
+## 5. المخاطر والثغرات المكتشفة (Findings & Root Causes)
 
-### B. Missing Idempotency (Double Posting Risk)
-**Locations:**
-- `src/app/api/treasury/route.ts`
-- `src/app/api/accounting/open-items/apply-payment/route.ts`
-- `src/app/api/payments/charge/route.ts`
-- `src/app/api/finance/payment-runs/[id]/execute/route.ts`
-- **Issue:** None of these financial endpoints are wrapped with the new `withIdempotency` utility.
-- **Risk:** High. A user double-clicking "Apply Payment" or "Save Treasury Receipt" will execute the action twice, creating duplicate payments and duplicate stock/open-item reductions.
+### A. Critical Gap: Purchase Invoice Partial Payments (Split-Brain)
+- **المكان:** `src/app/api/purchases/route.ts` (Method: `_PUT`)
+- **وصف الثغرة:** عند قيام المستخدم بتسديد دفعة جزئية (Partial Payment) لفاتورة مشتريات عبر `PUT`، يتم إنشاء حركة `Treasury` (`type: 'out'`, `referenceType: 'purchase_payment'`) **ولكن لا يتم استدعاء محرك القيود `createJournalEntry` نهائياً!**
+- **الخطر (Financial Risk):** انخفاض رصيد الصندوق/البنك في واجهة الخزينة دون تسجيل القيد الدائن في الـ GL ودون تسجيل القيد المدين في حساب الدائنين (AP). هذا يسبب فرقاً مباشراً في ميزان المراجعة (Trial Balance) وانفصالاً بين الواقع المحاسبي وواقع الخزينة.
+- **Root Cause:** غياب ربط الـ `_PUT` مع `auto-journal.ts` (missing `postPurchasePayment` function).
 
-### C. Open Items FX Gain/Loss Ledger Gap
-**Location:** `src/lib/open-items.ts` (`applyPayment` function)
-- **Issue:** The function correctly calculates `totalFxGainLoss`, creates an `itemApplication` record, and updates `openAmount`, all within a `$transaction`. BUT it does not post the FX Gain/Loss to the General Ledger.
+### B. Missing Idempotency on Critical Endpoints
+- **المكان:** `src/app/api/purchases/route.ts`
+- **وصف الثغرة:** الـ `PUT` endpoint الخاص بدفعات المشتريات غير محمي بـ `withIdempotency`، بينما الـ `POST` محمي. 
+- **الخطر (Security/Concurrency Risk):** قد يؤدي النقر المزدوج (Double-click) إلى تسجيل الدفعة نفسها مرتين في الخزينة وخصم المبلغ مرتين من رصيد الفاتورة (Double-Spend).
 
-### D. Missing Tenant Guard Validation
-- Most treasury endpoints rely on `body.branchId` or query params, but do not strictly enforce `tenantId` isolation via headers the way we did for `purchase-returns`.
+### C. Missing Hard Link between Treasury and JournalEntry
+- **وصف الثغرة:** لا يوجد مفتاح أجنبي مباشر `journalEntryId` داخل جدول `Treasury`. يتم الربط حالياً عبر الـ `reference` (مثال: `TREAS-123` أو `SALE-456`).
+- **الخطر (Architectural Risk):** يجعل من الصعب (أو البطيء جداً) استخراج تقارير مطابقة سريعة (Reconciliation) لاكتشاف الـ Orphans. الـ Payment Run هو الوحيد الذي يخزن `journalEntryId` في الـ `PaymentRun` model، لكن الـ Treasury rows الفردية تفتقر لهذا الرابط الصريح.
 
-## 5. Execution Plan (Suggested Fixes)
-To achieve Enterprise-grade Treasury Atomicity, the following plan is recommended:
+### D. Sales Returns & Purchase Returns Treasury Isolation
+- **المكان:** `src/app/api/sales-returns/route.ts`
+- **وصف الثغرة:** يتم تسجيل الـ Treasury row بمبلغ إجمالي الـ Return، ثم يتم استدعاء `postSalesReturn` الذي ينشئ القيد. العملية محاطة بـ `prisma.$transaction` وهذا ممتاز، ولكن الـ Treasury uses `referenceType: 'salesReturn'` والقيد يستخدم `reference: SRET-<id>`. لا توجد ثغرة Split-Brain هنا بفضل الـ Transaction، لكن يوجد ضعف في التتبع المرجعي المباشر.
 
-**Phase 1: Idempotency & GL Binding for Treasury**
-1. Modify `src/app/api/treasury/route.ts` to use `withIdempotency`.
-2. Extract the `tenantId` from headers.
-3. Import `createJournalEntry` inside the Prisma `$transaction`.
-4. Dynamically map the treasury action to a GL entry (Debit Cash/Bank, Credit Source/Customer/Income) ensuring exact atomicity.
+## 6. خطة التنفيذ (Small Safe Plan)
+بناءً على المبدأ المعماري الصارم، يجب معالجة أخطر ثغرة أولاً (ثغرة الدفعات الجزئية للمشتريات)، قبل إجراء أي تغييرات معمارية على الداتا بيز.
 
-**Phase 2: Payment Allocations Atomicity**
-1. Modify `src/app/api/accounting/open-items/apply-payment/route.ts` to use `withIdempotency`.
-2. Update `OpenItemsEngine.applyPayment` to accept a `txClient`.
-3. If an FX Gain/Loss exists, trigger an automatic Journal Entry inside the same transaction.
+**المرحلة المقترحة (Phase 1.1): سد ثغرة الـ Purchase Payments**
+1. إنشاء دالة `postPurchasePayment(params)` داخل `src/lib/auto-journal.ts` لتوليد القيد المحاسبي المباشر (Dr. AP / Cr. Cash-Bank).
+2. تعديل الـ `_PUT` في `src/app/api/purchases/route.ts` لاستدعاء هذه الدالة ضمن نفس الـ `prisma.$transaction`.
+3. حماية الـ `PUT` endpoint في المشتريات باستخدام `withIdempotency` لمنع تكرار الدفع.
+4. عدم المساس بباقي الملفات حالياً التزاماً بقاعدة "أصغر تعديل آمن" (Small Patch).
 
-## 6. Testing Plan
-- Execute `npm run build` after modifications to catch any TypeScript/Zod mapping errors.
-- Test double-posting to the treasury endpoint to confirm 409 Conflict.
-- Verify that manual treasury receipts automatically update the GL trial balance simultaneously.
+## 7. خطة الاختبار (Testing Plan)
+- **Unit/Integration Test:** التحقق من أن عمل `PUT` لدفعة جزئية (مثلاً 500 ريال) على فاتورة مشتريات ينشئ صفاً في `Treasury` + صفاً في `JournalEntry` بنفس اللحظة.
+- **Idempotency Test:** إرسال طلبين متطابقين بنفس الـ Idempotency Key والتأكد من تسجيل دفعة واحدة فقط.
+- **Financial Balance Test:** ميزان المراجعة قبل وبعد الدفعة يجب أن يظل متوازناً.
 
-*This report is generated for user approval prior to any code modifications.*
+---
+**الرجاء المراجعة وإعطاء الموافقة (Approval) للبدء في تنفيذ Phase 1.1.**
