@@ -10,8 +10,8 @@
 **RULE**: Any module affecting both inventory and ledger (e.g., Sales, Purchases, Returns) **MUST** perform all updates inside a single `prisma.$transaction`.
 **RULE**: **NEVER** use `.catch(() => null)` around inventory `upsert`, `stockMovement.create`, or `treasury.create` inside a transaction.
 **RULE**: The `postSalesReturn`, `postPurchaseReturn`, `postSalesInvoice`, and `postPurchaseInvoice` functions **MUST** accept a `txClient` and execute the journal entry inside the same parent transaction. If the journal fails, the entire transaction (including invoice and stock) MUST rollback. to prevent financial split-brain.
-5. **Outbox Pattern:** External API calls (like ZATCA) must NEVER be made synchronously inside a financial transaction.
-
+13. **Treasury Atomicity (Strict Mode):** All treasury receipts and payments MUST include explicit GL mapping via `counterpartyAccountId`. Suspense accounts are forbidden. `POST /api/treasury` must execute inside a `prisma.$transaction`, bind `createJournalEntry`, and be protected by `withIdempotency`.
+14. **Outbox Pattern:** External API calls (like ZATCA) must NEVER be made synchronously inside a financial transaction.
 ## Release Operations & Database Safety
 - Modifying applied historic migrations is strictly prohibited.
 - Use `npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` to safely generate diffs bypassing broken shadow DBs.

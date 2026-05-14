@@ -114,7 +114,7 @@ async function _POST(request: NextRequest) {
                     lines: journalLines,
                     userId: userId ? Number(userId) : undefined,
                     branchId: branchId ? Number(branchId) : undefined,
-                    date: new Date(),
+                    date: new Date().toISOString(),
                     txClient: tx,
                 });
             } else if (body.referenceType === 'manual') {

@@ -10,7 +10,17 @@
 6. `createJournalEntry` called inside transaction.
 7. Audit Log recorded.
 8. ZATCA Event added to `EventLog` (Outbox pattern).
-9. Transaction commits.
+13. Transaction commits.
+
+## Treasury Manual Receipt/Payment Lifecycle (Strict Mode)
+- **API**: `POST /api/treasury`
+- **Idempotency**: Protected by `withIdempotency`.
+- **Flow**:
+  1. Zod runtime validation includes optional `counterpartyAccountId`.
+  2. For `manual` reference types, exact mapping is enforced: if `treasuryAccountId` or `counterpartyAccountId` is missing, API throws HTTP 400.
+  3. `prisma.$transaction` creates the `Treasury` record.
+  4. Synchronously executes `createJournalEntry` via injected `txClient`. Debit/Credit is determined by `type` ('in' or 'out').
+  5. Transaction commits, ensuring zero possibility of an orphan treasury record without its corresponding general ledger double-entry.
 
 ## Sales Returns Lifecycle (Atomic)
 - **API**: `POST /api/sales-returns`

@@ -14,6 +14,7 @@ Before writing any code, YOU MUST read the relevant files in the `docs/ai-brain`
 - `/docs/ai-brain/AI_AGENT_RULES.md`: ⚠️ CRITICAL AGENT INSTRUCTIONS
 
 ## Architectural Updates Log
+- **2026-05-14**: Enforced **Treasury Strict Mode (Phase A)** on `POST /api/treasury`. Required strict `counterpartyAccountId` mapping for manual treasury entries, ensuring zero split-brain journal records. Integrated `withIdempotency` and synchronous `createJournalEntry` execution within a unified `prisma.$transaction`. Fallback to suspense accounts is expressly forbidden.
 - **2026-05-14**: Refactored `Purchase Returns` module for strict atomicity. Integrated `withIdempotency`, executed journal posting inside Prisma `$transaction`, added dynamic details/items parsing with hard inventory deductions (`product.currentStock`, `productStock`, `stockMovement`), and enforced tenant-level validation for parent invoices.
 - **2026-05-14**: Refactored `Sales Returns` module to enforce atomic financial integrity. Integrated `withIdempotency` wrapper, established exact tenant scoping, restored missing stock movement tracking, executed `postSalesReturn` journal entry synchronously within Prisma `$transaction`, and eliminated `.catch(() => null)` masked errors. ZATCA Event Outbox added as a TODO.
 - **2026-05-14**: Refactored `Sales` inventory module. Eliminated swallowed errors inside Prisma transaction (`productStock.upsert`, `stockMovement.create`). Any inventory failure now safely rolls back the entire invoice and treasury record.
