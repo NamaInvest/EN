@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.1.0
+- **Sales Partial Payment Atomicity (Phase 1.2):** Implemented strict atomicity for `PUT /api/sales` using `withIdempotency`. Created `postSalesPayment` in `auto-journal.ts` mapping `CASH/BANK` to `RECEIVABLES`. Prevented overpayments by returning HTTP 400 *before* any transactions open. Ensured the Treasury in-flow and Journal Entry are securely generated inside a unified `prisma.$transaction`.
+
 ## Version 1.0.9
 - **Purchase Partial Payment Atomicity (Phase 1.1):** Addressed the critical "split-brain" vulnerability in partial payments (`PUT /api/purchases`). Added `paymentType` enum (`cash` | `bank`) validation to prevent ambiguous operations. Implemented `postPurchasePayment` in `auto-journal.ts` capable of mapping `ACCOUNTS.PAYABLES` and the appropriate cash/bank accounts based on payment type. Wrapped the `PUT` endpoint in `withIdempotency` and bound the Treasury out-flow and the Journal Entry into a single strict `prisma.$transaction`.
 

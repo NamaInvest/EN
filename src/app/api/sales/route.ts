@@ -459,6 +459,86 @@ export async function _POST(request: Request) {
     }
 }
 
+async function _PUT(request: Request) {
+
+    const prisma = getPrisma(request);
+    try {
+        const rawBody = await request.json();
+        const { invoiceId, amount, paymentType, userId } = z.object({
+            invoiceId: z.union([z.string(), z.number()]),
+            amount: z.union([z.string(), z.number()]),
+            paymentType: z.string().default('cash'),
+            userId: z.union([z.string(), z.number()]).optional().nullable(),
+        }).parse(rawBody);
+
+        const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId) } });
+        if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        if (invoice.status === 'completed') {
+            return NextResponse.json({ error: 'الفاتورة محصلة بالكامل' }, { status: 400 });
+        }
+
+        const payAmount = Number(amount);
+        if (payAmount > n(invoice.remaining)) {
+            return NextResponse.json({ error: 'المبلغ المدفوع يتجاوز الرصيد المتبقي للفاتورة' }, { status: 400 });
+        }
+        if (payAmount <= 0) return NextResponse.json({ error: 'لا يوجد رصيد مستحق أو المبلغ صفر' }, { status: 400 });
+
+        const newPaid = n(invoice.paid) + payAmount;
+        const newRemaining = n(invoice.total) - newPaid;
+
+        const updated = await prisma.$transaction(async (tx: any) => {
+            const updatedInvoice = await tx.salesInvoice.update({
+                where: { id: Number(invoiceId) },
+                data: {
+                    paid: newPaid,
+                    remaining: newRemaining,
+                    status: newRemaining <= 0 ? 'completed' : 'pending',
+                },
+            });
+
+            const parsedUserId = userId ? Number(userId) : null;
+            const branchId = invoice.branchId;
+
+            const treasuryRec = await tx.treasury.create({
+                data: {
+                    type: 'in',
+                    amount: payAmount,
+                    description: `تحصيل دفعة - فاتورة مبيعات #${invoice.invoiceNo}`,
+                    referenceType: 'sale_payment',
+                    referenceId: invoice.id,
+                    userId: parsedUserId,
+                    branchId,
+                },
+            });
+
+            const { postSalesPayment } = await import('@/lib/auto-journal');
+            await postSalesPayment({
+                invoiceNo: invoice.invoiceNo,
+                amount: payAmount,
+                paymentType: paymentType as 'cash' | 'bank',
+                treasuryId: treasuryRec.id,
+                userId: parsedUserId,
+                branchId: branchId,
+                date: new Date().toISOString().split('T')[0],
+                txClient: tx,
+            });
+
+            return updatedInvoice;
+        });
+
+        try {
+            const { logFieldChanges } = await import('@/lib/field-audit');
+            await logFieldChanges(prisma, 'SalesInvoice', Number(invoiceId), invoice, updated, auditContextFromRequest(request as any, { userId: userId ? Number(userId) : undefined }));
+        } catch (e: any) { log.error('[audit] Sales payment audit failed:', { err: e?.message }); }
+
+        return NextResponse.json(updated);
+    } catch (error: any) {
+        log.error('Sales PUT error', { err: error?.message });
+        return NextResponse.json({ error: 'فشل في تحصيل الدفعة' }, { status: 500 });
+    }
+}
+
 async function _DELETE(request: NextRequest) {
 
     const prisma = getPrisma(request);
@@ -576,5 +656,10 @@ export const POST   = withRoute(async ({ req }) => {
     const { withIdempotency } = await import('@/lib/idempotency');
     return withIdempotency(req as NextRequest, 'POST /api/sales', async () => _POST(req as any));
 }, { rateLimit: 'DEFAULT' });
+
+export const PUT = withRoute(async ({ req }) => {
+    const { withIdempotency } = await import('@/lib/idempotency');
+    return withIdempotency(req as NextRequest, 'PUT /api/sales', async () => _PUT(req as any));
+}, { rateLimit: 'FINANCIAL' });
 
 export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });
