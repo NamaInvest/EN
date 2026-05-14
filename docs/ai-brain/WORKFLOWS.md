@@ -31,7 +31,9 @@
   3. `prisma.$transaction` wraps the entire operation.
   4. All `openItem` retrieval and updating strictly scope by `tenantId`.
   5. Payment remaining amount is reduced, and invoice `openAmount` is cleared or reduced.
-  6. Transaction commits safely. No swallowed errors are permitted.
+  6. Computes FX differences; if `abs(difference) >= 0.01`, fails-fast to fetch `FX_GAIN_GL_CODE`/`FX_LOSS_GL_CODE` settings.
+  7. Generates an aggregated FX `JournalEntry` matching `partyType` to `Gain/Loss` directionality.
+  8. Transaction commits safely. No swallowed errors are permitted.
 
 ## Payment Run Execute Lifecycle (Phases B.2 & B.3)
 - **API**: `POST /api/finance/payment-runs/[id]/execute`

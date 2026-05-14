@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.0.8
+- **FX Gain/Loss Accounting (Phase C.1):** Hardened `applyPayment` in `OpenItemsEngine` to calculate and materialize Realized FX adjustments. Introduced `FX_MATERIALITY_THRESHOLD` (0.01) with dynamic Directionality Matrix handling Vendor/Customer Gain/Loss scenarios symmetrically. Configured lazy-loaded Fail-Fast `FX_GAIN_GL_CODE`/`FX_LOSS_GL_CODE` settings extraction and synchronously executed an aggregated `JournalEntry` linked by `APP-PAY-<id>-FX` within the existing `prisma.$transaction`.
+
 ## Version 1.0.7
 - **Payment Run GL & Treasury Binding (Phase B.3):** Upgraded `executePayments` in `PaymentRunEngine` to synchronously generate exactly one aggregated `Treasury` record and one aggregated `JournalEntry` per payment run execution. Enforced strict validation for source `bankAccountId` GL mapping. Modified journal logic to appropriately debit `ACCOUNTS.PAYABLES` partitioned by `vendorId`.
 
