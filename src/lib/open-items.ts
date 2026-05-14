@@ -19,7 +19,8 @@ export class OpenItemsEngine {
         amount: number,
         currency?: string,
         exchangeRate?: number,
-        dueDate?: Date
+        dueDate?: Date,
+        tenantId: any
     }) {
         const currency = data.currency || 'SAR';
         const rate = data.exchangeRate || 1;
@@ -27,6 +28,7 @@ export class OpenItemsEngine {
 
         return prisma.openItem.create({
             data: {
+                tenantId: data.tenantId,
                 partyId: data.partyId,
                 partyType: data.partyType,
                 documentType: data.documentType,
@@ -48,9 +50,9 @@ export class OpenItemsEngine {
     /**
      * Apply a Payment with optional discount, writeoff, and FX calculation
      */
-    static async applyPayment(paymentOpenItemId: number, allocations: any[], userId: string) {
+    static async applyPayment(paymentOpenItemId: number, allocations: any[], userId: string, tenantId: any) {
         return prisma.$transaction(async (tx) => {
-            const payment = await tx.openItem.findUnique({ where: { id: paymentOpenItemId }});
+            const payment = await tx.openItem.findFirst({ where: { id: paymentOpenItemId, tenantId }});
             if (!payment || payment.openAmount <= 0) throw new Error("Invalid payment");
 
             let remainingPaymentAmount = Number(payment.originalOpenAmount);
@@ -58,7 +60,7 @@ export class OpenItemsEngine {
             let totalFxGainLoss = 0;
 
             for (const alloc of allocations) {
-                const invoice = await tx.openItem.findUnique({ where: { id: alloc.invoiceId }});
+                const invoice = await tx.openItem.findFirst({ where: { id: alloc.invoiceId, tenantId }});
                 if (!invoice) throw new Error("Invoice not found");
 
                 const appliedAmount = Number(alloc.amount);
@@ -86,7 +88,7 @@ export class OpenItemsEngine {
                 const newInvOpenOrig = Number(invoice.originalOpenAmount) - totalInvoiceReductionOriginal;
                 const newInvOpenSAR = Number(invoice.openAmount) - totalInvoiceReductionSAR;
                 await tx.openItem.update({
-                    where: { id: invoice.id },
+                    where: { id: invoice.id }, // id is unique, but we verified tenant above
                     data: {
                         originalOpenAmount: newInvOpenOrig,
                         openAmount: newInvOpenSAR,
@@ -100,6 +102,7 @@ export class OpenItemsEngine {
                 // Create Application Record
                 const app = await tx.itemApplication.create({
                     data: {
+                        tenantId: tenantId,
                         paymentOpenItemId: payment.id,
                         invoiceOpenItemId: invoice.id,
                         appliedAmount: appliedAmount,
@@ -137,15 +140,16 @@ export class OpenItemsEngine {
         });
     }
 
-    static async markAsDisputed(openItemId: number, amount: number, reasonCode: string, description: string, userId: string) {
+    static async markAsDisputed(openItemId: number, amount: number, reasonCode: string, description: string, userId: string, tenantId: any) {
         return prisma.$transaction(async (tx) => {
-            const item = await tx.openItem.findUnique({ where: { id: openItemId }});
+            const item = await tx.openItem.findFirst({ where: { id: openItemId, tenantId }});
             if (!item) throw new Error("Item not found");
 
             const caseNum = `DSP-${Date.now()}`;
 
             const dispute = await tx.disputeCase.create({
                 data: {
+                    tenantId,
                     caseNumber: caseNum,
                     openItemId,
                     customerId: item.partyId,
@@ -170,7 +174,10 @@ export class OpenItemsEngine {
         });
     }
 
-    static async recordPromiseToPay(openItemId: number, amount: number, date: Date, userId: string) {
+    static async recordPromiseToPay(openItemId: number, amount: number, date: Date, userId: string, tenantId: any) {
+        const item = await prisma.openItem.findFirst({ where: { id: openItemId, tenantId } });
+        if (!item) throw new Error("Item not found");
+
         return prisma.openItem.update({
             where: { id: openItemId },
             data: {

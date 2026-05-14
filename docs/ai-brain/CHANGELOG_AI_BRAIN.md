@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.0.5
+- **Apply Payment Atomicity (Phase B.1):** Wrapped `POST /api/accounting/open-items/apply-payment` in `withIdempotency`. Implemented explicit `tenantId` boundaries in `OpenItemsEngine.applyPayment`, `markAsDisputed`, and `recordPromiseToPay`. Ensured complete `prisma.$transaction` execution for apply payment operations.
+
 ## Version 1.0.4
 - **Treasury Strict Mode (Phase A):** Hardened `POST /api/treasury` with strict `counterpartyAccountId` validation for manual entries. Integrated `createJournalEntry` via `txClient` inside the atomic `prisma.$transaction`. Removed legacy split-brain vulnerabilities and banned temporary suspense accounts.
 

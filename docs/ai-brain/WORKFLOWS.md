@@ -22,6 +22,17 @@
   4. Synchronously executes `createJournalEntry` via injected `txClient`. Debit/Credit is determined by `type` ('in' or 'out').
   5. Transaction commits, ensuring zero possibility of an orphan treasury record without its corresponding general ledger double-entry.
 
+## Apply Payment Lifecycle (Phase B.1)
+- **API**: `POST /api/accounting/open-items/apply-payment`
+- **Idempotency**: Protected by `withIdempotency`.
+- **Flow**:
+  1. `applyPayment` engine accepts `paymentOpenItemId` and `allocations`.
+  2. `tenantId` is strictly injected into the engine from API headers.
+  3. `prisma.$transaction` wraps the entire operation.
+  4. All `openItem` retrieval and updating strictly scope by `tenantId`.
+  5. Payment remaining amount is reduced, and invoice `openAmount` is cleared or reduced.
+  6. Transaction commits safely. No swallowed errors are permitted.
+
 ## Sales Returns Lifecycle (Atomic)
 - **API**: `POST /api/sales-returns`
 - **Validation**: Verifies original invoice belongs to `tenantId` & validates items.
