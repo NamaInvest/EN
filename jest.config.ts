@@ -44,14 +44,14 @@ const config: Config = {
       testEnvironment: 'node',
       testMatch:      ['<rootDir>/src/**/*.test.ts', '!<rootDir>/src/__tests__/api/**'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
     },
     {
       displayName:    'react',
       testEnvironment: 'jsdom',
       testMatch:      ['<rootDir>/src/**/*.test.tsx'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      setupFilesAfterEach: ['<rootDir>/jest.setup.ts'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     },
     {
       // Domain tests: /tests/*.test.ts (budget, cash-flow, GOSI, etc.)
@@ -63,7 +63,7 @@ const config: Config = {
         '<rootDir>/tests/a11y/**/*.test.ts',
       ],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
     },
     {
       // Integration tests: /tests/integration/*.test.ts
@@ -71,7 +71,7 @@ const config: Config = {
       testEnvironment: 'node',
       testMatch:      ['<rootDir>/tests/integration/**/*.test.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
       testTimeout:    30_000,  // Integration tests may take longer
     },
   ],
