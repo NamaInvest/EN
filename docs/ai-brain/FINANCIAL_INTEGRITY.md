@@ -9,7 +9,7 @@
 4. **Inventory & Ledger Atomicity (No Swallowed Errors)**
 **RULE**: Any module affecting both inventory and ledger (e.g., Sales, Purchases, Returns) **MUST** perform all updates inside a single `prisma.$transaction`.
 **RULE**: **NEVER** use `.catch(() => null)` around inventory `upsert`, `stockMovement.create`, or `treasury.create` inside a transaction.
-**RULE**: The `postSalesReturn`, `postSalesInvoice`, and `postPurchaseInvoice` functions **MUST** accept a `txClient` and execute the journal entry inside the same parent transaction. If the journal fails, the entire transaction (including invoice and stock) MUST rollback. to prevent financial split-brain.
+**RULE**: The `postSalesReturn`, `postPurchaseReturn`, `postSalesInvoice`, and `postPurchaseInvoice` functions **MUST** accept a `txClient` and execute the journal entry inside the same parent transaction. If the journal fails, the entire transaction (including invoice and stock) MUST rollback. to prevent financial split-brain.
 5. **Outbox Pattern:** External API calls (like ZATCA) must NEVER be made synchronously inside a financial transaction.
 
 ## Release Operations & Database Safety

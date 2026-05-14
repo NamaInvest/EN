@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.0.3
+- **Purchase Returns Atomicity:** Complete overhaul of `src/app/api/purchase-returns/route.ts` to implement strict atomicity. Implemented dynamic `details/items` parsing and actual `PurchaseReturnDetail` insertion. Fixed missing inventory deductions (`product.currentStock`, `productStock`) and `stockMovement` logging. Placed treasury creation and auto-journal (`postPurchaseReturn`) within the Prisma `$transaction`, forcing hard failures upon errors.
+
 ## Version 1.0.2
 - **Sales Returns Atomicity:** Refactored `src/app/api/sales-returns/route.ts` to implement strict atomicity. Included `withIdempotency` wrapper, established `tenantId` usage, fixed missing stock movement creation, placed auto-journal inside the Prisma `$transaction`, and removed masked errors (`.catch(() => null)`).
 

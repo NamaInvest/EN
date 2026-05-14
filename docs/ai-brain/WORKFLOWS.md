@@ -24,6 +24,17 @@
 - **Commit**: Either ALL pass, or ALL rollback.
 - **Post-Commit**: ZATCA Event Outbox creation (TODO).
 
+## Purchase Returns Lifecycle (Atomic)
+- **API**: `POST /api/purchase-returns`
+- **Validation**: Validates input schema and items array. Verifies `originalInvoiceId` is associated with the active tenant.
+- **Transaction Start**:
+  - Creates `PurchaseReturn` and nested `PurchaseReturnDetail` items.
+  - Decrements `product.currentStock` and `productStock.quantity` (Hard fail).
+  - Creates `stockMovement` (Type: `out`) for the returned items.
+  - Creates `treasury` refund entry.
+  - Calls `postPurchaseReturn` (passing `txClient`) to create Journal Entry.
+- **Commit**: Either ALL pass, or ALL rollback. No swallowed errors.
+
 ## Idempotency Flow
 - Check DB for existing `[tenantId, endpoint, key]`.
 - If `COMPLETED`, return cached response.

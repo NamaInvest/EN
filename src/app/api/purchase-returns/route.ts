@@ -11,6 +11,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
+import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'purchase-returns' });
 async function _GET(request: NextRequest) {
@@ -23,24 +24,43 @@ async function _GET(request: NextRequest) {
  return handleApiError(e); }
 }
 
-async function _POST(request: Request) {
+async function _POST(request: NextRequest, auth: any, tenantId: string) {
     const prisma = getPrisma(request);
     try {
-        const rawBody = await request.json();
+        const rawBody = await request.json().catch(() => ({}));
         // Zod runtime validation + mass-assignment protection
         const body = purchaseReturnCreateSchema.parse(rawBody);
 
-        const userId = body.userId ? Number(body.userId) : null;
+        const userId = auth?.userId ? Number(auth.userId) : null;
         let branchId = body.branchId ? Number(body.branchId) : null;
         if (!branchId && userId) {
             const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } });
             branchId = user?.branchId || null;
         }
 
+        // Validate original invoice exists
+        let stockIdTarget = null;
+        if (body.originalInvoiceId) {
+            const originalInvoice = await prisma.purchaseInvoice.findUnique({
+                where: { id: Number(body.originalInvoiceId) }
+            });
+            if (!originalInvoice) {
+                return NextResponse.json({ error: 'الفاتورة الأصلية غير موجودة' }, { status: 404 });
+            }
+            stockIdTarget = originalInvoice.stockId;
+        }
+
+        const details = rawBody.details || [];
+        if (details.length === 0) {
+            return NextResponse.json({ error: 'تفاصيل المرتجع مطلوبة' }, { status: 400 });
+        }
+
         const last = await prisma.purchaseReturn.findFirst({ orderBy: { returnNo: 'desc' } });
         const returnNo = (last?.returnNo || 0) + 1;
-        const subtotal = Number(body.subtotal);
-        const taxValue = subtotal * 0.15;
+        
+        const subtotal = details.reduce((sum: number, item: any) => sum + ((item.quantity || 1) * (item.price || 0)), 0);
+        const taxRate = details[0]?.taxRate || 15;
+        const taxValue = subtotal * (taxRate / 100);
         const total = subtotal + taxValue;
 
         // Atomic transaction: create return AND treasury entry together
@@ -52,8 +72,47 @@ async function _POST(request: Request) {
                     supplierId: body.supplierId ? Number(body.supplierId) : null,
                     subtotal, taxValue, total,
                     userId, notes: body.notes || null,
+                    details: {
+                        create: details.map((item: any) => ({
+                            productId: item.productId,
+                            productName: item.productName,
+                            quantity: item.quantity,
+                            price: item.price,
+                            taxRate: taxRate,
+                            taxValue: (item.quantity * item.price) * (taxRate / 100),
+                            total: (item.quantity * item.price) * (1 + taxRate / 100)
+                        }))
+                    }
                 },
             });
+
+            // Update inventory
+            for (const item of details) {
+                await tx.product.update({
+                    where: { id: item.productId },
+                    data: { currentStock: { decrement: item.quantity } }
+                });
+
+                if (stockIdTarget) {
+                    await (tx as any).productStock.update({
+                        where: { productId_stockId: { productId: item.productId, stockId: stockIdTarget } },
+                        data: { quantity: { decrement: item.quantity } }
+                    });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            stockId: stockIdTarget,
+                            type: 'out',
+                            quantity: item.quantity,
+                            referenceType: 'purchase_return',
+                            referenceId: newReturn.id,
+                            userId: userId || null,
+                            notes: `مرتجع مشتريات #${returnNo}`
+                        }
+                    });
+                }
+            }
 
             if (n(newReturn.total) > 0) {
                 await tx.treasury.create({
@@ -66,22 +125,19 @@ async function _POST(request: Request) {
                 });
             }
 
+            await postPurchaseReturn({
+                returnNo: newReturn.returnNo,
+                subtotal: n(newReturn.subtotal),
+                taxValue: n(newReturn.taxValue),
+                total: n(newReturn.total),
+                paymentType: 'cash', // Or read from body if provided
+                userId: newReturn.userId || undefined,
+                branchId: branchId || undefined,
+                txClient: tx
+            });
+
             return newReturn;
         });
-
-        try {
-            await postPurchaseReturn({
-                returnNo: ret.returnNo,
-                subtotal: n(ret.subtotal),
-                taxValue: n(ret.taxValue),
-                total: n(ret.total),
-                paymentType: 'cash',
-                userId: ret.userId || undefined,
-                branchId: branchId || undefined,
-            });
-        } catch (je: unknown) {
-            log.warn('Auto Journal skipped (Purchase Return):', je);
-        }
 
         return NextResponse.json(ret, { status: 201 });
     } catch (e: any) {
@@ -91,4 +147,8 @@ async function _POST(request: Request) {
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req, auth }) => {
+    const { withIdempotency } = await import('@/lib/idempotency');
+    const tenantId = req.headers.get('x-tenant-id') || 'public';
+    return withIdempotency(req as NextRequest, 'POST /api/purchase-returns', async () => _POST(req as any, auth, tenantId as string));
+}, { rateLimit: 'FINANCIAL' });

@@ -306,11 +306,11 @@ model Product {
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
 
+  @@unique([tenantId, barcode])
   @@index([name])
   @@index([tenantId, active])
   @@index([tenantId, categoryId])
   @@index([tenantId, barcode])
-  @@unique([tenantId, barcode])
   @@index([deletedAt, name], map: "idx_prod_name")
   @@map("products")
 }
@@ -720,7 +720,7 @@ model PurchaseOrder {
   ThreeWayMatch  ThreeWayMatch[]
   deletedAt      DateTime? // P1.2 soft-delete ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¹ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط·آ¢ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¥ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬أ¢â‚¬ع†ط·آ¢ط¢آ¢ do not use hard DELETE
 
-  promisedDate   DateTime?
+  promisedDate DateTime?
 
   @@index([status, deletedAt], map: "idx_po_status")
   @@index([date, deletedAt], map: "idx_po_date")
@@ -790,7 +790,7 @@ model PurchaseInvoice {
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
 
-  hasException   Boolean @default(false)
+  hasException Boolean @default(false)
 
   @@index([invoiceNo])
   @@index([date])
@@ -2954,7 +2954,7 @@ model GoodsReceiptNote {
 
   asnId               String?
   expectedArrivalDate DateTime?
-  rejectionQty        Decimal? @db.Decimal(15, 4)
+  rejectionQty        Decimal?  @db.Decimal(15, 4)
 
   @@index([asnId])
   @@map("goods_receipt_notes")
@@ -3420,15 +3420,15 @@ model RestaurantZone {
 }
 
 model RestaurantTable {
-  id       Int                 @id @default(autoincrement())
-  tenantId String              @default("default") @map("tenant_id")
-  zoneId   Int                 @map("zone_id")
-  name     String
-  capacity Int                 @default(4)
-  status   String              @default("Available") // Available, Occupied, Reserved
-  qrToken  String?             @unique @map("qr_token")
-  zone     RestaurantZone      @relation(fields: [zoneId], references: [id])
-  sessions RestaurantSession[]
+  id          Int                 @id @default(autoincrement())
+  tenantId    String              @default("default") @map("tenant_id")
+  zoneId      Int                 @map("zone_id")
+  name        String
+  capacity    Int                 @default(4)
+  status      String              @default("Available") // Available, Occupied, Reserved
+  qrToken     String?             @unique @map("qr_token")
+  zone        RestaurantZone      @relation(fields: [zoneId], references: [id])
+  sessions    RestaurantSession[]
   waiterCalls WaiterCall[]
 
   @@map("restaurant_tables")
@@ -11349,17 +11349,17 @@ model EncryptedField {
 /// إقفال الفترات المحاسبية — Period Lock
 /// يُتتبع حالة الفترة: OPEN | LOCKED | TEMP_UNLOCKED
 model PeriodLock {
-  id           Int       @id @default(autoincrement())
-  tenantId     String    @map("tenant_id")
-  period       String    // YYYY-MM
-  status       String    @default("OPEN") // OPEN | LOCKED | TEMP_UNLOCKED
-  lockedBy     String?   @map("locked_by")
-  lockedAt     DateTime? @map("locked_at")
-  unlockedBy   String?   @map("unlocked_by")
-  unlockedAt   DateTime? @map("unlocked_at")
-  reason       String?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id         Int       @id @default(autoincrement())
+  tenantId   String    @map("tenant_id")
+  period     String // YYYY-MM
+  status     String    @default("OPEN") // OPEN | LOCKED | TEMP_UNLOCKED
+  lockedBy   String?   @map("locked_by")
+  lockedAt   DateTime? @map("locked_at")
+  unlockedBy String?   @map("unlocked_by")
+  unlockedAt DateTime? @map("unlocked_at")
+  reason     String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   @@unique([tenantId, period], name: "tenantId_period")
   @@index([tenantId, status])
@@ -11368,24 +11368,24 @@ model PeriodLock {
 
 /// مصاريف مستحقة ومدفوعات مقدماً — Accruals & Prepayments
 model AccrualEntry {
-  id                Int       @id @default(autoincrement())
-  tenantId          String    @map("tenant_id")
-  type              String    // ACCRUAL | PREPAYMENT
-  period            String    // YYYY-MM
-  description       String
-  amount            Decimal   @db.Decimal(15, 2)
-  monthlyAmount     Decimal?  @map("monthly_amount") @db.Decimal(15, 2)
-  months            Int       @default(1)
-  remainingMonths   Int       @default(0) @map("remaining_months")
-  startDate         DateTime? @map("start_date")
-  expenseAccountId  Int?      @map("expense_account_id")
-  accrualAccountId  Int?      @map("accrual_account_id")
-  journalEntryId    Int?      @map("journal_entry_id")
-  reference         String?
-  status            String    @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
-  createdBy         String?   @map("created_by")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  id               Int       @id @default(autoincrement())
+  tenantId         String    @map("tenant_id")
+  type             String // ACCRUAL | PREPAYMENT
+  period           String // YYYY-MM
+  description      String
+  amount           Decimal   @db.Decimal(15, 2)
+  monthlyAmount    Decimal?  @map("monthly_amount") @db.Decimal(15, 2)
+  months           Int       @default(1)
+  remainingMonths  Int       @default(0) @map("remaining_months")
+  startDate        DateTime? @map("start_date")
+  expenseAccountId Int?      @map("expense_account_id")
+  accrualAccountId Int?      @map("accrual_account_id")
+  journalEntryId   Int?      @map("journal_entry_id")
+  reference        String?
+  status           String    @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  createdBy        String?   @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@index([tenantId, period])
   @@index([tenantId, type, status])
@@ -11394,17 +11394,17 @@ model AccrualEntry {
 
 /// سجل نشاطات التحصيل — Collection Activity
 model CollectionActivity {
-  id           Int       @id @default(autoincrement())
-  tenantId     String    @map("tenant_id")
-  customerId   Int?      @map("customer_id")
-  invoiceId    Int?      @map("invoice_id")
-  type         String    // CALL | EMAIL | VISIT | LEGAL_NOTICE | WRITE_OFF | PROMISE | PAYMENT_RECEIVED | ESCALATED_BROKEN_PROMISE | DUNNING_L1..L4
-  notes        String?   @db.Text
-  dueAmount    Decimal?  @map("due_amount") @db.Decimal(15, 2)
-  daysPastDue  Int?      @map("days_past_due")
-  performedAt  DateTime  @map("performed_at")
-  performedBy  String    @map("performed_by")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  tenantId    String   @map("tenant_id")
+  customerId  Int?     @map("customer_id")
+  invoiceId   Int?     @map("invoice_id")
+  type        String // CALL | EMAIL | VISIT | LEGAL_NOTICE | WRITE_OFF | PROMISE | PAYMENT_RECEIVED | ESCALATED_BROKEN_PROMISE | DUNNING_L1..L4
+  notes       String?  @db.Text
+  dueAmount   Decimal? @map("due_amount") @db.Decimal(15, 2)
+  daysPastDue Int?     @map("days_past_due")
+  performedAt DateTime @map("performed_at")
+  performedBy String   @map("performed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   @@index([tenantId, invoiceId])
   @@index([tenantId, customerId])
@@ -11414,15 +11414,15 @@ model CollectionActivity {
 
 /// جدول استهلاك المدفوعات المقدمة — Prepayment Amortization Schedule
 model PrepaymentSchedule {
-  id              Int       @id @default(autoincrement())
-  tenantId        String    @map("tenant_id")
-  accrualEntryId  Int       @map("accrual_entry_id")
-  period          String    // YYYY-MM
-  monthlyAmount   Decimal   @map("monthly_amount") @db.Decimal(15, 2)
-  journalEntryId  Int?      @map("journal_entry_id")
-  status          String    @default("PENDING") // PENDING | POSTED | SKIPPED
-  postedAt        DateTime? @map("posted_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
+  id             Int       @id @default(autoincrement())
+  tenantId       String    @map("tenant_id")
+  accrualEntryId Int       @map("accrual_entry_id")
+  period         String // YYYY-MM
+  monthlyAmount  Decimal   @map("monthly_amount") @db.Decimal(15, 2)
+  journalEntryId Int?      @map("journal_entry_id")
+  status         String    @default("PENDING") // PENDING | POSTED | SKIPPED
+  postedAt       DateTime? @map("posted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   @@index([tenantId, period, status])
   @@map("prepayment_schedules")
@@ -11451,174 +11451,174 @@ enum AuditAction {
 // --- GAPS 10 NEW MODELS ---
 
 model DemandForecastV2 {
-  id            String   @id @default(cuid())
-  tenantId      String
-  productId     String
-  warehouseId   String
-  forecastDate  DateTime
-  horizonDays   Int
-  p50           Decimal  @db.Decimal(15, 4)
-  p90           Decimal  @db.Decimal(15, 4)
-  p99           Decimal  @db.Decimal(15, 4)
-  lowerBound    Decimal  @db.Decimal(15, 4)
-  upperBound    Decimal  @db.Decimal(15, 4)
-  modelVersion  String
-  mape          Decimal? @db.Decimal(6, 4)
-  fittedAt      DateTime @default(now())
-  
+  id           String   @id @default(cuid())
+  tenantId     String
+  productId    String
+  warehouseId  String
+  forecastDate DateTime
+  horizonDays  Int
+  p50          Decimal  @db.Decimal(15, 4)
+  p90          Decimal  @db.Decimal(15, 4)
+  p99          Decimal  @db.Decimal(15, 4)
+  lowerBound   Decimal  @db.Decimal(15, 4)
+  upperBound   Decimal  @db.Decimal(15, 4)
+  modelVersion String
+  mape         Decimal? @db.Decimal(6, 4)
+  fittedAt     DateTime @default(now())
+
   @@unique([tenantId, productId, warehouseId, forecastDate])
   @@index([tenantId, productId, warehouseId, forecastDate])
 }
 
 model EmissionLog {
-  id            String   @id @default(cuid())
-  tenantId      String
-  date          DateTime
-  scope         Int      // 1, 2, or 3
-  factorKey     String
-  qty           Decimal  @db.Decimal(15, 4)
-  unit          String
-  kgCO2e        Decimal  @db.Decimal(15, 4)
-  factorSource  String
-  branchId      String?
-  vendorId      String?
-  productId     String?
-  reference     String?
-  createdAt     DateTime @default(now())
-  
+  id           String   @id @default(cuid())
+  tenantId     String
+  date         DateTime
+  scope        Int // 1, 2, or 3
+  factorKey    String
+  qty          Decimal  @db.Decimal(15, 4)
+  unit         String
+  kgCO2e       Decimal  @db.Decimal(15, 4)
+  factorSource String
+  branchId     String?
+  vendorId     String?
+  productId    String?
+  reference    String?
+  createdAt    DateTime @default(now())
+
   @@index([tenantId, date])
   @@index([tenantId, scope, date])
   @@index([tenantId, branchId, date])
 }
 
 model EnergyConsumption {
-  id         String   @id @default(cuid())
-  tenantId   String
-  branchId   String
-  date       DateTime
-  source     String   // GRID, SOLAR, DIESEL_GENERATOR
-  kwh        Decimal  @db.Decimal(15, 4)
-  cost       Decimal? @db.Decimal(15, 4)
-  createdAt  DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  tenantId  String
+  branchId  String
+  date      DateTime
+  source    String // GRID, SOLAR, DIESEL_GENERATOR
+  kwh       Decimal  @db.Decimal(15, 4)
+  cost      Decimal? @db.Decimal(15, 4)
+  createdAt DateTime @default(now())
+
   @@unique([tenantId, branchId, date, source])
   @@index([tenantId, branchId, date])
 }
 
 model WaterConsumption {
-  id         String   @id @default(cuid())
-  tenantId   String
-  branchId   String
-  date       DateTime
-  m3         Decimal  @db.Decimal(15, 4)
-  cost       Decimal? @db.Decimal(15, 4)
-  
+  id       String   @id @default(cuid())
+  tenantId String
+  branchId String
+  date     DateTime
+  m3       Decimal  @db.Decimal(15, 4)
+  cost     Decimal? @db.Decimal(15, 4)
+
   @@unique([tenantId, branchId, date])
 }
 
 model WasteLog {
-  id          String   @id @default(cuid())
-  tenantId    String
-  branchId    String
-  date        DateTime
-  type        String   // HAZARDOUS | RECYCLABLE | GENERAL | ORGANIC
-  kg          Decimal  @db.Decimal(15, 4)
-  disposal    String?  // LANDFILL | RECYCLING | INCINERATION | COMPOSTING
-  
+  id       String   @id @default(cuid())
+  tenantId String
+  branchId String
+  date     DateTime
+  type     String // HAZARDOUS | RECYCLABLE | GENERAL | ORGANIC
+  kg       Decimal  @db.Decimal(15, 4)
+  disposal String? // LANDFILL | RECYCLING | INCINERATION | COMPOSTING
+
   @@index([tenantId, date, type])
 }
 
 model SustainabilityGoal {
   id            String   @id @default(cuid())
   tenantId      String
-  kpi           String   // EMISSIONS_TOTAL | EMISSIONS_INTENSITY | ENERGY_RENEWABLE_PERCENT | ...
+  kpi           String // EMISSIONS_TOTAL | EMISSIONS_INTENSITY | ENERGY_RENEWABLE_PERCENT | ...
   targetValue   Decimal  @db.Decimal(15, 4)
   baselineValue Decimal  @db.Decimal(15, 4)
   baselineDate  DateTime
   targetDate    DateTime
   unit          String
   active        Boolean  @default(true)
-  
+
   @@index([tenantId, active])
 }
 
 model DiversitySnapshot {
-  id              String   @id @default(cuid())
-  tenantId        String
-  date            DateTime
-  totalEmployees  Int
-  female          Int
-  male            Int
-  saudiNationals  Int
-  expats          Int
-  disability      Int
+  id                String   @id @default(cuid())
+  tenantId          String
+  date              DateTime
+  totalEmployees    Int
+  female            Int
+  male              Int
+  saudiNationals    Int
+  expats            Int
+  disability        Int
   nationalitiesJson Json
-  
+
   @@unique([tenantId, date])
 }
 
 model EVMSnapshot {
-  id           String   @id @default(cuid())
-  tenantId     String
-  projectId    String
-  asOfDate     DateTime
-  BAC          Decimal  @db.Decimal(15, 4)
-  PV           Decimal  @db.Decimal(15, 4)
-  EV           Decimal  @db.Decimal(15, 4)
-  AC           Decimal  @db.Decimal(15, 4)
-  CV           Decimal  @db.Decimal(15, 4)
-  SV           Decimal  @db.Decimal(15, 4)
-  CPI          Decimal  @db.Decimal(8, 4)
-  SPI          Decimal  @db.Decimal(8, 4)
-  EAC_classic  Decimal  @db.Decimal(15, 4)
-  ETC          Decimal  @db.Decimal(15, 4)
-  VAC          Decimal  @db.Decimal(15, 4)
-  TCPI         Decimal  @db.Decimal(8, 4)
-  percentComplete Decimal @db.Decimal(8, 4)
-  health       String   // GREEN | YELLOW | RED
+  id                     String   @id @default(cuid())
+  tenantId               String
+  projectId              String
+  asOfDate               DateTime
+  BAC                    Decimal  @db.Decimal(15, 4)
+  PV                     Decimal  @db.Decimal(15, 4)
+  EV                     Decimal  @db.Decimal(15, 4)
+  AC                     Decimal  @db.Decimal(15, 4)
+  CV                     Decimal  @db.Decimal(15, 4)
+  SV                     Decimal  @db.Decimal(15, 4)
+  CPI                    Decimal  @db.Decimal(8, 4)
+  SPI                    Decimal  @db.Decimal(8, 4)
+  EAC_classic            Decimal  @db.Decimal(15, 4)
+  ETC                    Decimal  @db.Decimal(15, 4)
+  VAC                    Decimal  @db.Decimal(15, 4)
+  TCPI                   Decimal  @db.Decimal(8, 4)
+  percentComplete        Decimal  @db.Decimal(8, 4)
+  health                 String // GREEN | YELLOW | RED
   forecastCompletionDate DateTime
-  createdAt    DateTime @default(now())
-  
+  createdAt              DateTime @default(now())
+
   @@unique([tenantId, projectId, asOfDate])
   @@index([tenantId, projectId])
 }
 
 model ActivityPool {
-  id                String   @id @default(cuid())
-  tenantId          String
-  name              String
-  driver            String   // 'machine_hours', 'setups', 'inspections'
-  totalCost         Decimal  @db.Decimal(15, 4)
-  totalDriverUnits  Decimal  @db.Decimal(15, 4)
-  period            DateTime
-  active            Boolean  @default(true)
-  
+  id               String   @id @default(cuid())
+  tenantId         String
+  name             String
+  driver           String // 'machine_hours', 'setups', 'inspections'
+  totalCost        Decimal  @db.Decimal(15, 4)
+  totalDriverUnits Decimal  @db.Decimal(15, 4)
+  period           DateTime
+  active           Boolean  @default(true)
+
   @@unique([tenantId, name, period])
   @@index([tenantId, period])
 }
 
 model ProductActivityConsumption {
-  id              String   @id @default(cuid())
-  tenantId        String
-  productId       String
-  activityPoolId  String
-  driverConsumed  Decimal  @db.Decimal(15, 4)
-  period          DateTime
-  
+  id             String   @id @default(cuid())
+  tenantId       String
+  productId      String
+  activityPoolId String
+  driverConsumed Decimal  @db.Decimal(15, 4)
+  period         DateTime
+
   @@index([tenantId, period])
   @@index([productId])
 }
 
 model PoAcknowledgment {
-  id              String   @id @default(cuid())
-  tenantId        String
-  poId            String
-  vendorId        String
-  acknowledgedAt  DateTime @default(now())
-  promisedDate    DateTime
-  ackQtyJson      Json?
-  notes           String?
-  
+  id             String   @id @default(cuid())
+  tenantId       String
+  poId           String
+  vendorId       String
+  acknowledgedAt DateTime @default(now())
+  promisedDate   DateTime
+  ackQtyJson     Json?
+  notes          String?
+
   @@unique([poId])
   @@index([tenantId, vendorId])
 }
@@ -11634,78 +11634,76 @@ model AdvanceShipNotice {
   trackingNumber String?
   etd            DateTime
   eta            DateTime
-  status         String   // SHIPPED | IN_TRANSIT | ARRIVED | RECEIVED
+  status         String // SHIPPED | IN_TRANSIT | ARRIVED | RECEIVED
   submittedAt    DateTime @default(now())
-  
+
   @@index([tenantId, poId])
   @@index([tenantId, vendorId, status])
 }
 
 model VendorOnboardingStep {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   tenantId     String
   vendorId     String
-  step         String   // LEGAL_INFO | BANKING_DETAILS | ...
+  step         String // LEGAL_INFO | BANKING_DETAILS | ...
   data         Json
-  status       String   // PENDING | COMPLETED | REJECTED
+  status       String // PENDING | COMPLETED | REJECTED
   submittedAt  DateTime?
   reviewedById String?
   reviewedAt   DateTime?
-  
+
   @@unique([vendorId, step])
   @@index([tenantId, vendorId])
 }
 
 model WaiterCall {
-  id         Int             @id @default(autoincrement())
-  tenantId   String          @default("default") @map("tenant_id")
-  tableId    Int             @map("table_id")
-  status     String          @default("PENDING") // PENDING, RESPONDED
-  createdAt  DateTime        @default(now()) @map("created_at")
-  resolvedAt DateTime?       @map("resolved_at")
+  id         Int       @id @default(autoincrement())
+  tenantId   String    @default("default") @map("tenant_id")
+  tableId    Int       @map("table_id")
+  status     String    @default("PENDING") // PENDING, RESPONDED
+  createdAt  DateTime  @default(now()) @map("created_at")
+  resolvedAt DateTime? @map("resolved_at")
 
-  table      RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([tableId])
   @@map("restaurant_waiter_calls")
 }
 
-
-
 // ==================== ICE SUPER ADMIN MODULE ====================
 
 model IceAdmin {
-  id                Int       @id @default(autoincrement())
-  username          String    @unique
-  email             String    @unique
-  passwordHash      String    @map("password_hash")
-  fullName          String    @map("full_name")
-  roleId            Int       @map("role_id")
-  active            Boolean   @default(true)
-  twoFactorSecret   String?   @map("two_factor_secret")
-  twoFactorEnabled  Boolean   @default(false) @map("two_factor_enabled")
-  lastLoginAt       DateTime? @map("last_login_at")
-  lastLoginIp       String?   @map("last_login_ip")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  deletedAt         DateTime? @map("deleted_at")
+  id               Int       @id @default(autoincrement())
+  username         String    @unique
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  fullName         String    @map("full_name")
+  roleId           Int       @map("role_id")
+  active           Boolean   @default(true)
+  twoFactorSecret  String?   @map("two_factor_secret")
+  twoFactorEnabled Boolean   @default(false) @map("two_factor_enabled")
+  lastLoginAt      DateTime? @map("last_login_at")
+  lastLoginIp      String?   @map("last_login_ip")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
 
-  role              IceAdminRole      @relation(fields: [roleId], references: [id])
-  auditLogs         IceAuditLog[]
-  supportTickets    IceSupportTicket[] @relation("TicketAssignee")
-  loginLogs         IceLoginLog[]
-  supportReplies    IceSupportReply[]
+  role           IceAdminRole       @relation(fields: [roleId], references: [id])
+  auditLogs      IceAuditLog[]
+  supportTickets IceSupportTicket[] @relation("TicketAssignee")
+  loginLogs      IceLoginLog[]
+  supportReplies IceSupportReply[]
 
   @@map("ice_admins")
 }
 
 model IceAdminRole {
-  id          Int         @id @default(autoincrement())
-  name        String      @unique 
-  permissions String      @db.Text
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  permissions String     @db.Text
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
   admins      IceAdmin[]
 
   @@map("ice_admin_roles")
@@ -11713,7 +11711,7 @@ model IceAdminRole {
 
 model IceSubscriptionPlan {
   id                Int       @id @default(autoincrement())
-  name              String    @unique 
+  name              String    @unique
   priceMonthly      Decimal   @default(0) @map("price_monthly") @db.Decimal(10, 2)
   priceYearly       Decimal   @default(0) @map("price_yearly") @db.Decimal(10, 2)
   maxUsers          Int       @default(1) @map("max_users")
@@ -11729,28 +11727,28 @@ model IceSubscriptionPlan {
   updatedAt         DateTime  @updatedAt @map("updated_at")
   deletedAt         DateTime? @map("deleted_at")
 
-  subscriptions     IceTenantSubscription[]
-  planModules       IcePlanModule[]
+  subscriptions IceTenantSubscription[]
+  planModules   IcePlanModule[]
 
   @@map("ice_plans")
 }
 
 model IceTenantSubscription {
-  id               Int       @id @default(autoincrement())
-  tenantId         String    @unique @map("tenant_id") 
-  planId           Int       @map("plan_id")
-  status           String    @default("TRIAL") 
-  startDate        DateTime  @map("start_date")
-  endDate          DateTime  @map("end_date")
-  billingCycle     String    @default("YEARLY") 
-  paymentMethod    String?   @map("payment_method") 
-  autoRenew        Boolean   @default(false) @map("auto_renew")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  tenantId      String   @unique @map("tenant_id")
+  planId        Int      @map("plan_id")
+  status        String   @default("TRIAL")
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  billingCycle  String   @default("YEARLY")
+  paymentMethod String?  @map("payment_method")
+  autoRenew     Boolean  @default(false) @map("auto_renew")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  plan             IceSubscriptionPlan      @relation(fields: [planId], references: [id])
-  invoices         IceSubscriptionInvoice[]
-  desktopLicenses  IceDesktopLicense[]
+  plan            IceSubscriptionPlan      @relation(fields: [planId], references: [id])
+  invoices        IceSubscriptionInvoice[]
+  desktopLicenses IceDesktopLicense[]
 
   @@index([tenantId, status])
   @@index([endDate])
@@ -11758,22 +11756,22 @@ model IceTenantSubscription {
 }
 
 model IceSubscriptionInvoice {
-  id               Int       @id @default(autoincrement())
-  invoiceNo        String    @unique @map("invoice_no")
-  tenantId         String    @map("tenant_id")
-  subscriptionId   Int       @map("subscription_id")
-  amount           Decimal   @default(0) @db.Decimal(10, 2)
-  vatAmount        Decimal   @default(0) @map("vat_amount") @db.Decimal(10, 2)
-  total            Decimal   @default(0) @db.Decimal(10, 2)
-  status           String    @default("PENDING")
-  paymentMethod    String?   @map("payment_method")
-  paymentGateRef   String?   @map("payment_gate_ref")
-  receiptNo        String?   @map("receipt_no") 
-  issueDate        DateTime  @default(now()) @map("issue_date")
-  dueDate          DateTime  @map("due_date")
-  paidAt           DateTime? @map("paid_at")
+  id             Int       @id @default(autoincrement())
+  invoiceNo      String    @unique @map("invoice_no")
+  tenantId       String    @map("tenant_id")
+  subscriptionId Int       @map("subscription_id")
+  amount         Decimal   @default(0) @db.Decimal(10, 2)
+  vatAmount      Decimal   @default(0) @map("vat_amount") @db.Decimal(10, 2)
+  total          Decimal   @default(0) @db.Decimal(10, 2)
+  status         String    @default("PENDING")
+  paymentMethod  String?   @map("payment_method")
+  paymentGateRef String?   @map("payment_gate_ref")
+  receiptNo      String?   @map("receipt_no")
+  issueDate      DateTime  @default(now()) @map("issue_date")
+  dueDate        DateTime  @map("due_date")
+  paidAt         DateTime? @map("paid_at")
 
-  subscription     IceTenantSubscription @relation(fields: [subscriptionId], references: [id])
+  subscription IceTenantSubscription @relation(fields: [subscriptionId], references: [id])
 
   @@index([tenantId])
   @@index([status])
@@ -11782,11 +11780,11 @@ model IceSubscriptionInvoice {
 
 model IceSystemModule {
   id          Int      @id @default(autoincrement())
-  code        String   @unique 
+  code        String   @unique
   nameAr      String   @map("name_ar")
   nameEn      String   @map("name_en")
   description String?
-  parentId    Int?     @map("parent_id") 
+  parentId    Int?     @map("parent_id")
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -11799,62 +11797,62 @@ model IceSystemModule {
 }
 
 model IcePlanModule {
-  id          Int      @id @default(autoincrement())
-  planId      Int      @map("plan_id")
-  moduleId    Int      @map("module_id")
+  id       Int @id @default(autoincrement())
+  planId   Int @map("plan_id")
+  moduleId Int @map("module_id")
 
-  plan        IceSubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  module      IceSystemModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  plan   IceSubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  module IceSystemModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([planId, moduleId])
   @@map("ice_plan_modules")
 }
 
 model IceTenantModule {
-  id          Int      @id @default(autoincrement())
-  tenantId    String   @map("tenant_id")
-  moduleId    Int      @map("module_id")
-  isActive    Boolean  @default(true) @map("is_active")
+  id       Int     @id @default(autoincrement())
+  tenantId String  @map("tenant_id")
+  moduleId Int     @map("module_id")
+  isActive Boolean @default(true) @map("is_active")
 
-  module      IceSystemModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  module IceSystemModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, moduleId])
   @@map("ice_tenant_modules")
 }
 
 model IceDesktopLicense {
-  id                Int       @id @default(autoincrement())
-  licenseKey        String    @unique @map("license_key")
-  tenantId          String    @map("tenant_id")
-  subscriptionId    Int       @map("subscription_id")
-  hardwareId        String?   @unique @map("hardware_id")
-  deviceName        String?   @map("device_name")
-  status            String    @default("ACTIVE") 
-  appVersion        String?   @map("app_version")
-  lastSyncAt        DateTime? @map("last_sync_at")
-  offlineGraceDays  Int       @default(7) @map("offline_grace_days")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  id               Int       @id @default(autoincrement())
+  licenseKey       String    @unique @map("license_key")
+  tenantId         String    @map("tenant_id")
+  subscriptionId   Int       @map("subscription_id")
+  hardwareId       String?   @unique @map("hardware_id")
+  deviceName       String?   @map("device_name")
+  status           String    @default("ACTIVE")
+  appVersion       String?   @map("app_version")
+  lastSyncAt       DateTime? @map("last_sync_at")
+  offlineGraceDays Int       @default(7) @map("offline_grace_days")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  subscription      IceTenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscription IceTenantSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("ice_desktop_licenses")
 }
 
 model IceAuditLog {
-  id          Int      @id @default(autoincrement())
-  adminId     Int      @map("admin_id")
-  action      String   
-  entityType  String   @map("entity_type")
-  entityId    String   @map("entity_id")
-  oldValues   String?  @db.Text
-  newValues   String?  @db.Text
-  ipAddress   String   @map("ip_address")
-  userAgent   String?  @map("user_agent")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         Int      @id @default(autoincrement())
+  adminId    Int      @map("admin_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  oldValues  String?  @db.Text
+  newValues  String?  @db.Text
+  ipAddress  String   @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  admin       IceAdmin @relation(fields: [adminId], references: [id])
+  admin IceAdmin @relation(fields: [adminId], references: [id])
 
   @@index([entityType, entityId])
   @@index([createdAt])
@@ -11862,15 +11860,15 @@ model IceAuditLog {
 }
 
 model IceLoginLog {
-  id          Int      @id @default(autoincrement())
-  adminId     Int?     @map("admin_id")
-  username    String?
-  ipAddress   String   @map("ip_address")
-  userAgent   String?  @map("user_agent")
-  status      String   
-  createdAt   DateTime @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  adminId   Int?     @map("admin_id")
+  username  String?
+  ipAddress String   @map("ip_address")
+  userAgent String?  @map("user_agent")
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
 
-  admin       IceAdmin? @relation(fields: [adminId], references: [id])
+  admin IceAdmin? @relation(fields: [adminId], references: [id])
 
   @@index([ipAddress])
   @@index([createdAt])
@@ -11878,18 +11876,18 @@ model IceLoginLog {
 }
 
 model IceSupportTicket {
-  id          Int      @id @default(autoincrement())
-  ticketNo    String   @unique @map("ticket_no")
-  tenantId    String   @map("tenant_id")
-  subject     String
-  status      String   @default("OPEN")
-  priority    String   @default("MEDIUM") 
-  assignedTo  Int?     @map("assigned_to")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         Int      @id @default(autoincrement())
+  ticketNo   String   @unique @map("ticket_no")
+  tenantId   String   @map("tenant_id")
+  subject    String
+  status     String   @default("OPEN")
+  priority   String   @default("MEDIUM")
+  assignedTo Int?     @map("assigned_to")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  assignee    IceAdmin?     @relation("TicketAssignee", fields: [assignedTo], references: [id])
-  replies     IceSupportReply[]
+  assignee IceAdmin?         @relation("TicketAssignee", fields: [assignedTo], references: [id])
+  replies  IceSupportReply[]
 
   @@index([tenantId])
   @@index([status])
@@ -11897,16 +11895,16 @@ model IceSupportTicket {
 }
 
 model IceSupportReply {
-  id          Int      @id @default(autoincrement())
-  ticketId    Int      @map("ticket_id")
-  adminId     Int?     @map("admin_id")
-  tenantUserId Int?    @map("tenant_user_id") 
-  message     String   @db.Text
-  isInternal  Boolean  @default(false) @map("is_internal")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  ticketId     Int      @map("ticket_id")
+  adminId      Int?     @map("admin_id")
+  tenantUserId Int?     @map("tenant_user_id")
+  message      String   @db.Text
+  isInternal   Boolean  @default(false) @map("is_internal")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  ticket      IceSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  admin       IceAdmin?    @relation(fields: [adminId], references: [id])
+  ticket IceSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  admin  IceAdmin?        @relation(fields: [adminId], references: [id])
 
   @@map("ice_support_replies")
 }
@@ -11929,18 +11927,18 @@ enum IdempotencyStatus {
 }
 
 model IdempotencyRecord {
-  id              Int               @id @default(autoincrement())
-  tenantId        String            @map("tenant_id")
-  key             String            @db.VarChar(100)
-  endpoint        String
-  requestHash     String
-  status          IdempotencyStatus @default(IN_PROGRESS)
-  responseCode    Int?
-  responseBody    Json?
-  lockedAt        DateTime          @default(now()) @map("locked_at")
-  expiresAt       DateTime          @map("expires_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  id           Int               @id @default(autoincrement())
+  tenantId     String            @map("tenant_id")
+  key          String            @db.VarChar(100)
+  endpoint     String
+  requestHash  String
+  status       IdempotencyStatus @default(IN_PROGRESS)
+  responseCode Int?
+  responseBody Json?
+  lockedAt     DateTime          @default(now()) @map("locked_at")
+  expiresAt    DateTime          @map("expires_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
 
   @@unique([tenantId, endpoint, key])
   @@map("idempotency_records")

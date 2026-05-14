@@ -587,6 +587,7 @@ export async function postPurchaseReturn(ret: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     const receiveAccount = ret.paymentType === 'cash' ? ACCOUNTS.CASH :
         ret.paymentType === 'bank' ? ACCOUNTS.BANK :
@@ -603,6 +604,7 @@ export async function postPurchaseReturn(ret: {
         userId: ret.userId,
         branchId: ret.branchId,
         date: ret.date,
+        txClient: ret.txClient,
     });
 }
 
