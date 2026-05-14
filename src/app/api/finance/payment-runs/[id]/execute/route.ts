@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { PaymentRunEngine } from '@/lib/payment-run-engine';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'finance.payment-runs.id.execute' });
 
@@ -18,6 +19,12 @@ async function _POST(
 
     try {
         const { id } = await params;
+        const tenantId = req.headers.get('x-tenant-id');
+
+        if (!tenantId) {
+            return NextResponse.json({ error: "Tenant ID is required" }, { status: 400 });
+        }
+
         const body = await req.json().catch(() => ({}));
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -26,7 +33,7 @@ async function _POST(
         }
         const userId = body.userId || '1';
 
-        const result = await PaymentRunEngine.executePayments(parseInt(id, 10), userId);
+        const result = await PaymentRunEngine.executePayments(parseInt(id, 10), userId, tenantId);
         return NextResponse.json(result);
     } catch (e: any) {
         log.error('src/app/api/finance/payment-runs/[id]/execute/route.ts', { error: e instanceof Error ? e.message : e });
@@ -35,4 +42,6 @@ async function _POST(
     }
 }
 
-export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }, context) => {
+    return withIdempotency(req as NextRequest, 'POST /api/finance/payment-runs/[id]/execute', async () => _POST(req as NextRequest, context));
+}, { rateLimit: 'DEFAULT' });

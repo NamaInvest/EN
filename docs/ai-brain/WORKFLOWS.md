@@ -33,6 +33,18 @@
   5. Payment remaining amount is reduced, and invoice `openAmount` is cleared or reduced.
   6. Transaction commits safely. No swallowed errors are permitted.
 
+## Payment Run Execute Lifecycle (Phase B.2)
+- **API**: `POST /api/finance/payment-runs/[id]/execute`
+- **Idempotency**: Protected by `withIdempotency`.
+- **Flow**:
+  1. API extracts `tenantId` from headers and blocks requests lacking it.
+  2. Engine uses `prisma.$transaction` to guarantee atomicity.
+  3. Validates `tenantId` against the `paymentRun`.
+  4. Generates bank transfer file (SADAD/ISO 20022).
+  5. Iterates through lines and updates status to `PAID`.
+  6. Updates parent `paymentRun` to `SENT_TO_BANK`.
+  7. Commits or rolls back entirely (GL/Treasury logic is intentionally deferred).
+
 ## Sales Returns Lifecycle (Atomic)
 - **API**: `POST /api/sales-returns`
 - **Validation**: Verifies original invoice belongs to `tenantId` & validates items.

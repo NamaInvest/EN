@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.0.6
+- **Payment Run Execute Atomicity (Phase B.2):** Wrapped `POST /api/finance/payment-runs/[id]/execute` in `withIdempotency` to prevent double-execution of bank files. Integrated mandatory `tenantId` checking and filtering. Executed `PaymentRunEngine.executePayments` within a strict `prisma.$transaction` encompassing both run status and line item updates. Banned `.catch(() => {})` usage.
+
 ## Version 1.0.5
 - **Apply Payment Atomicity (Phase B.1):** Wrapped `POST /api/accounting/open-items/apply-payment` in `withIdempotency`. Implemented explicit `tenantId` boundaries in `OpenItemsEngine.applyPayment`, `markAsDisputed`, and `recordPromiseToPay`. Ensured complete `prisma.$transaction` execution for apply payment operations.
 
