@@ -1,12 +1,12 @@
 # 08 - قاعدة البيانات الكاملة — جميع الجداول والعلاقات (Full Database Schema)
 
-> **إجمالي الأسطر في schema.prisma:** 11923
+> **إجمالي الأسطر في schema.prisma:** 11948
 
-> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-05-14T02:50:20.699Z
+> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-05-14T08:21:19.703Z
 
 ## إحصائيات
-- **عدد الجداول (Models):** 607
-- **عدد التعدادات (Enums):** 1
+- **عدد الجداول (Models):** 608
+- **عدد التعدادات (Enums):** 2
 
 ## فهرس الجداول
 1. `User` (60 حقل)
@@ -616,6 +616,7 @@
 605. `IceSupportTicket` (11 حقل)
 606. `IceSupportReply` (9 حقل)
 607. `IceSystemSetting` (5 حقل)
+608. `IdempotencyRecord` (12 حقل)
 
 ---
 
@@ -10553,10 +10554,29 @@
 | `description` | `String?` |  |
 | `updatedAt` | `DateTime` | @updatedAt @map("updated_at") |
 
+## Model: `IdempotencyRecord`
+| الحقل | النوع | الوصف |
+|---|---|---|
+| `id` | `Int` | @id @default(autoincrement()) |
+| `tenantId` | `String` | @map("tenant_id") |
+| `key` | `String` | @db.VarChar(100) |
+| `endpoint` | `String` |  |
+| `requestHash` | `String` |  |
+| `status` | `IdempotencyStatus` | @default(IN_PROGRESS) |
+| `responseCode` | `Int?` |  |
+| `responseBody` | `Json?` |  |
+| `lockedAt` | `DateTime` | @default(now()) @map("locked_at") |
+| `expiresAt` | `DateTime` | @map("expires_at") |
+| `createdAt` | `DateTime` | @default(now()) @map("created_at") |
+| `updatedAt` | `DateTime` | @updatedAt @map("updated_at") |
+
 ---
 
 ## التعدادات (Enums)
 
 ### `AuditAction`
 القيم: `CREATE`, `UPDATE`, `DELETE`, `APPROVE`, `REJECT`, `POST`, `REVERSE`, `CANCEL`, `VOID`, `PRINT`, `EXPORT`, `LOGIN`, `LOGOUT`
+
+### `IdempotencyStatus`
+القيم: `IN_PROGRESS`, `COMPLETED`, `FAILED`
 

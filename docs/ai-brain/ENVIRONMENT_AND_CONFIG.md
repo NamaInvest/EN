@@ -1,0 +1,165 @@
+# Environment and Config
+
+
+# 12 - الحزم والاعتماديات (Dependencies & Config)
+
+## معلومات المشروع
+- **الاسم:** `namaweb`
+- **الإصدار:** `2.4.8`
+
+## أوامر التشغيل (Scripts)
+- `npm run dev` → `next dev`
+- `npm run build` → `npx prisma@5.22.0 generate && cross-env NODE_OPTIONS=--max-old-space-size=4096 next build`
+- `npm run start` → `next start`
+- `npm run worker` → `tsx src/scripts/start_workers.ts`
+- `npm run start:whatsapp` → `tsx src/workers/whatsapp.ts`
+- `npm run lint` → `eslint`
+- `npm run db:generate` → `npx prisma generate`
+- `npm run db:push` → `npx prisma db push`
+- `npm run db:seed` → `npx tsx prisma/seed.ts`
+- `npm run db:setup` → `npx prisma db push && npx tsx prisma/seed.ts`
+- `npm run db:studio` → `npx prisma studio`
+- `npm run electron:dev` → `concurrently "node scripts/start-desktop.js" "wait-on http://localhost:3500 && electron ."`
+- `npm run electron:build` → `npm version patch --no-git-tag-version && node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win`
+- `npm run electron:pack` → `next build && electron-builder --dir`
+- `npm run electron:protect` → `node scripts/protect-code.js`
+- `npm run prepare` → `husky`
+- `npm run test` → `jest --passWithNoTests --forceExit`
+- `npm run test:unit` → `jest --testPathIgnorePatterns=financial-integration --passWithNoTests --forceExit`
+- `npm run test:e2e` → `cross-env TEST_BASE_URL=http://localhost:3000 jest --testPathPattern=financial-integration --runInBand --forceExit`
+- `npm run test:cov` → `jest --coverage --passWithNoTests --forceExit`
+- `npm run openapi` → `node scripts/generate-openapi.js`
+- `npm run audit:zod` → `node scripts/audit-zod.js`
+- `npm run typecheck` → `npx tsc --noEmit`
+- `npm run validate` → `npx tsc --noEmit && npx eslint src/ --max-warnings 0 && jest --passWithNoTests --forceExit`
+- `npm run db:migrate` → `npx prisma migrate deploy`
+- `npm run clean` → `rm -rf .next node_modules/.cache`
+- `npm run test:domain` → `jest --testPathPattern=tests/ --passWithNoTests --forceExit`
+- `npm run health` → `curl -s http://localhost:3000/api/health | npx -y prettier --parser json`
+- `npm run analyze` → `cross-env ANALYZE=true npm run build`
+
+## الحزم الأساسية (76 حزمة)
+- `@asteasolutions/zod-to-openapi`: ^8.5.0
+- `@clerk/localizations`: ^4.6.2
+- `@clerk/nextjs`: ^7.3.3
+- `@ducanh2912/next-pwa`: ^10.2.9
+- `@google/generative-ai`: ^0.24.1
+- `@hookform/resolvers`: ^5.2.2
+- `@langchain/core`: ^1.1.45
+- `@langchain/google-genai`: ^2.1.30
+- `@modelcontextprotocol/sdk`: ^1.29.0
+- `@prisma/client`: ^5.22.0
+- `@radix-ui/react-dialog`: ^1.1.15
+- `@radix-ui/react-dropdown-menu`: ^2.1.16
+- `@radix-ui/react-label`: ^2.1.8
+- `@radix-ui/react-select`: ^2.2.6
+- `@radix-ui/react-slot`: ^1.2.4
+- `@radix-ui/react-switch`: ^1.2.6
+- `@sentry/nextjs`: ^10.52.0
+- `@tanstack/react-query`: ^5.100.9
+- `@tanstack/react-table`: ^8.21.3
+- `@types/bcrypt`: ^6.0.0
+- `@types/nodemailer`: ^8.0.0
+- `@types/pg`: ^8.20.0
+- `@upstash/redis`: ^1.38.0
+- `archiver`: ^8.0.0
+- `bcrypt`: ^6.0.0
+- `bcryptjs`: ^3.0.3
+- `better-sqlite3`: ^12.9.0
+- `bullmq`: ^5.76.6
+- `bwip-js`: ^4.10.1
+- `cheerio`: ^1.2.0
+- `class-variance-authority`: ^0.7.1
+- `clsx`: ^2.1.1
+- `date-fns`: ^4.1.0
+- `electron-store`: ^11.0.2
+- `electron-updater`: ^6.8.3
+- `embedded-postgres`: ^18.3.0-beta.17
+- `exceljs`: ^4.4.0
+- `face-api.js`: ^0.22.2
+- `fast-xml-parser`: ^5.8.0
+- `iconv-lite`: ^0.7.2
+- `ioredis`: ^5.10.1
+- `jsonwebtoken`: ^9.0.3
+- `jspdf`: ^4.2.1
+- `jszip`: ^3.10.1
+- `langchain`: ^1.4.0
+- `lucide-react`: ^1.14.0
+- `marked`: ^18.0.3
+- `next`: 16.2.6
+- `node-machine-id`: ^1.1.12
+- `nodemailer`: ^8.0.7
+- `ollama`: ^0.6.3
+- `otplib`: ^13.4.0
+- `pg`: ^8.20.0
+- `prisma`: ^5.22.0
+- `puppeteer`: ^24.43.1
+- `qrcode`: ^1.5.4
+- `qrcode-terminal`: ^0.12.0
+- `qrcode.react`: ^4.2.0
+- `qz-tray`: ^2.2.6
+- `react`: 19.2.6
+- `react-dom`: 19.2.6
+- `react-hook-form`: ^7.75.0
+- `react-hot-toast`: ^2.4.1
+- `react-organizational-chart`: ^2.2.1
+- `recharts`: ^3.8.1
+- `showdown`: ^2.1.0
+- `speakeasy`: ^2.0.0
+- `ssh2`: ^1.17.0
+- `ssh2-sftp-client`: ^12.1.1
+- `tailwind-merge`: ^3.5.0
+- `tesseract.js`: ^7.0.0
+- `ts-morph`: ^28.0.0
+- `whatsapp-web.js`: ^1.34.7
+- `xlsx`: ^0.18.5
+- `zatca-xml-js`: ^0.1.9
+- `zod`: ^4.4.3
+
+## حزم التطوير (46 حزمة)
+- `@electron/asar`: ^4.2.0
+- `@electron/rebuild`: ^4.0.4
+- `@playwright/test`: ^1.59.1
+- `@tailwindcss/postcss`: ^4
+- `@testcontainers/postgresql`: ^11.14.0
+- `@testcontainers/redis`: ^11.14.0
+- `@testing-library/dom`: ^10.4.1
+- `@testing-library/jest-dom`: ^6.9.1
+- `@testing-library/react`: ^16.3.2
+- `@types/bcryptjs`: ^3.0.0
+- `@types/bwip-js`: ^3.2.3
+- `@types/glob`: ^9.0.0
+- `@types/jest`: ^30.0.0
+- `@types/jsonwebtoken`: ^9.0.10
+- `@types/node`: ^25
+- `@types/qrcode`: ^1.5.6
+- `@types/qrcode-terminal`: ^0.12.2
+- `@types/react`: ^19
+- `@types/react-dom`: ^19
+- `@types/speakeasy`: ^2.0.10
+- `@vitest/coverage-v8`: ^4.1.5
+- `babel-plugin-react-compiler`: 1.0.0
+- `bytenode`: ^1.5.7
+- `concurrently`: ^9.2.1
+- `cross-env`: ^10.1.0
+- `electron`: ^42.0.1
+- `electron-builder`: ^26.8.1
+- `eslint`: ^10
+- `eslint-config-next`: 16.2.6
+- `fast-check`: ^4.7.0
+- `husky`: ^9.1.7
+- `javascript-obfuscator`: ^5.4.2
+- `jest`: ^30.4.2
+- `jest-environment-jsdom`: ^30.4.1
+- `lint-staged`: ^17.0.4
+- `png-to-ico`: ^3.0.1
+- `redis`: ^5.12.1
+- `sharp`: ^0.34.5
+- `tailwindcss`: ^4
+- `testcontainers`: ^11.14.0
+- `ts-jest`: ^29.4.9
+- `ts-node`: ^10.9.2
+- `tsx`: ^4.21.0
+- `typescript`: ^6
+- `vitest`: ^4.1.5
+- `wait-on`: ^9.0.5

@@ -1,29 +1,20 @@
+
 # AI Project Memory
+**Generated At:** 2026-05-14T08:21:09.109Z
 
-## Active Phase: Financial Atomicity & Stability
+## Welcome, AI Agent!
+You are operating inside **Nama Invest ERP**. This system is highly complex, multi-tenant, and financially sensitive.
+Before writing any code, YOU MUST read the relevant files in the `docs/ai-brain` directory.
 
-### Verified Patterns
-**Sales Invoice Atomicity (txClient Injection)**
-- **Status:** Verified and implemented.
-- **Pattern Details:** 
-  - `src/lib/auto-journal.ts` now accepts `txClient` injection into `postSalesInvoice` and `createJournalEntry`.
-  - All Sales Invoice operations (Invoice Creation, Stock Deduction, ZATCA Event Outbox, and Journal Entry Creation) run inside a single `prisma.$transaction(async tx => { ... })`.
-  - If the Journal Entry fails (e.g., unbalanced, account missing, closed period), it throws a hard error which bubbles up and automatically rolls back all prior operations in the transaction.
-  - ZATCA Phase 2 calls are completely decoupled from the critical path using `EventLog` (Outbox pattern). ZATCA operations are triggered asynchronously via Background Workers.
+## Core Directories
+- `/docs/ai-brain/PROJECT_BRAIN.md`: Executive Overview
+- `/docs/ai-brain/SYSTEM_MAP.md`: Architecture & Folders
+- `/docs/ai-brain/DOMAIN_MAP.md`: Business Domains
+- `/docs/ai-brain/FINANCIAL_INTEGRITY.md`: ⚠️ CRITICAL FINANCIAL RULES
+- `/docs/ai-brain/AI_AGENT_RULES.md`: ⚠️ CRITICAL AGENT INSTRUCTIONS
 
-**Purchase Invoice Atomicity (txClient Injection)**
-- **Status:** Verified and implemented.
-- **Pattern Details:** 
-  - `src/lib/auto-journal.ts` now accepts `txClient` injection into `postPurchaseInvoice`.
-  - All Purchase Invoice operations (Invoice Creation, Stock Addition, Audit Logging, and Journal Entry Creation) run inside a single `prisma.$transaction`.
-  - Swallowed errors during Inventory (`productStock.upsert`) were eliminated. If inventory fails, the entire transaction rolls back.
-  - Throws explicit error if the journal fails to create, ensuring strict atomic synchronization with GL.
-- **Next Steps:** Replicate this identical pattern to `Sales Returns` and `Purchase Returns`.
-
-**Financial Idempotency (Enterprise Level)**
-- **Status:** Implemented in `schema.prisma`, `withIdempotency` wrapper, and applied to `/api/sales` and `/api/purchases`.
-- **Pattern Details:**
-  - Designed `IdempotencyRecord` Prisma model with `@@unique([tenantId, endpoint, key])` to leverage database-level constraint for exact race condition prevention (Double-Posting).
-  - Uses Request Payload Hashing (`sha256`) to prevent client from changing body while keeping the same idempotency key.
-  - Caches `COMPLETED` responses for offline sync / retry handling.
-- **Next Steps:** Extend `withIdempotency` wrapper to `Sales Returns`, `Purchase Returns`, `Payments`, and `Treasury`.
+## Your Mandate
+1. Check the Brain.
+2. Write Code.
+3. Validate via `tsc --noEmit`.
+4. Update the Brain if architecture changes.

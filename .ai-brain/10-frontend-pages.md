@@ -201,7 +201,6 @@
 - `/(dashboard)/hr/timesheet` — Client (63 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/hr/training` — Client (192 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/hr/wps` — Client (377 سطر) [useState, useEffect, fetch, i18n]
-- `/(dashboard)/ice` — Client (13 سطر)
 - `/(dashboard)/installments` — Client (56 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/inv/serials` — Client (71 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/inventory/abc-analysis` — Client (228 سطر) [useState, useEffect, fetch, i18n]
@@ -271,7 +270,7 @@
 - `/(dashboard)/procurement/vendor-portal` — Client (236 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/procurement/vendor-scorecard` — Client (13 سطر)
 - `/(dashboard)/procurement/vendors/scorecard` — Client (259 سطر) [useState, useEffect, fetch, i18n]
-- `/(dashboard)/products` — Client (418 سطر) [useState, useEffect, fetch, i18n]
+- `/(dashboard)/products` — Client (425 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/profile/security` — Client (193 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/promotions` — Server (123 سطر) [i18n]
 - `/(dashboard)/purchase-orders` — Client (642 سطر) [useState, useEffect, fetch, i18n]
@@ -447,6 +446,7 @@
 - `/(dashboard)/whatsapp-hub` — Client (210 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/wms/waves` — Client (13 سطر)
 - `/(dashboard)/zakat` — Client (13 سطر)
+- `/(dashboard)/_ice_archive` — Client (13 سطر)
 
 ## 📂 `api-docs` (1 صفحة)
 - `/api-docs` — Server (88 سطر)

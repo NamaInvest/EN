@@ -1,7 +1,7 @@
 # 09 - المكتبات والأدوات الأساسية (Core Libraries & Utils)
 
-> **عدد الملفات في src/lib:** 536
-> **تم التوليد تلقائياً بتاريخ:** 2026-05-14T02:50:20.920Z
+> **عدد الملفات في src/lib:** 540
+> **تم التوليد تلقائياً بتاريخ:** 2026-05-14T08:21:21.790Z
 
 ## `src/lib/ab-testing.ts` (89 سطر)
 ### الثوابت المُصدّرة:
@@ -311,7 +311,7 @@
 
 ## `src/lib/auto-journal.test.ts` (161 سطر)
 
-## `src/lib/auto-journal.ts` (1283 سطر)
+## `src/lib/auto-journal.ts` (1293 سطر)
 ### الدوال المُصدّرة:
 - `postSalesInvoice(invoice: {
     invoiceNo: number;
@@ -404,19 +404,19 @@
     reference: string;)`
 - `postInstallmentBilling(params: {
     contractId: string;
-    totalAmount: number; // Principal + Intere)`
+    totalAmount: number; // Principal + Inte)`
 - `postInstallmentReceive(params: {
     contractId: string;
     installmentAmount: number;
-    principalRe)`
+    principa)`
 - `postGiftCardSold(params: {
     cardId: string;
     amount: number;
-    paymentType: 'cash' | 'ban)`
+    paymentType: 'cash' | ')`
 - `postFXRevaluation(params: {
     period: string;
     accountCode: string; // e.g. AP or AR
-    base)`
+    b)`
 ### الأنواع (Types):
 - `JournalDimensions`
 
@@ -1593,10 +1593,12 @@
 ### الفئات:
 - `ICNettingEngine`
 
-## `src/lib/idempotency.ts` (102 سطر)
-### الثوابت المُصدّرة:
-- `POST`
-- `idempotency`
+## `src/lib/idempotency.ts` (153 سطر)
+### الدوال المُصدّرة:
+- `withIdempotency(
+    req: any,
+    endpoint: string,
+    handler: ()`
 
 ## `src/lib/ifrs-engines.ts` (209 سطر)
 ### الفئات:
@@ -2286,7 +2288,7 @@
 )`
 - `hardDelete(prisma: any, model: string, where: any)`
 
-## `src/lib/prisma.ts` (304 سطر)
+## `src/lib/prisma.ts` (335 سطر)
 ### الدوال المُصدّرة:
 - `getDbUrl(tenant: string, isRead = false)`
 - `getClient(tenant: string, options: { read?: boolean } = {})`
@@ -2875,7 +2877,7 @@
   rese)`
 - `handlePreflight(req: NextRequest)`
 
-## `src/lib/seed-socpa-coa.ts` (113 سطر)
+## `src/lib/seed-socpa-coa.ts` (110 سطر)
 ### الدوال المُصدّرة:
 - `seedSocpaCoA(
   tenantId: string,
@@ -3687,11 +3689,19 @@
 
 ## `src/lib/__tests__/gosi-rates.test.ts` (49 سطر)
 
+## `src/lib/__tests__/idempotency.test.ts` (119 سطر)
+
 ## `src/lib/__tests__/open-items-engine.test.ts` (145 سطر)
 
 ## `src/lib/__tests__/p1-services.test.ts` (124 سطر)
 
 ## `src/lib/__tests__/payroll-posting.test.ts` (91 سطر)
+
+## `src/lib/__tests__/purchase-atomicity.test.ts` (117 سطر)
+
+## `src/lib/__tests__/sales-atomicity.test.ts` (152 سطر)
+
+## `src/lib/__tests__/tenant-isolation.test.ts` (112 سطر)
 
 ## `src/lib/__tests__/wht-service.test.ts` (77 سطر)
 
