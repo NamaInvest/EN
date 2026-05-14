@@ -1,5 +1,5 @@
 ﻿/**
- * GET /api/manufacturing/stats â€” Manufacturing KPIs (Production Grade)
+ * GET /api/manufacturing/stats — Manufacturing KPIs (Production Grade)
  * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Returns real-time production KPIs:
  *   - Order counts by status (total, WIP, completed, cancelled, planned)

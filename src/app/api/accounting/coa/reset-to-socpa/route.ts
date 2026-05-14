@@ -28,7 +28,7 @@ async function _GET(request: NextRequest) {
   const accounts = await (prisma as any).account.findMany({ take: 100,
     where: { tenantId },
     orderBy: { code: 'asc' },
-    select: { id: true, code: true, nameAr: true, name: true, type: true, parentId: true, isControl: true, controlType: true },
+    select: { id: true, code: true, name: true, nameEn: true, type: true, parentId: true },
   });
 
   return NextResponse.json({ accounts, total: accounts.length });

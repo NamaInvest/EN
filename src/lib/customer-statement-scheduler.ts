@@ -27,7 +27,7 @@ export class CustomerStatementScheduler {
         });
 
         if (customers.length === 0) {
-            log.info('No customers found for frequency â€” skipping batch', { frequency });
+            log.info('No customers found for frequency — skipping batch', { frequency });
             return;
         }
 

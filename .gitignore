@@ -62,3 +62,5 @@ dist-electron/
 # Graphify analysis cache (not needed in production)
 graphify-out/
 
+public/downloads/*.exe
+*.exe

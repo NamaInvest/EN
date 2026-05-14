@@ -39,8 +39,14 @@ const PUBLIC_ROUTES = [
   '/api/pos/session/open',
   '/api/docs',
   '/api/metrics',
+  '/api/master-panel/auth',        // master login handles its own credential check
+  '/api/master-panel-data',        // guarded internally by master_token/owner token
+  '/api/master-panel/servers',     // guarded internally by master_token/owner token
+  '/api/master-panel/licenses',    // guarded internally by master_token/owner token
   '/api/tenant/provision',         // handles its own auth (Clerk userId or clerkEmail)
   '/api/tenant/check-status',      // read-only — checks if user has provisioned tenant
+  '/api/tenant/status',            // legacy read-only tenant status lookup used by auth routing
+  '/api/translate',                // Public translation endpoint for onboarding
 ];
 
 // ── Permanently Disabled Routes (HTTP 410 Gone) ───────────────────────────────
@@ -74,13 +80,47 @@ function json401(message: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+
+  // ── 0. Subdomain Tenant Resolution (Law 1) ───────────────────────────────────
+  const host = request.headers.get('host') || '';
+  let subdomain = 'default';
+  if (host.includes('.namainvist.com')) {
+    subdomain = host.split('.namainvist.com')[0];
+  } else if (host.includes('localhost')) {
+    const parts = host.split('.');
+    if (parts.length > 1 && parts[0] !== 'localhost') {
+      subdomain = parts[0];
+    }
+  }
+  requestHeaders.set('x-tenant-subdomain', subdomain);
 
   // ── 1. API Versioning Rewrite (/api/v1/* → /api/*) ──────────────────────────
   if (pathname.startsWith('/api/v1/')) {
     const newUrl = new URL(request.url);
     newUrl.pathname = pathname.replace('/api/v1/', '/api/');
-    return NextResponse.rewrite(newUrl);
+    return NextResponse.rewrite(newUrl, { request: { headers: requestHeaders } });
   }
+
+  // ── 1.5 ICE Super Admin Panel Guard ──────────────────────────────────────────
+  if (pathname.startsWith('/ice') && !pathname.startsWith('/ice/login')) {
+    const iceSession = request.cookies.get('ice_session')?.value;
+    if (!iceSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/ice/login';
+      return NextResponse.redirect(url);
+    }
+    try {
+      const jwtSecret = process.env.JWT_SECRET || 'fallback_super_secret_ice_key_2026';
+      const secret = new TextEncoder().encode(jwtSecret);
+      await jwtVerify(iceSession, secret);
+    } catch {
+      const url = request.nextUrl.clone();
+      url.pathname = '/ice/login';
+      return NextResponse.redirect(url);
+    }
+  }
+
 
   // ── 2. Disabled routes ────────────────────────────────────────────────────────
   if (isDisabledRoute(pathname)) {
@@ -97,12 +137,12 @@ export async function middleware(request: NextRequest) {
     if (!expectedSecret || cronSecret !== expectedSecret) {
       return json401('Invalid cron secret');
     }
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ── 4. Public routes ──────────────────────────────────────────────────────────
   if (isPublicRoute(pathname)) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ── 5 + 6. Authenticate: API Key or JWT ─────────────────────────────────────
@@ -114,7 +154,7 @@ export async function middleware(request: NextRequest) {
   if (rawToken && API_KEY_PATTERN.test(rawToken)) {
     // The actual SHA-256 DB lookup happens in withRoute/api-key-auth.
     // Middleware just confirms format and forwards the key for downstream verification.
-    const requestHeaders = new Headers(request.headers);
+    // The global requestHeaders is already created
     requestHeaders.set('x-api-key', rawToken);
     requestHeaders.set('x-auth-type', 'api-key');
     // tenantId will be resolved from the DB record in the route handler.
@@ -137,7 +177,7 @@ export async function middleware(request: NextRequest) {
   try {
     const secret        = new TextEncoder().encode(jwtSecret);
     const { payload }   = await jwtVerify(token, secret);
-    const requestHeaders = new Headers(request.headers);
+    // The global requestHeaders is already created
 
     requestHeaders.set('x-user-id',   String(payload.userId   ?? ''));
     requestHeaders.set('x-user-role', String(payload.role     ?? ''));
@@ -151,7 +191,16 @@ export async function middleware(request: NextRequest) {
   }
 }
 
-// Run on all API routes (pages are public by default)
+// Run on all routes except static files to resolve subdomains globally
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };
+

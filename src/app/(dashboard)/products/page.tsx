@@ -53,6 +53,7 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const PER_PAGE = 50;
   const [showInactive, setShowInactive] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
   
   const [canResetStock, setCanResetStock] = useState(false);
   const [canDeleteProduct, setCanDeleteProduct] = useState(false);
@@ -86,10 +87,17 @@ export default function ProductsPage() {
       if (search) params.set('search', search);
       if (categoryFilter) params.set('category_id', categoryFilter);
       if (showInactive) params.set('include_inactive', 'true');
+      params.set('page', page.toString());
+      params.set('limit', PER_PAGE.toString());
       const res = await fetch(`/api/products?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setProducts(await res.json());
+      if (res.ok) {
+        setProducts(await res.json());
+        const tc = res.headers.get('X-Total-Count');
+        if (tc) setTotalCount(parseInt(tc, 10));
+        else setTotalCount(0);
+      }
     } catch (err: any) { toastError(err?.message || 'حدث خطأ'); }
     finally { setLoading(false); }
   }
@@ -111,10 +119,9 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    setPage(1);
     const timer = setTimeout(fetchProducts, 300);
     return () => clearTimeout(timer);
-  }, [search, categoryFilter, showInactive]);
+  }, [search, categoryFilter, showInactive, page]);
 
   const openAdd = () => {
     setEditProduct(null);
@@ -246,14 +253,14 @@ export default function ProductsPage() {
     } catch { toastError('فشل في الاتصال'); }
   };
 
-  const paginatedProducts = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(products.length / PER_PAGE);
+  const paginatedProducts = products;
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
 
   return (
     <>
       <div className="page-header">
         <h1 className="page-title">{t('sys.str_866')}</h1>
-        <span className="badge badge-info">{products.length} {t('sys.str_867')}</span>
+        <span className="badge badge-info">{totalCount} {t('sys.str_867')}</span>
       </div>
       <div className="page-content animate-fade-in">
         <div className="toolbar">
@@ -263,17 +270,17 @@ export default function ProductsPage() {
               style={{ width: '100%' }}
               placeholder={t('sys.str_913')}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
           <select className="input" style={{ width: '180px' }}
-            value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}>
             <option value="">{t('sys.str_868')}</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <div className="toolbar-spacer" />
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)', marginRight: '12px' }}>
-            <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
+            <input type="checkbox" checked={showInactive} onChange={e => { setShowInactive(e.target.checked); setPage(1); }} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
             {t('sys.str_869')}
           </label>
           <input type="file" ref={fileInputRef} hidden accept=".xlsx, .xls" onChange={handleImport} />
@@ -392,7 +399,7 @@ export default function ProductsPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
             <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>{t('sys.str_883')}</button>
             <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-              {t('sys.str_884')}{page} {t('sys.str_885')}{totalPages} ({products.length} {t('sys.str_886')})</span>
+              {t('sys.str_884')}{page} {t('sys.str_885')}{totalPages} ({totalCount} {t('sys.str_886')})</span>
             <button className="btn btn-ghost btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>{t('sys.str_887')}</button>
           </div>
         )}

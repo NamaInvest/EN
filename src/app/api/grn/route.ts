@@ -1,9 +1,9 @@
 /**
- * Goods Received Notes (GRN) API â€” Complete Implementation
+ * Goods Received Notes (GRN) API — Complete Implementation
  * 
- * GET  /api/grn           â€” List GRNs
- * POST /api/grn           â€” Create GRN + auto-journal (Dr Inventory / Cr GRNI)
- * PUT  /api/grn           â€” Update GRN status (approve/reject)
+ * GET  /api/grn           — List GRNs
+ * POST /api/grn           — Create GRN + auto-journal (Dr Inventory / Cr GRNI)
+ * PUT  /api/grn           — Update GRN status (approve/reject)
  */
 
 import { NextRequest, NextResponse } from 'next/server';

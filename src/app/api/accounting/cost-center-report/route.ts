@@ -86,7 +86,7 @@ async function _GET(req: NextRequest) {
     return {
       id:           cc.id,
       code:         cc.code,
-      name:         cc.nameAr ?? cc.name,
+      name:         cc.name,
       revenue:      Math.round(data.revenue  * 100) / 100,
       expenses:     Math.round(data.expenses * 100) / 100,
       net:          Math.round(net           * 100) / 100,

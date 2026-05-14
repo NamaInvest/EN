@@ -15,7 +15,13 @@ export default function GlobalAuthGuard() {
             '/',
             '/sign-in',
             '/sign-up',
+            '/login',
+            '/sso-callback',       // [#8] صفحة SSO callback الوسيطة
+            '/auto-login',         // [#8] دخول تلقائي بعد SSO
+            '/auth',               // [#8] صفحة auth/routing
             '/company-info',
+            '/pricing',            // [#8] صفحة الأسعار العامة
+            '/billing-expired',    // صفحة انتهاء الاشتراك
             '/api',
             '/_next',
             '/manifest.json',

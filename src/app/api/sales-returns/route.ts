@@ -1,5 +1,5 @@
 /**
- * Sales Returns API â€” Complete Implementation
+ * Sales Returns API — Complete Implementation
  * Aligned with actual Prisma schema: SalesReturn model
  * Fields: returnNo, originalInvoiceId, customerId, subtotal, taxValue, total, userId, details[]
  */
@@ -144,7 +144,7 @@ async function _POST(req: NextRequest, auth: any) {
       }
     }
 
-    // Treasury entry â€” cash refund
+    // Treasury entry — cash refund
     await tx.treasury.create({
       data: {
         type:          'out',

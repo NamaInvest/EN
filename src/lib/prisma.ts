@@ -70,8 +70,14 @@ export function getDbUrl(tenant: string, isRead = false): string {
         return base;
     }
     
-    // In Phase 1 RLS, we use a single database and rely on tenantId extension.
-    return base;
+    // Legacy Phase 1 RLS tenants on single master database
+    const legacyTenants = ['n11', 'default'];
+    if (legacyTenants.includes(tenant)) {
+        return base;
+    }
+
+    // Phase 2: Physical Database per Tenant
+    return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
 // ── RLS Extension ───────────────────────────────────────────────
@@ -82,27 +88,32 @@ function withRLS(client: PrismaClient, tenantId: string) {
                 async $allOperations({ model, operation, args, query }) {
                     // Skip system models that don't have tenantId
                     const sysModels = ['Tenant', 'User', 'Session', 'SystemSetting'];
-                    if (sysModels.includes(model) || tenantId === 'default') {
+                    
+                    // Legacy tenants use RLS. New physical DB tenants use isolated DBs so they default to 'default' inside their own DB.
+                    const legacyTenants = ['n11', 'default'];
+                    const effectiveTenantId = legacyTenants.includes(tenantId) ? tenantId : 'default';
+
+                    if (sysModels.includes(model) || effectiveTenantId === 'default') {
                         return query(args);
                     }
 
-                    // For operations that read/write data, automatically inject tenantId
+                    // For operations that read/write data, automatically inject effectiveTenantId
                     if (['findUnique', 'findFirst', 'findMany', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
                         // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                        args.where = { ...args.where, tenantId };
+                        args.where = { ...args.where, tenantId: effectiveTenantId };
                     } else if (['create', 'createMany'].includes(operation)) {
                         // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
                         if (Array.isArray(args.data)) {
                             // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                            args.data = args.data.map(d => ({ ...d, tenantId }));
+                            args.data = args.data.map(d => ({ ...d, tenantId: effectiveTenantId }));
                         } else {
                             // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                            args.data = { ...args.data, tenantId };
+                            args.data = { ...args.data, tenantId: effectiveTenantId };
                         }
                     } else if (operation === 'upsert') {
                         // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
-                        args.where = { ...args.where, tenantId };
-                        args.create = { ...args.create, tenantId };
+                        args.where = { ...args.where, tenantId: effectiveTenantId };
+                        args.create = { ...args.create, tenantId: effectiveTenantId };
                     }
                     
                     return query(args);
@@ -115,23 +126,57 @@ function withRLS(client: PrismaClient, tenantId: string) {
 // ── Get or create Prisma client for tenant ──────────────────────
 export function getClient(tenant: string, options: { read?: boolean } = {}) {
     const isRead = !!options.read;
-    const poolKey = isRead ? 'SHARED_DB_INSTANCE_READ' : 'SHARED_DB_INSTANCE';
+    const dbUrl = getDbUrl(tenant, isRead);
+    
+    // Pool key must be unique per physical database URL to prevent cross-tenant data leaks
+    const poolKey = isRead ? `READ_${dbUrl}` : `WRITE_${dbUrl}`;
 
     if (!pool.has(poolKey)) {
-        const client = new PrismaClient({
-            datasources: { db: { url: getDbUrl(tenant, isRead) } },
+        const rawClient = new PrismaClient({
+            datasources: { db: { url: dbUrl } },
             log: process.env.NODE_ENV === 'development' ? ['error'] : [],
         });
         
         // Apply soft delete middleware BEFORE RLS wrapper
-        applySoftDeleteMiddleware(client);
+        applySoftDeleteMiddleware(rawClient);
+
+        // Apply audit middleware for Immutable Tenant Tracking (Law 4)
+        const { applyAuditMiddleware } = require('./prisma-audit');
+        applyAuditMiddleware(rawClient);
+
+        // 🛡️ LAYER 2: GLOBAL TENANT GUARD EXTENSION
+        // This extension guarantees that NO query can execute on business data without a tenantId.
+        const guardedClient = rawClient.$extends({
+            name: 'tenant-guard',
+            query: {
+                $allModels: {
+                    async $allOperations({ model, operation, args, query }) {
+                        const sysModels = ['Tenant', 'User', 'Session', 'SystemSetting', 'EventLog', 'AuditLog', 'SyncConflict'];
+                        const sensitiveOps = ['findMany', 'findFirst', 'updateMany', 'deleteMany', 'count', 'groupBy', 'aggregate'];
+                        
+                        if (!sysModels.includes(model) && sensitiveOps.includes(operation)) {
+                            // Ensure args exists
+                            if (!args) args = {} as any;
+                            
+                            const hasTenantId = args?.where && typeof args.where === 'object' && 'tenantId' in args.where && args.where.tenantId !== undefined;
+                            
+                            if (!hasTenantId) {
+                                throw new Error(`[CRITICAL SECURITY] TENANT ISOLATION VIOLATION: Operation '${operation}' on model '${model}' rejected. Missing 'tenantId' in where clause. You MUST use getTenantPrisma(req) to auto-inject it.`);
+                            }
+                        }
+                        return query(args);
+                    }
+                }
+            }
+        }) as unknown as PrismaClient;
         
-        pool.set(poolKey, client);
+        pool.set(poolKey, guardedClient);
     }
     
     const baseClient = pool.get(poolKey)!;
     
-    // Return the extended client for this specific tenant
+    // 🛡️ LAYER 1: Tenant-Aware Auto-Injector (withRLS)
+    // Return the extended client for this specific tenant which auto-injects tenantId into args
     return withRLS(baseClient, tenant);
 }
 
@@ -282,5 +327,7 @@ const smartPrisma = new Proxy({} as PrismaClient, {
 // Named export (for: import { prisma } from '@/lib/prisma')
 export { smartPrisma as prisma };
 
-// Default export (for: import prisma from '@/lib/prisma')
+// Deprecate default export to prevent direct imports bypassing getTenantPrisma
 export default smartPrisma;
+
+// Trigger TS reload: ICE modules mapped

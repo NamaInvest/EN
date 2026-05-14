@@ -37,7 +37,8 @@ export default async function RootLayout({
 }>) {
   // ── Detect marketing page (root '/') via middleware-injected header ──────
   const headersList = await headers();
-  const isMarketing = headersList.get('x-is-marketing') === '1';
+  const invokePath = headersList.get('x-invoke-path') || '';
+  const isMarketing = headersList.get('x-is-marketing') === '1' || invokePath === '/' || invokePath === '/pricing';
 
   // ── MARKETING LAYOUT: Lightweight but still includes ClerkProvider ────────
   // ClerkProvider is needed even on marketing pages because users navigate
@@ -105,7 +106,12 @@ export default async function RootLayout({
 
             /* Hidden / Visible */
             .hidden { display: none !important; }
-            @media (min-width: 768px) { .md\\:flex { display: flex !important; } .md\\:hidden { display: none !important; } }
+            @media (min-width: 768px) { 
+              .md\\:flex { display: flex !important; } 
+              .md\\:hidden { display: none !important; } 
+              .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+              .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+            }
             @media (max-width: 767px) { .md\\:hidden { display: block; } }
 
             /* Sticky nav */
@@ -120,13 +126,9 @@ export default async function RootLayout({
               .sm\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
               .sm\\:flex-row { flex-direction: row !important; }
             }
-            @media (min-width: 768px) {
-              .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-              .md\\:hidden { display: none !important; }
-              .md\\:flex { display: flex !important; }
-            }
             @media (min-width: 1024px) {
               .lg\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+              .lg\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
               .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
               .lg\\:flex-row { flex-direction: row !important; }
               .lg\\:justify-start { justify-content: flex-start !important; }
@@ -179,11 +181,11 @@ export default async function RootLayout({
     // Wrap marketing pages with ClerkProvider too (needed for client-side nav to /sign-in)
     if (!isDesktopMode) {
       return (
-        <ClerkProvider
+      <ClerkProvider
           localization={arSA}
           afterSignOutUrl="/"
-          signInFallbackRedirectUrl="/company-info"
-          signUpFallbackRedirectUrl="/company-info"
+          signInFallbackRedirectUrl="/sso-callback"
+          signUpFallbackRedirectUrl="/sso-callback"
         >
           {marketingContent}
         </ClerkProvider>
@@ -324,8 +326,8 @@ export default async function RootLayout({
     <ClerkProvider
       localization={arSA}
       afterSignOutUrl="/"
-      signInFallbackRedirectUrl="/company-info"
-      signUpFallbackRedirectUrl="/company-info"
+      signInFallbackRedirectUrl="/sso-callback"
+      signUpFallbackRedirectUrl="/sso-callback"
     >
       {innerContent}
     </ClerkProvider>

@@ -140,7 +140,7 @@ async function generateEquityStatement(
   const [equityAccounts, dividends, netProfit] = await Promise.all([
     prisma.account?.findMany?.({
       where: { tenantId, code: { startsWith: '3' } },
-      select: { id: true, code: true, name: true, nameAr: true },
+      select: { id: true, code: true, name: true, nameEn: true },
     }).catch(() => []) ?? [],
 
     // Dividends distributed

@@ -27,10 +27,9 @@ const STEP_LABELS = ['بيانات المنشأة', 'بيانات الموقع',
 async function translateToEn(text: string): Promise<string> {
     if (!text.trim()) return '';
     try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(text)}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch(`/api/translate?text=${encodeURIComponent(text)}`);
         const data = await res.json();
-        return (data?.[0]?.[0]?.[0] || text).trim();
+        return data.translated || text;
     } catch {
         return text;
     }
@@ -123,9 +122,14 @@ export default function CompanyInfoPage() {
         companyTimer.current = setTimeout(async () => {
             setTranslating(true);
             const en = await translateToEn(companyNameAr);
-            setCompanyNameEn(prev => prev || en);       // لا تكتب فوق تعديل المستخدم
-            setBranchNameEn(prev => prev || en);        // نفس الشيء
-            setPreviewSubdomain(toSlug(en));
+            
+            // If the translation returns the exact same Arabic text (API failed), don't set it in companyNameEn
+            const isArabic = /[\u0600-\u06FF]/.test(en);
+            const finalEn = isArabic ? '' : en;
+
+            setCompanyNameEn(prev => prev || finalEn);
+            setBranchNameEn(prev => prev || finalEn);
+            if (finalEn) setPreviewSubdomain(toSlug(finalEn));
             setTranslating(false);
         }, 600);
     }, [companyNameAr]);
@@ -137,7 +141,9 @@ export default function CompanyInfoPage() {
         cityTimer.current = setTimeout(async () => {
             setCityTranslating(true);
             const en = await translateToEn(city);
-            setCityEn(prev => prev || en);
+            const isArabic = /[\u0600-\u06FF]/.test(en);
+            const finalEn = isArabic ? '' : en;
+            setCityEn(prev => prev || finalEn);
             setCityTranslating(false);
         }, 600);
     }, [city]);
@@ -304,7 +310,7 @@ export default function CompanyInfoPage() {
     // ── Loading states ────────────────────────────────────────────────────
     if (checkingExisting) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center" dir="rtl">
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center" dir="rtl">
                 <Loader2 size={40} className="text-white animate-spin" />
             </div>
         );
@@ -312,7 +318,7 @@ export default function CompanyInfoPage() {
 
     if (status === 'PROVISIONING' || status === 'READY' || status === 'SUBMITTING') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
                     <div className="relative w-24 h-24 mx-auto mb-6">
                         <div className="absolute inset-0 border-4 border-indigo-300/30 rounded-full" />
@@ -342,14 +348,14 @@ export default function CompanyInfoPage() {
 
     // ── Main Form ─────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4 py-12" dir="rtl">
+        <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4 py-12" dir="rtl">
             <div className="absolute inset-0 opacity-10 pointer-events-none"
                 style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
             <div className="relative z-10 w-full max-w-2xl">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-2xl mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-2xl mb-4">
                         <Layers className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-black text-white mb-1">إعداد منشأتك</h1>
@@ -658,12 +664,12 @@ export default function CompanyInfoPage() {
 
                         {step < 3 ? (
                             <button onClick={nextStep}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">
                                 التالي <ChevronLeft size={16} />
                             </button>
                         ) : (
                             <button onClick={handleSubmit} disabled={isSubmitting}
-                                className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-60">
+                                className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-60">
                                 {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> جاري الإرسال...</> : <>🚀 تأسيس النظام</>}
                             </button>
                         )}

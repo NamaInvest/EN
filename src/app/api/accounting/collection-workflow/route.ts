@@ -52,7 +52,7 @@ async function _GET(req: NextRequest) {
     orderBy: { remainingAmount: 'desc' },
     take: 50,
     include: {
-      customer: { select: { id: true, name: true, nameAr: true, phone: true } },
+      customer: { select: { id: true, name: true, nameEn: true, phone: true } },
     },
   }).catch(() => []) ?? [];
 
@@ -62,7 +62,7 @@ async function _GET(req: NextRequest) {
     urgentInvoices: urgentInvoices.map((inv: any) => ({
       id:              inv.id,
       invoiceNo:       inv.invoiceNo,
-      customerName:    inv.customer?.nameAr ?? inv.customer?.name,
+      customerName:    inv.customer?.name,
       customerPhone:   inv.customer?.phone,
       remainingAmount: Math.round(Number(inv.remainingAmount ?? 0) * 100) / 100,
       dueDate:         inv.dueDate,

@@ -25,10 +25,9 @@ const STEP_LABELS = ['بيانات المنشأة', 'بيانات الموقع',
 async function translateToEn(text: string): Promise<string> {
     if (!text.trim()) return '';
     try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(text)}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch(`/api/translate?text=${encodeURIComponent(text)}`);
         const data = await res.json();
-        return (data?.[0]?.[0]?.[0] || text).trim();
+        return data.translated || text;
     } catch {
         return text;
     }
@@ -228,7 +227,7 @@ export default function CompanySetupPage() {
 
     if (status === 'PROVISIONING' || status === 'READY' || status === 'SUBMITTING') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
                     <div className="relative w-24 h-24 mx-auto mb-6">
                         <div className="absolute inset-0 border-4 border-indigo-300/30 rounded-full" />
@@ -252,11 +251,11 @@ export default function CompanySetupPage() {
     const INPUT_CLASS = "w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all";
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4 py-12" dir="rtl">
+        <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4 py-12" dir="rtl">
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
             <div className="relative z-10 w-full max-w-2xl">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-2xl mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-2xl mb-4">
                         <Layers className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-black text-white mb-1">إعداد المنشأة (للنسخة المكتبية)</h1>
@@ -356,11 +355,11 @@ export default function CompanySetupPage() {
                             <ChevronRight size={16} /> السابق
                         </button>
                         {step < 3 ? (
-                            <button onClick={nextStep} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 text-white font-bold text-sm shadow-lg transition-all">
+                            <button onClick={nextStep} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 text-white font-bold text-sm shadow-lg transition-all">
                                 التالي <ChevronLeft size={16} />
                             </button>
                         ) : (
-                            <button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-black text-sm shadow-lg transition-all">
+                            <button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-black text-sm shadow-lg transition-all">
                                 {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> جاري الحفظ...</> : <>🚀 تفعيل النظام</>}
                             </button>
                         )}

@@ -53,7 +53,7 @@ async function _GET(req: NextRequest) {
   const entity = await p[entityModel]?.findUnique?.({
     where: { id: entityId },
     select: {
-      id: true, name: true, nameAr: true,
+      id: true, name: true, nameEn: true,
       code: true, vatNumber: true, phone: true, email: true,
     },
   }).catch(() => null);
@@ -199,7 +199,7 @@ async function _GET(req: NextRequest) {
     period: { from: from.toISOString().split('T')[0], to: to.toISOString().split('T')[0] },
     entity: {
       id:         entity.id,
-      name:       entity.nameAr ?? entity.name,
+      name:       entity.name,
       code:       entity.code,
       vatNumber:  entity.vatNumber,
       phone:      entity.phone,

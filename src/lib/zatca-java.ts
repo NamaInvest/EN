@@ -23,12 +23,12 @@ export class ZatcaJavaAdapter {
             this.sdkPath = require('fs').existsSync(bundledSdk) ? bundledSdk : desktopSdk;
             this.javaHome = 'C:\\Users\\1\\Desktop\\Java\\jdk-21.0.6+7';
         } else {
-            // Hetzner Production Cluster (Ubuntu 24.04) â€” SDK R4.0.0
+            // Hetzner Production Cluster (Ubuntu 24.04) — SDK R4.0.0
             this.sdkPath = '/opt/zatca-einvoicing-sdk-238-R4.0.0/Apps/fatoora';
             this.javaHome = '/opt/amazon-corretto-21.0.11.10.1-linux-x64';
         }
         
-        // SDK root = parent of Apps/ â€” required for config.json resolution
+        // SDK root = parent of Apps/ — required for config.json resolution
         this.sdkRoot = path.resolve(path.dirname(this.sdkPath), '..');
         this.workspace = path.join(os.tmpdir(), 'zatca-workspace');
     }

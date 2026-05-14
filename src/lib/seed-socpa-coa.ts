@@ -61,19 +61,16 @@ export async function seedSocpaCoA(
       });
 
       for (const row of sorted) {
-        const parentId = row.parentCode ? createdMap.get(row.parentCode) ?? null : null;
+        const parentId = row.parentCode ? createdMap.get(row.parentCode) ?? 0 : 0;
 
         const account = await tx.account.create({
           data: {
             tenantId,
             code:        row.code,
-            nameAr:      row.nameAr,
-            name:        row.nameEn,
+            name:        row.nameAr,
             nameEn:      row.nameEn,
             type:        row.type,
             parentId,
-            isControl:   row.isControl ?? false,
-            controlType: (row as any).controlType ?? null,
             isActive:    true,
           },
         });

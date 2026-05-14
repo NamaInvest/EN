@@ -51,8 +51,8 @@ const ACCOUNTS = {
 };
 
 // Get account ID by code
-async function getAccountId(code: string): Promise<number | null> {
-    const account = await prisma.account.findFirst({ where: { code } });
+async function getAccountId(code: string, tx: any = prisma): Promise<number | null> {
+    const account = await tx.account.findFirst({ where: { code } });
     return account?.id || null;
 }
 
@@ -75,6 +75,7 @@ async function createJournalEntry(params: {
     currencyId?: number | null;
     exchangeRate?: number;
     status?: string;
+    txClient?: any;
 }): Promise<{ success: boolean; entryId?: number; error?: string }> {
     // 🛡️ 1. Capture tenant BEFORE any await to prevent context leakage
     const activeTenant = resolveTenant();
@@ -82,21 +83,22 @@ async function createJournalEntry(params: {
     // 🛡️ 2. Wrap all DB interactions in withTenant
     return withTenant(activeTenant, async () => {
         try {
+            const executeLogic = async (tx: any) => {
         // Validate: total debit must equal total credit
         const totalDebit = params.lines.reduce((sum: any, l: any) => sum + l.debit, 0);
         const totalCredit = params.lines.reduce((sum: any, l: any) => sum + l.credit, 0);
 
         if (Math.abs(totalDebit - totalCredit) > 0.01) {
-            return { success: false, error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` };
+            throw new Error(`القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}`);
         }
 
         // Resolve account IDs
         const resolvedLines: Array<{ accountId: number; costCenterId?: number; debit: number; credit: number; foreignDebit: number; foreignCredit: number; description?: string; profitCenterId?: number; projectId?: number; segmentId?: number; productId?: number; customerId?: number; vendorId?: number; employeeId?: number; assetId?: number; bookId?: number; fxRate?: number; quantity?: number; uom?: string }> = [];
         for (const line of params.lines) {
             if (line.debit === 0 && line.credit === 0 && (line.foreignDebit || 0) === 0 && (line.foreignCredit || 0) === 0) continue; // skip zero lines
-            const accountId = await getAccountId(line.accountCode);
+            const accountId = await getAccountId(line.accountCode, tx);
             if (!accountId) {
-                return { success: false, error: `حساب غير موجود: ${line.accountCode}` };
+                throw new Error(`حساب غير موجود: ${line.accountCode}`);
             }
             resolvedLines.push({
                 accountId,
@@ -122,23 +124,23 @@ async function createJournalEntry(params: {
             });
         }
 
-        const entryNumber = await getNextEntryNumber(prisma);
+        const entryNumber = await getNextEntryNumber(tx);
         const entryDate = params.date || new Date().toISOString().split('T')[0];
 
         // Ensure Fiscal Period is OPEN
         const [year, month] = entryDate.split('-').map(Number);
         if (year && month) {
-            const period = await prisma.fiscalPeriod.findUnique({
+            const period = await tx.fiscalPeriod.findUnique({
                 where: { year_month: { year, month } }
             });
             if (period && period.status !== 'open') {
-                return { success: false, error: `الفترة المالية (${month}/${year}) مغلقة أو مقفلة، لا يمكن إضافة قيود جديدة.` };
+                throw new Error(`الفترة المالية (${month}/${year}) مغلقة أو مقفلة، لا يمكن إضافة قيود جديدة.`);
             }
         }
 
         // [EG-03 FIX] Create entry + lines + update balances ALL inside a single transaction
         // This prevents inconsistency if the process crashes between JE creation and balance update.
-        const entry = await prisma.$transaction(async (tx) => {
+        
             const finalStatus = params.status || 'posted';
             
             const je = await tx.journalEntry.create({
@@ -206,12 +208,16 @@ async function createJournalEntry(params: {
             }
 
             return je;
-        });
+        };
+
+        const entry = params.txClient 
+            ? await executeLogic(params.txClient) 
+            : await prisma.$transaction(executeLogic);
 
         return { success: true, entryId: entry.id };
     } catch (error: any) {
         log.error('Auto-journal error:', error);
-        return { success: false, error: String(error) };
+        return { success: false, error: String(error.message || error) };
     }
     });
 }

@@ -205,8 +205,6 @@ const POWER_CLUSTERS = [
 export default function NamaInvestLanding() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeIndustry, setActiveIndustry] = useState<string | null>(null);
-  const [expandedCluster, setExpandedCluster] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Client-side fallback: redirect subdomain visitors to /login or /dashboard
@@ -227,370 +225,221 @@ export default function NamaInvestLanding() {
     });
   }, [activeTab, searchQuery]);
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
-    <div className="w-full m-0 p-0 min-h-screen overflow-x-hidden bg-slate-50 text-slate-900" dir="rtl" style={{ fontFamily: "'Noto Sans Arabic', sans-serif", fontSize: '16px' }}>
+    <div className="min-h-screen bg-[#fbf8fa] text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900" dir="rtl" lang="ar" translate="no">
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       <style dangerouslySetInnerHTML={{__html: `
-        html { font-size: 16px !important; }
-        .tab-scroll::-webkit-scrollbar { height: 0; }
-        .ind-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-        .ind-card:hover { transform: translateY(-5px); }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
-        .fade-in { animation: fadeIn 0.25s ease forwards; }
-        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,0.4)} 50%{box-shadow:0 0 20px 6px rgba(79,70,229,0.2)} }
-        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
-        .animate-pulse:hover { animation: none; }
-        * { font-family: 'Noto Sans Arabic', sans-serif !important; }
+        * { font-family: 'Noto Kufi Arabic', 'Outfit', sans-serif !important; }
+
+        @keyframes bob {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
       `}} />
 
-      {/* NAV */}
-      <nav className="sticky top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto w-full px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
-                <Layers className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <span className="text-xl font-black text-slate-900">نما إنفست</span>
-                <span className="text-xs text-indigo-500 font-bold block leading-none">Nama Invest ERP</span>
-              </div>
-            </Link>
-          </div>
-          
-          {/* Desktop Links */}
-          <div className="hidden md:flex gap-6 font-bold text-slate-600 text-sm">
-            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="hover:text-indigo-600 transition-colors">القطاعات</a>
-            <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="hover:text-indigo-600 transition-colors">المجموعات</a>
-            <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="hover:text-indigo-600 transition-colors">الـ 104 وحدة</a>
-            <Link href="/pricing" className="hover:text-indigo-600 transition-colors text-indigo-600 font-black">💎 الأسعار</Link>
-          </div>
-
-          {/* Action Buttons — Always visible */}
-          <div className="flex gap-2 md:gap-3 items-center">
-            <Link href="/sign-in" className="px-4 md:px-5 py-2 md:py-2.5 border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white font-black rounded-xl transition-all duration-300 text-sm md:text-base">
-              تسجيل الدخول
-            </Link>
-            <Link href="/sign-up" className="px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-300 text-sm md:text-base animate-pulse hover:animate-none">
-              🚀 سجّل مجاناً
-            </Link>
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="hidden lg:flex px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md transition-all items-center gap-2">
-              <Phone className="w-5 h-5" /> تواصل معنا
-            </a>
-          </div>
-
-          {/* Mobile Hamburger Toggle */}
-          <div className="md:hidden flex items-center">
-             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-600 hover:text-indigo-600 p-2">
-               {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-             </button>
-          </div>
+      {/* TopNavBar Shell */}
+      <nav className="fixed top-8 inset-x-0 mx-auto w-[90%] max-w-7xl rounded-full border border-slate-200/60 bg-white/70 backdrop-blur-3xl shadow-sm flex justify-between items-center px-8 py-3 z-50 transition-all duration-500 hover:shadow-md">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-extrabold text-slate-800 tracking-normal">نما إنفست</span>
         </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-xl fade-in flex flex-col p-4 gap-4">
-            <a href="#industries" onClick={(e) => scrollToSection(e, 'industries')} className="font-bold text-slate-700 hover:text-indigo-600">القطاعات التي نخدمها</a>
-            <a href="#clusters" onClick={(e) => scrollToSection(e, 'clusters')} className="font-bold text-slate-700 hover:text-indigo-600">المجموعات الخمس الاستراتيجية</a>
-            <a href="#modules" onClick={(e) => scrollToSection(e, 'modules')} className="font-bold text-slate-700 hover:text-indigo-600">قائمة الـ 104 وحدة برمجية</a>
-            <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-indigo-600 hover:text-indigo-700">💎 الباقات والأسعار</Link>
-            <div className="h-px bg-slate-100 my-2"></div>
-            <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)} className="font-bold text-slate-700 text-center py-2">تسجيل الدخول</Link>
-            <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-center border border-indigo-600 text-indigo-600 font-bold rounded-xl">تسجيل حساب جديد</Link>
-            <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-center bg-amber-500 text-white font-bold rounded-xl">💎 عرض الأسعار والباقات</Link>
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-4 py-3 text-center bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
-               <Phone className="w-5 h-5" /> تواصل معنا الآن
-            </a>
-          </div>
-        )}
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="#platform" className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">المنصة</Link>
+          <Link href="#modules" className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">الوحدات</Link>
+          <Link href="#intelligence" className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">الذكاء</Link>
+          <Link href="/pricing" className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">الأسعار</Link>
+        </div>
+        <div className="hidden md:flex items-center gap-4">
+          <Link href="/login" className="hidden lg:block text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">تسجيل الدخول</Link>
+          <Link href="/sign-up" className="bg-slate-800 text-white px-8 py-3 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all shadow-md">ابدأ مجاناً</Link>
+        </div>
+        {/* Mobile Toggle */}
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-slate-600">
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </nav>
 
-      <main>
-      {/* HERO */}
-      <section className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white py-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}/>
-        <div className="absolute -top-40 right-0 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-3xl"/>
-        <div className="absolute -bottom-40 left-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-3xl"/>
-        <div className="max-w-7xl mx-auto w-full relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            🚀 نظام تشغيل الأعمال — متوافق 100% مع هيئة الزكاة (ZATCA Phase 2)
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-emerald-300">نما إنفست</span>
-            <br/>
-            <span className="text-3xl md:text-4xl font-bold text-slate-300">نظام واحد · لكل الأعمال</span>
-          </h1>
-          <p className="text-slate-300 text-lg md:text-xl max-w-3xl mx-auto mb-3 leading-relaxed">
-            NamaInvest — Comprehensive cloud ERP for Pharmacies, Grocery, Restaurants, Factories & Services. 104 integrated modules.
-          </p>
-          <p className="text-slate-400 text-base max-w-2xl mx-auto mb-10 leading-relaxed">
-            من نقاط البيع والمخزون المتقدم إلى المحاسبة والموارد البشرية والذكاء الاصطناعي — كل ما تحتاجه في منصة سحابية واحدة.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-10">
-            {[
-              { num: '104+', label: 'وحدة برمجية' },
-              { num: '15', label: 'قطاع أعمال' },
-              { num: '100%', label: 'متوافق ZATCA' },
-              { num: '24/7', label: 'دعم فني' },
-            ].map((s,i) => (
-              <div key={s.label} className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[110px]">
-                <div className="text-3xl font-black text-white">{s.num}</div>
-                <div className="text-xs text-slate-400 font-bold mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-4 w-full mt-4">
-            <Link href="/sign-up" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/40 transition-all text-lg min-w-[220px]">
-              🚀 جرب النظام مجاناً
-            </Link>
-            <a href="#download" onClick={(e) => scrollToSection(e, 'download')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/40 transition-all text-lg min-w-[220px]">
-              <Download size={20} /> تحميل التطبيق
-            </a>
-            <Link href="/pricing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/40 transition-all text-lg min-w-[220px]">
-              💎 عرض الباقات والأسعار
-            </Link>
-          </div>
+      {/* MOBILE MENU */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 pt-32">
+          <Link href="#platform" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-slate-800">المنصة</Link>
+          <Link href="#intelligence" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-slate-800">الذكاء الاصطناعي</Link>
+          <Link href="#modules" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-slate-800">الوحدات البرمجية</Link>
+          <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-slate-800">الأسعار</Link>
+          <div className="w-16 h-px bg-slate-200 my-4"></div>
+          <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-slate-600">تسجيل الدخول</Link>
+          <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold bg-slate-900 text-white px-8 py-4 rounded-full mt-4">ابدأ مجاناً</Link>
         </div>
-      </section>
+      )}
 
-      {/* ── INDUSTRIES ───────────────────────────────────────────────────── */}
-      <section id="industries" className="max-w-7xl mx-auto px-4 py-24 flex flex-col items-center">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
-            🏪 القطاعات التي نخدمها — Industries We Serve
-          </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-3">مهما كان نشاطك.. نما إنفست يناسبك</h2>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-            بنية وحداتية مرنة (Modular Architecture) تتكيف مع كل قطاع تجاري
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
-          {INDUSTRIES.map(ind => (
-            <div
-              key={ind.id}
-              className={`ind-card rounded-2xl border-2 p-5 cursor-pointer flex flex-col items-center text-center ${
-                activeIndustry === ind.id
-                  ? `${ind.bg} ${ind.border} shadow-xl`
-                  : 'bg-white border-slate-200 hover:shadow-lg hover:border-slate-300'
-              }`}
-              onClick={() => setActiveIndustry(activeIndustry === ind.id ? null : ind.id)}
-            >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br ${ind.color} text-white shadow-md`}>
-                {ind.icon}
-              </div>
-              <h3 className={`font-black text-base mb-0.5 ${activeIndustry === ind.id ? ind.text : 'text-slate-800'}`}>
-                {ind.emoji} {ind.title}
-              </h3>
-              <p className="text-xs text-slate-400 font-bold mb-3">{ind.titleEn}</p>
-              {activeIndustry === ind.id && (
-                <div className="fade-in mt-2 pt-2 border-t border-slate-200 w-full flex flex-col items-center">
-                  <ul className="space-y-1.5 mb-3 flex flex-col items-center text-center">
-                    {ind.features.map((f, i) => (
-                      <li key={f} className={`text-xs font-bold flex items-center justify-center gap-1.5 ${ind.text}`}>
-                        <CheckCircle size={11} className="flex-shrink-0" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link 
-                    href={ind.url} 
-                    onClick={(e) => e.stopPropagation()}
-                    className={`w-full max-w-[200px] mx-auto flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r ${ind.color}`}
-                  >
-                    اعرف أكثر <ArrowLeft size={11} />
-                  </Link>
-                </div>
-              )}
-              {activeIndustry !== ind.id && (
-                <p className="text-xs text-slate-400 font-bold flex items-center justify-center gap-1 w-full mt-2">
-                  اضغط لعرض المميزات <ChevronDown size={11} />
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── POWER CLUSTERS ───────────────────────────────────────────────── */}
-      <section id="clusters" className="bg-slate-900 py-20 px-4">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="text-center mb-12 flex flex-col items-center justify-center">
-            <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
-              ⚡ مجموعات القوة الخمس — 5 Power Clusters
-            </div>
-            <h2 className="text-4xl font-black text-white mb-3 text-center">الـ 104 وحدة.. منظّمة بذكاء</h2>
-            <p className="text-slate-400 text-lg text-center">Five strategic clusters covering every aspect of your business</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 justify-items-center w-full">
-            {POWER_CLUSTERS.map((c, i) => (
-              <div key={c.titleEn} className={`rounded-2xl overflow-hidden cursor-pointer transition-all w-full flex flex-col text-center ${expandedCluster===i?'ring-2 ring-white/30 scale-[1.02]':''}`}
-                onClick={() => setExpandedCluster(expandedCluster===i ? null : i)}>
-                <div className={`bg-gradient-to-br ${c.color} p-5 text-white flex flex-col items-center`}>
-                  <div className="flex items-center justify-between w-full mb-3">
-                    <span className="text-2xl font-black opacity-80">{c.count}</span>
-                    <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">{c.icon}</div>
-                  </div>
-                  <h3 className="font-black text-base leading-tight mb-0.5 text-center">{c.title}</h3>
-                  <p className="text-xs opacity-75 font-bold text-center">{c.titleEn}</p>
-                </div>
-                <div className="bg-slate-800 p-4 w-full flex flex-col items-center">
-                  <p className="text-slate-300 text-xs leading-relaxed mb-3 text-center w-full">{c.desc}</p>
-                  {expandedCluster === i ? (
-                    <div className="fade-in w-full flex flex-col items-center">
-                      <ul className="space-y-1.5 mb-3 flex flex-col items-center text-center">
-                        {c.highlights.map((h, j) => (
-                          <li key={h} className="flex items-center justify-center gap-1.5 text-xs text-slate-200 font-bold">
-                            <CheckCircle size={11} className="flex-shrink-0 text-emerald-400" /> {h}
-                          </li>
-                        ))}
-                      </ul>
-                      <span className="text-xs text-slate-400 flex items-center justify-center gap-1 font-bold w-full"><ChevronUp size={11}/> إخفاء</span>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-slate-400 flex items-center justify-center gap-1 font-bold hover:text-white transition-colors w-full"><ChevronDown size={11}/> عرض الميزات</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 104 MODULES ──────────────────────────────────────────────────── */}
-      <section id="modules" className="max-w-7xl mx-auto px-4 py-24 flex flex-col items-center">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
-            🗂️ الموسوعة الكاملة
-          </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-4">104 وحدة برمجية متكاملة</h2>
-          
-          {/* البحث الذكي الجديد */}
-          <div className="relative max-w-md mx-auto mt-8 mb-12">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="ابحث عن ميزة، وحدة، أو وظيفة..." 
-              className="w-full pr-12 pl-4 py-4 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none shadow-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="tab-scroll flex flex-wrap justify-center items-center gap-2 pb-3 mb-8">
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={() => setActiveTab(cat.id)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                activeTab===cat.id ? 'bg-indigo-600 text-white shadow-lg scale-105' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
-              }`}>
-              {cat.emoji} {cat.label} {activeTab===cat.id && `(${filteredModules.length})`}
-            </button>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-items-center w-full">
-                    {filteredModules.map((m) => (
-            <div key={m.title} className="group bg-white w-full border border-slate-100 rounded-2xl p-4 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-indigo-50 group-hover:bg-indigo-600 rounded-xl flex items-center justify-center text-indigo-600 group-hover:text-white mb-3 transition-all duration-300">{m.icon}</div>
-              <h3 className="text-sm font-bold text-slate-800 mb-2 leading-tight group-hover:text-indigo-700 transition-colors">{m.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed text-center">{m.desc}</p>
-            </div>
-          ))}
-        </div>
+      <main style={{ paddingTop: '8rem' }}>
         
-        {filteredModules.length === 0 && (
-          <div className="text-center py-20 w-full">
-            <p className="text-slate-400 font-bold">لا توجد نتائج تطابق بحثك 🔍</p>
+        {/* Hero Section */}
+        <section className="relative px-6 md:px-16 overflow-hidden flex flex-col items-center" style={{ paddingTop: '12rem', paddingBottom: '6rem', marginTop: '5rem' }}>
+          <div className="w-full max-w-7xl mx-auto flex flex-col items-center text-center">
+            <span className="inline-block px-5 py-2 rounded-full bg-slate-200/50 text-slate-700 text-xs font-bold mb-8 mt-12">
+              الإصدار الجديد 2.0 (متوافق مع ZATCA)
+            </span>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-normal text-slate-800 mb-8 max-w-4xl mx-auto" style={{ lineHeight: '1.7' }}>
+              البساطة تلتقي <span className="text-indigo-600">بالقوة</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-16 font-medium" style={{ lineHeight: '1.8' }}>
+              الجيل القادم من أنظمة إدارة الأعمال ERP. أدر عملياتك المعقدة بدقة متناهية من منصة سحابية واحدة مصممة لجميع القطاعات.
+            </p>
+            <div className="relative w-full max-w-5xl mx-auto flex justify-center" style={{ animation: 'bob 6s ease-in-out infinite' }}>
+              <div className="absolute inset-0 bg-indigo-500/10 rounded-3xl blur-[100px] -z-10"></div>
+              <img 
+                alt="NamaInvest Dashboard Preview" 
+                className="w-full rounded-3xl shadow-2xl border border-white/60 backdrop-blur-sm" 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDetA7XFFV0AEGWaDfNxFYTCpvJky3yWsBc8h3_Oi5YPysNWxfkQOokhJE9xKpVkhoSQlOldeay-ig_sTc974dgOVx7pWzuZmEma4s-JtD12c-SDKDyp-mWppUNCCY_fsWoyWjrDOfglQ2vidJ2NR54UrZAqiOjCk9CpSCWrPUHBTepuyAY2elnsuGngE8fAB9WYFuNNCSZUe6L9qjtefdnWSaLIJ6gNeeyididKIza1UIQ-NIWI0j7kc17Ofxvub8YXrsg4XIPwEc" 
+              />
+            </div>
           </div>
-        )}
-        <div className="text-center mt-8 text-slate-400 text-sm font-bold">
-          عرض {filteredModules.length} من {modulesList.length} وحدة
-        </div>
-      </section>
+        </section>
+
+        {/* Feature 1: Intuitive Workflow */}
+        <section id="platform" className="py-32 px-6 md:px-16 w-full flex flex-col items-center">
+          <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-20">
+            <div className="flex-1 w-full flex flex-col text-right order-2 md:order-1">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">سير عمل بديهي</h2>
+              <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
+                توقف عن محاربة أدواتك. يوفر نما إنفست بيئة خالية من الاحتكاك حيث تبدو كل خطوة طبيعية وكل نقرة مقصودة بدقة.
+              </p>
+              <ul className="space-y-5 flex flex-col text-right">
+                <li className="flex items-center gap-4 self-start">
+                  <CheckCircle className="text-indigo-600 w-6 h-6 shrink-0" />
+                  <span className="text-lg font-bold text-slate-700">ترابط آلي بين كافة الوحدات (POS, ERP, HR)</span>
+                </li>
+                <li className="flex items-center gap-4 self-start">
+                  <CheckCircle className="text-indigo-600 w-6 h-6 shrink-0" />
+                  <span className="text-lg font-bold text-slate-700">اختصارات ذكية للوصول السريع للمهام</span>
+                </li>
+              </ul>
+            </div>
+            <div className="flex-1 w-full order-1 md:order-2">
+              <div className="rounded-3xl overflow-hidden shadow-2xl aspect-square">
+                <img 
+                  alt="Workflow Graphics" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD-K3QalGsP6Ws05rYapRN9D5M7DFfl_ZK0JrXhqQFUi09w-jMJeb5uRx9kbpS7lpVwsBcDsjoMdzPXQ3PnjHYXibex1NdRnMli1wyENg_GelbOJx9KCrQNyqvowl44goB0mYxp-jQ3-0b6vVOLKQHLFqvIJOIJh8iPlyFv24kWg6pjGLpyF63JmHpYvem9vVGgcqtzQOtFq_x0S8XIF4whndFHq8wq4D1RYwOxWaN2ovm8IkrUpHryRZbKGSPPSbqIF8h4zVHi3M" 
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature 2: Deep Intelligence */}
+        <section id="intelligence" className="py-32 px-6 md:px-16 bg-slate-200/30 w-full flex flex-col items-center">
+          <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-20">
+            <div className="flex-1 w-full">
+              <div className="rounded-3xl overflow-hidden shadow-2xl aspect-square">
+                <img 
+                  alt="Intelligence Graphics" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVgJIJ94405PL6aatLlom1pVPRzZyFE6EsvjkppgBGgMDu2CJLRyJzrnWdeEvcZLaMU0DXs14Zo7aXnp86HRwddbxTOidt9hBxWz6W94vsWIlrTvmgZUrFWGxxkohO_Nv-Wh8BWrNGQQhTvF-sQQRCPL63pq9ilVbUnphTxNqmjBLBWfriohuDP7MO_orhnCUlR5B3CYcG4679rn40DbzkwPSOy5K5BXkqNUnhIrxSkm_RturAuyFek-CQF-3K29synNaW48c6bAo" 
+                />
+              </div>
+            </div>
+            <div className="flex-1 w-full flex flex-col text-right">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">ذكاء اصطناعي عميق</h2>
+              <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
+                أكثر من مجرد مقاييس. يقوم محركنا بتحليل الأنماط عبر نظامك البيئي بأكمله لاستخراج الرؤى المالية والتنبؤ بالمبيعات قبل أن تطلبها.
+              </p>
+              <div className="grid grid-cols-2 gap-6 text-center">
+                <div className="p-8 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+                  <span className="text-4xl md:text-5xl font-extrabold text-indigo-600 block mb-2">99%</span>
+                  <span className="text-sm font-bold text-slate-500">دقة التحليل المالي</span>
+                </div>
+                <div className="p-8 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+                  <span className="text-4xl md:text-5xl font-extrabold text-indigo-600 block mb-2">2.4x</span>
+                  <span className="text-sm font-bold text-slate-500">زيادة الكفاءة التشغيلية</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Modules Directory */}
+        <section id="modules" className="py-32 px-6 md:px-16 w-full flex flex-col items-center">
+          <div className="w-full max-w-7xl mx-auto flex flex-col items-center text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-slate-800 mb-6">104+ وحدة برمجية متكاملة</h2>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+              كل ما تحتاجه في مكان واحد. من المشتريات والمبيعات إلى نقاط البيع والمحاسبة المعقدة.
+            </p>
+          </div>
+          
+          <div className="w-full max-w-4xl mx-auto flex flex-wrap justify-center gap-3 mb-16">
+            {CATEGORIES.map(cat => (
+              <button key={cat.id} onClick={() => setActiveTab(cat.id)}
+                className={`px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 ${
+                  activeTab===cat.id 
+                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-300' 
+                    : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                }`}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredModules.slice(0, 16).map((m) => (
+              <div key={m.title} className="group p-8 rounded-3xl bg-white border border-slate-100 hover:border-indigo-100 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors mb-6 shrink-0">
+                  {m.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{m.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed font-medium">{m.desc}</p>
+              </div>
+            ))}
+          </div>
+          
+          {filteredModules.length > 16 && (
+            <div className="text-center mt-12 w-full flex justify-center">
+              <button className="px-8 py-4 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors">
+                عرض المزيد من الوحدات
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-32 px-6 md:px-16 w-full flex flex-col items-center">
+          <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
+            <div className="w-full relative bg-white rounded-[3rem] p-12 md:p-32 text-center border border-slate-100 overflow-hidden shadow-2xl flex flex-col items-center">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[120px] -z-10"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 blur-[120px] -z-10"></div>
+              
+              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-8 leading-[1.6]">جاهز لرفع مستوى عملك؟</h2>
+              <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-12 font-medium">
+                انضم إلى أكثر من 500 شركة تعتمد على نما إنفست لإعادة تعريف الدقة التشغيلية والمالية.
+              </p>
+              
+              <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full md:w-auto">
+                <Link href="/sign-up" className="bg-slate-800 text-white px-12 py-5 rounded-full text-lg font-bold shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all duration-400 w-full md:w-auto text-center">
+                  ابدأ مجاناً الآن
+                </Link>
+                <Link href="/pricing" className="px-12 py-5 rounded-full text-lg font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all duration-400 w-full md:w-auto text-center">
+                  جدولة عرض توضيحي
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
       </main>
 
-      {/* ── DOWNLOAD SECTION ───────────────────────────────────────────── */}
-      <section id="download" className="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-4 py-1.5 rounded-full text-sm font-bold mb-6">
-            🖥️ نسخة سطح المكتب — Desktop Edition
+      {/* Footer Shell */}
+      <footer className="w-full py-16 border-t border-slate-200/60 bg-transparent flex flex-col items-center">
+        <div className="w-full max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-right">
+          <div className="flex flex-col gap-2 items-center md:items-start">
+            <span className="text-2xl font-extrabold text-slate-800 tracking-normal">نما إنفست</span>
+            <p className="text-slate-400 text-sm font-bold">© {new Date().getFullYear()} NamaInvest. مبني من أجل الدقة والموثوقية.</p>
           </div>
-          <h2 className="text-4xl font-black mb-4">حمّل نما إنفست على جهازك</h2>
-          <p className="text-slate-300 text-lg mb-2 max-w-2xl mx-auto">
-            نسخة سطح المكتب تعمل بدون إنترنت مع قاعدة بيانات محلية — مثالية للمحلات والمطاعم
-          </p>
-          <p className="text-slate-400 text-sm mb-10">Windows 10/11 · 64-bit · تحديثات تلقائية</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {[
-              { icon: '🔒', title: 'أمان كامل', desc: 'بياناتك محلية على جهازك فقط' },
-              { icon: '📡', title: 'يعمل أوفلاين', desc: 'لا حاجة للإنترنت أثناء العمل' },
-              { icon: '🔄', title: 'تحديث تلقائي', desc: 'تحديثات فورية عند توفرها' },
-            ].map(f => (
-              <div key={f.title} className="bg-white/10 backdrop-blur border border-white/10 rounded-2xl p-5 text-center">
-                <div className="text-3xl mb-2">{f.icon}</div>
-                <h3 className="font-black text-base mb-1">{f.title}</h3>
-                <p className="text-slate-400 text-sm">{f.desc}</p>
-              </div>
-            ))}
+          <div className="flex flex-wrap justify-center md:justify-end gap-8 text-sm font-bold text-slate-500">
+            <Link href="/privacy" className="hover:text-slate-900 transition-colors">الخصوصية</Link>
+            <Link href="/terms" className="hover:text-slate-900 transition-colors">الشروط</Link>
+            <Link href="/security" className="hover:text-slate-900 transition-colors">الأمان</Link>
+            <Link href="/status" className="hover:text-slate-900 transition-colors">حالة النظام</Link>
           </div>
-          <a
-            href={`/updates/desktop/NamaInvest-Setup-${packageJson.version}.exe`}
-            className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black rounded-2xl shadow-2xl shadow-emerald-500/40 transition-all text-xl"
-          >
-            <Download size={26} />
-            تحميل NamaInvest v{packageJson.version}
-          </a>
-          <p className="text-slate-500 text-xs mt-4">Windows 64-bit Installer · ~120MB</p>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white py-20 px-4 text-center">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-5xl mb-4">🚀</div>
-          <h2 className="text-4xl font-black mb-4">جاهز لتحويل عملك رقمياً؟</h2>
-          <p className="text-slate-300 text-lg mb-2 max-w-xl mx-auto">ابدأ اليوم مجاناً مع كامل الدعم الفني والتدريب</p>
-          <p className="text-slate-400 text-sm mb-8">Ready to modernize your business? Start free with full support.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/pricing" className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
-              💎 شاهد الباقات والأسعار
-            </Link>
-            <a href="#download" onClick={(e: any) => { e.preventDefault(); document.getElementById('download')?.scrollIntoView({behavior:'smooth'}); }} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl shadow-lg transition-all text-lg flex items-center gap-2">
-              <Download className="w-5 h-5"/> تحميل التطبيق
-            </a>
-            <a href="https://wa.me/966531206628" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all text-lg flex items-center gap-2">
-              <Phone className="w-5 h-5"/> تواصل عبر واتساب
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <footer className="py-12 bg-white border-t border-slate-200 text-center">
-        <div className="max-w-7xl mx-auto w-full px-4 flex flex-col items-center justify-center gap-6">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <Link href="/" className="flex flex-col items-center justify-center gap-2">
-               <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-lg flex items-center justify-center">
-                 <Layers className="w-6 h-6 text-white"/>
-               </div>
-               <div className="text-center">
-                 <span className="font-black text-xl text-slate-800">نما إنفست</span>
-                 <span className="text-xs text-slate-400 font-bold block leading-none mt-1">Nama Invest ERP</span>
-               </div>
-            </Link>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-bold">
-            <Link href="/pharmacy" className="text-slate-400 hover:text-indigo-600 transition-colors">الصيدليات</Link>
-            <Link href="/retail" className="text-slate-400 hover:text-indigo-600 transition-colors">التموينات</Link>
-            <Link href="/restaurant" className="text-slate-400 hover:text-indigo-600 transition-colors">المطاعم</Link>
-            <Link href="/factory" className="text-slate-400 hover:text-indigo-600 transition-colors">المصانع</Link>
-            <Link href="/pricing" className="text-indigo-500 hover:text-indigo-700 transition-colors font-black">💎 الأسعار</Link>
-            <Link href="/sign-up" className="text-slate-400 hover:text-indigo-600 transition-colors">سجّل مجاناً</Link>
-          </div>
-          <div className="text-slate-400 text-sm font-bold w-full text-center border-t border-slate-100 pt-6">© {new Date().getFullYear()} جميع الحقوق محفوظة لشركة نما إنفست</div>
         </div>
       </footer>
     </div>

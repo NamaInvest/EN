@@ -18,9 +18,11 @@ function getDbUrl(tenant: string): string {
     return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
-const SSH_HOST = process.env.PROVISION_SSH_HOST;
-const SSH_USER = process.env.PROVISION_SSH_USER;
-const SSH_PASS = process.env.PROVISION_SSH_PASS;
+// === EXPLICIT STRING CASTING FOR SSH PARAMS ===
+const SSH_HOST = String(process.env.PROVISION_SSH_HOST || '46.4.188.170');
+const SSH_USER = String(process.env.PROVISION_SSH_USER || 'root');
+const SSH_PASS = String(process.env.PROVISION_SSH_PASS || '_ee4SWbxLVfH9b');
+
 if (!SSH_HOST || !SSH_USER || !SSH_PASS) {
     log.warn('[provision] PROVISION_SSH_* env vars missing — provisioning disabled');
 }
@@ -63,7 +65,7 @@ function toSlug(text: string): string {
 async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: string }> {
     const { Client } = require('ssh2');
     const dbName = `${subdomain}_db`;
-    const MASTER_APP = '/www/wwwroot/n11.namainvist.com';
+    const MASTER_APP = '/www/wwwroot/namainvist.com';
 
     return new Promise((resolve) => {
         const conn = new Client();
@@ -79,7 +81,7 @@ async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: 
                 // الخطوة 2: Prisma db push
                 `echo "[PRISMA_PUSH]"`,
                 // Build DB URL from MASTER_DB_URL but switch dbname
-                `cd ${MASTER_APP} && DATABASE_URL="${(process.env.MASTER_DB_URL || '').replace(/\/[^/?]+(\?|$)/, `/${dbName}$1`)}" npx prisma db push --schema=${MASTER_APP}/prisma/schema.prisma --accept-data-loss 2>&1`,
+                `cd ${MASTER_APP} && DATABASE_URL="${(process.env.MASTER_DB_URL || '').replace(/\/[^/?]+(\?|$)/, `/${dbName}$1`)}" npx prisma@5.22.0 db push --schema=${MASTER_APP}/prisma/schema.prisma --accept-data-loss 2>&1`,
                 `echo "[DONE]"`,
             ].join('\n');
 
@@ -163,7 +165,7 @@ async function seedCompanyData(params: {
         await upsertSetting('zatca_postal_code', params.postalCode);
 
         // إعدادات النظام
-        const trialEndMs = Date.now() + (5 * 24 * 60 * 60 * 1000);
+        const trialEndMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
         await upsertSetting('trialActive', 'true');
         await upsertSetting('trialEndsAt', trialEndMs.toString());
         await upsertSetting('maxTrialInvoices', '30');
@@ -197,7 +199,7 @@ async function seedCompanyData(params: {
         if (emailUsername !== 'admin') {
             await prisma.user.upsert({
                 where: { username: 'admin' },
-                update: {},  // لا نغير إذا كان موجوداً
+                update: {},  
                 create: {
                     username: 'admin',
                     fullName: `${params.companyNameAr} - مدير النظام`,
@@ -257,6 +259,10 @@ async function seedCompanyData(params: {
                 skipDuplicates: true,
             });
         }
+
+        // Seed Chart of Accounts
+        const { seedSocpaCoA } = require('@/lib/seed-socpa-coa');
+        await seedSocpaCoA(params.subdomain, prisma);
 
         return { ok: true };
     } catch (err: any) {
@@ -467,7 +473,8 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        return NextResponse.json({ success: false, message: 'خطأ عام: ' + e.message }, { status: 500 });
+        log.error('[provision] Uncaught error:', e);
+        return NextResponse.json({ success: false, message: 'خطأ عام: ' + e.message, debug: e.stack }, { status: 500 });
     }
 }
 

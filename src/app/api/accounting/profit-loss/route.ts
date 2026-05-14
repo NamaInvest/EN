@@ -45,7 +45,7 @@ async function fetchSectionAmounts(
   codeFrom: string,
   codeTo: string,
   side: 'DEBIT' | 'CREDIT',
-): Promise<{ accountId: number; code: string; nameAr: string; name: string; net: number }[]> {
+): Promise<{ accountId: number; code: string; name: string; nameEn: string; net: number }[]> {
   const lines = await p.journalEntryLine?.findMany?.({
     where: {
       tenantId,
@@ -54,14 +54,14 @@ async function fetchSectionAmounts(
     },
     select: {
       side: true, amount: true,
-      account: { select: { id: true, code: true, nameAr: true, name: true } },
+      account: { select: { id: true, code: true, name: true, nameEn: true } },
     },
   }).catch(() => []) ?? [];
 
-  const map = new Map<number, { code: string; nameAr: string; name: string; net: number }>();
+  const map = new Map<number, { code: string; name: string; nameEn: string; net: number }>();
   for (const l of lines) {
     const acct  = l.account;
-    const entry = map.get(acct.id) ?? { code: acct.code, nameAr: acct.nameAr ?? acct.name, name: acct.name, net: 0 };
+    const entry = map.get(acct.id) ?? { code: acct.code, name: acct.name, nameEn: acct.nameEn ?? acct.name, net: 0 };
     const amt   = Number(l.amount ?? 0);
     entry.net  += (l.side === side ? amt : -amt);
     map.set(acct.id, entry);
@@ -113,7 +113,7 @@ async function _GET(req: NextRequest) {
       const cp = compArr.find(c => c.accountId === a.accountId)?.net ?? null;
       return {
         code:      a.code,
-        name:      a.nameAr,
+        name:      a.name,
         amount:    rnd(a.net),
         compare:   cp !== null ? rnd(cp) : null,
         change:    cp !== null ? rnd(a.net - cp) : null,

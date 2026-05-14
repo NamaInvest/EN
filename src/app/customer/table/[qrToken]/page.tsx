@@ -15,7 +15,7 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
         // Fetch table details using the token
         const fetchTable = async () => {
             try {
-                const res = await fetch(\`/api/customer/table/\${params.qrToken}\`);
+                const res = await fetch(`/api/customer/table/${params.qrToken}`);
                 const data = await res.json();
                 if (data.success) {
                     setTableData(data.table);
@@ -34,7 +34,7 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
     const callWaiter = async () => {
         setCallStatus('CALLING');
         try {
-            const res = await fetch(\`/api/customer/table/\${params.qrToken}\`, {
+            const res = await fetch(`/api/customer/table/${params.qrToken}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'CALL_WAITER' })
@@ -117,13 +117,13 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
                     <button 
                         onClick={callWaiter}
                         disabled={callStatus !== 'IDLE'}
-                        className={\`relative group w-48 h-48 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-2xl \${
+                        className={`relative group w-48 h-48 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-2xl ${
                             callStatus === 'CALLED' 
                                 ? 'bg-emerald-500 text-white shadow-emerald-500/40 scale-95' 
                                 : callStatus === 'CALLING'
                                 ? 'bg-orange-400 text-white shadow-orange-500/40 animate-pulse'
                                 : 'bg-linear-to-br from-orange-400 to-red-500 text-white shadow-red-500/30 hover:scale-105 active:scale-95'
-                        }\`}
+                        }`}
                     >
                         {/* Ripples */}
                         {callStatus === 'IDLE' && (
@@ -136,7 +136,7 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
                         {callStatus === 'CALLED' ? (
                             <CheckCircle2 className="w-20 h-20 mb-2" />
                         ) : (
-                            <Bell className={\`w-20 h-20 mb-2 \${callStatus === 'IDLE' ? 'group-hover:-rotate-12 transition-transform' : 'animate-bounce'}\`} />
+                            <Bell className={`w-20 h-20 mb-2 ${callStatus === 'IDLE' ? 'group-hover:-rotate-12 transition-transform' : 'animate-bounce'}`} />
                         )}
                         
                         <span className="text-2xl font-black tracking-tight">

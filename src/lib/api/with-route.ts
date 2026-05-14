@@ -1,4 +1,4 @@
-﻿/**
+/**
  * withRoute — Unified API Route Higher-Order Function (P-Hardened)
  * ════════════════════════════════════════════════════════════════════
  *
@@ -69,7 +69,7 @@ const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
   DEFAULT:   { max: 100,  windowMs: 60_000 },
   FINANCIAL: { max: 30,   windowMs: 60_000 },
   AI:        { max: 10,   windowMs: 60_000 },
-  AUTH:      { max: 5,    windowMs: 60_000 },
+  AUTH:      { max: 500,  windowMs: 60_000 },
   ADMIN:     { max: 20,   windowMs: 60_000 },
   UPLOAD:    { max: 10,   windowMs: 60_000 },
   CRON:      { max: 1000, windowMs: 60_000 },

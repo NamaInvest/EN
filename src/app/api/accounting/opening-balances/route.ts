@@ -57,7 +57,7 @@ async function _GET(req: NextRequest) {
     },
     include: {
       lines: {
-        include: { account: { select: { code: true, nameAr: true, name: true } } },
+        include: { account: { select: { code: true, nameEn: true, name: true } } },
         orderBy: { account: { code: 'asc' } },
       },
     },
@@ -94,11 +94,11 @@ async function _POST(req: NextRequest) {
   const accountCodes = [...new Set(lines.map(l => l.accountCode))];
   const accounts     = await prismaClient.account?.findMany?.({
     where: { tenantId, code: { in: accountCodes } },
-    select: { id: true, code: true, nameAr: true, name: true },
+    select: { id: true, code: true, nameEn: true, name: true },
   }).catch(() => []) ?? [];
 
   const accountMap = new Map<string, { id: number; code: string; name: string }>(
-    accounts.map((a: any) => [a.code, { id: a.id, code: a.code, name: a.nameAr ?? a.name ?? a.code }]),
+    accounts.map((a: any) => [a.code, { id: a.id, code: a.code, name: a.name ?? a.nameEn ?? a.code }]),
   );
 
   const missingCodes = accountCodes.filter(c => !accountMap.has(c));

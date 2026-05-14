@@ -1,11 +1,11 @@
 /**
- * Manufacturing API â€” Complete Production Orders Management
+ * Manufacturing API — Complete Production Orders Management
  * 
- * GET  /api/manufacturing        â€” List orders
- * POST /api/manufacturing        â€” Create order
- * PUT  /api/manufacturing        â€” Update order status (start/complete/cancel)
- *      ?action=complete          â€” Close order + postManufacturingCompletion
- *      ?action=issue-materials   â€” Issue BOM materials to WIP + postMaterialIssueToWIP
+ * GET  /api/manufacturing        — List orders
+ * POST /api/manufacturing        — Create order
+ * PUT  /api/manufacturing        — Update order status (start/complete/cancel)
+ *      ?action=complete          — Close order + postManufacturingCompletion
+ *      ?action=issue-materials   — Issue BOM materials to WIP + postMaterialIssueToWIP
  */
 
 import { NextRequest, NextResponse } from 'next/server';

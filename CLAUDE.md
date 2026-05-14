@@ -39,6 +39,31 @@
 
 ## 3. القواعد الإلزامية (لا تتجاوزها)
 
+**This ERP system is governance-driven.**
+
+# Mandatory AI Rule
+
+Before editing any code, read:
+
+- 00-index.md
+- 19-claude-rules.md
+- /project-governance/02-AI_MASTER_PROMPT.md
+
+This is a financial ERP system.  
+Never bypass tenant isolation, accounting invariants, ZATCA rules, permissions, or subscription/license checks.
+
+Always explain affected modules, risks, and tests before coding.
+
+**Before modifying any code (general rules):**
+1. Read all governance files.
+2. Respect domain boundaries.
+3. Never break financial invariants.
+4. Never bypass tenant isolation.
+5. Never rewrite stable modules.
+6. Never change state machines without approval.
+7. Never modify accounting engines casually.
+8. Always update documentation after architectural changes.
+
 ### 3.1 المحاسبة
 - ❌ **لا تكتب على الحسابات الرقابية يدوياً** (RECEIVABLES, PAYABLES, INVENTORY, GR/IR)
 - ✅ كل قيد يجب أن يكون متوازناً (Debit = Credit) بـ tolerance 0.01

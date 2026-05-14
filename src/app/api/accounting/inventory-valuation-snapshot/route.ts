@@ -45,7 +45,7 @@ async function _GET(req: NextRequest) {
   const products = await p.product?.findMany?.({
     where: { tenantId, isActive: true, trackInventory: true },
     select: {
-      id: true, code: true, name: true, nameAr: true,
+      id: true, code: true, name: true, nameEn: true,
       unit: true, averageCost: true, currentQty: true,
       glInventoryAccountId: true,
     },
@@ -110,7 +110,7 @@ async function _GET(req: NextRequest) {
     lines.push({
       productId:   prod.id,
       productCode: prod.code,
-      productName: prod.nameAr ?? prod.name,
+      productName: prod.name,
       unit:        prod.unit ?? 'UNIT',
       qty:         Math.round(qty   * 1000) / 1000,
       avgCost:     Math.round(avgCost  * 100) / 100,

@@ -53,8 +53,8 @@ async function _GET(req: NextRequest) {
     orderBy: { period: 'desc' },
     take: 500,
     include: {
-      expenseAccount: { select: { code: true, nameAr: true } },
-      accrualAccount: { select: { code: true, nameAr: true } },
+      expenseAccount: { select: { code: true, nameEn: true } },
+      accrualAccount: { select: { code: true, nameEn: true } },
     },
   }).catch(() => []) ?? [];
 

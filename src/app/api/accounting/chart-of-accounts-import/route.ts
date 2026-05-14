@@ -4,7 +4,7 @@
  * GET  /api/accounting/chart-of-accounts-import?tenantId=X  (preview existing)
  *
  * يستورد دليل الحسابات دفعةً واحدة:
- *   - يدعم JSON: مصفوفة { code, nameAr, name, type, parentCode? }
+ *   - يدعم JSON: مصفوفة { code, name, name, type, parentCode? }
  *   - يُنشئ هيكل شجري (parent-child)
  *   - يمنع الكودات المكررة (UPSERT)
  *   - dry-run للمعاينة قبل الحفظ
@@ -23,7 +23,7 @@ const log = logger.child({ service: 'api.coa-import' });
 
 const AccountLineSchema = z.object({
   code:       z.string().min(2).max(20),
-  nameAr:     z.string().min(1),
+  nameEn:   z.string().min(1),
   name:       z.string().optional(),
   type:       z.enum(['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE','CONTRA','BANK','CASH']),
   parentCode: z.string().optional(),
@@ -48,7 +48,7 @@ async function _GET(req: NextRequest) {
   const p        = getPrisma(req as any) as any;
 
   const where: any = { tenantId };
-  if (search) where.OR = [{ code: { contains: search } }, { nameAr: { contains: search } }, { name: { contains: search } }];
+  if (search) where.OR = [{ code: { contains: search } }, { nameEn: { contains: search } }, { nameEn: { contains: search } }];
   if (type)   where.type = type;
 
   const accounts = await p.account?.findMany?.({
@@ -115,7 +115,7 @@ async function _POST(req: NextRequest) {
       return acc;
     }, {}),
     preview: accounts.slice(0, 5).map(a => ({
-      code: a.code, nameAr: a.nameAr, type: a.type,
+      code: a.code, name: a.name, type: a.type,
       action: existingCodes.has(a.code) ? (overwrite ? 'UPDATE' : 'SKIP') : 'CREATE',
     })),
   };
@@ -154,8 +154,8 @@ async function _POST(req: NextRequest) {
     const data: any = {
       tenantId,
       code:     acct.code,
-      nameAr:   acct.nameAr,
-      name:     acct.name ?? acct.nameAr,
+      name:   acct.name,
+      nameEn:   acct.nameEn ?? acct.name,
       type:     acct.type,
       parentId,
       isHeader: acct.isHeader ?? false,
@@ -167,7 +167,7 @@ async function _POST(req: NextRequest) {
     const result = await p.account?.upsert?.({
       where: { tenantId_code: { tenantId, code: acct.code } },
       create: data,
-      update: isExisting ? { nameAr: data.nameAr, name: data.name, type: data.type, parentId, notes: data.notes } : {},
+      update: isExisting ? { nameEn: data.nameEn, nameEn: data.nameEn, type: data.type, parentId, notes: data.notes } : {},
     }).catch(async () =>
       p.account?.create?.({ data }).catch((e: any) => { errors.push(`${acct.code}: ${e.message}`); return null; })
     );

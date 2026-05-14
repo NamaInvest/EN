@@ -1,5 +1,5 @@
 /**
- * Approval Workflow Runtime â€” v2 (P2.3)
+ * Approval Workflow Runtime — v2 (P2.3)
  * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Multi-level approval engine backed by real DB models:
  *   ApprovalRule â†’ defines who approves what amount
@@ -132,7 +132,7 @@ export class ApprovalEngine {
       },
     });
 
-    log.info(`Approval request #${request.id} created for ${documentType}#${documentId} â€” ${rules.length} level(s)`);
+    log.info(`Approval request #${request.id} created for ${documentType}#${documentId} — ${rules.length} level(s)`);
 
     return { requestId: request.id, status: 'pending_approval', levelsRequired: rules.length };
   }
@@ -179,7 +179,7 @@ export class ApprovalEngine {
     );
 
     if (remainingSteps.length === 0) {
-      // Fully approved â€” update request status
+      // Fully approved — update request status
       await (this.prisma as any).approvalRequest.update({
         where: { id: requestId },
         data: { status: 'approved' },

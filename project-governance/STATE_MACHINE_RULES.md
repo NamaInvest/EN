@@ -1,0 +1,20 @@
+# Invoice State Machine
+
+DRAFT
+↓
+PENDING_APPROVAL
+↓
+APPROVED
+↓
+POSTED
+↓
+PAID
+
+Allowed Transitions:
+- DRAFT → CANCELLED
+- POSTED → PARTIALLY_PAID
+- PARTIALLY_PAID → PAID
+
+Forbidden:
+- PAID → DRAFT
+- POSTED → DRAFT

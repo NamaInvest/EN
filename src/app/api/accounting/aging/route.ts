@@ -104,7 +104,7 @@ async function _GET(req: NextRequest) {
     if (!entityMap.has(entityId)) {
       entityMap.set(entityId, {
         entityId,
-        entityName: entity.name ?? entity.nameAr ?? '',
+        entityName: entity.name ?? entity.nameEn ?? '',
         entityCode: entity.code ?? String(entityId),
         vatNumber:  entity.vatNumber,
         current: 0, days1_30: 0, days31_60: 0,

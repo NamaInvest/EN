@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { CloudCog, Loader2 } from "lucide-react";
@@ -11,6 +11,10 @@ export default function AuthRouter() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [msg, setMsg] = useState(t('sys.str_1572'));
+
+  // [#13] إصلاح: إضافة عداد محاولات بدلاً من reload لا نهائي
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 12; // أقصى 12 محاولة (12 × 5 ثوانٍ = دقيقة واحدة)
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -24,7 +28,7 @@ export default function AuthRouter() {
 
       const checkTenantStatus = async () => {
         try {
-          const res = await fetch(`/api/tenant/status?email=${encodeURIComponent(email)}`);
+          const res = await fetch(`/api/tenant/check-status?email=${encodeURIComponent(email)}`);
           if (!res.ok) throw new Error("Failed to fetch tenant status");
           const data = await res.json();
 
@@ -34,10 +38,16 @@ export default function AuthRouter() {
               window.location.href = `https://${data.subdomain}.namainvist.com/sign-in`;
             }, 1000);
           } else if (data.status === "pending") {
-            setMsg(t('sys.str_1573'));
-            setTimeout(() => {
-              window.location.reload();
-            }, 5000);
+            retryCountRef.current += 1;
+            if (retryCountRef.current >= MAX_RETRIES) {
+              // [#13] بعد دقيقة كاملة من المحاولات، نوقف ونعرض رسالة
+              setMsg(t('sys.str_1575') || 'يرجى المحاولة لاحقاً أو التواصل مع الدعم الفني.');
+            } else {
+              setMsg(`${t('sys.str_1573')} (${retryCountRef.current}/${MAX_RETRIES})`);
+              setTimeout(() => {
+                checkTenantStatus(); // إعادة الاستعلام بدلاً من reload الصفحة بالكامل
+              }, 5000);
+            }
           } else {
             setMsg(t('sys.str_1574'));
             setTimeout(() => {

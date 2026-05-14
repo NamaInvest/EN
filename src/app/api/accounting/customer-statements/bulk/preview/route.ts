@@ -25,7 +25,7 @@ async function _POST(req: NextRequest) {
         const { segment, dateFrom, dateTo } = body;
 
         // Base where clause for active customers
-        let customerWhere: any = { isActive: true };
+        let customerWhere: any = { active: true };
 
         // Handle segmentation
         if (segment === 'OVERDUE') {

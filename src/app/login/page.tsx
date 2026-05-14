@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Camera, X } from "lucide-react";
-import { SignIn } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 
 import { Suspense } from "react";
 import { useTranslation } from "@/lib/i18n";
 
 function LoginForm() {
+  const { user, isLoaded } = useUser();
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +17,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(process.env.NEXT_PUBLIC_IS_DESKTOP === '1');
+  const [isDesktop, setIsDesktop] = useState(false);
   const [showLocalForm, setShowLocalForm] = useState(false);
   const [showFaceLogin, setShowFaceLogin] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
@@ -29,22 +30,26 @@ function LoginForm() {
 
   useEffect(() => {
     // Detect if we're on a tenant subdomain or desktop (Electron)
-    const host = window.location.hostname;
-    const isLocalhost = host === 'localhost' || host === '127.0.0.1';
-    const isDesktopMode = isLocalhost || !!(window as any).namaDesktop;
+    const host = window.location.hostname || '';
+    const isDesktopApp = !!(window as any).namaDesktop;
     
-    // Auto-redirect from /login to /sign-in on main domain
-    if (!isDesktopMode && (host === 'namainvist.com' || host === 'www.namainvist.com')) {
-      window.location.href = '/sign-in';
-      return;
+    // Determine the environment
+    if (isDesktopApp) {
+      setIsDesktop(true);
+      setIsSubdomain(true); // Desktop uses local JWT auth
+      setShowLocalForm(true);
+    } else if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
+      setIsSubdomain(true); // We are on a tenant subdomain -> Default to Username/Password
+      setShowLocalForm(true);
+    } else {
+      setIsSubdomain(false); // We are on Main Domain -> Default to Clerk SignIn
+      setShowLocalForm(false);
     }
 
-    if (isDesktopMode) {
-      setIsDesktop(true);
-      setIsSubdomain(true); // Desktop uses JWT auth like subdomains
-    } else if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
-      setIsSubdomain(true);
-    }
+    // ملاحظة مهمة: لا نقوم بتحويل تلقائي لـ sso-redirect هنا!
+    // التدفق الصحيح: المستخدم يرى نموذج Clerk → يضغط زر الدخول →
+    // Clerk يحوله لـ afterSignInUrl (وهي /api/auth/sso-redirect)
+    // التحويل التلقائي كان يسبب حلقة لا نهائية (Loop)
 
     fetch("/api/settings")
       .then((r) => (r.ok ? r.json() : []))
@@ -56,17 +61,7 @@ function LoginForm() {
       })
       .catch(() => {});
 
-    // Temporary 1-hour auto-login bypass
-    const bypassExpiry = new Date("2026-03-20T01:10:00+03:00").getTime();
-    if (Date.now() < bypassExpiry && !localStorage.getItem("token")) {
-      setUsername("admin");
-      setPassword("admin");
-      setTimeout(() => {
-        const btn = document.getElementById("login-btn-auto");
-        if (btn) btn.click();
-      }, 800);
-    }
-  }, []);
+  }, [user, isLoaded]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,17 +71,23 @@ function LoginForm() {
     try {
       console.log("[LOGIN] Starting login...");
 
-      // Generate or retrieve device token
+      // [#10] إصلاح أمني: استخدام crypto.randomUUID() بدلاً من Math.random()
+      // Math.random() ليس cryptographically secure ولا يصلح لتوليد tokens
       let deviceToken = localStorage.getItem("deviceToken");
       if (!deviceToken) {
-        deviceToken = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-          /[xy]/g,
-          (c) => {
-            const r = (Math.random() * 16) | 0;
-            const v = c === "x" ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-          },
-        );
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          deviceToken = crypto.randomUUID();
+        } else {
+          // Fallback للمتصفحات القديمة فقط
+          deviceToken = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            (c) => {
+              const r = (Math.random() * 16) | 0;
+              const v = c === "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            },
+          );
+        }
         localStorage.setItem("deviceToken", deviceToken);
       }
       const deviceName = navigator.userAgent.substring(0, 50);
@@ -131,7 +132,10 @@ function LoginForm() {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("lastActivity", Date.now().toString());
 
-      document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+      // [#9] إصلاح أمني: إضافة SameSite=Lax لمنع CSRF attacks
+      // ملاحظة: Secure يُضاف فقط في HTTPS. HttpOnly غير ممكن من client-side.
+      const isSecure = window.location.protocol === 'https:';
+      document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
       // تحويل المستخدم حسب الدور والصفحة الافتراضية
       const defaultPage = data.user?.defaultPage;
       const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
@@ -191,7 +195,7 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "رمز التحقق غير صحيح");
+        setError(data.error || t("sys.str_4027") || "رمز التحقق غير صحيح");
         setLoading(false);
         return;
       }
@@ -199,7 +203,8 @@ function LoginForm() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("lastActivity", Date.now().toString());
-      document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+      const isSecure2FA = window.location.protocol === 'https:';
+      document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${isSecure2FA ? '; Secure' : ''}`;
 
       const defaultPage = data.user?.defaultPage;
       const ADMIN_ROLES = ['admin', 'owner', 'system_admin'];
@@ -211,7 +216,7 @@ function LoginForm() {
         window.location.href = "/pos";
       }
     } catch (err) {
-      setError("حدث خطأ في الاتصال");
+      setError(t("sys.str_4028") || "حدث خطأ في الاتصال");
       setLoading(false);
     }
   };
@@ -265,7 +270,7 @@ function LoginForm() {
           <div className="login-subtitle">{t("sys.str_4011")}</div>
         </div>
 
-        {isSubdomain && !isDesktop && !showLocalForm ? (
+        {!isDesktop && !showLocalForm ? (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
             <div style={{ 
               width: '100%', 
@@ -299,7 +304,7 @@ function LoginForm() {
                   },
                 }}
                 routing="hash"
-                forceRedirectUrl={typeof window !== 'undefined' ? `${window.location.origin}/api/auth/sso-redirect` : "/api/auth/sso-redirect"}
+                fallbackRedirectUrl="/sso-callback"
               />
             </div>
             

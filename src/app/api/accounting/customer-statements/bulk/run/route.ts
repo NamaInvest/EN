@@ -26,7 +26,7 @@ async function _POST(req: NextRequest) {
         }
         const { segment, dateFrom, dateTo, templateId, userId } = body;
 
-        let customerWhere: any = { isActive: true };
+        let customerWhere: any = { active: true };
         if (segment === 'OVERDUE') {
             customerWhere = { ...customerWhere, salesInvoices: { some: { remaining: { gt: 0 } } } };
         } else if (segment === 'VIP') {

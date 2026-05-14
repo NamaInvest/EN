@@ -32,6 +32,21 @@ function AutoLoginContent() {
         };
 
         const run = async () => {
+            const token = searchParams.get('token');
+            if (token) {
+                setMsg('جاري التحقق من رمز الدخول الموحد...');
+                try {
+                    const res = await fetch(`/api/auth/auto-login?token=${encodeURIComponent(token)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.token) {
+                            goToDashboard(data.token, data.user);
+                            return;
+                        }
+                    }
+                } catch { /* ignore and fallback */ }
+            }
+
             const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
 
             // ── خطوة 1: تحقق من الإيميل قبل أي شي ──────────────────────

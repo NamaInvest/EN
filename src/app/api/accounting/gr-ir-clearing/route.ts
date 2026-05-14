@@ -52,7 +52,7 @@ async function _GET(req: NextRequest) {
   const goodsReceipts = await p.goodsReceipt?.findMany?.({
     where: { tenantId, receivedAt: { gte: from, lte: to } },
     include: {
-      purchaseOrder: { select: { poNumber: true, supplier: { select: { name: true, nameAr: true } } } },
+      purchaseOrder: { select: { poNumber: true, supplier: { select: { name: true, nameEn: true } } } },
       lines: { select: { quantity: true, unitCost: true } },
     },
     orderBy: { receivedAt: 'desc' },
@@ -106,7 +106,7 @@ async function _GET(req: NextRequest) {
 
     items.push({
       poNumber:    grObj?.purchaseOrder?.poNumber ?? `PO-${poId}`,
-      vendor:      grObj?.purchaseOrder?.supplier?.nameAr ?? grObj?.purchaseOrder?.supplier?.name ?? 'غير محدد',
+      vendor:      grObj?.purchaseOrder?.supplier?.name ?? 'غير محدد',
       grAmount:    Math.round(gr  * 100) / 100,
       irAmount:    Math.round(ir  * 100) / 100,
       balance:     Math.round(bal * 100) / 100,

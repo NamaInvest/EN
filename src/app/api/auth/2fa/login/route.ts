@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'auth.2fa.login' });
 /**
- * POST /api/auth/2fa/login â€” Complete login after 2FA verification
+ * POST /api/auth/2fa/login — Complete login after 2FA verification
  * Called after user passes password check and receives requires2FA=true
  */
 

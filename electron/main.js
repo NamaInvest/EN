@@ -124,29 +124,59 @@ try {
 
 function isLicenseValid() {
   const license = store.get('license');
-  if (!license) return false;
-  const lastVerified = store.get('lastLicenseVerify') || 0;
-  const daysSinceVerify = (Date.now() - lastVerified) / (1000 * 60 * 60 * 24);
-  return daysSinceVerify < 30;
+  if (license && license.key) {
+    const lastVerified = store.get('lastLicenseVerify') || 0;
+    const daysSinceVerify = (Date.now() - lastVerified) / (1000 * 60 * 60 * 24);
+    return daysSinceVerify < 30;
+  }
+  
+  // 7-Day Trial Logic
+  let firstRun = store.get('firstRunTimestamp');
+  if (!firstRun) {
+    firstRun = Date.now();
+    store.set('firstRunTimestamp', firstRun);
+  }
+  const daysPassed = (Date.now() - firstRun) / (1000 * 60 * 60 * 24);
+  return daysPassed <= 7;
 }
 
 async function verifyLicenseOnline(key) {
   try {
+    const os = require('os');
+    const hardwareId = store.get('license')?.hardwareId || `${os.hostname()}-${os.platform()}-${os.arch()}`;
+    const payload = JSON.stringify({
+       licenseKey: key,
+       hardwareId: hardwareId,
+       appVersion: app.getVersion()
+    });
+
     const https = require('https');
     return new Promise((resolve) => {
-      const req = https.get(
-        `https://namainvist.com/api/ice/desktop-licenses?key=${encodeURIComponent(key)}`,
-        (res) => {
+      const req = https.request({
+        hostname: 'ahmedalyamicompany.namainvist.com',
+        path: '/api/desktop/verify-license',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+      }, (res) => {
           let data = '';
           res.on('data', (d) => (data += d));
           res.on('end', () => {
-            try { resolve(JSON.parse(data)); }
+            try { 
+              const parsed = JSON.parse(data);
+              if (parsed.success) {
+                  resolve({ valid: true, data: { status: parsed.status, company: parsed.companyName } });
+              } else {
+                  resolve({ valid: false, error: parsed.error, status: parsed.error.includes('expired') ? 'expired' : 'suspended' });
+              }
+            }
             catch { resolve({ valid: false }); }
           });
         }
       );
       req.on('error', () => resolve({ valid: false, offline: true }));
       req.setTimeout(10000, () => { req.destroy(); resolve({ valid: false, offline: true }); });
+      req.write(payload);
+      req.end();
     });
   } catch {
     return { valid: false, offline: true };
@@ -176,10 +206,32 @@ async function syncFeaturesToLocalDb(allowedFeatures) {
 // Heartbeat: sends license check every 5 min to keep "online" status green
 let heartbeatTimer = null;
 function startHeartbeat() {
-  const key = store.get('license')?.key;
-  if (!key) return;
-
   const doHeartbeat = async () => {
+    const key = store.get('license')?.key;
+    
+    // Trial Check if no key
+    if (!key) {
+      let firstRun = store.get('firstRunTimestamp');
+      if (!firstRun) {
+        firstRun = Date.now();
+        store.set('firstRunTimestamp', firstRun);
+      }
+      const daysPassed = (Date.now() - firstRun) / (1000 * 60 * 60 * 24);
+      if (daysPassed > 7) {
+        console.log('⏰ Trial expired');
+        if (mainWindow) {
+          mainWindow.loadURL(`http://localhost:${INTERNAL_PORT}/login`);
+          dialog.showMessageBox(mainWindow, {
+            type: 'warning',
+            title: '⏰ انتهت الفترة التجريبية',
+            message: `لقد انتهت فترة الـ 7 أيام التجريبية.\n\nالرجاء شراء وتفعيل الترخيص من الدعم الفني للاستمرار.`,
+            buttons: ['حسناً']
+          });
+        }
+      }
+      return;
+    }
+
     try {
       const result = await verifyLicenseOnline(key);
       if (result.valid) {
@@ -200,7 +252,7 @@ function startHeartbeat() {
           
           if (mainWindow) {
             // Show blocking page
-            mainWindow.loadURL(`http://localhost:${PORT}/login`);
+            mainWindow.loadURL(`http://localhost:${INTERNAL_PORT}/login`);
           }
           
           const statusMsg = status === 'suspended' ? 'معلّق' : 'ملغي';

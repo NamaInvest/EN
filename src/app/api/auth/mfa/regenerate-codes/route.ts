@@ -51,7 +51,7 @@ async function _POST(req: NextRequest) {
                 data: {
                     userId,
                     codeHash,
-                    codeHint: backupCode.substring(0, 2) + 'â€¢â€¢-â€¢â€¢' + backupCode.substring(7),
+                    codeHint: backupCode.substring(0, 2) + '••-••' + backupCode.substring(7),
                     generatedBatchId: batchId
                 }
             });
