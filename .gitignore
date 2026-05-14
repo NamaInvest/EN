@@ -64,3 +64,5 @@ graphify-out/
 
 public/downloads/*.exe
 *.exe
+
+.ai-brain/namain
