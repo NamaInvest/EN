@@ -1,6 +1,6 @@
 
 # AI Project Memory
-**Generated At:** 2026-05-14T08:21:09.109Z
+**Generated At:** 2026-05-14T11:46:55.234Z
 
 ## Welcome, AI Agent!
 You are operating inside **Nama Invest ERP**. This system is highly complex, multi-tenant, and financially sensitive.
@@ -12,6 +12,9 @@ Before writing any code, YOU MUST read the relevant files in the `docs/ai-brain`
 - `/docs/ai-brain/DOMAIN_MAP.md`: Business Domains
 - `/docs/ai-brain/FINANCIAL_INTEGRITY.md`: ⚠️ CRITICAL FINANCIAL RULES
 - `/docs/ai-brain/AI_AGENT_RULES.md`: ⚠️ CRITICAL AGENT INSTRUCTIONS
+
+## Recent Architectural Updates
+- **2026-05-14:** Enforced hard fail-safe atomicity on Sales Invoices by removing swallowed inventory errors (split-brain fix).
 
 ## Your Mandate
 1. Check the Brain.

@@ -1,6 +1,6 @@
 
 # AI Agent Rules
-**Generated At:** 2026-05-14T08:21:09.109Z
+**Generated At:** 2026-05-14T11:46:55.234Z
 
 ## 1. NEVER Break Atomicity
 If you modify financial code, you MUST use `prisma.$transaction` and pass the `tx` client down to sub-functions.

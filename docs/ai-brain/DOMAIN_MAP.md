@@ -1,6 +1,6 @@
 
 # Domain Map
-**Generated At:** 2026-05-14T08:21:09.109Z
+**Generated At:** 2026-05-14T11:46:55.234Z
 
 ## 1. Accounting Domain
 - **Purpose:** Double-entry journal system.

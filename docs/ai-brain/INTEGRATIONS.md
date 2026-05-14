@@ -1,6 +1,6 @@
 
 # Integrations
-**Generated At:** 2026-05-14T08:21:09.109Z
+**Generated At:** 2026-05-14T11:46:55.234Z
 
 ## ZATCA (FATOORA)
 - **Purpose:** KSA Phase 2 E-Invoicing.

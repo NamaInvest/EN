@@ -43,6 +43,7 @@ export async function withIdempotency(
 
         // 3. Check or Create Idempotency Record
         let record;
+        let createdNewRecord = false;
         try {
             record = await prisma.idempotencyRecord.create({
                 data: {
@@ -54,6 +55,7 @@ export async function withIdempotency(
                     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // TTL: 24h
                 }
             });
+            createdNewRecord = true;
         } catch (error: any) {
             // P2002: Unique constraint violation (Race Condition or Duplicate)
             if (error.code === 'P2002') {
@@ -77,35 +79,37 @@ export async function withIdempotency(
         }
 
         // 4. Handle Existing Record Status
-        if (record.status === 'IN_PROGRESS') {
-            return NextResponse.json(
-                { success: false, message: 'طلب مكرر تحت المعالجة (IN_PROGRESS).' },
-                { status: 409 }
-            );
-        }
-
-        if (record.status === 'COMPLETED') {
-            if (record.requestHash !== requestHash) {
+        if (!createdNewRecord) {
+            if (record.status === 'IN_PROGRESS') {
                 return NextResponse.json(
-                    { success: false, message: 'مفتاح Idempotency مكرر مع بيانات طلب مختلفة.' },
-                    { status: 400 }
+                    { success: false, message: 'طلب مكرر تحت المعالجة (IN_PROGRESS).' },
+                    { status: 409 }
                 );
             }
-            return NextResponse.json(record.responseBody, { status: record.responseCode || 200 });
-        }
 
-        if (record.status === 'FAILED') {
-            if (record.requestHash !== requestHash) {
-                return NextResponse.json(
-                    { success: false, message: 'مفتاح Idempotency مكرر لطلب فاشل مع بيانات مختلفة.' },
-                    { status: 400 }
-                );
+            if (record.status === 'COMPLETED') {
+                if (record.requestHash !== requestHash) {
+                    return NextResponse.json(
+                        { success: false, message: 'مفتاح Idempotency مكرر مع بيانات طلب مختلفة.' },
+                        { status: 400 }
+                    );
+                }
+                return NextResponse.json(record.responseBody, { status: record.responseCode || 200 });
             }
-            // Update back to IN_PROGRESS for retry
-            await prisma.idempotencyRecord.update({
-                where: { id: record.id },
-                data: { status: 'IN_PROGRESS', lockedAt: new Date() }
-            });
+
+            if (record.status === 'FAILED') {
+                if (record.requestHash !== requestHash) {
+                    return NextResponse.json(
+                        { success: false, message: 'مفتاح Idempotency مكرر لطلب فاشل مع بيانات مختلفة.' },
+                        { status: 400 }
+                    );
+                }
+                // Update back to IN_PROGRESS for retry
+                await prisma.idempotencyRecord.update({
+                    where: { id: record.id },
+                    data: { status: 'IN_PROGRESS', lockedAt: new Date() }
+                });
+            }
         }
 
         // 5. Execute Original Handler

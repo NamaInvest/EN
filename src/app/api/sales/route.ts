@@ -296,51 +296,45 @@ export async function _POST(request: Request) {
                     deficit = Math.max(0, deficit - toBreak * n(pu.factor));
                 }
 
-                try {
-                    await tx.productStock.upsert({
-                        where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
-                        update: { quantity: { decrement: qtyInBase } },
-                        create: { productId, stockId: createdInvoice.stockId, quantity: -qtyInBase },
-                    });
-                    
-                    await tx.stockMovement.create({
-                        data: {
-                            productId: productId,
-                            stockId: createdInvoice.stockId,
-                            type: 'out',
-                            quantity: qtyInBase,
-                            referenceType: 'sales_invoice',
-                            referenceId: createdInvoice.id,
-                            userId: userId,
-                            notes: `فاتورة مبيعات #${invoiceNo}`
-                        }
-                    });
-                } catch (e: any) { log.error('ProductStock update failed', { err: e?.message }); }
-
-                try {
-                    const activeRecipe = await tx.recipe.findFirst({
-                        where: { finishedProductId: Number(item.productId), isActive: true },
-                        include: { ingredients: true }
-                    });
-
-                    if (activeRecipe && activeRecipe.ingredients.length > 0) {
-                        for (const ing of activeRecipe.ingredients) {
-                            const requiredQty = ing.quantity * qty;
-                            
-                            await tx.product.update({
-                                where: { id: ing.rawProductId },
-                                data: { currentStock: { decrement: requiredQty } }
-                            });
-
-                            await tx.productStock.upsert({
-                                where: { productId_stockId: { productId: ing.rawProductId, stockId: createdInvoice.stockId } },
-                                update: { quantity: { decrement: requiredQty } },
-                                create: { productId: ing.rawProductId, stockId: createdInvoice.stockId, quantity: -requiredQty }
-                            });
-                        }
+                await tx.productStock.upsert({
+                    where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
+                    update: { quantity: { decrement: qtyInBase } },
+                    create: { productId, stockId: createdInvoice.stockId, quantity: -qtyInBase },
+                });
+                
+                await tx.stockMovement.create({
+                    data: {
+                        productId: productId,
+                        stockId: createdInvoice.stockId,
+                        type: 'out',
+                        quantity: qtyInBase,
+                        referenceType: 'sales_invoice',
+                        referenceId: createdInvoice.id,
+                        userId: userId,
+                        notes: `فاتورة مبيعات #${invoiceNo}`
                     }
-                } catch (recipeErr: unknown) {
-                    log.error('Failed to auto-deduct recipe ingredients', { err: (recipeErr as any)?.message });
+                });
+
+                const activeRecipe = await tx.recipe.findFirst({
+                    where: { finishedProductId: Number(item.productId), isActive: true },
+                    include: { ingredients: true }
+                });
+
+                if (activeRecipe && activeRecipe.ingredients.length > 0) {
+                    for (const ing of activeRecipe.ingredients) {
+                        const requiredQty = ing.quantity * qty;
+                        
+                        await tx.product.update({
+                            where: { id: ing.rawProductId },
+                            data: { currentStock: { decrement: requiredQty } }
+                        });
+
+                        await tx.productStock.upsert({
+                            where: { productId_stockId: { productId: ing.rawProductId, stockId: createdInvoice.stockId } },
+                            update: { quantity: { decrement: requiredQty } },
+                            create: { productId: ing.rawProductId, stockId: createdInvoice.stockId, quantity: -requiredQty }
+                        });
+                    }
                 }
             }
 
@@ -534,15 +528,11 @@ async function _DELETE(request: NextRequest) {
                     data: { currentStock: { increment: detail.quantity } },
                 });
                 
-                try {
-                    await tx.productStock.upsert({
-                        where: { productId_stockId: { productId: detail.productId, stockId: invoice.stockId } },
-                        update: { quantity: { increment: detail.quantity } },
-                        create: { productId: detail.productId, stockId: invoice.stockId, quantity: detail.quantity },
-                    });
-                } catch (e: any) {
-                     log.error('Failed to reverse productStock for sales delete inside tx', { err: e?.message });
-                }
+                await tx.productStock.upsert({
+                    where: { productId_stockId: { productId: detail.productId, stockId: invoice.stockId } },
+                    update: { quantity: { increment: detail.quantity } },
+                    create: { productId: detail.productId, stockId: invoice.stockId, quantity: detail.quantity },
+                });
             }
 
             // Remove related treasury entries

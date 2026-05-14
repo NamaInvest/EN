@@ -10,7 +10,7 @@ const SERVER = {
     password: '_ee4SWbxLVfH9b'
 };
 
-const REMOTE_BASE = '/www/wwwroot/n11.namainvist.com';
+const REMOTE_BASE = '/www/wwwroot/namainvist.com';
 const LOCAL_BASE = 'd:\\namasoft9-3-main';
 
 const DIRS_TO_CHECK = ['src/app', 'src/components', 'src/lib', 'prisma'];

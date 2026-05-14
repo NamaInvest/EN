@@ -4,16 +4,18 @@ const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_e
 
 const conn = new Client();
 conn.on('ready', () => {
-    console.log('✅ Connected! Fetching PM2 status and logs...');
+    console.log('✅ Connected! Running npm run build...');
     
-    conn.exec('pm2 list && pm2 logs main-site --lines 10 --nostream', (err, stream) => {
+    // We execute the build and show the full output
+    conn.exec('cd /www/wwwroot/namainvist.com && npm run build', (err, stream) => {
         if (err) throw err;
         stream.on('close', (code, signal) => {
+            console.log(`\nBuild process exited with code ${code}`);
             conn.end();
         }).on('data', (data) => {
-            console.log(data.toString());
+            process.stdout.write(data.toString());
         }).stderr.on('data', (data) => {
-            console.error(data.toString());
+            process.stderr.write(data.toString());
         });
     });
 }).connect(SERVER);

@@ -25,9 +25,8 @@ describe('Financial Idempotency Utility', () => {
             headers: {
                 get: jest.fn((key) => key === 'Idempotency-Key' ? 'test-key-123' : null)
             },
-            clone: () => ({
-                text: jest.fn().mockResolvedValue(JSON.stringify({ total: 100 }))
-            })
+            text: jest.fn().mockResolvedValue(JSON.stringify({ total: 100 })),
+            json: jest.fn().mockResolvedValue({ total: 100 })
         };
         
         mockHandler = jest.fn().mockResolvedValue(NextResponse.json({ success: true, id: 1 }, { status: 200 }));

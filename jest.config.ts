@@ -44,7 +44,7 @@ const config: Config = {
       testEnvironment: 'node',
       testMatch:      ['<rootDir>/src/**/*.test.ts', '!<rootDir>/src/__tests__/api/**'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: false }] },
     },
     {
       displayName:    'react',

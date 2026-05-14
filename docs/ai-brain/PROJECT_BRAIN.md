@@ -1,6 +1,6 @@
 
 # Project Brain: Executive Overview
-**Generated At:** 2026-05-14T08:21:09.109Z
+**Generated At:** 2026-05-14T11:46:55.234Z
 
 ## Executive Overview
 Nama Invest ERP (formerly NamaSoft) is a highly complex, multi-tenant enterprise resource planning (ERP) system encompassing Web (Next.js), Desktop (Electron/Qt6), and Mobile interfaces.
