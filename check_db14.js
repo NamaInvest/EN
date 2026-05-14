@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('cd /www/wwwroot/namainvist.com && npm run build', (err, stream) => {
+    conn.exec('sudo -u postgres psql -h localhost -p 5432 -U postgres -d namafoundation_db -c "SELECT key, value FROM settings LIMIT 5;"', (err, stream) => {
         if (err) throw err;
         stream.on('data', (d) => process.stdout.write(d));
         stream.stderr.on('data', (d) => process.stderr.write(d));
