@@ -6,7 +6,10 @@
 1. **Zero Split-Brain:** All financial operations must occur inside a single atomic transaction. An invoice must never exist without its corresponding journal entry, and vice-versa.
 2. **TxClient Injection:** Any service function that performs database updates (like `createJournalEntry`) MUST accept a `txClient` (Prisma Transaction Client) and use it exclusively.
 3. **Hard Failures (Throw Errors):** Do not return soft `{ success: false }` inside atomic transactions. Throwing forces rollback.
-4. **Inventory Atomicity (No Swallowed Errors):** Never wrap `productStock.upsert`, `stockMovement.create`, or recipe ingredient deductions in a fail-silent `try/catch` inside a transaction. Any failure in inventory must trigger a hard rollback to prevent financial split-brain.
+4. **Inventory & Ledger Atomicity (No Swallowed Errors)**
+**RULE**: Any module affecting both inventory and ledger (e.g., Sales, Purchases, Returns) **MUST** perform all updates inside a single `prisma.$transaction`.
+**RULE**: **NEVER** use `.catch(() => null)` around inventory `upsert`, `stockMovement.create`, or `treasury.create` inside a transaction.
+**RULE**: The `postSalesReturn`, `postSalesInvoice`, and `postPurchaseInvoice` functions **MUST** accept a `txClient` and execute the journal entry inside the same parent transaction. If the journal fails, the entire transaction (including invoice and stock) MUST rollback. to prevent financial split-brain.
 5. **Outbox Pattern:** External API calls (like ZATCA) must NEVER be made synchronously inside a financial transaction.
 
 ## Release Operations & Database Safety

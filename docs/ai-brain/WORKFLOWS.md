@@ -1,4 +1,3 @@
-
 # Workflows
 **Generated At:** 2026-05-14T11:46:55.234Z
 
@@ -12,6 +11,18 @@
 7. Audit Log recorded.
 8. ZATCA Event added to `EventLog` (Outbox pattern).
 9. Transaction commits.
+
+## Sales Returns Lifecycle (Atomic)
+- **API**: `POST /api/sales-returns`
+- **Validation**: Verifies original invoice belongs to `tenantId` & validates items.
+- **Transaction Start**:
+  - Creates `SalesReturn`.
+  - Increments `product.currentStock` and `productStock.quantity` (Hard fail).
+  - Creates `stockMovement` (Type: `in`) for returned items.
+  - Creates `treasury` refund entry.
+  - Calls `postSalesReturn` (passing `txClient`) to create Journal Entry.
+- **Commit**: Either ALL pass, or ALL rollback.
+- **Post-Commit**: ZATCA Event Outbox creation (TODO).
 
 ## Idempotency Flow
 - Check DB for existing `[tenantId, endpoint, key]`.

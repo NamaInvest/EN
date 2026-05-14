@@ -488,6 +488,7 @@ export async function postSalesReturn(ret: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     const netAmount = ret.total - ret.taxValue;
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [
@@ -509,6 +510,7 @@ export async function postSalesReturn(ret: {
         userId: ret.userId,
         branchId: ret.branchId,
         date: ret.date,
+        txClient: ret.txClient,
     });
 }
 

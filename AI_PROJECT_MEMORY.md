@@ -13,8 +13,9 @@ Before writing any code, YOU MUST read the relevant files in the `docs/ai-brain`
 - `/docs/ai-brain/FINANCIAL_INTEGRITY.md`: ⚠️ CRITICAL FINANCIAL RULES
 - `/docs/ai-brain/AI_AGENT_RULES.md`: ⚠️ CRITICAL AGENT INSTRUCTIONS
 
-## Recent Architectural Updates
-- **2026-05-14:** Enforced hard fail-safe atomicity on Sales Invoices by removing swallowed inventory errors (split-brain fix).
+## Architectural Updates Log
+- **2026-05-14**: Refactored `Sales Returns` module to enforce atomic financial integrity. Integrated `withIdempotency` wrapper, established exact tenant scoping, restored missing stock movement tracking, executed `postSalesReturn` journal entry synchronously within Prisma `$transaction`, and eliminated `.catch(() => null)` masked errors. ZATCA Event Outbox added as a TODO.
+- **2026-05-14**: Refactored `Sales` inventory module. Eliminated swallowed errors inside Prisma transaction (`productStock.upsert`, `stockMovement.create`). Any inventory failure now safely rolls back the entire invoice and treasury record.
 
 ## Your Mandate
 1. Check the Brain.

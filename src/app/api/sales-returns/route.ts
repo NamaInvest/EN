@@ -12,6 +12,7 @@ import { postSalesReturn }       from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
+import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'sales-returns' });
 
@@ -76,7 +77,7 @@ async function _GET(req: NextRequest) {
 
 // â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-async function _POST(req: NextRequest, auth: any) {
+async function _POST(req: NextRequest, auth: any, tenantId: string) {
   const prisma = getPrisma(req);
   const raw    = await req.json().catch(() => ({}));
   const parsed = CreateSalesReturnSchema.safeParse(raw);
@@ -91,6 +92,14 @@ async function _POST(req: NextRequest, auth: any) {
   const body  = parsed.data;
   const today = body.date || new Date().toISOString().split('T')[0];
 
+  // Verify original invoice exists for this tenant
+  const originalInvoice = await prisma.salesInvoice.findUnique({
+    where: { id: body.originalInvoiceId }
+  });
+  if (!originalInvoice) {
+    return NextResponse.json({ error: 'الفاتورة الأصلية غير موجودة' }, { status: 404 });
+  }
+
   // Compute totals
   const subtotal = body.details.reduce((s, i) => s + (i.totalPrice ?? i.quantity * i.unitPrice), 0);
   const taxValue = Math.round(subtotal * body.taxRate * 100) / 100;
@@ -100,7 +109,7 @@ async function _POST(req: NextRequest, auth: any) {
   const lastReturn = await prisma.salesReturn.findFirst({ orderBy: { id: 'desc' } }).catch(() => null);
   const returnNo   = (lastReturn?.returnNo || 0) + 1;
 
-  // Transaction: create return + restore stock
+  // Transaction: create return + restore stock + financial entry
   const salesReturn = await prisma.$transaction(async (tx) => {
     const ret = await tx.salesReturn.create({
       data: {
@@ -132,7 +141,7 @@ async function _POST(req: NextRequest, auth: any) {
       await tx.product.update({
         where: { id: item.productId },
         data:  { currentStock: { increment: item.quantity } },
-      }).catch(() => null);
+      });
 
       const stockTarget = item.stockId || body.destinationStockId;
       if (stockTarget) {
@@ -140,35 +149,54 @@ async function _POST(req: NextRequest, auth: any) {
           where:  { productId_stockId: { productId: item.productId, stockId: stockTarget } },
           create: { productId: item.productId, stockId: stockTarget, quantity: item.quantity },
           update: { quantity: { increment: item.quantity } },
-        }).catch(() => null);
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            productId: item.productId,
+            stockId: stockTarget,
+            type: 'in',
+            quantity: item.quantity,
+            referenceType: 'sales_return',
+            referenceId: ret.id,
+            userId: auth?.userId || null,
+            notes: `مرتجع مبيعات #${returnNo}`
+          }
+        });
       }
     }
 
     // Treasury entry — cash refund
-    await tx.treasury.create({
-      data: {
-        type:          'out',
-        amount:        total,
-        description:   `ظ…ط±طھط¬ط¹ ظ…ط¨ظٹط¹ط§طھ ط±ظ‚ظ… ${returnNo}`,
-        referenceType: 'salesReturn',
-        referenceId:   ret.id,
-        userId:        auth?.userId || null,
-        branchId:      body.branchId || null,
-      },
-    }).catch(() => null);
+    if (total > 0) {
+      await tx.treasury.create({
+        data: {
+          type:          'out',
+          amount:        total,
+          description:   `مرتجع مبيعات رقم ${returnNo}`,
+          referenceType: 'salesReturn',
+          referenceId:   ret.id,
+          userId:        auth?.userId || null,
+          branchId:      body.branchId || null,
+        },
+      });
+    }
+
+    // Auto-Journal: عكس المبيعات
+    await postSalesReturn({
+      returnNo,
+      total,
+      taxValue,
+      userId:   auth?.userId,
+      branchId: body.branchId,
+      date:     today,
+      txClient: tx,
+    });
+
+    // TODO: ZATCA Credit Note Outbox Event
+    // EventLog.create({ type: 'ZATCA_CREDIT_NOTE', referenceId: ret.id, ... })
 
     return ret;
   });
-
-  // â”€â”€ Auto-Journal: ط¹ظƒط³ ط¥ظٹط±ط§ط¯ط§طھ ط§ظ„ظ…ط¨ظٹط¹ط§طھ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  await postSalesReturn({
-    returnNo,
-    total,
-    taxValue,
-    userId:   auth?.userId,
-    branchId: body.branchId,
-    date:     today,
-  }).catch(err => log.error('[sales-return-journal]', err.message));
 
   return NextResponse.json({
     success:  true,
@@ -188,7 +216,8 @@ export const GET = withRoute(
   { rateLimit: 'DEFAULT' }
 );
 
-export const POST = withRoute(
-  async ({ req, auth }) => _POST(req as any, auth),
-  { rateLimit: 'FINANCIAL' }
-);
+export const POST = withRoute(async ({ req, auth }) => {
+  const { withIdempotency } = await import('@/lib/idempotency');
+  const tenantId = req.headers.get('x-tenant-id') || 'public';
+  return withIdempotency(req as NextRequest, 'POST /api/sales-returns', async () => _POST(req as any, auth, tenantId as string));
+}, { rateLimit: 'FINANCIAL' });
