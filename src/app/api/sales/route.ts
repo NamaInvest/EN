@@ -580,5 +580,10 @@ async function _DELETE(request: NextRequest) {
 
 // ── Route Security ────────────────────────────────────────────────────────
 export const GET    = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
-export const POST   = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+
+export const POST   = withRoute(async ({ req }) => {
+    const { withIdempotency } = await import('@/lib/idempotency');
+    return withIdempotency(req as NextRequest, 'POST /api/sales', async () => _POST(req as any));
+}, { rateLimit: 'DEFAULT' });
+
 export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });

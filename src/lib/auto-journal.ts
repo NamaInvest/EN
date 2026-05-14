@@ -243,6 +243,7 @@ export async function postSalesInvoice(invoice: {
     date?: string;
     discountValue?: number;
     totalCost?: number; // تكلفة البضاعة المباعة
+    txClient?: any;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
 
@@ -330,6 +331,7 @@ export async function postSalesInvoice(invoice: {
         userId: invoice.userId,
         branchId: invoice.branchId,
         date: invoice.date,
+        txClient: invoice.txClient,
     });
 }
 
@@ -356,6 +358,7 @@ export async function postPurchaseInvoice(invoice: {
     landedCosts?: Array<{ accountCode: string; amountValue: number; description: string }>;
     ppvAmount?: number; // Purchase Price Variance
     hasGRN?: boolean; // [EG-02] true = GRN exists, clear GRNI; false = direct to Inventory
+    txClient?: any;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
@@ -429,6 +432,7 @@ export async function postPurchaseInvoice(invoice: {
         userId: invoice.userId,
         branchId: invoice.branchId,
         date: invoice.date,
+        txClient: invoice.txClient,
     });
 }
 

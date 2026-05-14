@@ -1,101 +1,149 @@
-/**
- * Idempotency Key Engine
- * ──────────────────────────────────────────────────────────
- * Prevents duplicate financial operations (payments, invoices, journal entries).
- * Each request with an `X-Idempotency-Key` header will be cached for 24h.
- * If the same key is sent again, the cached response is returned.
- *
- * Usage in API routes:
- *   import { idempotency } from '@/lib/idempotency';
- *
- *   export const POST = withApiHandler(async (req, ctx) => {
- *     const cached = await idempotency.check(req);
- *     if (cached) return cached;
- *     // ... do work ...
- *     await idempotency.save(req, response);
- *     return response;
- *   });
- */
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { getTenantPrisma, resolveTenant } from '@/lib/prisma';
+import { IdempotencyStatus } from '@prisma/client';
 
-import { logger } from '@/lib/logger';
+export async function withIdempotency(
+    req: NextRequest,
+    endpoint: string,
+    handler: () => Promise<NextResponse>
+): Promise<NextResponse> {
+    try {
+        const tenantId = resolveTenant(req);
+        const prisma = getTenantPrisma(req);
 
-const log = logger.child({ route: 'Idempotency' });
+        // 1. Read key from header or body
+        let idempotencyKey = req.headers.get('Idempotency-Key') || req.headers.get('idempotency-key');
+        
+        let bodyText = '';
+        let bodyJson: any = null;
+        
+        try {
+            bodyText = await req.clone().text();
+            bodyJson = bodyText ? JSON.parse(bodyText) : null;
+        } catch (e) {
+            // Ignore parse errors, body might be empty
+        }
 
-interface StoredResponse {
-  status: number;
-  body: unknown;
-  createdAt: number;
-}
+        if (!idempotencyKey && bodyJson && bodyJson.idempotencyKey) {
+            idempotencyKey = String(bodyJson.idempotencyKey);
+        }
 
-const STORE = new Map<string, StoredResponse>();
-const TTL = 24 * 60 * 60 * 1000; // 24 hours
+        // If no key provided, skip idempotency entirely
+        if (!idempotencyKey) {
+            return await handler();
+        }
 
-// Cleanup expired entries every 30 minutes
-const cleanup = setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of STORE.entries()) {
-    if (now - entry.createdAt > TTL) STORE.delete(key);
-  }
-}, 30 * 60 * 1000);
-if (cleanup.unref) cleanup.unref();
+        // 2. Hash request body (normalized)
+        const hashPayload = bodyJson ? JSON.stringify(bodyJson) : bodyText;
+        const requestHash = crypto.createHash('sha256').update(hashPayload).digest('hex');
 
-function extractKey(req: Request): string | null {
-  return req.headers.get('x-idempotency-key') || req.headers.get('idempotency-key');
-}
+        // 3. Check or Create Idempotency Record
+        let record;
+        try {
+            record = await prisma.idempotencyRecord.create({
+                data: {
+                    tenantId,
+                    endpoint,
+                    key: idempotencyKey,
+                    requestHash,
+                    status: 'IN_PROGRESS',
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // TTL: 24h
+                }
+            });
+        } catch (error: any) {
+            // P2002: Unique constraint violation (Race Condition or Duplicate)
+            if (error.code === 'P2002') {
+                record = await prisma.idempotencyRecord.findUnique({
+                    where: {
+                        tenantId_endpoint_key: {
+                            tenantId,
+                            endpoint,
+                            key: idempotencyKey
+                        }
+                    }
+                });
 
-export const idempotency = {
-  /**
-   * Check if this request was already processed.
-   * Returns the cached Response if found, null if new.
-   */
-  check(req: Request): Response | null {
-    const key = extractKey(req);
-    if (!key) return null;
+                if (!record) {
+                    // Extremely rare edge case where create failed but findUnique returned null
+                    throw new Error('Idempotency conflict resolution failed.');
+                }
+            } else {
+                throw error;
+            }
+        }
 
-    const existing = STORE.get(key);
-    if (!existing) return null;
+        // 4. Handle Existing Record Status
+        if (record.status === 'IN_PROGRESS') {
+            return NextResponse.json(
+                { success: false, message: 'طلب مكرر تحت المعالجة (IN_PROGRESS).' },
+                { status: 409 }
+            );
+        }
 
-    // Check TTL
-    if (Date.now() - existing.createdAt > TTL) {
-      STORE.delete(key);
-      return null;
+        if (record.status === 'COMPLETED') {
+            if (record.requestHash !== requestHash) {
+                return NextResponse.json(
+                    { success: false, message: 'مفتاح Idempotency مكرر مع بيانات طلب مختلفة.' },
+                    { status: 400 }
+                );
+            }
+            return NextResponse.json(record.responseBody, { status: record.responseCode || 200 });
+        }
+
+        if (record.status === 'FAILED') {
+            if (record.requestHash !== requestHash) {
+                return NextResponse.json(
+                    { success: false, message: 'مفتاح Idempotency مكرر لطلب فاشل مع بيانات مختلفة.' },
+                    { status: 400 }
+                );
+            }
+            // Update back to IN_PROGRESS for retry
+            await prisma.idempotencyRecord.update({
+                where: { id: record.id },
+                data: { status: 'IN_PROGRESS', lockedAt: new Date() }
+            });
+        }
+
+        // 5. Execute Original Handler
+        let response: NextResponse;
+        try {
+            response = await handler();
+        } catch (handlerError: any) {
+            // Handler threw an unhandled exception
+            await prisma.idempotencyRecord.update({
+                where: { id: record.id },
+                data: { status: 'FAILED' }
+            });
+            throw handlerError; // Re-throw to be handled by global error catcher
+        }
+
+        // 6. Inspect Response
+        if (response.status >= 200 && response.status < 400) {
+            // Success
+            const clonedRes = response.clone();
+            const responseData = await clonedRes.json().catch(() => null);
+            
+            await prisma.idempotencyRecord.update({
+                where: { id: record.id },
+                data: {
+                    status: 'COMPLETED',
+                    responseCode: response.status,
+                    responseBody: responseData || undefined
+                }
+            });
+        } else {
+            // Business logic failure (e.g., 400, 422) returned via NextResponse
+            await prisma.idempotencyRecord.update({
+                where: { id: record.id },
+                data: { status: 'FAILED' }
+            });
+        }
+
+        return response;
+    } catch (e: any) {
+        // Fallback for fatal errors outside the handler
+        console.error('[Idempotency System] Fatal error:', e);
+        return NextResponse.json({ success: false, message: 'خطأ في نظام المعالجة.' }, { status: 500 });
     }
-
-    log.info(`Idempotency hit: ${key}`);
-    return new Response(JSON.stringify(existing.body), {
-      status: existing.status,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Idempotency-Replayed': 'true',
-      },
-    });
-  },
-
-  /**
-   * Save a response for this idempotency key.
-   * Call after successfully processing the request.
-   */
-  save(req: Request, status: number, body: unknown): void {
-    const key = extractKey(req);
-    if (!key) return;
-
-    STORE.set(key, {
-      status,
-      body,
-      createdAt: Date.now(),
-    });
-
-    log.info(`Idempotency saved: ${key}`);
-  },
-
-  /** Check if key exists without returning response */
-  has(req: Request): boolean {
-    const key = extractKey(req);
-    return key ? STORE.has(key) : false;
-  },
-
-  /** Stats */
-  stats(): { size: number; ttlHours: number } {
-    return { size: STORE.size, ttlHours: TTL / 3600000 };
-  },
-};
+}

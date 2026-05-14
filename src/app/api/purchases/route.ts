@@ -145,40 +145,32 @@ async function _POST(request: Request) {
 
             if (receiptStatus === 'received') {
                 for (const item of items) {
-                    const _qty_dup144 = Number(item.quantity) || 1;
+                    const qty = Number(item.quantity) || 1;
                     const productId = Number(item.productId);
                     await tx.product.update({
                         where: { id: productId },
-                        // @ts-expect-error [TS2304] Cannot find name
                         data: { currentStock: { increment: qty } },
                     });
                     
-                    try {
-                        await tx.productStock.upsert({
-                            where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
-                            // @ts-expect-error [TS2304] Cannot find name
-                            update: { quantity: { increment: qty } },
-                            // @ts-expect-error [TS2304] Cannot find name
-                            create: { productId, stockId: createdInvoice.stockId, quantity: qty },
-                        });
-                        
-                        // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
-                        await tx.stockMovement.create({
-                            data: {
-                                productId: productId,
-                                stockId: createdInvoice.stockId,
-                                type: 'in',
-                                // @ts-expect-error [TS2304] Cannot find name
-                                quantity: qty,
-                                referenceType: 'purchase_invoice',
-                                referenceId: createdInvoice.id,
-                                userId: userId,
-                                notes: `فاتورة مشتريات #${invoiceNo}`
-                            }
-                        });
-                    } catch (e: any) {
-                         log.error('Failed to update productStock for purchase inside tx:', e);
-                    }
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId, stockId: createdInvoice.stockId } },
+                        update: { quantity: { increment: qty } },
+                        create: { productId, stockId: createdInvoice.stockId, quantity: qty },
+                    });
+                    
+                    // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: productId,
+                            stockId: createdInvoice.stockId,
+                            type: 'in',
+                            quantity: qty,
+                            referenceType: 'purchase_invoice',
+                            referenceId: createdInvoice.id,
+                            userId: userId,
+                            notes: `فاتورة مشتريات #${invoiceNo}`
+                        }
+                    });
                 }
             }
 
@@ -237,12 +229,8 @@ async function _POST(request: Request) {
                 log.error('[document-state-machine] POS audit log failed:', e);
             }
 
-            return createdInvoice;
-        });
-
-        try {
             const { postPurchaseInvoice } = await import('@/lib/auto-journal');
-            await postPurchaseInvoice({
+            const journalResult = await postPurchaseInvoice({
                 invoiceNo,
                 subtotal,
                 taxValue,
@@ -253,10 +241,15 @@ async function _POST(request: Request) {
                 date: new Date().toISOString().split('T')[0],
                 ppvAmount: calculatedPpv,
                 hasGRN: receiptStatus === 'received', // [EG-02] GRN already posted → clear GRNI
+                txClient: tx,
             });
-        } catch (journalErr: unknown) {
-            log.warn('Auto-journal for purchase skipped:', journalErr);
-        }
+
+            if (journalResult && (journalResult as any).success === false) {
+                 throw new Error('فشل إنشاء القيد المحاسبي لفاتورة المشتريات');
+            }
+
+            return createdInvoice;
+        });
 
         return NextResponse.json(invoice, { status: 201 });
     } catch (error: any) {
@@ -378,7 +371,10 @@ async function _DELETE(request: NextRequest) {
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => {
+    const { withIdempotency } = await import('@/lib/idempotency');
+    return withIdempotency(req as NextRequest, 'POST /api/purchases', async () => _POST(req as any));
+}, { rateLimit: 'FINANCIAL' });
 
 export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'FINANCIAL' });
 
