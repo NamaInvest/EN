@@ -4,9 +4,10 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'customer.table' });
 
-export async function GET(req: NextRequest, { params }: { params: { qrToken: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ qrToken: string }> }) {
     try {
         const prisma = getPrisma(req);
+        const params = await context.params;
         
         const table = await prisma.restaurantTable.findUnique({
             where: { qrToken: params.qrToken },
@@ -24,9 +25,10 @@ export async function GET(req: NextRequest, { params }: { params: { qrToken: str
     }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { qrToken: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ qrToken: string }> }) {
     try {
         const prisma = getPrisma(req);
+        const params = await context.params;
         const { action } = await req.json();
 
         const table = await prisma.restaurantTable.findUnique({

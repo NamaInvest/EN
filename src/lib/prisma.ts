@@ -158,7 +158,8 @@ export function getClient(tenant: string, options: { read?: boolean } = {}) {
                             // Ensure args exists
                             if (!args) args = {} as any;
                             
-                            const hasTenantId = args?.where && typeof args.where === 'object' && 'tenantId' in args.where && args.where.tenantId !== undefined;
+                            const argsAny = args as any;
+                            const hasTenantId = argsAny?.where && typeof argsAny.where === 'object' && 'tenantId' in argsAny.where && argsAny.where.tenantId !== undefined;
                             
                             if (!hasTenantId) {
                                 throw new Error(`[CRITICAL SECURITY] TENANT ISOLATION VIOLATION: Operation '${operation}' on model '${model}' rejected. Missing 'tenantId' in where clause. You MUST use getTenantPrisma(req) to auto-inject it.`);

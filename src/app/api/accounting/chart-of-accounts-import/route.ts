@@ -48,7 +48,7 @@ async function _GET(req: NextRequest) {
   const p        = getPrisma(req as any) as any;
 
   const where: any = { tenantId };
-  if (search) where.OR = [{ code: { contains: search } }, { nameEn: { contains: search } }, { nameEn: { contains: search } }];
+  if (search) where.OR = [{ code: { contains: search } }, { name: { contains: search } }, { nameEn: { contains: search } }];
   if (type)   where.type = type;
 
   const accounts = await p.account?.findMany?.({
@@ -167,7 +167,7 @@ async function _POST(req: NextRequest) {
     const result = await p.account?.upsert?.({
       where: { tenantId_code: { tenantId, code: acct.code } },
       create: data,
-      update: isExisting ? { nameEn: data.nameEn, nameEn: data.nameEn, type: data.type, parentId, notes: data.notes } : {},
+      update: isExisting ? { name: data.name, nameEn: data.nameEn, type: data.type, parentId, notes: data.notes } : {},
     }).catch(async () =>
       p.account?.create?.({ data }).catch((e: any) => { errors.push(`${acct.code}: ${e.message}`); return null; })
     );

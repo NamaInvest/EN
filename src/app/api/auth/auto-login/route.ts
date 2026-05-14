@@ -106,9 +106,9 @@ async function _GET(request: Request) {
 
         log.info(`[auto-login] Valid token for email=${payload.email}, subdomain=${payload.subdomain}`);
 
-        // 1. Try finding by email
+        // 1. Try finding by email (which might be stored as username in this tenant)
         let targetUser = await prisma.user.findFirst({
-            where: { email: payload.email, active: true },
+            where: { username: payload.email, active: true },
             include: { permissions: true },
         });
 
@@ -143,7 +143,7 @@ async function _GET(request: Request) {
             user: {
                 username: targetUser.username,
                 role: payload.overrideRole || targetUser.role,
-                email: targetUser.email
+                email: (targetUser as any).email || payload.email
             },
         });
 
