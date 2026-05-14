@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'PaymentRunEngine' });
 
 import { prisma } from './prisma';
+import { createJournalEntry, ACCOUNTS } from '@/lib/auto-journal';
 
 export class PaymentRunEngine {
     
@@ -232,6 +233,62 @@ export class PaymentRunEngine {
             if (!run) throw new Error('Payment run not found');
             if (run.status !== 'APPROVED') throw new Error('Run must be APPROVED before execution');
 
+            // --- 1. Check Bank Account ---
+            const sourceAccount = await tx.account.findUnique({ where: { id: run.bankAccountId } });
+            if (!sourceAccount || !sourceAccount.code) {
+                throw new Error(`Source Bank Account GL (ID: ${run.bankAccountId}) not found or missing code`);
+            }
+
+            // --- 2. Create Aggregated Treasury Row ---
+            const totalAmt = typeof run.totalAmount === 'number' ? run.totalAmount : Number(run.totalAmount.toString());
+            await tx.treasury.create({
+                data: {
+                    type: 'out',
+                    amount: totalAmt,
+                    description: `Payment Run Execution - ${run.runNumber}`,
+                    referenceType: 'payment_run',
+                    referenceId: run.id,
+                    tenantId: run.tenantId
+                }
+            });
+
+            // --- 3. Build Journal Lines ---
+            const journalLines: Array<{ accountCode: string; debit: number; credit: number; vendorId?: number; description?: string }> = [];
+            
+            // Credit: Source Bank Account for the total amount
+            journalLines.push({
+                accountCode: sourceAccount.code,
+                debit: 0,
+                credit: totalAmt,
+                description: `Payment Run ${run.runNumber} - Total Transfer`
+            });
+
+            // Debit: AP for each supplier
+            for (const line of run.lines as any[]) {
+                const lineAmt = typeof line.amount === 'number' ? line.amount : Number(line.amount.toString());
+                journalLines.push({
+                    accountCode: ACCOUNTS.PAYABLES,
+                    debit: lineAmt,
+                    credit: 0,
+                    vendorId: line.supplierId,
+                    description: `Payment to Supplier ${line.supplierId} - Run ${run.runNumber}`
+                });
+            }
+
+            // --- 4. Create Aggregated Journal Entry ---
+            const journal = await createJournalEntry({
+                description: `Payment Run Execution #${run.runNumber}`,
+                reference: `PRUN-${run.id}`,
+                lines: journalLines,
+                userId: userId ? Number(userId) : undefined,
+                date: new Date().toISOString(),
+                txClient: tx
+            });
+
+            if (!journal.success || !journal.entryId) {
+                throw new Error(`Failed to create Journal Entry: ${journal.error}`);
+            }
+
             // Generate bank transfer file (SADAD/ISO 20022 compatible)
             const bankFileHeader = ['PAYMENT_RUN', run.runNumber, new Date().toISOString(), String(run.lines.length), String(run.totalAmount)].join('|');
             const bankFileLines: string[] = [bankFileHeader];
@@ -249,14 +306,19 @@ export class PaymentRunEngine {
                 });
             }
             
-            // Update run to SENT_TO_BANK
+            // Update run to SENT_TO_BANK and set journalEntryId
             await tx.paymentRun.update({ 
                 where: { id: runId }, 
-                data: { status: 'SENT_TO_BANK', sentToBankAt: new Date(), sentToBankByUserId: userId } 
+                data: { 
+                    status: 'SENT_TO_BANK', 
+                    sentToBankAt: new Date(), 
+                    sentToBankByUserId: userId,
+                    journalEntryId: journal.entryId
+                } 
             });
             
-            log.info('Payment run executed', { runId, paymentCount: run.lines.length, bankFileRef });
-            return { runId, executed: true, paymentCount: run.lines.length, bankFileRef, bankFileContent };
+            log.info('Payment run executed', { runId, paymentCount: run.lines.length, bankFileRef, journalEntryId: journal.entryId });
+            return { runId, executed: true, paymentCount: run.lines.length, bankFileRef, bankFileContent, journalEntryId: journal.entryId };
         });
     }
 }

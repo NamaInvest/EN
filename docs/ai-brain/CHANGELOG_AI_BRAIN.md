@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.0.7
+- **Payment Run GL & Treasury Binding (Phase B.3):** Upgraded `executePayments` in `PaymentRunEngine` to synchronously generate exactly one aggregated `Treasury` record and one aggregated `JournalEntry` per payment run execution. Enforced strict validation for source `bankAccountId` GL mapping. Modified journal logic to appropriately debit `ACCOUNTS.PAYABLES` partitioned by `vendorId`.
+
 ## Version 1.0.6
 - **Payment Run Execute Atomicity (Phase B.2):** Wrapped `POST /api/finance/payment-runs/[id]/execute` in `withIdempotency` to prevent double-execution of bank files. Integrated mandatory `tenantId` checking and filtering. Executed `PaymentRunEngine.executePayments` within a strict `prisma.$transaction` encompassing both run status and line item updates. Banned `.catch(() => {})` usage.
 
