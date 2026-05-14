@@ -262,12 +262,19 @@ async function _PUT(request: Request) {
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
-        const { invoiceId, amount, userId } = purchasePaymentSchema.parse(rawBody);
+        const { invoiceId, amount, paymentType, userId } = purchasePaymentSchema.parse(rawBody);
 
         const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: Number(invoiceId) } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        const payAmount = Math.min(Number(amount), n(invoice.remaining));
+        if (invoice.status === 'completed') {
+            return NextResponse.json({ error: 'الفاتورة مدفوعة بالكامل' }, { status: 400 });
+        }
+
+        const payAmount = Number(amount);
+        if (payAmount > n(invoice.remaining)) {
+            return NextResponse.json({ error: 'المبلغ المدفوع يتجاوز الرصيد المتبقي للفاتورة' }, { status: 400 });
+        }
         if (payAmount <= 0) return NextResponse.json({ error: 'لا يوجد رصيد مستحق' }, { status: 400 });
 
         const newPaid = n(invoice.paid) + payAmount;
@@ -286,7 +293,7 @@ async function _PUT(request: Request) {
             const parsedUserId = userId ? Number(userId) : null;
             const branchId = invoice.branchId; // use invoice's original branch
 
-            await tx.treasury.create({
+            const treasuryRec = await tx.treasury.create({
                 data: {
                     type: 'out',
                     amount: payAmount,
@@ -296,6 +303,18 @@ async function _PUT(request: Request) {
                     userId: parsedUserId,
                     branchId,
                 },
+            });
+
+            const { postPurchasePayment } = await import('@/lib/auto-journal');
+            await postPurchasePayment({
+                invoiceNo: invoice.invoiceNo,
+                amount: payAmount,
+                paymentType: paymentType as 'cash' | 'bank',
+                treasuryId: treasuryRec.id,
+                userId: parsedUserId,
+                branchId: branchId,
+                date: new Date().toISOString().split('T')[0],
+                txClient: tx,
             });
 
             return updatedInvoice;
@@ -376,6 +395,9 @@ export const POST = withRoute(async ({ req }) => {
     return withIdempotency(req as NextRequest, 'POST /api/purchases', async () => _POST(req as any));
 }, { rateLimit: 'FINANCIAL' });
 
-export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'FINANCIAL' });
+export const PUT = withRoute(async ({ req }) => {
+    const { withIdempotency } = await import('@/lib/idempotency');
+    return withIdempotency(req as NextRequest, 'PUT /api/purchases', async () => _PUT(req as any));
+}, { rateLimit: 'FINANCIAL' });
 
 export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'FINANCIAL' });

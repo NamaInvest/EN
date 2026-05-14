@@ -1294,3 +1294,40 @@ export async function postFXRevaluation(params: {
         date: params.date,
     });
 }
+
+/**
+ * قيد تسديد دفعة جزئية لمورد
+ * DR: Accounts Payable
+ * CR: Cash or Bank
+ */
+export async function postPurchasePayment(params: {
+    invoiceNo: string | number;
+    amount: number;
+    paymentType: 'cash' | 'bank';
+    treasuryId: number;
+    userId?: number | null;
+    branchId?: number | null;
+    date?: string;
+    txClient?: any;
+}) {
+    const payAccount = params.paymentType === 'bank' ? ACCOUNTS.BANK : ACCOUNTS.CASH;
+
+    const result = await createJournalEntry({
+        description: `تسديد دفعة فاتورة مشتريات #${params.invoiceNo}`,
+        reference: `PUR-PAY-${params.invoiceNo}-${params.treasuryId}`,
+        lines: [
+            { accountCode: ACCOUNTS.PAYABLES, debit: params.amount, credit: 0, description: `نقص التزام المورد - فاتورة #${params.invoiceNo}` },
+            { accountCode: payAccount, debit: 0, credit: params.amount, description: `تسديد دفعة شراء #${params.invoiceNo}` },
+        ],
+        userId: params.userId || undefined,
+        branchId: params.branchId,
+        date: params.date,
+        txClient: params.txClient,
+    });
+
+    if (result && (result as any).success === false) {
+        throw new Error(`فشل إنشاء القيد المحاسبي لدفعة المشتريات: ${(result as any).error}`);
+    }
+
+    return result;
+}

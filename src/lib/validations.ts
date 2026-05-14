@@ -7,13 +7,13 @@ const log = logger.child({ service: 'validations' });
 const numericId = z.union([z.number().int(), z.string().transform(val => parseInt(val, 10)).pipe(z.number().int())]);
 
 const nonNegativeAmount = z.union([
-    z.number().min(0, 'المبلغ لا يمكن أن يكون سالباً'),
-    z.string().transform(val => parseFloat(val)).pipe(z.number().min(0, 'المبلغ لا يمكن أن يكون سالباً'))
+  z.number().min(0, 'المبلغ لا يمكن أن يكون سالباً'),
+  z.string().transform(val => parseFloat(val)).pipe(z.number().min(0, 'المبلغ لا يمكن أن يكون سالباً'))
 ]);
 
 export const amountSchema = z.union([
-    z.number().positive('المبلغ يجب أن يكون رقماً موجباً أكبر من صفر'),
-    z.string().transform(val => parseFloat(val)).pipe(z.number().positive('المبلغ يجب أن يكون رقماً موجباً أكبر من صفر'))
+  z.number().positive('المبلغ يجب أن يكون رقماً موجباً أكبر من صفر'),
+  z.string().transform(val => parseFloat(val)).pipe(z.number().positive('المبلغ يجب أن يكون رقماً موجباً أكبر من صفر'))
 ]);
 
 const optionalString = z.string().optional().nullable();
@@ -114,6 +114,7 @@ export const purchaseCreateSchema = z.object({
 export const purchasePaymentSchema = z.object({
   invoiceId: numericId,
   amount: amountSchema,
+  paymentType: z.enum(['cash', 'bank']),
   userId: optionalId,
 });
 
